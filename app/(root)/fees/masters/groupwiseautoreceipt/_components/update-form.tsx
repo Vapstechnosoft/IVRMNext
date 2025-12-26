@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown, useFeeMasterGroupwiseAutoReceiptDropDown } from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
@@ -79,8 +80,11 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
     const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [isLoadingDropdowns, setIsLoadingDropdowns] = useState(false);
-    const [usePrefix, setUsePrefix] = useState(false);
-    const [useSuffix, setUseSuffix] = useState(false);
+    // const [usePrefix, setUsePrefix] = useState(false);
+    // const [useSuffix, setUseSuffix] = useState(false);
+
+    const usePrefix = watch('usePrefix');
+    const useSuffix = watch('useSuffix');
 
     const academicYear = watch('academicYear');
     const groupsValue = watch('groups');
@@ -151,8 +155,8 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
         const hasPrefix = selectedRow.fgaR_PrefixFlag === '1' && !!selectedRow.fgaR_PrefixName;
         const hasSuffix = selectedRow.fgaR_SuffixFlag === '1' && !!selectedRow.fgaR_SuffixName;
 
-        setUsePrefix(hasPrefix);
-        setUseSuffix(hasSuffix);
+        // setUsePrefix(hasPrefix);
+        // setUseSuffix(hasSuffix);
         setValue('usePrefix', hasPrefix);
         setValue('useSuffix', hasSuffix);
         setValue('prefixValue', selectedRow.fgaR_PrefixName || '');
@@ -244,8 +248,8 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
         reset();
         setSelectedGroups([]);
         setSearchTerm('');
-        setUsePrefix(false);
-        setUseSuffix(false);
+        // setUsePrefix(false);
+        // setUseSuffix(false);
         setHasSubmitted(false);
     };
 
@@ -314,8 +318,8 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                             <div className='lg:col-span-2'>
                                 <Label>Prefix / Suffix</Label>
                                 <div className='mt-2 flex flex-wrap gap-6'>
-                                    <label className='flex items-center space-x-2'>
-                                        <input
+                                    <Label className='flex items-center space-x-2'>
+                                        {/* <input
                                             type='checkbox'
                                             checked={usePrefix}
                                             onChange={(e) => {
@@ -332,11 +336,26 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                                 }
                                             }}
                                             className='h-4 w-4 rounded border-gray-300 accent-primary'
+                                        /> */}
+                                        <Input
+                                            type='checkbox'
+                                            checked={usePrefix}
+                                            onChange={(e) => {
+                                                const checked = e.target.checked;
+
+                                                setValue('usePrefix', checked, { shouldValidate: hasSubmitted });
+
+                                                if (!checked) {
+                                                    setValue('prefixValue', '', { shouldValidate: hasSubmitted });
+                                                }
+                                            }}
+                                            className='h-4 w-4 rounded border-gray-300 accent-primary'
                                         />
+
                                         <span>Prefix</span>
-                                    </label>
-                                    <label className='flex items-center space-x-2'>
-                                        <input
+                                    </Label>
+                                    <Label className='flex items-center space-x-2'>
+                                        {/* <input
                                             type='checkbox'
                                             checked={useSuffix}
                                             onChange={(e) => {
@@ -353,13 +372,27 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                                 }
                                             }}
                                             className='h-4 w-4 rounded border-gray-300 accent-primary'
+                                        /> */}
+
+                                        <Input
+                                            type='checkbox'
+                                            checked={useSuffix}
+                                            onChange={(e) => {
+                                                const checked = e.target.checked;
+
+                                                setValue('useSuffix', checked, { shouldValidate: hasSubmitted });
+
+                                                if (!checked) {
+                                                    setValue('suffixValue', '', { shouldValidate: hasSubmitted });
+                                                }
+                                            }}
+                                            className='h-4 w-4 rounded border-gray-300 accent-primary'
                                         />
                                         <span>Suffix</span>
-                                    </label>
+                                    </Label>
                                 </div>
                             </div>
 
-                            {/* Prefix Input */}
                             {usePrefix && (
                                 <div>
                                     <Label htmlFor='prefixValue'>
@@ -376,7 +409,6 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                 </div>
                             )}
 
-                            {/* Suffix Input */}
                             {useSuffix && (
                                 <div>
                                     <Label htmlFor='suffixValue'>

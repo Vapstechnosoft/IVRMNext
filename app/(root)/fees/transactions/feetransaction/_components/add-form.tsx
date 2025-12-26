@@ -19,10 +19,19 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useStudentClassDropDown, useStudentSectionDropDown } from '@/hooks/fees/useMasters';
-import { useopeningacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
+import { useFeeDefaulterReport } from '@/hooks/fees/useReports';
+import { useFeeMasterConfiguration, useFeeTransactionList } from '@/hooks/fees/useTrasactions';
 import { feesStudentTransactionSchema } from '@/schemas/fees/trasactions';
-import { getFeeHead, getStudentDetails, searchStudentName } from '@/server/fees/trasactions/fee_student_transaction';
-import type { IFeeTDetails, IStudentSearchList, IStudentTDetails, IStudentTermList } from '@/types/fees/transactions/transactions';
+import { getFeeHead, getStudentDetails, saveFeeTransaction, searchStudentName } from '@/server/fees/trasactions/fee_student_transaction';
+import type {
+    IFeeTDetails,
+    IFeeTermDetails,
+    IStudentSearchList,
+    IStudentTDetails,
+    IStudentTermList,
+    MasterModeofPayment,
+    MasterNarration
+} from '@/types/fees/transactions/transactions';
 import type { z } from 'zod';
 import FeeDetails from './fee-head-column';
 
@@ -30,32 +39,12 @@ type FormFields = z.infer<typeof feesStudentTransactionSchema.addOrUpdate>;
 
 interface FeestudentTrasactionsFormProps {
     onSuccess?: () => void;
+    asmayId?: number;
 }
 
-const payDetails = [
-    {
-        fmB_Id: 1,
-        bank: 'Cash'
-    },
-    {
-        fmB_Id: 2,
-        bank: 'Bank'
-    },
-    {
-        fmB_Id: 3,
-        bank: 'RTGS/NEFT'
-    },
-    {
-        fmB_Id: 4,
-        bank: 'Swipe/Card'
-    },
-    {
-        fmB_Id: 5,
-        bank: 'UPI'
-    }
-];
+export default function StudentFeeTransaction({ onSuccess, asmayId }: FeestudentTrasactionsFormProps) {
+    const { refetchAll } = useFeeTransactionList(Number(asmayId));
 
-export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactionsFormProps) {
     const {
         handleSubmit,
         reset,
@@ -81,7 +70,11 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
     const [loadingTerm, setLoadingTerm] = useState(false);
     const [studentDetails, SetStudentDetails] = useState<IStudentTDetails[]>([]);
     const [feeDetails, SetFeeDetails] = useState<IFeeTDetails[]>([]);
-    const [feeHeads, setFeeHeads] = useState<IFeeTDetails[]>([]);
+    const [studentUserNameDetails, SetStudentUserNameDetails] = useState<IFeeTDetails[]>([]);
+    // const [studentAmountDetails, SetStudentAmountDetails] = useState<IFeeTDetails[]>([]);
+    const [feeHeads, setFeeHeads] = useState<IFeeTermDetails[]>([]);
+    const [masternarration, setMasternarration] = useState<MasterNarration[]>([]);
+    const [masterModeofPaymentList, setMasterModeofPaymentList] = useState<MasterModeofPayment[]>([]);
     const [loadingFeeHead, setLoadingFeeHead] = useState(false);
     const [selectedHeads, setSelectedHeads] = useState<Record<number, boolean>>({});
     const [currentCharges, setCurrentCharges] = useState<{
@@ -108,32 +101,43 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
     const [rebateAmount, setRebateAmount] = useState<{
         [key: number]: string;
     }>({});
-    const [bankDetails, setBankDetails] = useState<any[]>([]);
+    const [TotalCurrentFee, setTotalCurrentFee] = useState<number>();
+    const [ConcessionAmount, setConcessionAmount] = useState<number>();
+    const [TotalConcession, setTotalConcession] = useState<number>();
+    const [totalPayable, settotalPayable] = useState<number>();
+    const [overAllOutStanding, setoverAllOutStanding] = useState<number>();
+    const [TotalWaivedOff, setTotalWaivedOff] = useState<number>();
+    const [Totalfine, setTotalFine] = useState<number>();
+    const [TotalPaying, setTotalPaying] = useState<number>(0);
+    const [fineAmount, setFineAmount] = useState<number>();
+    // const [totalAmount, settotalAmount] = useState<number>(0);
+    const [TotalOutStanding, setTotalOutStanding] = useState<number>();
     const [chequeNo, setChequeNo] = useState<{
         [key: number]: string;
     }>({});
-    const [chequedates, setchepueDates] = useState<Record<number, Date | null>>({});
+    const [chequedates, setchequeDates] = useState<Record<number, Date | null>>({});
     const [amount, setAmount] = useState<{
         [key: number]: string;
     }>({});
     const [filterType, setFilterType] = useState('regular');
-    const [payType, setPayType] = useState<string>('Bank');
+    const [payType, setPayType] = useState<string>('');
     const [modeType, setModeType] = useState<string>('Single');
-    const [checkPayType, setCheckPayType] = useState<string[]>(['Bank']);
+    const [checkPayType, setCheckPayType] = useState<string[]>(['']);
     const [selectedBanks, setSelectedBanks] = useState<Record<number, string>>({});
-
     const [left, setLeft] = useState(false);
     const [deactive, setDeative] = useState(false);
     const [classs, setClass] = useState(false);
     const [section, setSection] = useState(false);
     const [amountCheck, setAmountCheck] = useState(false);
-
+    const [amountforTerm, setAmountforTerm] = useState('');
     const [selectAll, setSelectAll] = useState(false);
     const [sms, setSms] = useState(false);
     const [email, setEmail] = useState(false);
     const [openFeeDetails, setOpenFeeDetails] = useState(false);
     const [challenSearch, setChallenSearch] = useState('');
     const [todaysDate, setTodaysDate] = useState<Date | undefined>(new Date());
+    const [selectedNarration, setSelectedNarration] = useState<number | null>(null);
+    const [narrationRemark, setNarrationRemark] = useState('');
 
     const filterOptions = [
         { value: 'regular', label: 'Regular' },
@@ -149,20 +153,61 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
 
     const selectedLabel = filterOptions.find((opt) => opt.value === filterType)?.label || '';
 
-    const { data: academicYearData, isLoading: loadingYears } = useopeningacademicyerdropdowndatafee();
+    const { data: academicYearData, isLoading: loadingYears } = useFeeDefaulterReport();
+
+    const { data: masterConfiguration } = useFeeMasterConfiguration();
+
+    const config = masterConfiguration?.data?.[0]?.fmC_AutoReceiptFeeGroupFlag ?? 0;
+    // console.log("masterConfiguration", masterConfiguration);
+    // console.log("config", config);
 
     useEffect(() => {
         setStudentSearch('');
+        setChallenSearch('');
         setTerms([]);
         SetStudentDetails([]);
         SetFeeDetails([]);
-        // setFeeHeads([]);
-        setBankDetails(payDetails);
-    }, [selectedAsmayId, selectedclassId, selectedSectionId]);
+        setselectedTerm([]);
+    }, [selectedAsmayId, selectedclassId, selectedSectionId, filterType]);
+
+    useEffect(() => {
+        setSelectedClassId(0);
+        setSelectedSectionId(0);
+    }, [classs, section]);
+
+    useEffect(() => {
+        setselectedTerm([]);
+        setTerms([]);
+    }, [studentSearch]);
+
+    useEffect(() => {
+        setFeeHeads([]);
+        setSelectedHeads([]);
+        setSelectedNarration(null);
+        setSelectAll(false);
+        setPayableAmount({});
+        setToatlAdjusted({});
+    }, [selectedTerm]);
 
     useEffect(() => {
         if (!amountCheck) setselectedTerm([]);
+        if (!amountCheck) setAmountforTerm('');
     }, [amountCheck]);
+
+    useEffect(() => {
+        setchequeDates({});
+        setChequeNo({});
+        setSelectedBanks({});
+        setAmount({});
+        const selectedPayment = masterModeofPaymentList.find((f) => f.ivrmmoD_ModeOfPayment === payType);
+
+        if (modeType === 'Single' && selectedPayment) {
+            setAmount((prev) => ({
+                ...prev,
+                [selectedPayment.ivrmmoD_Id]: TotalPaying?.toString() || '0'
+            }));
+        }
+    }, [payType, TotalPaying, modeType]);
 
     const { data: feeclassData, isLoading: feeclassDataLoading } = useStudentClassDropDown(classs);
 
@@ -212,7 +257,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                 const payload = {
                     amst_Id: selectedStudent.amst_Id,
                     filterinitialdata: filterType,
-                    configset: 'T',
+                    // configset: 'T',
                     autoReceiptFlag: true,
                     asmaY_Id: selectedAsmayId
                 };
@@ -220,9 +265,13 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                 const termList = JSON.parse(JSON.stringify(termArray.masterGroupDetails || []));
                 const studentDetails = JSON.parse(JSON.stringify(termArray.fillstudents || []));
                 const feeDetails = JSON.parse(JSON.stringify(termArray.showstaticticsdetails || []));
+                const studentUserNameArray = JSON.parse(JSON.stringify(termArray.filusernames || []));
+                // const studentAmountDetails = JSON.parse(JSON.stringify(termArray.fillstudentviewdetails || []));
                 setTerms(termList || []);
                 SetStudentDetails(studentDetails || []);
                 SetFeeDetails(feeDetails || []);
+                SetStudentUserNameDetails(studentUserNameArray || []);
+                // SetStudentAmountDetails(studentAmountDetails || []);
             } catch (error) {
                 console.error('Failed to fetch students:', error);
                 setTerms([]);
@@ -244,20 +293,25 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
 
             try {
                 const payload = {
-                    amst_Id: selectedStudent?.amst_Id,
                     filterinitialdata: filterType,
-                    configset: 'T',
-                    autoReceiptFlag: true,
-                    asmaY_Id: selectedAsmayId
+                    amst_Id: selectedStudent?.amst_Id,
+                    asmaY_Id: selectedAsmayId,
+                    configset: '',
+                    multiplegroups: selectedTerm.toString(),
+                    fyP_Date: todaysDate
                 };
-
-                const termArray = await getFeeHead(payload);
-
-                const feeDetails = JSON.parse(JSON.stringify(termArray.showstaticticsdetails || []));
-
+                const termListArray = await getFeeHead(payload);
+                const feeDetails = JSON.parse(JSON.stringify(termListArray.feeStudentTermInfo || []));
+                const narrationDropDown = JSON.parse(JSON.stringify(termListArray.masterNarrations || []));
+                const modeofPaymentList = JSON.parse(JSON.stringify(termListArray.modeOfPaymentDTOs || []));
                 setFeeHeads(feeDetails || []);
+                setMasternarration(narrationDropDown || []);
+                setMasterModeofPaymentList(modeofPaymentList || []);
+
+                setPayType(modeofPaymentList[0]?.ivrmmoD_ModeOfPayment ?? '');
+                setCheckPayType(modeofPaymentList[0]?.ivrmmoD_ModeOfPayment ?? '');
             } catch (error) {
-                console.error('Failed to fetch students:', error);
+                console.error('Failed to fetch fee heads:', error);
                 setFeeHeads([]);
             } finally {
                 setLoadingFeeHead(false);
@@ -265,7 +319,65 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
         };
 
         fetchFeeHeadDetails();
-    }, [selectedTerm]);
+    }, [selectedTerm, filterType, selectedStudent, selectedAsmayId]);
+
+    useEffect(() => {
+        const concession = feeHeads.reduce((sum, f) => {
+            const amount = Number.parseFloat(f.fsS_ConcessionAmount.toString()) || 0;
+            return sum + amount;
+        }, 0);
+        const totalconcession = feeDetails.reduce((sum, f) => {
+            const amount = Number.parseFloat(f.fsS_ConcessionAmount.toString()) || 0;
+            return sum + amount;
+        }, 0);
+        const totalWaivedOff = feeDetails.reduce((sum, f) => {
+            const amount = Number.parseFloat(f.fsS_WaivedAmount.toString()) || 0;
+            return sum + amount;
+        }, 0);
+        const totalPayable = feeDetails.reduce((sum, f) => {
+            const amount = Number.parseFloat(f.fsS_TotalToBePaid.toString()) || 0;
+            return sum + amount;
+        }, 0);
+        const overAllOutStanding = feeDetails.reduce((sum, f) => {
+            const amount = Number.parseFloat(f.fsS_ToBePaid.toString()) || 0;
+            return sum + amount;
+        }, 0);
+        const totalfine = feeDetails.reduce((sum, f) => {
+            const amount = Number.parseFloat(f.fsS_FineAmount.toString()) || 0;
+            return sum + amount;
+        }, 0);
+        const fine = feeHeads.reduce((sum, f) => {
+            const amount = Number.parseFloat(f.fsS_FineAmount.toString()) || 0;
+            return sum + amount;
+        }, 0);
+        const totalpaying = feeHeads.reduce((sum, f) => {
+            const amount = Number.parseFloat(f.fsS_ToBePaid.toString()) || 0;
+            return sum + amount;
+        }, 0);
+        const totalCurrentFee = feeHeads.reduce((sum, f) => {
+            const amount = Number.parseFloat(f.fsS_CurrentYrCharges.toString()) || 0;
+            return sum + amount;
+        }, 0);
+        setConcessionAmount(concession);
+        setTotalConcession(totalconcession);
+        settotalPayable(totalPayable);
+        setTotalFine(totalfine);
+        setoverAllOutStanding(overAllOutStanding);
+        setTotalWaivedOff(totalWaivedOff);
+        setFineAmount(fine);
+        setTotalCurrentFee(totalCurrentFee);
+        setTotalOutStanding(totalpaying);
+    }, [feeHeads]);
+
+    useEffect(() => {
+        const selectedItems = feeHeads.filter((f) => selectedHeads[f.fmA_Id]);
+        const totalpaying = selectedItems.reduce((sum, f) => {
+            const payableValue = payableAmount[f.fmA_Id];
+            const amount = payableValue ? Number.parseFloat(payableValue) || 0 : Number.parseFloat(f.fsS_ToBePaid?.toString() || '0') || 0;
+            return sum + amount;
+        }, 0);
+        setTotalPaying(totalpaying);
+    }, [selectedHeads, feeHeads, payableAmount]);
 
     const toggleRow = (id: number, checked: boolean) => {
         setSelectedHeads((prev) => {
@@ -273,7 +385,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
             if (!checked) {
                 setSelectAll(false);
             } else {
-                const allChecked = feeHeads.every((item) => updated[item.fmG_Id]);
+                const allChecked = feeHeads.every((item) => updated[item.fmA_Id]);
                 setSelectAll(allChecked);
             }
 
@@ -285,7 +397,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
         setSelectAll(checked);
         const newState: Record<number, boolean> = {};
         feeHeads.forEach((f) => {
-            newState[f.fmG_Id] = checked;
+            newState[f.fmA_Id] = checked;
         });
 
         setSelectedHeads(newState);
@@ -298,12 +410,9 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
             applySelection(newSelectedValues);
             return;
         }
-
         const newlySelected = newSelectedValues.map(Number);
         const previouslySelected = selectedTerm.map(Number);
-
         const orderedTerms = terms;
-
         const clickedId =
             newlySelected.find((id) => !previouslySelected.includes(id)) ?? previouslySelected.find((id) => !newlySelected.includes(id));
 
@@ -313,20 +422,15 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
         }
 
         const clickedIndex = orderedTerms.findIndex((t) => t.fmT_Id === clickedId);
-
         const isChecking = newlySelected.includes(clickedId);
         const isUnchecking = !isChecking;
 
         if (isChecking) {
             for (let i = 0; i < clickedIndex; i++) {
                 const above = orderedTerms[i];
-
                 const isEnabled = above.disablepaisterms === false || above.disablepaisterms === undefined;
-
                 if (!isEnabled) continue;
-
                 const isAboveSelected = newlySelected.includes(above.fmT_Id);
-
                 if (!isAboveSelected) {
                     toast.warning('You have to select Terms in Order');
                     return;
@@ -337,9 +441,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
         if (isUnchecking) {
             for (let i = clickedIndex + 1; i < orderedTerms.length; i++) {
                 const below = orderedTerms[i];
-
                 const isBelowSelected = previouslySelected.includes(below.fmT_Id);
-
                 if (isBelowSelected) {
                     toast.warning('You cannot unselect,because you have selected next Term');
                     return;
@@ -352,7 +454,6 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
 
     const applySelection = (selectedValues: string[]) => {
         setselectedTerm(selectedValues);
-
         const updated = terms.map((ex) => ({
             ...ex,
             checked: selectedValues.includes(ex.fmT_Id.toString())
@@ -381,7 +482,212 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
     };
 
     const onSubmit = async () => {
-        toast.success('Fee Transaction Saved Successfully!');
+        if (feeHeads.filter((f) => selectedHeads[f.fmA_Id]).length === 0) {
+            toast.error('Atleast one head has to be checked to save the Transaction!!!');
+            return;
+        }
+        if (modeType === 'Single') {
+            const selectedPayment = masterModeofPaymentList.find((f) => f.ivrmmoD_ModeOfPayment === payType);
+
+            if (!selectedPayment) {
+                toast.error('Invalid payment selection');
+                return;
+            }
+            if (selectedPayment.ivrmmoD_Flag.toLowerCase() !== 'c') {
+                const paymentId = selectedPayment.ivrmmoD_Id;
+                if (!chequeNo[paymentId] || chequeNo[paymentId] === '') {
+                    toast.error('Please enter Cheque No. for Selected Payment Mode');
+                    return;
+                }
+                if (!selectedBanks[paymentId] || selectedBanks[paymentId] === '') {
+                    toast.error('Please select Bank for Selected Payment Mode');
+                    return;
+                }
+
+                if (!amount[paymentId] || amount[paymentId] === '') {
+                    toast.error('Please enter Amount for Selected Payment Mode');
+                    return;
+                }
+                if (amount[paymentId] === Number(0).toString()) {
+                    toast.error('Amount Is Must Be Greater Than Zero');
+                    return;
+                }
+                if (amount[paymentId] > Number(TotalPaying).toString() || amount[paymentId] < Number(TotalPaying).toString()) {
+                    toast.error('Sum Of Amounts Of By Mode Of Payments Must Match Now Paying Amount');
+                    return;
+                }
+            } else {
+                const paymentId = selectedPayment.ivrmmoD_Id;
+                if (amount[paymentId] === Number(0).toString()) {
+                    toast.error('Amount Is Must Be Greater Than Zero');
+                    return;
+                }
+                if (amount[paymentId] > Number(TotalPaying).toString() || amount[paymentId] < Number(TotalPaying).toString()) {
+                    toast.error('Sum Of Amounts Of By Mode Of Payments Must Match Now Paying Amount');
+                    return;
+                }
+            }
+        } else {
+            const selectedPayments = masterModeofPaymentList.filter((f) => checkPayType.includes(f.ivrmmoD_ModeOfPayment));
+
+            if (selectedPayments.length === 0) {
+                toast.error('Invalid payment selection');
+                return;
+            }
+
+            const total = selectedPayments.reduce((sum, f) => {
+                const payableValue = amount[f.ivrmmoD_Id];
+                const amountr = payableValue
+                    ? Number.parseFloat(payableValue) || 0
+                    : Number.parseFloat(amount[f.ivrmmoD_Id]?.toString() || '0') || 0;
+                return sum + amountr;
+            }, 0);
+            // settotalAmount(total);
+            // console.log('totalAmountSum', total);
+
+            for (const payment of selectedPayments) {
+                const paymentId = payment.ivrmmoD_Id;
+                if (payment.ivrmmoD_Flag.toLowerCase() !== 'c') {
+                    if (!chequeNo[paymentId] || chequeNo[paymentId] === '') {
+                        toast.error(`Please enter Cheque No. for ${payment.ivrmmoD_ModeOfPayment}`);
+                        return;
+                    }
+
+                    if (!selectedBanks[paymentId] || selectedBanks[paymentId] === '') {
+                        toast.error(`Please Select a Bank for ${payment.ivrmmoD_ModeOfPayment}`);
+                        return;
+                    }
+
+                    if (!amount[paymentId] || amount[paymentId] === '') {
+                        toast.error(`Please enter Amount for ${payment.ivrmmoD_ModeOfPayment}`);
+                        return;
+                    }
+
+                    const paymentAmount = Number.parseFloat(amount[paymentId]);
+                    if (Number.isNaN(paymentAmount) || paymentAmount <= 0) {
+                        toast.error(`Amount Must Be Greater Than Zero for ${payment.ivrmmoD_ModeOfPayment}`);
+                        return;
+                    }
+                } else {
+                    if (!amount[paymentId] || amount[paymentId] === '') {
+                        toast.error(`Please enter Amount for ${payment.ivrmmoD_ModeOfPayment}`);
+                        return;
+                    }
+
+                    const paymentAmount = Number.parseFloat(amount[paymentId]);
+                    if (Number.isNaN(paymentAmount) || paymentAmount <= 0) {
+                        toast.error(`Amount Must Be Greater Than Zero for ${payment.ivrmmoD_ModeOfPayment}`);
+                        return;
+                    }
+                }
+            }
+            const tolerance = 0.01;
+            if (Math.abs(total - TotalPaying) > tolerance) {
+                toast.error(`Sum Of Amounts (${total}) Must Match Now Paying Amount (${TotalPaying})`);
+                return;
+            }
+        }
+
+        try {
+            const savePaymentModes = [];
+
+            if (modeType === 'Single') {
+                const selectedPayment = masterModeofPaymentList.find((f) => f.ivrmmoD_ModeOfPayment === payType);
+                if (selectedPayment) {
+                    const paymentMode = {
+                        fyppM_TotalPaidAmount: amount[selectedPayment.ivrmmoD_Id] || '0',
+                        fyppM_TransactionTypeFlag: selectedPayment.ivrmmoD_Flag,
+                        fyppM_BankName: selectedBanks[selectedPayment.ivrmmoD_Id],
+                        fyppM_DDChequeDate: chequedates[selectedPayment.ivrmmoD_Id] ?? new Date(),
+                        fyppM_DDChequeNo: chequeNo[selectedPayment.ivrmmoD_Id],
+                        ivrmmoD_ModeOfPayment_Code: selectedPayment.ivrmmoD_ModeOfPayment_Code,
+                        fyppM_Id: 0
+                    };
+                    savePaymentModes.push(paymentMode);
+                }
+            } else {
+                const selectedPayment = masterModeofPaymentList.filter((f) => checkPayType.includes(f.ivrmmoD_ModeOfPayment));
+                selectedPayment.forEach((f) => {
+                    const payment = {
+                        fyppM_TotalPaidAmount: amount[f.ivrmmoD_Id] || '0',
+                        fyppM_TransactionTypeFlag: f.ivrmmoD_Flag,
+                        fyppM_BankName: selectedBanks[f.ivrmmoD_Id] ?? '',
+                        fyppM_DDChequeDate: chequedates[f.ivrmmoD_Id] ?? new Date(),
+                        fyppM_DDChequeNo: chequeNo[f.ivrmmoD_Id] ?? '',
+                        ivrmmoD_ModeOfPayment_Code: f.ivrmmoD_ModeOfPayment_Code,
+                        fyppM_Id: 0
+                    };
+                    savePaymentModes.push(payment);
+                });
+            }
+
+            const feeStudentTermInfos = feeHeads
+                .filter((f) => selectedHeads[f.fmA_Id])
+                .map((fee) => ({
+                    fmA_Id: fee.fmA_Id,
+                    fmH_FeeName: fee.fmH_FeeName,
+                    fmH_Flag: fee.fmH_Flag,
+                    ftI_Name: fee.ftI_Name,
+                    fmH_Id: fee.fmH_Id,
+                    ftI_Id: fee.ftI_Id,
+                    totalamount: Number(netAmount[fee.fmA_Id] ?? fee.fsS_CurrentYrCharges),
+                    fsS_ToBePaid: Number(payableAmount[fee.fmA_Id] ?? fee.fsS_ToBePaid),
+                    fsS_ConcessionAmount: Number(concession[fee.fmA_Id] ?? fee.fsS_ConcessionAmount),
+                    fsS_FineAmount: fee.fsS_FineAmount,
+                    fsS_CurrentYrCharges: Number(currentCharges[fee.fmA_Id] ?? fee.fsS_CurrentYrCharges),
+                    fsS_TotalToBePaid: Number(totalCharges[fee.fmA_Id] ?? fee.fsS_TotalToBePaid),
+                    fmG_Id: fee.fmG_Id,
+                    fmG_GroupName: fee.fmG_GroupName,
+                    fsS_OBArrearAmount: fee.fsS_OBArrearAmount,
+                    fmT_Id: fee.fmT_Id,
+                    fsS_RebateAmount: Number(rebateAmount[fee.fmA_Id] ?? fee.fsS_RebateAmount),
+                    fsS_WaivedAmount: fee.fsS_WaivedAmount
+                }));
+
+            const payload = {
+                fyP_Chq_Bounce: '',
+                fyP_Id: 0,
+                asmaY_Id: selectedAsmayId?.toString(),
+                automanualreceiptno: '',
+                auto_receipt_flag: config,
+                fyP_Receipt_No: '',
+                fyPcurr_Date: todaysDate,
+                fyP_Remarks: narrationRemark,
+                savePaymentModes: savePaymentModes,
+                feeStudentTermInfos: feeStudentTermInfos,
+                returnval: '',
+                displaymessage: '',
+                amst_Id: selectedStudent?.amst_Id,
+                fyP_Tot_Amount: TotalPaying,
+                filterinitialdata: filterType,
+                fyP_Tot_Concession_Amt: TotalConcession,
+                fyP_Tot_Fine_Amt: Totalfine,
+                fyP_Tot_Waived_Amt: TotalWaivedOff,
+                fyP_PayModeType: '',
+                smsconfig: sms,
+                emailconfig: email
+            };
+
+            const response = await saveFeeTransaction(payload);
+
+            if (response?.displaymessage) {
+                toast.success(response.message || ' Transaction Saved successfully');
+                handleReset();
+                onSuccess?.();
+                refetchAll();
+            } else {
+                const errorMessage = response?.returnval;
+                if (typeof errorMessage === 'string' && errorMessage.trim() !== '') {
+                    toast.error(errorMessage);
+                } else {
+                    toast.error('Save failed');
+                }
+            }
+        } catch (err: any) {
+            console.error('API Error:', err);
+            toast.error(err?.message || 'Something went wrong');
+        }
+        // toast.success("Fee Transaction Saved Successfully!");
         onSuccess?.();
     };
 
@@ -397,11 +703,22 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
         setSection(false);
         setDeative(false);
         setFilterType('regular');
+        setTodaysDate(new Date());
+        setSelectedClassId(null);
+        setSelectedSectionId(null);
+        setSms(false);
+        setEmail(false);
+        setAmountCheck(false);
+        setNarrationRemark('');
+        setAmountforTerm('');
+        setFeeHeads([]);
+        setSelectedHeads([]);
+        setSelectedNarration(null);
     };
 
     return (
         <div className='mx-auto max-w-7xl p-2'>
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 '>
+            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='flex gap-8'>
                     <div className='max-h-[400px] overflow-auto rounded border bg-gray-50 p-3 shadow-inner' style={{ width: '30%' }}>
                         <RadioGroup value={filterType} onValueChange={setFilterType}>
@@ -503,7 +820,10 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                     <RotateCcw className='h-4 w-4' /> Clear
                                 </Button>
 
-                                <Button>
+                                <Button
+                                    onClick={() => {
+                                        toast.warning('Challan No Not Found');
+                                    }}>
                                     <Save className='mr-2 h-4 w-4' /> Search
                                 </Button>
                             </div>
@@ -531,17 +851,22 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                                 typeof field.value === 'number' || typeof field.value === 'string'
                                                     ? String(field.value)
                                                     : ''
-                                            }
-                                            disabled={loadingYears}>
+                                            }>
                                             <SelectTrigger className='w-64'>
                                                 <SelectValue placeholder='--Select Academic Year--' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {academicYearData?.data?.map((item: any) => (
-                                                    <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                        {item.asmaY_Year}
+                                                {loadingYears ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading...
                                                     </SelectItem>
-                                                ))}
+                                                ) : (
+                                                    academicYearData?.data?.map((item: any) => (
+                                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                            {item.asmaY_Year}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     )}
@@ -653,7 +978,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                 </Label>
 
                                 <div className='relative w-64'>
-                                    <input
+                                    <InputText
                                         id='studentSearchInput'
                                         type='text'
                                         placeholder='Search student...'
@@ -663,7 +988,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                             setStudentSearch(e.target.value);
                                             setSelectedStudent(null);
                                         }}
-                                        className='w-full rounded border px-3 py-2'
+                                        className='flex rounded-md border border-gray-300 transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20'
                                         autoComplete='off'
                                     />
 
@@ -744,6 +1069,8 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
 
                                 <InputText
                                     id='amount'
+                                    value={amountforTerm}
+                                    onChange={(e) => setAmountforTerm(e.target.value)}
                                     placeholder='Enter Amount'
                                     className='flex transition-colors focus:ring-2 focus:ring-primary/20'
                                     disabled={!amountCheck}
@@ -760,7 +1087,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                         <img
                                             src={
                                                 studentDetails?.[0]?.amsT_Photoname ??
-                                                'https://hutchingspreadmission.blob.core.windows.net/files/Student.jpg'
+                                                'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png'
                                             }
                                             alt='Student'
                                             className='h-40 w-40 rounded-full object-cover'
@@ -804,7 +1131,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                             <div className='text-gray-700'>{studentDetails?.[0]?.fathername}</div>
 
                                             <div>USERNAME</div>
-                                            <div className='text-gray-700'>{studentDetails?.[0]?.username || 'N/A'}</div>
+                                            <div className='text-gray-700'>{studentUserNameDetails?.[0]?.portalusername || 'N/A'}</div>
                                         </div>
                                     </div>
                                 )}
@@ -817,532 +1144,610 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
 
                 {/* -------- FEE GRID -------- */}
                 {loadingFeeHead ? (
-                    <Card className='p-4 text-center'>Loading Fee Head Details...</Card>
-                ) : (
-                    selectedTerm.length > 0 && (
-                        <Card className='p-4'>
-                            <table className='w-full border text-center text-sm'>
-                                <thead className='bg-gray-100'>
-                                    <tr>
-                                        <th className='border p-2'>Sl.No</th>
-                                        <th className='border p-2'>
-                                            <Checkbox checked={selectAll} onCheckedChange={(val) => handleSelectAll(val === true)} />
-                                        </th>
-                                        <th className='border p-2'>Fee Head</th>
-                                        <th className='border p-2'>Installment</th>
-                                        <th className='border p-2'>Current Charges</th>
-                                        <th className='border p-2'>Total Adjusted</th>
-                                        <th className='border p-2'>Total Charges</th>
-                                        <th className='border p-2'>Concession</th>
-                                        <th className='border p-2'>Opening Balance</th>
-                                        <th className='border p-2'>Payable Amount</th>
-                                        <th className='border p-2'>Net Amount</th>
-                                        <th className='border p-2'>Rebate Amount</th>
+                    <Card className='p-4 text-center text-gray-700'>Loading Fee Head Details...</Card>
+                ) : selectedTerm.length > 0 && feeHeads.length > 0 ? (
+                    <Card className='p-4'>
+                        <table className='w-full border text-center text-sm'>
+                            <thead className='bg-gray-100'>
+                                <tr>
+                                    <th className='border p-2'>Sl.No</th>
+                                    <th className='border p-2'>
+                                        <Checkbox checked={selectAll} onCheckedChange={(val) => handleSelectAll(val === true)} />
+                                    </th>
+                                    <th className='border p-2'>Fee Head</th>
+                                    <th className='border p-2'>Installment</th>
+                                    <th className='border p-2'>Current Charges</th>
+                                    <th className='border p-2'>Total Adjusted</th>
+                                    <th className='border p-2'>Total Charges</th>
+                                    <th className='border p-2'>Concession</th>
+                                    <th className='border p-2'>Opening Balance</th>
+                                    <th className='border p-2'>Payable Amount</th>
+                                    <th className='border p-2'>Net Amount</th>
+                                    <th className='border p-2'>Rebate Amount</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {feeHeads.map((f, index) => (
+                                    <tr key={f.fmA_Id}>
+                                        <td className='border p-2'>{index + 1}</td>
+                                        <td className='border p-2'>
+                                            <Checkbox
+                                                checked={selectedHeads[f.fmA_Id] || false}
+                                                onCheckedChange={(val) => toggleRow(f.fmA_Id, val === true)}
+                                            />
+                                        </td>
+
+                                        <td className='border p-2'>{f.fmG_GroupName}</td>
+                                        <td className='border p-2'>{f.ftI_Name}</td>
+                                        <td className='border p-2'>
+                                            <input
+                                                type='number'
+                                                value={currentCharges[f.fmA_Id] ?? f.fsS_CurrentYrCharges ?? ''}
+                                                disabled
+                                                onChange={(e) => {
+                                                    const v = e.target.value;
+                                                    if (v === '') {
+                                                        setCurrentCharges((prev) => ({
+                                                            ...prev,
+                                                            [f.fmA_Id]: ''
+                                                        }));
+                                                        return;
+                                                    }
+                                                    if (/^\d*\.?\d*$/.test(v)) {
+                                                        setCurrentCharges((prev) => ({
+                                                            ...prev,
+                                                            [f.fmA_Id]: v
+                                                        }));
+                                                    }
+                                                }}
+                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
+                                            />
+                                        </td>
+                                        <td className='border p-2'>
+                                            <input
+                                                type='number'
+                                                value={toatlAdjusted[f.fmA_Id] ?? f.fsS_AdjustedAmount ?? ''}
+                                                // disabled
+                                                onChange={(e) => {
+                                                    const v = e.target.value;
+                                                    if (v === '') {
+                                                        setToatlAdjusted((prev) => ({
+                                                            ...prev,
+                                                            [f.fmA_Id]: ''
+                                                        }));
+                                                        return;
+                                                    }
+                                                    if (/^\d*\.?\d*$/.test(v)) {
+                                                        setToatlAdjusted((prev) => ({
+                                                            ...prev,
+                                                            [f.fmA_Id]: v
+                                                        }));
+                                                    }
+                                                }}
+                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
+                                            />
+                                        </td>
+                                        <td className='border p-2'>
+                                            <input
+                                                type='number'
+                                                value={totalCharges[f.fmA_Id] ?? f.fsS_TotalToBePaid ?? ''}
+                                                disabled
+                                                onChange={(e) => {
+                                                    const v = e.target.value;
+                                                    if (v === '') {
+                                                        setTotalCharges((prev) => ({
+                                                            ...prev,
+                                                            [f.fmA_Id]: ''
+                                                        }));
+                                                        return;
+                                                    }
+                                                    if (/^\d*\.?\d*$/.test(v)) {
+                                                        setTotalCharges((prev) => ({
+                                                            ...prev,
+                                                            [f.fmA_Id]: v
+                                                        }));
+                                                    }
+                                                }}
+                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
+                                            />
+                                        </td>
+                                        <td className='border p-2'>
+                                            <input
+                                                type='number'
+                                                value={concession[f.fmA_Id] ?? f.fsS_ConcessionAmount ?? ''}
+                                                disabled
+                                                onChange={(e) => {
+                                                    const v = e.target.value;
+
+                                                    if (v === '') {
+                                                        setConcession((prev) => ({
+                                                            ...prev,
+                                                            [f.fmA_Id]: ''
+                                                        }));
+                                                        return;
+                                                    }
+                                                    if (/^\d*\.?\d*$/.test(v)) {
+                                                        setConcession((prev) => ({
+                                                            ...prev,
+                                                            [f.fmA_Id]: v
+                                                        }));
+                                                    }
+                                                }}
+                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
+                                            />
+                                        </td>
+                                        <td className='border p-2'>
+                                            <input
+                                                type='number'
+                                                value={openingBalance[f.fmA_Id] ?? f.fsS_OBAsPerFY ?? ''}
+                                                disabled
+                                                onChange={(e) => {
+                                                    const v = e.target.value;
+                                                    if (v === '') {
+                                                        setOpeningBalance((prev) => ({
+                                                            ...prev,
+                                                            [f.fmA_Id]: ''
+                                                        }));
+                                                        return;
+                                                    }
+                                                    if (/^\d*\.?\d*$/.test(v)) {
+                                                        setOpeningBalance((prev) => ({
+                                                            ...prev,
+                                                            [f.fmA_Id]: v
+                                                        }));
+                                                    }
+                                                }}
+                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
+                                            />
+                                        </td>
+                                        <td className='border p-2'>
+                                            <input
+                                                type='number'
+                                                value={payableAmount[f.fmA_Id] ?? f.fsS_ToBePaid ?? ''}
+                                                disabled={!selectedHeads[f.fmA_Id]}
+                                                onChange={(e) => {
+                                                    const v = e.target.value;
+                                                    if (v === '') {
+                                                        setPayableAmount((prev) => ({
+                                                            ...prev,
+                                                            [f.fmA_Id]: ''
+                                                        }));
+                                                        return;
+                                                    }
+                                                    if (/^\d*\.?\d*$/.test(v)) {
+                                                        setPayableAmount((prev) => ({
+                                                            ...prev,
+                                                            [f.fmA_Id]: v
+                                                        }));
+                                                    }
+                                                }}
+                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
+                                            />
+                                        </td>
+                                        <td className='border p-2'>
+                                            <input
+                                                type='number'
+                                                value={netAmount[f.fmA_Id] ?? f.fsS_CurrentYrCharges ?? ''}
+                                                disabled
+                                                onChange={(e) => {
+                                                    const v = e.target.value;
+                                                    if (v === '') {
+                                                        setNetAmount((prev) => ({
+                                                            ...prev,
+                                                            [f.fmA_Id]: ''
+                                                        }));
+                                                        return;
+                                                    }
+                                                    if (/^\d*\.?\d*$/.test(v)) {
+                                                        setNetAmount((prev) => ({
+                                                            ...prev,
+                                                            [f.fmA_Id]: v
+                                                        }));
+                                                    }
+                                                }}
+                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
+                                            />
+                                        </td>
+                                        <td className='border p-2'>
+                                            <input
+                                                type='number'
+                                                value={rebateAmount[f.fmA_Id] ?? f.fsS_RebateAmount ?? ''}
+                                                disabled
+                                                onChange={(e) => {
+                                                    const v = e.target.value;
+                                                    if (v === '') {
+                                                        setRebateAmount((prev) => ({
+                                                            ...prev,
+                                                            [f.fmA_Id]: ''
+                                                        }));
+                                                        return;
+                                                    }
+                                                    if (/^\d*\.?\d*$/.test(v)) {
+                                                        setRebateAmount((prev) => ({
+                                                            ...prev,
+                                                            [f.fmA_Id]: v
+                                                        }));
+                                                    }
+                                                }}
+                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
+                                            />
+                                        </td>
                                     </tr>
-                                </thead>
-
-                                <tbody>
-                                    {feeHeads.map((f, index) => (
-                                        <tr key={f.fmG_Id}>
-                                            <td className='border p-2'>{index + 1}</td>
-                                            <td className='border p-2'>
-                                                <Checkbox
-                                                    checked={selectedHeads[f.fmG_Id] || false}
-                                                    onCheckedChange={(val) => toggleRow(f.fmG_Id, val === true)}
-                                                />
-                                            </td>
-
-                                            <td className='border p-2'>{f.fmG_GroupName}</td>
-                                            <td className='border p-2'>{f.fmG_GroupName}</td>
-                                            <td className='border p-2'>
-                                                <input
-                                                    type='number'
-                                                    value={currentCharges[f.fmG_Id] || '0'}
-                                                    disabled
-                                                    onChange={(e) => {
-                                                        const v = e.target.value;
-                                                        if (v === '') {
-                                                            setCurrentCharges((prev) => ({
-                                                                ...prev,
-                                                                [f.fmG_Id]: ''
-                                                            }));
-                                                            return;
-                                                        }
-                                                        if (/^\d*\.?\d*$/.test(v)) {
-                                                            setCurrentCharges((prev) => ({
-                                                                ...prev,
-                                                                [f.fmG_Id]: v
-                                                            }));
-                                                        }
-                                                    }}
-                                                    className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
-                                                />
-                                            </td>
-                                            <td className='border p-2'>
-                                                <input
-                                                    type='number'
-                                                    value={toatlAdjusted[f.fmG_Id] || ''}
-                                                    // disabled
-                                                    onChange={(e) => {
-                                                        const v = e.target.value;
-                                                        if (v === '') {
-                                                            setToatlAdjusted((prev) => ({
-                                                                ...prev,
-                                                                [f.fmG_Id]: ''
-                                                            }));
-                                                            return;
-                                                        }
-                                                        if (/^\d*\.?\d*$/.test(v)) {
-                                                            setToatlAdjusted((prev) => ({
-                                                                ...prev,
-                                                                [f.fmG_Id]: v
-                                                            }));
-                                                        }
-                                                    }}
-                                                    className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
-                                                />
-                                            </td>
-                                            <td className='border p-2'>
-                                                <input
-                                                    type='number'
-                                                    value={totalCharges[f.fmG_Id] || ''}
-                                                    disabled
-                                                    onChange={(e) => {
-                                                        const v = e.target.value;
-                                                        if (v === '') {
-                                                            setTotalCharges((prev) => ({
-                                                                ...prev,
-                                                                [f.fmG_Id]: ''
-                                                            }));
-                                                            return;
-                                                        }
-                                                        if (/^\d*\.?\d*$/.test(v)) {
-                                                            setTotalCharges((prev) => ({
-                                                                ...prev,
-                                                                [f.fmG_Id]: v
-                                                            }));
-                                                        }
-                                                    }}
-                                                    className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
-                                                />
-                                            </td>
-                                            <td className='border p-2'>
-                                                <input
-                                                    type='number'
-                                                    value={concession[f.fmG_Id] || ''}
-                                                    disabled
-                                                    onChange={(e) => {
-                                                        const v = e.target.value;
-                                                        if (v === '') {
-                                                            setConcession((prev) => ({
-                                                                ...prev,
-                                                                [f.fmG_Id]: ''
-                                                            }));
-                                                            return;
-                                                        }
-                                                        if (/^\d*\.?\d*$/.test(v)) {
-                                                            setConcession((prev) => ({
-                                                                ...prev,
-                                                                [f.fmG_Id]: v
-                                                            }));
-                                                        }
-                                                    }}
-                                                    className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
-                                                />
-                                            </td>
-                                            <td className='border p-2'>
-                                                <input
-                                                    type='number'
-                                                    value={openingBalance[f.fmG_Id] || ''}
-                                                    disabled
-                                                    onChange={(e) => {
-                                                        const v = e.target.value;
-                                                        if (v === '') {
-                                                            setOpeningBalance((prev) => ({
-                                                                ...prev,
-                                                                [f.fmG_Id]: ''
-                                                            }));
-                                                            return;
-                                                        }
-                                                        if (/^\d*\.?\d*$/.test(v)) {
-                                                            setOpeningBalance((prev) => ({
-                                                                ...prev,
-                                                                [f.fmG_Id]: v
-                                                            }));
-                                                        }
-                                                    }}
-                                                    className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
-                                                />
-                                            </td>
-                                            <td className='border p-2'>
-                                                <input
-                                                    type='number'
-                                                    value={payableAmount[f.fmG_Id] || ''}
-                                                    disabled={!selectedHeads[f.fmG_Id]}
-                                                    onChange={(e) => {
-                                                        const v = e.target.value;
-                                                        if (v === '') {
-                                                            setPayableAmount((prev) => ({
-                                                                ...prev,
-                                                                [f.fmG_Id]: ''
-                                                            }));
-                                                            return;
-                                                        }
-                                                        if (/^\d*\.?\d*$/.test(v)) {
-                                                            setPayableAmount((prev) => ({
-                                                                ...prev,
-                                                                [f.fmG_Id]: v
-                                                            }));
-                                                        }
-                                                    }}
-                                                    className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
-                                                />
-                                            </td>
-                                            <td className='border p-2'>
-                                                <input
-                                                    type='number'
-                                                    value={netAmount[f.fmG_Id] || ''}
-                                                    disabled
-                                                    onChange={(e) => {
-                                                        const v = e.target.value;
-                                                        if (v === '') {
-                                                            setNetAmount((prev) => ({
-                                                                ...prev,
-                                                                [f.fmG_Id]: ''
-                                                            }));
-                                                            return;
-                                                        }
-                                                        if (/^\d*\.?\d*$/.test(v)) {
-                                                            setNetAmount((prev) => ({
-                                                                ...prev,
-                                                                [f.fmG_Id]: v
-                                                            }));
-                                                        }
-                                                    }}
-                                                    className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
-                                                />
-                                            </td>
-                                            <td className='border p-2'>
-                                                <input
-                                                    type='number'
-                                                    value={rebateAmount[f.fmG_Id] || ''}
-                                                    disabled
-                                                    onChange={(e) => {
-                                                        const v = e.target.value;
-                                                        if (v === '') {
-                                                            setRebateAmount((prev) => ({
-                                                                ...prev,
-                                                                [f.fmG_Id]: ''
-                                                            }));
-                                                            return;
-                                                        }
-                                                        if (/^\d*\.?\d*$/.test(v)) {
-                                                            setRebateAmount((prev) => ({
-                                                                ...prev,
-                                                                [f.fmG_Id]: v
-                                                            }));
-                                                        }
-                                                    }}
-                                                    className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
-                                                />
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </Card>
-                    )
+                                ))}
+                            </tbody>
+                        </table>
+                    </Card>
+                ) : (
+                    <Card className='p-4 text-center text-gray-700'>No Fee Head Details Found</Card>
                 )}
-                {selectedTerm.length > 0 && !loadingFeeHead && (
+                {selectedTerm.length > 0 && !loadingFeeHead && feeHeads.length > 0 && (
                     <div className='flex gap-8'>
-                        <div className='max-h-[400px] overflow-auto rounded border bg-gray-50 p-3 shadow-inner'>
+                        <div className='max-h-[400px] w-[75%] overflow-auto rounded border bg-gray-50 p-3 shadow-inner'>
                             <Card className='mb-5 p-4'>
-                                <RadioGroup
-                                    value={modeType}
-                                    onValueChange={(v) => {
-                                        setModeType(v);
-                                        setchepueDates({});
-                                    }}
-                                    className='flex items-center gap-6'>
-                                    <div className='flex cursor-pointer items-center space-x-2'>
-                                        <RadioGroupItem value='Single' id='single' />
-                                        <Label htmlFor='single' className='text-sm'>
-                                            Single
+                                <div className='flex w-full flex-col items-start justify-center gap-4'>
+                                    <div className='flex w-full items-center justify-center gap-4'>
+                                        <Label htmlFor='narrationId' className='whitespace-nowrap font-semibold'>
+                                            Narration
                                         </Label>
+                                        <Controller
+                                            name='narrationId'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Select
+                                                    key={field.value || 'empty'}
+                                                    onValueChange={(val) => {
+                                                        const id = Number(val);
+                                                        field.onChange(id);
+                                                        setSelectedNarration(id);
+                                                    }}
+                                                    value={selectedNarration?.toString()}
+                                                    // disabled={feeSectionDataLoading}
+                                                >
+                                                    <SelectTrigger className='w-64'>
+                                                        <SelectValue placeholder='Select Narration' />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {masternarration?.map((item) => (
+                                                            <SelectItem key={item.fmnaR_Id} value={String(item.fmnaR_Id)}>
+                                                                {item.fmnaR_Narration}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
+                                        />
+                                        <InputText
+                                            id='remark'
+                                            value={narrationRemark}
+                                            onChange={(e) => setNarrationRemark(e.target.value)}
+                                            placeholder='Enter Narration'
+                                            className='flex transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
                                     </div>
 
-                                    <div className='flex cursor-pointer items-center space-x-2'>
-                                        <RadioGroupItem value='Multiple' id='multiple' />
-                                        <Label htmlFor='multiple' className='text-sm'>
-                                            Multiple
-                                        </Label>
+                                    <div className='flex w-full items-center justify-center gap-4'>
+                                        <RadioGroup
+                                            value={modeType}
+                                            onValueChange={(v) => {
+                                                setModeType(v);
+                                                setchequeDates({});
+                                            }}
+                                            className='flex items-center justify-center gap-6'>
+                                            <div className='flex cursor-pointer items-center justify-center space-x-2'>
+                                                <RadioGroupItem value='Single' id='single' />
+                                                <Label htmlFor='single' className='text-sm'>
+                                                    Single
+                                                </Label>
+                                            </div>
+                                            <div className='flex cursor-pointer items-center justify-center space-x-2'>
+                                                <RadioGroupItem value='Multiple' id='multiple' />
+                                                <Label htmlFor='multiple' className='text-sm'>
+                                                    Multiple
+                                                </Label>
+                                            </div>
+                                        </RadioGroup>
                                     </div>
-                                </RadioGroup>
+                                </div>
                             </Card>
 
-                            <Card className='p-4'>
-                                <table className='w-full border text-sm'>
-                                    <thead className='bg-gray-100'>
-                                        <tr>
-                                            <th className='border p-2'> </th>
-                                            <th className='border p-2'>Type</th>
-                                            <th className='border p-2'>Cheque/DD Date</th>
-                                            <th className='border p-2'>Cheque/DD No./Card No</th>
-                                            <th className='border p-2'>Bank Name</th>
-                                            <th className='border p-2'>Amount</th>
-                                        </tr>
-                                    </thead>
-
-                                    <tbody>
-                                        {bankDetails?.map((f) => (
-                                            <tr key={f.fmB_Id}>
-                                                <td className='border p-2'>
-                                                    {modeType === 'Single' && (
-                                                        // <input
-                                                        //     type='radio'
-                                                        //     value={f.bank}
-                                                        //     className='form-radio h-4 w-4 text-gray-600'
-                                                        //     checked={payType === f.bank}
-                                                        //     onChange={(e) => setPayType(e.target.value)}
-                                                        // />
-                                                        <RadioGroup value={payType} onValueChange={setPayType}>
-                                                            <RadioGroupItem value={f.bank} id={f.bank} />
-                                                        </RadioGroup>
-                                                    )}
-                                                    {modeType === 'Multiple' && (
-                                                        <Checkbox
-                                                            checked={checkPayType.includes(f.bank)}
-                                                            onCheckedChange={(value) => {
-                                                                if (value) {
-                                                                    setCheckPayType((prev) => [...prev, f.bank]);
-                                                                } else {
-                                                                    setCheckPayType((prev) => prev.filter((b) => b !== f.bank));
-                                                                }
-                                                            }}
-                                                            aria-label='Select row'
-                                                        />
-                                                    )}
-                                                </td>
-                                                <td className='border p-2 font-semibold'>{f.bank}</td>
-                                                <td className='border p-2'>
-                                                    {payType !== 'Cash' && modeType === 'Single' && (
-                                                        <Popover>
-                                                            <PopoverTrigger asChild>
-                                                                <Button
-                                                                    variant='outline'
-                                                                    className='w-full justify-start text-left font-normal'
-                                                                    disabled={payType !== f.bank && modeType === 'Single'}>
-                                                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                                                    {chequedates[f.fmB_Id]
-                                                                        ? format(chequedates[f.fmB_Id]!, 'PPP')
-                                                                        : 'Select Date'}
-                                                                </Button>
-                                                            </PopoverTrigger>
-
-                                                            <PopoverContent className='w-auto p-0' align='start'>
-                                                                <Calendar
-                                                                    mode='single'
-                                                                    selected={chequedates[f.fmB_Id] ?? undefined}
-                                                                    onSelect={(date) =>
-                                                                        setchepueDates((prev) => ({
-                                                                            ...prev,
-                                                                            [f.fmB_Id]: date ?? null
-                                                                        }))
-                                                                    }
-                                                                />
-                                                            </PopoverContent>
-                                                        </Popover>
-                                                    )}
-                                                    {checkPayType.includes(f.bank) && modeType === 'Multiple' && (
-                                                        <Popover>
-                                                            <PopoverTrigger asChild>
-                                                                <Button
-                                                                    variant='outline'
-                                                                    className='w-full justify-start text-left font-normal'>
-                                                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                                                    {chequedates[f.fmB_Id]
-                                                                        ? format(chequedates[f.fmB_Id]!, 'PPP')
-                                                                        : 'Select Date'}
-                                                                </Button>
-                                                            </PopoverTrigger>
-
-                                                            <PopoverContent className='w-auto p-0' align='start'>
-                                                                <Calendar
-                                                                    mode='single'
-                                                                    selected={chequedates[f.fmB_Id] ?? undefined}
-                                                                    onSelect={(date) =>
-                                                                        setchepueDates((prev) => ({
-                                                                            ...prev,
-                                                                            [f.fmB_Id]: date ?? null
-                                                                        }))
-                                                                    }
-                                                                />
-                                                            </PopoverContent>
-                                                        </Popover>
-                                                    )}
-                                                </td>
-                                                <td className='border p-2'>
-                                                    {payType !== 'Cash' && modeType === 'Single' && (
-                                                        <input
-                                                            type='number'
-                                                            value={chequeNo[f.fmB_Id]}
-                                                            onChange={(e) => {
-                                                                const v = e.target.value;
-                                                                if (v === '') {
-                                                                    setChequeNo((prev) => ({
-                                                                        ...prev,
-                                                                        [f.fmG_Id]: ''
-                                                                    }));
-                                                                    return;
-                                                                }
-                                                                if (/^\d*\.?\d*$/.test(v)) {
-                                                                    setChequeNo((prev) => ({
-                                                                        ...prev,
-                                                                        [f.fmG_Id]: v
-                                                                    }));
-                                                                }
-                                                            }}
-                                                            className='w-full rounded border px-2 py-1 text-sm'
-                                                            disabled={payType !== f.bank}
-                                                        />
-                                                    )}
-                                                    {checkPayType.includes(f.bank) && modeType === 'Multiple' && (
-                                                        <input
-                                                            type='number'
-                                                            value={chequeNo[f.fmB_Id]}
-                                                            onChange={(e) => {
-                                                                const v = e.target.value;
-                                                                if (v === '') {
-                                                                    setChequeNo((prev) => ({
-                                                                        ...prev,
-                                                                        [f.fmG_Id]: ''
-                                                                    }));
-                                                                    return;
-                                                                }
-                                                                if (/^\d*\.?\d*$/.test(v)) {
-                                                                    setChequeNo((prev) => ({
-                                                                        ...prev,
-                                                                        [f.fmG_Id]: v
-                                                                    }));
-                                                                }
-                                                            }}
-                                                            className='w-full rounded border px-2 py-1 text-sm'
-                                                            // disabled={payType !== f.bank}
-                                                        />
-                                                    )}
-                                                </td>
-
-                                                <td className='border p-2'>
-                                                    {payType !== 'Cash' && modeType === 'Single' && (
-                                                        <Select
-                                                            value={selectedBanks[f.fmB_Id] || ''} // get value for this row
-                                                            onValueChange={(val) =>
-                                                                setSelectedBanks((prev) => ({
-                                                                    ...prev,
-                                                                    [f.fmB_Id]: val // update only this row
-                                                                }))
-                                                            }>
-                                                            <SelectTrigger className='w-full'>
-                                                                <SelectValue placeholder='Select Bank' />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value='sbi'>State Bank Of India</SelectItem>
-                                                                <SelectItem value='canara'>Canara Bank</SelectItem>
-                                                                <SelectItem value='ka'>Karnataka Bank</SelectItem>
-                                                                <SelectItem value='hdfc'>HDFC</SelectItem>
-                                                                <SelectItem value='unionBank'>Union Bank</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    )}
-                                                    {modeType === 'Multiple' && (
-                                                        <Select
-                                                            value={selectedBanks[f.fmB_Id] || ''} // get value for this row
-                                                            onValueChange={(val) =>
-                                                                setSelectedBanks((prev) => ({
-                                                                    ...prev,
-                                                                    [f.fmB_Id]: val // update only this row
-                                                                }))
-                                                            }>
-                                                            <SelectTrigger className='w-full'>
-                                                                <SelectValue placeholder='Select Bank' />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value='sbi'>State Bank Of India</SelectItem>
-                                                                <SelectItem value='canara'>Canara Bank</SelectItem>
-                                                                <SelectItem value='ka'>Karnataka Bank</SelectItem>
-                                                                <SelectItem value='hdfc'>HDFC</SelectItem>
-                                                                <SelectItem value='unionBank'>Union Bank</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    )}
-                                                </td>
-                                                <td className='border p-2'>
-                                                    <input
-                                                        type='number'
-                                                        value={amount[f.fmB_Id]}
-                                                        onChange={(e) => {
-                                                            const v = e.target.value;
-                                                            if (v === '') {
-                                                                setAmount((prev) => ({
-                                                                    ...prev,
-                                                                    [f.fmG_Id]: ''
-                                                                }));
-                                                                return;
-                                                            }
-                                                            if (/^\d*\.?\d*$/.test(v)) {
-                                                                setAmount((prev) => ({
-                                                                    ...prev,
-                                                                    [f.fmG_Id]: v
-                                                                }));
-                                                            }
-                                                        }}
-                                                        className='w-full rounded border px-2 py-1 text-sm'
-                                                    />
-                                                </td>
+                            {masterModeofPaymentList.length > 0 ? (
+                                <Card className='p-4'>
+                                    <table className='w-full border text-sm'>
+                                        <thead className='bg-gray-100'>
+                                            <tr>
+                                                <th className='border p-2'> </th>
+                                                <th className='border p-2'>Type</th>
+                                                <th className='border p-2'>Cheque/DD Date</th>
+                                                <th className='border p-2'>Cheque/DD No./Card No</th>
+                                                <th className='border p-2'>Bank Name</th>
+                                                <th className='border p-2'>Amount</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </Card>
+                                        </thead>
+
+                                        <tbody>
+                                            {masterModeofPaymentList?.map((f) => (
+                                                <tr key={f.ivrmmoD_Id}>
+                                                    <td className='border p-2'>
+                                                        {modeType === 'Single' && (
+                                                            <RadioGroup
+                                                                value={payType}
+                                                                onValueChange={(v) => {
+                                                                    setPayType(v);
+                                                                }}>
+                                                                <RadioGroupItem
+                                                                    value={f.ivrmmoD_ModeOfPayment}
+                                                                    id={f.ivrmmoD_ModeOfPayment}
+                                                                />
+                                                            </RadioGroup>
+                                                        )}
+                                                        {modeType === 'Multiple' && (
+                                                            <Checkbox
+                                                                checked={checkPayType.includes(f.ivrmmoD_ModeOfPayment)}
+                                                                onCheckedChange={(value) => {
+                                                                    if (value) {
+                                                                        setCheckPayType((prev) => [...prev, f.ivrmmoD_ModeOfPayment]);
+                                                                    } else {
+                                                                        if (
+                                                                            checkPayType.length === 1 &&
+                                                                            checkPayType.includes(f.ivrmmoD_ModeOfPayment)
+                                                                        ) {
+                                                                            toast.warning('At least one should be selected');
+                                                                            return;
+                                                                        }
+                                                                        setCheckPayType((prev) =>
+                                                                            prev.filter((b) => b !== f.ivrmmoD_ModeOfPayment)
+                                                                        );
+                                                                    }
+                                                                }}
+                                                                aria-label='Select row'
+                                                            />
+                                                        )}
+                                                    </td>
+                                                    <td className='border p-2 font-semibold'>{f.ivrmmoD_ModeOfPayment}</td>
+                                                    <td className='border p-2'>
+                                                        {f.ivrmmoD_Flag.toLowerCase() !== 'c' &&
+                                                            modeType === 'Single' &&
+                                                            payType === f.ivrmmoD_ModeOfPayment && (
+                                                                <Popover>
+                                                                    <PopoverTrigger asChild>
+                                                                        <Button
+                                                                            variant='outline'
+                                                                            className='w-full justify-start text-left font-normal'
+                                                                            disabled={
+                                                                                payType !== f.ivrmmoD_ModeOfPayment && modeType === 'Single'
+                                                                            }>
+                                                                            <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                            {payType === f.ivrmmoD_ModeOfPayment &&
+                                                                            !chequedates[f.ivrmmoD_Id]
+                                                                                ? format(new Date(), 'PPP')
+                                                                                : chequedates[f.ivrmmoD_Id]
+                                                                                  ? format(chequedates[f.ivrmmoD_Id]!, 'PPP')
+                                                                                  : 'Select Date'}
+                                                                        </Button>
+                                                                    </PopoverTrigger>
+
+                                                                    <PopoverContent className='w-auto p-0' align='start'>
+                                                                        <Calendar
+                                                                            mode='single'
+                                                                            selected={chequedates[f.ivrmmoD_Id] ?? undefined}
+                                                                            onSelect={(date) =>
+                                                                                setchequeDates((prev) => ({
+                                                                                    ...prev,
+                                                                                    [f.ivrmmoD_Id]: date ?? null
+                                                                                }))
+                                                                            }
+                                                                        />
+                                                                    </PopoverContent>
+                                                                </Popover>
+                                                            )}
+                                                        {checkPayType.includes(f.ivrmmoD_ModeOfPayment) &&
+                                                            modeType === 'Multiple' &&
+                                                            f.ivrmmoD_Flag.toLowerCase() !== 'c' && (
+                                                                <Popover>
+                                                                    <PopoverTrigger asChild>
+                                                                        <Button
+                                                                            variant='outline'
+                                                                            className='w-full justify-start text-left font-normal'>
+                                                                            <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                            {!chequedates[f.ivrmmoD_Id]
+                                                                                ? format(new Date(), 'PPP')
+                                                                                : chequedates[f.ivrmmoD_Id]
+                                                                                  ? format(chequedates[f.ivrmmoD_Id]!, 'PPP')
+                                                                                  : 'Select Date'}
+                                                                        </Button>
+                                                                    </PopoverTrigger>
+
+                                                                    <PopoverContent className='w-auto p-0' align='start'>
+                                                                        <Calendar
+                                                                            mode='single'
+                                                                            selected={chequedates[f.ivrmmoD_Id] ?? undefined}
+                                                                            onSelect={(date) =>
+                                                                                setchequeDates((prev) => ({
+                                                                                    ...prev,
+                                                                                    [f.ivrmmoD_Id]: date ?? null
+                                                                                }))
+                                                                            }
+                                                                        />
+                                                                    </PopoverContent>
+                                                                </Popover>
+                                                            )}
+                                                    </td>
+                                                    <td className='border p-2'>
+                                                        {f.ivrmmoD_Flag.toLowerCase() !== 'c' && modeType === 'Single' && (
+                                                            <InputText
+                                                                type='number'
+                                                                value={chequeNo?.[f.ivrmmoD_Id] ?? ''}
+                                                                onChange={(e) => {
+                                                                    const v = e.target.value;
+                                                                    if (v === '') {
+                                                                        setChequeNo((prev) => ({
+                                                                            ...prev,
+                                                                            [f.ivrmmoD_Id]: ''
+                                                                        }));
+                                                                        return;
+                                                                    }
+                                                                    if (/^\d*\.?\d*$/.test(v)) {
+                                                                        setChequeNo((prev) => ({
+                                                                            ...prev,
+                                                                            [f.ivrmmoD_Id]: v
+                                                                        }));
+                                                                    }
+                                                                }}
+                                                                className='flex rounded-md border border-gray-300 transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20'
+                                                                disabled={payType !== f.ivrmmoD_ModeOfPayment}
+                                                            />
+                                                        )}
+                                                        {checkPayType.includes(f.ivrmmoD_ModeOfPayment) &&
+                                                            modeType === 'Multiple' &&
+                                                            f.ivrmmoD_Flag.toLowerCase() !== 'c' && (
+                                                                <InputText
+                                                                    type='number'
+                                                                    value={chequeNo?.[f.ivrmmoD_Id] ?? ''}
+                                                                    onChange={(e) => {
+                                                                        const v = e.target.value;
+                                                                        if (v === '') {
+                                                                            setChequeNo((prev) => ({
+                                                                                ...prev,
+                                                                                [f.ivrmmoD_Id]: ''
+                                                                            }));
+                                                                            return;
+                                                                        }
+                                                                        if (/^\d*\.?\d*$/.test(v)) {
+                                                                            setChequeNo((prev) => ({
+                                                                                ...prev,
+                                                                                [f.ivrmmoD_Id]: v
+                                                                            }));
+                                                                        }
+                                                                    }}
+                                                                    className='flex rounded-md border border-gray-300 transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20'
+                                                                />
+                                                            )}
+                                                    </td>
+
+                                                    <td className='border p-2'>
+                                                        {f.ivrmmoD_Flag.toLowerCase() !== 'c' && modeType === 'Single' && (
+                                                            <Select
+                                                                value={selectedBanks[f.ivrmmoD_Id] || ''}
+                                                                onValueChange={(val) =>
+                                                                    setSelectedBanks((prev) => ({
+                                                                        ...prev,
+                                                                        [f.ivrmmoD_Id]: val
+                                                                    }))
+                                                                }>
+                                                                <SelectTrigger className='w-full'>
+                                                                    <SelectValue placeholder='Select Bank' />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value='sbi'>State Bank Of India</SelectItem>
+                                                                    <SelectItem value='canaraBank'>Canara Bank</SelectItem>
+                                                                    <SelectItem value='karnatakaBank'>Karnataka Bank</SelectItem>
+                                                                    <SelectItem value='hdfcbank'>HDFC</SelectItem>
+                                                                    <SelectItem value='unionBank'>Union Bank</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                        )}
+                                                        {modeType === 'Multiple' && f.ivrmmoD_Flag.toLowerCase() !== 'c' && (
+                                                            <Select
+                                                                value={selectedBanks[f.ivrmmoD_Id] || ''}
+                                                                onValueChange={(val) =>
+                                                                    setSelectedBanks((prev) => ({
+                                                                        ...prev,
+                                                                        [f.ivrmmoD_Id]: val
+                                                                    }))
+                                                                }>
+                                                                <SelectTrigger className='w-full'>
+                                                                    <SelectValue placeholder='Select Bank' />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value='sbi'>State Bank Of India</SelectItem>
+                                                                    <SelectItem value='canaraBank'>Canara Bank</SelectItem>
+                                                                    <SelectItem value='karnatakaBank'>Karnataka Bank</SelectItem>
+                                                                    <SelectItem value='hdfcbank'>HDFC</SelectItem>
+                                                                    <SelectItem value='unionBank'>Union Bank</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                        )}
+                                                    </td>
+                                                    <td className='border p-2'>
+                                                        <InputText
+                                                            type='number'
+                                                            value={amount?.[f.ivrmmoD_Id] ?? ''}
+                                                            onChange={(e) => {
+                                                                const v = e.target.value;
+                                                                if (v === '') {
+                                                                    setAmount((prev) => ({
+                                                                        ...prev,
+                                                                        [f.ivrmmoD_Id]: ''
+                                                                    }));
+                                                                    return;
+                                                                }
+                                                                if (/^\d*\.?\d*$/.test(v)) {
+                                                                    setAmount((prev) => ({
+                                                                        ...prev,
+                                                                        [f.ivrmmoD_Id]: v
+                                                                    }));
+                                                                }
+                                                            }}
+                                                            className='flex rounded-md border border-gray-300 transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20'
+                                                        />
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </Card>
+                            ) : (
+                                <Card className='p-4 text-center text-gray-700'>No Mode of Payment is Data Available</Card>
+                            )}
                         </div>
-                        <div className='max-h-[400px] overflow-auto rounded border bg-gray-50 p-3 shadow-inner'>
-                            <Card className='mb-5 grid grid-cols-1 gap-4 p-4 text-sm md:grid-cols-2'>
-                                <div>
-                                    Current Fee: <b>{1000}</b>
+                        <div className='max-h-[400px] w-[25%] overflow-auto rounded border bg-gray-50 p-4 shadow-inner'>
+                            <Card className='mb-4 grid grid-cols-1 gap-3 p-4 text-sm'>
+                                <div className='flex items-center justify-between'>
+                                    <span className='text-gray-700'>Current Fee:</span>
+                                    <span className='font-semibold text-gray-900'>{TotalCurrentFee}</span>
                                 </div>
-                                <div>
-                                    Concession: <b>{0}</b>
+                                <div className='flex items-center justify-between'>
+                                    <span className='text-gray-700'>Concession:</span>
+                                    <span className='font-semibold text-gray-900'>{ConcessionAmount}</span>
                                 </div>
-                                <div>
-                                    Outstanding: <b>{300}</b>
+                                <div className='flex items-center justify-between'>
+                                    <span className='text-gray-700'>Total Outstanding:</span>
+                                    <span className='font-semibold text-gray-900'>{TotalOutStanding ?? 0}</span>
                                 </div>
-                                <div>
-                                    Fine: <b>{200}</b>
+                                <div className='flex items-center justify-between'>
+                                    <span className='text-gray-700'>Fine:</span>
+                                    <span className='font-semibold text-gray-900'>{fineAmount}</span>
                                 </div>
-                                <div>
-                                    Now Paying: <b>{200}</b>
+                                <div className='flex items-center justify-between'>
+                                    <span className='text-gray-700'>Now Paying:</span>
+                                    <span className='font-semibold text-gray-900'>{TotalPaying}</span>
                                 </div>
                             </Card>
 
-                            <Card className='grid grid-cols-1 gap-4 p-4 text-sm md:grid-cols-2'>
-                                <div>
-                                    Total Payable: <b>{2000}</b>
+                            <Card className='grid grid-cols-1 gap-3 p-4 text-sm'>
+                                <div className='flex items-center justify-between'>
+                                    <span className='text-gray-700'>Total Payable:</span>
+                                    <span className='font-semibold text-gray-900'>{totalPayable}</span>
                                 </div>
-                                <div>
-                                    Total Concession: <b>{3000}</b>
+                                <div className='flex items-center justify-between'>
+                                    <span className='text-gray-700'>Total Concession:</span>
+                                    <span className='font-semibold text-gray-900'>{TotalConcession}</span>
                                 </div>
-                                <div>
-                                    Total Waived off: <b>{40000}</b>
+                                <div className='flex items-center justify-between'>
+                                    <span className='text-gray-700'>Total Waived off:</span>
+                                    <span className='font-semibold text-gray-900'>{TotalWaivedOff}</span>
                                 </div>
-                                <div>
-                                    Overall Outstanding: <b>{40000}</b>
+                                <div className='flex items-center justify-between'>
+                                    <span className='text-gray-700'>Overall Outstanding:</span>
+                                    <span className='font-semibold text-gray-900'>{overAllOutStanding}</span>
                                 </div>
                             </Card>
                         </div>
                     </div>
                 )}
 
-                {selectedTerm.length > 0 && !loadingFeeHead && (
+                {selectedTerm.length > 0 && !loadingFeeHead && feeHeads.length > 0 && (
                     <div className='flex justify-end gap-3 border-t pt-4'>
                         <Button type='button' variant='outline' className='flex items-center gap-2' onClick={handleReset}>
                             <RotateCcw className='h-4 w-4' /> Reset

@@ -5,7 +5,7 @@ import type { ApiSearchparams } from '@/types';
 import type { IFeeOnlinehaedgroupMappingList, IMasterClassYearlyList } from '@/types/fees/masters/masters';
 
 export async function getAcademicYearDropdown() {
-    const url = '/fee_class_category/academicyearlist/30';
+    const url = '/fee_class_category/academicyearlist';
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }
 

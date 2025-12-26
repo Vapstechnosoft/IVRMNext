@@ -49,6 +49,8 @@ export async function getFeesDefaulterReportSectionList() {
 
 export async function getFeesSectionListByClassId(asmaY_Id: number, asmcl_Id: number) {
     const url = `/FeesCommon/section-dropdown-by-class?asmay_Id=${asmaY_Id}&asmcl_Id=${asmcl_Id}`;
+
+    console.info('getFeesSectionListByClassId url:', url);
     return await api.get<IFeeSectionDropdownList[]>('fees', url);
 }
 

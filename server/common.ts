@@ -268,45 +268,7 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 },
-                                // {
-                                //   id: 4,
-                                //   name: "Reports",
-                                //   icon: "Settings",
-                                //   pages: [
-                                //     {
-                                //       id: 21,
-                                //       name: "Student Count Report",
-                                //       icon: "Settings",
-                                //       url: "/admission/preadmission/reports/student-count-report",
-                                //       title: "Student Count Report",
-                                //       description: "Student Count Report",
-                                //     },
-                                //     {
-                                //       id: 22,
-                                //       name: "Admission Register",
-                                //       icon: "Settings",
-                                //       url: "/admission/preadmission/reports/admission-register",
-                                //       title: "Admission Register",
-                                //       description: "Admission Register",
-                                //     },
-                                //     {
-                                //       id: 23,
-                                //       name: "Total Strength",
-                                //       icon: "Settings",
-                                //       url: "/admission/preadmission/reports/total-strength",
-                                //       title: "Total Strength",
-                                //       description: "Total Strength",
-                                //     },
-                                //     {
-                                //       id: 24,
-                                //       name: "Student Search",
-                                //       icon: "Settings",
-                                //       url: "/admission/preadmission/reports/student-search",
-                                //       title: "Student Search",
-                                //       description: "Student Search",
-                                //     },
-                                //   ],
-                                // },
+
                                 {
                                     id: 4,
                                     name: 'Section Allotment',
@@ -367,6 +329,181 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/section/change-class',
                                             title: 'Change Class',
                                             description: 'Change Class'
+                                        }
+                                    ]
+                                },
+
+                                {
+                                    id: 5,
+                                    name: 'Reports',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'student Count Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/student-count-report',
+                                            title: 'student Count Report',
+                                            description: 'student Count Report'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Registration Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/registration-report',
+                                            title: 'Registration Report',
+                                            description: 'Registration Report'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'EMAIL SMS Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/email-sms',
+                                            title: 'EMAIL SMS Report',
+                                            description: 'EMAIL SMS Report'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'PreAdmission Month End Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/preadmission-month-end-report',
+                                            title: 'PreAdmission Month End Report',
+                                            description: 'PreAdmission Month End Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            id: 2,
+                            name: 'Admission',
+                            icon: 'UserCog',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Application',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Admission Form',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/admission-form',
+                                            title: 'Master Class',
+                                            description: 'Manage Master Class Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Reports',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Class Teacher Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/class-teacher-report',
+                                            title: 'Class Teacher Report',
+                                            description: 'Class Teacher Report'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Student Yearly Attendance Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/students-yearly-attendence-report',
+                                            title: 'Student Yearly Attendance Report',
+                                            description: 'Student Yearly Attendance Report'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Student TC Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/student-tc-report',
+                                            title: 'Student TC Report',
+                                            description: 'Student TC Report'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'class-wise student details',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/class-wise-student-details',
+                                            title: 'class-wise student details',
+                                            description: 'class-wise student details'
+                                        },
+
+                                        {
+                                            id: 5,
+                                            name: 'Total Strength Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/total-strength',
+                                            title: 'Total Strength Report',
+                                            description: 'Total Strength Report'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Admission Register Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/admission-register',
+                                            title: 'Admission Register Report',
+                                            description: 'Admission Register Report '
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Attendance Absentees Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/attendance-absent-sms',
+                                            title: 'Attendance Absentees Report',
+                                            description: 'Attendance Absentees Report'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Student Search',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/student-search',
+                                            title: 'Student Search',
+                                            description: 'Student Search'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'Month End Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/month-end-report',
+                                            title: 'Month End Report',
+                                            description: 'Month End Report'
+                                        },
+
+                                        {
+                                            id: 10,
+                                            name: 'Study Certificate Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/study-certificate-report',
+                                            title: 'Study Certificate Report',
+                                            description: 'Study Certificate Report'
+                                        },
+                                        {
+                                            id: 11,
+                                            name: 'Date Of Birth Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/date-of-birth-report',
+                                            title: 'Date Of Birth Report',
+                                            description: 'Date Of Birth Report'
+                                        },
+                                        {
+                                            id: 12,
+                                            name: 'Overall Daily Attendance Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/overall-daily-attendance-report',
+                                            title: 'Overall Daily Attendance Report',
+                                            description: 'Overall Daily Attendance Report'
+                                        },
+                                        {
+                                            id: 13,
+                                            name: 'Student Attendance Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/student-attendance-report',
+                                            title: 'Student Attendance Report',
+                                            description: 'Student Attendance Report'
                                         }
                                     ]
                                 }
@@ -438,7 +575,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 26,
-                                            name: 'Master Fee Master Concession',
+                                            name: 'Master Fee Concession',
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/masterfeeconcession',
                                             title: 'Fee Master Concession',
@@ -451,7 +588,7 @@ export async function getUserAccessibleModules() {
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/masterfeeconcessiondetails',
                                             title: 'Master Concession Category Details',
-                                            description: 'Master Master Concession Category Details'
+                                            description: 'Manage Master Concession Category Details'
                                         },
                                         {
                                             id: 650,
@@ -459,7 +596,7 @@ export async function getUserAccessibleModules() {
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/concessioncategorygroupheadmapping',
                                             title: 'Master Concession Category Group Head Mapping',
-                                            description: 'Master Master Concession Category Group Head Mapping'
+                                            description: 'Manage Master Concession Category Group Head Mapping'
                                         },
                                         {
                                             id: 27,
@@ -613,6 +750,14 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/masters/specialFeeHead',
                                             title: 'Master Special Fee Head',
                                             description: 'Manage Master Special Fee Head Details'
+                                        },
+                                        {
+                                            id: 506,
+                                            name: 'Master Fee Tally Master',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/masters/feecompanygroupmapping',
+                                            title: 'Master Fee Tally Master',
+                                            description: 'Manage Fee Tally  Details'
                                         }
                                     ]
                                 },
@@ -748,6 +893,78 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/feereports/feeconcessionreport',
                                             title: 'Fee Concession Report',
                                             description: 'Manage Fee Concession Report Details'
+                                        },
+                                        {
+                                            id: 10016,
+                                            name: 'Fee Head Wise Report ',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/headwisereport',
+                                            title: 'Fee Head Wise Report',
+                                            description: 'Manage Fee Head Wise Report Details'
+                                        },
+                                        {
+                                            id: 10017,
+                                            name: 'Fee Due Date Report ',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feeduedatereport',
+                                            title: 'Fee Due Date Report',
+                                            description: 'Manage Fee Due Date Report Details'
+                                        },
+                                        {
+                                            id: 10018,
+                                            name: 'Fee Month End Report ',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feemonthendreport',
+                                            title: 'Fee Month End Report',
+                                            description: 'Manage Fee Month End Report Details'
+                                        },
+                                        {
+                                            id: 10019,
+                                            name: 'Fee Class Category Report ',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/classcategoryreport',
+                                            title: 'Fee Class Category Report',
+                                            description: 'Manage Fee Class Category Report Details'
+                                        },
+                                        {
+                                            id: 10020,
+                                            name: 'Fee Consolidated Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feeconsolidatedreport',
+                                            title: 'Fee Consolidated Report',
+                                            description: 'Manage Fee Consolidated Report Details'
+                                        },
+                                        {
+                                            id: 10021,
+                                            name: 'Fee Installment Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feesinstallmentreport',
+                                            title: 'Fee Installment Report',
+                                            description: 'Manage Fee Installment Report Details'
+                                        },
+                                        {
+                                            id: 10022,
+                                            name: 'Fee Receipt Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feereceiptreport',
+                                            title: 'Fee Receipt Report',
+                                            description: 'Manage Fee Receipt Report Details'
+                                        },
+                                        {
+                                            id: 10023,
+                                            name: 'Fee Accounts Position Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feeaccountspositionReport',
+                                            title: 'Fee Accounts Position Report',
+                                            description: 'Manage Fee Accounts Position Report Details'
+                                        },
+                                        {
+                                            id: 10024,
+                                            name: 'Fee Student Term Wise Paid Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feestudenttermwisepaidreport',
+                                            title: 'Fee Student Term Wise Paid Report',
+                                            description: 'Manage Fee Student Term Wise Paid Report Details'
                                         }
                                     ]
                                 }
@@ -1101,7 +1318,7 @@ export async function getUserAccessibleModules() {
                                             title: 'Exam Category Report',
                                             description: 'Manage Exam Category Report Details'
                                         },
-                                         {
+                                        {
                                             id: 75,
                                             name: 'TBS Report School',
                                             icon: 'BookOpen',

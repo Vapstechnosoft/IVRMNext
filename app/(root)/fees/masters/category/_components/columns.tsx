@@ -54,9 +54,17 @@ export const masterClassYearlyCategoryColumns: ColumnDef<IMasterClassYearlyList>
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterClassYearlyList }) {
-    const { openDeleteForm } = useFormContext<IMasterClassYearlyList>();
+    const { openDeleteForm, openEditForm } = useFormContext<IMasterClassYearlyList>();
 
     const handleDelete = useCallback((data: IMasterClassYearlyList) => openDeleteForm(data), [openDeleteForm]);
+    const handleEdit = useCallback((data: IMasterClassYearlyList) => openEditForm(data), [openEditForm]);
 
-    return <ActionButtons rowData={rowData} buttons={{ edit: false, toggle: false, delete: true }} onDelete={handleDelete} />;
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: false, toggle: false, delete: true }}
+            onDelete={handleDelete}
+            //  onEdit={handleEdit}
+        />
+    );
 }

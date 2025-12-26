@@ -666,6 +666,9 @@ export interface IFeeTDetails {
     fmG_Id: number;
     fsS_RunningExcessAmount: number;
     fsS_FineAmount: number;
+    portalusername: string;
+    ftP_Paid_Amt: number;
+    ftP_Concession_Amt: number;
 }
 
 export interface IFeeRefundableList {
@@ -894,6 +897,7 @@ export interface IFeeConcessionStudentData {
 }
 
 export interface IFeeAdjustmentGroupDropDown {
+    fmG_Id: number;
     fsA_From_FMG_Id: number;
     fmG_GroupNameF: string;
 }
@@ -908,3 +912,87 @@ export interface IFeeAdjustmentHeadDropDown {
     fsS_RunningExcessAmount: number;
 }
 
+export interface IFeeAdjustmentGroupToDropDown {
+    fsA_To_FMG_Id: number;
+    fmG_GroupNameT: string;
+}
+
+export interface IFeeAdjustmentToHead {
+    fsA_To_FMH_Id: number;
+    fmH_FeeNameT: string;
+    fsA_TO_FTI_Id: number;
+    ftI_NameT: string;
+    fsA_To_FMG_Id: number;
+    fsA_To_FMA_Id: number;
+    tobepaid: number;
+}
+
+export interface IFeeTermDetails {
+    fmA_Id: number;
+    fmH_FeeName: string;
+    fmH_Flag: string;
+    ftI_Name: string;
+    fmH_Id: number;
+    ftI_Id: number;
+    totalamount: number;
+    fsS_ToBePaid: number;
+    fsS_ConcessionAmount: number;
+    fsS_FineAmount: number;
+    fsS_CurrentYrCharges: number;
+    fsS_TotalToBePaid: number;
+    fmG_Id: number;
+    fmG_GroupName: string;
+    fsS_OBArrearAmount: number;
+    fmT_Id: number;
+    fsS_RebateAmount: number;
+    fsS_WaivedAmount: number;
+    fsS_OBAsPerFY: number;
+    fsS_AdjustedAmount: number;
+}
+export interface MasterNarration {
+    fmnaR_Id: number;
+    fmnaR_Narration: string;
+}
+export interface MasterModeofPayment {
+    ivrmmoD_Id: number;
+    ivrmmoD_ModeOfPayment: string;
+    ivrmmoD_Flag: string;
+    ivrmmoD_ModeOfPayment_Code: string;
+}
+
+export interface StudentPrintDetails {
+    amst_id: number;
+    fyp_id: number;
+    student_name: string;
+    fmh_id: number;
+    fmh_feename: string;
+    fti_id: number;
+    fti_name: string;
+    paid_amount: number;
+    concession_amount: number;
+    fine_amount: number;
+    to_be_paid: number;
+    fyp_date: string;
+    feeAmount: number;
+    asmay_Year: string;
+}
+
+export interface CurrentPaymentDetails {
+    ftP_Paid_Amt: number;
+    ftP_Concession_Amt: number;
+    fyP_Date: string;
+    fyP_Bank_Or_Cash: string;
+    fyP_DD_Cheque_No: string;
+    fyP_DD_Cheque_Date: string;
+    fyP_Bank_Name: string;
+    fyP_Remarks: string;
+    fyppM_TotalPaidAmount: number;
+    fyP_TransactionTypeFlag: string;
+    fyppM_BankName: string;
+    fyppM_DDChequeNo: string;
+    fyppM_DDChequeDate: string;
+    fyppM_TransactionId: string;
+    fyppM_PaymentReferenceId: string;
+    ivrmmoD_ModeOfPayment: string;
+    ivrmmoD_Flag: string;
+}

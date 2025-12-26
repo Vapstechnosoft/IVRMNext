@@ -106,7 +106,7 @@ export async function getgroupdrodown() {
 }
 
 export async function getAcademicYearDropdownData() {
-    const url = '/fee_class_category/academicyearlist/30';
+    const url = '/fee_class_category/academicyearlist';
     return await api.get<IFeeAcademicyearDropDownList[]>('fees', url);
 }
 

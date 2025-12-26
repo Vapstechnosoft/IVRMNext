@@ -13,7 +13,7 @@ import { tableSearchVariables } from '@/lib/data-table.config';
 import type { IFeeGroupMapping } from '@/types/fees/masters/masters';
 import { Plus, X } from 'lucide-react';
 import { parseAsString, useQueryState } from 'nuqs';
-import { useRef, useState } from 'react';
+import { use, useRef, useState } from 'react';
 import YearlyFeeGroupMapping from './_components/add-form';
 import { yearlyGroupMappingColumns } from './_components/columns';
 import DeleteMasterYearlyGroupForm from './_components/delete-form';
@@ -25,9 +25,15 @@ interface AcademicYearOption {
     asmaY_Year: string;
 }
 
-function FeeGroupMappingContent() {
+function FeeGroupMappingContent({
+    searchParams: _searchParams
+}: {
+    searchParams: Promise<SearchParams>;
+}) {
     const { openAddForm } = useFormContext<IFeeGroupMapping>();
     const tableRef = useRef<DataTableRef>(null);
+
+    const searchParams = use(_searchParams);
 
     const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
     const [academicYearId, setAcademicYearId] = useState<number>(0);
@@ -41,7 +47,7 @@ function FeeGroupMappingContent() {
         error: feeHeadError,
         isFetching,
         refetch // ⬅️ IMPORTANT
-    } = useMasterAllFeeHead(academicYearId > 0 ? academicYearId : 0, searchQuery ? { search_query: searchQuery } : undefined);
+    } = useMasterAllFeeHead(academicYearId > 0 ? academicYearId : 0, searchParams);
 
     const feeGroupData = academicYearId > 0 && Array.isArray(feeHeadResponse?.data) ? feeHeadResponse.data : [];
 
@@ -142,7 +148,7 @@ export default function FeeGroupMappingView({
 }) {
     return (
         <FormProvider<IFeeGroupMapping>>
-            <FeeGroupMappingContent />
+            <FeeGroupMappingContent searchParams={_searchParams} />
         </FormProvider>
     );
 }

@@ -133,3 +133,188 @@ export interface IFeeYearlyCollectionReportRow {
     charge: number;
     adjustment: number;
 }
+
+export interface HeadwiseClassCategoryDropDown {
+    fmcC_Id: number;
+    fhwR_ClassCategoryName: string;
+}
+
+export interface HeadwiseReportData {
+    fmG_GroupName: string;
+    fmH_FeeName: string;
+    fmcC_ClassCategoryName: string;
+    ftI_Name: string;
+    amount: number;
+    fmG_ActiceFlag: boolean;
+    fyghM_FineApplicableFlag: string;
+}
+
+export interface IFeeTrasactionInstallmentDropdownList {
+    ftI_Id: number;
+    ftI_InstallmentName: string;
+}
+
+export interface IduedateReportData {
+    FTI_Id: number;
+    FMG_GroupName: string;
+    FMH_FeeName: string;
+    FMI_Name: string;
+    FTI_Name: string;
+    FMCC_Id: number;
+    FTDD_Month: number;
+    FTDD_Day: number;
+    FMFS_Id: number;
+    FMFS_FineType: string;
+    FTFS_Id: number;
+    FTFS_FineType: string;
+    FTFS_Amount: number;
+    FTIDD_DueDate: string;
+}
+
+export interface FeeClassCategoryReportList {
+    fmG_Id: number;
+    fmG_GroupName: string;
+    fmH_RefundFlag: boolean;
+    fmH_PDAFlag: boolean;
+    fmH_SpecialFeeFlag: boolean;
+    fmH_Order: number;
+    fmH_FeeName: string;
+    fmH_Flag: string;
+    fmH_Id: number;
+    asmaY_Id: number;
+    fmI_Name: string;
+    fyghM_FineApplicableFlag: string;
+    fyghM_Common_AmountFlag: string;
+    ftI_Id: number;
+    ftI_Name: string;
+    fmI_Id: number;
+    ftidD_ApplicableDate: string;
+    ftidD_DueDate: string;
+    ftidD_FromDate: string;
+    ftidD_ToDate: string;
+    fmfS_Id: number;
+    fmfS_FineType: string;
+    fmfS_FromDay: number;
+    fmfS_ToDay: number;
+    fmfS_ECSFlag: string;
+    fmfS_ActiveFlag: boolean;
+    mI_Id: number;
+    fmcC_ClassCategoryName: string;
+    asmC_SectionName: string;
+    asmcL_Id: number;
+    asmS_Id: number;
+    asmcL_ClassName: string;
+    fmcC_Id: number;
+    normalizedUserName: string;
+    ivrmrT_Role: string;
+    user_Id: number;
+    fmT_Id: number;
+    fmT_Name: string;
+    fmA_Amount: number;
+    fmA_Id: number;
+    ftfS_Amount: number;
+    ftddE_Month: string;
+    fmgG_GroupName: string;
+    fmgG_Id: number;
+}
+
+export interface IFeeMonthsListDropdown {
+    ivrM_Month_Id: number;
+    ivrM_Month_Name: string;
+}
+
+export interface FeeMonthEndData {
+    cashCount: number;
+    bankCount: number;
+    onlineCount: number;
+    rtgs: number;
+    cardCount: number;
+    ecs: number;
+    defaulters: number;
+    refund: number;
+    refundBank: number;
+    smsCount: number;
+    emailCount: number;
+}
+
+export interface IFeeMonthsListDropdown {
+    ivrM_Month_Id: number;
+    ivrM_Month_Name: string;
+}
+
+export interface ConsolidatedReportInstallemntDropdownList {
+    ftI_Id: number;
+    ftI_Name: string;
+}
+
+export interface IFeeReceiptReportHeadDropdownList {
+    fmH_Id: number;
+
+    fmH_FeeName: string;
+}
+
+export interface IInstallmentReportFeeTermDropdownList {
+    fmT_Id: number;
+    mI_Id: number;
+    fmT_Name: string;
+    fmT_ActiveFlag: boolean;
+    fromMonth?: number | null;
+    toMonth?: number | null;
+    fmT_Order?: number | null;
+    fmT_Year?: number | null;
+    transport_FromMonth?: number | null;
+    transport_ToMonth?: number | null;
+    fmT_IncludeArrearFeeFlg: boolean;
+    createdDate?: string;
+    updatedDate?: string;
+}
+
+export interface IInstallmentReportFeeCategoryDropdownList {
+    fmcC_Id: number;
+    mI_Id: number;
+    fmcC_ClassCategoryName: string;
+    fmcC_ClassCategoryCode: string;
+    fmcC_ActiveFlag: boolean;
+    fmcC_CreatedBy: number;
+    fmcC_UpdatedBy: number;
+    createdDate: string;
+    updatedDate: string;
+}
+
+export interface InstallmentReportInstallemntDropdownList {
+    ftI_Id: number;
+    ftI_Name: string;
+}
+
+export interface InstallmentReportGroupDropdownList {
+    fmG_Id: number;
+    fmg_groupname: string;
+}
+
+export interface IInstallmentReportFeeBusRoutrDropdownList {
+    trmR_Id: number;
+    mI_Id?: number;
+    trmA_Id?: number;
+    trmR_RouteName: string;
+    trmR_RouteNo?: string;
+    trmR_RouteDesc?: string;
+    trmR_ActiveFlg: boolean;
+    trmR_order?: number;
+    createdDate?: string;
+    updatedDate?: string;
+}
+
+export interface InstallmentReportHeadDropdownList {
+    fmH_Id: number;
+    fmH_FeeName: string;
+}
+
+export interface ReceiptReportStudentDropdownList {
+    amst_Id: number;
+    studentName: string;
+}
+
+export interface ReceiptReportReceiptDropdownList {
+    fyp_id: number;
+    fyp_receipt_no: string;
+}

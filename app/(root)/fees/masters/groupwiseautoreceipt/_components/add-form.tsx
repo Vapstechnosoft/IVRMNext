@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text'; // <-- same import
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown, useFeeMasterGroupwiseAutoReceiptDropDown } from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
@@ -77,8 +78,11 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
     const [_selectedGroups, setSelectedGroups] = useState<string[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [isLoadingDropdowns, setIsLoadingDropdowns] = useState(false);
-    const [usePrefix, setUsePrefix] = useState(false);
-    const [useSuffix, setUseSuffix] = useState(false);
+    // const [usePrefix, setUsePrefix] = useState(false);
+    // const [useSuffix, setUseSuffix] = useState(false);
+
+    const usePrefix = watch('usePrefix');
+    const useSuffix = watch('useSuffix');
 
     const academicYear = watch('academicYear');
     const groupsValue = watch('groups');
@@ -188,8 +192,8 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
         reset();
         setSelectedGroups([]);
         setSearchTerm('');
-        setUsePrefix(false);
-        setUseSuffix(false);
+        // setUsePrefix(false);
+        // setUseSuffix(false);
         setHasSubmitted(false);
     };
 
@@ -252,8 +256,8 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                         <div className='lg:col-span-2'>
                             <Label>Prefix / Suffix</Label>
                             <div className='mt-2 flex flex-wrap gap-6'>
-                                <label className='flex items-center space-x-2'>
-                                    <input
+                                <Label className='flex items-center space-x-2'>
+                                    {/* <input
                                         type='checkbox'
                                         checked={usePrefix}
                                         onChange={(e) => {
@@ -267,11 +271,27 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                             }
                                         }}
                                         className='h-4 w-4 rounded border-gray-300 accent-primary'
+                                    /> */}
+
+                                    <Input
+                                        type='checkbox'
+                                        checked={usePrefix}
+                                        onChange={(e) => {
+                                            const checked = e.target.checked;
+
+                                            setValue('usePrefix', checked, { shouldValidate: hasSubmitted });
+
+                                            if (!checked) {
+                                                setValue('prefixValue', '', { shouldValidate: hasSubmitted });
+                                            }
+                                        }}
+                                        className='h-4 w-4 rounded border-gray-300 accent-primary'
                                     />
+
                                     <span>Prefix</span>
-                                </label>
-                                <label className='flex items-center space-x-2'>
-                                    <input
+                                </Label>
+                                <Label className='flex items-center space-x-2'>
+                                    {/* <input
                                         type='checkbox'
                                         checked={useSuffix}
                                         onChange={(e) => {
@@ -285,9 +305,25 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                             }
                                         }}
                                         className='h-4 w-4 rounded border-gray-300 accent-primary'
+                                    /> */}
+
+                                    <Input
+                                        type='checkbox'
+                                        checked={useSuffix}
+                                        onChange={(e) => {
+                                            const checked = e.target.checked;
+
+                                            setValue('useSuffix', checked, { shouldValidate: hasSubmitted });
+
+                                            if (!checked) {
+                                                setValue('suffixValue', '', { shouldValidate: hasSubmitted });
+                                            }
+                                        }}
+                                        className='h-4 w-4 rounded border-gray-300 accent-primary'
                                     />
+
                                     <span>Suffix</span>
-                                </label>
+                                </Label>
                             </div>
                         </div>
 
