@@ -5,13 +5,16 @@ import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useClassTeacherEmployee, useMasterClassDropdown, useMasterSectionDropdown } from '@/hooks/admission/preadmission/useMasters';
+import { useMasterClassDropdown, useMasterSectionDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { useClassTeacherDropdownList, useEmployeeDropdownList, useUserDropdownList } from '@/hooks/exam/exammodule/exam-mapping';
 import { useGetMasterSubjectDropdownList, useMasterSubSubjectDropdownList } from '@/hooks/exam/exammodule/usemasters';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { examLoginPrivilegesSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import { getTeacherClassSection } from '@/server/admission/preadmission/masters/class_teacher';
-import { addorUpdateExamLoginPrivileges, getExamLoginPrivilegesEditDetails } from '@/server/exam/exam-module/exam-mapping/exam-login-privilages';
+import {
+    addorUpdateExamLoginPrivileges,
+    getExamLoginPrivilegesEditDetails
+} from '@/server/exam/exam-module/exam-mapping/exam-login-privilages';
 import type { IMasterClassSectionDropDown } from '@/types/admission/preadmission/masters';
 import type { IExamLoginPrivileges } from '@/types/exam/exam-module/exam-mapping';
 import type { IClass } from '@/types/exam/exam-module/masters';
@@ -112,15 +115,15 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
 
                 if (editData?.success && editData.data?.length > 0) {
                     const editList = editData.data;
-                    const employeeName = editData.data?.hrmE_EmployeeFirstName;
-                    const userId = editData.data.ivrmulF_Id;
+                    const employeeName = '';
+                    const userId = 0;
 
                     // Determine entry type based on elP_Flg
                     let entryType = 'BY_CLASS_TEACHER';
-                    if (editList[0].elP_Flg === 'st') {
+                    if (editList[0].asmS_SectionName === 'st') {
                         entryType = 'BY_SUBJECT_TEACHER';
                         setActiveTab(1);
-                    } else if (editList[0].elP_Flg === 'others') {
+                    } else if (editList[0].asmS_SectionName === 'others') {
                         entryType = 'BY_OTHERS';
                         setActiveTab(2);
                     } else {
@@ -171,11 +174,11 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                     });
 
                     // Get academic year info
-                    const yearInfo = academicYear?.data?.find((y: any) => y.asmaY_Id === editList[0].asmaY_Id);
+                    const yearInfo = academicYear?.data?.find((y: any) => y.asmaY_Id === 231);
 
                     // Set form values
-                    setValue('asmaY_Id', editList[0].asmaY_Id);
-                    setValue('hrmE_Id', editList[0].hrmE_Id);
+                    setValue('asmaY_Id', 176);
+                    setValue('hrmE_Id', 0);
                     setValue('ivrmulF_Id', userId);
                     setValue('sectionList', selectedSections);
                     setValue('classList', Array.from(uniqueClasses.values()));
@@ -213,12 +216,12 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                     classSectionMap.forEach((group, key) => {
                         detailRows.push({
                             id: makeUniqueId(),
-                            yearid: editList[0].asmaY_Id,
+                            yearid: 231,
                             user_id: userId,
                             year: yearInfo?.asmaY_Year || '',
                             emp_name: employeeName,
-                            emp_Id: editList[0].hrmE_Id,
-                            elpflg: editList[0].elP_Flg,
+                            emp_Id: 0,
+                            elpflg: entryType,
                             clas: group.class,
                             secs: group.section,
                             sub: Array.from(group.subjects),
@@ -327,10 +330,13 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                 });
 
                 const classList = Array.from(classMap.values());
-                setValue('classList', classList.map((c) => ({
-                    asmcL_Id: c.asmcL_Id,
-                    asmcL_ClassName: c.asmcL_ClassName
-                })));
+                setValue(
+                    'classList',
+                    classList.map((c) => ({
+                        asmcL_Id: c.asmcL_Id,
+                        asmcL_ClassName: c.asmcL_ClassName
+                    }))
+                );
                 setValue('asmcL_Id', classList[0]?.asmcL_Id ?? 0);
                 setValue('sectionList', sectionList);
                 setDisableClassSection(true);
@@ -370,11 +376,12 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
             return [];
         }
 
-        const rawClasses: any[] = Array.isArray(v.classList) && v.classList.length
-            ? v.classList
-            : v.asmcL_Id
-                ? classes.filter((c) => c.asmcL_Id === v.asmcL_Id)
-                : [];
+        const rawClasses: any[] =
+            Array.isArray(v.classList) && v.classList.length
+                ? v.classList
+                : v.asmcL_Id
+                  ? classes.filter((c) => c.asmcL_Id === v.asmcL_Id)
+                  : [];
 
         if (rawClasses.length === 0) {
             toast.error('No classes selected');
@@ -393,11 +400,12 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
         const selectedSubjects: any[] = Array.isArray(v.subjectList) ? v.subjectList : [];
 
         // FIXED: Use emsS_Id instead of issS_Id
-        const selectedSSubjects: any[] = Array.isArray(v.subSubjectList) ?
-            v.subSubjectList.map((ss: any) => ({
-                emsS_Id: ss.emsS_Id,
-                emsS_SubSubjectName: ss.emsS_SubSubjectName || ''
-            })) : [];
+        const selectedSSubjects: any[] = Array.isArray(v.subSubjectList)
+            ? v.subSubjectList.map((ss: any) => ({
+                  emsS_Id: ss.emsS_Id,
+                  emsS_SubSubjectName: ss.emsS_SubSubjectName || ''
+              }))
+            : [];
 
         const rows: DetailRow[] = [];
 
@@ -423,13 +431,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
     }
 
     function handleAddRows() {
-        const isValid = trigger([
-            'asmaY_Id',
-            'hrmE_Id',
-            'ivrmulF_Id',
-            'sectionList',
-            'subjectList'
-        ]);
+        const isValid = trigger(['asmaY_Id', 'hrmE_Id', 'ivrmulF_Id', 'sectionList', 'subjectList']);
 
         if (!isValid) {
             toast.error('Please fix all validation errors before adding');
@@ -599,66 +601,84 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
         }
     }, [details]);
 
-    const detailsTable = useMemo(() => (
-        <div ref={tableRef}>
-            <table className='w-full border-collapse text-sm'>
-                <thead>
-                    <tr style={{ background: 'hsl(277 90% 52%)', color: '#fff' }}>
-                        <th className='border p-2'>SLNO</th>
-                        <th className='border p-2'>Academic Year</th>
-                        <th className='border p-2'>User ID</th>
-                        <th className='border p-2'>Employee Name</th>
-                        <th className='border p-2'>Class</th>
-                        <th className='border p-2'>Section</th>
-                        <th className='border p-2'>Subject</th>
-                        <th className='border p-2'>Sub Subject</th>
-                        <th className='border p-2'>Entry Type</th>
-                        <th className='border p-2'>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {details.map((d, idx) => (
-                        <tr key={d.id} className='even:bg-gray-50'>
-                            <td className='border p-2 text-center'>{idx + 1}</td>
-                            <td className='border p-2 text-center'>{d.year}</td>
-                            <td className='border p-2 text-center'>{d.user_id}</td>
-                            <td className='border p-2'>{d.emp_name}</td>
-                            <td className='border p-2'>{d.clas?.asmcL_ClassName ?? ''}</td>
-                            <td className='border p-2'>{sections.find((s) => s.asmS_Id === d.secs?.asmS_Id)?.asmC_SectionName ?? ''}</td>
-                            <td className='border p-2'>{(d.sub || []).map((s) => s.ismS_SubjectName).join(', ')}</td>
-                            {/* FIXED: Display emsS_SubSubjectName */}
-                            <td className='border p-2'>{(d.ssub || []).map((ss) => ss.emsS_SubSubjectName).join(', ')}</td>
-                            <td className='border p-2 text-center'>
-                                {d.elpflg === 'ct' ? 'Class Teacher' : d.elpflg === 'st' ? 'Subject Teacher' : 'Others'}
-                            </td>
-                            <td className='border p-2'>
-                                <div className='flex justify-center gap-2'>
-                                    <Button type='button' variant='ghost' size='sm' onClick={() => handleEditRow(d.id)} className='h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600'>
-                                        <Edit className='h-4 w-4' />
-                                    </Button>
-                                    <Button type='button' variant='ghost' size='sm' onClick={() => { setDeleteIndex(idx); setConfirmOpen(true); }} className='h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600'>
-                                        <Trash2 className='h-4 w-4' />
-                                    </Button>
-                                </div>
-                            </td>
+    const detailsTable = useMemo(
+        () => (
+            <div ref={tableRef}>
+                <table className='w-full border-collapse text-sm'>
+                    <thead>
+                        <tr style={{ background: 'hsl(277 90% 52%)', color: '#fff' }}>
+                            <th className='border p-2'>SLNO</th>
+                            <th className='border p-2'>Academic Year</th>
+                            <th className='border p-2'>User ID</th>
+                            <th className='border p-2'>Employee Name</th>
+                            <th className='border p-2'>Class</th>
+                            <th className='border p-2'>Section</th>
+                            <th className='border p-2'>Subject</th>
+                            <th className='border p-2'>Sub Subject</th>
+                            <th className='border p-2'>Entry Type</th>
+                            <th className='border p-2'>Actions</th>
                         </tr>
-                    ))}
-                    {details.length === 0 && (
-                        <tr>
-                            <td className='border p-4 text-center' colSpan={10}>No rows added yet.</td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
-        </div>
-    ), [details, sections]);
+                    </thead>
+                    <tbody>
+                        {details.map((d, idx) => (
+                            <tr key={d.id} className='even:bg-gray-50'>
+                                <td className='border p-2 text-center'>{idx + 1}</td>
+                                <td className='border p-2 text-center'>{d.year}</td>
+                                <td className='border p-2 text-center'>{d.user_id}</td>
+                                <td className='border p-2'>{d.emp_name}</td>
+                                <td className='border p-2'>{d.clas?.asmcL_ClassName ?? ''}</td>
+                                <td className='border p-2'>
+                                    {sections.find((s) => s.asmS_Id === d.secs?.asmS_Id)?.asmC_SectionName ?? ''}
+                                </td>
+                                <td className='border p-2'>{(d.sub || []).map((s) => s.ismS_SubjectName).join(', ')}</td>
+                                {/* FIXED: Display emsS_SubSubjectName */}
+                                <td className='border p-2'>{(d.ssub || []).map((ss) => ss.emsS_SubSubjectName).join(', ')}</td>
+                                <td className='border p-2 text-center'>
+                                    {d.elpflg === 'ct' ? 'Class Teacher' : d.elpflg === 'st' ? 'Subject Teacher' : 'Others'}
+                                </td>
+                                <td className='border p-2'>
+                                    <div className='flex justify-center gap-2'>
+                                        <Button
+                                            type='button'
+                                            variant='ghost'
+                                            size='sm'
+                                            onClick={() => handleEditRow(d.id)}
+                                            className='h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600'>
+                                            <Edit className='h-4 w-4' />
+                                        </Button>
+                                        <Button
+                                            type='button'
+                                            variant='ghost'
+                                            size='sm'
+                                            onClick={() => {
+                                                setDeleteIndex(idx);
+                                                setConfirmOpen(true);
+                                            }}
+                                            className='h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600'>
+                                            <Trash2 className='h-4 w-4' />
+                                        </Button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                        {details.length === 0 && (
+                            <tr>
+                                <td className='border p-4 text-center' colSpan={10}>
+                                    No rows added yet.
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        ),
+        [details, sections]
+    );
 
     const formRef = useRef<HTMLDivElement>(null);
-    const dropdownData =
-        activeTab === 0 ? classTeachersData?.data : employeeData?.data;
+    const dropdownData = activeTab === 0 ? classTeachersData?.data : employeeData?.data;
 
-    const isLoading =
-        activeTab === 0 ? classTeacherLoading : employeeDataLoading;
+    const isLoading = activeTab === 0 ? classTeacherLoading : employeeDataLoading;
 
     if (isLoadingEditData) {
         return (
@@ -666,7 +686,6 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                 <div className='text-center'>
                     <div className='mb-4 h-8 w-8 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600'> </div>
                     <p className='text-gray-600'>Loading edit data...</p>
-
                 </div>
             </div>
         );
@@ -679,13 +698,49 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                     <div className='rounded bg-white p-3 shadow'>
                         <div className='mb-4 flex items-center justify-between'>
                             <div className='flex w-max gap-2 rounded-full bg-gray-200 p-1'>
-                                <button type='button' className={`rounded-full px-6 py-2 font-medium text-sm transition-colors duration-200 ${activeTab === 0 ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'}`} onClick={() => { setActiveTab(0); setDisableClassSection(false); setValue('sectionList', []); setValue('hrmE_Id', 0); setValue('classList', []); setValue('subjectList', []); setValue('subSubjectList', []); setEditingId(null); }}>
+                                <button
+                                    type='button'
+                                    className={`rounded-full px-6 py-2 font-medium text-sm transition-colors duration-200 ${activeTab === 0 ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'}`}
+                                    onClick={() => {
+                                        setActiveTab(0);
+                                        setDisableClassSection(false);
+                                        setValue('sectionList', []);
+                                        setValue('hrmE_Id', 0);
+                                        setValue('classList', []);
+                                        setValue('subjectList', []);
+                                        setValue('subSubjectList', []);
+                                        setEditingId(null);
+                                    }}>
                                     Entry By Class teacher
                                 </button>
-                                <button type='button' className={`rounded-full px-6 py-2 font-medium text-sm transition-colors duration-200 ${activeTab === 1 ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'}`} onClick={() => { setActiveTab(1); setDisableClassSection(false); setValue('sectionList', []); setValue('classList', []); setValue('hrmE_Id', 0); setValue('subjectList', []); setValue('subSubjectList', []); setEditingId(null); }}>
+                                <button
+                                    type='button'
+                                    className={`rounded-full px-6 py-2 font-medium text-sm transition-colors duration-200 ${activeTab === 1 ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'}`}
+                                    onClick={() => {
+                                        setActiveTab(1);
+                                        setDisableClassSection(false);
+                                        setValue('sectionList', []);
+                                        setValue('classList', []);
+                                        setValue('hrmE_Id', 0);
+                                        setValue('subjectList', []);
+                                        setValue('subSubjectList', []);
+                                        setEditingId(null);
+                                    }}>
                                     Entry By Subject Teacher
                                 </button>
-                                <button type='button' className={`rounded-full px-6 py-2 font-medium text-sm transition-colors duration-200 ${activeTab === 2 ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'}`} onClick={() => { setActiveTab(2); setDisableClassSection(false); setValue('sectionList', []); setValue('classList', []); setValue('hrmE_Id', 0); setValue('subjectList', []); setValue('subSubjectList', []); setEditingId(null); }}>
+                                <button
+                                    type='button'
+                                    className={`rounded-full px-6 py-2 font-medium text-sm transition-colors duration-200 ${activeTab === 2 ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'}`}
+                                    onClick={() => {
+                                        setActiveTab(2);
+                                        setDisableClassSection(false);
+                                        setValue('sectionList', []);
+                                        setValue('classList', []);
+                                        setValue('hrmE_Id', 0);
+                                        setValue('subjectList', []);
+                                        setValue('subSubjectList', []);
+                                        setEditingId(null);
+                                    }}>
                                     Entry By Others
                                 </button>
                             </div>
@@ -698,31 +753,48 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
 
                         <div className='grid grid-cols-2 gap-6'>
                             <div className='flex flex-col gap-6'>
-                                <Controller control={control} name='asmaY_Id' disabled={editingId !== null || editMode === 'edit'} render={({ field, fieldState }) => (
-                                    <div className='w-full'>
-                                        <Label>Academic Year *</Label>
-                                        <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value ? String(field.value) : ''}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder='Select Academic Year' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {academicYearLoading ? <SelectItem value='0' disabled>Loading...</SelectItem> :
-                                                    academicYear?.data?.length === 0 ? <SelectItem value='0' disabled>No academic years</SelectItem> :
-                                                        academicYear?.data?.map((y: any) => <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>{y.asmaY_Year}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
-                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                    </div>
-                                )} />
-
-
+                                <Controller
+                                    control={control}
+                                    name='asmaY_Id'
+                                    disabled={editingId !== null || editMode === 'edit'}
+                                    render={({ field, fieldState }) => (
+                                        <div className='w-full'>
+                                            <Label>Academic Year *</Label>
+                                            <Select
+                                                onValueChange={(v) => field.onChange(Number(v))}
+                                                value={field.value ? String(field.value) : ''}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder='Select Academic Year' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {academicYearLoading ? (
+                                                        <SelectItem value='0' disabled>
+                                                            Loading...
+                                                        </SelectItem>
+                                                    ) : academicYear?.data?.length === 0 ? (
+                                                        <SelectItem value='0' disabled>
+                                                            No academic years
+                                                        </SelectItem>
+                                                    ) : (
+                                                        academicYear?.data?.map((y: any) => (
+                                                            <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                                                {y.asmaY_Year}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                        </div>
+                                    )}
+                                />
 
                                 <Controller
                                     control={control}
-                                    name="hrmE_Id"
+                                    name='hrmE_Id'
                                     disabled={editingId !== null || editMode === 'edit'}
                                     render={({ field, fieldState }) => (
-                                        <div className="w-full">
+                                        <div className='w-full'>
                                             <Label>Employee Name *</Label>
 
                                             <Select
@@ -731,47 +803,36 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                     const selectedId = Number(v);
                                                     field.onChange(selectedId);
 
-                                                    const selectedEmployee = dropdownData?.find(
-                                                        (e: any) => e.hrmE_Id === selectedId
-                                                    );
+                                                    const selectedEmployee = dropdownData?.find((e: any) => e.hrmE_Id === selectedId);
 
                                                     if (!selectedEmployee?.hrmE_EmployeeName) {
                                                         setValue('ivrmulF_Id', 0);
                                                         return;
                                                     }
 
-                                                    const userCode = extractCode(
-                                                        selectedEmployee.hrmE_EmployeeName
-                                                    );
+                                                    const userCode = extractCode(selectedEmployee.hrmE_EmployeeName);
 
-                                                    const user = userLogins.find(
-                                                        (u: any) =>
-                                                            extractCode(u.hrmE_EmployeeName) === userCode
-                                                    );
+                                                    const user = userLogins.find((u: any) => extractCode(u.hrmE_EmployeeName) === userCode);
                                                     console.log('user', user);
 
                                                     setValue('ivrmulF_Id', user?.ivrmulF_Id ?? 0);
-                                                }}
-                                            >
+                                                }}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select Employee" />
+                                                    <SelectValue placeholder='Select Employee' />
                                                 </SelectTrigger>
 
                                                 <SelectContent>
                                                     {isLoading ? (
-                                                        <SelectItem value="loading" disabled>
+                                                        <SelectItem value='loading' disabled>
                                                             Loading...
                                                         </SelectItem>
                                                     ) : !dropdownData || dropdownData.length === 0 ? (
-                                                        <SelectItem value="empty" disabled>
+                                                        <SelectItem value='empty' disabled>
                                                             No Employee found
                                                         </SelectItem>
                                                     ) : (
                                                         dropdownData.map((e: any) => (
-                                                            <SelectItem
-                                                                key={e.hrmE_Id}
-                                                                value={String(e.hrmE_Id)}
-                                                            >
+                                                            <SelectItem key={e.hrmE_Id} value={String(e.hrmE_Id)}>
                                                                 {e.hrmE_EmployeeName}
                                                             </SelectItem>
                                                         ))
@@ -779,120 +840,216 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                 </SelectContent>
                                             </Select>
 
-                                            {fieldState.error && (
-                                                <FormError>{fieldState.error.message}</FormError>
-                                            )}
+                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </div>
                                     )}
                                 />
 
+                                <Controller
+                                    control={control}
+                                    name='classList'
+                                    render={({ field, fieldState }) => {
+                                        const options = classes.map((c: any) => ({ label: c.asmcL_ClassName, value: String(c.asmcL_Id) }));
+                                        const selectedValues = (field.value || []).map((c: any) => String(c?.asmcL_Id));
+                                        return (
+                                            <CustomMultiSelectBox
+                                                options={options}
+                                                value={selectedValues}
+                                                onChange={(vals) => {
+                                                    const selected = vals.map(
+                                                        (v) =>
+                                                            classes.find((c) => String(c.asmcL_Id) === v) || {
+                                                                asmcL_Id: Number(v),
+                                                                asmcL_ClassName: ''
+                                                            }
+                                                    );
+                                                    field.onChange(selected);
+                                                }}
+                                                label='Classes'
+                                                height='200px'
+                                                isSearchRequired
+                                                disabled={disableClassSection || activeTab === 0 || editMode === 'edit'}
+                                                error={fieldState?.error?.message}
+                                                isLoading={masterClassLoading}
+                                            />
+                                        );
+                                    }}
+                                />
 
-                                <Controller control={control} name='classList' render={({ field, fieldState }) => {
-                                    const options = classes.map((c: any) => ({ label: c.asmcL_ClassName, value: String(c.asmcL_Id) }));
-                                    const selectedValues = (field.value || []).map((c: any) => String(c?.asmcL_Id));
-                                    return (
-                                        <CustomMultiSelectBox options={options} value={selectedValues} onChange={(vals) => {
-                                            const selected = vals.map((v) => classes.find((c) => String(c.asmcL_Id) === v) || { asmcL_Id: Number(v), asmcL_ClassName: '' });
-                                            field.onChange(selected);
-                                        }} label='Classes' height='200px' isSearchRequired disabled={disableClassSection || activeTab === 0 || editMode === 'edit'} error={fieldState?.error?.message} isLoading={masterClassLoading} />
-                                    );
-                                }} />
-
-                                <Controller control={control} name='subjectList' render={({ field, fieldState }) => {
-                                    const options = subjects.map((s: any) => ({ label: s.ismS_SubjectName, value: String(s.ismS_Id) }));
-                                    const selectedValues = (field.value || []).map((s: any) => String(s?.ismS_Id));
-                                    return (
-                                        <CustomMultiSelectBox options={options} value={selectedValues} onChange={(vals) => {
-                                            const selected = vals.map((v) => subjects.find((s) => String(s.ismS_Id) === v) || { ismS_Id: Number(v), ismS_SubjectName: '' });
-                                            field.onChange(selected);
-                                        }} label='Subjects' height='200px' isSearchRequired error={fieldState?.error?.message} isLoading={masterSubjectLoading} />
-                                    );
-                                }} />
+                                <Controller
+                                    control={control}
+                                    name='subjectList'
+                                    render={({ field, fieldState }) => {
+                                        const options = subjects.map((s: any) => ({ label: s.ismS_SubjectName, value: String(s.ismS_Id) }));
+                                        const selectedValues = (field.value || []).map((s: any) => String(s?.ismS_Id));
+                                        return (
+                                            <CustomMultiSelectBox
+                                                options={options}
+                                                value={selectedValues}
+                                                onChange={(vals) => {
+                                                    const selected = vals.map(
+                                                        (v) =>
+                                                            subjects.find((s) => String(s.ismS_Id) === v) || {
+                                                                ismS_Id: Number(v),
+                                                                ismS_SubjectName: ''
+                                                            }
+                                                    );
+                                                    field.onChange(selected);
+                                                }}
+                                                label='Subjects'
+                                                height='200px'
+                                                isSearchRequired
+                                                error={fieldState?.error?.message}
+                                                isLoading={masterSubjectLoading}
+                                            />
+                                        );
+                                    }}
+                                />
                             </div>
 
                             <div className='flex flex-col gap-6'>
-                                <Controller control={control} name='ivrmulF_Id' disabled={editingId !== null || editMode === 'edit'} render={({ field, fieldState }) => (
-                                    <div className='w-full'>
-                                        <Label>User Name *</Label>
-                                        <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value ? String(field.value) : ''}>
-                                            <SelectTrigger><SelectValue placeholder='Select User' /></SelectTrigger>
-                                            <SelectContent>
-                                                {userListLoading ? <SelectItem value='0' disabled>Loading...</SelectItem> :
-                                                    userLogins?.length === 0 ? <SelectItem value='0' disabled>No users found</SelectItem> :
-                                                        userLogins?.map((u: any) => <SelectItem key={u.ivrmulF_Id} value={String(u.ivrmulF_Id)}>{u.hrmE_EmployeeName}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
-                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                    </div>
-                                )} />
+                                <Controller
+                                    control={control}
+                                    name='ivrmulF_Id'
+                                    disabled={editingId !== null || editMode === 'edit'}
+                                    render={({ field, fieldState }) => (
+                                        <div className='w-full'>
+                                            <Label>User Name *</Label>
+                                            <Select
+                                                onValueChange={(v) => field.onChange(Number(v))}
+                                                value={field.value ? String(field.value) : ''}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder='Select User' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {userListLoading ? (
+                                                        <SelectItem value='0' disabled>
+                                                            Loading...
+                                                        </SelectItem>
+                                                    ) : userLogins?.length === 0 ? (
+                                                        <SelectItem value='0' disabled>
+                                                            No users found
+                                                        </SelectItem>
+                                                    ) : (
+                                                        userLogins?.map((u: any) => (
+                                                            <SelectItem key={u.ivrmulF_Id} value={String(u.ivrmulF_Id)}>
+                                                                {u.hrmE_EmployeeName}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                        </div>
+                                    )}
+                                />
 
-                                <Controller control={control} name='sectionList' render={({ field, fieldState }) => {
-                                    const options = sections.map((s: any) => ({ label: s.asmC_SectionName, value: String(s.asmS_Id) }));
-                                    const selectedValues = (field.value || []).map((s: any) => String(s?.asmS_Id));
-                                    return (
-                                        <CustomMultiSelectBox options={options} value={selectedValues} onChange={(vals) => {
-                                            const selected = vals.map((v) => sections.find((s) => String(s.asmS_Id) === v) || { asmS_Id: Number(v), asmC_SectionName: '' });
-                                            field.onChange(selected);
-                                        }} label='Sections' height='200px' isSearchRequired disabled={disableClassSection || activeTab === 0 || editMode === 'edit'} error={fieldState?.error?.message} isLoading={masterSectionLoading} />
-                                    );
-                                }} />
+                                <Controller
+                                    control={control}
+                                    name='sectionList'
+                                    render={({ field, fieldState }) => {
+                                        const options = sections.map((s: any) => ({ label: s.asmC_SectionName, value: String(s.asmS_Id) }));
+                                        const selectedValues = (field.value || []).map((s: any) => String(s?.asmS_Id));
+                                        return (
+                                            <CustomMultiSelectBox
+                                                options={options}
+                                                value={selectedValues}
+                                                onChange={(vals) => {
+                                                    const selected = vals.map(
+                                                        (v) =>
+                                                            sections.find((s) => String(s.asmS_Id) === v) || {
+                                                                asmS_Id: Number(v),
+                                                                asmC_SectionName: ''
+                                                            }
+                                                    );
+                                                    field.onChange(selected);
+                                                }}
+                                                label='Sections'
+                                                height='200px'
+                                                isSearchRequired
+                                                disabled={disableClassSection || activeTab === 0 || editMode === 'edit'}
+                                                error={fieldState?.error?.message}
+                                                isLoading={masterSectionLoading}
+                                            />
+                                        );
+                                    }}
+                                />
 
                                 {/* FIXED: Sub-subjects Controller with emsS_Id */}
-                                <Controller control={control} name='subSubjectList' render={({ field, fieldState }) => {
-                                    const options = subSubjects.map((s: any) => ({
-                                        label: s.emsS_SubSubjectName || s.issS_SubSubjectName || '',
-                                        value: String(s.emsS_Id || s.issS_Id)
-                                    }));
+                                <Controller
+                                    control={control}
+                                    name='subSubjectList'
+                                    render={({ field, fieldState }) => {
+                                        const options = subSubjects.map((s: any) => ({
+                                            label: s.emsS_SubSubjectName || s.issS_SubSubjectName || '',
+                                            value: String(s.emsS_Id || s.issS_Id)
+                                        }));
 
-                                    const selectedValues = (field.value || []).map((s: any) =>
-                                        String(s?.emsS_Id || s?.issS_Id || s)
-                                    );
+                                        const selectedValues = (field.value || []).map((s: any) => String(s?.emsS_Id || s?.issS_Id || s));
 
-                                    return (
-                                        <CustomMultiSelectBox
-                                            options={options}
-                                            value={selectedValues}
-                                            onChange={(vals) => {
-                                                const selected = vals.map((v) => {
-                                                    const sub = subSubjects.find((s: any) =>
-                                                        String(s.emsS_Id || s.issS_Id) === v
-                                                    );
-                                                    return {
-                                                        emsS_Id: sub?.emsS_Id || sub?.issS_Id || Number(v),
-                                                        emsS_SubSubjectName: sub?.emsS_SubSubjectName || sub?.issS_SubSubjectName || ''
-                                                    };
-                                                });
-                                                field.onChange(selected);
-                                            }}
-                                            label='Sub-Subjects'
-                                            height='200px'
-                                            isSearchRequired
-                                            error={fieldState?.error?.message}
-                                            isLoading={masterSubSubjectLoading}
-                                        />
-                                    );
-                                }} />
+                                        return (
+                                            <CustomMultiSelectBox
+                                                options={options}
+                                                value={selectedValues}
+                                                onChange={(vals) => {
+                                                    const selected = vals.map((v) => {
+                                                        const sub = subSubjects.find((s: any) => String(s.emsS_Id || s.issS_Id) === v);
+                                                        return {
+                                                            emsS_Id: sub?.emsS_Id || sub?.issS_Id || Number(v),
+                                                            emsS_SubSubjectName: sub?.emsS_SubSubjectName || sub?.issS_SubSubjectName || ''
+                                                        };
+                                                    });
+                                                    field.onChange(selected);
+                                                }}
+                                                label='Sub-Subjects'
+                                                height='200px'
+                                                isSearchRequired
+                                                error={fieldState?.error?.message}
+                                                isLoading={masterSubSubjectLoading}
+                                            />
+                                        );
+                                    }}
+                                />
 
-                                <Controller control={control} name='remarks' render={({ field, fieldState }) => (
-                                    <div>
-                                        <InputText {...field} label='Remarks' placeholder='Enter remarks' />
-                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                    </div>
-                                )} />
+                                <Controller
+                                    control={control}
+                                    name='remarks'
+                                    render={({ field, fieldState }) => (
+                                        <div>
+                                            <InputText {...field} label='Remarks' placeholder='Enter remarks' />
+                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                        </div>
+                                    )}
+                                />
                             </div>
                         </div>
 
-                        <div className='flex w-full justify-center mt-6'>
+                        <div className='mt-6 flex w-full justify-center'>
                             <div className='flex w-fit justify-center gap-3'>
                                 {editingId ? (
                                     <>
-                                        <Button type='button' onClick={handleUpdateRow}>Update Row</Button>
-                                        <Button type='button' variant='outline' onClick={cancelEdit}>Cancel Edit</Button>
+                                        <Button type='button' onClick={handleUpdateRow}>
+                                            Update Row
+                                        </Button>
+                                        <Button type='button' variant='outline' onClick={cancelEdit}>
+                                            Cancel Edit
+                                        </Button>
                                     </>
                                 ) : (
                                     <>
-                                        <Button type='button' onClick={handleAddRows}>+ ADD</Button>
-                                        <Button type='button' variant='outline' onClick={() => { reset(); setDetails([]); setEditMode('add'); }}>Reset</Button>
+                                        <Button type='button' onClick={handleAddRows}>
+                                            + ADD
+                                        </Button>
+                                        <Button
+                                            type='button'
+                                            variant='outline'
+                                            onClick={() => {
+                                                reset();
+                                                setDetails([]);
+                                                setEditMode('add');
+                                            }}>
+                                            Reset
+                                        </Button>
                                     </>
                                 )}
                             </div>
@@ -904,7 +1061,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                             <div className='mb-2 flex items-center justify-between'>
                                 <h3 className='font-semibold text-lg'>DETAILS</h3>
                                 {editMode === 'edit' && (
-                                    <span className='rounded-full bg-purple-100 px-3 py-1 text-sm font-medium text-purple-800'>
+                                    <span className='rounded-full bg-purple-100 px-3 py-1 font-medium text-purple-800 text-sm'>
                                         Edit Mode
                                     </span>
                                 )}
@@ -913,7 +1070,13 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                             <div className='mt-5 flex w-full justify-center'>
                                 <div className='w-fit'>
                                     <Button type='submit' disabled={isSubmitting}>
-                                        {isSubmitting ? (editMode === 'edit' ? 'Updating...' : 'Saving...') : (editMode === 'edit' ? 'Update' : 'Save')}
+                                        {isSubmitting
+                                            ? editMode === 'edit'
+                                                ? 'Updating...'
+                                                : 'Saving...'
+                                            : editMode === 'edit'
+                                              ? 'Update'
+                                              : 'Save'}
                                     </Button>
                                     {editMode === 'edit' && (
                                         <Button type='button' variant='outline' className='ml-3' onClick={handleCancelEdit}>
@@ -933,8 +1096,23 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                         <h2 className='mb-3 font-semibold text-lg'>Confirm Delete</h2>
                         <p className='mb-6 text-gray-700'>Are you sure you want to delete this row?</p>
                         <div className='flex justify-center gap-4'>
-                            <Button variant='outline' onClick={() => { setConfirmOpen(false); setDeleteIndex(null); }}>Cancel</Button>
-                            <Button variant='destructive' onClick={() => { handleDeleteRowByIndex(deleteIndex); setConfirmOpen(false); setDeleteIndex(null); }}>Yes, Delete</Button>
+                            <Button
+                                variant='outline'
+                                onClick={() => {
+                                    setConfirmOpen(false);
+                                    setDeleteIndex(null);
+                                }}>
+                                Cancel
+                            </Button>
+                            <Button
+                                variant='destructive'
+                                onClick={() => {
+                                    handleDeleteRowByIndex(deleteIndex);
+                                    setConfirmOpen(false);
+                                    setDeleteIndex(null);
+                                }}>
+                                Yes, Delete
+                            </Button>
                         </div>
                     </div>
                 </div>

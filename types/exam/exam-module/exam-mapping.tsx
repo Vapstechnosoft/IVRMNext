@@ -60,13 +60,17 @@ export interface ILoginPrivilegeDetails {
     classId: number;
     className: string;
     asmcL_ClassName: string;
-
+    asmcL_Id?: number;
+    asmS_Id?: number;
     sectionId: number;
     sectionName: string;
-
-    subjectId: number;
+    asmS_SectionName: string;
+    ismS_Id?: number;
+    subjectId?: number;
+    ismsS_Id?: number;
     subjectName: string;
-
+    ismS_SubjectName?: string;
+    ismsS_SubSubjectName?: string;
     subSubjectId: number;
     subSubjectName: string; // Allow backend extra fields safely
 }
@@ -767,10 +771,9 @@ export interface GetStudentDetailsParams {
 }
 
 export interface IStudentTransaction {
-    amsT_Id: number,
-    studentName: string,
-    regNumber: number,
-    rollNumber: number,
-    score?: number
+    amsT_Id: number;
+    studentName: string;
+    regNumber: number;
+    rollNumber: number;
+    score?: number;
 }
-

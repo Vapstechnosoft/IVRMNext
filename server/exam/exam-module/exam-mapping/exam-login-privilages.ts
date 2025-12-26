@@ -2,10 +2,7 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type {
-    IExamLoginPrivileges,
-    ILoginPrivilegeDetails
-} from '@/types/exam/exam-module/exam-mapping';
+import type { IExamLoginPrivileges, ILoginPrivilegeDetails } from '@/types/exam/exam-module/exam-mapping';
 
 /* ===================== LIST ===================== */
 
@@ -17,11 +14,7 @@ export async function getExamLoginPrivileges(searchParams?: ApiSearchparams) {
 
 /* ===================== VIEW DETAILS ===================== */
 
-export async function getLoginPrivilegesDetails(
-    elp_id: number,
-    asmcl_id: number,
-    asms_id: number
-) {
+export async function getLoginPrivilegesDetails(elp_id: number, asmcl_id: number, asms_id: number) {
     const url = `exam_login_privileges/exm_login_privilege_view_by_id/${elp_id}/${asmcl_id}/${asms_id}`;
 
     try {
@@ -52,7 +45,19 @@ export async function getLoginPrivilegesDetails(
             ismS_SubjectName: `Subject ${i + 1}`,
 
             ismsS_Id: 400 + i,
-            ismsS_SubSubjectName: `SubSubject ${i + 1}`
+            ismsS_SubSubjectName: `SubSubject ${i + 1}`,
+
+            subSubjectId: 500 + i,
+            subSubjectName: `SubSubject ${i + 1}`,
+
+            subjectId: 600 + i,
+            subjectName: `Subject ${i + 1}`,
+
+            sectionId: 700 + i,
+            sectionName: `Section ${String.fromCharCode(65 + i)}`,
+
+            classId: 800 + i,
+            className: `Class ${i + 1}`
         }));
 
         return {
@@ -65,11 +70,7 @@ export async function getLoginPrivilegesDetails(
 
 /* ===================== EDIT DETAILS ===================== */
 
-export async function getExamLoginPrivilegesEditDetails(
-    elpId: number,
-    asmclId: number,
-    asmsId: number
-) {
+export async function getExamLoginPrivilegesEditDetails(elpId: number, asmclId: number, asmsId: number) {
     const url = `exam_login_privileges/exm_login_privilege_edit_by_id/${elpId}/${asmclId}/${asmsId}`;
 
     try {
@@ -101,7 +102,14 @@ export async function getExamLoginPrivilegesEditDetails(
                 ismS_SubjectName: 'Subject 1',
 
                 ismsS_Id: 201,
-                ismsS_SubSubjectName: 'SubSubject 1'
+                ismsS_SubSubjectName: 'SubSubject 1',
+                classId: 0,
+                className: '',
+                sectionId: 0,
+                sectionName: '',
+                subjectName: '',
+                subSubjectId: 0,
+                subSubjectName: ''
             }
         ];
 
@@ -123,22 +131,13 @@ export async function addorUpdateExamLoginPrivileges(data: any) {
 /* ===================== DROPDOWNS ===================== */
 
 export async function getClassTeacherDropdwonList() {
-    return await api.get<any>(
-        'exam',
-        '/exam_login_privileges/exm_login_privilege_classteacher_list/30'
-    );
+    return await api.get<any>('exam', '/exam_login_privileges/exm_login_privilege_classteacher_list/30');
 }
 
 export async function getUserDropdwonList() {
-    return await api.get<any>(
-        'exam',
-        '/exam_login_privileges/exm_login_privilege_user_name/30'
-    );
+    return await api.get<any>('exam', '/exam_login_privileges/exm_login_privilege_user_name/30');
 }
 
 export async function getEmployeeDropdwonList() {
-    return await api.get<any>(
-        'exam',
-        '/exam_login_privileges/exm_login_privilege_employee_list/30'
-    );
+    return await api.get<any>('exam', '/exam_login_privileges/exm_login_privilege_employee_list/30');
 }
