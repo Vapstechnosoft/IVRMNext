@@ -63,8 +63,17 @@ export function printTable(columns: string[], rows: any[], sumRow?: any) {
 
 export function exportToExcel(rows: any[], fileName: string) {
     if (!rows || rows.length === 0) return;
+    const dataForExcel = rows.map((row, index) => ({
+        'Sl No': index + 1,
+        'Adm No': row.admNumber,
+        'Student Name': row.studentName,
+        Class: row.className,
+        Section: row.section,
+        'I Term': row.fine,
+        Total: row.collectionasperAcademicyear
+    }));
 
-    const worksheet = XLSX.utils.json_to_sheet(rows);
+    const worksheet = XLSX.utils.json_to_sheet(dataForExcel);
     const workbook = XLSX.utils.book_new();
 
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');

@@ -12,7 +12,9 @@ import { Plus, X } from 'lucide-react';
 import { use, useEffect, useState } from 'react';
 import StudentFeeTransaction from './_components/add-form';
 import { feeTransactionColumns } from './_components/columns';
+import DeleteFeeTransactionForm from './_components/delete-form';
 import ReceiptViewPage from './_components/receiptview';
+import UpdateStudentFeeTransaction from './_components/update-form';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function FeeTransactionPage(props: { searchParams: SearchParams }) {
@@ -126,7 +128,19 @@ function FeeTransactionContent({
 }
 
 function FormSections({ asmayId }: { asmayId: number }) {
-    const { isAddFormOpen, closeAddForm, isDetailsViewOpen, closeDetailsView, addFormRef, selectedRow } = useFormContext<Ifeetransaction>();
+    const {
+        isAddFormOpen,
+        closeAddForm,
+        isDetailsViewOpen,
+        closeDetailsView,
+        addFormRef,
+        selectedRow,
+        isDeleteFormOpen,
+        closeDeleteForm,
+        isEditFormOpen,
+        closeEditForm,
+        editFormRef
+    } = useFormContext<Ifeetransaction>();
 
     return (
         <>
@@ -155,6 +169,44 @@ function FormSections({ asmayId }: { asmayId: number }) {
             )}
 
             {isDetailsViewOpen && selectedRow && <ReceiptViewPage rowData={selectedRow} onClose={closeDetailsView} asmayId={asmayId} />}
+            {isDeleteFormOpen && selectedRow && (
+                <DeleteFeeTransactionForm
+                    rowData={selectedRow}
+                    asmayId={asmayId}
+                    onClose={closeDeleteForm}
+                    onSuccess={() => {
+                        closeDeleteForm();
+                    }}
+                />
+            )}
+            {isEditFormOpen && selectedRow && (
+                <div ref={editFormRef}>
+                    <CollapsibleSection
+                        title='Update Fee Transaction Waived Off'
+                        description='Updtae a Fee Transaction Waived Off record'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeEditForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <UpdateStudentFeeTransaction
+                                selectedRow={selectedRow}
+                                onSuccess={() => {
+                                    closeEditForm();
+                                }}
+                            />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
         </>
     );
 }
