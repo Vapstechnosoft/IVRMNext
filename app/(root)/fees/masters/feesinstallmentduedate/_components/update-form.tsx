@@ -82,7 +82,7 @@ export default function UpdtaeMasterInstallmentDueDateForm({ onSuccess, selected
         try {
             setMasterInstallmentDueDataLoading(true);
             setMasterInstallmentDueDataError(null);
-            const res = await getInstallmentDueDateList(Number(asmayId || 231), Number(fmiId || 0));
+            const res = await getInstallmentDueDateList(Number(asmayId || 0), Number(fmiId || 0));
             setMasterInstallmentDueData(res.data);
             setTableProps(useDataTableProps(res || []));
         } catch (error) {
