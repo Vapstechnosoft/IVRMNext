@@ -356,7 +356,7 @@ export default function ReceiptViewPage({ rowData, onClose, asmayId }: ReceiptVi
                                         </tr>
                                     </thead>
                                     {currentPaymentDetails.map((p, index) => (
-                                        <tbody key={p.ftP_Paid_Amt}>
+                                        <tbody key={index + 1}>
                                             <tr>
                                                 <td className='border border-gray-400 p-2 text-center'>{index + 1}</td>
                                                 <td className='border border-gray-400 p-2 text-right'>{p.ftP_Paid_Amt}</td>
@@ -457,7 +457,7 @@ export default function ReceiptViewPage({ rowData, onClose, asmayId }: ReceiptVi
                                         </tr>
                                     </thead>
                                     {currentPaymentDetails.map((p, index) => (
-                                        <tbody key={p.ftP_Paid_Amt}>
+                                        <tbody key={index + 1}>
                                             <tr>
                                                 <td className='border border-gray-400 p-2 text-center'>{index + 1}</td>
                                                 <td className='border border-gray-400 p-2 text-right'>{p.ftP_Paid_Amt}</td>

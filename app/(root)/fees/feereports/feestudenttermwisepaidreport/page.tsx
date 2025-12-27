@@ -17,13 +17,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 import { FormError } from '@/components/ui/extension/field';
 import { feeStudentTermWisePaidReportSchema } from '@/schemas/fees/reports';
-import type { IFeeTermDropdownList } from '@/types/fees/reports/reports';
+import { getFeeStudentTermWisePaidReport } from '@/server/fees/reports/feestudenttermwisepaidReport';
+import type { FeeStudenttermWisePaidReport, IFeeTermDropdownList } from '@/types/fees/reports/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { Controller, type SubmitHandler, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-import { type IFeeStudentTermWisePaidReport, exportToExcel, printTable } from './_components/export_and_excel';
+import { exportToExcel, printTable } from './_components/export_and_excel';
 
 type FormFields = z.infer<typeof feeStudentTermWisePaidReportSchema>;
 
@@ -37,7 +38,8 @@ export default function FeeAccountsPositionReport() {
         handleSubmit,
         setValue,
         control,
-        formState: { errors, isSubmitting }
+        watch,
+        formState: { errors }
     } = useForm<FormFields>({
         resolver: zodResolver(feeStudentTermWisePaidReportSchema),
         defaultValues: {
@@ -47,15 +49,11 @@ export default function FeeAccountsPositionReport() {
     });
 
     const [feeTerms, setFeeTerms] = useState<IFeeTermDropdownList[]>([]);
-    const [reportData, setReportData] = useState<IFeeStudentTermWisePaidReport[]>([]);
-    const [reportLoading, setReportLoading] = useState(false); // ← ADD THIS LINE
-    const [showReport, setShowReport] = useState(false);
+    const [reportData, setReportData] = useState<FeeStudenttermWisePaidReport[]>([]);
+    const [reportLoading, setReportLoading] = useState(false);
     const [selectedclassId, setSelectedClassId] = useState<number | null>(null);
     const [selectedSectionId, setSelectedSectionId] = useState<number | null>(null);
 
-    useEffect(() => {
-        setReportData([]);
-    }, [selectedclassId, selectedSectionId]);
     // Hooks
     const { data: academicYearData, isLoading: loadingYears } = useFeeStudentTermWisePaidReportAcademic();
     const { data: classListResponse, isLoading: loadingClasses } = useFeeStudentTermWisePaidReportClassdrop();
@@ -74,295 +72,75 @@ export default function FeeAccountsPositionReport() {
     }, [reportData]);
 
     const handleExportExcel = () => {
-        exportToExcel(reportData, 'Fee_Term_Wise_Paid_Report');
+        exportToExcel(reportData, selectedTermNames, 'Fee_Term_Wise_Paid_Report');
     };
 
     const handlePrint = () => {
-        const columns = ['Sl No', 'Adm No', 'Student Name', 'Class', 'Section', 'I Term', 'Total'].filter((col) => col !== '');
+        const columns = ['Sl No', 'Adm No', 'Student Name', 'Class', 'Section', ...selectedTermNames, 'Total'];
 
-        const printableRows = reportData.map((row, index) => ({
-            'Sl No': index + 1,
-            'Adm No': row.admNumber,
-            'Student Name': row.studentName,
-            Class: row.className,
-            Section: row.section,
-            'I Term': row.fine,
-            Total: row.collectionasperAcademicyear
-        }));
+        const printableRows = reportData.map((row, index) => {
+            const termData: any = {};
+
+            selectedTermNames.forEach((termName) => {
+                termData[termName] = row.termAmounts?.[termName] !== undefined ? row.termAmounts[termName] : '--';
+            });
+
+            return {
+                'Sl No': index + 1,
+                'Adm No': row.admNo,
+                'Student Name': row.studentName?.trim(),
+                Class: row.className,
+                Section: row.sectionName,
+                ...termData,
+                Total: row.total || 0
+            };
+        });
+
         printTable(columns, printableRows);
     };
 
-    const onSubmit: SubmitHandler<FormFields> = async () => {
+    const asmayId = watch('academicYearId');
+    const asmclId = watch('asmcl_Id');
+    const asmsId = watch('asms_Id');
+    const selectedTermId = useWatch({
+        control,
+        name: 'termIds'
+    });
+
+    const selectedTermNames = feeTerms.filter((term) => selectedTermId.includes(term.fmT_Id)).map((term) => term.fmT_Name);
+
+    useEffect(() => {
+        setReportData([]);
+    }, [selectedclassId, selectedSectionId, asmayId, selectedTermId]);
+
+    const fetchReportData = async (selectedIds: number[]) => {
         setReportLoading(true);
-        setShowReport(false);
-        await new Promise((resolve) => setTimeout(resolve, 1200));
-        const mockData: IFeeStudentTermWisePaidReport[] = [
-            {
-                id: 10020,
-                studentName: 'Rahul Sharma',
-                admNumber: 2024001,
-                feeHead: 'Tuition Fee',
-                className: '10th Grade',
-                section: 'C',
-                RouteName: 'Route A - Downtown',
-                ChargesasperAcademicyear: 50000,
-                ConcessionasperAcademicyear: 5000,
-                RebateScholarshipasperAcademicyear: 3000,
-                waivedOffasperAcademicyear: 2000,
-                collectionasperAcademicyear: 35000,
-                fine: 500,
-                balance: 12500,
-                lastyearDue: 2500
-            },
-            {
-                id: 10021,
-                studentName: 'Priya Patel',
-                admNumber: 2024002,
-                feeHead: 'Transport + Tuition',
-                section: 'A',
-                className: '9th Grade',
-                RouteName: 'Route B - Suburbs',
-                ChargesasperAcademicyear: 75000,
-                ConcessionasperAcademicyear: 8000,
-                RebateScholarshipasperAcademicyear: 4000,
-                waivedOffasperAcademicyear: 3000,
-                collectionasperAcademicyear: 50000,
-                fine: 1000,
-                balance: 28500,
-                lastyearDue: 0
-            },
-            {
-                id: 10022,
-                studentName: 'Amit Kumar',
-                admNumber: 2024003,
-                feeHead: 'Annual Charges',
-                section: 'E',
-                className: '11th Grade',
-                RouteName: 'Route C - North Zone',
-                ChargesasperAcademicyear: 20000,
-                ConcessionasperAcademicyear: 2000,
-                RebateScholarshipasperAcademicyear: 1000,
-                waivedOffasperAcademicyear: 1000,
-                collectionasperAcademicyear: 10000,
-                fine: 200,
-                balance: 8000,
-                lastyearDue: 1500
-            },
-            {
-                id: 10023,
-                studentName: 'Sneha Reddy',
-                admNumber: 2024004,
-                feeHead: 'Tuition Fee',
-                className: '12th Grade',
-                section: 'D',
-                RouteName: 'Route D - South Zone',
-                ChargesasperAcademicyear: 60000,
-                ConcessionasperAcademicyear: 6000,
-                RebateScholarshipasperAcademicyear: 4000,
-                waivedOffasperAcademicyear: 2000,
-                collectionasperAcademicyear: 45000,
-                fine: 0,
-                balance: 15000,
-                lastyearDue: 0
-            },
-            {
-                id: 10024,
-                studentName: 'Rohan Verma',
-                admNumber: 2024005,
-                feeHead: 'Lab + Tuition',
-                className: '10th Grade',
-                section: 'A',
-                RouteName: 'Route A - Downtown',
-                ChargesasperAcademicyear: 85000,
-                ConcessionasperAcademicyear: 7000,
-                RebateScholarshipasperAcademicyear: 5000,
-                waivedOffasperAcademicyear: 4000,
-                collectionasperAcademicyear: 65000,
-                fine: 1500,
-                balance: 42000,
-                lastyearDue: 3000
-            },
-            {
-                id: 10025,
-                studentName: 'Anjali Mehta',
-                admNumber: 2024006,
-                feeHead: 'Tuition Fee',
-                className: '8th Grade',
-                section: 'B',
-                RouteName: 'Route E - West Zone',
-                ChargesasperAcademicyear: 42000,
-                ConcessionasperAcademicyear: 4000,
-                RebateScholarshipasperAcademicyear: 2000,
-                waivedOffasperAcademicyear: 1000,
-                collectionasperAcademicyear: 32000,
-                fine: 300,
-                balance: 6700,
-                lastyearDue: 0
-            },
-            {
-                id: 10026,
-                studentName: 'Kunal Shah',
-                admNumber: 2024007,
-                feeHead: 'Transport Fee',
-                className: '7th Grade',
-                section: 'C',
-                RouteName: 'Route F - City Center',
-                ChargesasperAcademicyear: 18000,
-                ConcessionasperAcademicyear: 1500,
-                RebateScholarshipasperAcademicyear: 500,
-                waivedOffasperAcademicyear: 0,
-                collectionasperAcademicyear: 14000,
-                fine: 0,
-                balance: 2000,
-                lastyearDue: 0
-            },
-            {
-                id: 10027,
-                studentName: 'Pavan Kumar',
-                admNumber: 2024008,
-                feeHead: 'Tuition + Lab',
-                className: '9th Grade',
-                section: 'D',
-                RouteName: 'Route C - North Zone',
-                ChargesasperAcademicyear: 78000,
-                ConcessionasperAcademicyear: 6000,
-                RebateScholarshipasperAcademicyear: 3000,
-                waivedOffasperAcademicyear: 2000,
-                collectionasperAcademicyear: 56000,
-                fine: 800,
-                balance: 15000,
-                lastyearDue: 2000
-            },
-            {
-                id: 10028,
-                studentName: 'Divya Nair',
-                admNumber: 2024009,
-                feeHead: 'Tuition Fee',
-                className: '6th Grade',
-                section: 'A',
-                RouteName: 'Route B - Suburbs',
-                ChargesasperAcademicyear: 36000,
-                ConcessionasperAcademicyear: 3000,
-                RebateScholarshipasperAcademicyear: 1500,
-                waivedOffasperAcademicyear: 500,
-                collectionasperAcademicyear: 29000,
-                fine: 0,
-                balance: 2000,
-                lastyearDue: 0
-            },
-            {
-                id: 10029,
-                studentName: 'Suresh Rao',
-                admNumber: 2024010,
-                feeHead: 'Annual Charges',
-                className: '11th Grade',
-                section: 'B',
-                RouteName: 'Route D - South Zone',
-                ChargesasperAcademicyear: 25000,
-                ConcessionasperAcademicyear: 2000,
-                RebateScholarshipasperAcademicyear: 1000,
-                waivedOffasperAcademicyear: 500,
-                collectionasperAcademicyear: 18000,
-                fine: 400,
-                balance: 5100,
-                lastyearDue: 1000
-            },
-            {
-                id: 10030,
-                studentName: 'Mehul Jain',
-                admNumber: 2024011,
-                feeHead: 'Transport + Tuition',
-                className: '10th Grade',
-                section: 'E',
-                RouteName: 'Route A - Downtown',
-                ChargesasperAcademicyear: 90000,
-                ConcessionasperAcademicyear: 10000,
-                RebateScholarshipasperAcademicyear: 5000,
-                waivedOffasperAcademicyear: 3000,
-                collectionasperAcademicyear: 68000,
-                fine: 1200,
-                balance: 18000,
-                lastyearDue: 4000
-            },
-            {
-                id: 10031,
-                studentName: 'Nisha Kulkarni',
-                admNumber: 2024012,
-                feeHead: 'Tuition Fee',
-                className: '5th Grade',
-                section: 'C',
-                RouteName: 'Route F - City Center',
-                ChargesasperAcademicyear: 30000,
-                ConcessionasperAcademicyear: 2500,
-                RebateScholarshipasperAcademicyear: 1000,
-                waivedOffasperAcademicyear: 500,
-                collectionasperAcademicyear: 24000,
-                fine: 0,
-                balance: 2000,
-                lastyearDue: 0
-            },
-            {
-                id: 10032,
-                studentName: 'Ritesh Singh',
-                admNumber: 2024013,
-                feeHead: 'Lab + Tuition',
-                className: '12th Grade',
-                section: 'A',
-                RouteName: 'Route C - North Zone',
-                ChargesasperAcademicyear: 95000,
-                ConcessionasperAcademicyear: 12000,
-                RebateScholarshipasperAcademicyear: 6000,
-                waivedOffasperAcademicyear: 4000,
-                collectionasperAcademicyear: 70000,
-                fine: 0,
-                balance: 23000,
-                lastyearDue: 5000
-            },
-            {
-                id: 10033,
-                studentName: 'Shalini Das',
-                admNumber: 2024014,
-                feeHead: 'Tuition Fee',
-                className: '7th Grade',
-                section: 'D',
-                RouteName: 'Route E - West Zone',
-                ChargesasperAcademicyear: 34000,
-                ConcessionasperAcademicyear: 3000,
-                RebateScholarshipasperAcademicyear: 1200,
-                waivedOffasperAcademicyear: 800,
-                collectionasperAcademicyear: 26000,
-                fine: 200,
-                balance: 2800,
-                lastyearDue: 0
-            },
-            {
-                id: 10034,
-                studentName: 'Aditya Malhotra',
-                admNumber: 2024015,
-                feeHead: 'Transport Fee',
-                className: '8th Grade',
-                section: 'E',
-                RouteName: 'Route B - Suburbs',
-                ChargesasperAcademicyear: 22000,
-                ConcessionasperAcademicyear: 2000,
-                RebateScholarshipasperAcademicyear: 0,
-                waivedOffasperAcademicyear: 0,
-                collectionasperAcademicyear: 17000,
-                fine: 500,
-                balance: 3500,
-                lastyearDue: 0
+        try {
+            const payload = {
+                asmaY_Id: asmayId,
+                class_id: asmclId,
+                section_id: asmsId,
+                fmT_Ids: selectedIds.map((id) => id)
+            };
+            const reportArray = await getFeeStudentTermWisePaidReport(payload);
+            if (!reportArray.data || reportArray.data.length === 0) {
+                toast.info('No Records Found!');
+                setReportData([]);
+                return;
             }
-        ];
+            toast.success('Report generated successfully!');
+            setReportData(reportArray.data || []);
+            // console.log("selectedTermNames",selectedTermNames)
+        } catch (e) {
+            console.error('Failed to load the Fee Student TermWise Paid Report!!', e);
+            setReportData([]);
+        } finally {
+            setReportLoading(false);
+        }
+    };
 
-        setReportData(mockData);
-        setShowReport(true);
-        setReportLoading(false);
-
-        toast.success('Report generated successfully!');
-
-        setTimeout(() => {
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        }, 100);
+    const onSubmit: SubmitHandler<FormFields> = async () => {
+        fetchReportData(selectedTermId);
     };
 
     return (
@@ -588,11 +366,11 @@ export default function FeeAccountsPositionReport() {
                                         <Button size='lg' variant='outline' className='px-8' onClick={() => window.location.reload()}>
                                             Cancel
                                         </Button>
-                                        <Button type='submit' disabled={isSubmitting} className='min-w-32'>
-                                            {isSubmitting ? 'Generating...' : 'Report'}
+                                        <Button type='submit' disabled={reportLoading} className='min-w-32'>
+                                            {reportLoading ? 'Generating...' : 'Report'}
                                         </Button>
                                     </div>
-                                    {showReport && reportData.length > 0 && (
+                                    {reportData.length > 0 && (
                                         <div className='-mx-8 mt-12 overflow-hidden rounded-lg bg-white shadow-xl'>
                                             {/* Loading State */}
                                             {reportLoading ? (
@@ -642,28 +420,46 @@ export default function FeeAccountsPositionReport() {
                                                                         <th className='border px-2 py-2'>Student Name</th>
                                                                         <th className='border px-2 py-2'>Class</th>
                                                                         <th className='border px-2 py-2'>Section</th>
-                                                                        <th className='border px-2 py-2'>I Term</th>
+                                                                        {selectedTermNames.length > 0 &&
+                                                                            selectedTermNames.map((name, index) => (
+                                                                                <th key={index + 1} className='border px-2 py-2'>
+                                                                                    {name}
+                                                                                </th>
+                                                                            ))}
                                                                         <th className='border px-2 py-2'>Total</th>
                                                                     </tr>
                                                                 </thead>
 
                                                                 <tbody>
-                                                                    {filteredData.map((row, index) => (
-                                                                        <tr key={row.id} className='border-b'>
-                                                                            <td className='border px-2 py-2 text-center'>{index + 1}</td>
+                                                                    {filteredData.map((row, rowIndex) => (
+                                                                        <tr key={row.admNo || rowIndex} className='border-b'>
+                                                                            <td className='border px-2 py-2 text-center'>{rowIndex + 1}</td>
+                                                                            <td className='border px-2 py-2 text-center'>{row.admNo}</td>
                                                                             <td className='border px-2 py-2 text-center'>
-                                                                                {row.admNumber}
-                                                                            </td>
-                                                                            <td className='border px-2 py-2 text-center'>
-                                                                                {row.studentName}
+                                                                                {row.studentName?.trim()}
                                                                             </td>
                                                                             <td className='border px-2 py-2 text-center'>
                                                                                 {row.className}
                                                                             </td>
-                                                                            <td className='border px-2 py-2 text-center'>{row.section}</td>
-                                                                            <td className='border px-2 py-2 text-center'>{row.fine}</td>
                                                                             <td className='border px-2 py-2 text-center'>
-                                                                                {row.collectionasperAcademicyear}
+                                                                                {row.sectionName}
+                                                                            </td>
+                                                                            {selectedTermNames.map((termName, index) => {
+                                                                                const termAmounts = row.termAmounts as Record<
+                                                                                    string,
+                                                                                    number
+                                                                                >;
+                                                                                const amount = termAmounts?.[termName];
+                                                                                return (
+                                                                                    <td
+                                                                                        key={index + 1}
+                                                                                        className='border px-2 py-2 text-center'>
+                                                                                        {amount !== undefined ? amount : '--'}
+                                                                                    </td>
+                                                                                );
+                                                                            })}
+                                                                            <td className='border px-2 py-2 text-center'>
+                                                                                {row.total || 0}
                                                                             </td>
                                                                         </tr>
                                                                     ))}
