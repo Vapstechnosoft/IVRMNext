@@ -6,6 +6,11 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import {
+    addOrUpdateTermWiseRemarks,
+    getDropdownTermNamesByIds,
+    getStudentListForTermWiseRemarks
+} from '@/server/exam/exam-module/marks-entry/exam-term-wise-remarks-entry';
+import {
     getClassDropDownByAcademicYearlist,
     getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/cumulative-report';
@@ -45,48 +50,7 @@ const PromotionRemarksSchema = z.object({
 
 type FormData = z.infer<typeof PromotionRemarksSchema>;
 
-/* -------------------------
-   Placeholder fetch exams
-   ------------------------- */
-async function fetchexamsByClassAndSection(academicYearId: number | string, classId: number | string, sectionId: number | string) {
-    const res = await fetch(
-        `/api/master/exams?academicYearId=${encodeURIComponent(String(academicYearId))}&classId=${encodeURIComponent(
-            String(classId)
-        )}&sectionId=${encodeURIComponent(String(sectionId))}`
-    );
-    if (!res.ok) throw new Error('Failed to load exams');
-    const json = await res.json();
-    return Array.isArray(json) ? json : [];
-}
-
-/* -------------------------
-   Placeholder fetch students
-   ------------------------- */
-async function getStudentDetails(academicYearId: number | string, classId: number | string, sectionId: number | undefined) {
-    try {
-        const res = await fetch(
-            `/api/students?academicYearId=${encodeURIComponent(String(academicYearId))}&classId=${encodeURIComponent(
-                String(classId)
-            )}&sectionIds=${encodeURIComponent(String(sectionId))}`
-        );
-        if (!res.ok) throw new Error('Failed to fetch students');
-        const json = await res.json();
-        return { data: Array.isArray(json) ? json : [] };
-    } catch (err) {
-        console.error('Fetch failed, returning hardcoded data:', err);
-
-        // Hardcoded 15 student records
-        const hardcodedData = Array.from({ length: 15 }, (_, i) => ({
-            slNo: i + 1,
-            admNo: `ADM${1000 + i}`,
-            studentName: `Student ${i + 1}`,
-            studentId: i + 1,
-            remarks: 'Good'
-        }));
-
-        return { data: hardcodedData };
-    }
-}
+const MI_ID = 30; // You might want to get this from user context or environment
 
 /* -------------------------
    Main Component
@@ -104,7 +68,7 @@ function PromotionRemarksContent() {
     const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
     const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
-    const [exams, setexams] = useState<{ termId: number; termName: string }[]>([]);
+    const [terms, setTerms] = useState<{ ecT_Id: number; ecT_TermName: string }[]>([]);
 
     // Selected values
     const [selectedAcademicYear, setSelectedAcademicYear] = useState<number | undefined>();
@@ -121,11 +85,12 @@ function PromotionRemarksContent() {
     const [tableProps, setTableProps] = useState<ReturnType<typeof useDataTableProps> | null>(null);
     const [isStudentsGridOpen, setIsStudentsGridOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     // Loading flags
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
-    const [loadingexams, setLoadingexams] = useState(false);
+    const [loadingTerms, setLoadingTerms] = useState(false);
 
     /* -------------------------
        Load academic years
@@ -165,7 +130,7 @@ function PromotionRemarksContent() {
                 setClasses(Array.isArray(data) ? data : []);
                 setSections([]);
                 setSelectedSectionId(undefined);
-                setexams([]);
+                setTerms([]);
                 setSelectedTerm(undefined);
                 // Clear form errors when academic year changes
                 setFormErrors((prev) => ({ ...prev, academicYear: '' }));
@@ -193,7 +158,7 @@ function PromotionRemarksContent() {
                 const { data } = await getSectionsDropDownByAcademicYearandClasslist(selectedAcademicYear, selectedClass);
                 setSections(Array.isArray(data) ? data : []);
                 setSelectedSectionId(undefined);
-                setexams([]);
+                setTerms([]);
                 setSelectedTerm(undefined);
                 // Clear form errors when class changes
                 setFormErrors((prev) => ({ ...prev, class: '' }));
@@ -206,34 +171,43 @@ function PromotionRemarksContent() {
     }, [selectedAcademicYear, selectedClass]);
 
     /* -------------------------
-       Load exams
+       Load terms when section changes (only for Individual Term Wise)
        ------------------------- */
     useEffect(() => {
-        if (activeTab !== 0 || !selectedAcademicYear || !selectedClass || selectedSectionId) {
-            setexams([]);
+        if (activeTab !== 0 || !selectedAcademicYear || !selectedClass || !selectedSectionId) {
+            setTerms([]);
             setSelectedTerm(undefined);
             return;
         }
 
         (async () => {
-            setLoadingexams(true);
+            setLoadingTerms(true);
             try {
-                const termData = await fetchexamsByClassAndSection(selectedAcademicYear, selectedClass, Number(selectedSectionId));
-                const normalized = Array.isArray(termData)
-                    ? termData.map((t: any) => ({
-                          termId: t.termId ?? t.id ?? 0,
-                          termName: t.termName ?? t.name ?? ''
-                      }))
-                    : [];
-                setexams(normalized);
-                if (normalized.length > 0) setSelectedTerm(normalized[0].termId);
-                else toast.info('No exams found for selected class and section');
+                const response = await getDropdownTermNamesByIds(MI_ID, selectedAcademicYear, selectedClass, selectedSectionId);
+
+                if (response?.data && Array.isArray(response.data)) {
+                    const termData = response.data.map((term: any) => ({
+                        ecT_Id: term.ecT_Id,
+                        ecT_TermName: term.ecT_TermName
+                    }));
+                    setTerms(termData);
+
+                    if (termData.length > 0) {
+                        setSelectedTerm(termData[0].ecT_Id);
+                    } else {
+                        toast.info('No terms found for selected class and section');
+                    }
+                } else {
+                    toast.info('No terms available');
+                    setTerms([]);
+                }
             } catch (err) {
-                toast.error('Failed to load exams');
-                setexams([]);
+                console.error('Error loading terms:', err);
+                toast.error('Failed to load terms');
+                setTerms([]);
                 setSelectedTerm(undefined);
             } finally {
-                setLoadingexams(false);
+                setLoadingTerms(false);
             }
         })();
     }, [activeTab, selectedAcademicYear, selectedClass, selectedSectionId]);
@@ -245,75 +219,79 @@ function PromotionRemarksContent() {
         // Clear previous errors
         setFormErrors({});
 
-        // Validate form data using Zod schema
-        const formData = {
+        // Basic validation
+        if (!selectedAcademicYear || !selectedClass || !selectedSectionId) {
+            const newErrors: Record<string, string> = {};
+            if (!selectedAcademicYear) newErrors.academicYear = 'Academic year is required';
+            if (!selectedClass) newErrors.class = 'Class is required';
+            if (!selectedSectionId) newErrors.section = 'Section is required';
+            setFormErrors(newErrors);
+            toast.error('Please fill all required fields');
+            return;
+        }
+
+        // For Individual Term Wise, term is required
+        if (activeTab === 0 && !selectedTerm) {
+            setFormErrors((prev) => ({ ...prev, term: 'Term is required for Individual Term Wise' }));
+            toast.error('Please select a term');
+            return;
+        }
+
+        // Validate with Zod schema
+        const validationData = {
             academicYear: selectedAcademicYear,
             class: selectedClass,
             section: selectedSectionId,
-            term: activeTab === 0 ? selectedTerm : undefined
+            term: selectedTerm
         };
 
+        const result = PromotionRemarksSchema.safeParse(validationData);
+
+        if (!result.success) {
+            const newErrors: Record<string, string> = {};
+            result.error.errors.forEach((err) => {
+                const path = err.path[0];
+                if (typeof path === 'string') {
+                    newErrors[path] = err.message;
+                }
+            });
+            setFormErrors(newErrors);
+            toast.error('Please fix validation errors');
+            return;
+        }
+
+        // Proceed with search if validation passes
+        setIsLoading(true);
+        setIsStudentsGridOpen(true);
+
         try {
-            // Basic validation
-            if (!selectedAcademicYear || !selectedClass || !selectedSectionId) {
-                const newErrors: Record<string, string> = {};
-                if (!selectedAcademicYear) newErrors.academicYear = 'Academic year is required';
-                if (!selectedClass) newErrors.class = 'Class is required';
-                if (!selectedSectionId) newErrors.section = 'Section is required';
-                setFormErrors(newErrors);
-                toast.error('Please fill all required fields');
-                return;
-            }
-
-            // For Individual Term Wise, term is required
-            if (activeTab === 0 && !selectedTerm) {
-                setFormErrors((prev) => ({ ...prev, term: 'Term is required for Individual Term Wise' }));
-                toast.error('Please select a term');
-                return;
-            }
-
-            // Validate with Zod schema
-            const validationData = {
-                academicYear: selectedAcademicYear,
-                class: selectedClass,
-                section: selectedSectionId,
-                term: selectedTerm
+            const requestData = {
+                asmaY_Id: selectedAcademicYear!,
+                asmcL_Id: selectedClass!,
+                asmS_Id: selectedSectionId!,
+                ecT_Id: activeTab === 0 ? selectedTerm! : 0, // For overall, we can pass 0 or a special value
+                mI_Id: MI_ID
             };
 
-            const result = PromotionRemarksSchema.safeParse(validationData);
+            const response = await getStudentListForTermWiseRemarks(requestData);
 
-            if (!result.success) {
-                const newErrors: Record<string, string> = {};
-                result.error.errors.forEach((err) => {
-                    const path = err.path[0];
-                    if (typeof path === 'string') {
-                        newErrors[path] = err.message;
-                    }
-                });
-                setFormErrors(newErrors);
-                toast.error('Please fix validation errors');
-                return;
-            }
+            if (response?.data) {
+                // Transform the API response to match IPromotionRemarksGrid
+                const studentList: IPromotionRemarksGrid[] = response.data.map((student: any, index: number) => ({
+                    slNo: index + 1,
+                    admNo: student.admNo || student.amsT_AdmNo || '',
+                    studentName: student.studentName || student.amsT_FirstName || '',
+                    studentId: student.amsT_Id || 0,
+                    remarks: student.ecterE_Remarks || '', // Ensure it's never undefined
+                    estmP_Id: student.estmP_Id || 0,
+                    ecT_Id: activeTab === 0 ? selectedTerm! : undefined
+                }));
 
-            // Proceed with search if validation passes
-            setIsLoading(true);
-            setIsStudentsGridOpen(true);
-
-            try {
-                const { data } = await getStudentDetails(selectedAcademicYear, selectedClass, selectedSectionId);
-                const studentList: IPromotionRemarksGrid[] = Array.isArray(data)
-                    ? data.map((s: any, index: number) => ({
-                          slNo: index + 1,
-                          admNo: s.admNo ?? '',
-                          studentName: s.studentName ?? '',
-                          studentId: s.studentId ?? 0,
-                          remarks: s.remarks ?? ''
-                      }))
-                    : [];
+                console.log('studentList', studentList);
 
                 const preSelected = studentList.filter((s) => s.remarks && s.remarks.trim() !== '').map((s, index) => index.toString());
-                setPreSelectedStudentIds(preSelected);
 
+                setPreSelectedStudentIds(preSelected);
                 setStudents(studentList);
 
                 setTableProps(
@@ -324,14 +302,17 @@ function PromotionRemarksContent() {
                         pageSize: 10
                     })
                 );
-            } catch (err: any) {
-                toast.error(err?.message || 'Failed to fetch students');
-            } finally {
-                setIsLoading(false);
+
+                toast.success('Student data loaded successfully');
+            } else {
+                toast.error('No student data found');
             }
-        } catch (error) {
-            console.error('Validation error:', error);
-            toast.error('Form validation failed');
+        } catch (err: any) {
+            console.error('Error fetching students:', err);
+            toast.error(err?.message || 'Failed to fetch students');
+            setStudents([]);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -342,7 +323,7 @@ function PromotionRemarksContent() {
         setStudents((prev) => {
             const updated = prev.map((s) => (s.studentId === id ? { ...s, remarks: remarks } : s));
 
-            // also update table props
+            // Update table props as well
             setTableProps((tp: any) => ({
                 ...tp,
                 data: updated
@@ -351,7 +332,60 @@ function PromotionRemarksContent() {
             return updated;
         });
     };
-    const columns = PromotionRemarksColumns(updateStudent);
+
+    /* -------------------------
+       Save remarks
+       ------------------------- */
+    const handleSave = async () => {
+        if (!selectedAcademicYear || !selectedClass || !selectedSectionId) {
+            toast.error('Please select all required fields');
+            return;
+        }
+
+        if (activeTab === 0 && !selectedTerm) {
+            toast.error('Please select a term for Individual Term Wise');
+            return;
+        }
+
+        // Filter students who have remarks and ensure remarks is not undefined
+        const studentsWithRemarks = students.filter((s) => s.remarks !== undefined && s.remarks !== null && s.remarks.trim() !== '');
+
+        if (studentsWithRemarks.length === 0) {
+            toast.error('No remarks to save');
+            return;
+        }
+
+        setIsSaving(true);
+
+        try {
+            const saveData = {
+                mI_Id: MI_ID,
+                asmcL_Id: selectedClass,
+                asmaY_Id: selectedAcademicYear,
+                asmS_Id: selectedSectionId,
+                indiorfinal: activeTab === 0 ? 'I' : 'F',
+                ecT_Id: activeTab === 0 ? selectedTerm! : 0,
+                studentTerm_Remarks: studentsWithRemarks.map((student) => ({
+                    amsT_Id: student.studentId,
+                    ecterE_Remarks: student.remarks || '' // Ensure it's always a string
+                }))
+            };
+            console.log('payload saveData', saveData);
+            const response = await addOrUpdateTermWiseRemarks(saveData);
+
+            if (response.success) {
+                toast.success('Remarks saved successfully');
+                await handleSearch();
+            } else {
+                toast.error(response.message || 'Failed to save remarks');
+            }
+        } catch (err: any) {
+            console.error('Error saving remarks:', err);
+            toast.error(err?.message || 'Failed to save remarks');
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     /* -------------------------
        Clear errors when field changes
@@ -380,6 +414,8 @@ function PromotionRemarksContent() {
         setFormErrors((prev) => ({ ...prev, term: '' }));
     };
 
+    const columns = PromotionRemarksColumns(updateStudent);
+
     /* -------------------------
        Render
        ------------------------- */
@@ -398,6 +434,7 @@ function PromotionRemarksContent() {
                                 setActiveTab(0);
                                 setSelectedTerm(undefined);
                                 setFormErrors((prev) => ({ ...prev, term: '' }));
+                                setIsStudentsGridOpen(false);
                             }}>
                             Individual Term Wise
                         </button>
@@ -410,6 +447,7 @@ function PromotionRemarksContent() {
                                 setActiveTab(1);
                                 setSelectedTerm(undefined);
                                 setFormErrors((prev) => ({ ...prev, term: '' }));
+                                setIsStudentsGridOpen(false);
                             }}>
                             Overall Term Wise
                         </button>
@@ -537,14 +575,14 @@ function PromotionRemarksContent() {
                             <Select
                                 value={selectedTerm ? String(selectedTerm) : ''}
                                 onValueChange={handleTermChange}
-                                disabled={activeTab === 1 || loadingexams}>
+                                disabled={activeTab === 1 || loadingTerms}>
                                 <SelectTrigger className='h-10' id='term-select-trigger'>
                                     <SelectValue
                                         placeholder={
                                             activeTab === 1
                                                 ? '-- Disabled for Overall --'
-                                                : loadingexams
-                                                  ? 'Loading exams...'
+                                                : loadingTerms
+                                                  ? 'Loading terms...'
                                                   : 'Select Term'
                                         }
                                     />
@@ -556,21 +594,21 @@ function PromotionRemarksContent() {
                                                   -- Disabled for Overall --
                                               </SelectItem>
                                           ]
-                                        : loadingexams
+                                        : loadingTerms
                                           ? [
                                                 <SelectItem value='loading' key='loading'>
-                                                    Loading exams...
+                                                    Loading terms...
                                                 </SelectItem>
                                             ]
-                                          : exams.length === 0
+                                          : terms.length === 0
                                             ? [
                                                   <SelectItem value='none' key='empty'>
-                                                      -- No exams --
+                                                      -- No terms --
                                                   </SelectItem>
                                               ]
-                                            : exams.map((t) => (
-                                                  <SelectItem key={t.termId} value={String(t.termId)}>
-                                                      {t.termName}
+                                            : terms.map((t) => (
+                                                  <SelectItem key={t.ecT_Id} value={String(t.ecT_Id)}>
+                                                      {t.ecT_TermName}
                                                   </SelectItem>
                                               ))}
                                 </SelectContent>
@@ -579,10 +617,20 @@ function PromotionRemarksContent() {
                         </div>
                     </div>
 
-                    <div className='mx-auto mt-6 w-fit'>
+                    <div className='mx-auto mt-6 flex w-fit gap-4'>
                         <Button type='button' className='px-6 py-2 shadow' onClick={handleSearch}>
                             SEARCH
                         </Button>
+
+                        {isStudentsGridOpen && students.length > 0 && (
+                            <Button
+                                type='button'
+                                className='bg-green-600 px-6 py-2 shadow hover:bg-green-700'
+                                onClick={handleSave}
+                                disabled={isSaving}>
+                                {isSaving ? 'SAVING...' : 'SAVE REMARKS'}
+                            </Button>
+                        )}
                     </div>
                 </div>
 

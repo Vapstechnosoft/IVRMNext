@@ -265,10 +265,11 @@ function StudentSubjectMappingContent() {
                 Deactive_Flag: form.Deactive_Flag ?? true,
                 EMG_Id: FIXED_EMG_ID
             };
-
+            console.log('params **', params);
             const response = await getStudentsForSubjectMapping(params);
             const success = response?.success ?? false;
             const data = Array.isArray(response?.data) ? response?.data : [];
+            console.log('search response **', data);
 
             if (!success || data?.length === 0) {
                 toast.error(response?.message ?? 'No data found');
@@ -351,7 +352,6 @@ function StudentSubjectMappingContent() {
             } else {
                 toast.error(response.message || 'Failed to save mapping');
             }
-            toast.info('Save functionality needs to be implemented in the table component');
         } catch (error: any) {
             console.error('Error preparing save:', error);
             toast.error('Failed to prepare save data');

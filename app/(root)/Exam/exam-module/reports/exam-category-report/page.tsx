@@ -7,8 +7,10 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ExamCategoryReportFormValues, examCategoryReportSchema } from '@/schemas/exam/exam-module/reports';
-import { getInitialData, getReportData } from '@/server/exam/exam-module/reports/exam-category-report';
+import { useMasterCategoryDropdownList } from '@/hooks/exam/exammodule/usemasters';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import { type ExamCategoryReportFormValues, examCategoryReportSchema } from '@/schemas/exam/exam-module/reports';
+import { getReportData } from '@/server/exam/exam-module/reports/exam-category-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { saveAs } from 'file-saver';
 import { Check, FileSpreadsheet, Loader2, Printer, Search, X } from 'lucide-react';
@@ -18,17 +20,14 @@ import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 
 export default function ExamCategoryReportPage() {
-    const [isLoading, setIsLoading] = useState(true);
-    const [yearDropdown, setYearDropdown] = useState<any[]>([]);
-    const [classDropdown, setClassDropdown] = useState<any[]>([]);
-
     // Grid flags and data
     const [gridFlag, setGridFlag] = useState(false);
     const [finalDetailsList, setFinalDetailsList] = useState<any[]>([]);
-    const [institutionDetails, setInstitutionDetails] = useState<any>(null);
     const [searchValue, setSearchValue] = useState('');
 
     const [reportHeader, setReportHeader] = useState('');
+    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
+    const { data: masterCategory, isLoading: masterCategoryLoading, error: masterCategoryError } = useMasterCategoryDropdownList();
 
     const {
         control,
@@ -50,25 +49,6 @@ export default function ExamCategoryReportPage() {
     const selectedYearId = watch('asmaY_Id');
     const selectedCategoryId = watch('emcA_Id');
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const data = await getInitialData();
-                setYearDropdown(data.yearlist);
-                setClassDropdown(data.grlist);
-
-                const defaultYear = data.yearlist.find((y: any) => y.Selected)?.asmaY_Id;
-                if (defaultYear) setValue('asmaY_Id', String(defaultYear));
-            } catch (error) {
-                console.error('Error fetching initial data', error);
-                toast.error('Failed to load initial data');
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchData();
-    }, [setValue]);
-
     // Handle Type Change logic
     useEffect(() => {
         setGridFlag(false);
@@ -86,113 +66,94 @@ export default function ExamCategoryReportPage() {
     const onSubmit = async (data: ExamCategoryReportFormValues) => {
         try {
             setGridFlag(false);
-            const response = await getReportData({
+
+            const response_ = await getReportData({
                 type: data.type,
-                ASMAY_Id: data.asmaY_Id,
-                EMCA_Id: data.emcA_Id
+                asmaY_Id: data.asmaY_Id,
+                emcA_Id: data.type === '1' ? undefined : data.emcA_Id
             });
 
-            if (response.studentAttendanceList && response.studentAttendanceList.length > 0) {
-                const students = response.studentAttendanceList;
-                const masterinst = response.masterinstitution ? response.masterinstitution[0] : {};
-                setInstitutionDetails(masterinst);
+            const records = Array.isArray(response_.data) ? response_.data : [];
 
-                // Processing logic matching the Angular controller
-                const recivedamtarray1: any[] = [];
-                const recivedamtarray2: any[] = [];
-                // const recivedamtarray3: any[] = []; // Not mainly used in loop logic but present in original
+            if (records.length === 0) {
+                toast.info('No data found for the selected criteria');
+                return;
+            }
 
-                // Get Unique Categories
-                students.forEach((t3: any) => {
-                    if (!recivedamtarray1.some((rt) => rt.emcA_Id === t3.emcA_Id)) {
-                        recivedamtarray1.push({ emcA_Id: t3.emcA_Id, emcA_CategoryName: t3.emcA_CategoryName });
-                    }
-                });
+            // -----------------------------
+            // 1. Get unique Categories
+            // -----------------------------
+            const categoriesMap = new Map<number, any>();
 
-                // Get Unique Groups
-                students.forEach((t3: any) => {
-                    if (!recivedamtarray2.some((rt) => rt.emG_Id === t3.emG_Id)) {
-                        recivedamtarray2.push({ emG_Id: t3.emG_Id, emG_GroupName: t3.emG_GroupName });
-                    }
-                });
+            records.forEach((item: any) => {
+                if (!categoriesMap.has(item.emcA_Id)) {
+                    categoriesMap.set(item.emcA_Id, {
+                        emcA_Id: item.emcA_Id,
+                        emcA_CategoryName: item.emcA_CategoryName,
+                        cat_grp_list: []
+                    });
+                }
+            });
 
-                // Construct hierarchical list
-                const details_list: any[] = [];
+            // -----------------------------
+            // 2. Build Groups under Category
+            // -----------------------------
+            categoriesMap.forEach((category) => {
+                const groupsMap = new Map<number, any>();
 
-                recivedamtarray1.forEach((cat) => {
-                    const temp_cat_grp_list = students.filter((t1: any) => t1.emcA_Id === cat.emcA_Id);
-
-                    const cat_grp_list: any[] = [];
-                    recivedamtarray2.forEach((grp) => {
-                        const grp_subjs = temp_cat_grp_list.filter((t2: any) => t2.emG_Id === grp.emG_Id);
-
-                        if (grp_subjs.length > 0) {
-                            cat_grp_list.push({
-                                emG_Id: grp.emG_Id,
-                                emG_GroupName: grp.emG_GroupName,
-                                grp_subjs: grp_subjs
+                records
+                    .filter((r: any) => r.emcA_Id === category.emcA_Id)
+                    .forEach((r: any) => {
+                        if (!groupsMap.has(r.emG_Id)) {
+                            groupsMap.set(r.emG_Id, {
+                                emG_Id: r.emG_Id,
+                                emG_GroupName: r.emG_GroupName,
+                                grp_subjs: []
                             });
                         }
+
+                        groupsMap.get(r.emG_Id).grp_subjs.push({
+                            ismS_Id: r.ismS_Id,
+                            ismS_SubjectName: r.ismS_SubjectName,
+                            ismS_OrderFlag: r.ismS_OrderFlag
+                        });
                     });
 
-                    // Rowspan is simpler here: total number of group rows + 1 (for header or spacing?)
-                    // In HTML: rowspan="{{rt.cat_grp_list.length+1}}"
-                    // Wait, in HTML it renders a TR for the Category initially?
-                    // Tbody ng-repeat="rt in final_details_list"
-                    //   Tr 1: Category Name (rowspan)
-                    //   Tr ng-repeat for groups
-                    // So category cell needs rowspan = cat_grp_list.length + 1? No, usually length.
-                    // Let's check HTML:
-                    // <td rowspan="{{rt.cat_grp_list.length+1}}">{{$index+1}}</td>
-                    // <td rowspan="{{rt.cat_grp_list.length+1}}">{{rt.emcA_CategoryName}}</td>
-                    // <tr ng-repeat="rt1 in rt.cat_grp_list">...</tr>
-                    // Ah, the first TR is inside the tbody but the `ng-repeat` for groups is on `tr`.
-                    // But inside tbody, the first `tr` contains the rowspan cells AND the first group?
-                    // No, the HTML structure in the reference is:
-                    // <tbody ng-repeat="rt ...">
-                    //   <tr> <td rowspan>...</td> <td rowspan>...</td> </tr>   <-- This creates an empty row if not careful, OR it expects the first group to be here?
-                    //   Wait, the HTML code provided:
-                    //   <tbody ng-repeat="rt ...">
-                    //      <tr> <td rowspan...> </td> <td rowspan...> </td> </tr>
-                    //      <tr ng-repeat="rt1 in rt.cat_grp_list"> <td>GroupName</td> <td>Subjects</td> </tr>
-                    //   </tbody>
-                    // This means the first TR has ONLY the Category/SL columns (spanning down), and then subsequent rows have the data?
-                    // That would mean the first row is empty of data? That looks odd.
-                    // Usually rowspan starts on the first data row.
-                    // Let's look closely at the HTML again.
-                    // <tr> <td rowspan>...</td> <td rowspan>...</td> </tr>
-                    // <tr ng-repeat="rt1 in rt.cat_grp_list"> ... </tr>
-                    // Yes, it seems they have a "Header" row for the category that spans, but it doesn't contain the first group.
-                    // The groups start on the *next* rows.
-                    // So effective rows = 1 (category row) + N (group rows).
-                    // That explains `rt.cat_grp_list.length+1`.
-
-                    details_list.push({
-                        emcA_Id: cat.emcA_Id,
-                        emcA_CategoryName: cat.emcA_CategoryName,
-                        cat_grp_list: cat_grp_list
-                    });
+                // Optional: sort subjects by order flag
+                groupsMap.forEach((grp) => {
+                    grp.grp_subjs.sort((a: any, b: any) => a.ismS_OrderFlag - b.ismS_OrderFlag);
+                    category.cat_grp_list.push(grp);
                 });
+            });
 
-                setFinalDetailsList(details_list);
-                setGridFlag(true);
+            const finalDetailsList = Array.from(categoriesMap.values());
 
-                // Set Report Header
-                const yearName = yearDropdown.find((y: any) => String(y.asmaY_Id) === data.asmaY_Id)?.asmaY_Year || '';
-                let header = `Academic Year: ${yearName}`;
-                if (data.type === '2') {
-                    const catName = classDropdown.find((c: any) => String(c.emcA_Id) === data.emcA_Id)?.emcA_CategoryName || '';
-                    header += ` Category: ${catName}`;
-                }
-                setReportHeader(header);
-            } else {
-                toast.warning('No record Found!');
-                setGridFlag(false);
-                setFinalDetailsList([]);
+            setFinalDetailsList(finalDetailsList);
+            setGridFlag(true);
+
+            // -----------------------------
+            // 3. Report Header
+            // -----------------------------
+            const yearName =
+                (Array.isArray(academicYear?.data) &&
+                    academicYear?.data.find((y: any) => String(y.asmaY_Id) === data.asmaY_Id)?.asmaY_Year) ||
+                '';
+
+            let header = `Academic Year: ${yearName}`;
+
+            if (data.type === '2') {
+                const catName =
+                    (Array.isArray(masterCategory?.data) &&
+                        masterCategory?.data.find((c: any) => String(c.emcA_Id) === data.emcA_Id)?.emcA_CategoryName) ||
+                    '';
+                header += ` | Category: ${catName}`;
             }
+
+            setReportHeader(header);
         } catch (error) {
             console.error('Error fetching report', error);
             toast.error('Failed to generate report');
+            setGridFlag(false);
         }
     };
 
@@ -271,14 +232,6 @@ export default function ExamCategoryReportPage() {
         }
     };
 
-    if (isLoading) {
-        return (
-            <div className='flex h-screen items-center justify-center'>
-                <Loader2 className='h-8 w-8 animate-spin text-primary' />
-            </div>
-        );
-    }
-
     return (
         <div className='container mx-auto space-y-6 p-4'>
             <Card className='w-full shadow-md'>
@@ -296,7 +249,12 @@ export default function ExamCategoryReportPage() {
                                     control={control}
                                     render={({ field }) => (
                                         <RadioGroup
-                                            onValueChange={field.onChange}
+                                            onValueChange={(value) => {
+                                                field.onChange(value);
+                                                if (value === '1')
+                                                    // update this field
+                                                    setValue('emcA_Id', ''); // reset other field to default
+                                            }}
                                             defaultValue={field.value}
                                             value={field.value}
                                             className='flex space-x-6'>
@@ -328,15 +286,31 @@ export default function ExamCategoryReportPage() {
                                     control={control}
                                     render={({ field }) => (
                                         <Select onValueChange={field.onChange} value={field.value}>
-                                            <SelectTrigger className={errors.asmaY_Id ? 'border-destructive' : ''}>
-                                                <SelectValue placeholder='Select Year' />
+                                            <SelectTrigger>
+                                                <SelectValue
+                                                    placeholder={academicYearLoading ? 'Loading Academic Year...' : 'Select Academic Year'}
+                                                />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {yearDropdown.map((item: any) => (
-                                                    <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
-                                                        {item.asmaY_Year}
+                                                {academicYearLoading ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading Academic Year...
                                                     </SelectItem>
-                                                ))}
+                                                ) : academicYearError ? (
+                                                    <SelectItem value='error' disabled>
+                                                        Error loading Academic Year
+                                                    </SelectItem>
+                                                ) : academicYear?.data?.length === 0 ? (
+                                                    <SelectItem value='none' disabled>
+                                                        No academic years available
+                                                    </SelectItem>
+                                                ) : (
+                                                    academicYear?.data?.map((item) => (
+                                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                            {item.asmaY_Year}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     )}
@@ -357,11 +331,25 @@ export default function ExamCategoryReportPage() {
                                                 <SelectValue placeholder='Select Category' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {classDropdown.map((item: any) => (
-                                                    <SelectItem key={item.emcA_Id} value={String(item.emcA_Id)}>
-                                                        {item.emcA_CategoryName}
+                                                {masterCategoryLoading ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading Exam Master Categories...
                                                     </SelectItem>
-                                                ))}
+                                                ) : masterCategoryError ? (
+                                                    <SelectItem value='error' disabled>
+                                                        Error loading Master Categories
+                                                    </SelectItem>
+                                                ) : masterCategory?.data?.length === 0 ? (
+                                                    <SelectItem value='none' disabled>
+                                                        No Master Categories available
+                                                    </SelectItem>
+                                                ) : (
+                                                    masterCategory?.data?.map((item) => (
+                                                        <SelectItem key={item.emcA_Id} value={item.emcA_Id.toString()}>
+                                                            {item.emcA_CategoryName}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     )}

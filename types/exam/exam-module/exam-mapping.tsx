@@ -431,11 +431,13 @@ export interface IHallTicketStudentItem {
 }
 
 export interface IPromotionRemarksGrid {
-    slNo: number; // Serial number
-    admNo: string; // Admission number
-    studentName: string; // Student's full name
-    studentId: number; // Student ID
-    remarks?: string; // Remarks for the student
+    slNo: number;
+    admNo: string;
+    studentName: string;
+    studentId: number;
+    remarks: string; // Changed from string?
+    estmP_Id?: number;
+    ecT_Id?: number;
 }
 
 export interface IPromotionSetting {

@@ -109,21 +109,30 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                 // Set edit mode
                 setEditMode('edit');
                 setDisableClassSection(true);
-
+                console.log(rowData.elP_Id, rowData.asmcL_Id, rowData.asmS_Id);
                 // Call API to get edit details
                 const editData = await getExamLoginPrivilegesEditDetails(rowData.elP_Id, rowData.asmcL_Id, rowData.asmS_Id);
 
                 if (editData?.success && editData.data?.length > 0) {
                     const editList = editData.data;
-                    const employeeName = '';
-                    const userId = 0;
+                    console.log(editList);
+                    const isClassTeacher = editList?.[0]?.elP_Flg === 'st' || editList?.[0]?.elP_Flg === 'others';
 
+                    const sourceData = isClassTeacher ? classTeachersData?.data : employeeData?.data;
+                    console.log('sourceData **', sourceData);
+                    const employee = sourceData?.find((emp: any) => emp.hrmE_Id === editList?.[0]?.hrmE_Id);
+
+                    const employeeName = employee?.hrmE_EmployeeName ?? '';
+
+                    const userId = editList[0].ivrmulF_Id;
+                    const subSubjectItem = subSubjects?.find((sub: any) => sub.ismSS_Id === editList[0].ismSS_Id);
+                    console.log(employee);
                     // Determine entry type based on elP_Flg
                     let entryType = 'BY_CLASS_TEACHER';
-                    if (editList[0].asmS_SectionName === 'st') {
+                    if (editList[0].elP_Flg === 'st') {
                         entryType = 'BY_SUBJECT_TEACHER';
                         setActiveTab(1);
-                    } else if (editList[0].asmS_SectionName === 'others') {
+                    } else if (editList[0].elP_Flg === 'others') {
                         entryType = 'BY_OTHERS';
                         setActiveTab(2);
                     } else {
@@ -139,10 +148,14 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
 
                     editList.forEach((item: any) => {
                         // Add class
+                        const classItem = classes.find((c) => c.asmcL_Id === item.asmcL_Id);
+                        const subject = subjects.find((s) => s.ismS_Id === item.ismS_Id);
+                        const sectionItem = sections.find((s) => s.asmS_Id === item.asmS_Id);
+
                         if (item.asmcL_Id && !uniqueClasses.has(item.asmcL_Id)) {
                             uniqueClasses.set(item.asmcL_Id, {
                                 asmcL_Id: item.asmcL_Id,
-                                asmcL_ClassName: item.asmcL_ClassName
+                                asmcL_ClassName: classItem?.asmcL_ClassName ?? ''
                             });
                         }
 
@@ -150,7 +163,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                         if (item.asmS_Id && !uniqueSections.has(item.asmS_Id)) {
                             const section = {
                                 asmS_Id: item.asmS_Id,
-                                asmC_SectionName: item.asmC_SectionName
+                                asmC_SectionName: sectionItem?.asmC_SectionName ?? ''
                             };
                             uniqueSections.set(item.asmS_Id, section);
                             selectedSections.push(section);
@@ -160,7 +173,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                         if (item.ismS_Id && !selectedSubjects.has(item.ismS_Id)) {
                             selectedSubjects.set(item.ismS_Id, {
                                 ismS_Id: item.ismS_Id,
-                                ismS_SubjectName: item.ismS_SubjectName
+                                ismS_SubjectName: subject?.ismS_SubjectName ?? ''
                             });
                         }
 
@@ -168,7 +181,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                         if (item.emsS_Id && !selectedSubSubjects.has(item.emsS_Id)) {
                             selectedSubSubjects.set(item.emsS_Id, {
                                 emsS_Id: item.emsS_Id,
-                                emsS_SubSubjectName: item.emsS_SubSubjectName || item.issS_SubSubjectName
+                                emsS_SubSubjectName: subSubjectItem?.issS_SubSubjectName ?? ''
                             });
                         }
                     });
@@ -178,7 +191,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
 
                     // Set form values
                     setValue('asmaY_Id', 176);
-                    setValue('hrmE_Id', 0);
+                    setValue('hrmE_Id', employee?.hrmE_Id ?? '');
                     setValue('ivrmulF_Id', userId);
                     setValue('sectionList', selectedSections);
                     setValue('classList', Array.from(uniqueClasses.values()));
@@ -220,7 +233,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                             user_id: userId,
                             year: yearInfo?.asmaY_Year || '',
                             emp_name: employeeName,
-                            emp_Id: 0,
+                            emp_Id: employee?.hrmE_Id || 0,
                             elpflg: entryType,
                             clas: group.class,
                             secs: group.section,

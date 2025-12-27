@@ -74,7 +74,7 @@ export async function getExamLoginPrivilegesEditDetails(elpId: number, asmclId: 
     const url = `exam_login_privileges/exm_login_privilege_edit_by_id/${elpId}/${asmclId}/${asmsId}`;
 
     try {
-        const response = await api.get<ILoginPrivilegeDetails[]>('exam', url);
+        const response = await api.get('exam', url);
 
         if (!response || !Array.isArray(response.data)) {
             throw new Error('Invalid Edit API response');

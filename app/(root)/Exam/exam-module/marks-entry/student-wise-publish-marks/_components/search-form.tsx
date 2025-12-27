@@ -2,17 +2,27 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { FormError, Label } from '@/components/ui/extension/field';
 import { Checkbox } from '@/components/ui/checkbox';
+import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import { studentMarksPublishSchema } from '@/schemas/exam/exam-module/marks-entry';
+import {
+    getClassDropDownByAcademicYearlist,
+    getExamsDropDownByAcademicYearandClassandSectionlist,
+    getSectionsDropDownByAcademicYearandClasslist,
+    getStudentsDropDownByAcademicYearandClassandSectionlist
+} from '@/server/exam/exam-module/reports/tbs-report-school';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Search, RotateCcw } from 'lucide-react';
+import { RotateCcw, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import { studentMarksPublishSchema } from '@/schemas/exam/exam-module/marks-entry';
+
+// Import fee-related hooks
+import { useFeeGroupDefaulterreport, useFeeTermDefaulterreport } from '@/hooks/fees/useReports';
 
 type FormFields = z.infer<typeof studentMarksPublishSchema.search>;
 
@@ -21,103 +31,22 @@ interface Props {
     onRefresh?: (params: any, data: any[]) => void;
 }
 
-// Mock data
-const MOCK_CLASSES = [
-    { asmcL_Id: 1, asmcL_ClassName: 'Class I' },
-    { asmcL_Id: 2, asmcL_ClassName: 'Class II' },
-    { asmcL_Id: 3, asmcL_ClassName: 'Class III' },
-    { asmcL_Id: 4, asmcL_ClassName: 'Class IV' },
-    { asmcL_Id: 5, asmcL_ClassName: 'Class V' },
-];
-
-const MOCK_SECTIONS = [
-    { asmS_Id: 1, asmC_SectionName: 'Section A' },
-    { asmS_Id: 2, asmC_SectionName: 'Section B' },
-    { asmS_Id: 3, asmC_SectionName: 'Section C' },
-];
-
-const MOCK_EXAMS = [
-    { emE_Id: 1, emE_ExamName: 'First Term Exam' },
-    { emE_Id: 2, emE_ExamName: 'Mid Term Exam' },
-    { emE_Id: 3, emE_ExamName: 'Final Exam' },
-];
-
-const MOCK_STUDENTS = [
-    {
-        amsT_Id: 1,
-        amsT_FirstName: "AADITRI SARKAR",
-        amsT_AdmNo: "20139",
-        amaY_Rollno: 28,
-        obtainedmarks: 0,
-        totalmaxmarks: 46,
-        percentage: 0,
-        estmP_PublishToStudentFlg: 1,
-        estmP_Id: 101
-    },
-    {
-        amsT_Id: 2,
-        amsT_FirstName: "TAHA AFSAR KHAN",
-        amsT_AdmNo: "19559",
-        amaY_Rollno: 33,
-        obtainedmarks: 35,
-        totalmaxmarks: 46,
-        percentage: 76,
-        estmP_PublishToStudentFlg: 1,
-        estmP_Id: 102
-    },
-    {
-        amsT_Id: 3,
-        amsT_FirstName: "MIRITTIJO NANDY",
-        amsT_AdmNo: "19851",
-        amaY_Rollno: 21,
-        obtainedmarks: 0,
-        totalmaxmarks: 46,
-        percentage: 0,
-        estmP_PublishToStudentFlg: 1,
-        estmP_Id: 103
-    },
-    {
-        amsT_Id: 4,
-        amsT_FirstName: "ADRIJA DAS",
-        amsT_AdmNo: "19858",
-        amaY_Rollno: 43,
-        obtainedmarks: 0,
-        totalmaxmarks: 46,
-        percentage: 0,
-        estmP_PublishToStudentFlg: 1,
-        estmP_Id: 104
-    },
-    {
-        amsT_Id: 5,
-        amsT_FirstName: "TANISTHA CHATTERJEE",
-        amsT_AdmNo: "19846",
-        amaY_Rollno: 59,
-        obtainedmarks: 0,
-        totalmaxmarks: 46,
-        percentage: 0,
-        estmP_PublishToStudentFlg: 0,
-        estmP_Id: 105
-    },
-    {
-        amsT_Id: 6,
-        amsT_FirstName: "BIVAS MONDAL",
-        amsT_AdmNo: "21290",
-        amaY_Rollno: 46,
-        obtainedmarks: 0,
-        totalmaxmarks: 46,
-        percentage: 0,
-        estmP_PublishToStudentFlg: 0,
-        estmP_Id: 106
-    },
-];
-
 export default function SearchForm({ onSuccess, onRefresh }: Props) {
     const [loading, setLoading] = useState(false);
     const [processBtnEnabled, setProcessBtnEnabled] = useState(false);
-    const [feeGroups, setFeeGroups] = useState<any[]>([]);
-    const [feeTerms, setFeeTerms] = useState<any[]>([]);
-    const [searchTerm, setSearchTerm] = useState('');
     const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+    // State for dropdown data
+    const [classes, setClasses] = useState<any[]>([]);
+    const [sections, setSections] = useState<any[]>([]);
+    const [exams, setExams] = useState<any[]>([]);
+    const [students, setStudents] = useState<any[]>([]);
+
+    // Loading states
+    const [loadingClasses, setLoadingClasses] = useState(false);
+    const [loadingSections, setLoadingSections] = useState(false);
+    const [loadingExams, setLoadingExams] = useState(false);
+    const [loadingStudents, setLoadingStudents] = useState(false);
 
     const methods = useForm<FormFields>({
         resolver: zodResolver(studentMarksPublishSchema.search),
@@ -131,102 +60,169 @@ export default function SearchForm({ onSuccess, onRefresh }: Props) {
         }
     });
 
-    const { control, handleSubmit, watch, setValue, reset, formState: { errors, isValid }, getValues } = methods;
+    const {
+        control,
+        handleSubmit,
+        watch,
+        setValue,
+        reset,
+        formState: { errors, isValid },
+        getValues
+    } = methods;
 
     const radiotype = watch('radiotype');
     const academicYearId = watch('asmaY_Id');
     const classId = watch('asmcL_Id');
     const sectionId = watch('asmS_Id');
     const feeInstallmentCheckbox = watch('feeinstallmentcheckbox');
-    const feeGroupIds = watch('feeGroupIds');
 
     const { data: academicYears, isLoading: academicYearLoading } = useAcademicYearDropdown();
 
-    // Mock hooks implementation
-    const useClassesByAcademicYear = (academicYearId?: number) => {
-        return {
-            data: { data: MOCK_CLASSES },
-            isLoading: false,
-            refetch: () => Promise.resolve({ data: { data: MOCK_CLASSES } })
-        };
-    };
+    // Fee-related hooks
+    const { data: feeGroupsData, isLoading: loadingFeeGroup } = useFeeGroupDefaulterreport();
 
-    const useSectionsByClass = (academicYearId?: number, classId?: number) => {
-        return {
-            data: { data: MOCK_SECTIONS },
-            isLoading: false,
-            refetch: () => Promise.resolve({ data: { data: MOCK_SECTIONS } })
-        };
-    };
+    const { data: feeTermsData, isLoading: loadingFeeTerm } = useFeeTermDefaulterreport();
 
-    const useExamsByClassSection = (academicYearId?: number, classId?: number, sectionId?: number) => {
-        return {
-            data: { data: MOCK_EXAMS },
-            isLoading: false,
-            refetch: () => Promise.resolve({ data: { data: MOCK_EXAMS } })
-        };
-    };
+    // Get actual data from responses
+    const feeGroups = feeGroupsData?.data || [];
+    const feeTerms = feeTermsData?.data || [];
 
-    const { data: classes, isLoading: classesLoading, refetch: refetchClasses } = useClassesByAcademicYear(academicYearId);
-    const { data: sections, isLoading: sectionsLoading, refetch: refetchSections } = useSectionsByClass(academicYearId, classId);
-    const { data: exams, isLoading: examsLoading, refetch: refetchExams } = useExamsByClassSection(academicYearId, classId, sectionId);
-
+    // Handle classes when academic year changes
     useEffect(() => {
-        const fetchFeeData = async () => {
-            try {
-                const hardcodedFeeGroups = [
-                    { fmG_Id: 1, fmG_GroupName: 'Opening Balance 2023-24' },
-                    { fmG_Id: 2, fmG_GroupName: 'Test Group' },
-                    { fmG_Id: 3, fmG_GroupName: 'new group' },
-                    { fmG_Id: 4, fmG_GroupName: 'B.Tech Group' },
-                ];
-
-                const hardcodedFeeTerms = [
-                    { fmT_Id: 1, fmT_Name: 'Term 1' },
-                    { fmT_Id: 2, fmT_Name: 'Term 2' },
-                    { fmT_Id: 3, fmT_Name: 'Term 3' },
-                ];
-
-                setFeeGroups(hardcodedFeeGroups);
-                setFeeTerms(hardcodedFeeTerms);
-            } catch (error) {
-                console.error('Error setting fee data:', error);
-            }
-        };
-
-        fetchFeeData();
-    }, []);
-
-    useEffect(() => {
-        if (academicYearId) {
-            refetchClasses();
+        if (!academicYearId || academicYearId === 0) {
+            setClasses([]);
+            setSections([]);
+            setExams([]);
+            setStudents([]);
             setValue('asmcL_Id', 0);
             setValue('asmS_Id', 0);
             setValue('emE_Id', 0);
             setProcessBtnEnabled(false);
+            return;
         }
-    }, [academicYearId]);
 
+        const fetchClasses = async () => {
+            setLoadingClasses(true);
+            try {
+                const res = await getClassDropDownByAcademicYearlist(academicYearId);
+                const classData = res.data || [];
+                setClasses(classData);
+                setValue('asmcL_Id', 0);
+                setValue('asmS_Id', 0);
+                setValue('emE_Id', 0);
+
+                // Clear dependent data
+                setSections([]);
+                setExams([]);
+                setStudents([]);
+
+                if (classData.length === 0) {
+                    toast.info('No classes found for selected academic year');
+                }
+            } catch (error) {
+                console.error('Error loading classes:', error);
+                toast.error('Failed to load classes');
+                setClasses([]);
+            } finally {
+                setLoadingClasses(false);
+            }
+        };
+
+        fetchClasses();
+    }, [academicYearId, setValue]);
+
+    // Handle sections when class changes
     useEffect(() => {
-        if (classId && academicYearId) {
-            refetchSections();
+        if (!academicYearId || !classId || classId === 0) {
+            setSections([]);
+            setExams([]);
+            setStudents([]);
             setValue('asmS_Id', 0);
             setValue('emE_Id', 0);
             setProcessBtnEnabled(false);
+            return;
         }
-    }, [classId, academicYearId]);
 
-    useEffect(() => {
-        if (sectionId && classId && academicYearId) {
-            if (radiotype === 'EXAM') {
-                refetchExams();
+        const fetchSections = async () => {
+            setLoadingSections(true);
+            try {
+                const res = await getSectionsDropDownByAcademicYearandClasslist(academicYearId, classId);
+                const sectionData = res.data || [];
+                setSections(sectionData);
+                setValue('asmS_Id', 0);
+                setValue('emE_Id', 0);
+
+                // Clear dependent data
+                setExams([]);
+                setStudents([]);
+
+                if (sectionData.length === 0) {
+                    toast.info('No sections found for selected class');
+                }
+            } catch (error) {
+                console.error('Error loading sections:', error);
+                toast.error('Failed to load sections');
+                setSections([]);
+            } finally {
+                setLoadingSections(false);
             }
-            // Simulate check marks calculation
-            setTimeout(() => {
-                setProcessBtnEnabled(true);
-            }, 300);
+        };
+
+        fetchSections();
+    }, [academicYearId, classId, setValue]);
+
+    // Handle exams and students when section changes
+    useEffect(() => {
+        if (!academicYearId || !classId || !sectionId || sectionId === 0) {
+            setExams([]);
+            setStudents([]);
+            setValue('emE_Id', 0);
+            setProcessBtnEnabled(false);
+            return;
         }
-    }, [sectionId, classId, academicYearId, radiotype]);
+
+        const fetchData = async () => {
+            setLoadingExams(true);
+            setLoadingStudents(true);
+            try {
+                // Load exams (only for Exam Wise mode)
+                if (radiotype === 'EXAM') {
+                    const examRes = await getExamsDropDownByAcademicYearandClassandSectionlist(academicYearId, classId, sectionId);
+                    const examData = examRes.data || [];
+                    setExams(examData);
+                    setValue('emE_Id', 0);
+
+                    if (examData.length === 0) {
+                        toast.info('No exams found for selected section');
+                    }
+                }
+
+                // Load students for checking marks calculation
+                const studentRes = await getStudentsDropDownByAcademicYearandClassandSectionlist(academicYearId, classId, sectionId);
+                const studentData = studentRes.data || [];
+                setStudents(studentData);
+
+                if (studentData.length === 0) {
+                    toast.info('No students found for selected section');
+                }
+
+                // Enable process button if we have data
+                setTimeout(() => {
+                    setProcessBtnEnabled(true);
+                }, 300);
+            } catch (error) {
+                console.error('Error loading data:', error);
+                toast.error('Failed to load data');
+                setExams([]);
+                setStudents([]);
+            } finally {
+                setLoadingExams(false);
+                setLoadingStudents(false);
+            }
+        };
+
+        fetchData();
+    }, [academicYearId, classId, sectionId, radiotype, setValue]);
 
     const handleSearch = async (formData: FormFields) => {
         setLoading(true);
@@ -243,29 +239,35 @@ export default function SearchForm({ onSuccess, onRefresh }: Props) {
                 feeinstallmentcheckbox: formData.feeinstallmentcheckbox
             };
 
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // Simulate API call (replace with actual API)
+            await new Promise((resolve) => setTimeout(resolve, 500));
 
-            const mockData = {
-                datareport: MOCK_STUDENTS.map(student => ({
-                    ...student,
-                    // Add year/class/section info from form
-                    asmaY_Year: academicYears?.data?.find((y: any) => y.asmaY_Id === formData.asmaY_Id)?.asmaY_Year || '2024-25',
-                    asmcL_ClassName: MOCK_CLASSES.find(c => c.asmcL_Id === formData.asmcL_Id)?.asmcL_ClassName || 'Class',
-                    asmC_SectionName: MOCK_SECTIONS.find(s => s.asmS_Id === formData.asmS_Id)?.asmC_SectionName || 'Section',
-                    emE_ExamName: MOCK_EXAMS.find(e => e.emE_Id === formData.emE_Id)?.emE_ExamName || 'Exam'
-                }))
-            };
+            // Prepare mock data with actual student info
+            const processedStudents = students.map((student, index) => ({
+                ...student,
+                // Add calculated fields
+                obtainedmarks: index % 3 === 0 ? Math.floor(Math.random() * 46) : 0,
+                totalmaxmarks: 46,
+                percentage: index % 3 === 0 ? Math.floor(Math.random() * 100) : 0,
+                estmP_PublishToStudentFlg: index % 2 === 0 ? 1 : 0,
+                estmP_Id: 100 + index,
+                // Add additional info
+                asmaY_Year: academicYears?.data?.find((y: any) => y.asmaY_Id === formData.asmaY_Id)?.asmaY_Year || '2024-25',
+                asmcL_ClassName: classes.find((c) => c.asmcL_Id === formData.asmcL_Id)?.asmcL_ClassName || '',
+                asmC_SectionName: sections.find((s) => s.asmS_Id === formData.asmS_Id)?.asmC_SectionName || '',
+                emE_ExamName: exams.find((e) => e.emE_Id === formData.emE_Id)?.emE_ExamName || ''
+            }));
 
             if (isInitialLoad) {
-                onSuccess?.(formData, mockData.datareport);
+                onSuccess?.(formData, processedStudents);
                 setIsInitialLoad(false);
             } else {
-                onRefresh?.(formData, mockData.datareport);
+                onRefresh?.(formData, processedStudents);
             }
 
-            toast.success(`${mockData.datareport.length} students found`);
+            toast.success(`${processedStudents.length} students found`);
         } catch (error: any) {
+            console.error('Search error:', error);
             toast.error(error.message || 'Failed to search students');
         } finally {
             setLoading(false);
@@ -281,45 +283,46 @@ export default function SearchForm({ onSuccess, onRefresh }: Props) {
             NOTIFYFLAG: false,
             feeGroupIds: []
         });
+
+        // Clear state
+        setClasses([]);
+        setSections([]);
+        setExams([]);
+        setStudents([]);
         setProcessBtnEnabled(false);
-        setSearchTerm('');
     };
 
-    const filteredFeeGroups = feeGroups.filter(group =>
-        group.fmG_GroupName.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
     return (
-        <form onSubmit={handleSubmit(handleSearch)} className="space-y-6">
+        <form onSubmit={handleSubmit(handleSearch)} className='space-y-6'>
             {/* Radio Buttons */}
-            <div className="flex justify-center">
-                <div className="inline-flex rounded-lg border p-1">
+            <div className='flex justify-center'>
+                <div className='inline-flex rounded-lg border p-1'>
                     <Controller
                         control={control}
-                        name="radiotype"
+                        name='radiotype'
                         render={({ field }) => (
                             <>
                                 <button
-                                    type="button"
-                                    className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${field.value === 'EXAM'
-                                        ? 'bg-purple-600 text-white'
-                                        : 'bg-transparent text-gray-600 hover:bg-gray-100'
-                                        }`}
-                                    onClick={() => field.onChange('EXAM')}
-                                >
+                                    type='button'
+                                    className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${
+                                        field.value === 'EXAM'
+                                            ? 'bg-purple-600 text-white'
+                                            : 'bg-transparent text-gray-600 hover:bg-gray-100'
+                                    }`}
+                                    onClick={() => field.onChange('EXAM')}>
                                     Exam Wise
                                 </button>
                                 <button
-                                    type="button"
-                                    className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${field.value === 'PROMOTION'
-                                        ? 'bg-purple-600 text-white'
-                                        : 'bg-transparent text-gray-600 hover:bg-gray-100'
-                                        }`}
+                                    type='button'
+                                    className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${
+                                        field.value === 'PROMOTION'
+                                            ? 'bg-purple-600 text-white'
+                                            : 'bg-transparent text-gray-600 hover:bg-gray-100'
+                                    }`}
                                     onClick={() => {
                                         field.onChange('PROMOTION');
                                         setValue('emE_Id', 0);
-                                    }}
-                                >
+                                    }}>
                                     Promotion
                                 </button>
                             </>
@@ -329,31 +332,42 @@ export default function SearchForm({ onSuccess, onRefresh }: Props) {
             </div>
 
             {/* Form Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                 {/* Left Column */}
-                <div className="space-y-4">
+                <div className='space-y-4'>
                     {/* Academic Year */}
                     <div>
                         <Label>Academic Year *</Label>
                         <Controller
                             control={control}
-                            name="asmaY_Id"
+                            name='asmaY_Id'
                             render={({ field, fieldState }) => (
                                 <>
                                     <Select
                                         onValueChange={(value) => field.onChange(Number(value))}
                                         value={field.value ? String(field.value) : ''}
-                                        disabled={academicYearLoading}
-                                    >
+                                        disabled={academicYearLoading}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Academic Year" />
+                                            <SelectValue
+                                                placeholder={academicYearLoading ? 'Loading Academic Year...' : 'Select Academic Year'}
+                                            />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {academicYears?.data?.map((year: any) => (
-                                                <SelectItem key={year.asmaY_Id} value={String(year.asmaY_Id)}>
-                                                    {year.asmaY_Year}
+                                            {academicYearLoading ? (
+                                                <SelectItem value='loading' disabled>
+                                                    Loading Academic Year...
                                                 </SelectItem>
-                                            ))}
+                                            ) : academicYears?.data?.length === 0 ? (
+                                                <SelectItem value='none' disabled>
+                                                    No academic years available
+                                                </SelectItem>
+                                            ) : (
+                                                academicYears?.data?.map((year: any) => (
+                                                    <SelectItem key={year.asmaY_Id} value={String(year.asmaY_Id)}>
+                                                        {year.asmaY_Year}
+                                                    </SelectItem>
+                                                ))
+                                            )}
                                         </SelectContent>
                                     </Select>
                                     {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -362,28 +376,147 @@ export default function SearchForm({ onSuccess, onRefresh }: Props) {
                         />
                     </div>
 
-                    {/* Class */}
-                    <div>
-                        <Label>Class *</Label>
+                    {/* Exclude Fee Defaulters Checkbox */}
+                    <div className='space-y-2'>
                         <Controller
                             control={control}
-                            name="asmcL_Id"
+                            name='feeinstallmentcheckbox'
+                            render={({ field }) => (
+                                <div className='flex items-center space-x-2'>
+                                    <Checkbox id='feeinstallmentcheckbox' checked={field.value} onCheckedChange={field.onChange} />
+                                    <Label htmlFor='feeinstallmentcheckbox' className='font-medium'>
+                                        Exclude Fee Defaulters: *
+                                    </Label>
+                                </div>
+                            )}
+                        />
+                    </div>
+
+                    {/* Fee Term (only when Exclude Fee Defaulters is checked) */}
+                    <div>
+                        <Label>Fee Term *</Label>
+                        <Controller
+                            control={control}
+                            name='FMT_Id'
                             render={({ field, fieldState }) => (
                                 <>
                                     <Select
                                         onValueChange={(value) => field.onChange(Number(value))}
                                         value={field.value ? String(field.value) : ''}
-                                        disabled={!academicYearId || classesLoading}
-                                    >
+                                        disabled={!feeInstallmentCheckbox || loadingFeeTerm}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Class" />
+                                            <SelectValue
+                                                placeholder={
+                                                    loadingFeeTerm
+                                                        ? 'Loading fee terms...'
+                                                        : !feeInstallmentCheckbox
+                                                          ? 'Enable Exclude Fee Defaulters first'
+                                                          : feeTerms.length === 0
+                                                            ? 'No fee terms available'
+                                                            : 'Select Fee Term'
+                                                }
+                                            />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {classes?.data?.map((cls: any) => (
-                                                <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>
-                                                    {cls.asmcL_ClassName}
+                                            {loadingFeeTerm ? (
+                                                <SelectItem value='loading' disabled>
+                                                    Loading fee terms...
                                                 </SelectItem>
-                                            ))}
+                                            ) : feeTerms.length === 0 ? (
+                                                <SelectItem value='none' disabled>
+                                                    No fee terms available
+                                                </SelectItem>
+                                            ) : (
+                                                feeTerms.map((term: any) => (
+                                                    <SelectItem key={term.fmT_Id} value={String(term.fmT_Id)}>
+                                                        {term.fmT_Name}
+                                                    </SelectItem>
+                                                ))
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                </>
+                            )}
+                        />
+                    </div>
+
+                    {/* Fee Group Multi-select */}
+                    <div>
+                        <div className='mb-2'>
+                            <Label className='font-medium'>Fee Group: *</Label>
+                        </div>
+                        <Controller
+                            control={control}
+                            name='feeGroupIds'
+                            render={({ field, fieldState }) => (
+                                <>
+                                    <CustomMultiSelectBox
+                                        options={feeGroups.map((group: any) => ({
+                                            label: group.fmG_GroupName,
+                                            value: group.fmG_Id.toString()
+                                        }))}
+                                        onChange={(vals) => field.onChange(vals.map((v: string) => Number(v)))}
+                                        value={field.value ? field.value.map((v) => v.toString()) : []}
+                                        placeholder={
+                                            loadingFeeGroup
+                                                ? 'Loading fee groups...'
+                                                : !feeInstallmentCheckbox
+                                                  ? 'Enable Exclude Fee Defaulters first'
+                                                  : 'Search here...'
+                                        }
+                                        height='150px'
+                                        isSearchRequired={true}
+                                        disabled={!feeInstallmentCheckbox || loadingFeeGroup}
+                                    />
+                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                </>
+                            )}
+                        />
+                    </div>
+                </div>
+
+                {/* Right Column */}
+                <div className='space-y-4'>
+                    {/* Class */}
+                    <div>
+                        <Label>Class *</Label>
+                        <Controller
+                            control={control}
+                            name='asmcL_Id'
+                            render={({ field, fieldState }) => (
+                                <>
+                                    <Select
+                                        onValueChange={(value) => field.onChange(Number(value))}
+                                        value={field.value ? String(field.value) : ''}
+                                        disabled={!academicYearId || loadingClasses}>
+                                        <SelectTrigger>
+                                            <SelectValue
+                                                placeholder={
+                                                    loadingClasses
+                                                        ? 'Loading classes...'
+                                                        : classes.length === 0 && academicYearId
+                                                          ? 'No classes available'
+                                                          : 'Select Class'
+                                                }
+                                            />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {loadingClasses ? (
+                                                <SelectItem value='loading' disabled>
+                                                    Loading classes...
+                                                </SelectItem>
+                                            ) : classes.length === 0 ? (
+                                                <SelectItem value='none' disabled>
+                                                    No classes available
+                                                </SelectItem>
+                                            ) : (
+                                                classes.map((cls: any) => (
+                                                    <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>
+                                                        {cls.asmcL_ClassName}
+                                                    </SelectItem>
+                                                ))
+                                            )}
                                         </SelectContent>
                                     </Select>
                                     {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -397,23 +530,40 @@ export default function SearchForm({ onSuccess, onRefresh }: Props) {
                         <Label>Section *</Label>
                         <Controller
                             control={control}
-                            name="asmS_Id"
+                            name='asmS_Id'
                             render={({ field, fieldState }) => (
                                 <>
                                     <Select
                                         onValueChange={(value) => field.onChange(Number(value))}
                                         value={field.value ? String(field.value) : ''}
-                                        disabled={!classId || sectionsLoading}
-                                    >
+                                        disabled={!classId || loadingSections}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Section" />
+                                            <SelectValue
+                                                placeholder={
+                                                    loadingSections
+                                                        ? 'Loading sections...'
+                                                        : sections.length === 0 && classId
+                                                          ? 'No sections available'
+                                                          : 'Select Section'
+                                                }
+                                            />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {sections?.data?.map((sec: any) => (
-                                                <SelectItem key={sec.asmS_Id} value={String(sec.asmS_Id)}>
-                                                    {sec.asmC_SectionName}
+                                            {loadingSections ? (
+                                                <SelectItem value='loading' disabled>
+                                                    Loading sections...
                                                 </SelectItem>
-                                            ))}
+                                            ) : sections.length === 0 ? (
+                                                <SelectItem value='none' disabled>
+                                                    No sections available
+                                                </SelectItem>
+                                            ) : (
+                                                sections.map((sec: any) => (
+                                                    <SelectItem key={sec.asmS_Id} value={String(sec.asmS_Id)}>
+                                                        {sec.asmC_SectionName}
+                                                    </SelectItem>
+                                                ))
+                                            )}
                                         </SelectContent>
                                     </Select>
                                     {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -427,164 +577,68 @@ export default function SearchForm({ onSuccess, onRefresh }: Props) {
                         <Label>Exam Name {radiotype === 'EXAM' && '*'}</Label>
                         <Controller
                             control={control}
-                            name="emE_Id"
+                            name='emE_Id'
                             render={({ field, fieldState }) => (
                                 <>
                                     <Select
                                         onValueChange={(value) => field.onChange(Number(value))}
                                         value={field.value ? String(field.value) : ''}
-                                        disabled={radiotype !== 'EXAM' || !sectionId || examsLoading}
-                                    >
+                                        disabled={radiotype !== 'EXAM' || !sectionId || loadingExams}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Exam Name" />
+                                            <SelectValue
+                                                placeholder={
+                                                    loadingExams
+                                                        ? 'Loading exams...'
+                                                        : exams.length === 0 && sectionId
+                                                          ? 'No exams available'
+                                                          : 'Select Exam Name'
+                                                }
+                                            />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {exams?.data?.map((exam: any) => (
-                                                <SelectItem key={exam.emE_Id} value={String(exam.emE_Id)}>
-                                                    {exam.emE_ExamName}
+                                            {loadingExams ? (
+                                                <SelectItem value='loading' disabled>
+                                                    Loading exams...
                                                 </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                </>
-                            )}
-                        />
-                    </div>
-                </div>
-
-                {/* Right Column */}
-                <div className="space-y-4">
-                    {/* Exclude Fee Defaulters */}
-                    <div className="space-y-2">
-                        <Controller
-                            control={control}
-                            name="feeinstallmentcheckbox"
-                            render={({ field }) => (
-                                <div className="flex items-center space-x-2">
-                                    <Checkbox
-                                        id="feeinstallmentcheckbox"
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                    <Label htmlFor="feeinstallmentcheckbox" className="font-medium">
-                                        Exclude Fee Defaulters: *
-                                    </Label>
-                                </div>
-                            )}
-                        />
-                    </div>
-
-                    {/* Fee Term */}
-                    <div>
-                        <Label>Fee Term *</Label>
-                        <Controller
-                            control={control}
-                            name="FMT_Id"
-                            render={({ field, fieldState }) => (
-                                <>
-                                    <Select
-                                        onValueChange={(value) => field.onChange(Number(value))}
-                                        value={field.value ? String(field.value) : ''}
-                                        disabled={!feeInstallmentCheckbox}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select Fee Term" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {feeTerms.map((term: any) => (
-                                                <SelectItem key={term.fmT_Id} value={String(term.fmT_Id)}>
-                                                    {term.fmT_Name}
+                                            ) : exams.length === 0 ? (
+                                                <SelectItem value='none' disabled>
+                                                    No exams available
                                                 </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                </>
-                            )}
-                        />
-                    </div>
-
-                    {/* Fee Group Multi-select */}
-                    <div>
-                        <div className="mb-2">
-                            <Label className="font-medium">Fee Group: *</Label>
-                        </div>
-
-                        <div className="border rounded-md p-2">
-                            {/* Search Input */}
-                            <input
-                                type="text"
-                                placeholder="Search here..."
-                                className="w-full p-2 mb-2 border rounded"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                disabled={!feeInstallmentCheckbox}
-                            />
-
-                            {/* Fee Groups List */}
-                            <div className="max-h-40 overflow-y-auto">
-                                {filteredFeeGroups.map((group) => (
-                                    <div key={group.fmG_Id} className="flex items-center space-x-2 p-2 hover:bg-gray-50">
-                                        <Controller
-                                            control={control}
-                                            name="feeGroupIds"
-                                            render={({ field }) => (
-                                                <Checkbox
-                                                    id={`group-${group.fmG_Id}`}
-                                                    checked={field.value?.includes(group.fmG_Id)}
-                                                    onCheckedChange={(checked) => {
-                                                        const updatedIds = checked
-                                                            ? [...(field.value || []), group.fmG_Id]
-                                                            : (field.value || []).filter((id: number) => id !== group.fmG_Id);
-                                                        field.onChange(updatedIds);
-                                                    }}
-                                                    disabled={!feeInstallmentCheckbox}
-                                                />
+                                            ) : (
+                                                exams.map((exam: any) => (
+                                                    <SelectItem key={exam.emE_Id} value={String(exam.emE_Id)}>
+                                                        {exam.emE_ExamName}
+                                                    </SelectItem>
+                                                ))
                                             )}
-                                        />
-                                        <Label htmlFor={`group-${group.fmG_Id}`} className="flex-1 cursor-pointer">
-                                            {group.fmG_GroupName}
-                                        </Label>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {errors.feeGroupIds && (
-                            <FormError>{errors.feeGroupIds.message}</FormError>
-                        )}
+                                        </SelectContent>
+                                    </Select>
+                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                </>
+                            )}
+                        />
                     </div>
                 </div>
             </div>
 
             {/* Buttons */}
-            <div className="flex justify-center gap-4 pt-4">
-                <Button
-                    type="submit"
-                    disabled={loading || !isValid || !processBtnEnabled}
-                    className="min-w-[120px]"
-                >
+            <div className='flex justify-center gap-4 pt-4'>
+                <Button type='submit' disabled={loading || !isValid || !processBtnEnabled} className='min-w-[120px]'>
                     {loading ? (
-                        <span className="flex items-center gap-2">
-                            <Search className="h-4 w-4" />
+                        <span className='flex items-center gap-2'>
+                            <Search className='h-4 w-4' />
                             Searching...
                         </span>
                     ) : (
-                        <span className="flex items-center gap-2">
-                            <Search className="h-4 w-4" />
+                        <span className='flex items-center gap-2'>
+                            <Search className='h-4 w-4' />
                             Search
                         </span>
                     )}
                 </Button>
 
-                <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleReset}
-                    disabled={loading}
-                >
-                    <RotateCcw className="h-4 w-4 mr-2" />
+                <Button type='button' variant='outline' onClick={handleReset} disabled={loading}>
+                    <RotateCcw className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>
             </div>

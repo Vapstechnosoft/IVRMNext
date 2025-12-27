@@ -260,6 +260,7 @@ export const EXAM_QUERY_KEYS = {
     MASTER_SUBJECT_GROUP_DETAILS: 'master-subject-group-details',
     MASTER_ALL_SUBJECT_GROUP_DETAILS: 'master-all-subject-group-details',
     MASTER_CATEGORY: 'master-category',
+    MASTER_CATEGORY_DROPDOWN_LIST: 'master-category-dropdown-list',
     MASTER_CATEGORY_CLASS_MAPPING: 'master-category-class-mapping',
     MASTER_CATEGORY_CLASS_MAPPED_SECTIONS: 'master-category-class-mapped-sections',
     YEARLY_CATEGORY_SUBJECT_MAPPING: 'yearly-category-subject-mapping',
