@@ -42,14 +42,14 @@ export default function toggleMasterclassCategoryForm({ rowData, onClose }: togg
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             // Try the form value first, then try common id fields from rowData.
-            const idToToggle = Number((data?.fmcC_Id as any) ?? (rowData as any).fmcC_Id);
+            // const idToToggle = Number((data?.fmcC_Id as any) ?? (rowData as any).fmcC_Id);
 
-            if (!idToToggle) {
-                toast.error('Invalid record id. Cannot update status.');
-                return;
-            }
+            // if (!idToToggle) {
+            //     toast.error('Invalid record id. Cannot update status.');
+            //     return;
+            // }
 
-            const response = await toggleMasterclassCategory(idToToggle);
+            const response = await toggleMasterclassCategory(Number(rowData.fmcC_Id));
 
             if (response.success) {
                 toast.success(response.message || 'Status updated successfully');
@@ -68,7 +68,7 @@ export default function toggleMasterclassCategoryForm({ rowData, onClose }: togg
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     {/* Register as number so zod validation receives a number (not a string) */}
-                    <input type='hidden' {...register('fmcC_Id', { valueAsNumber: true })} value={rowData.fmcC_Id as any} />
+                    <input type='hidden' {...register('fmcC_Id')} value={rowData.fmcC_Id} />
                     <p>
                         Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.fmcC_ClassCategoryName}</strong>?
                     </p>

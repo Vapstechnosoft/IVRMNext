@@ -28,6 +28,7 @@ interface ReceiptData {
     paymentRows: PaymentRow[];
     amountInWords: string;
     paymentMode: string;
+    date: string;
 }
 
 // Single receipt includes logo
@@ -92,7 +93,8 @@ function generateSingleReceiptHTML(data: SingleReceiptData): string {
         feeRows,
         paymentRows,
         amountInWords,
-        paymentMode
+        paymentMode,
+        date
     } = data;
 
     return `
@@ -251,7 +253,7 @@ h3 {
       <p><span class="bold">Father's Name:</span> ${fatherName}</p>
     </div>
     <div class="text-right">
-      <p><span class="bold">Date:</span> ${new Date().toLocaleDateString()}</p>
+      <p><span class="bold">Date:</span> ${date}</p>
       <p><span class="bold">Academic Year:</span> ${academicYear}</p>
       <p><span class="bold">Class/Section:</span> ${className}</p>
     </div>
@@ -363,7 +365,7 @@ function generateMultipleReceiptsHTML(data: MultipleReceiptsData): string {
               <p><span class="bold">Father's Name:</span> ${receipt.fatherName}</p>
             </div>
             <div class="text-right">
-              <p><span class="bold">Date:</span> ${new Date().toLocaleDateString()}</p>
+              <p><span class="bold">Date:</span> ${receipt.date}</p>
               <p><span class="bold">Academic Year:</span> ${receipt.academicYear}</p>
               <p><span class="bold">Class/Section:</span> ${receipt.className}</p>
             </div>

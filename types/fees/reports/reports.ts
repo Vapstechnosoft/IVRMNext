@@ -337,3 +337,35 @@ export interface FeeReceiptRecord {
     asmcL_Id: number;
     asmS_Id: number;
 }
+
+export interface InstallmentReportData {
+    amsT_AdmNo: string;
+    amsT_Id: number;
+    amsT_FirstName: string;
+    asmcL_Id: number;
+    asmcL_ClassName: string;
+    asmS_Id: number;
+    asmC_SectionName: string;
+    ftI_Id: number;
+    ftI_Name: string;
+    balance: number;
+    paid: number;
+    concession: number;
+    waivedoff: number;
+    fine: number;
+    netamount: number;
+    amaY_RollNo: number;
+}
+
+export interface FeeStudenttermWisePaidReport {
+    studentName: string;
+    className: string;
+    sectionName: string;
+    admNo: string;
+    termAmounts: FeeStudenttermWisePaidReportTermAmounts;
+    total: number;
+}
+
+export interface FeeStudenttermWisePaidReportTermAmounts {
+    [key: string]: number;
+}

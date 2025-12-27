@@ -749,23 +749,25 @@ export default function FeeReceiptReport() {
                     feeRows: report.feeRows,
                     paymentRows: report.paymentRows,
                     amountInWords: report.amountInWords,
-                    paymentMode: report.paymentMode
+                    paymentMode: report.paymentMode,
+                    date: report.date
                 }))
             });
         } else {
             // Print single receipt (individual mode or fallback)
             ExporttoPrint({
                 logodata,
-                receiptNo: receiptNo || receiptReports[0]?.receiptNo || 'VVS/2025/001',
-                admissionNo: admissionNo || receiptReports[0]?.admissionNo || '2025-007',
-                studentName: studentName || receiptReports[0]?.studentName || 'AARNA CHUGH',
-                fatherName: fatherName || receiptReports[0]?.fatherName || 'MANISH ASHU',
-                academicYear: academicYear || receiptReports[0]?.academicYear || '2025-2026',
-                className: className || receiptReports[0]?.className || 'PREKG A',
+                receiptNo: receiptNo || receiptReports[0]?.receiptNo || '',
+                admissionNo: admissionNo || receiptReports[0]?.admissionNo || '',
+                studentName: studentName || receiptReports[0]?.studentName || '',
+                fatherName: fatherName || receiptReports[0]?.fatherName || '',
+                academicYear: academicYearLabel || '',
+                className: className || receiptReports[0]?.className || '',
                 feeRows: feeRows.length > 0 ? feeRows : receiptReports[0]?.feeRows || [],
                 paymentRows: paymentRows.length > 0 ? paymentRows : receiptReports[0]?.paymentRows || [],
-                amountInWords: amountInWords || receiptReports[0]?.amountInWords || 'TWENTY FOUR THOUSAND FIVE HUNDRED AND FIFTY NINE ONLY',
-                paymentMode: paymentMode || receiptReports[0]?.paymentMode || 'ONLINE'
+                amountInWords: amountInWords || receiptReports[0]?.amountInWords || '',
+                paymentMode: paymentMode || receiptReports[0]?.paymentMode || '',
+                date: receiptReports[0]?.date || ''
             });
         }
     };
@@ -945,7 +947,7 @@ export default function FeeReceiptReport() {
             processedReceipts = processIndividualReceiptData(responsedata); // ✅
         } else {
             // Handle 'All' mode if needed
-            processedReceipts = []; // Or create separate function
+            processedReceipts = processIndividualReceiptData(responsedata);
         }
 
         setReceiptReports(processedReceipts);
@@ -957,63 +959,6 @@ export default function FeeReceiptReport() {
         setTimeout(() => {
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         }, 100);
-
-        // const demoFeeRows: FeeRow[] = [
-        //     {
-        //         slNo: 1,
-        //         particulars: 'Caution Deposit',
-        //         installment: '-',
-        //         totalCharges: 2000,
-        //         concession: 0,
-        //         paidAmount: 2000,
-        //         balance: 0
-        //     },
-        //     // ... other rows
-        // ];
-
-        // const demoPaymentRows: PaymentRow[] = [
-        //     {
-        //         slNo: 1,
-        //         amount: 24559,
-        //         bank: '--',
-        //         ddNo: '--',
-        //         date: '27/05/2025'
-        //     }
-        // ];
-
-        // if (selectedCatg === 'All' && selectedReceiptsData.length > 0) {
-        //     const reports: ReceiptReport[] = selectedReceiptsData.map((receipt, index) => ({
-        //         receiptNo: receipt.fyp_receipt_no,
-        //         admissionNo: `2025-00${index + 1}`,
-        //         studentName: 'AARNA CHUGH',
-        //         fatherName: 'MANISH ASHU',
-        //         academicYear: '2025-2026',
-        //         className: 'PREKG A',
-        //         paymentMode: 'ONLINE',
-        //         amountInWords: 'TWENTY FOUR THOUSAND FIVE HUNDRED AND FIFTY NINE ONLY',
-        //         feeRows: demoFeeRows,
-        //         paymentRows: demoPaymentRows
-        //     }));
-
-        //     setReceiptReports(reports);
-        // } else {
-        //     const reports: ReceiptReport[] = [{
-        //         receiptNo: selectedReceiptsData.length > 0
-        //             ? selectedReceiptsData[0].fyp_receipt_no
-        //             : 'VVS/2025/001',
-        //         admissionNo: '2025-007',
-        //         studentName: 'AARNA CHUGH',
-        //         fatherName: 'MANISH ASHU',
-        //         academicYear: '2025-2026',
-        //         className: 'PREKG A',
-        //         paymentMode: 'ONLINE',
-        //         amountInWords: 'TWENTY FOUR THOUSAND FIVE HUNDRED AND FIFTY NINE ONLY',
-        //         feeRows: demoFeeRows,
-        //         paymentRows: demoPaymentRows
-        //     }];
-
-        //     setReceiptReports(reports);
-        // }
 
         setShowReport(true);
         setReportLoading(false);
