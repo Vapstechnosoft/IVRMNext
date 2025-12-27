@@ -61,22 +61,30 @@ export function printTable(columns: string[], rows: any[], sumRow?: any) {
     printWindow.print();
 }
 
-export function exportToExcel(rows: any[], fileName: string) {
+export function exportToExcel(rows: any[], selectedTermNames: string[], fileName: string) {
     if (!rows || rows.length === 0) return;
-    const dataForExcel = rows.map((row, index) => ({
-        'Sl No': index + 1,
-        'Adm No': row.admNumber,
-        'Student Name': row.studentName,
-        Class: row.className,
-        Section: row.section,
-        'I Term': row.fine,
-        Total: row.collectionasperAcademicyear
-    }));
+
+    const dataForExcel = rows.map((row, index) => {
+        const termData: Record<string, number | string> = {};
+
+        selectedTermNames.forEach((termName) => {
+            termData[termName] = row.termAmounts?.[termName] !== undefined ? row.termAmounts[termName] : '--';
+        });
+
+        return {
+            'Sl No': index + 1,
+            'Adm No': row.admNo,
+            'Student Name': row.studentName?.trim(),
+            Class: row.className,
+            Section: row.sectionName,
+            ...termData,
+            Total: row.total || 0
+        };
+    });
 
     const worksheet = XLSX.utils.json_to_sheet(dataForExcel);
     const workbook = XLSX.utils.book_new();
 
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
-
     XLSX.writeFile(workbook, `${fileName}.xlsx`);
 }

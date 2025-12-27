@@ -26,3 +26,8 @@ export async function getFeesTermDropDownforStudentTermWiseReport() {
     const url = '/FeesCommon/fee-term-details';
     return await api.get<IFeeTermDropdownList[]>('fees', url);
 }
+
+export async function getFeeStudentTermWisePaidReport(payload: any) {
+    const url = '/FeeDefaulterReportStthomas/get-student-paid-report';
+    return await api.post<any[]>('fees', url, payload);
+}
