@@ -10,7 +10,7 @@ import { useExamLoginPrivilegesDetails } from '@/hooks/exam/exammodule/exam-mapp
 import type { IExamLoginPrivileges, ILoginPrivilegeDetails } from '@/types/exam/exam-module/exam-mapping';
 
 import { X } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { LoginPrivilegesDetailsColumns } from './yearly-category-subject-mapping-columns';
 
@@ -35,22 +35,6 @@ export default function LoginPrivilegesDetailsPage({ rowData, onClose }: LoginPr
         console.log(apiResponse);
     }, [rowData.elP_Id, rowData.asmcL_Id, rowData.asmS_Id, refetch]);
 
-    // -------------------------
-    // Extract safe data
-    // -------------------------
-    const details: ILoginPrivilegeDetails[] = useMemo(() => {
-        if (!apiResponse?.success) return [];
-        return Array.isArray(apiResponse.data) ? apiResponse.data : [];
-    }, [apiResponse]);
-    useEffect(() => {
-        if (!apiResponse?.success) {
-            toast.error('Failed to fetch login privileges');
-        }
-        console.log(Array.isArray(apiResponse?.data) ? apiResponse.data : []);
-    })
-    // -------------------------
-    // Show error toast
-    // -------------------------
     if (error) {
         toast.error('Failed to fetch login privileges');
     }

@@ -7,6 +7,7 @@ import { getClassSetOrder, getMasterClass } from '@/server/admission/preadmissio
 import {
     getAcademicYearDropdown,
     getClassCategorySection,
+    getMasterCategoryDropdown,
     getMasterClassCategory,
     getMasterClassDropdown,
     getMasterSectionDropdown,
@@ -532,6 +533,22 @@ export const useConcessionDropdown = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [ADMISSION_QUERY_KEYS.CONCESSION_DROPDOWN_DATA]
+            });
+        }
+    };
+};
+
+export const useMasterCategoryDropdown = () => {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.MASTER_CATEGORY_DROPDOWN],
+            queryFn: async () => getMasterCategoryDropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.MASTER_CATEGORY_DROPDOWN]
             });
         }
     };
