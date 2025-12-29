@@ -45,7 +45,12 @@ export async function masterBank() {
     return await api.get<any[]>('fees', url);
 }
 
-export async function deletefeeTransaction(id: number) {
-    const url = `FeeWaivedOff/deletedetails/${id}`;
-    return await api.put('fees', url);
+export async function deletefeeTransaction(payload: any) {
+    const url = '/FeeStudentTransaction/fee-delete-transaction';
+    return await api.post('fees', url, payload);
+}
+
+export async function updateFeeStudentTransactionDetails(payload: any) {
+    const url = '/FeeStudentTransaction/fee-edit-transaction';
+    return await api.post<any[]>('fees', url, payload);
 }

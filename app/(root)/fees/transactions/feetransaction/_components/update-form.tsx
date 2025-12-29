@@ -18,10 +18,11 @@ import { toast } from 'sonner';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { InputText } from '@/components/ui/extension/input-text';
+import { Input } from '@/components/ui/input';
 import { useStudentClassDropDown, useStudentSectionDropDown } from '@/hooks/fees/useMasters';
 import { useFeeDefaulterReport } from '@/hooks/fees/useReports';
-import { useFeeMasterConfiguration, useFeeTransactionList } from '@/hooks/fees/useTrasactions';
-import { feesStudentTransactionSchema } from '@/schemas/fees/trasactions';
+import { useFeeMasterConfiguration, useFeeTransactionList, useUpdateFeeTransactionList } from '@/hooks/fees/useTrasactions';
+import { feesStudentTransactionUpdateSchema } from '@/schemas/fees/trasactions';
 import {
     getFeeHead,
     getStudentDetails,
@@ -43,7 +44,7 @@ import type {
 import type { z } from 'zod';
 import FeeDetails from './fee-head-column';
 
-type FormFields = z.infer<typeof feesStudentTransactionSchema.addOrUpdate>;
+type FormFields = z.infer<typeof feesStudentTransactionUpdateSchema.addOrUpdate>;
 
 interface updateFeestudentTrasactionsFormProps {
     onSuccess?: () => void;
@@ -52,15 +53,26 @@ interface updateFeestudentTrasactionsFormProps {
 }
 
 export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, selectedRow }: updateFeestudentTrasactionsFormProps) {
+    const { data: academicYearData, isLoading: loadingYears } = useFeeDefaulterReport();
     const { refetchAll } = useFeeTransactionList(Number(asmayId));
+    if (loadingYears) {
+        return <div className='flex items-center justify-center p-8'>Loading academic year data...</div>;
+    }
+    const payload = {
+        asmaY_Id: selectedRow.asmaY_ID,
+        amst_Id: selectedRow.amst_Id,
+        fyP_Id: selectedRow.fyP_Id
+    };
+    const { data: updateFeeTransaction, isLoading: isUpdateFeeTransactionLoading } = useUpdateFeeTransactionList(payload);
 
     const {
         handleSubmit,
         reset,
+        setValue,
         control,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(feesStudentTransactionSchema.addOrUpdate),
+        resolver: zodResolver(feesStudentTransactionUpdateSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
             asmaY_Id: undefined
@@ -164,13 +176,24 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
 
     const selectedLabel = filterOptions.find((opt) => opt.value === filterType)?.label || '';
 
-    const { data: academicYearData, isLoading: loadingYears } = useFeeDefaulterReport();
-
     const { data: masterConfiguration } = useFeeMasterConfiguration();
 
     const config = masterConfiguration?.data?.[0]?.fmC_AutoReceiptFeeGroupFlag ?? 0;
     // console.log("masterConfiguration", masterConfiguration);
     // console.log("config", config);
+
+    useEffect(() => {
+        if (!selectedRow || !academicYearData) return;
+
+        const fullName = `${selectedRow.amsT_FirstName} ${selectedRow.amsT_MiddleName} ${selectedRow.amsT_LastName}`.trim();
+
+        setSelectedAsmayId(selectedRow.asmaY_ID);
+        setStudentSearch(fullName);
+
+        // Use setValue instead of reset
+        setValue('asmaY_Id', selectedRow.asmaY_ID);
+        setValue('studentSearchName', fullName);
+    }, [selectedRow, setValue, academicYearData]);
 
     useEffect(() => {
         setStudentSearch('');
@@ -180,10 +203,6 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
         SetFeeDetails([]);
         setselectedTerm([]);
     }, [selectedAsmayId, selectedclassId, selectedSectionId, filterType]);
-
-    useEffect(() => {
-        setStudentSearch(`${selectedRow.amsT_FirstName} ${selectedRow.amsT_MiddleName} ${selectedRow.amsT_LastName}`);
-    }, [selectedRow]);
 
     useEffect(() => {
         setSelectedClassId(0);
@@ -730,7 +749,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
 
     const handleReset = () => {
         reset();
-        setSelectedAsmayId(0);
+        setSelectedAsmayId(null);
         setStudentSearch('');
         setStudents([]);
         setTerms([]);
@@ -884,6 +903,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                                                 field.onChange(id);
                                                 setSelectedAsmayId(id);
                                             }}
+                                            disabled
                                             value={
                                                 typeof field.value === 'number' || typeof field.value === 'string'
                                                     ? String(field.value)
@@ -1014,43 +1034,22 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                                     <span className='ml-1 text-red-500'>*</span>
                                 </Label>
 
-                                <div className='relative w-64'>
-                                    <InputText
-                                        id='studentSearchInput'
-                                        type='text'
-                                        placeholder='Search student...'
-                                        disabled={!selectedAsmayId || filterType === 'Chal_no'}
-                                        value={studentSearch}
-                                        onChange={(e) => {
-                                            setStudentSearch(e.target.value);
-                                            setSelectedStudent(null);
-                                        }}
-                                        className='flex rounded-md border border-gray-300 transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20'
-                                        autoComplete='off'
-                                    />
-
-                                    {studentSearch.trim() !== '' && !selectedStudent && (
-                                        <ul className='absolute top-full left-0 z-10 mt-1 max-h-40 w-full overflow-y-auto rounded border bg-white shadow-md'>
-                                            {loadingStudents ? (
-                                                <li className='px-3 py-2 text-gray-500'>Loading...</li>
-                                            ) : students.length === 0 ? (
-                                                <li className='px-3 py-2 text-gray-500'>No students found</li>
-                                            ) : (
-                                                students.map((student) => (
-                                                    <li
-                                                        key={student.amst_Id}
-                                                        onClick={() => {
-                                                            setSelectedStudent(student);
-                                                            setStudentSearch(student.amsT_StudentName);
-                                                        }}
-                                                        className='cursor-pointer px-3 py-2 hover:bg-blue-100'>
-                                                        {student.amsT_StudentName}
-                                                    </li>
-                                                ))
-                                            )}
-                                        </ul>
+                                <Controller
+                                    name='studentSearchName'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <div className='relative w-64'>
+                                            <Input
+                                                {...field}
+                                                value={field.value || ''}
+                                                onChange={field.onChange}
+                                                disabled
+                                                className='flex rounded-md border border-gray-300 transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20'
+                                                autoComplete='off'
+                                            />
+                                        </div>
                                     )}
-                                </div>
+                                />
                             </div>
                         </div>
 

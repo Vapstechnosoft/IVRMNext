@@ -202,6 +202,7 @@ function FormSections({ asmayId }: { asmayId: number }) {
                                 onSuccess={() => {
                                     closeEditForm();
                                 }}
+                                asmayId={asmayId}
                             />
                         </div>
                     </CollapsibleSection>

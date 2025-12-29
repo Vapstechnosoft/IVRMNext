@@ -1,5 +1,6 @@
 // app/components/StudentProfileModal.tsx
 'use client';
+import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -24,7 +25,7 @@ const academicYears = [
     { year: '2023-2024', isCurrent: false }
 ];
 
-export default function StudentProfileModal({ isOpen, onClose, data, loading = false }: StudentProfileModalProps): JSX.Element | null {
+export default function StudentProfileModal({ isOpen, onClose, loading = false }: StudentProfileModalProps): JSX.Element | null {
     const [activeTab, setActiveTab] = useState('academic');
 
     useEffect(() => {
@@ -54,7 +55,7 @@ export default function StudentProfileModal({ isOpen, onClose, data, loading = f
             case 'academic':
                 return (
                     <div className='space-y-4'>
-                        <h3 className='font-semibold text-blue-700 text-lg'>Academic Years</h3>
+                        <h3 className='font-semibold text-lg text-primary'>Academic Years</h3>
                         <div className='space-y-3'>
                             {academicYears.map((item, idx) => (
                                 <div key={idx} className='rounded-lg border border-gray-200 p-4'>
@@ -105,40 +106,62 @@ export default function StudentProfileModal({ isOpen, onClose, data, loading = f
             case 'parents':
                 return (
                     <div className='space-y-4'>
-                        <h3 className='font-semibold text-blue-700 text-lg'>Parents Information</h3>
+                        <h3 className='font-semibold text-lg text-primary'>Parents Information</h3>
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                             <div className='rounded-lg border border-gray-200 p-4'>
-                                <h4 className='mb-3 font-medium text-gray-700'>Father's Details</h4>
-                                <div className='space-y-2'>
-                                    <p>
-                                        <strong>Name:</strong> To be filled
-                                    </p>
-                                    <p>
-                                        <strong>Mobile:</strong> To be filled
-                                    </p>
-                                    <p>
-                                        <strong>Email:</strong> To be filled
-                                    </p>
-                                    <p>
-                                        <strong>Occupation:</strong> To be filled
-                                    </p>
+                                <h4 className='mb-3 font-medium text-primary'>Father's Details</h4>
+                                <div className='flex items-center gap-6'>
+                                    <div className='space-y-2'>
+                                        <p>
+                                            <strong>Name:</strong> REVANASIDDESHA S
+                                        </p>
+                                        <p>
+                                            <strong>Mobile:</strong> 0
+                                        </p>
+                                        <p>
+                                            <strong>Email:</strong> {}
+                                        </p>
+                                        <p>
+                                            <strong>Occupation:</strong>
+                                        </p>
+                                    </div>
+                                    <div className='flex-shrink-0'>
+                                        <div className='h-28 w-28 overflow-hidden rounded-lg border-2 border-primary/20'>
+                                            <img
+                                                src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png'
+                                                alt='Profile'
+                                                className='h-full w-full object-cover'
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div className='rounded-lg border border-gray-200 p-4'>
-                                <h4 className='mb-3 font-medium text-gray-700'>Mother's Details</h4>
-                                <div className='space-y-2'>
-                                    <p>
-                                        <strong>Name:</strong> To be filled
-                                    </p>
-                                    <p>
-                                        <strong>Mobile:</strong> To be filled
-                                    </p>
-                                    <p>
-                                        <strong>Email:</strong> To be filled
-                                    </p>
-                                    <p>
-                                        <strong>Occupation:</strong> To be filled
-                                    </p>
+                                <h4 className='mb-3 font-medium text-primary'>Mother's Details</h4>
+                                <div className='flex items-center gap-6'>
+                                    <div className='space-y-2'>
+                                        <p>
+                                            <strong>Name:</strong> BHAVYA M B
+                                        </p>
+                                        <p>
+                                            <strong>Mobile:</strong> 0
+                                        </p>
+                                        <p>
+                                            <strong>Email:</strong> {}
+                                        </p>
+                                        <p>
+                                            <strong>Occupation:</strong>
+                                        </p>
+                                    </div>
+                                    <div className='flex-shrink-0'>
+                                        <div className='h-28 w-28 overflow-hidden rounded-lg border-2 border-primary/20'>
+                                            <img
+                                                src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png'
+                                                alt='Profile'
+                                                className='h-full w-full object-cover'
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -148,7 +171,7 @@ export default function StudentProfileModal({ isOpen, onClose, data, loading = f
             case 'attendance':
                 return (
                     <div className='space-y-4'>
-                        <h3 className='font-semibold text-blue-700 text-lg'>Attendance Records</h3>
+                        <h3 className='font-semibold text-lg text-primary'>Attendance Records</h3>
                         <div className='space-y-3'>
                             {academicYears.map((item, idx) => (
                                 <div key={idx} className='rounded-lg border border-gray-200 p-4'>
@@ -187,7 +210,7 @@ export default function StudentProfileModal({ isOpen, onClose, data, loading = f
             case 'subject':
                 return (
                     <div className='space-y-4'>
-                        <h3 className='font-semibold text-blue-700 text-lg'>Subject Details</h3>
+                        <h3 className='font-semibold text-lg text-primary'>Subject Details</h3>
                         <div className='rounded-lg border border-gray-200 p-4'>
                             <div className='mb-4'>
                                 <h4 className='font-medium text-gray-700'>Current Subjects (2025-2026)</h4>
@@ -221,7 +244,7 @@ export default function StudentProfileModal({ isOpen, onClose, data, loading = f
             case 'fee':
                 return (
                     <div className='space-y-4'>
-                        <h3 className='font-semibold text-blue-700 text-lg'>Fee Details</h3>
+                        <h3 className='font-semibold text-lg text-primary'>Fee Details</h3>
                         {academicYears.map((item, idx) => (
                             <div key={idx} className='rounded-lg border border-gray-200 p-4'>
                                 <div className='flex items-center justify-between'>
@@ -269,72 +292,77 @@ export default function StudentProfileModal({ isOpen, onClose, data, loading = f
 
     return (
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'>
-            <div className='relative h-[90vh] w-full max-w-6xl rounded-lg bg-white shadow-xl'>
-                {/* Close button */}
-                <button type='button' onClick={onClose} className='absolute top-4 right-4 z-10 rounded-full p-1 hover:bg-gray-100'>
-                    <X size={24} />
-                </button>
+            <div className='relative flex h-[90vh] w-full max-w-6xl flex-col rounded-lg bg-white shadow-xl'>
+                <div className='flex items-center justify-between bg-primary px-4 py-2 text-white'>
+                    <h2 className='font-semibold text-lg'>STUDENT DETAILS</h2>
+                    <button type='button' onClick={onClose} className='rounded-full p-1 transition-colors hover:bg-white/20'>
+                        <X size={24} />
+                    </button>
+                </div>
 
-                {/* Main Content Container */}
-                <div className='flex h-full'>
-                    {/* Left Panel - Student Info */}
-                    <div className='w-1/3 border-gray-200 border-r p-6'>
-                        <div className='sticky top-0'>
-                            {/* Header */}
+                <div className='m-3 flex flex-1 overflow-hidden rounded-lg border border-gray-200'>
+                    <div className='flex w-1/3 flex-col border-gray-200 border-r'>
+                        <div className='overflow-y-auto p-4'>
                             <div className='mb-6'>
-                                {/* <h1 className='font-bold text-2xl text-gray-800'>STUDENT DETAILS</h1> */}
-                                <div className='mt-2 flex items-center'>
-                                    <h2 className='font-semibold text-gray-700 text-lg'>STUDENT DETAILS :</h2>
-                                    <span className='ml-2 text-blue-600'>▲</span>
+                                <div className='flex justify-center'>
+                                    <div className='rounded-full border-4 border-primary/10 p-1'>
+                                        <img
+                                            src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png'
+                                            alt='Student'
+                                            className='h-28 w-28 rounded-full object-cover'
+                                        />
+                                    </div>
                                 </div>
                             </div>
-
-                            {/* Student Basic Info */}
-                            <div className='mb-6 rounded-lg border border-gray-200 p-4'>
-                                <h3 className='mb-2 font-bold text-blue-700 text-xl'>AVIK SHA R</h3>
-                                <p className='text-gray-600'>
-                                    <strong>Admno :</strong> 127
-                                </p>
-                            </div>
-
-                            {/* Student Details */}
                             <div className='space-y-4'>
                                 <div className='space-y-2'>
                                     <p>
-                                        <strong>Date Of Admission :</strong> 12/06/2023
+                                        <strong>AVIK SHA R</strong>
+                                    </p>
+
+                                    <p>
+                                        <strong>Admno:</strong> <span>127</span>
                                     </p>
                                     <p>
-                                        <strong>Date Of Birth :</strong> 21/08/2018
+                                        <strong>Date Of Admission:</strong>
+                                        <span>12/06/2023</span>
+                                    </p>
+
+                                    <p>
+                                        <strong>Date Of Birth:</strong>
+                                        <span>21/08/2018</span>
                                     </p>
                                     <p>
-                                        <strong>Admitted Year :</strong> 2023-2024
-                                    </p>
-                                </div>
-                                <div className='space-y-2'>
-                                    <p>
-                                        <strong>Admitted Class :</strong> UKG
+                                        <strong>Admitted Year:</strong>
+                                        <span>2023-2024</span>
                                     </p>
                                     <p>
-                                        <strong>Gender :</strong> Female
+                                        <strong>Admitted Class:</strong>
+                                        <span>UKG</span>
                                     </p>
                                     <p>
-                                        <strong>Mobile :</strong> 0
+                                        <strong>Gender:</strong>
+                                        <span>Female</span>
                                     </p>
                                     <p>
-                                        <strong>Email :</strong>{' '}
+                                        <strong>Mobile:</strong>
+                                        <span>0</span>
                                     </p>
                                     <p>
-                                        <strong>Tpln :</strong> 180821001
+                                        <strong>Email:</strong>
+                                        <span>{}</span>
+                                    </p>
+                                    <p>
+                                        <strong>Tpln:</strong>
+                                        <span>180821001</span>
                                     </p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Right Panel - Tabs Content */}
                     <div className='flex w-2/3 flex-col'>
-                        {/* Tabs Navigation - Using regular buttons */}
-                        <div className='border-gray-200 border-b'>
+                        <div className='border-gray-200 border-b bg-white'>
                             <nav className='flex space-x-1 px-6 pt-4'>
                                 {tabs.map((tab) => (
                                     <button
@@ -343,7 +371,7 @@ export default function StudentProfileModal({ isOpen, onClose, data, loading = f
                                         onClick={() => setActiveTab(tab.id)}
                                         className={`rounded-t-lg px-4 py-2 font-medium text-sm transition-colors ${
                                             activeTab === tab.id
-                                                ? 'border-blue-600 border-b-2 bg-blue-50 text-blue-700'
+                                                ? 'border-primary border-b-2 bg-primary/10 text-primary'
                                                 : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
                                         }`}>
                                         {tab.label}
@@ -351,9 +379,14 @@ export default function StudentProfileModal({ isOpen, onClose, data, loading = f
                                 ))}
                             </nav>
                         </div>
-
-                        {/* Tab Content with Scroll */}
                         <div className='flex-1 overflow-y-auto p-6'>{renderTabContent()}</div>
+                    </div>
+                </div>
+                <div className='border-gray-200 border-t bg-gray-50 p-3'>
+                    <div className='flex justify-end'>
+                        <Button variant='secondary' onClick={onClose} className='w-70'>
+                            Close
+                        </Button>
                     </div>
                 </div>
             </div>
