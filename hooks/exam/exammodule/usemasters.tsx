@@ -1,5 +1,5 @@
 import { EXAM_QUERY_KEYS } from '@/constants/query-keys';
-import { getExamMasterCategory } from '@/server/exam/exam-module/masters/category';
+import { getExamMasterCategory, getExamMasterCategoryDropdownList } from '@/server/exam/exam-module/masters/category';
 
 import { getExamMasterCategoryMapping } from '@/server/exam/exam-module/masters/category-class-mapping';
 import { getCoScholasticActivities } from '@/server/exam/exam-module/masters/co-scholastic-activity';
@@ -62,7 +62,6 @@ export const useGetMasterSubjectDropdownList = (searchParams?: ApiSearchparams) 
         }
     };
 };
-
 
 export const useMasterExam = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
@@ -271,6 +270,22 @@ export const useMasterCategory = (searchParams?: ApiSearchparams) => {
         }
     };
 };
+export const useMasterCategoryDropdownList = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.MASTER_CATEGORY_DROPDOWN_LIST],
+            queryFn: async () => getExamMasterCategoryDropdownList(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.MASTER_CATEGORY_DROPDOWN_LIST]
+            });
+        }
+    };
+};
 
 export const useMasterCategoryClassMapping = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
@@ -427,4 +442,3 @@ export const useMasterLifeSkillAreaMapping = (searchParams?: ApiSearchparams) =>
         }
     };
 };
-

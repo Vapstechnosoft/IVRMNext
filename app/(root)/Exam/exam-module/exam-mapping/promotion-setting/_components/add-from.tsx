@@ -11,7 +11,8 @@ import { Eye } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { ViewExamsModal, ViewGroupsModal } from './view-group-mapping-model';
+import { ViewExamsModal } from './group-mapped-exam-model';
+import { ViewGroupsModal } from './group-mapping-model';
 
 /**
  * In-file modal components so this file is self contained.
@@ -479,7 +480,7 @@ export default function AddPromotionalSettingForm() {
                 ) : (
                     <div className='overflow-x-auto rounded border'>
                         <table className='min-w-full border-collapse'>
-                            <thead className='bg-black/50 text-white'>
+                            <thead className='bg-gray-200'>
                                 <tr className='text-sm'>
                                     {/* SLNO */}
                                     <th className='w-12 px-3 py-2 text-center'>SLNO</th>
@@ -712,7 +713,6 @@ export default function AddPromotionalSettingForm() {
                     </Button>
                 </div>
             </CollapsibleSection>
-            {/* Group Mapping Modal */}{' '}
             {isGroupsOpen && activeSubject && (
                 <ViewGroupsModal
                     subject={activeSubject}
@@ -725,7 +725,6 @@ export default function AddPromotionalSettingForm() {
                     onOpenExams={(g) => openExamsModal(g)}
                 />
             )}{' '}
-            {/* Exams modal */}{' '}
             {isExamsOpen && activeGroup && (
                 <ViewExamsModal
                     group={activeGroup}

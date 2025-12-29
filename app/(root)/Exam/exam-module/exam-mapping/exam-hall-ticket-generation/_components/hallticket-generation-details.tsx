@@ -8,7 +8,7 @@ import { getHallTicketStudentList, updateHallTicketPublishStatus } from '@/serve
 
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { HallTicketGeneratedDetailsPageColumns } from './subject-group-details-columns';
+import { HallTicketGeneratedDetailsPageColumns } from './hallticket-generation-details-columns';
 import { IHallTicketGeneratedItem } from '@/types/exam/exam-module/exam-mapping';
 import { set } from 'date-fns';
 import { usegetHallTicketStudentList } from '@/hooks/exam/exammodule/exam-mapping';
@@ -75,7 +75,7 @@ export default function HallTicketGeneratedDetailsPage({ rowData, onClose }: Pro
     return (
         <FormProvider>
             <div className="fixed inset-0 z-50 flex min-h-screen items-start justify-center bg-black/40 pt-[5vh]">
-                <div className="relative mx-auto w-[88%] max-h-[90vh] overflow-y-auto rounded-xl bg-white p-6 shadow-xl">
+                <div className='relative mx-auto max-h-[90vh] w-[88%] overflow-y-auto rounded-xl bg-white p-6 shadow-xl'>
 
                     {/* HEADING */}
                     <Heading

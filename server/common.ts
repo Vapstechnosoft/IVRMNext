@@ -1247,6 +1247,14 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/marks-entry/exam-marks-entry',
                                             title: 'Marks Entry',
                                             description: 'Manage Marks Entry Details'
+                                        },
+                                        {
+                                            id: 66,
+                                            name: 'Student Wise Publish Marks',
+                                            icon: 'CalendarDays',
+                                            url: '/Exam/exam-module/marks-entry/student-wise-publish-marks',
+                                            title: 'Student Marks Publish',
+                                            description: 'Manage Student Marks Publish Details'
                                         }
                                     ]
                                 },
@@ -1259,7 +1267,7 @@ export async function getUserAccessibleModules() {
                                             id: 72,
                                             name: 'Exam Marks Calculation',
                                             icon: 'BookOpen',
-                                            url: '/Exam/exam-module/marks-calculation/calculation',
+                                            url: '/Exam/exam-module/calculation/marks-calculation',
                                             title: 'Exam Marks Calculation',
                                             description: 'Manage Exam Marks Calculation Details'
                                         }
@@ -1293,6 +1301,30 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/exam-electives-report',
                                             title: 'Elective Subject Report',
                                             description: 'Manage Elective Subject Report Details'
+                                        },
+                                        {
+                                            id: 73,
+                                            name: 'Exam Month End Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/exam-month-end-report',
+                                            title: 'Exam Month End Report',
+                                            description: 'Manage Exam Month End Report Details'
+                                        },
+                                        {
+                                            id: 74,
+                                            name: 'Exam Category Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/exam-category-report',
+                                            title: 'Exam Category Report',
+                                            description: 'Manage Exam Category Report Details'
+                                        },
+                                        {
+                                            id: 75,
+                                            name: 'TBS Report School',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/tbs-report-school',
+                                            title: 'TBS Report School',
+                                            description: 'Manage TBS Report School Details'
                                         }
                                     ]
                                 }

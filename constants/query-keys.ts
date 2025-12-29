@@ -260,11 +260,15 @@ export const EXAM_QUERY_KEYS = {
     MASTER_SUBJECT_GROUP_DETAILS: 'master-subject-group-details',
     MASTER_ALL_SUBJECT_GROUP_DETAILS: 'master-all-subject-group-details',
     MASTER_CATEGORY: 'master-category',
+    MASTER_CATEGORY_DROPDOWN_LIST: 'master-category-dropdown-list',
     MASTER_CATEGORY_CLASS_MAPPING: 'master-category-class-mapping',
     MASTER_CATEGORY_CLASS_MAPPED_SECTIONS: 'master-category-class-mapped-sections',
     YEARLY_CATEGORY_SUBJECT_MAPPING: 'yearly-category-subject-mapping',
     EXAM_LOGIN_PRIVILAGES: 'exam-login-privilages',
     EXAM_LOGIN_PRIVILAGES_DETAILS: 'exam-login-privilages-details',
+    CLASS_TEACHER_DROPDOWN_LIST: 'class-teacher-dropdown-list',
+    USER_DROPDOWN_LIST_KEY: 'user-dropdown-list-key',
+    EMPLOYEE_DROPDOWN_LIST: 'employee-dropdown-list',
     YEARLY_CATEGORY_DATES_MAPPING: 'yearly-category-dates-mapping',
     EXAM_SUBJECT_GROUP_MAPPING: 'exam-subject-group-mapping',
     EXAM_SUBJECT_GROUP_MAPPING_DETAILS: 'exam-subject-group-mapping-details',
@@ -296,7 +300,10 @@ export const EXAM_QUERY_KEYS = {
     EXAM_HALL_TICKET_GENERATED_DATA: 'exam-hall-ticket-generated-data',
     EXAM_HALL_TICKET_STUDENT_LIST: 'exam-hall-ticket-student-list',
 
-    PROMOTIONAL_SETTING_GRID: 'promotional-setting-grid'
+    PROMOTIONAL_SETTING_GRID: 'promotional-setting-grid',
+    PROMOTIONAL_SETTING_DETAILS: 'promotional-setting-details',
+    PROMOTIONAL_GROUP_DETAILS: 'promotional-group-details',
+    PROMOTIONAL_GROUP_MAPPED_EXAMS_DETAILS: 'promotional-group-mapped-exams-details'
 };
 
 export const HRMS_QUERY_KEYS = {

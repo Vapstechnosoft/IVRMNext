@@ -13,7 +13,8 @@ export const examLoginPrivilegesSchema = {
 
             ivrmulF_Id: z.number({ required_error: 'User Login is required' }).min(1, { message: 'Please select a User Login' }),
 
-            asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, { message: 'Please select a Class' }),
+            // Make asmcL_Id optional since we're using classList
+            asmcL_Id: z.number().optional(),
 
             /**
              * ✔ Added support for multi-select classList
@@ -45,10 +46,11 @@ export const examLoginPrivilegesSchema = {
                 )
                 .min(1, { message: 'At least one subject must be selected' }),
 
+            // FIXED: Changed from issS_Id to emsS_Id
             subSubjectList: z
                 .array(
                     z.object({
-                        issS_Id: z.number({ required_error: 'Sub-subject is required' }).min(1, { message: 'Please select a Sub-subject' })
+                        emsS_Id: z.number({ required_error: 'Sub-subject is required' }).min(1, { message: 'Please select a Sub-subject' })
                     })
                 )
                 .optional(),
@@ -64,6 +66,15 @@ export const examLoginPrivilegesSchema = {
         .superRefine((data, ctx) => {
             // Cross validation rules
 
+            // Must have at least one class (either via asmcL_Id or classList)
+            if (!data.asmcL_Id && (!data.classList || data.classList.length === 0)) {
+                ctx.addIssue({
+                    path: ['asmcL_Id'],
+                    code: z.ZodIssueCode.custom,
+                    message: 'Please select at least one Class'
+                });
+            }
+
             // Must have at least one section or subject
             if ((!data.sectionList || data.sectionList.length === 0) && (!data.subjectList || data.subjectList.length === 0)) {
                 ctx.addIssue({
@@ -71,6 +82,18 @@ export const examLoginPrivilegesSchema = {
                     code: z.ZodIssueCode.custom,
                     message: 'At least one Section or Subject must be selected'
                 });
+            }
+
+            // Disallow duplicate classes in classList
+            if (data.classList) {
+                const classIds = data.classList.map((c) => c.asmcL_Id);
+                if (new Set(classIds).size !== classIds.length) {
+                    ctx.addIssue({
+                        path: ['classList'],
+                        code: z.ZodIssueCode.custom,
+                        message: 'Duplicate classes are not allowed'
+                    });
+                }
             }
 
             // Disallow duplicate sections
@@ -93,8 +116,9 @@ export const examLoginPrivilegesSchema = {
                 });
             }
 
+            // FIXED: Changed from issS_Id to emsS_Id
             // Disallow duplicate sub-subjects (if present)
-            const subIds = data.subSubjectList?.map((s) => s.issS_Id) || [];
+            const subIds = data.subSubjectList?.map((s) => s.emsS_Id) || [];
             if (subIds.length > 0 && new Set(subIds).size !== subIds.length) {
                 ctx.addIssue({
                     path: ['subSubjectList'],
@@ -775,7 +799,7 @@ export const StudentTransactionSchema = {
                 .min(1, 'Select Exam Term'),
 
             // Use .optional() after enum - this makes type: 'skill' | 'activity' | undefined
-            skillActivityType: z.enum(['skill', 'activity']).optional(),
+            skillActivityType: z.enum(['Skills', 'Activities']).optional(),
 
             nameId: z.number().min(1).optional(),
 
@@ -796,7 +820,7 @@ export const StudentTransactionSchema = {
                 if (data.skillActivityType && (!data.nameId || data.nameId === 0)) {
                     ctx.addIssue({
                         code: z.ZodIssueCode.custom,
-                        message: data.skillActivityType === 'skill' ? 'Select Skill Name' : 'Select Activities Name',
+                        message: data.skillActivityType === 'Skills' ? 'Select Skill Name' : 'Select Activities Name',
                         path: ['nameId']
                     });
                 }
@@ -805,7 +829,7 @@ export const StudentTransactionSchema = {
                 if (data.nameId && data.nameId > 0 && (!data.areaId || data.areaId === 0)) {
                     ctx.addIssue({
                         code: z.ZodIssueCode.custom,
-                        message: data.skillActivityType === 'skill' ? 'Select Skill Area' : 'Select Activities Area',
+                        message: data.skillActivityType === 'Skills' ? 'Select Skill Area' : 'Select Activities Area',
                         path: ['areaId']
                     });
                 }

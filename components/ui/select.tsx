@@ -199,7 +199,9 @@ const SelectSearch = React.forwardRef<HTMLInputElement, React.InputHTMLAttribute
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
         e.stopPropagation();
-        setSearchQuery(e.target.value);
+        let value = e.target.value;
+        value = value.replace(/^\s+/, '');
+        setSearchQuery(value);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

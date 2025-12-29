@@ -8,13 +8,16 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { getCategoryDropDowByExamYearCategoryList } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
-import { getStudentsForSubjectMapping } from '@/server/exam/exam-module/exam-mapping/student-subject-mapping';
+import {
+    addOrUpdateStudentSubjectMappings,
+    getStudentsForSubjectMapping
+} from '@/server/exam/exam-module/exam-mapping/student-subject-mapping';
 import {
     getClassDropDownByAcademicYearlist,
     getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import { getSubjectGroupDropDownByYearCategoryList } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import StudentSubjectMappingTable from './_components/student-mapping-table';
@@ -35,13 +38,46 @@ interface Subject {
     name: string;
 }
 
+interface StudentSubjectMapping {
+    id: number;
+    estsU_ElecetiveFlag?: boolean;
+    estsU_ActiveFlg?: boolean;
+    estsU_CreatedBy?: number;
+    estsU_UpdatedBy?: number;
+    createdDate?: string;
+    updatedDate?: string;
+    name?: string;
+    abc?: boolean;
+}
+
 interface Student {
     amsT_Id: number;
     amsT_FirstName: string;
     amsT_AdmNo: string;
     amaY_RollNo: number;
-    sub_list: { id: number; name: string; abc: boolean }[];
-    sub_list_view: { id: number; name: string; abc: boolean }[];
+    sub_list: StudentSubjectMapping[];
+    sub_list_view: StudentSubjectMapping[];
+}
+
+interface Payload {
+    estsU_Id: number;
+    mI_Id: number;
+    asmaY_Id: number;
+    asmcL_Id: number;
+    asmS_Id: number;
+    emG_Id: number;
+    emE_Id: number;
+    userId: number;
+    left_Flag: boolean;
+    deactive_Flag: boolean;
+    get_list: Array<{
+        amsT_Id: number;
+        sub_list: StudentSubjectMapping[];
+    }>;
+    get_Removed_list: Array<{
+        amsT_Id: number;
+        sub_list: StudentSubjectMapping[];
+    }>;
 }
 
 export default function StudentSubjectMappingPage() {
@@ -73,6 +109,7 @@ function StudentSubjectMappingContent() {
     const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
     const [categories, setCategories] = useState<{ emcA_Id: number; emcA_CategoryName: string }[]>([]);
+    const [payload, setPayload] = useState<Payload | null>(null);
     const [subjectGroups, setSubjectGroups] = useState<any[]>([]);
 
     const [loadingClasses, setLoadingClasses] = useState(false);
@@ -84,6 +121,7 @@ function StudentSubjectMappingContent() {
     const [subjects, setSubjects] = useState<Subject[]>([]);
     const [isGridOpen, setIsGridOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [userId] = useState<number>(1); // You should get this from auth context
 
     const MI_Id = 30;
     const FIXED_EMG_ID = 118;
@@ -103,7 +141,7 @@ function StudentSubjectMappingContent() {
             return;
         }
 
-        (async () => {
+        const fetchClasses = async () => {
             setLoadingClasses(true);
             try {
                 const { data } = await getClassDropDownByAcademicYearlist(watchedAcademicYear);
@@ -116,7 +154,9 @@ function StudentSubjectMappingContent() {
             } finally {
                 setLoadingClasses(false);
             }
-        })();
+        };
+
+        fetchClasses();
     }, [watchedAcademicYear, setValue]);
 
     // Load sections
@@ -127,7 +167,7 @@ function StudentSubjectMappingContent() {
             return;
         }
 
-        (async () => {
+        const fetchSections = async () => {
             setLoadingSections(true);
             try {
                 const { data } = await getSectionsDropDownByAcademicYearandClasslist(watchedAcademicYear, watchedClass);
@@ -139,7 +179,9 @@ function StudentSubjectMappingContent() {
             } finally {
                 setLoadingSections(false);
             }
-        })();
+        };
+
+        fetchSections();
     }, [watchedAcademicYear, watchedClass, setValue]);
 
     // Load categories
@@ -150,7 +192,7 @@ function StudentSubjectMappingContent() {
             return;
         }
 
-        (async () => {
+        const fetchCategories = async () => {
             setLoadingCategories(true);
             try {
                 const { data: response } = await getCategoryDropDowByExamYearCategoryList(MI_Id, watchedAcademicYear);
@@ -168,7 +210,9 @@ function StudentSubjectMappingContent() {
             } finally {
                 setLoadingCategories(false);
             }
-        })();
+        };
+
+        fetchCategories();
     }, [watchedAcademicYear, setValue]);
 
     // Load subject groups
@@ -179,7 +223,7 @@ function StudentSubjectMappingContent() {
             return;
         }
 
-        (async () => {
+        const fetchSubjectGroups = async () => {
             setLoadingSG(true);
             try {
                 const data = await getSubjectGroupDropDownByYearCategoryList(watchedAcademicYear, watchedCategory);
@@ -192,7 +236,9 @@ function StudentSubjectMappingContent() {
             } finally {
                 setLoadingSG(false);
             }
-        })();
+        };
+
+        fetchSubjectGroups();
     }, [watchedAcademicYear, watchedCategory, setValue]);
 
     // Handle search
@@ -219,10 +265,11 @@ function StudentSubjectMappingContent() {
                 Deactive_Flag: form.Deactive_Flag ?? true,
                 EMG_Id: FIXED_EMG_ID
             };
-
+            console.log('params **', params);
             const response = await getStudentsForSubjectMapping(params);
             const success = response?.success ?? false;
             const data = Array.isArray(response?.data) ? response?.data : [];
+            console.log('search response **', data);
 
             if (!success || data?.length === 0) {
                 toast.error(response?.message ?? 'No data found');
@@ -239,12 +286,37 @@ function StudentSubjectMappingContent() {
             // Transform subjects
             const transformedSubjects = subjectList.map((s: any) => ({
                 id: s.id,
-                name: s.name
+                name: s.name || `Subject ${s.id}`
             }));
 
-            setStudents(data);
+            // Transform students data
+            const transformedStudents = data.map((student: any) => ({
+                amsT_Id: student.amsT_Id || 0,
+                amsT_FirstName: student.amsT_FirstName || '',
+                amsT_AdmNo: student.amsT_AdmNo || '',
+                amaY_RollNo: student.amaY_RollNo || 0,
+                sub_list: (student.sub_list || []).map((sub: any) => ({
+                    id: sub.id,
+                    name: sub.name,
+                    abc: sub.abc || false,
+                    estsU_ElecetiveFlag: sub.estsU_ElecetiveFlag || true,
+                    estsU_ActiveFlg: sub.estsU_ActiveFlg || true,
+                    estsU_CreatedBy: sub.estsU_CreatedBy || 0,
+                    estsU_UpdatedBy: sub.estsU_UpdatedBy || 0,
+                    createdDate: sub.createdDate || new Date().toISOString(),
+                    updatedDate: sub.updatedDate || new Date().toISOString()
+                })),
+                sub_list_view: (student.sub_list_view || []).map((sub: any) => ({
+                    id: sub.id,
+                    name: sub.name,
+                    abc: sub.abc || false
+                }))
+            }));
+
+            setStudents(transformedStudents);
             setSubjects(transformedSubjects);
             setIsGridOpen(true);
+            toast.success(`Loaded ${transformedStudents.length} students`);
         } catch (err: any) {
             console.error(err);
             toast.error(err?.message ?? 'Failed to fetch students');
@@ -253,47 +325,37 @@ function StudentSubjectMappingContent() {
         }
     };
 
-    // Update student-subject mapping
-    const updateStudentSubject = (studentId: number, subjectId: number, checked: boolean) => {
-        setStudents((prev) =>
-            prev.map((student) =>
-                student.amsT_Id === studentId
-                    ? {
-                          ...student,
-                          sub_list: student.sub_list.map((sub) => (sub.id === subjectId ? { ...sub, abc: checked } : sub)),
-                          sub_list_view: student.sub_list_view.map((sub) => (sub.id === subjectId ? { ...sub, abc: checked } : sub))
-                      }
-                    : student
-            )
-        );
-    };
+    // Handle update mapping from table
+    const handleUpdateMapping = useCallback(
+        async (payload: Payload) => {
+            try {
+                setPayload(payload);
+            } catch (error: any) {
+                console.error('Error saving mapping:', error);
+                toast.error(error.message || 'Failed to save mapping');
+            }
+        },
+        [isGridOpen]
+    );
 
     // Save mapping
     const handleSave = async () => {
-        const form = getValues();
-        const payloadMappings: { amsT_Id: number; ismS_Id: number }[] = [];
-
-        for (const student of students) {
-            for (const subject of student.sub_list) {
-                if (subject.abc) {
-                    payloadMappings.push({
-                        amsT_Id: student.amsT_Id,
-                        ismS_Id: subject.id
-                    });
-                }
-            }
+        if (students.length === 0) {
+            toast.error('No students to save');
+            return;
         }
-
-        console.info('Prepared mapping payload:', {
-            MI_Id,
-            ASMAY_Id: form.asmaY_Id,
-            ASMCL_Id: form.asmcL_Id,
-            ASMS_Id: form.asmS_Id,
-            EMCA_Id: form.emcA_Id,
-            mappings: payloadMappings
-        });
-
-        toast.success(`Mapping prepared for ${payloadMappings.length} records. Implement API save.`);
+        try {
+            console.info('Payload:', payload);
+            const response = await addOrUpdateStudentSubjectMappings(payload);
+            if (response.success) {
+                toast.success(response.message || 'Mapping saved successfully');
+            } else {
+                toast.error(response.message || 'Failed to save mapping');
+            }
+        } catch (error: any) {
+            console.error('Error preparing save:', error);
+            toast.error('Failed to prepare save data');
+        }
     };
 
     return (
@@ -554,8 +616,19 @@ function StudentSubjectMappingContent() {
                             <StudentSubjectMappingTable
                                 students={students}
                                 subjects={subjects}
-                                onUpdateMapping={updateStudentSubject}
+                                onUpdateMapping={handleUpdateMapping}
                                 isloading={isLoading}
+                                // Pass required metadata
+                                estsU_Id={0}
+                                mI_Id={MI_Id}
+                                asmaY_Id={getValues('asmaY_Id') || 0}
+                                asmcL_Id={getValues('asmcL_Id') || 0}
+                                asmS_Id={getValues('asmS_Id') || 0}
+                                emG_Id={getValues('subject_group_id') || FIXED_EMG_ID}
+                                emE_Id={getValues('eme_Id') || 0}
+                                userId={userId}
+                                left_Flag={getValues('Left_Flag') ?? true}
+                                deactive_Flag={getValues('Deactive_Flag') ?? true}
                             />
 
                             <div className='flex w-fit justify-end gap-3 border-t p-4'>

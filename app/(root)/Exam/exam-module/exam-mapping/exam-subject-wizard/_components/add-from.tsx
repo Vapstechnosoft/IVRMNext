@@ -5,6 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { DateField } from '@/components/ui/dateField';
 import { FormError, Label } from '@/components/ui/extension/field';
+import { InputNumber } from '@/components/ui/extension/input-number';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useExamSubjectWizard, useExamSubjectWizardDetails } from '@/hooks/exam/exammodule/exam-mapping';
@@ -23,11 +24,10 @@ import {
 } from '@/server/exam/exam-module/exam-mapping/exam-subject-wizard';
 import { getMasterSubExamDropdownList } from '@/server/exam/exam-module/masters/sub-exam';
 import { getMasterSubSubjectDropdownList } from '@/server/exam/exam-module/masters/sus-subject';
-import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
 import type { IExamSubjectWizard, IExamSubjectWizardDetails } from '@/types/exam/exam-module/exam-mapping';
 import type { ICategory, IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -35,7 +35,6 @@ import SubExamModal from './subexam-model';
 import SubjectTable from './subject-table';
 import SubSubjectModal from './subsubject-modal';
 import SubSubjectSubExamModal from './subsubject-subexam-model';
-import { InputNumber } from '@/components/ui/extension/input-number';
 
 type FormFields = z.infer<typeof ExamSubjectWizardSchema.addOrUpdate>;
 
@@ -78,6 +77,8 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     const [exams, setExams] = useState<{ EME_Id: number; EME_ExamName: string; checked?: boolean }[]>([]);
     const [subjects, setSubjects] = useState<any[]>([]);
     const [gradeList, setGradeList] = useState<IMasterGrade[]>([]);
+    const validateSubjectsRef = useRef<(() => boolean) | null>(null);
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const watchYear = watch('ASMAY_Id');
@@ -91,11 +92,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     const [subExamModalState, setSubExamModalState] = useState<{ open: boolean; subject?: any }>({ open: false });
     const [subSubjectModalState, setSubSubjectModalState] = useState<{ open: boolean; subject?: any }>({ open: false });
     const [subSubjectSubExamModalState, setSubSubjectSubExamModalState] = useState<{ open: boolean; subject?: any }>({ open: false });
-    const {
-        data: academicYear,
-        isLoading: academicYearLoading,
-        error: academicYearError,
-    } = useAcademicYearDropdown();
+    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
     const { data: gradeData, error: gradeError } = useMasterGrade();
     const { data: response } = useExamSubjectWizardDetails(30, rowData?.eycE_Id ? rowData?.eycE_Id : 0);
     const { refetchAll } = useExamSubjectWizard();
@@ -281,6 +278,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                     : [];
 
                 setSubjects(formattedSubjects);
+                if (formattedSubjects.length === 0) toast.info('No subjects found for this category.');
 
                 if (rowData) {
                     if (rowData?.eycE_Id && response) {
@@ -331,6 +329,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                             if (updated.EYCES_SubSubjectFlg && !updated.EYCES_SubExamFlg) {
                                 const { data: mappedList } = await getSubSubjectsMappedList(30, updated.EYCES_Id);
                                 if (mappedList?.length) {
+                                    console.log('mappedList', mappedList);
                                     updated.subSubjectConfig = mappedList.map(mapToSubSubjectConfig);
                                 }
                             }
@@ -488,15 +487,14 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
             const safeConfigList = Array.isArray(subject?.subSubjectSubExamConfig) ? subject.subSubjectSubExamConfig : [];
 
             const updatedList = safeList.map((item: any) => {
-                const match = safeConfigList.find((m: any) =>
-                    Number(m.emsS_Id) === Number(item.emsS_Id) &&
-                    Number(m.emsE_Id) === Number(item.emsE_Id)
+                const match = safeConfigList.find(
+                    (m: any) => Number(m.emsS_Id) === Number(item.emsS_Id) && Number(m.emsE_Id) === Number(item.emsE_Id)
                 );
 
                 return {
                     ...item,
                     ...(match ?? {}),
-                    checkedvalue: Boolean(match)   // auto check if matched
+                    checkedvalue: Boolean(match) // auto check if matched
                 };
             });
 
@@ -504,7 +502,6 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 open: true,
                 subject: { ...subject, list: updatedList }
             });
-
         } catch {
             // fallback (keeps UI usable even when API fails)
             setSubSubjectSubExamModalState({
@@ -512,14 +509,13 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 subject: {
                     ...subject,
                     list: [
-                        { EMSE_Id: 1, EMSE_SubExamName: "Internal Test", checkedvalue: false },
-                        { EMSE_Id: 2, EMSE_SubExamName: "Viva", checkedvalue: false }
+                        { EMSE_Id: 1, EMSE_SubExamName: 'Internal Test', checkedvalue: false },
+                        { EMSE_Id: 2, EMSE_SubExamName: 'Viva', checkedvalue: false }
                     ]
                 }
             });
         }
     };
-
 
     const toBackendDate = (d?: string | null) => {
         if (!d) return '';
@@ -551,7 +547,6 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
         setSubExamModalState({ open: false });
     };
-
 
     const handleSaveSubSubject = (subjectId: number, selectedList: any[]) => {
         setSubjects((prev) =>
@@ -618,6 +613,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                     EMGR_Id: Number(ss.EMGR_Id) ?? Number(s.EMGR_Id) ?? null,
                     EYCESSS_MaxMarks: Number(ss.EYCESSS_MaxMarks ?? ss.eycessS_MaxMarks ?? 0) || 0,
                     EYCESSS_MinMarks: Number(ss.EYCESSS_MinMarks ?? ss.eycessS_MinMarks ?? 0) || 0,
+                    EYCESSS_MarksEntryMax: Number(ss.EYCESSS_MarksEntryMax ?? ss.eycessS_MarksEntryMax ?? 0) || 0,
                     EYCESSS_ExemptedFlg: !!(ss.EYCESSS_ExemptedFlg ?? ss.eycessS_ExemptedFlg),
                     EYCESSS_ExemptedPer: Number(ss.EYCESSS_ExemptedPer ?? ss.eycessS_ExemptedPer ?? 0) || 0,
                     EYCESSS_MarksFlg: !!(ss.EYCESSS_MarksFlg ?? ss.eycessS_MarksFlg),
@@ -734,8 +730,8 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
             MI_Id: 0,
             ASMAY_Id: 0,
             ASMAY_Year: '',
-            EYCE_BestOfApplicableFlg: true,
-            EYCE_BestOf: 5,
+            EYCE_BestOfApplicableFlg: false,
+            EYCE_BestOf: undefined,
             EYCE_AttendanceFromDate: '',
             EYCE_AttendanceToDate: '',
             exams_list: [],
@@ -907,8 +903,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                 />
                             </div>
                             {/* BEST APPLICABLE + BEST OFF INPUT */}
-                            <div className='flex items-center gap-6 mt-3'>
-
+                            <div className='mt-3 flex items-center gap-6'>
                                 {/* Checkbox -> EYCE_BestOfApplicableFlg */}
                                 <div className='flex items-center gap-2'>
                                     <Checkbox
@@ -927,28 +922,27 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                         control={control}
                                         name='EYCE_BestOf'
                                         render={({ field, fieldState }) => (
-                                            <div className="flex items-center gap-3">
-
+                                            <div className='flex items-center gap-3'>
                                                 {/* Label beside input */}
-                                                <Label className="whitespace-nowrap">Best Off {watch('EYCE_BestOfApplicableFlg') && <span className='text-red-500'>*</span>}</Label>
+                                                <Label className='whitespace-nowrap'>
+                                                    Best Off {watch('EYCE_BestOfApplicableFlg') && <span className='text-red-500'>*</span>}
+                                                </Label>
 
                                                 <InputNumber
                                                     minValue={1}
-                                                    isDisabled={!watch('EYCE_BestOfApplicableFlg')}  // Enable only when checked
+                                                    isDisabled={!watch('EYCE_BestOfApplicableFlg')} // Enable only when checked
                                                     value={field.value}
                                                     onChange={field.onChange}
-                                                    className="w-24"   // adjust width if needed
+                                                    className='w-24' // adjust width if needed
                                                 />
 
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-
                                             </div>
                                         )}
                                     />
                                     {errors.EYCE_BestOf && <FormError>{errors.EYCE_BestOf.message}</FormError>}
                                 </div>
                             </div>
-
 
                             <div className='mt-2 flex items-center gap-4'>
                                 <div className='flex items-center gap-2'>
@@ -990,6 +984,9 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                             onOpenSubSubjectSubExamModal={onOpenSubSubjectSubExamModal}
                             gradeList={gradeList}
                             selectedGrade={watchGrade}
+                            onRegisterValidate={(fn) => {
+                                validateSubjectsRef.current = fn;
+                            }}
                         />
                     </div>
 
@@ -997,7 +994,17 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                         <Button type='button' variant='outline' onClick={handleReset}>
                             Reset
                         </Button>
-                        <Button type='submit' disabled={isSubmitting}>
+                        <Button
+                            type='submit'
+                            disabled={isSubmitting}
+                            onClick={() => {
+                                const isValid = validateSubjectsRef.current?.();
+
+                                if (!isValid) {
+                                    toast.error('Please fill required marks for selected subjects');
+                                    return;
+                                }
+                            }}>
                             {isSubmitting ? 'Saving...' : 'Save'}
                         </Button>
                     </div>

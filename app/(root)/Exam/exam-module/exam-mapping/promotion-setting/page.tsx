@@ -8,21 +8,18 @@ import { MasterViewDetails } from '@/components/ui/set-order/generic-set-order';
 
 import { usePromotionalSetting } from '@/hooks/exam/exammodule/exam-mapping';
 import {
-    getPromotionalSettingDetails,
-    UpdateOrderedPromotionalSettingDetails
+    UpdateOrderedPromotionalSettingDetails,
+    getPromotionalSettingDetails
 } from '@/server/exam/exam-module/exam-mapping/promotional-setting';
-
 
 import { Plus, X } from 'lucide-react';
 import { use, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
+import type { IPromotionSetting, IPromotionalSubjectDetails } from '@/types/exam/exam-module/exam-mapping';
 import AddPromotionalSetting from './_components/add-from';
-import PromotionalSettingDetailsPage from './_components/promotional-setting-details';
-import TogglePromotionalSettingForm from './_components/toggle-form';
 import { PromotionSettingColumns } from './_components/columns';
-import { IMasterSubjectOrder } from '@/types/exam/exam-module/masters';
-import { IPromotionSetting } from '@/types/exam/exam-module/exam-mapping';
+import PromotionalSettingDetailsPage from './_components/promotional-setting-details-view';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -32,12 +29,7 @@ export default function PromotionalSettingPage(props: { searchParams: SearchPara
 
     return (
         <FormProvider<IPromotionSetting>>
-            <PromotionalSettingPageContent
-                response={response}
-                isLoading={isLoading}
-                error={error}
-                refetchAll={refetchAll}
-            />
+            <PromotionalSettingPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
         </FormProvider>
     );
 }
@@ -58,7 +50,7 @@ function PromotionalSettingPageContent({
 
     const { isOrderDetailsOpen, selectedRow, closeOrderDetails } = useFormContext<IPromotionSetting>();
 
-    const [orderData, setOrderData] = useState<(IMasterSubjectOrder & { id: number })[]>([]);
+    const [orderData, setOrderData] = useState<(IPromotionalSubjectDetails & { id: number })[]>([]);
     const [isOrderSaving, setIsOrderSaving] = useState(false);
     const [isOrderLoading, setIsOrderLoading] = useState(true);
 
@@ -67,14 +59,14 @@ function PromotionalSettingPageContent({
         (async () => {
             if (isOrderDetailsOpen && selectedRow?.asmaY_Id) {
                 try {
-                    const response = await getPromotionalSettingDetails(selectedRow.asmaY_Id);
+                    const response = await getPromotionalSettingDetails(30, selectedRow.asmaY_Id);
 
                     if (response.success && response.data) {
-                        const items: IMasterSubjectOrder[] = Array.isArray(response.data) ? response.data : [];
+                        const items: IPromotionalSubjectDetails[] = Array.isArray(response.data) ? response.data : [];
 
                         const mapped = items.map((x) => ({
                             ...x,
-                            id: x.ismS_Id // the row id for ordering
+                            id: x.slNo // the row id for ordering
                         }));
 
                         setOrderData(mapped);
@@ -92,13 +84,13 @@ function PromotionalSettingPageContent({
     }, [isOrderDetailsOpen, selectedRow]);
 
     // Save new order
-    const handleSaveOrder = async (updated: (IMasterSubjectOrder & { id: number })[]) => {
+    const handleSaveOrder = async (updated: (IPromotionalSubjectDetails & { id: number })[]) => {
         try {
             setIsOrderSaving(true);
 
             const temp_Order = updated.map((item, index) => ({
-                promO_Id: item.ismS_Id,
-                proM_Id: item.mI_Id,
+                promO_Id: item.id,
+                proM_Id: item.id,
                 promO_Order: index + 1
             }));
 
@@ -209,13 +201,12 @@ function FormSections() {
                         className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
                         <div className='relative'>
                             <Button
-                                type="button"
+                                type='button'
                                 onClick={closeAddForm}
-                                variant="ghost"
-                                size="sm"
-                                className="-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10"
-                            >
-                                <X className="h-4 w-4 text-destructive" /> Close
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                             <AddPromotionalSetting />
                         </div>
@@ -252,9 +243,7 @@ function FormSections() {
             )} */}
 
             {/* Details View */}
-            {isDetailsViewOpen && selectedRow && (
-                <PromotionalSettingDetailsPage rowData={selectedRow} onClose={closeDetailsView} />
-            )}
+            {isDetailsViewOpen && selectedRow && <PromotionalSettingDetailsPage rowData={selectedRow} onClose={closeDetailsView} />}
         </>
     );
 }

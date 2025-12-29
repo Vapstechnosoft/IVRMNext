@@ -42,7 +42,12 @@ export default function LoginPrivilegesDetailsPage({ rowData, onClose }: LoginPr
         if (!apiResponse?.success) return [];
         return Array.isArray(apiResponse.data) ? apiResponse.data : [];
     }, [apiResponse]);
-
+    useEffect(() => {
+        if (!apiResponse?.success) {
+            toast.error('Failed to fetch login privileges');
+        }
+        console.log(Array.isArray(apiResponse?.data) ? apiResponse.data : []);
+    })
     // -------------------------
     // Show error toast
     // -------------------------

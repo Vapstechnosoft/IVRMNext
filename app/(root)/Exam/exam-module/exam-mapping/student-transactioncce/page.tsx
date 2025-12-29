@@ -9,59 +9,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type StudentTransactionFormData, StudentTransactionSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import {
+    getCoScholasticAreasBasedOnCoScholasticActivity,
+    getLifeSkillAreasBasedOnLifeSkill,
+    getStudentTransactionCCEDetails
+} from '@/server/exam/exam-module/exam-mapping/student-transaction-cce';
+import { getMasterLifeSkills } from '@/server/exam/exam-module/masters/life-skills';
+import {
     getClassDropDownByAcademicYearlist,
     getExamsDropDownByAcademicYearandClassandSectionlist,
     getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/cumulative-report';
-import type { IStudentTransactionGrid } from '@/types/exam/exam-module/exam-mapping';
+import type { GetStudentDetailsParams, ICoScholasticActivityAreaMapping, IStudentTransaction, IStudentTransactionGrid } from '@/types/exam/exam-module/exam-mapping';
+import type { ICoScholasticActivity, ILifeSkill, ILifeSkillArea } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 import { StudentTransactionColumns } from './_components/columns';
-
-// Mock API functions (replace with actual implementations)
-const mockGetExamTerms = async (academicYearId: number, classId: number, sectionId: number) => {
-    return [
-        { ect_Id: 1, ect_TermName: 'UT 3' },
-        { ect_Id: 2, ect_TermName: 'PREP' },
-        { ect_Id: 3, ect_TermName: 'Mid Term' }
-    ];
-};
-
-const mockGetSkillNames = async () => {
-    return [
-        { id: 1, name: 'Ability to work independently' },
-        { id: 2, name: 'Teamwork' },
-        { id: 3, name: 'Communication Skills' }
-    ];
-};
-
-const mockGetActivityNames = async () => {
-    return [
-        { id: 1, name: 'Sports' },
-        { id: 2, name: 'Arts' },
-        { id: 3, name: 'Music' }
-    ];
-};
-
-const mockGetSkillAreas = async (skillNameId: number) => {
-    return [
-        { id: 1, name: 'Assessment 1', skillNameId: 1 },
-        { id: 2, name: 'Assessment 2', skillNameId: 1 },
-        { id: 3, name: 'Assessment 3', skillNameId: 2 }
-    ];
-};
-
-const mockGetActivityAreas = async (activityNameId: number) => {
-    return [
-        { id: 1, name: 'Level 1', activityNameId: 1 },
-        { id: 2, name: 'Level 2', activityNameId: 1 },
-        { id: 3, name: 'Level 3', activityNameId: 2 }
-    ];
-};
-
+import { getCoScholasticActivities } from '@/server/exam/exam-module/masters/co-scholastic-activity';
 const mockGetStudentList = async (
     academicYearId: number,
     classId: number,
@@ -69,7 +35,7 @@ const mockGetStudentList = async (
     examTermId: number,
     nameId: number,
     areaId: number,
-    type: 'skill' | 'activity' | undefined
+    type: 'Skills' | 'Activities' | undefined
 ) => {
     return {
         data: [
@@ -157,13 +123,11 @@ function StudentTransactionContent() {
     const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
     const [examTerms, setExamTerms] = useState<{ ect_Id: number; ect_TermName: string }[]>([]);
-    const [skillNames, setSkillNames] = useState<{ id: number; name: string }[]>([]);
-    const [activityNames, setActivityNames] = useState<{ id: number; name: string }[]>([]);
-    const [skillAreas, setSkillAreas] = useState<{ id: number; name: string }[]>([]);
-    const [activityAreas, setActivityAreas] = useState<{ id: number; name: string }[]>([]);
-
-    // Table data
-    const [students, setStudents] = useState<IStudentTransactionGrid[]>([]);
+    const [skillNames, setSkillNames] = useState<ILifeSkill[]>([]);
+    const [activityNames, setActivityNames] = useState<ICoScholasticActivity[]>([]);
+    const [skillAreas, setSkillAreas] = useState<ILifeSkillArea[]>([]);
+    const [activityAreas, setActivityAreas] = useState<ICoScholasticActivityAreaMapping[]>([]);
+    const [students, setStudents] = useState<IStudentTransaction[]>([]);
     const [tableProps, setTableProps] = useState<ReturnType<typeof useDataTableProps> | null>(null);
     const [selectedStudentIds, setSelectedStudentIds] = useState<number[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -306,7 +270,7 @@ function StudentTransactionContent() {
         };
     }, [watchAcademicYear, watchClass, watchSection, setValue]);
 
-    // Load skill/activity names when type is selected
+    // Load Skills/Activities names when type is selected
     useEffect(() => {
         if (!watchSkillActivity) {
             setSkillNames([]);
@@ -319,24 +283,26 @@ function StudentTransactionContent() {
         const fetchNames = async () => {
             setLoadingNames(true);
             try {
-                if (watchSkillActivity === 'skill') {
-                    const names = await mockGetSkillNames();
-                    setSkillNames(names);
+                if (watchSkillActivity === 'Skills') {
+                    const { data: names } = await getMasterLifeSkills(30);
+                    const safeNames = Array.isArray(names) ? names : [];
+                    setSkillNames(safeNames);
                     setActivityNames([]);
                     setSkillAreas([]);
                     setActivityAreas([]);
-                    if (names.length > 0) {
-                        setValue('nameId', names[0].id);
+                    if (safeNames.length > 0) {
+                        setValue('nameId', safeNames[0].ecsA_Id);
                         trigger('nameId');
                     }
                 } else {
-                    const names = await mockGetActivityNames();
-                    setActivityNames(names);
+                    const { data: names } = await getCoScholasticActivities();
+                    const safeNames = Array.isArray(names) ? names : [];
+                    setActivityNames(safeNames);
                     setSkillNames([]);
                     setSkillAreas([]);
                     setActivityAreas([]);
-                    if (names.length > 0) {
-                        setValue('nameId', names[0].id);
+                    if (safeNames.length > 0) {
+                        setValue('nameId', safeNames[0].id);
                         trigger('nameId');
                     }
                 }
@@ -362,22 +328,19 @@ function StudentTransactionContent() {
         const fetchAreas = async () => {
             setLoadingAreas(true);
             try {
-                if (watchSkillActivity === 'skill') {
-                    const areas = await mockGetSkillAreas(watchName);
-                    setSkillAreas(areas);
+                if (watchSkillActivity === 'Skills') {
+                    console.log(watchAcademicYear, watchName);
+                    const { data: areas } = await getLifeSkillAreasBasedOnLifeSkill(watchAcademicYear, watchName);
+                    const safeAreas = Array.isArray(areas) ? areas : [];
+                    setSkillAreas(safeAreas);
                     setActivityAreas([]);
-                    if (areas.length > 0) {
-                        setValue('areaId', areas[0].id);
-                        trigger('areaId');
-                    }
                 } else {
-                    const areas = await mockGetActivityAreas(watchName);
-                    setActivityAreas(areas);
+                    console.log(watchAcademicYear, watchName);
+                    const { data: areas } = await getCoScholasticAreasBasedOnCoScholasticActivity(watchAcademicYear, watchName);
+                    console.log(areas);
+                    const safeAreas = Array.isArray(areas) ? areas : [];
+                    setActivityAreas(safeAreas);
                     setSkillAreas([]);
-                    if (areas.length > 0) {
-                        setValue('areaId', areas[0].id);
-                        trigger('areaId');
-                    }
                 }
             } catch (err) {
                 toast.error(`Failed to load ${watchSkillActivity} areas`);
@@ -391,7 +354,7 @@ function StudentTransactionContent() {
 
     const handleScoreChange = (studentId: number, score: number) => {
         setStudents((prev) => {
-            const updated = prev.map((s) => (s.studentId === studentId ? { ...s, score } : s));
+            const updated = prev.map((s) => (s.amsT_Id === studentId ? { ...s, score } : s));
 
             // Update table props - use the existing tp and just update data
             if (tableProps) {
@@ -408,53 +371,63 @@ function StudentTransactionContent() {
     // Handle search
     const handleSearch = async (data: StudentTransactionFormData) => {
         if (!isValid) {
-            await trigger(); // Trigger validation to show errors
+            await trigger(); // show validation errors
             toast.error('Please fix validation errors');
             return;
         }
 
+        // Required field validation
+        if (!data.skillActivityType) {
+            methods.setError('skillActivityType', {
+                message: 'Select Skill/Activities type'
+            });
+            toast.error('Select Skill/Activities type');
+            return;
+        }
+
         setIsLoading(true);
+
         try {
-            const nameId = data.nameId === undefined ? 0 : data.nameId;
-            const areaId = data.areaId === undefined ? 0 : data.areaId;
+            console.log(data.academicYearId, data.classId, data.sectionId, data.examTermId, data.skillActivityType, data.nameId, data.areaId);
+            const params: GetStudentDetailsParams = {
+                MI_Id: 30,
+                ASMAY_Id: 231,
+                ASMCL_Id: 414,
+                ASMS_Id: 163,
+                Skills: 'Skills',
+                exam_termwise_flag: 'ExamWise',
+                ECACT_Id: 2,
+                ECACTA_Id: 14,
+                ECS_Id: 1,
+                ECSA_Id: 2
+            };
 
-            // Additional validation - ensure skillActivityType is selected
-            if (!data.skillActivityType) {
-                methods.setError('skillActivityType', {
-                    message: 'Select Skill/Activities type'
-                });
-                toast.error('Select Skill/Activities type');
-                return;
-            }
-
-            const response = await mockGetStudentList(
-                data.academicYearId,
-                data.classId,
-                data.sectionId,
-                data.examTermId,
-                nameId,
-                areaId,
-                data.skillActivityType
-            );
-
-            setStudents(response.data);
-            setSelectedStudentIds([]); // Clear previous selections
+            const { data: resp } = await getStudentTransactionCCEDetails(params);
+            console.log(resp);
+            const students = Array.isArray(resp?.students) ? resp.students : [];
+            setStudents(students);
+            setSelectedStudentIds([]);
             setShowTable(true);
 
             setTableProps(
                 useDataTableProps({
-                    data: response.data,
-                    total: response.total,
+                    data: students,
+                    total: students.length ?? students.length,
                     pageIndex: 0,
                     pageSize: 10
                 })
             );
-        } catch (err) {
-            toast.error('Failed to load student data');
+        } catch (err: any) {
+            console.error(err);
+            toast.error(err?.message || 'Failed to load student data');
+            setStudents([]);
+            setShowTable(false);
+            setTableProps(null);
         } finally {
             setIsLoading(false);
         }
     };
+
 
     // Handle reset
     const handleReset = () => {
@@ -495,7 +468,7 @@ function StudentTransactionContent() {
         }
 
         // Get selected students with their scores
-        const selectedStudents = students.filter((student) => selectedStudentIds.includes(student.studentId));
+        const selectedStudents = students.filter((student) => selectedStudentIds.includes(student.amsT_Id));
 
         // Validate that all selected students have scores
         const studentsWithoutScores = selectedStudents.filter((student) => student.score === undefined || student.score === null);
@@ -517,10 +490,10 @@ function StudentTransactionContent() {
                 nameId: watchName,
                 areaId: watchArea,
                 selectedStudents: selectedStudents.map((student) => ({
-                    studentId: student.studentId,
+                    studentId: student.amsT_Id,
                     studentName: student.studentName,
-                    regNo: student.regNo,
-                    rollNo: student.rollNo,
+                    regNo: student.regNumber,
+                    rollNo: student.regNumber,
                     score: student.score
                 }))
             };
@@ -547,7 +520,7 @@ function StudentTransactionContent() {
 
     // Handle row selection change
     const handleRowSelectionChange = (selectedRows: IStudentTransactionGrid[]) => {
-        const selectedIds = selectedRows.map((row) => row.studentId);
+        const selectedIds = selectedRows.map((row) => row.amsT_Id);
         setSelectedStudentIds(selectedIds);
     };
 
@@ -620,8 +593,8 @@ function StudentTransactionContent() {
                                                             !watchAcademicYear
                                                                 ? 'Select Year first'
                                                                 : loadingClasses
-                                                                  ? 'Loading...'
-                                                                  : 'Select Class'
+                                                                    ? 'Loading...'
+                                                                    : 'Select Class'
                                                         }
                                                     />
                                                 </SelectTrigger>
@@ -662,8 +635,8 @@ function StudentTransactionContent() {
                                                             !watchClass
                                                                 ? 'Select Class first'
                                                                 : loadingSections
-                                                                  ? 'Loading...'
-                                                                  : 'Select Section'
+                                                                    ? 'Loading...'
+                                                                    : 'Select Section'
                                                         }
                                                     />
                                                 </SelectTrigger>
@@ -705,10 +678,10 @@ function StudentTransactionContent() {
                                                             !watchSection
                                                                 ? 'Select Section first'
                                                                 : loadingExamTerms
-                                                                  ? 'Loading...'
-                                                                  : examTerms.length === 0
-                                                                    ? 'No terms available'
-                                                                    : 'Select Exam Term'
+                                                                    ? 'Loading...'
+                                                                    : examTerms.length === 0
+                                                                        ? 'No terms available'
+                                                                        : 'Select Exam Term'
                                                         }
                                                     />
                                                 </SelectTrigger>
@@ -731,7 +704,7 @@ function StudentTransactionContent() {
                         <div className='mt-6 grid grid-cols-1 gap-6 md:grid-cols-3'>
                             {/* Skill/Activities Type */}
                             <div>
-                                <Label htmlFor='skill-activity-type'>
+                                <Label htmlFor='Skills-Activities-type'>
                                     Skill/Activities: <span className='text-red-500'>*</span>
                                 </Label>
                                 <Controller
@@ -741,11 +714,15 @@ function StudentTransactionContent() {
                                         <>
                                             <Select
                                                 value={field.value || ''}
-                                                onValueChange={(v: 'skill' | 'activity') => {
+                                                onValueChange={(v: 'Skills' | 'Activities') => {
                                                     field.onChange(v);
+                                                    setValue('nameId', 0);
+                                                    setValue('areaId', 0);
+                                                    setActivityNames([]);
+                                                    setActivityAreas([]);
                                                 }}
                                                 disabled={!watchExamTerm || watchExamTerm === 0}>
-                                                <SelectTrigger id='skill-activity-type'>
+                                                <SelectTrigger id='Skills-Activities-type'>
                                                     <SelectValue
                                                         placeholder={
                                                             !watchExamTerm || watchExamTerm === 0 ? 'Select Exam Term first' : 'Select Type'
@@ -753,8 +730,8 @@ function StudentTransactionContent() {
                                                     />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value='skill'>Skills</SelectItem>
-                                                    <SelectItem value='activity'>Activities</SelectItem>
+                                                    <SelectItem value='Skills'>Skills</SelectItem>
+                                                    <SelectItem value='Activities'>Activities</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -764,9 +741,9 @@ function StudentTransactionContent() {
                             </div>
 
                             {/* Skill Name - Only shows when "Skills" is selected */}
-                            {watchSkillActivity === 'skill' && (
+                            {watchSkillActivity === 'Skills' && (
                                 <div>
-                                    <Label htmlFor='skill-name'>
+                                    <Label htmlFor='Skills-name'>
                                         Skill Name: <span className='text-red-500'>*</span>
                                     </Label>
                                     <Controller
@@ -775,19 +752,19 @@ function StudentTransactionContent() {
                                         render={({ field, fieldState }) => (
                                             <>
                                                 <Select
-                                                    key={`skill-name-${skillNames.length}`} // Force re-render when names change
+                                                    key={`Skills-name-${skillNames.length}`} // Force re-render when names change
                                                     value={field.value && field.value !== 0 ? String(field.value) : ''}
                                                     onValueChange={(v) => {
                                                         field.onChange(v ? Number(v) : 0);
                                                     }}
                                                     disabled={loadingNames}>
-                                                    <SelectTrigger id='skill-name'>
+                                                    <SelectTrigger id='Skills-name'>
                                                         <SelectValue placeholder={loadingNames ? 'Loading...' : 'Select Skill Name'} />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {skillNames.map((item) => (
-                                                            <SelectItem key={item.id} value={item.id.toString()}>
-                                                                {item.name}
+                                                            <SelectItem key={item.ecS_Id} value={item.ecS_Id.toString()}>
+                                                                {item.ecS_SkillName}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>
@@ -800,9 +777,9 @@ function StudentTransactionContent() {
                             )}
 
                             {/* Activity Name - Only shows when "Activities" is selected */}
-                            {watchSkillActivity === 'activity' && (
+                            {watchSkillActivity === 'Activities' && (
                                 <div>
-                                    <Label htmlFor='activity-name'>
+                                    <Label htmlFor='Activities-name'>
                                         Activities Name: <span className='text-red-500'>*</span>
                                     </Label>
                                     <Controller
@@ -811,19 +788,19 @@ function StudentTransactionContent() {
                                         render={({ field, fieldState }) => (
                                             <>
                                                 <Select
-                                                    key={`activity-name-${activityNames.length}`} // Force re-render when names change
+                                                    key={`Activities-name-${activityNames.length}`} // Force re-render when names change
                                                     value={field.value && field.value !== 0 ? String(field.value) : ''}
                                                     onValueChange={(v) => {
                                                         field.onChange(v ? Number(v) : 0);
                                                     }}
                                                     disabled={loadingNames}>
-                                                    <SelectTrigger id='activity-name'>
+                                                    <SelectTrigger id='Activities-name'>
                                                         <SelectValue placeholder={loadingNames ? 'Loading...' : 'Select Activities Name'} />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {activityNames.map((item) => (
-                                                            <SelectItem key={item.id} value={item.id.toString()}>
-                                                                {item.name}
+                                                            <SelectItem key={item.ecacT_Id} value={item.ecacT_Id.toString()}>
+                                                                {item.ecacT_SkillName}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>
@@ -835,10 +812,10 @@ function StudentTransactionContent() {
                                 </div>
                             )}
 
-                            {/* Skill Area - Only shows when "Skills" is selected AND skill name is chosen */}
-                            {watchSkillActivity === 'skill' && watchName && watchName !== 0 && (
+                            {/* Skill Area - Only shows when "Skills" is selected AND Skills name is chosen */}
+                            {watchSkillActivity === 'Skills' && (
                                 <div>
-                                    <Label htmlFor='skill-area'>
+                                    <Label htmlFor='Skills-area'>
                                         Skill Area: <span className='text-red-500'>*</span>
                                     </Label>
                                     <Controller
@@ -847,19 +824,19 @@ function StudentTransactionContent() {
                                         render={({ field, fieldState }) => (
                                             <>
                                                 <Select
-                                                    key={`skill-area-${skillAreas.length}`} // Force re-render when areas change
+                                                    key={`Skills-area-${skillAreas.length}`} // Force re-render when areas change
                                                     value={field.value && field.value !== 0 ? String(field.value) : ''}
                                                     onValueChange={(v) => {
                                                         field.onChange(v ? Number(v) : 0);
                                                     }}
                                                     disabled={loadingAreas}>
-                                                    <SelectTrigger id='skill-area'>
+                                                    <SelectTrigger id='Skills-area'>
                                                         <SelectValue placeholder={loadingAreas ? 'Loading...' : 'Select Skill Area'} />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {skillAreas.map((area) => (
-                                                            <SelectItem key={area.id} value={area.id.toString()}>
-                                                                {area.name}
+                                                            <SelectItem key={area.ecsA_Id} value={area.ecsA_Id.toString()}>
+                                                                {area.ecsA_SkillArea}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>
@@ -871,10 +848,10 @@ function StudentTransactionContent() {
                                 </div>
                             )}
 
-                            {/* Activity Area - Only shows when "Activities" is selected AND activity name is chosen */}
-                            {watchSkillActivity === 'activity' && watchName && watchName !== 0 && (
+                            {/* Activity Area - Only shows when "Activities" is selected AND Activities name is chosen */}
+                            {watchSkillActivity === 'Activities' && (
                                 <div>
-                                    <Label htmlFor='activity-area'>
+                                    <Label htmlFor='Activities-area'>
                                         Activities Area: <span className='text-red-500'>*</span>
                                     </Label>
                                     <Controller
@@ -883,19 +860,19 @@ function StudentTransactionContent() {
                                         render={({ field, fieldState }) => (
                                             <>
                                                 <Select
-                                                    key={`activity-area-${activityAreas.length}`} // Force re-render when areas change
+                                                    key={`Activities-area-${activityAreas.length}`} // Force re-render when areas change
                                                     value={field.value && field.value !== 0 ? String(field.value) : ''}
                                                     onValueChange={(v) => {
                                                         field.onChange(v ? Number(v) : 0);
                                                     }}
                                                     disabled={loadingAreas}>
-                                                    <SelectTrigger id='activity-area'>
+                                                    <SelectTrigger id='Activities-area'>
                                                         <SelectValue placeholder={loadingAreas ? 'Loading...' : 'Select Activities Area'} />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {activityAreas.map((area) => (
-                                                            <SelectItem key={area.id} value={area.id.toString()}>
-                                                                {area.name}
+                                                            <SelectItem key={area.ecactA_Id} value={String(area.ecactA_Id)}>
+                                                                {area.ecactA_SkillArea}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>
@@ -940,7 +917,7 @@ function StudentTransactionContent() {
                                     noDataDescription='Click SEARCH to view students'
                                     errorTitle='Error Loading Students'
                                     onRowSelectionChange={handleRowSelectionChange}
-                                    //defaultSelectedRowIds={[]}
+                                //defaultSelectedRowIds={[]}
                                 />
                                 <div className='mx-auto mt-8 flex w-fit justify-center gap-4'>
                                     <Button type='button' onClick={handleReset} variant='outline' className='px-8 py-3 font-medium shadow'>

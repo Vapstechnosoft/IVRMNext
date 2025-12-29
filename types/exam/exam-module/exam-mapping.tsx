@@ -59,13 +59,18 @@ export interface ILoginPrivilegeDetails {
     slno: number;
     classId: number;
     className: string;
-
+    asmcL_ClassName: string;
+    asmcL_Id?: number;
+    asmS_Id?: number;
     sectionId: number;
     sectionName: string;
-
-    subjectId: number;
+    asmS_SectionName: string;
+    ismS_Id?: number;
+    subjectId?: number;
+    ismsS_Id?: number;
     subjectName: string;
-
+    ismS_SubjectName?: string;
+    ismsS_SubSubjectName?: string;
     subSubjectId: number;
     subSubjectName: string; // Allow backend extra fields safely
 }
@@ -426,11 +431,13 @@ export interface IHallTicketStudentItem {
 }
 
 export interface IPromotionRemarksGrid {
-    slNo: number; // Serial number
-    admNo: string; // Admission number
-    studentName: string; // Student's full name
-    studentId: number; // Student ID
-    remarks?: string; // Remarks for the student
+    slNo: number;
+    admNo: string;
+    studentName: string;
+    studentId: number;
+    remarks: string; // Changed from string?
+    estmP_Id?: number;
+    ecT_Id?: number;
 }
 
 export interface IPromotionSetting {
@@ -454,9 +461,6 @@ export interface IExamPromotionalSettingDetails {
     minMarks: number;
     passPercentage?: number;
     isActive: boolean;
-
-    // Navigation Forward → Page-2
-    groups?: IExamSubjectGroupingDetails[];
 }
 
 export interface IExamSubjectGroupDetails {
@@ -470,10 +474,10 @@ export interface IExamSubjectGroupDetails {
 
 export interface IStudentTransactionGrid {
     slNo: number;
-    studentId: number;
+    amsT_Id: number;
     studentName: string;
-    regNo: string;
-    rollNo: number;
+    regNumber: string;
+    rollNumber: number;
     score: number;
     checked?: boolean;
 }
@@ -524,4 +528,254 @@ export interface IActivityArea {
     id: number;
     name: string;
     activityNameId: number;
+}
+
+export interface IPromotionalSubjectDetails {
+    slNo: number;
+    subjectName: string;
+    gradeName: string;
+    maxMarks: number;
+    minMarks: number;
+    convertedMarks: number;
+    aplResult: boolean;
+    isActiveFlag: boolean;
+}
+
+export interface IPromotionalGroupDetails {
+    slNo: number;
+    groupName: string;
+    displayName: string;
+    percentage: number;
+    marks: number;
+    maxOff: number;
+    bestOff: number;
+    roundOffFlag: boolean;
+    isActiveFlag: boolean;
+}
+
+export interface IPromotionalGroupMappedExamDetails {
+    slNo: number;
+    examName: string;
+    examCode: string;
+    marksOrPercentage: number;
+    conversionRequired: boolean;
+    isActiveFlag: boolean;
+}
+
+export interface ISearchMarksEntryParams {
+    ASMS_Id: number;
+    ASMCL_Id: number;
+    ASMAY_Id: number;
+    EME_Id: number;
+    ISMS_Id: number;
+}
+
+export interface IBackendSubjectDetail {
+    eyceS_Id: number;
+    eycE_Id: number;
+    ismS_Id: number;
+    emgR_Id: number;
+    eyceS_MarksEntryMax: number;
+    eyceS_MaxMarks: number;
+    eyceS_MinMarks: number;
+    eyceS_SubExamFlg: boolean;
+    eyceS_SubSubjectFlg: boolean;
+    eyceS_MarksGradeEntryFlg: 'M' | 'G';
+    eyceS_MarksDisplayFlg: boolean;
+    eyceS_GradeDisplayFlg: boolean;
+    eyceS_AplResultFlg: boolean;
+    eyceS_ActiveFlg: boolean;
+    eyceS_SubjectOrder: number;
+    createdDate: string;
+    updatedDate: string;
+}
+
+export interface IBackendStudent {
+    amsT_Id: number;
+    amsT_FirstName: string;
+    amsT_AdmNo: string;
+    amsT_RegistrationNo: string;
+    amaY_RollNo: number;
+    ismS_Id: number;
+    ismS_SubjectName: string;
+    eyceS_MaxMarks: number;
+    eyceS_MinMarks: number;
+    eyceS_MarksEntryMax: number;
+    estM_Marks: number | null;
+    estM_Grade: string | null;
+    estM_Flg: string | null;
+    estM_Id: number;
+    param: any;
+    amsT_Sex: string | null;
+    estmanssH_Id: number;
+    estmanssH_AnswerSheet: string | null;
+    estmanssH_FileLocation: string | null;
+    papertype?: string;
+    papertypeid?: number;
+}
+
+export interface IBackendSubSubject {
+    emsS_Id: number;
+    emsS_Name: string;
+    emsS_SubSubjectCode?: string;
+    eycessS_MaxMarks: number;
+    eycessS_MinMarks: number;
+    eycessS_MarksEntryMax: number;
+}
+
+export interface IBackendSubExam {
+    emsE_Id: number;
+    emsE_Name: string;
+    eycessE_MaxMarks: number;
+    eycessE_MinMarks: number;
+    eycessE_MarksEntryMax: number;
+}
+
+export interface IBackendGradeDetail {
+    emgD_Id: number;
+    emgD_Name: string;
+    emgD_MinMarks?: number;
+    emgD_MaxMarks?: number;
+    emgD_AddFlg?: boolean;
+}
+
+export interface IBackendSearchResponse {
+    saved_sub_subject_list: any;
+    saved_sub_subject_exam_list: any;
+    emsS_Id: number;
+    asmaY_Id: number;
+    asmcL_Id: number;
+    asmS_Id: number;
+    emE_Id: number;
+    ismS_Id: number;
+    subject_details: IBackendSubjectDetail[];
+    eyceS_MarksGradeEntryFlg: 'M' | 'G';
+    eyceS_SubSubjectFlg: boolean;
+    subject_subsubjects: IBackendSubSubject[];
+    eyceS_SubExamFlg: boolean;
+    subject_subexams: IBackendSubExam[];
+    emgR_Id: number;
+    grade_details: IBackendGradeDetail[];
+    studentList: IBackendStudent[];
+    get_student_wise_papertype_list: any[];
+    subsubject_gradedetails: IBackendGradeDetail[];
+    subexam_gradedetails: IBackendGradeDetail[];
+    saved_studentList: IBackendStudent[] | null;
+    marksdeleteflag: boolean;
+    configuration: Array<{
+        exmConfig_RegnoColumnDisplay: boolean;
+        exmConfig_AdmnoColumnDisplay: boolean;
+        exmConfig_RollnoColumnDisplay: boolean;
+        exmConfig_Recordsearchtype: 'Name' | 'AdmNo' | 'RollNo' | 'RegNo';
+    }>;
+    subsubjectlist: any[];
+    subexamlist: any[];
+    savedMarksCount: number;
+    lastDateEntry: number;
+    lastDateEntryFlag: boolean;
+    lastDateExam: number;
+    lastDateExamFlag: boolean;
+    marksEntryStateDate: string | null;
+    get_papertype_grade_details: any[];
+    answer_sheet: any[];
+}
+
+// types/marks-entry.ts
+export type SubSub = {
+    subsubId: number;
+    subsubName: string;
+    maxMarks: number;
+    minMarks?: number;
+    marksEntryMax: number;
+    gradeDetails?: IBackendGradeDetail[];
+};
+
+export type SubExam = {
+    subexamId: number;
+    subexamName: string;
+    maxMarks: number;
+    minMarks?: number;
+    marksEntryMax: number;
+    gradeDetails?: IBackendGradeDetail[];
+};
+
+export type ISubjectMeta = {
+    subjectId: number;
+    subjectName: string;
+    subsubFlag: boolean;
+    subexamFlag: boolean;
+    maxMarks: number;
+    minMarks?: number;
+    marksEntryMax: number;
+    marksGradeEntryFlg: 'M' | 'G';
+    gradeDetails: IBackendGradeDetail[];
+    subsubData: SubSub[];
+    subexamData: SubExam[];
+    paperTypeGrades?: any[];
+    allowPattern: string;
+    placeholder: string;
+    config: {
+        showRegNo: boolean;
+        showAdmNo: boolean;
+        showRollNo: boolean;
+        sortKey: 'studentName' | 'amaY_RollNo' | 'amsT_AdmNo' | 'amsT_RegistrationNo';
+    };
+};
+
+export type IStudentMarksRow = {
+    studentID: number;
+    studentName: string;
+    RegNo: string;
+    AdmissionNo: string;
+    RollNo: number;
+    ismS_Id: number;
+    marksEntryMax: number;
+    maxMarks: number;
+    minMarks?: number;
+    // simple subject marks
+    marks?: number | '' | string;
+    marksFlag?: string; // 'AB', 'L', 'M', 'OD'
+    grade?: string;
+    // arrays for sub-subject and sub-exam marks
+    subSubMarks?: Array<{
+        subsubId: number;
+        marks: number | '' | string;
+        flag?: string;
+        grade?: string;
+    }>;
+    subExamMarks?: Array<{
+        subexamId: number;
+        marks: number | '' | string;
+        flag?: string;
+        grade?: string;
+    }>;
+    // file upload
+    answerSheet?: string;
+    fileLocation?: string;
+    // paper type
+    papertype?: string;
+    papertypeid?: number;
+    // selection
+    selected?: boolean;
+};
+
+export interface GetStudentDetailsParams {
+    MI_Id?: number;
+    ASMAY_Id?: number;
+    ASMCL_Id?: number;
+    ASMS_Id?: number;
+    Skills?: string;
+    exam_termwise_flag?: string;
+    ECACT_Id?: number;
+    ECACTA_Id?: number;
+    ECS_Id?: number;
+    ECSA_Id?: number;
+}
+
+export interface IStudentTransaction {
+    amsT_Id: number;
+    studentName: string;
+    regNumber: number;
+    rollNumber: number;
+    score?: number;
 }
