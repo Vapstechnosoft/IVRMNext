@@ -62,6 +62,37 @@ interface IAcademicYear {
     asmaY_Order?: number;
 }
 
+interface FeeDefaulterReportPayload {
+    // Common fields for both Yearly and Date Wise
+    FMG_Id?: number; // Optional fee group ID
+    Balance_1?: number; // 1 if balance checkbox is checked, 0 otherwise
+    FMGG_Id?: number; // Custom group ID (0 if undefined)
+    FMT_Id?: number; // Term ID (0 if undefined)
+    ASMAY_Id: number; // Academic Year ID (REQUIRED)
+    radioval: string; // "FGW", "FHW", "FCW", "FIW", "FSW", "FPW"
+    reporttype: 'year' | 'date'; // "year" or "date"
+    yearid?: number; // 1 if route is selected, 0 otherwise
+    active: number; // 1 or 0
+    deactive: number; // 1 or 0
+    left: number; // 1 or 0
+    customflag?: string; // Custom flag (empty string if undefined)
+    groupflag?: string; // Group flag (empty string if undefined)
+    ASMCL_Id?: number; // Class ID (0 if not selected)
+    AMSC_Id?: number; // Section ID (0 if not selected)
+    FMG_Ids: number[]; // Array of selected fee group IDs
+    FMT_Ids: number[]; // Array of selected term IDs
+    TRMR_Ids: number[]; // Array of selected bus route IDs
+    term_group: 'G' | 'T'; // "G" for group, "T" for term
+    Select_Button?: string; // Radio type selection
+
+    // Conditional fields for Date Wise
+    From_Date?: string; // Only for date wise (in date string format)
+    duedate?: number; // Only for date wise (1 if due date selected)
+
+    // Conditional fields for Yearly Wise
+    studenttype?: string; // Only for yearly wise
+}
+
 export default function FeeDefaulterReport() {
     const breakdownOptions = [
         { value: 'FGW', label: 'Fee Group Wise' },
@@ -455,8 +486,89 @@ export default function FeeDefaulterReport() {
 
     watch('customGroupIds');
 
+    const createPayload = (data: FormFields): FeeDefaulterReportPayload => {
+        // Determine report type
+        const reporttype = data.viewMode === 'Yearly Wise' ? 'year' : 'date';
+
+        // Determine grouporterm based on breakdown
+        let term_group: 'G' | 'T' = 'T'; // Default to term
+        if (data.breakdown === 'FGW' || data.breakdown === 'FCW' || data.breakdown === 'FPW') {
+            term_group = 'G'; // Group
+        }
+
+        // Prepare arrays
+        const FMG_Ids = data.feeGroupIds || [];
+        const FMT_Ids = data.termIds || [];
+        const TRMR_Ids = data.busRouteIds || [];
+
+        // Convert status to 1/0
+        const active = data.status?.active ? 1 : 0;
+        const deactive = data.status?.deactive ? 1 : 0;
+        const left = data.status?.left ? 1 : 0;
+        const Balance_1 = data.status?.balance ? 1 : 0;
+
+        // Base payload
+        const payload: FeeDefaulterReportPayload = {
+            ASMAY_Id: Number(data.academicYearId),
+            radioval: data.breakdown,
+            reporttype,
+            active,
+            deactive,
+            left,
+            FMG_Ids,
+            FMT_Ids,
+            TRMR_Ids,
+            term_group,
+            Balance_1
+        };
+
+        // Set optional fields with defaults
+        payload.FMG_Id = data.feeGroupIds?.[0] || 0;
+        payload.FMGG_Id = data.customGroupIds?.[0] || 0;
+        payload.FMT_Id = data.termIds?.[0] || 0;
+        payload.customflag = data.customGroupIds?.length > 0 ? 'true' : '';
+        payload.groupflag = data.feeGroupIds?.length > 0 ? 'true' : '';
+        payload.Select_Button = data.userType;
+
+        // Set class and section if included
+        if (data.includeClassSection && data.classId) {
+            payload.ASMCL_Id = data.classId;
+            payload.AMSC_Id = data.sectionId || 0;
+        } else {
+            payload.ASMCL_Id = 0;
+            payload.AMSC_Id = 0;
+        }
+
+        // Set route/bus info
+        if (TRMR_Ids.length > 0) {
+            payload.yearid = 1;
+            // payload.TRMR_Id = data.busRouteIds[0]; // Uncomment if needed
+        } else {
+            payload.yearid = 0;
+            // payload.TRMR_Id = 0;
+        }
+
+        // Conditional logic based on report type
+        if (reporttype === 'year') {
+            // Yearly Wise specific fields
+            payload.studenttype = 'active'; // You might need to adjust this based on your logic
+        } else if (reporttype === 'date') {
+            // Date Wise specific fields
+            if (filters.dueDate) {
+                payload.From_Date = new Date(filters.dueDate).toDateString();
+            }
+            payload.duedate = data.dueDateType === 'Due Date' ? 1 : 0;
+        }
+
+        return payload;
+    };
+
     // const handleSubmit = async () => {
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
+        const payload = createPayload(data);
+
+        console.log('Sending payload:', JSON.stringify(payload));
+
         // Optional: Keep validation
         // if (!filters.academicYearId) return toast.error('Please select an Academic Year');
         // if (filters.feeGroupIds.length === 0) return toast.error('Please select at least one Fee Group');

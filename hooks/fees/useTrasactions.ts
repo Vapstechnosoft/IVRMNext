@@ -990,3 +990,19 @@ export const useFeeMasterConfiguration = () => {
         }
     };
 };
+
+export const useUpdateFeeTransactionList = (payload: any) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_UPDATE_TRANSACTION],
+            queryFn: async () => updateFeeStudentTransactionDetails(payload)
+        }),
+
+        refetchAll: () =>
+            queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_UPDATE_TRANSACTION]
+            })
+    };
+};

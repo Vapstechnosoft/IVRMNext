@@ -130,7 +130,7 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
             const bankName = bankdata?.data?.find((x) => x.fmbanK_Id === data.bankId)?.fmbanK_BankName || '';
 
             const payload = {
-                mI_Id: 30,
+                // mI_Id: 30,
                 fyptP_Name: data.studentName,
                 asmaY_Id: Number(data.academicYearId),
                 fmG_Id: Number(data.groupId),
@@ -145,7 +145,7 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                 fyP_Date: data.date ? format(new Date(data.date), 'yyyy-MM-dd') : null,
 
                 fyP_Remarks: data.towards,
-                user_id: 21602,
+                //user_id: 21602,
                 FYP_Bank_Or_Cash: data.paymentMode,
                 fyP_Id: row.fyP_Id
             };

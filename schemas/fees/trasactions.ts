@@ -349,6 +349,17 @@ export const feesStudentTransactionSchema = {
     })
 };
 
+export const feesStudentTransactionUpdateSchema = {
+    addOrUpdate: z.object({
+        asmaY_Id: z.number({ required_error: 'Academic year is required' }),
+        asmcl_Id: z.number().optional(),
+        asms_Id: z.number().optional(),
+        modeofPayment: z.string().optional(),
+        narrationId: z.number().optional(),
+        studentSearchName: z.string().optional()
+    })
+};
+
 export const feesRefundableSchema = {
     addOrUpdate: z.object({
         refundableflag: z.string().optional(),

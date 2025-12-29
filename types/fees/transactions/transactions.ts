@@ -239,6 +239,25 @@ export interface IFeeTransactionApiResponse {
     };
 }
 
+// export interface Ifeetransaction {
+//     amsT_FirstName: string;
+//     amsT_MiddleName: string | null;
+//     amsT_LastName: string | null;
+
+//     classname: string;
+//     sectionname: string;
+//     amsT_AdmNo: string;
+
+//     fyP_Receipt_No: string;
+//     fyP_Date: string; // or Date
+//     fyP_Tot_Amount: number;
+//     fyP_Bank_Or_Cash: string; // example: 'C', 'O'
+//     fyP_Chq_Bounce: string | null; // 'CL', 'CB', null
+
+//     fyP_Id: number;
+//     amst_Id: number;
+// }
+
 export interface Ifeetransaction {
     amsT_FirstName: string;
     amsT_MiddleName: string | null;
@@ -256,6 +275,8 @@ export interface Ifeetransaction {
 
     fyP_Id: number;
     amst_Id: number;
+    asmaY_ID: number;
+    asmaY_Year: string;
 }
 
 export interface IStudentDropdown {
@@ -1000,4 +1021,13 @@ export interface CurrentPaymentDetails {
 export interface masterBankList {
     fmbanK_Id: number;
     fmbanK_BankName: string;
+}
+
+export interface IFeeReceiptImportDelate {
+    studentname: string;
+    admissionnumber: string;
+    date: string;
+    receiptno: string;
+    amount: number;
+    fyP_Id: number;
 }

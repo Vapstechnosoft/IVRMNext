@@ -846,6 +846,14 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/transactions/feeconcession',
                                             title: 'Fee Master Concession',
                                             description: 'Manage Fee Master Concession'
+                                        },
+                                        {
+                                            id: 515,
+                                            name: 'Fee Receipt Import Delete',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/feesreceiptimportdelete',
+                                            title: 'Fee Receipt Import Delete',
+                                            description: 'Manage Fee Receipt Import Delete'
                                         }
                                     ]
                                 },
@@ -965,6 +973,14 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/feereports/feestudenttermwisepaidreport',
                                             title: 'Fee Student Term Wise Paid Report',
                                             description: 'Manage Fee Student Term Wise Paid Report Details'
+                                        },
+                                        {
+                                            id: 10025,
+                                            name: 'Excel Not Imported Student Details Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/excelnotimportedstudentdetailsreport',
+                                            title: 'Excel Not Imported Student Details Report',
+                                            description: 'Manage Excel Not Imported Student Details Report'
                                         }
                                     ]
                                 }

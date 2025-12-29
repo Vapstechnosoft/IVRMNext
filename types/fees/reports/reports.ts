@@ -369,3 +369,13 @@ export interface FeeStudenttermWisePaidReport {
 export interface FeeStudenttermWisePaidReportTermAmounts {
     [key: string]: number;
 }
+
+export interface ExcelNotImportedStudentDetailsReport {
+    academicyear: string;
+    admissionNo: string;
+    paiddate: string;
+    amount: number;
+    remarks: string;
+    paymentmode: string;
+    id: number;
+}
