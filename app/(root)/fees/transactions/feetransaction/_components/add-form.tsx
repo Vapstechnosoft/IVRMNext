@@ -129,7 +129,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
     const [filterType, setFilterType] = useState('regular');
     const [payType, setPayType] = useState<string>('');
     const [modeType, setModeType] = useState<string>('Single');
-    const [checkPayType, setCheckPayType] = useState<string[]>(['']);
+    const [checkPayType, setCheckPayType] = useState<string[]>([]);
     const [selectedBanks, setSelectedBanks] = useState<Record<number, string>>({});
     const [left, setLeft] = useState(false);
     const [deactive, setDeative] = useState(false);
@@ -318,7 +318,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                 setMasterModeofPaymentList(modeofPaymentList || []);
 
                 setPayType(modeofPaymentList[0]?.ivrmmoD_ModeOfPayment ?? '');
-                setCheckPayType(modeofPaymentList[0]?.ivrmmoD_ModeOfPayment ?? '');
+                // setCheckPayType(modeofPaymentList[0]?.ivrmmoD_ModeOfPayment ?? '');
             } catch (error) {
                 console.error('Failed to fetch fee heads:', error);
                 setFeeHeads([]);
