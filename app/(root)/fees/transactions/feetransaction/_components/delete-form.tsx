@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { Label } from '@/components/ui/extension/field';
+import { InputText } from '@/components/ui/extension/input-text';
 import { useFeeTransactionList } from '@/hooks/fees/useTrasactions';
 import { deletefeeTransaction } from '@/server/fees/trasactions/fee_student_transaction';
 import type { Ifeetransaction } from '@/types/fees/transactions/transactions';
@@ -19,6 +20,7 @@ interface DeleteFeeTransactionProps {
 export default function DeleteFeeTransactionForm({ rowData, onClose, onSuccess, asmayId }: DeleteFeeTransactionProps) {
     const { refetchAll } = useFeeTransactionList(Number(asmayId));
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [remark, setRemark] = useState('');
 
     const closeDialog = () => {
         onClose();
@@ -27,18 +29,32 @@ export default function DeleteFeeTransactionForm({ rowData, onClose, onSuccess, 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (isSubmitting) return;
+        if (remark === '') {
+            toast.error('Please Enter a Remark!!');
+            return;
+        }
 
         setIsSubmitting(true);
         try {
-            const response = await deletefeeTransaction(rowData.fyP_Id);
+            const payload = {
+                fyP_Id: rowData.fyP_Id,
+                fyP_Remarks: remark,
+                asmaY_Id: rowData.asmaY_ID
+            };
+            const response = await deletefeeTransaction(payload);
 
-            if (response.success) {
-                toast.success(response.message);
+            if (response.returnval === 'true') {
+                toast.success(response.message || ' Transaction Deleted successfully');
                 await refetchAll();
                 onSuccess?.();
                 closeDialog();
             } else {
-                toast.error(response.message);
+                const errorMessage = response?.returnval;
+                if (typeof errorMessage === 'string' && errorMessage.trim() !== '') {
+                    toast.error(errorMessage);
+                } else {
+                    toast.error('failed');
+                }
             }
         } catch (error: any) {
             console.error('Delete error:', error);
@@ -57,6 +73,13 @@ export default function DeleteFeeTransactionForm({ rowData, onClose, onSuccess, 
                         <strong>{rowData.amsT_FirstName}</strong> <strong>{rowData.amsT_MiddleName}</strong>{' '}
                         <strong>{rowData.amsT_LastName}</strong>?
                     </Label>
+                    <InputText
+                        id='remark'
+                        value={remark}
+                        onChange={(e) => setRemark(e.target.value)}
+                        placeholder='Enter Remark'
+                        className='flex transition-colors focus:ring-2 focus:ring-primary/20'
+                    />
                 </AdaptiveBody>
 
                 <AdaptiveFooter className='flex flex-col gap-3 sm:flex-row sm:justify-end'>
