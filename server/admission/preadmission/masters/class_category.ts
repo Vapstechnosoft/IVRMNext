@@ -4,6 +4,7 @@ import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type {
     IAcademicYearDropDown,
+    IMasterCategoryDropDown,
     IMasterClassCategoryList,
     IMasterClassCategorySectionList,
     IMasterClassDropDown,
@@ -52,4 +53,8 @@ export async function getClassCategorySection(id: number) {
 export async function toggleMasterClassCategorySection(id: number) {
     const url = `/master_class_category/toggle_section/${id}`;
     return await api.put('admission', url);
+}
+export async function getMasterCategoryDropdown() {
+    const url = '/master_class_category/master_category_drop_down_list';
+    return await api.get<IMasterCategoryDropDown[]>('admission', url);
 }

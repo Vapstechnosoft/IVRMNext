@@ -6,7 +6,12 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMasterClassDropdown, useMasterSectionDropdown } from '@/hooks/admission/preadmission/useMasters';
-import { useClassTeacherDropdownList, useEmployeeDropdownList, useUserDropdownList } from '@/hooks/exam/exammodule/exam-mapping';
+import {
+    useClassTeacherDropdownList,
+    useEmployeeDropdownList,
+    useExamLoginPrivileges,
+    useUserDropdownList
+} from '@/hooks/exam/exammodule/exam-mapping';
 import { useGetMasterSubjectDropdownList, useMasterSubSubjectDropdownList } from '@/hooks/exam/exammodule/usemasters';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { examLoginPrivilegesSchema } from '@/schemas/exam/exam-module/exam-mapping';
@@ -98,6 +103,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
     const { data: masterClass, isLoading: masterClassLoading, refetchAll: refetchMasterClass } = useMasterClassDropdown();
     const { data: masterSubject, isLoading: masterSubjectLoading } = useGetMasterSubjectDropdownList();
     const { data: masterSubSubject, isLoading: masterSubSubjectLoading } = useMasterSubSubjectDropdownList();
+    const { refetchAll } = useExamLoginPrivileges();
 
     // Effect to handle edit when rowData is provided
     useEffect(() => {
@@ -595,6 +601,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                 reset();
                 setEditMode('add');
                 onSuccess?.();
+                refetchAll();
             } else {
                 toast.error(res?.message || `${editMode === 'edit' ? 'Update' : 'Save'} failed`);
             }
@@ -707,7 +714,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
     return (
         <div className='w-full space-y-6' ref={formRef}>
             <FormProvider {...methods}>
-                <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                <form className='space-y-6'>
                     <div className='rounded bg-white p-3 shadow'>
                         <div className='mb-4 flex items-center justify-between'>
                             <div className='flex w-max gap-2 rounded-full bg-gray-200 p-1'>
@@ -1082,7 +1089,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                             <div className='overflow-x-auto'>{detailsTable}</div>
                             <div className='mt-5 flex w-full justify-center'>
                                 <div className='w-fit'>
-                                    <Button type='submit' disabled={isSubmitting}>
+                                    <Button type='button' disabled={isSubmitting} onClick={() => onSubmit(getValues())}>
                                         {isSubmitting
                                             ? editMode === 'edit'
                                                 ? 'Updating...'
@@ -1091,6 +1098,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                               ? 'Update'
                                               : 'Save'}
                                     </Button>
+
                                     {editMode === 'edit' && (
                                         <Button type='button' variant='outline' className='ml-3' onClick={handleCancelEdit}>
                                             Cancel
