@@ -41,6 +41,7 @@ import type {
 } from '@/types/fees/transactions/transactions';
 import type { z } from 'zod';
 import FeeDetails from './fee-head-column';
+import StudentProfileModal from './student-details';
 
 type FormFields = z.infer<typeof feesStudentTransactionSchema.addOrUpdate>;
 
@@ -141,6 +142,8 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
     const [sms, setSms] = useState(false);
     const [email, setEmail] = useState(false);
     const [openFeeDetails, setOpenFeeDetails] = useState(false);
+
+    const [openStudentDetails, setOpenStudentDetails] = useState(false);
     const [challenSearch, setChallenSearch] = useState('');
     const [todaysDate, setTodaysDate] = useState<Date | undefined>(new Date());
     const [selectedNarration, setSelectedNarration] = useState<number | null>(null);
@@ -1132,7 +1135,9 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                         Fee Details <span>➤</span>
                                     </span>
 
-                                    <span className='flex cursor-pointer items-center gap-1 hover:underline'>
+                                    <span
+                                        className='flex cursor-pointer items-center gap-1 hover:underline'
+                                        onClick={() => setOpenStudentDetails(true)}>
                                         Student Profile <span>➤</span>
                                     </span>
                                 </div>
@@ -1172,6 +1177,15 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                 </div>
 
                 {openFeeDetails && <FeeDetails onClose={() => setOpenFeeDetails(false)} data={feeDetails} loading={false} />}
+
+                {openStudentDetails && (
+                    <StudentProfileModal
+                        isOpen={!!openStudentDetails}
+                        onClose={() => setOpenStudentDetails(false)}
+                        data={openStudentDetails}
+                        loading={false}
+                    />
+                )}
 
                 {/* -------- FEE GRID -------- */}
                 {loadingFeeHead ? (
