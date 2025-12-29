@@ -41,7 +41,11 @@ import {
     getOpeningSectionDropdownData
 } from '@/server/fees/trasactions/fee_opening_balance';
 import { getFeeRefundableDetails } from '@/server/fees/trasactions/fee_refundable';
-import { getFeeStudentTransactionDetails, masterconfiguration } from '@/server/fees/trasactions/fee_student_transaction';
+import {
+    getFeeStudentTransactionDetails,
+    masterconfiguration,
+    updateFeeStudentTransactionDetails
+} from '@/server/fees/trasactions/fee_student_transaction';
 import {
     getFeePreadmissionTransactionList,
     getFeeProspectusTransactionList,
