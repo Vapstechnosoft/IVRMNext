@@ -171,6 +171,10 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
         return <div className='flex items-center justify-center p-8 font-medium text-lg'>Loading data...</div>;
     }
 
+    const handleReset = () => {
+        reset();
+    };
+
     return (
         <form onSubmit={handleSubmit(onSubmit)} className='flex w-full flex-col items-center justify-center space-y-6'>
             {/* Student Type */}
@@ -500,7 +504,7 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                         <Label className='min-w-[150px] text-right'>
                             Cheque No<span className='text-red-500'>*</span>
                         </Label>
-                        <InputText {...register('chequeNo')} />
+                        <InputText {...register('chequeNo')} error={errors.chequeNo?.message} />
                     </div>
                 </>
             )}
@@ -558,9 +562,31 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
             )}
 
             {/* Submit Button */}
-            <div className='flex gap-3 border-t pt-4'>
+            {/* <div className='flex gap-3 border-t pt-4'>
                 <Button type='submit' disabled={isSubmitting}>
                     <Save className='mr-2 h-4 w-4' /> Update Third Party Transaction
+                </Button>
+            </div> */}
+
+            <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
+                <Button
+                    type='button'
+                    variant='outline'
+                    onClick={handleReset}
+                    disabled={isSubmitting}
+                    className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                    Reset
+                </Button>
+                <Button
+                    type='submit'
+                    disabled={isSubmitting}
+                    className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                    isLoading={isSubmitting}
+                    loadingText='Saving...'>
+                    <div className='flex items-center'>
+                        <Save className='mr-2 h-4 w-4' />
+                        Update Third Party Transaction
+                    </div>
                 </Button>
             </div>
         </form>

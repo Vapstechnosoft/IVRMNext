@@ -85,3 +85,75 @@ function ActionButtonsCell({
         </div>
     );
 }
+
+export function printTable(columns: string[] | any[], rows: any[], totalRow?: any) {
+    const printWindow = window.open('', '', 'width=1200,height=800');
+    if (!printWindow) return;
+
+    // Handle different column formats
+    let columnLabels: string[];
+    let columnKeys: string[];
+
+    if (Array.isArray(columns) && columns.length > 0 && typeof columns[0] === 'object') {
+        // If columns is array of objects {key: string, label: string}
+        columnLabels = columns.map((col) => col.label || col.key);
+        columnKeys = columns.map((col) => col.key);
+    } else {
+        // If columns is array of strings
+        columnLabels = columns as string[];
+        columnKeys = columns as string[];
+    }
+
+    const tableHead = columnLabels.map((label) => `<th>${label}</th>`).join('');
+
+    const tableRows = rows
+        .map(
+            (row) =>
+                `<tr>
+            ${columnKeys.map((key) => `<td>${row[key] ?? ''}</td>`).join('')}
+        </tr>`
+        )
+        .join('');
+
+    // Only add total row if provided
+    const totalRowHtml = totalRow
+        ? `<tr style="font-weight:bold;background:#f3f3f3">
+            ${columnKeys.map((key) => `<td>${totalRow[key] ?? ''}</td>`).join('')}
+           </tr>`
+        : '';
+
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Excel Not Imported Student Report</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; }
+                h2 { text-align: center; margin-bottom: 10px; }
+                table { width: 100%; border-collapse: collapse; }
+                th, td { border: 1px solid #333; padding: 6px; font-size: 12px; }
+                th { background: #eaeaea; }
+                tr:nth-child(even) td { background: #fafafa; }
+                @media print {
+                    body { margin: 0; }
+                }
+            </style>
+        </head>
+        <body>
+            <h2>Excel Not Imported Student Report</h2>
+            <table>
+                <thead>
+                    <tr>${tableHead}</tr>
+                </thead>
+                <tbody>
+                    ${tableRows}
+                    ${totalRowHtml}
+                </tbody>
+            </table>
+        </body>
+        </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+}

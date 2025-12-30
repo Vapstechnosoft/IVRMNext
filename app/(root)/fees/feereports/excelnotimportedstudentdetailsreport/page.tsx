@@ -18,7 +18,7 @@ import { Input } from 'react-aria-components';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-import { excelnotimportedstudentColumns } from './_components/columns';
+import { excelnotimportedstudentColumns, printTable } from './_components/columns';
 import DeleteExcelNotImportedForm from './_components/deleteform';
 
 type FormFields = z.infer<typeof excelImportNotDoneReportSchema.addOrUpdate>;
@@ -133,6 +133,33 @@ function ExcelNotImportedReportContent() {
             setAcademicYears(formatted);
         }
     }, [academicData, academicError]);
+    const handleCancel = () => {
+        setShowReport(false);
+
+        toast.info('Report cancelled');
+    };
+
+    const handlePrint = () => {
+        // Define columns for printing with Sl No
+        const columns = [
+            { key: 'slNo', label: 'Sl No' },
+            { key: 'admissionNo', label: 'Admission No' },
+            { key: 'academicyear', label: 'Academic Year' },
+            { key: 'paiddate', label: 'Paid Date' },
+            { key: 'paymentmode', label: 'Payment Mode' },
+            { key: 'amount', label: 'Amount' },
+            { key: 'remarks', label: 'Remarks' }
+        ];
+
+        // Use all staticData rows and add serial numbers
+        const rowsToPrint = staticData.map((row, index) => ({
+            ...row,
+            slNo: index + 1
+        }));
+
+        // Call printTable without totalRow
+        printTable(columns, rowsToPrint);
+    };
 
     const onSubmit: SubmitHandler<FormFields> = async (data: FormFields) => {
         const payload = {
@@ -244,33 +271,49 @@ function ExcelNotImportedReportContent() {
 
                                 <div>
                                     <div className='flex justify-end gap-4 border-t pt-8'>
-                                        <Button size='lg' variant='outline' className='px-8' onClick={() => window.location.reload()}>
-                                            Cancel
-                                        </Button>
-                                        <Button type='submit' disabled={isSubmitting} className='px-12'>
-                                            {isSubmitting ? 'Generating...' : 'Report'}
-                                        </Button>
+                                        <div className='min-w-0 flex-1'>
+                                            <Button size='lg' variant='outline' className='w-full px-8' onClick={() => handleCancel()}>
+                                                Cancel
+                                            </Button>
+                                        </div>
+                                        <div className='min-w-0 flex-1'>
+                                            <Button type='submit' disabled={isSubmitting} className='w-full px-12'>
+                                                {isSubmitting ? 'Generating...' : 'Report'}
+                                            </Button>
+                                        </div>
+                                        {showReport && (
+                                            <div className='min-w-0 flex-1'>
+                                                <Button
+                                                    variant='outline'
+                                                    className='w-full transition-all duration-200 hover:scale-105'
+                                                    onClick={handlePrint}>
+                                                    Print
+                                                </Button>
+                                            </div>
+                                        )}
                                     </div>
-
-                                    <CollapsibleSection defaultOpen={true}>
-                                        <GenericDataTable<ExcelNotImportedStudentDetailsReport>
-                                            {...tableProps}
-                                            columns={excelnotimportedstudentColumns}
-                                            isLoading={false}
-                                            error={null}
-                                            columnPinning={{ right: ['actions'] }}
-                                            loadingMessage='Loading Excel Not Imported Student Data...'
-                                            noDataTitle='No Excel Not Imported Student Data Found'
-                                            noDataDescription=''
-                                            errorTitle='Error Loading Excel Not Imported Student Data'
-                                        />
-                                    </CollapsibleSection>
-
-                                    {/* Conditionally render delete form */}
-                                    {isDeleteFormOpen && selectedRow && (
-                                        <DeleteExcelNotImportedForm rowData={selectedRow} onClose={closeToggleForm} />
-                                    )}
                                 </div>
+                                {showReport && (
+                                    <>
+                                        <CollapsibleSection defaultOpen={true}>
+                                            <GenericDataTable<ExcelNotImportedStudentDetailsReport>
+                                                {...tableProps}
+                                                columns={excelnotimportedstudentColumns}
+                                                isLoading={false}
+                                                error={null}
+                                                columnPinning={{ right: ['actions'] }}
+                                                loadingMessage='Loading Excel Not Imported Student Data...'
+                                                noDataTitle='No Excel Not Imported Student Data Found'
+                                                noDataDescription=''
+                                                errorTitle='Error Loading Excel Not Imported Student Data'
+                                            />
+                                        </CollapsibleSection>
+
+                                        {isDeleteFormOpen && selectedRow && (
+                                            <DeleteExcelNotImportedForm rowData={selectedRow} onClose={closeToggleForm} />
+                                        )}
+                                    </>
+                                )}
                             </div>
                         </div>
                     </Card>

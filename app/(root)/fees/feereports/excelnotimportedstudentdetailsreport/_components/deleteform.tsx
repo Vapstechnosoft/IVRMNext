@@ -58,7 +58,7 @@ export default function DeleteExcelNotImportedForm({ rowData, onClose }: ExcelNo
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <input type='hidden' {...register('id')} defaultValue={rowData.id} />
-                    <p>Are you sure you want to permanently delete the selected data</p>
+                    <p>Are you sure you want to permanently delete the selected data {rowData.id}</p>
                     <FormError>{errors.id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>
                 </AdaptiveBody>

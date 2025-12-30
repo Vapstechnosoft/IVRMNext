@@ -20,7 +20,9 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FormError } from '@/components/ui/extension/field';
+import { Textarea } from '@/components/ui/textarea';
 import { feeDefaulterReportSchema } from '@/schemas/fees/reports';
 import { getFeesSectionListByClassId } from '@/server/fees/reports/fee_DefaulterReport';
 import type {
@@ -91,6 +93,22 @@ interface FeeDefaulterReportPayload {
 
     // Conditional fields for Yearly Wise
     studenttype?: string; // Only for yearly wise
+}
+
+interface IStudentFeeDefaulterReport {
+    id: number;
+    // slNo: number;
+    name: string;
+    admissionNo: string;
+    classSection: string;
+    fatherName: string;
+    mobileNumber: string;
+    emailId: string;
+    route: string;
+    balanceAmount: number;
+    // fineAmount: number;
+    // totalAmount: number;
+    // feeGroup: string;
 }
 
 export default function FeeDefaulterReport() {
@@ -169,6 +187,8 @@ export default function FeeDefaulterReport() {
     const [customGroups, setCustomGroups] = useState<IFeeCustomGroupDropdownList[]>([]);
 
     const [reportData, setReportData] = useState<IFeeDefaluterReport[]>([]);
+
+    const [studentreportData, setstudentReportData] = useState<IStudentFeeDefaulterReport[]>([]);
     const [reportLoading, setReportLoading] = useState(false); // ← ADD THIS LINE
     const [showReport, setShowReport] = useState(false);
 
@@ -361,6 +381,99 @@ export default function FeeDefaulterReport() {
             status: { ...prev.status, [status]: !prev.status[status] }
         }));
     };
+
+    // Add these state variables after your existing states
+    const [communicationMethods, setCommunicationMethods] = useState({
+        email: false,
+        sms: false,
+        notification: false,
+        whatsapp: false
+    });
+
+    const [showEmailModal, setShowEmailModal] = useState(false);
+    const [emailTemplate, setEmailTemplate] = useState('');
+    const [emailSubject, setEmailSubject] = useState('');
+    const [emailContent, setEmailContent] = useState('');
+
+    const [showemailContent, setshowEmailContent] = useState(false);
+
+    const [showNotificationModal, setShowNotificationModal] = useState(false);
+    const [showSMSModal, setShowSMSModal] = useState(false);
+
+    // Also add these state variables for the modal content
+    const [notificationTemplate, setNotificationTemplate] = useState('');
+    const [notificationContent, setNotificationContent] = useState('');
+    const [smsTemplate, setSmsTemplate] = useState('');
+    const [smsContent, setSmsContent] = useState('');
+    const [smsSearch, setSmsSearch] = useState('');
+
+    // Update the toggleCommunicationMethod function
+    const toggleCommunicationMethod = (method: keyof typeof communicationMethods) => {
+        setCommunicationMethods((prev) => ({
+            ...prev,
+            [method]: !prev[method]
+        }));
+
+        // Open the appropriate modal when method is selected
+        if (!communicationMethods[method]) {
+            switch (method) {
+                case 'email':
+                    setshowEmailContent(true);
+                    break;
+                case 'notification':
+                    setShowNotificationModal(true);
+                    break;
+                case 'sms':
+                    setShowSMSModal(true);
+                    break;
+                // whatsapp can be handled similarly if needed
+            }
+        }
+    };
+
+    // Add this function to handle communication method toggles
+    // const toggleCommunicationMethod = (method: keyof typeof communicationMethods) => {
+    //     setCommunicationMethods(prev => ({
+    //         ...prev,
+    //         [method]: !prev[method]
+    //     }));
+
+    //     // If email is selected, open the email modal
+    //     if (method === 'email' && !communicationMethods.email) {
+    //         setShowEmailModal(true);
+    //     }
+    // };
+
+    // Add this function to handle sending emails
+    const handleSendEmail = () => {
+        // Get selected students
+        const selectedStudents = studentreportData.filter((student) => selectedIds.includes(student.id));
+
+        if (selectedStudents.length === 0) {
+            toast.error('Please select at least one student');
+            return;
+        }
+
+        // Here you would typically make an API call to send emails
+        console.log('Sending email to:', selectedStudents);
+        console.log('Subject:', emailSubject);
+        console.log('Content:', emailContent);
+        console.log('Template:', emailTemplate);
+
+        toast.success(`Email sent to ${selectedStudents.length} student(s)`);
+        setShowEmailModal(false);
+    };
+
+    // Add this function to calculate totals
+    const calculateTotals = () => {
+        const selectedStudents = studentreportData.filter((student) => selectedIds.includes(student.id));
+
+        return {
+            count: selectedStudents.length,
+            totalBalance: selectedStudents.reduce((sum, student) => sum + student.balanceAmount, 0)
+            // Add other totals if needed
+        };
+    };
     // const handleSubmit = async () => {
 
     //   if (!filters.academicYearId) return toast.error('Please select an Academic Year');
@@ -526,7 +639,8 @@ export default function FeeDefaulterReport() {
         payload.FMG_Id = data.feeGroupIds?.[0] || 0;
         payload.FMGG_Id = data.customGroupIds?.[0] || 0;
         payload.FMT_Id = data.termIds?.[0] || 0;
-        payload.customflag = data.customGroupIds?.length > 0 ? 'true' : '';
+        //payload.customflag = data.customGroupIds?.length > 0 ? 'true' : '';
+        payload.customflag = '';
         payload.groupflag = data.feeGroupIds?.length > 0 ? 'true' : '';
         payload.Select_Button = data.userType;
 
@@ -561,6 +675,30 @@ export default function FeeDefaulterReport() {
         }
 
         return payload;
+    };
+
+    const handleOpenEmailModal = () => {
+        console.log('Button clicked, showEmailModal before:', showEmailModal);
+        setshowEmailContent(true);
+        // Check after a small delay
+        setTimeout(() => {
+            console.log('showEmailModal after:', showEmailModal);
+        }, 100);
+    };
+
+    // Add these handler functions
+    const handleSendNotification = () => {
+        setShowNotificationModal(true);
+        setTimeout(() => {
+            console.log('showEmailModal after:', showEmailModal);
+        }, 100);
+    };
+
+    const handleSendSMS = () => {
+        setShowSMSModal(true);
+        setTimeout(() => {
+            console.log('showEmailModal after:', showEmailModal);
+        }, 100);
     };
 
     // const handleSubmit = async () => {
@@ -599,12 +737,236 @@ export default function FeeDefaulterReport() {
             { feeGroup: 'Admission Fee', totalDue: 25000, id: 15 }
         ];
 
-        setReportData(mockData);
-        setShowReport(true);
-        setReportLoading(false);
-        setLoading(false);
+        //IStudentFeeDefaulterReport
 
-        toast.success(`Report generated successfully! Found ${mockData.length} defaulters`);
+        // Mock data generation function
+        const generateMockStudentData = () => {
+            const studentData: IStudentFeeDefaulterReport[] = [
+                {
+                    name: 'SAMAY V',
+                    admissionNo: '78/2025-26',
+                    classSection: 'IIC SEC',
+                    fatherName: 'VINAY B',
+                    mobileNumber: '9876543210',
+                    emailId: 'samay@email.com',
+                    route: 'Route A',
+                    balanceAmount: 42000,
+                    id: 1
+                },
+                {
+                    name: 'THANUSHREE N R',
+                    admissionNo: '89/2025-26',
+                    classSection: 'IIC SEC',
+                    fatherName: 'RENANAIAH N',
+                    mobileNumber: '8765432109',
+                    emailId: 'thanushree@email.com',
+                    route: 'Route B',
+                    balanceAmount: 62000,
+                    id: 2
+                },
+                {
+                    name: 'UMME SUFIYA D F',
+                    admissionNo: '75/2025-26',
+                    classSection: 'IIC SEC',
+                    fatherName: 'MOHAMMED FAZLULLA D S',
+                    mobileNumber: '7654321098',
+                    emailId: 'sufiya@email.com',
+                    route: 'Route C',
+                    balanceAmount: 62000,
+                    id: 3
+                },
+                {
+                    name: 'VIDWATH A M',
+                    admissionNo: '91/2025-26',
+                    classSection: 'IIC SEC',
+                    fatherName: 'ANUP M J',
+                    mobileNumber: '6543210987',
+                    emailId: 'vidwath@email.com',
+                    route: 'Route A',
+                    balanceAmount: 62000,
+                    id: 4
+                },
+                {
+                    name: 'VINAY E',
+                    admissionNo: '90/2025-26',
+                    classSection: 'IIC SEC',
+                    fatherName: 'ERESHA B',
+                    mobileNumber: '5432109876',
+                    emailId: 'vinay@email.com',
+                    route: 'Route B',
+                    balanceAmount: 32000,
+                    id: 5
+                },
+                {
+                    name: 'SHAMANTH REDDY P S',
+                    admissionNo: '64',
+                    classSection: 'I Std A',
+                    fatherName: 'SHASHIDHARA P V',
+                    mobileNumber: '4321098765',
+                    emailId: 'shamanth@email.com',
+                    route: 'Route D',
+                    balanceAmount: 24000,
+                    id: 6
+                },
+                {
+                    name: 'G P DHEERAJ',
+                    admissionNo: '103',
+                    classSection: 'I Std A',
+                    fatherName: 'B PANDU',
+                    mobileNumber: '3210987654',
+                    emailId: 'dheeraj@email.com',
+                    route: 'Route E',
+                    balanceAmount: 24000,
+                    id: 7
+                },
+                {
+                    name: 'NIHARIKA C P',
+                    admissionNo: '119',
+                    classSection: 'I Std A',
+                    fatherName: 'PALAKASHA C N',
+                    mobileNumber: '2109876543',
+                    emailId: 'niharikacp@email.com',
+                    route: 'Route A',
+                    balanceAmount: 24000,
+                    id: 8
+                },
+                {
+                    name: 'BHAVYA C',
+                    admissionNo: '68/2025-26',
+                    classSection: 'I Std A',
+                    fatherName: 'CHANDRASHEKAR N',
+                    mobileNumber: '9012345678',
+                    emailId: 'bhavya@email.com',
+                    route: 'Route C',
+                    balanceAmount: 9300,
+                    id: 9
+                },
+                {
+                    name: 'CHIRANTH M',
+                    admissionNo: '87/2025-26',
+                    classSection: 'I Std A',
+                    fatherName: 'MANJUNATH V',
+                    mobileNumber: '8901234567',
+                    emailId: 'chiranth@email.com',
+                    route: 'Route D',
+                    balanceAmount: 36000,
+                    id: 10
+                },
+                {
+                    name: 'DHANUSH KUMAR M',
+                    admissionNo: '69/2025-26',
+                    classSection: 'I Std A',
+                    fatherName: 'MADHU V',
+                    mobileNumber: '7890123456',
+                    emailId: 'dhanush@email.com',
+                    route: 'Route E',
+                    balanceAmount: 16000,
+                    id: 11
+                },
+                {
+                    name: 'GAHAN REDDY B V',
+                    admissionNo: '88/2025-26',
+                    classSection: 'I Std A',
+                    fatherName: 'VINAYA KUMAR B T',
+                    mobileNumber: '6789012345',
+                    emailId: 'gahan@email.com',
+                    route: 'Route B',
+                    balanceAmount: 36000,
+                    id: 12
+                },
+                {
+                    name: 'HAMSAT',
+                    admissionNo: '70/2025-26',
+                    classSection: 'I Std A',
+                    fatherName: 'THIPPESWAMY N',
+                    mobileNumber: '5678901234',
+                    emailId: 'hamsat@email.com',
+                    route: 'Route C',
+                    balanceAmount: 12000,
+                    id: 13
+                },
+                {
+                    name: 'ARJUN KUMAR',
+                    admissionNo: '85/2025-26',
+                    classSection: 'II Std B',
+                    fatherName: 'RAJESH KUMAR',
+                    mobileNumber: '4567890123',
+                    emailId: 'arjun@email.com',
+                    route: 'Route A',
+                    balanceAmount: 28000,
+                    id: 14
+                },
+                {
+                    name: 'PRIYA SHARMA',
+                    admissionNo: '92/2025-26',
+                    classSection: 'III Std C',
+                    fatherName: 'SUNITA SHARMA',
+                    mobileNumber: '3456789012',
+                    emailId: 'priya@email.com',
+                    route: 'Route D',
+                    balanceAmount: 45000,
+                    id: 15
+                }
+            ];
+
+            const feeGroups = [
+                'Tuition Fee',
+                'Annual Charges',
+                'Transport Fee',
+                'Lab Fee',
+                'Exam Fee',
+                'Sports Fee',
+                'Library Fee',
+                'Development Fee',
+                'Computer Fee',
+                'Medical Fee',
+                'Activity Fee',
+                'Bus Fee',
+                'Uniform Fee',
+                'Book Fee',
+                'Miscellaneous'
+            ];
+
+            return studentData.map((student, index) => {
+                const fineAmount = Math.round(student.balanceAmount * (0.1 + Math.random() * 0.1));
+                const totalAmount = student.balanceAmount + fineAmount;
+
+                return {
+                    id: index + 1,
+                    slNo: index + 1,
+                    name: student.name,
+                    admissionNo: student.admissionNo,
+                    classSection: student.classSection,
+                    fatherName: student.fatherName,
+                    mobileNumber: student.mobileNumber,
+                    emailId: student.emailId,
+                    route: student.route,
+                    balanceAmount: student.balanceAmount,
+                    fineAmount: fineAmount,
+                    totalAmount: totalAmount,
+                    feeGroup: feeGroups[index] || 'General Fee',
+                    totalDue: student.balanceAmount, // For backward compatibility
+                    remarks: '' // Empty remarks for now
+                };
+            });
+        };
+
+        if (data.userType === 'Students') {
+            const mockData = generateMockStudentData();
+            setstudentReportData(mockData);
+            setShowReport(true);
+            setReportLoading(false);
+            setLoading(false);
+
+            toast.success(`Student report generated successfully! Found ${mockData.length} defaulters`);
+        } else {
+            setReportData(mockData);
+            setShowReport(true);
+            setReportLoading(false);
+            setLoading(false);
+
+            toast.success(`Report generated successfully! Found ${mockData.length} defaulters`);
+        }
 
         // Auto scroll to report
         setTimeout(() => {
@@ -1631,6 +1993,122 @@ export default function FeeDefaulterReport() {
                                                                 </Button>
                                                             </div>
                                                         </div>
+
+                                                        {selectedIds.length > 0 && (
+                                                            <div className='mb-4 rounded-lg border border-gray-300 bg-white p-4 shadow-sm'>
+                                                                {/* Checkboxes Section */}
+                                                                <div className='mb-3'>
+                                                                    <div className='flex items-center gap-2 font-medium text-gray-700 text-sm'>
+                                                                        <span>Please Select Check Box For:</span>
+                                                                        <div className='ml-2 flex items-center gap-4'>
+                                                                            <div className='flex items-center gap-1.5'>
+                                                                                <Checkbox
+                                                                                    id='email-checkbox'
+                                                                                    checked={communicationMethods.email}
+                                                                                    onCheckedChange={() =>
+                                                                                        toggleCommunicationMethod('email')
+                                                                                    }
+                                                                                    className='h-4 w-4'
+                                                                                />
+                                                                                <Label
+                                                                                    htmlFor='email-checkbox'
+                                                                                    className='cursor-pointer text-sm'>
+                                                                                    EMAIL
+                                                                                </Label>
+                                                                            </div>
+
+                                                                            <div className='flex items-center gap-1.5'>
+                                                                                <Checkbox
+                                                                                    id='sms-checkbox'
+                                                                                    checked={communicationMethods.sms}
+                                                                                    onCheckedChange={() => toggleCommunicationMethod('sms')}
+                                                                                    className='h-4 w-4'
+                                                                                />
+                                                                                <Label
+                                                                                    htmlFor='sms-checkbox'
+                                                                                    className='cursor-pointer text-sm'>
+                                                                                    SMS
+                                                                                </Label>
+                                                                            </div>
+
+                                                                            <div className='flex items-center gap-1.5'>
+                                                                                <Checkbox
+                                                                                    id='notification-checkbox'
+                                                                                    checked={communicationMethods.notification}
+                                                                                    onCheckedChange={() =>
+                                                                                        toggleCommunicationMethod('notification')
+                                                                                    }
+                                                                                    className='h-4 w-4'
+                                                                                />
+                                                                                <Label
+                                                                                    htmlFor='notification-checkbox'
+                                                                                    className='cursor-pointer text-sm'>
+                                                                                    Notification
+                                                                                </Label>
+                                                                            </div>
+
+                                                                            <div className='flex items-center gap-1.5'>
+                                                                                <Checkbox
+                                                                                    id='whatsapp-checkbox'
+                                                                                    checked={communicationMethods.whatsapp}
+                                                                                    onCheckedChange={() =>
+                                                                                        toggleCommunicationMethod('whatsapp')
+                                                                                    }
+                                                                                    className='h-4 w-4'
+                                                                                />
+                                                                                <Label
+                                                                                    htmlFor='whatsapp-checkbox'
+                                                                                    className='cursor-pointer text-sm'>
+                                                                                    WhatsApp
+                                                                                </Label>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* REQUEST Button - Only shown when EMAIL is checked */}
+                                                                {communicationMethods.email &&
+                                                                    !communicationMethods.sms &&
+                                                                    !communicationMethods.notification && (
+                                                                        <div className='mt-3 flex justify-end'>
+                                                                            <Button
+                                                                                size='sm'
+                                                                                className='h-8 px-6 text-xs'
+                                                                                onClick={handleOpenEmailModal}>
+                                                                                REQUEST
+                                                                            </Button>
+                                                                        </div>
+                                                                    )}
+                                                                {communicationMethods.notification &&
+                                                                    !communicationMethods.email &&
+                                                                    !communicationMethods.sms && (
+                                                                        <div className='mt-3 flex justify-end'>
+                                                                            <Button
+                                                                                size='sm'
+                                                                                className='h-8 px-6 text-xs'
+                                                                                onClick={handleSendNotification}
+                                                                                //  onClick={() => setShowNotificationModal(true)}
+                                                                            >
+                                                                                REQUEST
+                                                                            </Button>
+                                                                        </div>
+                                                                    )}
+                                                                {communicationMethods.sms &&
+                                                                    !communicationMethods.email &&
+                                                                    !communicationMethods.notification && (
+                                                                        <div className='mt-3 flex justify-end'>
+                                                                            <Button
+                                                                                size='sm'
+                                                                                className='h-8 px-6 text-xs'
+                                                                                onClick={handleSendSMS}
+                                                                                //onClick={() => setShowSMSModal(true)}
+                                                                            >
+                                                                                REQUEST
+                                                                            </Button>
+                                                                        </div>
+                                                                    )}
+                                                            </div>
+                                                        )}
                                                     </div>
 
                                                     {/* <div className='mb-6 text-center'>
@@ -1668,78 +2146,165 @@ export default function FeeDefaulterReport() {
                                                         />
 
                                                         {/* Table */}
-                                                        <div className='overflow-x-auto border'>
-                                                            <table className='w-full table-auto border-collapse'>
-                                                                <thead className='bg-primary text-white'>
-                                                                    <tr>
-                                                                        <th className='p-2 text-center'>
-                                                                            <Checkbox
-                                                                                checked={
-                                                                                    selectedIds.length === filteredData.length &&
-                                                                                    filteredData.length > 0
-                                                                                }
-                                                                                indeterminate={
-                                                                                    selectedIds.length > 0 &&
-                                                                                    selectedIds.length < filteredData.length
-                                                                                }
-                                                                                onCheckedChange={toggleAll}
-                                                                            />
-                                                                        </th>
-                                                                        <th className='p-2 text-center'>Sl No</th>
-                                                                        <th
-                                                                            className='cursor-pointer p-2 text-center'
-                                                                            onClick={() => handleSort('feeGroup')}>
-                                                                            Group Name{' '}
-                                                                            {sortKey === 'feeGroup' && (sortOrder === 'asc' ? '↑' : '↓')}
-                                                                        </th>
-                                                                        <th
-                                                                            className='cursor-pointer p-2 text-center'
-                                                                            onClick={() => handleSort('totalDue')}>
-                                                                            Balance Amount{' '}
-                                                                            {sortKey === 'totalDue' && (sortOrder === 'asc' ? '↑' : '↓')}
-                                                                        </th>
-                                                                    </tr>
-                                                                </thead>
-
-                                                                <tbody>
-                                                                    {filteredData.map((row, index) => (
-                                                                        <tr key={row.id} className='border-b'>
-                                                                            <td className='p-2 text-center'>
+                                                        {filters.userType !== 'Students' && (
+                                                            <div className='overflow-x-auto border'>
+                                                                <table className='w-full table-auto border-collapse'>
+                                                                    <thead className='bg-primary text-white'>
+                                                                        <tr>
+                                                                            <th className='p-2 text-center'>
                                                                                 <Checkbox
-                                                                                    checked={selectedIds.includes(row.id)}
-                                                                                    onCheckedChange={() => toggleRow(row.id)}
+                                                                                    checked={
+                                                                                        selectedIds.length === filteredData.length &&
+                                                                                        filteredData.length > 0
+                                                                                    }
+                                                                                    indeterminate={
+                                                                                        selectedIds.length > 0 &&
+                                                                                        selectedIds.length < filteredData.length
+                                                                                    }
+                                                                                    onCheckedChange={toggleAll}
                                                                                 />
-                                                                            </td>
-                                                                            <td className='p-2 text-center font-medium'>{index + 1}</td>
-                                                                            <td className='p-2 text-center font-medium'>{row.feeGroup}</td>
-                                                                            <td className='p-2 text-center font-bold'>
-                                                                                ₹{row.totalDue.toLocaleString('en-IN')}
+                                                                            </th>
+                                                                            <th className='p-2 text-center'>Sl No</th>
+                                                                            <th
+                                                                                className='cursor-pointer p-2 text-center'
+                                                                                onClick={() => handleSort('feeGroup')}>
+                                                                                Group Name{' '}
+                                                                                {sortKey === 'feeGroup' &&
+                                                                                    (sortOrder === 'asc' ? '↑' : '↓')}
+                                                                            </th>
+                                                                            <th
+                                                                                className='cursor-pointer p-2 text-center'
+                                                                                onClick={() => handleSort('totalDue')}>
+                                                                                Balance Amount{' '}
+                                                                                {sortKey === 'totalDue' &&
+                                                                                    (sortOrder === 'asc' ? '↑' : '↓')}
+                                                                            </th>
+                                                                        </tr>
+                                                                    </thead>
+
+                                                                    <tbody>
+                                                                        {filteredData.map((row, index) => (
+                                                                            <tr key={row.id} className='border-b'>
+                                                                                <td className='p-2 text-center'>
+                                                                                    <Checkbox
+                                                                                        checked={selectedIds.includes(row.id)}
+                                                                                        onCheckedChange={() => toggleRow(row.id)}
+                                                                                    />
+                                                                                </td>
+                                                                                <td className='p-2 text-center font-medium'>{index + 1}</td>
+                                                                                <td className='p-2 text-center font-medium'>
+                                                                                    {row.feeGroup}
+                                                                                </td>
+                                                                                <td className='p-2 text-center font-bold'>
+                                                                                    ₹{row.totalDue.toLocaleString('en-IN')}
+                                                                                </td>
+                                                                            </tr>
+                                                                        ))}
+
+                                                                        {/* Total */}
+                                                                        <tr className='bg-gray-100 font-bold'>
+                                                                            <td />
+                                                                            <td />
+                                                                            <td className='p-2 text-center'>Total</td>
+                                                                            <td className='p-2 text-center'>
+                                                                                ₹{totalBalance.toLocaleString('en-IN')}
                                                                             </td>
                                                                         </tr>
-                                                                    ))}
 
-                                                                    {/* Total */}
-                                                                    <tr className='bg-gray-100 font-bold'>
-                                                                        <td />
-                                                                        <td />
-                                                                        <td className='p-2 text-center'>Total</td>
-                                                                        <td className='p-2 text-center'>
-                                                                            ₹{totalBalance.toLocaleString('en-IN')}
-                                                                        </td>
-                                                                    </tr>
+                                                                        {/* Selected Total */}
+                                                                        <tr className='bg-gray-200 font-bold'>
+                                                                            <td />
+                                                                            <td />
+                                                                            <td className='p-2 text-center'>Selected Balance</td>
+                                                                            <td className='p-2 text-center'>
+                                                                                ₹{selectedBalance.toLocaleString('en-IN')}
+                                                                            </td>
+                                                                        </tr>
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        )}
+                                                        {filters.userType === 'Students' && studentreportData.length > 0 && (
+                                                            <div className='overflow-x-auto border'>
+                                                                <table className='w-full table-auto border-collapse'>
+                                                                    <thead className='bg-primary text-white'>
+                                                                        <tr>
+                                                                            <th className='p-2 text-center'>
+                                                                                <Checkbox
+                                                                                    checked={
+                                                                                        selectedIds.length === reportData.length &&
+                                                                                        reportData.length > 0
+                                                                                    }
+                                                                                    indeterminate={
+                                                                                        selectedIds.length > 0 &&
+                                                                                        selectedIds.length < studentreportData.length
+                                                                                    }
+                                                                                    onCheckedChange={toggleAll}
+                                                                                />
+                                                                            </th>
+                                                                            <th className='p-2 text-center'>Sl No</th>
+                                                                            <th className='p-2 text-center'>Name</th>
+                                                                            <th className='p-2 text-center'>Admission No</th>
+                                                                            <th className='p-2 text-center'>Class & Section</th>
+                                                                            <th className='p-2 text-center'>Father Name</th>
+                                                                            <th className='p-2 text-center'>Mobile Number</th>
+                                                                            <th className='p-2 text-center'>Email ID</th>
+                                                                            <th className='p-2 text-center'>Route</th>
+                                                                            <th className='p-2 text-center'>Balance Amount</th>
+                                                                            {/* <th className='p-2 text-center'>Fine Amount</th>
+                                                                            <th className='p-2 text-center'>Total Amount</th>
+                                                                            <th className='p-2 text-center'>Fee Group</th> */}
+                                                                        </tr>
+                                                                    </thead>
 
-                                                                    {/* Selected Total */}
-                                                                    <tr className='bg-gray-200 font-bold'>
-                                                                        <td />
-                                                                        <td />
-                                                                        <td className='p-2 text-center'>Selected Balance</td>
-                                                                        <td className='p-2 text-center'>
-                                                                            ₹{selectedBalance.toLocaleString('en-IN')}
-                                                                        </td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
+                                                                    <tbody>
+                                                                        {studentreportData.map((row, index) => (
+                                                                            <tr key={row.id} className='border-b hover:bg-gray-50'>
+                                                                                <td className='p-2 text-center'>
+                                                                                    <Checkbox
+                                                                                        checked={selectedIds.includes(row.id)}
+                                                                                        onCheckedChange={() => toggleRow(row.id)}
+                                                                                    />
+                                                                                </td>
+                                                                                <td className='p-2 text-center font-medium'>{index + 1}</td>
+                                                                                <td className='p-2 text-center font-medium'>{row.name}</td>
+                                                                                <td className='p-2 text-center'>{row.admissionNo}</td>
+                                                                                <td className='p-2 text-center'>{row.classSection}</td>
+                                                                                <td className='p-2 text-center'>{row.fatherName}</td>
+                                                                                <td className='p-2 text-center'>{row.mobileNumber}</td>
+                                                                                <td className='p-2 text-center'>{row.emailId}</td>
+                                                                                <td className='p-2 text-center'>{row.route}</td>
+                                                                                <td className='p-2 text-center font-bold'>
+                                                                                    ₹{row.balanceAmount.toLocaleString('en-IN')}
+                                                                                </td>
+                                                                                {/* <td className='p-2 text-center font-bold text-red-600'>
+                                                                                    ₹{row.fineAmount.toLocaleString('en-IN')}
+                                                                                </td> */}
+                                                                                {/* <td className='p-2 text-center font-bold text-green-700'>
+                                                                                    ₹{row.totalAmount.toLocaleString('en-IN')}
+                                                                                </td>
+                                                                                <td className='p-2 text-center'>{row.feeGroup}</td> */}
+                                                                            </tr>
+                                                                        ))}
+
+                                                                        {/* Totals Row */}
+                                                                        {/* <tr className='bg-gray-100 font-bold'>
+                                                                            <td colSpan={9} className='p-2 text-center'>Total</td>
+                                                                            <td className='p-2 text-center'>
+                                                                                ₹{reportData.reduce((sum, r) => sum + r.balanceAmount, 0).toLocaleString('en-IN')}
+                                                                            </td>
+                                                                            <td className='p-2 text-center text-red-600'>
+                                                                                ₹{reportData.reduce((sum, r) => sum + r.fineAmount, 0).toLocaleString('en-IN')}
+                                                                            </td>
+                                                                            <td className='p-2 text-center text-green-700'>
+                                                                                ₹{reportData.reduce((sum, r) => sum + r.totalAmount, 0).toLocaleString('en-IN')}
+                                                                            </td>
+                                                                            <td></td>
+                                                                        </tr> */}
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </CollapsibleSection>
                                             )}
@@ -1750,6 +2315,330 @@ export default function FeeDefaulterReport() {
                         </div>
                     </Card>
                 </div>
+
+                {/* Email Configuration Modal */}
+                <Dialog open={showemailContent === true} onOpenChange={setshowEmailContent}>
+                    <DialogContent className='max-h-[90vh] max-w-4xl overflow-y-auto'>
+                        <DialogHeader>
+                            <DialogTitle className='font-bold text-2xl'>Email Configuration</DialogTitle>
+                        </DialogHeader>
+
+                        <div className='space-y-6'>
+                            {/* Email Template Selection */}
+                            <div>
+                                <Label className='mb-2 block font-semibold'>Email Template:</Label>
+                                <Select value={emailTemplate} onValueChange={setEmailTemplate}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='-Select-' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value='fee_reminder'>Fee Reminder Template</SelectItem>
+                                        <SelectItem value='default_alert'>Default Alert Template</SelectItem>
+                                        <SelectItem value='custom'>Custom Template</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            {/* Email Subject */}
+                            <div>
+                                <Label className='mb-2 block font-semibold'>Subject:</Label>
+                                <Input
+                                    type='text'
+                                    value={emailSubject}
+                                    onChange={(e) => setEmailSubject(e.target.value)}
+                                    placeholder='Enter email subject'
+                                    className='w-full'
+                                />
+                            </div>
+
+                            {/* Email Content */}
+                            <div>
+                                <Label className='mb-2 block font-semibold'>Email Content:</Label>
+                                <Textarea
+                                    value={emailContent}
+                                    onChange={(e) => setEmailContent(e.target.value)}
+                                    placeholder='Enter email content here...'
+                                    className='min-h-[200px]'
+                                />
+                            </div>
+
+                            {/* Template Preview Section */}
+                            <div className='rounded-lg border p-4'>
+                                <h3 className='mb-3 font-bold text-lg'>Template Preview:</h3>
+                                <div className='rounded bg-gray-50 p-4'>
+                                    <p className='text-gray-700'>Thank You</p>
+                                    <div className='mt-4 rounded border bg-white p-3'>
+                                        <p className='mb-2 font-semibold'>Selected Students:</p>
+                                        <ul className='list-disc space-y-1 pl-5'>
+                                            {studentreportData
+                                                .filter((student) => selectedIds.includes(student.id))
+                                                .slice(0, 5) // Show only first 5 for preview
+                                                .map((student) => (
+                                                    <li key={student.id} className='text-sm'>
+                                                        {student.name} - ₹{student.balanceAmount.toLocaleString('en-IN')}
+                                                    </li>
+                                                ))}
+                                            {selectedIds.length > 5 && (
+                                                <li className='font-semibold text-sm'>...and {selectedIds.length - 5} more students</li>
+                                            )}
+                                        </ul>
+                                        <p className='mt-3 font-semibold'>
+                                            Total Balance: ₹{calculateTotals().totalBalance.toLocaleString('en-IN')}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Search Bar */}
+                            <div>
+                                <Input type='text' placeholder='Type here to search' className='w-full' />
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className='flex justify-end gap-3 pt-4'>
+                                <Button variant='outline' onClick={() => setShowEmailModal(false)}>
+                                    Cancel
+                                </Button>
+                                <Button onClick={handleSendEmail} className='bg-green-600 hover:bg-green-700'>
+                                    Send Email
+                                </Button>
+                            </div>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Notification Configuration Modal */}
+                <Dialog open={showNotificationModal === true} onOpenChange={setShowNotificationModal}>
+                    <DialogContent className='max-h-[90vh] max-w-4xl overflow-y-auto'>
+                        <div className='space-y-6'>
+                            <div className='text-center'>
+                                <h4 className='mb-2 font-bold text-red-600 text-xl'>SELECTED DEFAULTER LIST !!!</h4>
+                                <p className='font-bold text-gray-700'>NOTE : Notification Will Trigger For The Same</p>
+                            </div>
+
+                            {/* Defaulters Table */}
+                            <div className='overflow-x-auto rounded-lg border'>
+                                <table className='w-full table-auto border-collapse'>
+                                    <thead className='bg-primary text-white'>
+                                        <tr>
+                                            <th className='border p-3 text-center'>Sl No</th>
+                                            <th className='border p-3 text-center'>Name</th>
+                                            <th className='border p-3 text-center'>Admission No</th>
+                                            <th className='border p-3 text-center'>Class : Section</th>
+                                            <th className='border p-3 text-center'>Father Name</th>
+                                            <th className='border p-3 text-center'>Mobile Number</th>
+                                            <th className='border p-3 text-center'>Email-Id</th>
+                                            <th className='border p-3 text-center'>Balance Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {studentreportData
+                                            .filter((student) => selectedIds.includes(student.id))
+                                            .slice(0, 3) // Show only first 3 for preview
+                                            .map((student, index) => (
+                                                <tr key={student.id} className='border hover:bg-gray-50'>
+                                                    <td className='border p-2 text-center'>{index + 1}</td>
+                                                    <td className='border p-2 text-center'>{student.name}</td>
+                                                    <td className='border p-2 text-center'>{student.admissionNo}</td>
+                                                    <td className='border p-2 text-center'>{student.classSection}</td>
+                                                    <td className='border p-2 text-center'>{student.fatherName}</td>
+                                                    <td className='border p-2 text-center'>{student.mobileNumber}</td>
+                                                    <td className='border p-2 text-center'>{student.emailId}</td>
+                                                    <td className='border p-2 text-center font-bold text-red-600'>
+                                                        ₹{student.balanceAmount.toLocaleString('en-IN')}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        {selectedIds.length > 3 && (
+                                            <tr className='border bg-gray-50'>
+                                                <td colSpan={8} className='border p-2 text-center font-semibold'>
+                                                    ...and {selectedIds.length - 3} more students
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Notification Template Selection */}
+                            <div>
+                                <Label className='mb-2 block font-semibold'>Notification Template:</Label>
+                                <Select value={notificationTemplate} onValueChange={setNotificationTemplate}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='-Select-' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value='fee_default_notice'>Fee Default Notice</SelectItem>
+                                        <SelectItem value='urgent_payment'>Urgent Payment Required</SelectItem>
+                                        <SelectItem value='balance_reminder'>Balance Reminder</SelectItem>
+                                        <SelectItem value='final_notice'>Final Notice</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            {/* Notification Content */}
+                            <div>
+                                <Label className='mb-2 block font-semibold'>Notification Content:</Label>
+                                <Textarea
+                                    value={notificationContent}
+                                    onChange={(e) => setNotificationContent(e.target.value)}
+                                    placeholder='Enter notification content here...'
+                                    className='min-h-[150px]'
+                                />
+                            </div>
+
+                            {/* Template Preview Section */}
+                            <div className='rounded-lg border p-4'>
+                                <h3 className='mb-3 font-bold text-lg'>Template Preview:</h3>
+                                <div className='rounded bg-gray-50 p-4'>
+                                    <p className='text-gray-700'>Thank You</p>
+                                    <div className='mt-4 rounded border bg-white p-3'>
+                                        <p className='mb-2 font-semibold'>Selected Students ({selectedIds.length}):</p>
+                                        <ul className='list-disc space-y-1 pl-5'>
+                                            {studentreportData
+                                                .filter((student) => selectedIds.includes(student.id))
+                                                .slice(0, 3)
+                                                .map((student) => (
+                                                    <li key={student.id} className='text-sm'>
+                                                        {student.name} ({student.admissionNo}) - ₹
+                                                        {student.balanceAmount.toLocaleString('en-IN')}
+                                                    </li>
+                                                ))}
+                                            {selectedIds.length > 3 && (
+                                                <li className='font-semibold text-sm'>...and {selectedIds.length - 3} more students</li>
+                                            )}
+                                        </ul>
+                                        <p className='mt-3 font-semibold'>
+                                            Total Outstanding: ₹{calculateTotals().totalBalance.toLocaleString('en-IN')}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className='flex justify-end gap-3 pt-4'>
+                                <Button variant='outline' onClick={() => setShowNotificationModal(false)}>
+                                    Close
+                                </Button>
+                                <Button
+                                    onClick={handleSendNotification}
+                                    className='bg-blue-600 hover:bg-blue-700'
+                                    disabled={!notificationTemplate}>
+                                    <span className='mr-2'>🔔</span>
+                                    Send Notification
+                                </Button>
+                            </div>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+
+                {/* SMS Configuration Modal */}
+                <Dialog open={showSMSModal === true} onOpenChange={setShowSMSModal}>
+                    <DialogContent className='max-h-[90vh] max-w-4xl overflow-y-auto'>
+                        <div className='space-y-6'>
+                            <div className='text-center'>
+                                <h4 className='mb-2 font-bold text-red-600 text-xl'>SELECTED DEFAULTER LIST !!!</h4>
+                                <p className='font-bold text-gray-700'>NOTE : SMS Will Be Sent To The Same</p>
+                            </div>
+
+                            {/* Defaulters Table - SMS */}
+                            <div className='overflow-x-auto rounded-lg border'>
+                                <table className='w-full table-auto border-collapse'>
+                                    <thead>
+                                        <tr>
+                                            <th className='border p-3 text-center'>Sl No</th>
+                                            <th className='border p-3 text-center'>Name</th>
+                                            <th className='border p-3 text-center'>Mobile Number</th>
+                                            <th className='border p-3 text-center'>Balance Amount</th>
+                                            <th className='border p-3 text-center'>SMS Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {studentreportData
+                                            .filter((student) => selectedIds.includes(student.id))
+                                            .slice(0, 5) // Show only first 5 for preview
+                                            .map((student, index) => (
+                                                <tr key={student.id} className='border hover:bg-gray-50'>
+                                                    <td className='border p-2 text-center'>{index + 1}</td>
+                                                    <td className='border p-2 text-center'>{student.name}</td>
+                                                    <td className='border p-2 text-center font-mono'>{student.mobileNumber}</td>
+                                                    <td className='border p-2 text-center font-bold text-red-600'>
+                                                        ₹{student.balanceAmount.toLocaleString('en-IN')}
+                                                    </td>
+                                                    <td className='border p-2 text-center'>
+                                                        <span className='inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 font-medium text-xs text-yellow-800'>
+                                                            Pending
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        {selectedIds.length > 5 && (
+                                            <tr className='border bg-gray-50'>
+                                                <td colSpan={5} className='border p-2 text-center font-semibold'>
+                                                    ...and {selectedIds.length - 5} more students will receive SMS
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* SMS Template Selection */}
+                            <div>
+                                <Label className='mb-2 block font-semibold'>SMS Template:</Label>
+                                <Select value={smsTemplate} onValueChange={setSmsTemplate}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='-Select-' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value='sms_fee_reminder'>Fee Reminder SMS</SelectItem>
+                                        <SelectItem value='sms_urgent'>Urgent Payment SMS</SelectItem>
+                                        <SelectItem value='sms_short'>Short Balance Alert</SelectItem>
+                                        <SelectItem value='sms_detailed'>Detailed Balance SMS</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            {/* SMS Content */}
+                            <div>
+                                <Label className='mb-2 block font-semibold'>SMS Content:</Label>
+                                <Textarea
+                                    value={smsContent}
+                                    onChange={(e) => setSmsContent(e.target.value)}
+                                    placeholder='Enter SMS content here...'
+                                    className='min-h-[100px]'
+                                    maxLength={160}
+                                />
+                                <p className='mt-1 text-gray-500 text-sm'>Characters: {smsContent.length}/160</p>
+                            </div>
+
+                            {/* Search Bar for SMS */}
+                            <div>
+                                <Label className='mb-2 block font-semibold'>Search Students:</Label>
+                                <Input
+                                    type='text'
+                                    placeholder='Search students by name or mobile...'
+                                    className='w-full'
+                                    onChange={(e) => setSmsSearch(e.target.value)}
+                                />
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className='flex justify-end gap-3 pt-4'>
+                                <Button variant='outline' onClick={() => setShowSMSModal(false)}>
+                                    Close
+                                </Button>
+                                <Button
+                                    onClick={handleSendSMS}
+                                    className='bg-green-600 hover:bg-green-700'
+                                    disabled={!smsTemplate || smsContent.length === 0}>
+                                    <span className='mr-2'>📱</span>
+                                    Send SMS
+                                </Button>
+                            </div>
+                        </div>
+                    </DialogContent>
+                </Dialog>
             </form>
         </div>
     );
