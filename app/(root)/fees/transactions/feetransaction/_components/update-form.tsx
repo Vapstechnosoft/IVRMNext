@@ -279,33 +279,31 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
     }, [studentSearch]);
 
     useEffect(() => {
-        if (!selectedStudent) {
-            setTerms([]);
-            SetStudentDetails([]);
-            SetFeeDetails([]);
-            return;
-        }
+        // if (!selectedStudent) {
+        //     setTerms([]);
+        //     SetStudentDetails([]);
+        //     SetFeeDetails([]);
+        //     return;
+        // }
         const fetchStudentsDetails = async () => {
             setLoadingTerm(true);
             try {
                 const payload = {
-                    amst_Id: selectedStudent.amst_Id,
+                    amst_Id: selectedRow.amst_Id,
                     filterinitialdata: filterType,
                     // configset: 'T',
                     autoReceiptFlag: true,
-                    asmaY_Id: selectedAsmayId
+                    asmaY_Id: selectedRow.asmaY_ID
                 };
                 const termArray = await getStudentDetails(payload);
                 const termList = JSON.parse(JSON.stringify(termArray.masterGroupDetails || []));
                 const studentDetails = JSON.parse(JSON.stringify(termArray.fillstudents || []));
                 const feeDetails = JSON.parse(JSON.stringify(termArray.showstaticticsdetails || []));
                 const studentUserNameArray = JSON.parse(JSON.stringify(termArray.filusernames || []));
-                // const studentAmountDetails = JSON.parse(JSON.stringify(termArray.fillstudentviewdetails || []));
                 setTerms(termList || []);
                 SetStudentDetails(studentDetails || []);
                 SetFeeDetails(feeDetails || []);
                 SetStudentUserNameDetails(studentUserNameArray || []);
-                // SetStudentAmountDetails(studentAmountDetails || []);
             } catch (error) {
                 console.error('Failed to fetch students:', error);
                 setTerms([]);
@@ -314,7 +312,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
             }
         };
         fetchStudentsDetails();
-    }, [selectedStudent]);
+    }, [selectedRow]);
 
     useEffect(() => {
         if (!selectedTerm || selectedTerm.length === 0) {
@@ -834,7 +832,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                             <Label className='font-semibold'>Date</Label>
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <Button variant='outline' className='w-full justify-start text-left font-normal'>
+                                    <Button variant='outline' className='w-full justify-start text-left font-normal' disabled>
                                         <CalendarIcon className='mr-2 h-4 w-4' />
                                         {todaysDate ? format(todaysDate, 'PPP') : 'Select Date'}
                                     </Button>
@@ -1078,7 +1076,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                                         value: ex.fmT_Id.toString()
                                     }))}
                                     isLoading={loadingTerm}
-                                    disabled={amountCheck || filterType === 'Chal_no'}
+                                    disabled
                                     value={selectedTerm}
                                     onChange={handleTermChange}
                                     height='150px'
@@ -1092,6 +1090,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                                 <Checkbox
                                     id='amount'
                                     checked={amountCheck}
+                                    disabled
                                     onCheckedChange={(v) => {
                                         if (v === true && selectedTerm.length === 0) {
                                             toast.error('Kindly select atleast any one term');
