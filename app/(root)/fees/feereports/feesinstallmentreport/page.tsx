@@ -146,6 +146,12 @@ export default function FeeInstallemntReport() {
 
     const [installmentSearch, setInstallmentSearch] = useState('');
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+
+    // Add this computed value
+    const totalPages = Math.ceil(reportData.length / rowsPerPage);
+
     // Hooks
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
     const { data: classListResponse, isLoading: loadingClasses, error: classListError } = useFeeClassListDefaulterreport();
@@ -625,287 +631,6 @@ export default function FeeInstallemntReport() {
         setValue('groupIdsNew', isAllGroupsSelectedNew ? [] : feeGroups.map((g) => g.fmG_Id), { shouldDirty: true, shouldValidate: true });
     };
 
-    const staticReportData = [
-        {
-            id: 1,
-            rollNo: 1,
-            studentName: 'AAMINA MIN',
-            admNo: '2024-012',
-            className: 'LKG',
-            sectionName: 'A',
-            balance: 2047,
-            total: 4096,
-            installment1: {
-                net: 2009,
-                paid: 2049,
-                balance: 0,
-                concession: 0,
-                fine: 0,
-                waiver: 0,
-                opening: 2047,
-                net2: 2047, // Second net? (image has two 'Net' cols per installment)
-                paid2: 2047,
-                balance2: 0
-            },
-            installment2: {
-                net: 0, // Empty in image for II
-                paid: 0,
-                balance: 0,
-                concession: 0,
-                fine: 0,
-                waiver: 0,
-                opening: 0,
-                net2: 0,
-                paid2: 0,
-                balance2: 0
-            }
-        },
-        {
-            id: 2,
-            rollNo: 1,
-            studentName: 'ADREETA DEBNATH',
-            admNo: '2024-050',
-            className: 'LKG',
-            sectionName: 'D',
-            balance: 40054, // Image shows 40054, but likely 4005? Using as-is
-            total: 20049,
-            installment1: {
-                net: 2009,
-                paid: 2049,
-                balance: 0,
-                concession: 0,
-                fine: 0,
-                waiver: 0,
-                opening: 2047,
-                net2: 0,
-                paid2: 0,
-                balance2: 2047
-            },
-            installment2: {
-                net: 0,
-                paid: 0,
-                balance: 0,
-                concession: 0,
-                fine: 0,
-                waiver: 0,
-                opening: 0,
-                net2: 0,
-                paid2: 0,
-                balance2: 0
-            }
-        },
-        {
-            id: 3,
-            rollNo: 1,
-            studentName: 'BHU KHATRI', // Likely "BHUMI KHATRI" from image
-            admNo: '2024-065',
-            className: 'LKG',
-            sectionName: 'C',
-            balance: 2047,
-            total: 4096,
-            installment1: {
-                net: 2009,
-                paid: 2049,
-                balance: 0,
-                concession: 0,
-                fine: 0,
-                waiver: 0,
-                opening: 2047,
-                net2: 2047,
-                paid2: 2047,
-                balance2: 0
-            },
-            installment2: {
-                net: 0,
-                paid: 0,
-                balance: 0,
-                concession: 0,
-                fine: 0,
-                waiver: 0,
-                opening: 0,
-                net2: 0,
-                paid2: 0,
-                balance2: 0
-            }
-        },
-        {
-            id: 4,
-            rollNo: 1,
-            studentName: 'AJAB HUSEN GHEWALA', // Likely "AJAB HUSEN GHEWALA"
-            admNo: '2024-149',
-            className: 'UKG',
-            sectionName: 'C',
-            balance: 2047,
-            total: 4096,
-            installment1: {
-                net: 2009,
-                paid: 2049,
-                balance: 0,
-                concession: 0,
-                fine: 0,
-                waiver: 0,
-                opening: 2047,
-                net2: 2047,
-                paid2: 2047,
-                balance2: 0
-            },
-            installment2: {
-                net: 0,
-                paid: 0,
-                balance: 0,
-                concession: 0,
-                fine: 0,
-                waiver: 0,
-                opening: 0,
-                net2: 0,
-                paid2: 0,
-                balance2: 0
-            }
-        },
-        {
-            id: 5,
-            rollNo: 1,
-            studentName: 'SINCHANA M',
-            admNo: '2024-060',
-            className: 'UKG',
-            sectionName: 'D',
-            balance: 60143, // Image shows 60143 for balance
-            total: 0,
-            installment1: {
-                net: 2009,
-                paid: 0,
-                balance: 2049,
-                concession: 0,
-                fine: 0,
-                waiver: 0,
-                opening: 2047,
-                net2: 2047,
-                paid2: 0,
-                balance2: 2047
-            },
-            installment2: {
-                net: 0,
-                paid: 0,
-                balance: 0,
-                concession: 0,
-                fine: 0,
-                waiver: 0,
-                opening: 0,
-                net2: 0,
-                paid2: 0,
-                balance2: 0
-            }
-        }
-    ];
-
-    // Installments data (for headers) - assuming 2 installments as per image
-    const staticInstallments = [
-        { ftI_Id: 1, ftI_Name: 'I Installment' },
-        { ftI_Id: 2, ftI_Name: 'II Installment' }
-    ];
-
-    const staticConsolidateData = [
-        {
-            id: 1,
-            slNo: 1,
-            termsName: 'I Installment',
-            todayPaidCount: 0,
-            todayCollection: 0,
-            stillNowPaidCount: 25,
-            stillNowCollection: 0,
-            totalStrength: 3297,
-            defaulters: 2161
-        },
-        {
-            id: 2,
-            slNo: 2,
-            termsName: 'II Installment',
-            todayPaidCount: 0,
-            todayCollection: 0,
-            stillNowPaidCount: 0,
-            stillNowCollection: 0,
-            totalStrength: 3297,
-            defaulters: 3041
-        },
-        {
-            id: 3,
-            slNo: 3,
-            termsName: 'III Installment',
-            todayPaidCount: 0,
-            todayCollection: 0,
-            stillNowPaidCount: 0,
-            stillNowCollection: 0,
-            totalStrength: 3297,
-            defaulters: 3107
-        },
-        {
-            id: 4,
-            slNo: 4,
-            termsName: 'IV Installment',
-            todayPaidCount: 0,
-            todayCollection: 0,
-            stillNowPaidCount: 0,
-            stillNowCollection: 0,
-            totalStrength: 3297,
-            defaulters: 0
-        },
-        {
-            id: 5,
-            slNo: 5,
-            termsName: 'Pending Fee(21)',
-            todayPaidCount: 0,
-            todayCollection: 0,
-            stillNowPaidCount: 0,
-            stillNowCollection: 0,
-            totalStrength: 3297,
-            defaulters: 0
-        },
-        {
-            id: 6,
-            slNo: 6,
-            termsName: 'Pending Fee(22)',
-            todayPaidCount: 0,
-            todayCollection: 0,
-            stillNowPaidCount: 0,
-            stillNowCollection: 0,
-            totalStrength: 3297,
-            defaulters: 0
-        },
-        {
-            id: 7,
-            slNo: 7,
-            termsName: 'Pending Fee(23)',
-            todayPaidCount: 0,
-            todayCollection: 0,
-            stillNowPaidCount: 0,
-            stillNowCollection: 0,
-            totalStrength: 3297,
-            defaulters: 0
-        },
-        {
-            id: 8,
-            slNo: 8,
-            termsName: 'Pending Fee(24)',
-            todayPaidCount: 0,
-            todayCollection: 0,
-            stillNowPaidCount: 0,
-            stillNowCollection: 0,
-            totalStrength: 3297,
-            defaulters: 0
-        },
-        {
-            id: 9,
-            slNo: 9,
-            termsName: 'Pending Fee(25)',
-            todayPaidCount: 0,
-            todayCollection: 0,
-            stillNowPaidCount: 0,
-            stillNowCollection: 0,
-            totalStrength: 3297,
-            defaulters: 0
-        }
-    ];
-
     const selectedInstallmentDataNew = useMemo(
         () => feeInstallments.filter((inst) => installmentIds?.includes(inst.ftI_Id)),
         [installmentIds, feeInstallments]
@@ -1013,8 +738,17 @@ export default function FeeInstallemntReport() {
                 case 'Class': {
                     // Set header_list from all installments (arrlstinst1 in AngularJS)
                     if (termwise !== 1) {
+                        // feeInstallments.forEach((inst) => {
+                        //     header_list.push(inst);
+                        // });
                         feeInstallments.forEach((inst) => {
-                            header_list.push(inst);
+                            if (installmentIds?.includes(inst.ftI_Id)) {
+                                header_list.push(inst);
+                                albumNameArraygroupids.push({
+                                    ftI_Id: String(inst.ftI_Id),
+                                    ftI_Name: inst.ftI_Name
+                                });
+                            }
                         });
                     }
 
@@ -1028,6 +762,7 @@ export default function FeeInstallemntReport() {
                         ASMCL_Id: data.classId || 0,
                         ASMS_Id: data.sectionId || 0,
                         FMCC_Id: 0,
+                        AMSC_Id: data.sectionId || 0,
                         reporttype: selectedCatg,
                         FMG_Id: 0,
                         TRMR_Id: 0,
@@ -1398,7 +1133,7 @@ export default function FeeInstallemntReport() {
                     setReportData([]);
                     toast.error('No data found');
                 }
-            } else if (selectedCatg === 'Category') {
+            } else if ((selectedCatg === 'Category' || selectedCatg === 'Class') && !termwise) {
                 if (transformedData != null && transformedData.length > 0) {
                     toast.success('Report generated successfully');
                     setReportData(transformedData);
@@ -1408,8 +1143,44 @@ export default function FeeInstallemntReport() {
                     setReportData([]);
                     toast.error('No data found');
                 }
-            }
+            } else if (selectedCatg === 'Category' && termwise) {
+                const transformReportDatanew = (apiData: any[]) => {
+                    return apiData.map((item, index) => ({
+                        id: index, // Use unique ID
+                        slNo: index + 1,
+                        studentName: item.studentName || '',
+                        admissionNo: item.admno || '',
+                        className: item.asmcL_ClassName || '',
+                        section: item.asmC_SectionName || '',
+                        term: item.fmT_Name || '',
+                        payableAmount: item.payableAmount || 0,
+                        paidAmount: item.paidAmount || 0,
+                        balanceAmount: item.balance || 0,
+                        adjustedAmount: item.adjustedAmount || 0,
+                        concessionAmount: item.concessionAmount || 0,
+                        waivedAmount: item.waivedAmount || 0,
+                        refundAmount: item.refundAmount || 0
+                    }));
+                };
+                let dataToTransform: any[] = [];
 
+                if (apiData && (apiData as any).data?.list && Array.isArray((apiData as any).data.list)) {
+                    dataToTransform = (apiData as any).data.list;
+                }
+                const transformedDatanew = transformReportDatanew(dataToTransform);
+                setReportData(transformedDatanew);
+                setShowReport(true);
+
+                if (transformedDatanew != null && transformedDatanew.length > 0) {
+                    toast.success('Report generated successfully');
+                    setReportData(transformedDatanew);
+                    setShowReport(true);
+                } else {
+                    // Fallback to static data
+                    setReportData([]);
+                    toast.error('No data found');
+                }
+            }
             // For demo, use static data
             // if (selectedCatg === 'Consolidate') {
             //     setReportData(staticConsolidateData);
@@ -2462,6 +2233,217 @@ export default function FeeInstallemntReport() {
                                                                 ))}
                                                             </tbody>
                                                         </table>
+                                                    </div>
+                                                )}
+
+                                                {showReport && selectedCatg === 'Category' && termwise && (
+                                                    <div className='mt-8 overflow-hidden rounded-lg border bg-white shadow-lg'>
+                                                        <div className='overflow-x-auto pb-8'>
+                                                            <table
+                                                                className='w-full min-w-max border-collapse border border-gray-300 text-sm'
+                                                                style={{ tableLayout: 'auto' }}>
+                                                                <thead className='bg-primary text-white'>
+                                                                    <tr className='border-b'>
+                                                                        <th className='min-w-[50px] whitespace-nowrap border px-4 py-3 text-left font-semibold'>
+                                                                            Sl No
+                                                                        </th>
+                                                                        <th className='min-w-[180px] max-w-[250px] border px-4 py-3 text-left font-semibold'>
+                                                                            Student Name
+                                                                        </th>
+                                                                        <th className='min-w-[120px] border px-4 py-3 text-left font-semibold'>
+                                                                            Admission No
+                                                                        </th>
+                                                                        <th className='min-w-[100px] border px-4 py-3 text-left font-semibold'>
+                                                                            Class
+                                                                        </th>
+                                                                        <th className='min-w-[80px] border px-4 py-3 text-left font-semibold'>
+                                                                            Section
+                                                                        </th>
+                                                                        <th className='min-w-[120px] max-w-[200px] border px-4 py-3 text-left font-semibold'>
+                                                                            Term
+                                                                        </th>
+                                                                        <th className='min-w-[120px] whitespace-nowrap border px-4 py-3 text-left font-semibold'>
+                                                                            Payable Amount
+                                                                        </th>
+                                                                        <th className='min-w-[120px] whitespace-nowrap border px-4 py-3 text-left font-semibold'>
+                                                                            Paid Amount
+                                                                        </th>
+                                                                        <th className='min-w-[120px] whitespace-nowrap border px-4 py-3 text-left font-semibold'>
+                                                                            Balance
+                                                                        </th>
+                                                                        <th className='min-w-[100px] whitespace-nowrap border px-4 py-3 text-left font-semibold'>
+                                                                            Concession
+                                                                        </th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {reportData
+                                                                        .slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
+                                                                        .map((item, index) => (
+                                                                            <tr key={item.id} className='border-b hover:bg-gray-50'>
+                                                                                <td className='border-r px-4 py-3 text-center text-sm'>
+                                                                                    {(currentPage - 1) * rowsPerPage + index + 1}
+                                                                                </td>
+                                                                                <td
+                                                                                    className='truncate border-r px-4 py-3 font-medium text-sm'
+                                                                                    title={item.studentName}>
+                                                                                    {item.studentName}
+                                                                                </td>
+                                                                                <td className='border-r px-4 py-3 text-sm'>
+                                                                                    {item.admissionNo}
+                                                                                </td>
+                                                                                <td className='border-r px-4 py-3 text-center text-sm'>
+                                                                                    {item.className}
+                                                                                </td>
+                                                                                <td className='border-r px-4 py-3 text-center text-sm'>
+                                                                                    {item.section}
+                                                                                </td>
+                                                                                <td className='border-r px-4 py-3 text-sm'>
+                                                                                    <div className='truncate' title={item.term}>
+                                                                                        {item.term}
+                                                                                    </div>
+                                                                                </td>
+                                                                                <td className='whitespace-nowrap border-r px-4 py-3 text-right text-sm'>
+                                                                                    ₹{item.payableAmount.toLocaleString('en-IN')}
+                                                                                </td>
+                                                                                <td className='whitespace-nowrap border-r px-4 py-3 text-right text-sm'>
+                                                                                    ₹{item.paidAmount.toLocaleString('en-IN')}
+                                                                                </td>
+                                                                                <td className='whitespace-nowrap border-r px-4 py-3 text-right text-sm'>
+                                                                                    ₹{item.balanceAmount.toLocaleString('en-IN')}
+                                                                                </td>
+                                                                                <td className='whitespace-nowrap px-4 py-3 text-right text-sm'>
+                                                                                    ₹{item.concessionAmount.toLocaleString('en-IN')}
+                                                                                </td>
+                                                                            </tr>
+                                                                        ))}
+                                                                </tbody>
+                                                                {/* Totals Row */}
+                                                                <tfoot className='bg-gray-100 font-bold'>
+                                                                    <tr>
+                                                                        <td colSpan={6} className='border-r px-4 py-3 text-right'>
+                                                                            Total:
+                                                                        </td>
+                                                                        <td className='whitespace-nowrap border-r px-4 py-3 text-right'>
+                                                                            ₹
+                                                                            {reportData
+                                                                                .reduce((sum, item) => sum + item.payableAmount, 0)
+                                                                                .toLocaleString('en-IN')}
+                                                                        </td>
+                                                                        <td className='whitespace-nowrap border-r px-4 py-3 text-right'>
+                                                                            ₹
+                                                                            {reportData
+                                                                                .reduce((sum, item) => sum + item.paidAmount, 0)
+                                                                                .toLocaleString('en-IN')}
+                                                                        </td>
+                                                                        <td className='whitespace-nowrap border-r px-4 py-3 text-right'>
+                                                                            ₹
+                                                                            {reportData
+                                                                                .reduce((sum, item) => sum + item.balanceAmount, 0)
+                                                                                .toLocaleString('en-IN')}
+                                                                        </td>
+                                                                        <td className='whitespace-nowrap px-4 py-3 text-center'>
+                                                                            <span className='rounded-full bg-yellow-100 px-2 py-1 font-medium text-xs text-yellow-800'>
+                                                                                Pending:{' '}
+                                                                                {reportData.filter((item) => item.balanceAmount > 0).length}
+                                                                            </span>
+                                                                        </td>
+                                                                    </tr>
+                                                                </tfoot>
+                                                            </table>
+
+                                                            {/* Pagination Controls */}
+                                                            <div className='mt-4 flex items-center justify-between px-8 text-muted-foreground text-sm'>
+                                                                {/* LEFT TEXT */}
+                                                                <div>
+                                                                    Showing {(currentPage - 1) * rowsPerPage + 1} to{' '}
+                                                                    {Math.min(currentPage * rowsPerPage, reportData.length)} of{' '}
+                                                                    {reportData.length} entries
+                                                                </div>
+
+                                                                {/* RIGHT CONTROLS */}
+                                                                <div className='flex items-center gap-3'>
+                                                                    {/* Rows per page */}
+                                                                    <div className='flex items-center gap-2'>
+                                                                        <span>Rows per page</span>
+                                                                        <select
+                                                                            value={rowsPerPage}
+                                                                            onChange={(e) => {
+                                                                                setRowsPerPage(Number(e.target.value));
+                                                                                setCurrentPage(1);
+                                                                            }}
+                                                                            className='h-8 rounded border px-2'>
+                                                                            {[10, 20, 50].map((size) => (
+                                                                                <option key={size} value={size}>
+                                                                                    {size}
+                                                                                </option>
+                                                                            ))}
+                                                                        </select>
+                                                                    </div>
+
+                                                                    {/* Pagination buttons */}
+                                                                    <div className='flex items-center gap-1'>
+                                                                        <button
+                                                                            type='button'
+                                                                            className='flex h-8 w-8 items-center justify-center rounded border hover:bg-gray-100 disabled:opacity-50'
+                                                                            disabled={currentPage === 1}
+                                                                            onClick={() => setCurrentPage(1)}>
+                                                                            ⏮
+                                                                        </button>
+
+                                                                        <button
+                                                                            type='button'
+                                                                            className='flex h-8 w-8 items-center justify-center rounded border hover:bg-gray-100 disabled:opacity-50'
+                                                                            disabled={currentPage === 1}
+                                                                            onClick={() => setCurrentPage((p) => p - 1)}>
+                                                                            ◀
+                                                                        </button>
+
+                                                                        <button
+                                                                            type='button'
+                                                                            className='flex h-8 w-8 items-center justify-center rounded border hover:bg-gray-100 disabled:opacity-50'
+                                                                            disabled={currentPage === totalPages || totalPages === 0}
+                                                                            onClick={() => setCurrentPage((p) => p + 1)}>
+                                                                            ▶
+                                                                        </button>
+
+                                                                        <button
+                                                                            type='button'
+                                                                            className='flex h-8 w-8 items-center justify-center rounded border hover:bg-gray-100 disabled:opacity-50'
+                                                                            disabled={currentPage === totalPages || totalPages === 0}
+                                                                            onClick={() => setCurrentPage(totalPages)}>
+                                                                            ⏭
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Summary Cards */}
+                                                        {/* <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-4">
+                                                            <div className="rounded-lg border bg-white p-4 shadow-sm">
+                                                                <h4 className='font-medium text-gray-500 text-sm'>Total Students</h4>
+                                                                <p className='mt-2 font-bold text-2xl'>{reportData.length}</p>
+                                                            </div>
+                                                            <div className="rounded-lg border bg-white p-4 shadow-sm">
+                                                                <h4 className='font-medium text-gray-500 text-sm'>Total Payable</h4>
+                                                                <p className='mt-2 font-bold text-2xl text-blue-600'>
+                                                                    ₹{reportData.reduce((sum, item) => sum + item.payableAmount, 0).toLocaleString('en-IN')}
+                                                                </p>
+                                                            </div>
+                                                            <div className="rounded-lg border bg-white p-4 shadow-sm">
+                                                                <h4 className='font-medium text-gray-500 text-sm'>Total Paid</h4>
+                                                                <p className='mt-2 font-bold text-2xl text-green-600'>
+                                                                    ₹{reportData.reduce((sum, item) => sum + item.paidAmount, 0).toLocaleString('en-IN')}
+                                                                </p>
+                                                            </div>
+                                                            <div className="rounded-lg border bg-white p-4 shadow-sm">
+                                                                <h4 className='font-medium text-gray-500 text-sm'>Total Balance</h4>
+                                                                <p className='mt-2 font-bold text-2xl text-red-600'>
+                                                                    ₹{reportData.reduce((sum, item) => sum + item.balanceAmount, 0).toLocaleString('en-IN')}
+                                                                </p>
+                                                            </div>
+                                                        </div> */}
                                                     </div>
                                                 )}
                                             </div>
