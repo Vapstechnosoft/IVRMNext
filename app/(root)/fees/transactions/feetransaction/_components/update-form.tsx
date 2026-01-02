@@ -21,14 +21,15 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { Input } from '@/components/ui/input';
 import { useStudentClassDropDown, useStudentSectionDropDown } from '@/hooks/fees/useMasters';
 import { useFeeDefaulterReport } from '@/hooks/fees/useReports';
-import { useFeeMasterConfiguration, useFeeTransactionList, useUpdateFeeTransactionList } from '@/hooks/fees/useTrasactions';
+import { useFeeMasterConfiguration, useFeeTransactionList } from '@/hooks/fees/useTrasactions';
 import { feesStudentTransactionUpdateSchema } from '@/schemas/fees/trasactions';
 import {
     getFeeHead,
     getStudentDetails,
     masterBank,
     saveFeeTransaction,
-    searchStudentName
+    searchStudentName,
+    updateFeeStudentTransactionDetails
 } from '@/server/fees/trasactions/fee_student_transaction';
 import type {
     IFeeTDetails,
@@ -43,6 +44,7 @@ import type {
 } from '@/types/fees/transactions/transactions';
 import type { z } from 'zod';
 import FeeDetails from './fee-head-column';
+import StudentProfileModal from './student-details';
 
 type FormFields = z.infer<typeof feesStudentTransactionUpdateSchema.addOrUpdate>;
 
@@ -58,13 +60,9 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
     if (loadingYears) {
         return <div className='flex items-center justify-center p-8'>Loading academic year data...</div>;
     }
-    const payload = {
-        asmaY_Id: selectedRow.asmaY_ID,
-        amst_Id: selectedRow.amst_Id,
-        fyP_Id: selectedRow.fyP_Id
-    };
-    const { data: updateFeeTransaction, isLoading: isUpdateFeeTransactionLoading } = useUpdateFeeTransactionList(payload);
 
+    const [preSelectedTerm, setPreSelectedTerm] = useState<any[]>([]);
+    const [HeadofUpdate, setHeadofUpdate] = useState<any[]>([]);
     const {
         handleSubmit,
         reset,
@@ -75,7 +73,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
         resolver: zodResolver(feesStudentTransactionUpdateSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            asmaY_Id: undefined
+            asmaY_Id: 0
         }
     });
 
@@ -122,6 +120,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
     const [rebateAmount, setRebateAmount] = useState<{
         [key: number]: string;
     }>({});
+    const [openStudentDetails, setOpenStudentDetails] = useState(false);
     const [TotalCurrentFee, setTotalCurrentFee] = useState<number>();
     const [ConcessionAmount, setConcessionAmount] = useState<number>();
     const [TotalConcession, setTotalConcession] = useState<number>();
@@ -142,7 +141,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
     }>({});
     const [filterType, setFilterType] = useState('regular');
     const [payType, setPayType] = useState<string>('');
-    const [modeType, setModeType] = useState<string>('Single');
+
     const [checkPayType, setCheckPayType] = useState<string[]>(['']);
     const [selectedBanks, setSelectedBanks] = useState<Record<number, string>>({});
     const [left, setLeft] = useState(false);
@@ -151,7 +150,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
     const [section, setSection] = useState(false);
     const [amountCheck, setAmountCheck] = useState(false);
     const [amountforTerm, setAmountforTerm] = useState('');
-    const [selectAll, setSelectAll] = useState(false);
+    const [selectAll, setSelectAll] = useState(true);
     const [sms, setSms] = useState(false);
     const [email, setEmail] = useState(false);
     const [openFeeDetails, setOpenFeeDetails] = useState(false);
@@ -228,21 +227,6 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
         if (!amountCheck) setAmountforTerm('');
     }, [amountCheck]);
 
-    useEffect(() => {
-        setchequeDates({});
-        setChequeNo({});
-        setSelectedBanks({});
-        setAmount({});
-        const selectedPayment = masterModeofPaymentList.find((f) => f.ivrmmoD_ModeOfPayment === payType);
-
-        if (modeType === 'Single' && selectedPayment) {
-            setAmount((prev) => ({
-                ...prev,
-                [selectedPayment.ivrmmoD_Id]: TotalPaying?.toString() || '0'
-            }));
-        }
-    }, [payType, TotalPaying, modeType]);
-
     const { data: feeclassData, isLoading: feeclassDataLoading } = useStudentClassDropDown(classs);
 
     const { data: feeSectionData, isLoading: feeSectionDataLoading } = useStudentSectionDropDown(section);
@@ -297,13 +281,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                 };
                 const termArray = await getStudentDetails(payload);
                 const termList = JSON.parse(JSON.stringify(termArray.masterGroupDetails || []));
-                const studentDetails = JSON.parse(JSON.stringify(termArray.fillstudents || []));
-                const feeDetails = JSON.parse(JSON.stringify(termArray.showstaticticsdetails || []));
-                const studentUserNameArray = JSON.parse(JSON.stringify(termArray.filusernames || []));
                 setTerms(termList || []);
-                SetStudentDetails(studentDetails || []);
-                SetFeeDetails(feeDetails || []);
-                SetStudentUserNameDetails(studentUserNameArray || []);
             } catch (error) {
                 console.error('Failed to fetch students:', error);
                 setTerms([]);
@@ -336,7 +314,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                 const feeDetails = JSON.parse(JSON.stringify(termListArray.feeStudentTermInfo || []));
                 const narrationDropDown = JSON.parse(JSON.stringify(termListArray.masterNarrations || []));
                 const modeofPaymentList = JSON.parse(JSON.stringify(termListArray.modeOfPaymentDTOs || []));
-                setFeeHeads(feeDetails || []);
+                // setFeeHeads(feeDetails || []);
                 setMasternarration(narrationDropDown || []);
                 setMasterModeofPaymentList(modeofPaymentList || []);
 
@@ -351,7 +329,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
         };
 
         fetchFeeHeadDetails();
-    }, [selectedTerm, filterType, selectedStudent, selectedAsmayId]);
+    }, []);
 
     useEffect(() => {
         setIsLoadingMasterBanks(true);
@@ -367,6 +345,86 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
         setIsLoadingMasterBanks(false);
         fetchMasterBank();
     }, []);
+    const [Total, setTotal] = useState<number>(0);
+    useEffect(() => {
+        const UpdateStudentsDetails = async () => {
+            try {
+                const payload = {
+                    asmaY_Id: selectedRow.asmaY_ID,
+                    amst_Id: selectedRow.amst_Id,
+                    fyP_Id: selectedRow.fyP_Id
+                };
+                const array = await updateFeeStudentTransactionDetails(payload);
+                const student = JSON.parse(JSON.stringify(array.filusernames || []));
+                const feeDetails = JSON.parse(JSON.stringify(array.showstaticticsdetails || []));
+                const PreSelectedtermList = JSON.parse(JSON.stringify(array.fillmastergroup || []));
+                const feeHeads = JSON.parse(JSON.stringify(array.receiparraydeleteall || []));
+                const bank = JSON.parse(JSON.stringify(array.editBankDetails || []));
+                const narration = JSON.parse(JSON.stringify(array.narrationlists || []));
+                const modeofPayment = JSON.parse(JSON.stringify(array.fetchmodeofpayments || []));
+                setMasterModeofPaymentList(modeofPayment || []);
+                SetStudentDetails(student || []);
+                SetFeeDetails(feeDetails || []);
+                SetStudentUserNameDetails(student || []);
+                setPreSelectedTerm(PreSelectedtermList || []);
+                setHeadofUpdate(feeHeads || []);
+                setMasterBanks(bank || []);
+                setMasternarration(narration || []);
+                // console.log("feeHeads", feeHeads);
+                // console.log("HeadofUpdate", HeadofUpdate);
+            } catch (error) {
+                console.error('Failed to fetch students:', error);
+                setPreSelectedTerm([]);
+            } finally {
+                // setLoadingTerm(false);
+            }
+        };
+        UpdateStudentsDetails();
+    }, [selectedRow, HeadofUpdate, feeDetails, studentDetails, masterBanks, masternarration, preSelectedTerm, Total]);
+
+    useEffect(() => {
+        if (terms.length === 0) return;
+        const preSelectedIds = preSelectedTerm.map((item) => String(item.fmG_Id));
+        const matchedTerms = terms.filter((term) => preSelectedIds.includes(String(term.fmG_Id))).map((term) => String(term.fmG_Id));
+        // console.log("matchedTerms", matchedTerms);
+        setselectedTerm(matchedTerms);
+    }, [terms, preSelectedTerm]);
+
+    const totalpaying = feeHeads.reduce((sum: number, f: any) => {
+        const amount = Number.parseFloat(f.fsS_ToBePaid?.toString() || '0') || 0;
+        return sum + amount;
+    }, 0);
+
+    console.log('totalpaying', totalpaying);
+
+    // To see the updated value, use useEffect
+    useEffect(() => {
+        setTotal(totalpaying);
+        console.log('Total updated:', Total);
+    }, [Total, feeHeads]);
+    const [modeType, setModeType] = useState<string>(masterModeofPaymentList.length === 1 ? 'Single' : 'Multiple');
+
+    useEffect(() => {
+        setchequeDates({});
+        setChequeNo({});
+        setSelectedBanks({});
+        setAmount({});
+        const selectedPayment = masterModeofPaymentList.find((f) => f.ivrmmoD_ModeOfPayment === payType);
+
+        if (modeType === 'Single' && selectedPayment) {
+            setAmount((prev) => ({
+                ...prev,
+                [selectedPayment.ivrmmoD_Id]: TotalPaying?.toString() || '0'
+            }));
+        }
+    }, [payType, TotalPaying, modeType]);
+
+    useEffect(() => {
+        if (selectedTerm.length === 0) return;
+        setLoadingFeeHead(true);
+        setFeeHeads(HeadofUpdate);
+        setLoadingFeeHead(false);
+    }, [HeadofUpdate, feeHeads]);
 
     useEffect(() => {
         const concession = feeHeads.reduce((sum, f) => {
@@ -424,7 +482,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
             return sum + amount;
         }, 0);
         setTotalPaying(totalpaying);
-    }, [selectedHeads, feeHeads, payableAmount]);
+    }, [selectedHeads, feeHeads, payableAmount, selectedRow]);
 
     const toggleRow = (id: number, checked: boolean) => {
         setSelectedHeads((prev) => {
@@ -468,7 +526,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
             return;
         }
 
-        const clickedIndex = orderedTerms.findIndex((t) => t.fmT_Id === clickedId);
+        const clickedIndex = orderedTerms.findIndex((t) => t.fmG_Id === clickedId);
         const isChecking = newlySelected.includes(clickedId);
         const isUnchecking = !isChecking;
 
@@ -477,7 +535,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                 const above = orderedTerms[i];
                 const isEnabled = above.disablepaisterms === false || above.disablepaisterms === undefined;
                 if (!isEnabled) continue;
-                const isAboveSelected = newlySelected.includes(above.fmT_Id);
+                const isAboveSelected = newlySelected.includes(above.fmG_Id);
                 if (!isAboveSelected) {
                     toast.warning('You have to select Terms in Order');
                     return;
@@ -488,7 +546,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
         if (isUnchecking) {
             for (let i = clickedIndex + 1; i < orderedTerms.length; i++) {
                 const below = orderedTerms[i];
-                const isBelowSelected = previouslySelected.includes(below.fmT_Id);
+                const isBelowSelected = previouslySelected.includes(below.fmG_Id);
                 if (isBelowSelected) {
                     toast.warning('You cannot unselect,because you have selected next Term');
                     return;
@@ -503,7 +561,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
         setselectedTerm(selectedValues);
         const updated = terms.map((ex) => ({
             ...ex,
-            checked: selectedValues.includes(ex.fmT_Id.toString())
+            checked: selectedValues.includes(ex.fmG_Id.toString())
         }));
         setTerms(updated);
     };
@@ -529,190 +587,60 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
     };
 
     const onSubmit = async () => {
-        if (feeHeads.filter((f) => selectedHeads[f.fmA_Id]).length === 0) {
-            toast.error('Atleast one head has to be checked to save the Transaction!!!');
-            return;
-        }
-        if (modeType === 'Single') {
-            const selectedPayment = masterModeofPaymentList.find((f) => f.ivrmmoD_ModeOfPayment === payType);
-
-            if (!selectedPayment) {
-                toast.error('Invalid payment selection');
-                return;
-            }
-            if (selectedPayment.ivrmmoD_Flag.toLowerCase() !== 'c') {
-                const paymentId = selectedPayment.ivrmmoD_Id;
-                if (!chequeNo[paymentId] || chequeNo[paymentId] === '') {
-                    toast.error('Please enter Cheque No. for Selected Payment Mode');
-                    return;
-                }
-                if (!selectedBanks[paymentId] || selectedBanks[paymentId] === '') {
-                    toast.error('Please select Bank for Selected Payment Mode');
-                    return;
-                }
-
-                if (!amount[paymentId] || amount[paymentId] === '') {
-                    toast.error('Please enter Amount for Selected Payment Mode');
-                    return;
-                }
-                if (amount[paymentId] === Number(0).toString()) {
-                    toast.error('Amount Is Must Be Greater Than Zero');
-                    return;
-                }
-                if (amount[paymentId] > Number(TotalPaying).toString() || amount[paymentId] < Number(TotalPaying).toString()) {
-                    toast.error('Sum Of Amounts Of By Mode Of Payments Must Match Now Paying Amount');
-                    return;
-                }
-            } else {
-                const paymentId = selectedPayment.ivrmmoD_Id;
-                if (amount[paymentId] === Number(0).toString()) {
-                    toast.error('Amount Is Must Be Greater Than Zero');
-                    return;
-                }
-                if (amount[paymentId] > Number(TotalPaying).toString() || amount[paymentId] < Number(TotalPaying).toString()) {
-                    toast.error('Sum Of Amounts Of By Mode Of Payments Must Match Now Paying Amount');
-                    return;
-                }
-            }
-        } else {
-            const selectedPayments = masterModeofPaymentList.filter((f) => checkPayType.includes(f.ivrmmoD_ModeOfPayment));
-
-            if (selectedPayments.length === 0) {
-                toast.error('Invalid payment selection');
-                return;
-            }
-
-            const total = selectedPayments.reduce((sum, f) => {
-                const payableValue = amount[f.ivrmmoD_Id];
-                const amountr = payableValue
-                    ? Number.parseFloat(payableValue) || 0
-                    : Number.parseFloat(amount[f.ivrmmoD_Id]?.toString() || '0') || 0;
-                return sum + amountr;
-            }, 0);
-            // settotalAmount(total);
-            // console.log('totalAmountSum', total);
-
-            for (const payment of selectedPayments) {
-                const paymentId = payment.ivrmmoD_Id;
-                if (payment.ivrmmoD_Flag.toLowerCase() !== 'c') {
-                    if (!chequeNo[paymentId] || chequeNo[paymentId] === '') {
-                        toast.error(`Please enter Cheque No. for ${payment.ivrmmoD_ModeOfPayment}`);
-                        return;
-                    }
-
-                    if (!selectedBanks[paymentId] || selectedBanks[paymentId] === '') {
-                        toast.error(`Please Select a Bank for ${payment.ivrmmoD_ModeOfPayment}`);
-                        return;
-                    }
-
-                    if (!amount[paymentId] || amount[paymentId] === '') {
-                        toast.error(`Please enter Amount for ${payment.ivrmmoD_ModeOfPayment}`);
-                        return;
-                    }
-
-                    const paymentAmount = Number.parseFloat(amount[paymentId]);
-                    if (Number.isNaN(paymentAmount) || paymentAmount <= 0) {
-                        toast.error(`Amount Must Be Greater Than Zero for ${payment.ivrmmoD_ModeOfPayment}`);
-                        return;
-                    }
-                } else {
-                    if (!amount[paymentId] || amount[paymentId] === '') {
-                        toast.error(`Please enter Amount for ${payment.ivrmmoD_ModeOfPayment}`);
-                        return;
-                    }
-
-                    const paymentAmount = Number.parseFloat(amount[paymentId]);
-                    if (Number.isNaN(paymentAmount) || paymentAmount <= 0) {
-                        toast.error(`Amount Must Be Greater Than Zero for ${payment.ivrmmoD_ModeOfPayment}`);
-                        return;
-                    }
-                }
-            }
-            const tolerance = 0.01;
-            if (Math.abs(total - TotalPaying) > tolerance) {
-                toast.error(`Sum Of Amounts (${total}) Must Match Now Paying Amount (${TotalPaying})`);
-                return;
-            }
-        }
-
         try {
-            const savePaymentModes = [];
+            const savePaymentModes: any = [];
+            masterModeofPaymentList.forEach((f) => {
+                const bankId = selectedBanks?.[f?.ivrmmoD_Id];
+                const selectedBankName = bankId ? masterBanks.find((f) => f.fmbanK_Id === Number(bankId))?.fmbanK_BankName : '';
+                // console.log("selectedBankName",selectedBankName)
+                const payment = {
+                    fyppM_TotalPaidAmount: amount[f.ivrmmoD_Id] || '0',
+                    fyppM_TransactionTypeFlag: f.ivrmmoD_Flag,
+                    fyppM_BankName: selectedBankName ?? '',
+                    fyppM_DDChequeDate: chequedates[f.ivrmmoD_Id] ?? new Date(),
+                    fyppM_DDChequeNo: chequeNo[f.ivrmmoD_Id] ?? '',
+                    ivrmmoD_ModeOfPayment_Code: f.ivrmmoD_ModeOfPayment_Code,
+                    fyppM_Id: f.fyppM_Id
+                };
+                savePaymentModes.push(payment);
+            });
 
-            if (modeType === 'Single') {
-                const selectedPayment = masterModeofPaymentList.find((f) => f.ivrmmoD_ModeOfPayment === payType);
-
-                if (selectedPayment) {
-                    const bankId = selectedBanks?.[selectedPayment?.ivrmmoD_Id];
-                    const selectedBankName = bankId ? masterBanks.find((f) => f.fmbanK_Id === Number(bankId))?.fmbanK_BankName : '';
-                    // console.log("selectedBankName",selectedBankName)
-                    const paymentMode = {
-                        fyppM_TotalPaidAmount: amount[selectedPayment.ivrmmoD_Id] || '0',
-                        fyppM_TransactionTypeFlag: selectedPayment.ivrmmoD_Flag,
-                        fyppM_BankName: selectedBankName,
-                        fyppM_DDChequeDate: chequedates[selectedPayment.ivrmmoD_Id] ?? new Date(),
-                        fyppM_DDChequeNo: chequeNo[selectedPayment.ivrmmoD_Id],
-                        ivrmmoD_ModeOfPayment_Code: selectedPayment.ivrmmoD_ModeOfPayment_Code,
-                        fyppM_Id: 0
-                    };
-                    savePaymentModes.push(paymentMode);
-                }
-            } else {
-                const selectedPayment = masterModeofPaymentList.filter((f) => checkPayType.includes(f.ivrmmoD_ModeOfPayment));
-                selectedPayment.forEach((f) => {
-                    const bankId = selectedBanks?.[f?.ivrmmoD_Id];
-                    const selectedBankName = bankId ? masterBanks.find((f) => f.fmbanK_Id === Number(bankId))?.fmbanK_BankName : '';
-                    // console.log("selectedBankName",selectedBankName)
-                    const payment = {
-                        fyppM_TotalPaidAmount: amount[f.ivrmmoD_Id] || '0',
-                        fyppM_TransactionTypeFlag: f.ivrmmoD_Flag,
-                        fyppM_BankName: selectedBankName ?? '',
-                        fyppM_DDChequeDate: chequedates[f.ivrmmoD_Id] ?? new Date(),
-                        fyppM_DDChequeNo: chequeNo[f.ivrmmoD_Id] ?? '',
-                        ivrmmoD_ModeOfPayment_Code: f.ivrmmoD_ModeOfPayment_Code,
-                        fyppM_Id: 0
-                    };
-                    savePaymentModes.push(payment);
-                });
-            }
-
-            const feeStudentTermInfos = feeHeads
-                .filter((f) => selectedHeads[f.fmA_Id])
-                .map((fee) => ({
-                    fmA_Id: fee.fmA_Id,
-                    fmH_FeeName: fee.fmH_FeeName,
-                    fmH_Flag: fee.fmH_Flag,
-                    ftI_Name: fee.ftI_Name,
-                    fmH_Id: fee.fmH_Id,
-                    ftI_Id: fee.ftI_Id,
-                    totalamount: Number(netAmount[fee.fmA_Id] ?? fee.fsS_CurrentYrCharges),
-                    fsS_ToBePaid: Number(payableAmount[fee.fmA_Id] ?? fee.fsS_ToBePaid),
-                    fsS_ConcessionAmount: Number(concession[fee.fmA_Id] ?? fee.fsS_ConcessionAmount),
-                    fsS_FineAmount: fee.fsS_FineAmount,
-                    fsS_CurrentYrCharges: Number(currentCharges[fee.fmA_Id] ?? fee.fsS_CurrentYrCharges),
-                    fsS_TotalToBePaid: Number(totalCharges[fee.fmA_Id] ?? fee.fsS_TotalToBePaid),
-                    fmG_Id: fee.fmG_Id,
-                    fmG_GroupName: fee.fmG_GroupName,
-                    fsS_OBArrearAmount: fee.fsS_OBArrearAmount,
-                    fmT_Id: fee.fmT_Id,
-                    fsS_RebateAmount: Number(rebateAmount[fee.fmA_Id] ?? fee.fsS_RebateAmount),
-                    fsS_WaivedAmount: fee.fsS_WaivedAmount
-                }));
+            const feeStudentTermInfos = feeHeads.map((fee) => ({
+                fmA_Id: fee.fmA_Id,
+                fmH_FeeName: fee.fmH_FeeName,
+                fmH_Flag: fee.fmH_Flag,
+                ftI_Name: fee.ftI_Name,
+                fmH_Id: fee.fmH_Id,
+                ftI_Id: fee.ftI_Id,
+                totalamount: Number(netAmount[fee.fmA_Id] ?? fee.fsS_CurrentYrCharges),
+                fsS_ToBePaid: Number(payableAmount[fee.fmA_Id] ?? fee.fsS_ToBePaid),
+                fsS_ConcessionAmount: Number(concession[fee.fmA_Id] ?? fee.fsS_ConcessionAmount),
+                fsS_FineAmount: fee.fsS_FineAmount,
+                fsS_CurrentYrCharges: Number(currentCharges[fee.fmA_Id] ?? fee.fsS_CurrentYrCharges),
+                fsS_TotalToBePaid: Number(totalCharges[fee.fmA_Id] ?? fee.fsS_TotalToBePaid),
+                fmG_Id: fee.fmG_Id,
+                fmG_GroupName: fee.fmG_GroupName,
+                fsS_OBArrearAmount: fee.fsS_OBArrearAmount,
+                fmT_Id: fee.fmT_Id,
+                fsS_RebateAmount: Number(rebateAmount[fee.fmA_Id] ?? fee.fsS_RebateAmount),
+                fsS_WaivedAmount: fee.fsS_WaivedAmount
+            }));
 
             const payload = {
-                fyP_Chq_Bounce: '',
-                fyP_Id: 0,
-                asmaY_Id: selectedAsmayId?.toString(),
+                fyP_Chq_Bounce: selectedRow.fyP_Chq_Bounce,
+                fyP_Id: selectedRow.fyP_Id,
+                asmaY_Id: selectedRow.asmaY_ID?.toString(),
                 automanualreceiptno: '',
                 auto_receipt_flag: config,
-                fyP_Receipt_No: '',
+                fyP_Receipt_No: selectedRow.fyP_Receipt_No,
                 fyPcurr_Date: todaysDate,
                 fyP_Remarks: narrationRemark,
                 savePaymentModes: savePaymentModes,
                 feeStudentTermInfos: feeStudentTermInfos,
                 returnval: '',
                 displaymessage: '',
-                amst_Id: selectedStudent?.amst_Id,
-                fyP_Tot_Amount: TotalPaying,
+                amst_Id: selectedRow.amst_Id,
+                fyP_Tot_Amount: Total,
                 filterinitialdata: filterType,
                 fyP_Tot_Concession_Amt: TotalConcession,
                 fyP_Tot_Fine_Amt: Totalfine,
@@ -725,7 +653,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
             const response = await saveFeeTransaction(payload);
 
             if (response?.displaymessage) {
-                toast.success(response.message || ' Transaction Saved successfully');
+                toast.success(response.message || ' Transaction Updated successfully');
                 handleReset();
                 onSuccess?.();
                 refetchAll();
@@ -746,28 +674,12 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
     };
 
     const handleReset = () => {
-        reset();
-        setSelectedAsmayId(null);
-        setStudentSearch('');
-        setStudents([]);
-        setTerms([]);
-        setselectedTerm([]);
-        setLeft(false);
-        setClass(false);
-        setSection(false);
-        setDeative(false);
-        setFilterType('regular');
-        setTodaysDate(new Date());
-        setSelectedClassId(null);
-        setSelectedSectionId(null);
-        setSms(false);
-        setEmail(false);
-        setAmountCheck(false);
-        setNarrationRemark('');
-        setAmountforTerm('');
-        setFeeHeads([]);
-        setSelectedHeads([]);
-        setSelectedNarration(null);
+        if (selectedRow) {
+            reset({
+                asmaY_Id: selectedRow.asmaY_ID,
+                studentSearchName: `${selectedRow.amsT_FirstName} ${selectedRow.amsT_MiddleName} ${selectedRow.amsT_LastName}`
+            });
+        }
     };
 
     return (
@@ -1073,7 +985,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                                 <CustomMultiSelectBox
                                     options={terms.map((ex) => ({
                                         label: ex.fmG_GroupName,
-                                        value: ex.fmT_Id.toString()
+                                        value: ex.fmG_Id.toString()
                                     }))}
                                     isLoading={loadingTerm}
                                     disabled
@@ -1136,7 +1048,9 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                                         Fee Details <span>➤</span>
                                     </span>
 
-                                    <span className='flex cursor-pointer items-center gap-1 hover:underline'>
+                                    <span
+                                        className='flex cursor-pointer items-center gap-1 hover:underline'
+                                        onClick={() => setOpenStudentDetails(true)}>
                                         Student Profile <span>➤</span>
                                     </span>
                                 </div>
@@ -1176,6 +1090,14 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                 </div>
 
                 {openFeeDetails && <FeeDetails onClose={() => setOpenFeeDetails(false)} data={feeDetails} loading={false} />}
+                {openStudentDetails && (
+                    <StudentProfileModal
+                        isOpen={!!openStudentDetails}
+                        onClose={() => setOpenStudentDetails(false)}
+                        data={openStudentDetails}
+                        loading={false}
+                    />
+                )}
 
                 {/* -------- FEE GRID -------- */}
                 {loadingFeeHead ? (
@@ -1187,7 +1109,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                                 <tr>
                                     <th className='border p-2'>Sl.No</th>
                                     <th className='border p-2'>
-                                        <Checkbox checked={selectAll} onCheckedChange={(val) => handleSelectAll(val === true)} />
+                                        <Checkbox checked={true} disabled onCheckedChange={(val) => handleSelectAll(val === true)} />
                                     </th>
                                     <th className='border p-2'>Fee Head</th>
                                     <th className='border p-2'>Installment</th>
@@ -1208,7 +1130,8 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                                         <td className='border p-2'>{index + 1}</td>
                                         <td className='border p-2'>
                                             <Checkbox
-                                                checked={selectedHeads[f.fmA_Id] || false}
+                                                checked={true}
+                                                disabled
                                                 onCheckedChange={(val) => toggleRow(f.fmA_Id, val === true)}
                                             />
                                         </td>
@@ -1470,13 +1393,13 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                                             }}
                                             className='flex items-center justify-center gap-6'>
                                             <div className='flex cursor-pointer items-center justify-center space-x-2'>
-                                                <RadioGroupItem value='Single' id='single' />
+                                                <RadioGroupItem value='Single' id='single' disabled />
                                                 <Label htmlFor='single' className='text-sm'>
                                                     Single
                                                 </Label>
                                             </div>
                                             <div className='flex cursor-pointer items-center justify-center space-x-2'>
-                                                <RadioGroupItem value='Multiple' id='multiple' />
+                                                <RadioGroupItem value='Multiple' id='multiple' disabled />
                                                 <Label htmlFor='multiple' className='text-sm'>
                                                     Multiple
                                                 </Label>
@@ -1507,6 +1430,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                                                         {modeType === 'Single' && (
                                                             <RadioGroup
                                                                 value={payType}
+                                                                disabled
                                                                 onValueChange={(v) => {
                                                                     setPayType(v);
                                                                 }}>
@@ -1519,6 +1443,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                                                         {modeType === 'Multiple' && (
                                                             <Checkbox
                                                                 checked={checkPayType.includes(f.ivrmmoD_ModeOfPayment)}
+                                                                disabled
                                                                 onCheckedChange={(value) => {
                                                                     if (value) {
                                                                         setCheckPayType((prev) => [...prev, f.ivrmmoD_ModeOfPayment]);
@@ -1541,41 +1466,39 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                                                     </td>
                                                     <td className='border p-2 font-semibold'>{f.ivrmmoD_ModeOfPayment}</td>
                                                     <td className='border p-2'>
-                                                        {f.ivrmmoD_Flag.toLowerCase() !== 'c' &&
+                                                        {/* {f.ivrmmoD_Flag.toLowerCase() !== 'c' &&
                                                             modeType === 'Single' &&
                                                             payType === f.ivrmmoD_ModeOfPayment && (
-                                                                <Popover>
-                                                                    <PopoverTrigger asChild>
-                                                                        <Button
-                                                                            variant='outline'
-                                                                            className='w-full justify-start text-left font-normal'
-                                                                            disabled={
-                                                                                payType !== f.ivrmmoD_ModeOfPayment && modeType === 'Single'
-                                                                            }>
-                                                                            <CalendarIcon className='mr-2 h-4 w-4' />
-                                                                            {payType === f.ivrmmoD_ModeOfPayment &&
-                                                                            !chequedates[f.ivrmmoD_Id]
-                                                                                ? format(new Date(), 'PPP')
-                                                                                : chequedates[f.ivrmmoD_Id]
-                                                                                  ? format(chequedates[f.ivrmmoD_Id]!, 'PPP')
-                                                                                  : 'Select Date'}
-                                                                        </Button>
-                                                                    </PopoverTrigger>
+                                                                
+                                                            )} */}
+                                                        <Popover>
+                                                            <PopoverTrigger asChild>
+                                                                <Button
+                                                                    variant='outline'
+                                                                    className='w-full justify-start text-left font-normal'
+                                                                    disabled>
+                                                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                    {!chequedates[f.ivrmmoD_Id]
+                                                                        ? format(f.bank_Date ?? new Date(), 'PPP')
+                                                                        : chequedates[f.ivrmmoD_Id]
+                                                                          ? format(chequedates[f.ivrmmoD_Id]!, 'PPP')
+                                                                          : 'Select Date'}
+                                                                </Button>
+                                                            </PopoverTrigger>
 
-                                                                    <PopoverContent className='w-auto p-0' align='start'>
-                                                                        <Calendar
-                                                                            mode='single'
-                                                                            selected={chequedates[f.ivrmmoD_Id] ?? undefined}
-                                                                            onSelect={(date) =>
-                                                                                setchequeDates((prev) => ({
-                                                                                    ...prev,
-                                                                                    [f.ivrmmoD_Id]: date ?? null
-                                                                                }))
-                                                                            }
-                                                                        />
-                                                                    </PopoverContent>
-                                                                </Popover>
-                                                            )}
+                                                            <PopoverContent className='w-auto p-0' align='start'>
+                                                                <Calendar
+                                                                    mode='single'
+                                                                    selected={chequedates[f.ivrmmoD_Id] ?? undefined}
+                                                                    onSelect={(date) =>
+                                                                        setchequeDates((prev) => ({
+                                                                            ...prev,
+                                                                            [f.ivrmmoD_Id]: date ?? null
+                                                                        }))
+                                                                    }
+                                                                />
+                                                            </PopoverContent>
+                                                        </Popover>
                                                         {checkPayType.includes(f.ivrmmoD_ModeOfPayment) &&
                                                             modeType === 'Multiple' &&
                                                             f.ivrmmoD_Flag.toLowerCase() !== 'c' && (
@@ -1586,7 +1509,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                                                                             className='w-full justify-start text-left font-normal'>
                                                                             <CalendarIcon className='mr-2 h-4 w-4' />
                                                                             {!chequedates[f.ivrmmoD_Id]
-                                                                                ? format(new Date(), 'PPP')
+                                                                                ? format(f.bank_Date ?? new Date(), 'PPP')
                                                                                 : chequedates[f.ivrmmoD_Id]
                                                                                   ? format(chequedates[f.ivrmmoD_Id]!, 'PPP')
                                                                                   : 'Select Date'}
@@ -1609,55 +1532,28 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                                                             )}
                                                     </td>
                                                     <td className='border p-2'>
-                                                        {f.ivrmmoD_Flag.toLowerCase() !== 'c' && modeType === 'Single' && (
-                                                            <InputText
-                                                                type='number'
-                                                                value={chequeNo?.[f.ivrmmoD_Id] ?? ''}
-                                                                onChange={(e) => {
-                                                                    const v = e.target.value;
-                                                                    if (v === '') {
-                                                                        setChequeNo((prev) => ({
-                                                                            ...prev,
-                                                                            [f.ivrmmoD_Id]: ''
-                                                                        }));
-                                                                        return;
-                                                                    }
-                                                                    if (/^\d*\.?\d*$/.test(v)) {
-                                                                        setChequeNo((prev) => ({
-                                                                            ...prev,
-                                                                            [f.ivrmmoD_Id]: v
-                                                                        }));
-                                                                    }
-                                                                }}
-                                                                className='flex rounded-md border border-gray-300 transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20'
-                                                                disabled={payType !== f.ivrmmoD_ModeOfPayment}
-                                                            />
-                                                        )}
-                                                        {checkPayType.includes(f.ivrmmoD_ModeOfPayment) &&
-                                                            modeType === 'Multiple' &&
-                                                            f.ivrmmoD_Flag.toLowerCase() !== 'c' && (
-                                                                <InputText
-                                                                    type='number'
-                                                                    value={chequeNo?.[f.ivrmmoD_Id] ?? ''}
-                                                                    onChange={(e) => {
-                                                                        const v = e.target.value;
-                                                                        if (v === '') {
-                                                                            setChequeNo((prev) => ({
-                                                                                ...prev,
-                                                                                [f.ivrmmoD_Id]: ''
-                                                                            }));
-                                                                            return;
-                                                                        }
-                                                                        if (/^\d*\.?\d*$/.test(v)) {
-                                                                            setChequeNo((prev) => ({
-                                                                                ...prev,
-                                                                                [f.ivrmmoD_Id]: v
-                                                                            }));
-                                                                        }
-                                                                    }}
-                                                                    className='flex rounded-md border border-gray-300 transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20'
-                                                                />
-                                                            )}
+                                                        <InputText
+                                                            type='number'
+                                                            value={chequeNo?.[f.ivrmmoD_Id] ?? f.bank_No ?? ''}
+                                                            onChange={(e) => {
+                                                                const v = e.target.value;
+                                                                if (v === '') {
+                                                                    setChequeNo((prev) => ({
+                                                                        ...prev,
+                                                                        [f.ivrmmoD_Id]: ''
+                                                                    }));
+                                                                    return;
+                                                                }
+                                                                if (/^\d*\.?\d*$/.test(v)) {
+                                                                    setChequeNo((prev) => ({
+                                                                        ...prev,
+                                                                        [f.ivrmmoD_Id]: v
+                                                                    }));
+                                                                }
+                                                            }}
+                                                            className='flex rounded-md border border-gray-300 transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20'
+                                                            disabled={payType !== f.ivrmmoD_ModeOfPayment}
+                                                        />
                                                     </td>
 
                                                     <td className='border p-2'>
@@ -1712,7 +1608,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                                                                             <SelectItem
                                                                                 key={item.fmbanK_Id}
                                                                                 value={item.fmbanK_Id.toString()}>
-                                                                                {item.fmbanK_BankName}
+                                                                                {item.fmbanK_BankName ?? f.bank_Name}
                                                                             </SelectItem>
                                                                         ))
                                                                     )}
@@ -1723,7 +1619,8 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                                                     <td className='border p-2'>
                                                         <InputText
                                                             type='number'
-                                                            value={amount?.[f.ivrmmoD_Id] ?? ''}
+                                                            value={amount?.[f.ivrmmoD_Id] ?? f.bank_Amount ?? ''}
+                                                            disabled
                                                             onChange={(e) => {
                                                                 const v = e.target.value;
                                                                 if (v === '') {
@@ -1772,7 +1669,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                                 </div>
                                 <div className='flex items-center justify-between'>
                                     <span className='text-gray-700'>Now Paying:</span>
-                                    <span className='font-semibold text-gray-900'>{TotalPaying}</span>
+                                    <span className='font-semibold text-gray-900'>{Total}</span>
                                 </div>
                             </Card>
 
