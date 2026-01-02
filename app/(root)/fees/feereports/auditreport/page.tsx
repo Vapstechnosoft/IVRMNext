@@ -27,7 +27,7 @@ interface IAcademicYear {
     asmaY_Order?: number;
 }
 
-export default function FeeDefaulterReport() {
+export default function FeeAuditReport() {
     const [loading, setLoading] = useState(false);
 
     const [filters, setFilters] = useState({

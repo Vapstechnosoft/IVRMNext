@@ -459,3 +459,30 @@ export const feesGroupwiseStudentReportSchema = z
             }
         }
     });
+
+export const feeDefaulterreportStthomas = z
+    .object({
+        academicYearId: z.string().min(1, 'Academic Year is required'),
+        classId: z.string().min(1, 'Class is required'),
+        sectionId: z.string().min(1, 'Section is required'),
+        //    sectionId: z.string().refine(val => val !== 'all', {
+        //         message: 'Section is required'
+        //     }),
+        studentId: z.string().optional(),
+        feeTerm: z.string().optional(),
+        breakdown: z.string().optional(),
+        reportType: z.enum(['All', 'Individual']).default('All'),
+        filterdata: z.enum(['NameRegNo', 'RegNoName']).default('NameRegNo'),
+        terms: z.array(z.string()).nonempty('Please select at least one Term')
+    })
+    .superRefine((data, ctx) => {
+        if (data.reportType === 'Individual') {
+            if (!data.studentId) {
+                ctx.addIssue({
+                    path: ['studentId'],
+                    message: 'Student is required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+        }
+    });

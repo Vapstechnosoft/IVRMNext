@@ -870,6 +870,14 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/transactions/bankpaymentimportstthomas',
                                             title: 'Bank Payment Import',
                                             description: 'Manage Bank Payment Import'
+                                        },
+                                        {
+                                            id: 518,
+                                            name: 'Fee Staff Other Transaction',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/stafftransaction',
+                                            title: 'Fee Staff Other Transaction',
+                                            description: 'Fee Staff Other Transaction'
                                         }
                                     ]
                                 },
@@ -1005,6 +1013,14 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/feereports/feegroupwisestudentreport',
                                             title: 'Fee Group Wise Student Report',
                                             description: 'Manage Fee Group Wise Student Report Details'
+                                        },
+                                        {
+                                            id: 10027,
+                                            name: 'Fee Defaulter Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feedefaulterreportstthomas',
+                                            title: 'Fee Defaulter Report',
+                                            description: 'Manage Fee Defaulter Report Details'
                                         }
                                     ]
                                 }

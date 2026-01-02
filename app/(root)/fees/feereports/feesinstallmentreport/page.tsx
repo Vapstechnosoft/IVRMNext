@@ -533,6 +533,11 @@ export default function FeeInstallemntReport() {
         [installmentIds, feeInstallments]
     );
 
+    const selectedInstallmentDataall = useMemo(
+        () => feeInstallments.filter(() => feeInstallments.map((t) => t.ftI_Id)),
+        [installmentIds, feeInstallments]
+    );
+
     //    const toggleHeads = (id: number) =>
     //         setFilters((prev) => ({
     //             ...prev,
@@ -801,7 +806,8 @@ export default function FeeInstallemntReport() {
                         FMCC_Id: 0,
                         reporttype: selectedCatg,
                         FMG_Id: data.fmg_id || 0,
-                        TRMR_Id: data.busrouteid || 0,
+                        // TRMR_Id: data.busrouteid || 0,
+                        TRMR_Id: 1,
                         temparrayinst1: albumNameArraygroupids,
                         FMGG_Ids: FMH_Ids,
                         termslistarray: undefined,
@@ -810,7 +816,7 @@ export default function FeeInstallemntReport() {
                         deactive: 0,
                         left: 0,
                         termswise: 0,
-                        userid: userid
+                        userid: 30457
                     };
                     break;
                 }
@@ -874,6 +880,8 @@ export default function FeeInstallemntReport() {
                     // Format dates
                     const todate1 = filters.toDate.toISOString().split('T')[0];
                     const fromdate1 = filters.fromDate.toISOString().split('T')[0];
+                    // const fromdate1= "2024-11-01";
+                    // const todate1 ="2024-12-30"
 
                     payload = {
                         ASMAY_Id: Number(data.academicYearId),
@@ -1086,7 +1094,16 @@ export default function FeeInstallemntReport() {
             };
 
             // Transform the API data
-            const transformedData = transformReportData(apiData, selectedInstallmentData);
+            let transformedData: any;
+            //const transformedData = transformReportData(apiData, selectedInstallmentData);
+
+            if (selectedCatg === 'transport') {
+                if (selectedInstallmentData.length === 0) {
+                    transformedData = transformReportData(apiData, selectedInstallmentDataall);
+                }
+            } else {
+                transformedData = transformReportData(apiData, selectedInstallmentData);
+            }
 
             const responseJson = typeof apiData === 'string' ? JSON.parse(apiData) : apiData;
 
@@ -1174,6 +1191,16 @@ export default function FeeInstallemntReport() {
                 if (transformedDatanew != null && transformedDatanew.length > 0) {
                     toast.success('Report generated successfully');
                     setReportData(transformedDatanew);
+                    setShowReport(true);
+                } else {
+                    // Fallback to static data
+                    setReportData([]);
+                    toast.error('No data found');
+                }
+            } else if (selectedCatg === 'transport') {
+                if (transformedData != null && transformedData.length > 0) {
+                    toast.success('Report generated successfully');
+                    setReportData(transformedData);
                     setShowReport(true);
                 } else {
                     // Fallback to static data
@@ -1489,7 +1516,7 @@ export default function FeeInstallemntReport() {
                                                     onChange={(e) =>
                                                         setFilters((prev) => ({
                                                             ...prev,
-                                                            fromDate: new Date(e.target.value)
+                                                            toDate: new Date(e.target.value)
                                                         }))
                                                     }
                                                     className='rounded border px-3 py-1'
@@ -1978,23 +2005,40 @@ export default function FeeInstallemntReport() {
                                                 {/* Dynamic Sub-Header Based on Selection */}
                                                 <div className='flex items-center justify-between border-b bg-gray-50 px-8 py-4'>
                                                     <h2 className='whitespace-nowrap font-bold text-2xl text-primary'>
-                                                        {selectedCatg === 'Consolidate'
+                                                        {/* {selectedCatg === 'Consolidate'
                                                             ? 'CONSOLIDATE REPORT'
-                                                            : `REPORT FOR ${
-                                                                  selectedCatg === 'Category'
-                                                                      ? categorydropdowndata?.data?.find(
+                                                            : `REPORT FOR ${selectedCatg === 'Category'
+                                                                ? categorydropdowndata?.data?.find(
+                                                                    (cat) => cat.fmcC_Id === watch('fmcc_id')
+                                                                )?.fmcC_ClassCategoryName || ''
+                                                                : classes.find((cls) => cls.asmcL_Id === watch('classId'))
+                                                                    ?.asmcL_ClassName || ''
+                                                            }${watch('sectionId')
+                                                                ? ` ${sections.find((sec) => sec.asmS_Id === watch('sectionId'))
+                                                                    ?.asmC_SectionName || ''
+                                                                }`
+                                                                : ''
+                                                                
+                                                            }`} */}
+
+                                                        {['Consolidate', 'Category', 'transport', 'otherCategory'].includes(selectedCatg) &&
+                                                            (selectedCatg === 'Consolidate'
+                                                                ? 'CONSOLIDATE REPORT'
+                                                                : selectedCatg === 'Category'
+                                                                  ? `REPORT FOR ${
+                                                                        categorydropdowndata?.data?.find(
                                                                             (cat) => cat.fmcC_Id === watch('fmcc_id')
                                                                         )?.fmcC_ClassCategoryName || ''
-                                                                      : classes.find((cls) => cls.asmcL_Id === watch('classId'))
-                                                                            ?.asmcL_ClassName || ''
-                                                              }${
-                                                                  watch('sectionId')
-                                                                      ? ` ${
-                                                                            sections.find((sec) => sec.asmS_Id === watch('sectionId'))
-                                                                                ?.asmC_SectionName || ''
-                                                                        }`
-                                                                      : ''
-                                                              }`}
+                                                                    }${
+                                                                        watch('sectionId')
+                                                                            ? ` ${
+                                                                                  sections.find((sec) => sec.asmS_Id === watch('sectionId'))
+                                                                                      ?.asmC_SectionName || ''
+                                                                              }`
+                                                                            : ''
+                                                                    }`
+                                                                  : // Add other header formats for other categories here
+                                                                    `REPORT FOR ${selectedCatg.toUpperCase()}`)}
                                                     </h2>
 
                                                     <div className='flex gap-2'>
@@ -2173,6 +2217,141 @@ export default function FeeInstallemntReport() {
                                                             </table>
                                                         </div>
                                                     )}
+                                                {showReport && selectedCatg === 'transport' && selectedInstallmentDataall.length > 0 && (
+                                                    <div className='overflow-x-auto px-8 pb-8'>
+                                                        <table className='w-full border-collapse border border-gray-300 text-sm'>
+                                                            <thead className='bg-primary text-white'>
+                                                                <tr>
+                                                                    <th rowSpan={2} className='border px-2 py-2 text-center font-semibold'>
+                                                                        SLNO
+                                                                    </th>
+                                                                    <th rowSpan={2} className='border px-2 py-2 text-center font-semibold'>
+                                                                        Roll No
+                                                                    </th>
+                                                                    <th rowSpan={2} className='border px-2 py-2 text-left font-semibold'>
+                                                                        Student Name
+                                                                    </th>
+                                                                    <th rowSpan={2} className='border px-2 py-2 text-center font-semibold'>
+                                                                        Admission no
+                                                                    </th>
+                                                                    <th rowSpan={2} className='border px-2 py-2 text-center font-semibold'>
+                                                                        Class
+                                                                    </th>
+                                                                    <th rowSpan={2} className='border px-2 py-2 text-center font-semibold'>
+                                                                        Section
+                                                                    </th>
+                                                                    <th rowSpan={2} className='border px-2 py-2 text-center font-semibold'>
+                                                                        Balance
+                                                                    </th>
+                                                                    <th rowSpan={2} className='border px-2 py-2 text-center font-semibold'>
+                                                                        total
+                                                                    </th>
+                                                                    {selectedInstallmentDataall.map((inst) => (
+                                                                        <th
+                                                                            key={inst.ftI_Id}
+                                                                            colSpan={7}
+                                                                            className='border px-2 py-2 text-center font-semibold'>
+                                                                            {inst.ftI_Name}
+                                                                        </th>
+                                                                    ))}
+                                                                </tr>
+                                                                <tr>
+                                                                    {selectedInstallmentDataall.map((inst) => (
+                                                                        <React.Fragment key={`${inst.ftI_Id}-sub`}>
+                                                                            <th className='border px-2 py-2 text-center font-semibold'>
+                                                                                NetAmount
+                                                                            </th>
+                                                                            <th className='border px-2 py-2 text-center font-semibold'>
+                                                                                Paid
+                                                                            </th>
+                                                                            <th className='border px-2 py-2 text-center font-semibold'>
+                                                                                Balance
+                                                                            </th>
+                                                                            <th className='border px-2 py-2 text-center font-semibold'>
+                                                                                Concession
+                                                                            </th>
+                                                                            <th className='border px-2 py-2 text-center font-semibold'>
+                                                                                Fine
+                                                                            </th>
+                                                                            <th className='border px-2 py-2 text-center font-semibold'>
+                                                                                Waivedoff
+                                                                            </th>
+                                                                            <th className='border px-2 py-2 text-center font-semibold'>
+                                                                                OpeningBalance
+                                                                            </th>
+                                                                            {/* <th className='border px-2 py-2 text-center font-semibold'>
+                                                                                    Net
+                                                                                </th>
+                                                                                <th className='border px-2 py-2 text-center font-semibold'>
+                                                                                    Paid
+                                                                                </th>
+                                                                                <th className='border px-2 py-2 text-center font-semibold'>
+                                                                                    Balance
+                                                                                </th> */}
+                                                                        </React.Fragment>
+                                                                    ))}
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {reportData.map((row, index) => (
+                                                                    <tr
+                                                                        key={row.id}
+                                                                        className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                                                        <td className='border px-2 py-2 text-center'>{index + 1}</td>
+                                                                        <td className='border px-2 py-2 text-center'>{row.rollNo}</td>
+                                                                        <td className='border px-2 py-2 text-left'>{row.studentName}</td>
+                                                                        <td className='border px-2 py-2 text-center'>{row.admNo}</td>
+                                                                        <td className='border px-2 py-2 text-center'>{row.className}</td>
+                                                                        <td className='border px-2 py-2 text-center'>{row.sectionName}</td>
+                                                                        <td className='border px-2 py-2 text-right'>
+                                                                            {row.balance?.toLocaleString() || '-'}
+                                                                        </td>
+                                                                        <td className='border px-2 py-2 text-right'>
+                                                                            {row.total?.toLocaleString() || '-'}
+                                                                        </td>
+                                                                        {selectedInstallmentDataall.map((inst) => {
+                                                                            const instData = row.installments?.[inst.ftI_Id];
+                                                                            return (
+                                                                                <React.Fragment key={`${row.id}-${inst.ftI_Id}`}>
+                                                                                    <td className='border px-2 py-2 text-right'>
+                                                                                        {instData?.net?.toLocaleString() || '-'}
+                                                                                    </td>
+                                                                                    <td className='border px-2 py-2 text-right'>
+                                                                                        {instData?.paid?.toLocaleString() || '-'}
+                                                                                    </td>
+                                                                                    <td className='border px-2 py-2 text-right'>
+                                                                                        {instData?.balance?.toLocaleString() || '-'}
+                                                                                    </td>
+                                                                                    <td className='border px-2 py-2 text-right'>
+                                                                                        {instData?.concession?.toLocaleString() || '-'}
+                                                                                    </td>
+                                                                                    <td className='border px-2 py-2 text-right'>
+                                                                                        {instData?.fine?.toLocaleString() || '-'}
+                                                                                    </td>
+                                                                                    <td className='border px-2 py-2 text-right'>
+                                                                                        {instData?.waiver?.toLocaleString() || '-'}
+                                                                                    </td>
+                                                                                    <td className='border px-2 py-2 text-right'>
+                                                                                        {instData?.opening?.toLocaleString() || '-'}
+                                                                                    </td>
+                                                                                    {/* <td className='border px-2 py-2 text-right'>
+                                                                                            {instData?.net2?.toLocaleString() || '-'}
+                                                                                        </td>
+                                                                                        <td className='border px-2 py-2 text-right'>
+                                                                                            {instData?.paid2?.toLocaleString() || '-'}
+                                                                                        </td>
+                                                                                        <td className='border px-2 py-2 text-right'>
+                                                                                            {instData?.balance2?.toLocaleString() || '-'}
+                                                                                        </td> */}
+                                                                                </React.Fragment>
+                                                                            );
+                                                                        })}
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                )}
 
                                                 {/* Consolidate Summary Table */}
                                                 {showReport && selectedCatg === 'Consolidate' && (

@@ -482,3 +482,12 @@ export interface IReceiptRow {
     fineamt?: number;
     fsS_AdjustedAmount?: number;
 }
+
+export const feesStaffOtherTransactionSchema = {
+    addOrUpdate: z.object({
+        asmaY_Id: z.number({ required_error: 'Academic year is required' }),
+        amst_Id: z.number().optional(),
+        modeofPayment: z.string().optional(),
+        narrationId: z.number().optional()
+    })
+};

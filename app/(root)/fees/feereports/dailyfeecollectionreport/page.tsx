@@ -95,6 +95,8 @@ export default function DailyFeeCollectionReportForm() {
     const [groupManualLoading, setGroupManualLoading] = useState(false);
     const [classes, setClasses] = useState<any[]>([]);
 
+    const [selectedAsmayId, setSelectedAsmayId] = useState<number | null>(null);
+
     const {
         data: academicData,
         error: academicError,
@@ -102,6 +104,12 @@ export default function DailyFeeCollectionReportForm() {
         refetch: refetchAcademicYears
     } = useAcademicYearDropdown();
     const { data: classData, error: classError } = useClassDropdownDropdown();
+
+    // useEffect(() => {
+    //     if (!loadingAcademic && academicData?.data?.length && selectedAsmayId === null) {
+    //         setSelectedAsmayId(Number(academicData.data[0].asmaY_Id));
+    //     }
+    // }, [loadingAcademic, academicData, selectedAsmayId]);
 
     // useEffect(() => {
     //     if (academicError) toast.error('Failed to load academic years');
@@ -139,7 +147,7 @@ export default function DailyFeeCollectionReportForm() {
     useEffect(() => {
         if (academicError) toast.error('Failed to load academic years');
 
-        if (academicData?.data) {
+        if (!loadingAcademic && academicData?.data?.length && selectedAsmayId === null) {
             const years = academicData.data.map((i: any) => ({
                 asmaY_Id: i.asmaY_Id,
                 asmaY_Year: i.asmaY_Year
@@ -763,7 +771,11 @@ export default function DailyFeeCollectionReportForm() {
                                             const num = Number(v);
                                             field.onChange(num);
                                             onYearChange(num);
-                                        }}>
+                                        }}
+
+                                        // value={selectedAsmayId?.toString() || ''}
+                                        // onValueChange={(v) => setSelectedAsmayId(v ? Number(v) : null)}
+                                    >
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder={loadingAcademic ? 'Loading...' : 'Select Academic Year'} />
                                         </SelectTrigger>

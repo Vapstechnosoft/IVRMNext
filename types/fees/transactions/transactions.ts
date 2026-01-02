@@ -979,6 +979,11 @@ export interface MasterModeofPayment {
     ivrmmoD_ModeOfPayment: string;
     ivrmmoD_Flag: string;
     ivrmmoD_ModeOfPayment_Code: string;
+    bank_Date: string;
+    bank_No: string;
+    bank_Amount: string;
+    bank_Name: string;
+    fyppM_Id: number;
 }
 
 export interface StudentPrintDetails {
