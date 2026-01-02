@@ -65,7 +65,7 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
     const [selectedAsmayId, setSelectedAsmayId] = useState<number | undefined>(undefined);
 
     // Data hooks
-    const { data: instituteData, isLoading: instituteLoading } = useInstituteDropDown();
+    const { data: instituteData, isLoading: instituteLoading, error: instituteError } = useInstituteDropDown();
     const { data: academicYearData, isLoading: academicYearLoading, error: academicYearError } = useMasterOnlinePaymentHeadGroup();
     const { data: masterClass, isLoading: masterClassLoading } = useMasterOnlinePaymentHeadGroupClass(academicYear ?? undefined);
     const { data: masterSubMerchant, isLoading: masterSubMerchantLoading } = useMasterOnlinePaymentHeadGroupSubMerchant(
@@ -359,8 +359,8 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
         setHeadSearchTerm('');
 
         reset({
-            mI_Id: '30',
-            institutionName: 'vidya_vikas_vidya_samste',
+            mI_Id: String(selectedRow.mI_Id),
+            institutionName: selectedRow.institutionName,
             asmaY_Id: selectedRow.asmaY_Id,
             classCategory: selectedRow.asmcL_ID?.toString() || '',
             subMerchantId: selectedRow.fpgd_id?.toString() || '',
@@ -384,16 +384,21 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
                             <Controller
                                 name='institutionName'
                                 control={control}
-                                render={({ field }) => (
-                                    <Select value={field.value || 'vidya_vikas_vidya_samste'} disabled>
-                                        <SelectTrigger className='w-full'>
-                                            <SelectValue placeholder='Vidya Vikas Vidya Samste (R)' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value='vidya_vikas_vidya_samste'>Vidya Vikas Vidya Samste (R)</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                )}
+                                render={({ field }) => {
+                                    const displayValue = selectedRow?.institutionName || selectedRow?.mI_Name || field.value || '';
+                                    const selectValue = selectedRow?.mI_Id?.toString() || field.value || '';
+
+                                    return (
+                                        <Select value={selectValue} disabled>
+                                            <SelectTrigger className='w-full'>
+                                                <SelectValue placeholder={displayValue || ''} />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value={selectValue}>{displayValue}</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    );
+                                }}
                             />
                         </div>
 

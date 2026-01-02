@@ -22,7 +22,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { Textarea } from '@/components/ui/textarea';
 import { feeDefaulterReportSchema } from '@/schemas/fees/reports';
 import { getFeesSectionListByClassId } from '@/server/fees/reports/fee_DefaulterReport';
 import type {
@@ -35,7 +34,7 @@ import type {
 } from '@/types/fees/reports/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, Eye } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Input } from 'react-aria-components';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
@@ -408,29 +407,48 @@ export default function FeeDefaulterReport() {
     const [smsSearch, setSmsSearch] = useState('');
 
     // Update the toggleCommunicationMethod function
+    // const toggleCommunicationMethod = (method: keyof typeof communicationMethods) => {
+    //     setCommunicationMethods((prev) => ({
+    //         ...prev,
+    //         [method]: !prev[method]
+    //     }));
+
+    //     // Open the appropriate modal when method is selected
+    //     if (!communicationMethods[method]) {
+    //         switch (method) {
+    //             case 'email':
+    //                 setshowEmailContent(true);
+    //                 break;
+    //             case 'notification':
+    //                 setShowNotificationModal(true);
+    //                 break;
+    //             case 'sms':
+    //                 setShowSMSModal(true);
+    //                 break;
+    //             // whatsapp can be handled similarly if needed
+    //         }
+    //     }
+    // };
+
     const toggleCommunicationMethod = (method: keyof typeof communicationMethods) => {
         setCommunicationMethods((prev) => ({
             ...prev,
             [method]: !prev[method]
         }));
 
-        // Open the appropriate modal when method is selected
-        if (!communicationMethods[method]) {
-            switch (method) {
-                case 'email':
-                    setshowEmailContent(true);
-                    break;
-                case 'notification':
-                    setShowNotificationModal(true);
-                    break;
-                case 'sms':
-                    setShowSMSModal(true);
-                    break;
-                // whatsapp can be handled similarly if needed
-            }
-        }
+        // Remove the modal opening logic from here
+        // The modal will only open when REQUEST button is clicked
     };
 
+    const handleRequestCommunication = () => {
+        if (communicationMethods.email) {
+            setshowEmailContent(true);
+        } else if (communicationMethods.notification) {
+            setShowNotificationModal(true);
+        } else if (communicationMethods.sms) {
+            setShowSMSModal(true);
+        }
+    };
     // Add this function to handle communication method toggles
     // const toggleCommunicationMethod = (method: keyof typeof communicationMethods) => {
     //     setCommunicationMethods(prev => ({
@@ -558,6 +576,13 @@ export default function FeeDefaulterReport() {
         }
     };
 
+    const toggleAllstudents = () => {
+        if (selectedIds.length === studentreportData.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(studentreportData.map((r) => r.id));
+        }
+    };
     const totalBalance = filteredData.reduce((sum, r) => sum + r.totalDue, 0);
     const selectedBalance = filteredData.filter((r) => selectedIds.includes(r.id)).reduce((sum, r) => sum + r.totalDue, 0);
 
@@ -1994,9 +2019,9 @@ export default function FeeDefaulterReport() {
                                                             </div>
                                                         </div>
 
-                                                        {selectedIds.length > 0 && (
+                                                        {/* {selectedIds.length > 0 && (
                                                             <div className='mb-4 rounded-lg border border-gray-300 bg-white p-4 shadow-sm'>
-                                                                {/* Checkboxes Section */}
+                                                              
                                                                 <div className='mb-3'>
                                                                     <div className='flex items-center gap-2 font-medium text-gray-700 text-sm'>
                                                                         <span>Please Select Check Box For:</span>
@@ -2066,7 +2091,7 @@ export default function FeeDefaulterReport() {
                                                                     </div>
                                                                 </div>
 
-                                                                {/* REQUEST Button - Only shown when EMAIL is checked */}
+                                                              
                                                                 {communicationMethods.email &&
                                                                     !communicationMethods.sms &&
                                                                     !communicationMethods.notification && (
@@ -2087,7 +2112,7 @@ export default function FeeDefaulterReport() {
                                                                                 size='sm'
                                                                                 className='h-8 px-6 text-xs'
                                                                                 onClick={handleSendNotification}
-                                                                                //  onClick={() => setShowNotificationModal(true)}
+                                                                          
                                                                             >
                                                                                 REQUEST
                                                                             </Button>
@@ -2101,12 +2126,74 @@ export default function FeeDefaulterReport() {
                                                                                 size='sm'
                                                                                 className='h-8 px-6 text-xs'
                                                                                 onClick={handleSendSMS}
-                                                                                //onClick={() => setShowSMSModal(true)}
+                                                                            
                                                                             >
                                                                                 REQUEST
                                                                             </Button>
                                                                         </div>
                                                                     )}
+                                                            </div>
+                                                        )} */}
+                                                        {selectedIds.length > 0 && (
+                                                            <div className='mb-4 rounded-lg border border-gray-300 bg-white p-4 shadow-sm'>
+                                                                {/* Checkboxes Section */}
+                                                                <div className='mb-3'>
+                                                                    <div className='flex items-center gap-2 font-medium text-gray-700 text-sm'>
+                                                                        <span>Please Select Check Box For:</span>
+                                                                        <div className='ml-2 flex items-center gap-4'>
+                                                                            {['email', 'sms', 'notification', 'whatsapp'].map((method) => (
+                                                                                <div key={method} className='flex items-center gap-1.5'>
+                                                                                    <Checkbox
+                                                                                        id={`${method}-checkbox`}
+                                                                                        checked={
+                                                                                            communicationMethods[
+                                                                                                method as keyof typeof communicationMethods
+                                                                                            ]
+                                                                                        }
+                                                                                        onCheckedChange={() =>
+                                                                                            toggleCommunicationMethod(
+                                                                                                method as keyof typeof communicationMethods
+                                                                                            )
+                                                                                        }
+                                                                                        className='h-4 w-4'
+                                                                                    />
+                                                                                    <Label
+                                                                                        htmlFor={`${method}-checkbox`}
+                                                                                        className='cursor-pointer text-sm uppercase'>
+                                                                                        {method === 'whatsapp' ? 'WhatsApp' : method}
+                                                                                    </Label>
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Show REQUEST button only if exactly ONE communication method is selected */}
+                                                                {(communicationMethods.email ||
+                                                                    communicationMethods.sms ||
+                                                                    communicationMethods.notification) &&
+                                                                    !(communicationMethods.email && communicationMethods.sms) &&
+                                                                    !(communicationMethods.email && communicationMethods.notification) &&
+                                                                    !(communicationMethods.sms && communicationMethods.notification) && (
+                                                                        <div className='mt-3 flex justify-end'>
+                                                                            <Button
+                                                                                size='sm'
+                                                                                className='h-8 px-6 text-xs'
+                                                                                onClick={handleRequestCommunication}
+                                                                                disabled={selectedIds.length === 0}>
+                                                                                REQUEST
+                                                                            </Button>
+                                                                        </div>
+                                                                    )}
+
+                                                                {/* Show error if multiple methods are selected */}
+                                                                {(communicationMethods.email && communicationMethods.sms) ||
+                                                                (communicationMethods.email && communicationMethods.notification) ||
+                                                                (communicationMethods.sms && communicationMethods.notification) ? (
+                                                                    <div className='mt-2 text-center text-red-500 text-sm'>
+                                                                        Please select only one communication method
+                                                                    </div>
+                                                                ) : null}
                                                             </div>
                                                         )}
                                                     </div>
@@ -2232,14 +2319,14 @@ export default function FeeDefaulterReport() {
                                                                             <th className='p-2 text-center'>
                                                                                 <Checkbox
                                                                                     checked={
-                                                                                        selectedIds.length === reportData.length &&
-                                                                                        reportData.length > 0
+                                                                                        selectedIds.length === studentreportData.length &&
+                                                                                        studentreportData.length > 0
                                                                                     }
                                                                                     indeterminate={
                                                                                         selectedIds.length > 0 &&
                                                                                         selectedIds.length < studentreportData.length
                                                                                     }
-                                                                                    onCheckedChange={toggleAll}
+                                                                                    onCheckedChange={toggleAllstudents}
                                                                                 />
                                                                             </th>
                                                                             <th className='p-2 text-center'>Sl No</th>
@@ -2318,213 +2405,201 @@ export default function FeeDefaulterReport() {
 
                 {/* Email Configuration Modal */}
                 <Dialog open={showemailContent === true} onOpenChange={setshowEmailContent}>
-                    <DialogContent className='max-h-[90vh] max-w-4xl overflow-y-auto'>
-                        <DialogHeader>
-                            <DialogTitle className='font-bold text-2xl'>Email Configuration</DialogTitle>
+                    <DialogContent className='max-h-[90vh] max-w-6xl overflow-y-auto p-0'>
+                        <DialogHeader className='items-center border-b p-6 text-center'>
+                            <DialogTitle className='font-bold text-2xl'>SELECTED DEFAULTER LIST !!!</DialogTitle>
+                            <p className='mt-1 font-medium text-sm'>NOTE : Email Will Trigger For The Same</p>
                         </DialogHeader>
+                        <div className='overflow-hidden rounded-lg border'>
+                            <table className='w-full'>
+                                <thead>
+                                    <tr className='border-b bg-gray-50'>
+                                        <th className='border-r p-3 text-left font-semibold text-sm'>Sl No</th>
+                                        <th className='border-r p-3 text-left font-semibold text-sm'>Name</th>
+                                        <th className='border-r p-3 text-left font-semibold text-sm'>Admission No</th>
+                                        <th className='border-r p-3 text-left font-semibold text-sm'>Class : Section</th>
+                                        <th className='border-r p-3 text-left font-semibold text-sm'>Father Name</th>
+                                        <th className='border-r p-3 text-left font-semibold text-sm'>Mobile Number</th>
+                                        <th className='border-r p-3 text-left font-semibold text-sm'>Email-id</th>
+                                        <th className='p-3 text-left font-semibold text-sm'>Balance Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {studentreportData
+                                        .filter((student) => selectedIds.includes(student.id))
+                                        .map((student, index) => (
+                                            <tr key={student.id} className='border-b hover:bg-gray-50'>
+                                                <td className='border-r p-3 text-sm'>{index + 1}</td>
+                                                <td className='border-r p-3 text-sm'>{student.name}</td>
+                                                <td className='border-r p-3 text-sm'>{student.admissionNo}</td>
+                                                <td className='border-r p-3 text-sm'>{student.classSection}</td>
+                                                <td className='border-r p-3 text-sm'>{student.fatherName}</td>
+                                                <td className='border-r p-3 text-sm'>{student.mobileNumber}</td>
+                                                <td className='border-r p-3 text-sm'>{student.emailId}</td>
+                                                <td className='p-3 font-semibold text-sm'>
+                                                    ₹{student.balanceAmount.toLocaleString('en-IN')}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                </tbody>
+                            </table>
+                        </div>
 
-                        <div className='space-y-6'>
-                            {/* Email Template Selection */}
-                            <div>
-                                <Label className='mb-2 block font-semibold'>Email Template:</Label>
-                                <Select value={emailTemplate} onValueChange={setEmailTemplate}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder='-Select-' />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value='fee_reminder'>Fee Reminder Template</SelectItem>
-                                        <SelectItem value='default_alert'>Default Alert Template</SelectItem>
-                                        <SelectItem value='custom'>Custom Template</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                        <div className='space-y-6 p-6'>
+                            <div className='space-y-4'>
+                                {/* Email Template Selection */}
+                                <div className='flex items-center justify-center gap-3'>
+                                    <Label className='whitespace-nowrap font-semibold'>Email Template:*</Label>
+                                    <div className='max-w-md flex-1'>
+                                        <Select value={emailTemplate} onValueChange={setEmailTemplate}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='-Select-' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value='fee_reminder'>Fee Reminder Template</SelectItem>
+                                                <SelectItem value='default_alert'>Default Alert Template</SelectItem>
+                                                <SelectItem value='custom'>Custom Template</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
 
-                            {/* Email Subject */}
-                            <div>
-                                <Label className='mb-2 block font-semibold'>Subject:</Label>
-                                <Input
-                                    type='text'
-                                    value={emailSubject}
-                                    onChange={(e) => setEmailSubject(e.target.value)}
-                                    placeholder='Enter email subject'
-                                    className='w-full'
-                                />
-                            </div>
-
-                            {/* Email Content */}
-                            <div>
-                                <Label className='mb-2 block font-semibold'>Email Content:</Label>
-                                <Textarea
-                                    value={emailContent}
-                                    onChange={(e) => setEmailContent(e.target.value)}
-                                    placeholder='Enter email content here...'
-                                    className='min-h-[200px]'
-                                />
-                            </div>
-
-                            {/* Template Preview Section */}
-                            <div className='rounded-lg border p-4'>
-                                <h3 className='mb-3 font-bold text-lg'>Template Preview:</h3>
-                                <div className='rounded bg-gray-50 p-4'>
-                                    <p className='text-gray-700'>Thank You</p>
-                                    <div className='mt-4 rounded border bg-white p-3'>
-                                        <p className='mb-2 font-semibold'>Selected Students:</p>
-                                        <ul className='list-disc space-y-1 pl-5'>
-                                            {studentreportData
-                                                .filter((student) => selectedIds.includes(student.id))
-                                                .slice(0, 5) // Show only first 5 for preview
-                                                .map((student) => (
-                                                    <li key={student.id} className='text-sm'>
-                                                        {student.name} - ₹{student.balanceAmount.toLocaleString('en-IN')}
-                                                    </li>
-                                                ))}
-                                            {selectedIds.length > 5 && (
-                                                <li className='font-semibold text-sm'>...and {selectedIds.length - 5} more students</li>
-                                            )}
-                                        </ul>
-                                        <p className='mt-3 font-semibold'>
-                                            Total Balance: ₹{calculateTotals().totalBalance.toLocaleString('en-IN')}
-                                        </p>
+                                {/* Email Content Title */}
+                                <div className='flex items-center justify-center gap-3'>
+                                    <Label className='whitespace-nowrap font-semibold'>Email Content:</Label>
+                                    <div className='max-w-md flex-1'>
+                                        <div className='text-gray-600 text-sm'>Sub:</div>
+                                        {/* You would add the email subject input/field here */}
+                                        {/* Example: <Input placeholder="Enter email subject" /> */}
+                                    </div>
+                                </div>
+                                {/* Template Preview */}
+                                <div className='flex items-center gap-3'>
+                                    <div className='flex-1'>
+                                        <div className='rounded-lg border p-4'>
+                                            <div className='mb-3 flex items-center gap-2'>
+                                                <h3 className='font-medium text-lg'>Template Preview:</h3>
+                                                <button
+                                                    type='button'
+                                                    className='ml-2 flex items-center gap-1 text-blue-600 hover:text-blue-800'>
+                                                    <Eye className='h-4 w-4' />
+                                                    <span>Preview</span>
+                                                </button>
+                                            </div>
+                                            <div className='min-h-[100px] rounded border bg-gray-50 p-3'>
+                                                <p className='text-gray-700'>Thank You</p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-
-                            {/* Search Bar */}
-                            <div>
-                                <Input type='text' placeholder='Type here to search' className='w-full' />
-                            </div>
-
                             {/* Action Buttons */}
-                            <div className='flex justify-end gap-3 pt-4'>
-                                <Button variant='outline' onClick={() => setShowEmailModal(false)}>
-                                    Cancel
+                            <div className='flex justify-end gap-3 border-t pt-6'>
+                                <Button variant='outline' onClick={() => setShowEmailModal(false)} className='border-gray-300'>
+                                    Close
                                 </Button>
-                                <Button onClick={handleSendEmail} className='bg-green-600 hover:bg-green-700'>
+                                <Button onClick={handleSendEmail} className='bg-gray-800 text-white hover:bg-gray-900'>
                                     Send Email
                                 </Button>
                             </div>
                         </div>
                     </DialogContent>
                 </Dialog>
-
                 {/* Notification Configuration Modal */}
                 <Dialog open={showNotificationModal === true} onOpenChange={setShowNotificationModal}>
-                    <DialogContent className='max-h-[90vh] max-w-4xl overflow-y-auto'>
-                        <div className='space-y-6'>
-                            <div className='text-center'>
-                                <h4 className='mb-2 font-bold text-red-600 text-xl'>SELECTED DEFAULTER LIST !!!</h4>
-                                <p className='font-bold text-gray-700'>NOTE : Notification Will Trigger For The Same</p>
-                            </div>
-
-                            {/* Defaulters Table */}
-                            <div className='overflow-x-auto rounded-lg border'>
-                                <table className='w-full table-auto border-collapse'>
-                                    <thead className='bg-primary text-white'>
-                                        <tr>
-                                            <th className='border p-3 text-center'>Sl No</th>
-                                            <th className='border p-3 text-center'>Name</th>
-                                            <th className='border p-3 text-center'>Admission No</th>
-                                            <th className='border p-3 text-center'>Class : Section</th>
-                                            <th className='border p-3 text-center'>Father Name</th>
-                                            <th className='border p-3 text-center'>Mobile Number</th>
-                                            <th className='border p-3 text-center'>Email-Id</th>
-                                            <th className='border p-3 text-center'>Balance Amount</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {studentreportData
-                                            .filter((student) => selectedIds.includes(student.id))
-                                            .slice(0, 3) // Show only first 3 for preview
-                                            .map((student, index) => (
-                                                <tr key={student.id} className='border hover:bg-gray-50'>
-                                                    <td className='border p-2 text-center'>{index + 1}</td>
-                                                    <td className='border p-2 text-center'>{student.name}</td>
-                                                    <td className='border p-2 text-center'>{student.admissionNo}</td>
-                                                    <td className='border p-2 text-center'>{student.classSection}</td>
-                                                    <td className='border p-2 text-center'>{student.fatherName}</td>
-                                                    <td className='border p-2 text-center'>{student.mobileNumber}</td>
-                                                    <td className='border p-2 text-center'>{student.emailId}</td>
-                                                    <td className='border p-2 text-center font-bold text-red-600'>
-                                                        ₹{student.balanceAmount.toLocaleString('en-IN')}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        {selectedIds.length > 3 && (
-                                            <tr className='border bg-gray-50'>
-                                                <td colSpan={8} className='border p-2 text-center font-semibold'>
-                                                    ...and {selectedIds.length - 3} more students
+                    <DialogContent className='max-h-[90vh] max-w-6xl overflow-y-auto p-0'>
+                        <DialogHeader className='items-center border-b p-6 text-center'>
+                            <DialogTitle className='font-bold text-2xl'>SELECTED DEFAULTER LIST !!!</DialogTitle>
+                            <p className='mt-1 font-medium text-sm'>NOTE : Notification Will Trigger For The Same</p>
+                        </DialogHeader>
+                        <div className='overflow-hidden rounded-lg border'>
+                            <table className='w-full'>
+                                <thead>
+                                    <tr className='border-b bg-gray-50'>
+                                        <th className='border-r p-3 text-left font-semibold text-sm'>Sl No</th>
+                                        <th className='border-r p-3 text-left font-semibold text-sm'>Name</th>
+                                        <th className='border-r p-3 text-left font-semibold text-sm'>Admission No</th>
+                                        <th className='border-r p-3 text-left font-semibold text-sm'>Class : Section</th>
+                                        <th className='border-r p-3 text-left font-semibold text-sm'>Father Name</th>
+                                        <th className='border-r p-3 text-left font-semibold text-sm'>Mobile Number</th>
+                                        <th className='border-r p-3 text-left font-semibold text-sm'>Email-id</th>
+                                        <th className='p-3 text-left font-semibold text-sm'>Balance Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {studentreportData
+                                        .filter((student) => selectedIds.includes(student.id))
+                                        .map((student, index) => (
+                                            <tr key={student.id} className='border-b hover:bg-gray-50'>
+                                                <td className='border-r p-3 text-sm'>{index + 1}</td>
+                                                <td className='border-r p-3 text-sm'>{student.name}</td>
+                                                <td className='border-r p-3 text-sm'>{student.admissionNo}</td>
+                                                <td className='border-r p-3 text-sm'>{student.classSection}</td>
+                                                <td className='border-r p-3 text-sm'>{student.fatherName}</td>
+                                                <td className='border-r p-3 text-sm'>{student.mobileNumber}</td>
+                                                <td className='border-r p-3 text-sm'>{student.emailId}</td>
+                                                <td className='p-3 font-semibold text-sm'>
+                                                    ₹{student.balanceAmount.toLocaleString('en-IN')}
                                                 </td>
                                             </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
+                                        ))}
+                                </tbody>
+                            </table>
+                        </div>
 
-                            {/* Notification Template Selection */}
-                            <div>
-                                <Label className='mb-2 block font-semibold'>Notification Template:</Label>
-                                <Select value={notificationTemplate} onValueChange={setNotificationTemplate}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder='-Select-' />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value='fee_default_notice'>Fee Default Notice</SelectItem>
-                                        <SelectItem value='urgent_payment'>Urgent Payment Required</SelectItem>
-                                        <SelectItem value='balance_reminder'>Balance Reminder</SelectItem>
-                                        <SelectItem value='final_notice'>Final Notice</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            {/* Notification Content */}
-                            <div>
-                                <Label className='mb-2 block font-semibold'>Notification Content:</Label>
-                                <Textarea
-                                    value={notificationContent}
-                                    onChange={(e) => setNotificationContent(e.target.value)}
-                                    placeholder='Enter notification content here...'
-                                    className='min-h-[150px]'
-                                />
-                            </div>
-
-                            {/* Template Preview Section */}
-                            <div className='rounded-lg border p-4'>
-                                <h3 className='mb-3 font-bold text-lg'>Template Preview:</h3>
-                                <div className='rounded bg-gray-50 p-4'>
-                                    <p className='text-gray-700'>Thank You</p>
-                                    <div className='mt-4 rounded border bg-white p-3'>
-                                        <p className='mb-2 font-semibold'>Selected Students ({selectedIds.length}):</p>
-                                        <ul className='list-disc space-y-1 pl-5'>
-                                            {studentreportData
-                                                .filter((student) => selectedIds.includes(student.id))
-                                                .slice(0, 3)
-                                                .map((student) => (
-                                                    <li key={student.id} className='text-sm'>
-                                                        {student.name} ({student.admissionNo}) - ₹
-                                                        {student.balanceAmount.toLocaleString('en-IN')}
-                                                    </li>
-                                                ))}
-                                            {selectedIds.length > 3 && (
-                                                <li className='font-semibold text-sm'>...and {selectedIds.length - 3} more students</li>
-                                            )}
-                                        </ul>
-                                        <p className='mt-3 font-semibold'>
-                                            Total Outstanding: ₹{calculateTotals().totalBalance.toLocaleString('en-IN')}
-                                        </p>
+                        <div className='space-y-6 p-6'>
+                            <div className='space-y-4'>
+                                {/* Email Template Selection */}
+                                <div className='flex items-center justify-center gap-3'>
+                                    <Label className='whitespace-nowrap font-semibold'>Template:*</Label>
+                                    <div className='max-w-md flex-1'>
+                                        <Select value={emailTemplate} onValueChange={setEmailTemplate}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='-Select-' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value='fee_reminder'>Fee Reminder Template</SelectItem>
+                                                <SelectItem value='default_alert'>Default Alert Template</SelectItem>
+                                                <SelectItem value='custom'>Custom Template</SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                     </div>
                                 </div>
-                            </div>
 
+                                {/* <div className='flex items-center justify-center gap-3'>
+                                    <Label className='whitespace-nowrap font-semibold'>Email Content:</Label>
+                                    <div className='max-w-md flex-1'>
+                                        <div className='text-gray-600 text-sm'>Sub:</div>
+                                      
+                                    </div>
+                                </div>
+                              
+                                <div className='flex items-center gap-3'>
+                                    <div className='flex-1'>
+                                        <div className='rounded-lg border p-4'>
+                                            <div className='mb-3 flex items-center gap-2'>
+                                                <h3 className='font-medium text-lg'>Template Preview:</h3>
+                                                <button
+                                                    type="button"
+                                                    className='ml-2 flex items-center gap-1 text-blue-600 hover:text-blue-800'
+                                                >
+                                                    <Eye className='h-4 w-4' />
+                                                    <span>Preview</span>
+                                                </button>
+                                            </div>
+                                            <div className='min-h-[100px] rounded border bg-gray-50 p-3'>
+                                                <p className='text-gray-700'>Thank You</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div> */}
+                            </div>
                             {/* Action Buttons */}
-                            <div className='flex justify-end gap-3 pt-4'>
-                                <Button variant='outline' onClick={() => setShowNotificationModal(false)}>
+                            <div className='flex justify-end gap-3 border-t pt-6'>
+                                <Button variant='outline' onClick={() => setShowEmailModal(false)} className='border-gray-300'>
                                     Close
                                 </Button>
-                                <Button
-                                    onClick={handleSendNotification}
-                                    className='bg-blue-600 hover:bg-blue-700'
-                                    disabled={!notificationTemplate}>
-                                    <span className='mr-2'>🔔</span>
+                                <Button onClick={handleSendEmail} className='bg-gray-800 text-white hover:bg-gray-900'>
                                     Send Notification
                                 </Button>
                             </div>
@@ -2535,104 +2610,100 @@ export default function FeeDefaulterReport() {
                 {/* SMS Configuration Modal */}
                 <Dialog open={showSMSModal === true} onOpenChange={setShowSMSModal}>
                     <DialogContent className='max-h-[90vh] max-w-4xl overflow-y-auto'>
-                        <div className='space-y-6'>
-                            <div className='text-center'>
-                                <h4 className='mb-2 font-bold text-red-600 text-xl'>SELECTED DEFAULTER LIST !!!</h4>
-                                <p className='font-bold text-gray-700'>NOTE : SMS Will Be Sent To The Same</p>
-                            </div>
-
-                            {/* Defaulters Table - SMS */}
-                            <div className='overflow-x-auto rounded-lg border'>
-                                <table className='w-full table-auto border-collapse'>
-                                    <thead>
-                                        <tr>
-                                            <th className='border p-3 text-center'>Sl No</th>
-                                            <th className='border p-3 text-center'>Name</th>
-                                            <th className='border p-3 text-center'>Mobile Number</th>
-                                            <th className='border p-3 text-center'>Balance Amount</th>
-                                            <th className='border p-3 text-center'>SMS Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {studentreportData
-                                            .filter((student) => selectedIds.includes(student.id))
-                                            .slice(0, 5) // Show only first 5 for preview
-                                            .map((student, index) => (
-                                                <tr key={student.id} className='border hover:bg-gray-50'>
-                                                    <td className='border p-2 text-center'>{index + 1}</td>
-                                                    <td className='border p-2 text-center'>{student.name}</td>
-                                                    <td className='border p-2 text-center font-mono'>{student.mobileNumber}</td>
-                                                    <td className='border p-2 text-center font-bold text-red-600'>
-                                                        ₹{student.balanceAmount.toLocaleString('en-IN')}
-                                                    </td>
-                                                    <td className='border p-2 text-center'>
-                                                        <span className='inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 font-medium text-xs text-yellow-800'>
-                                                            Pending
-                                                        </span>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        {selectedIds.length > 5 && (
-                                            <tr className='border bg-gray-50'>
-                                                <td colSpan={5} className='border p-2 text-center font-semibold'>
-                                                    ...and {selectedIds.length - 5} more students will receive SMS
+                        <DialogHeader className='items-center border-b p-6 text-center'>
+                            <DialogTitle className='font-bold text-2xl'>SELECTED DEFAULTER LIST !!!</DialogTitle>
+                            <p className='mt-1 font-medium text-sm'>NOTE : SMS Will Trigger For The Same</p>
+                        </DialogHeader>
+                        <div className='overflow-hidden rounded-lg border'>
+                            <table className='w-full'>
+                                <thead>
+                                    <tr className='border-b bg-gray-50'>
+                                        <th className='border-r p-3 text-left font-semibold text-sm'>Sl No</th>
+                                        <th className='border-r p-3 text-left font-semibold text-sm'>Name</th>
+                                        <th className='border-r p-3 text-left font-semibold text-sm'>Admission No</th>
+                                        <th className='border-r p-3 text-left font-semibold text-sm'>Class : Section</th>
+                                        <th className='border-r p-3 text-left font-semibold text-sm'>Father Name</th>
+                                        <th className='border-r p-3 text-left font-semibold text-sm'>Mobile Number</th>
+                                        <th className='border-r p-3 text-left font-semibold text-sm'>Email-id</th>
+                                        <th className='p-3 text-left font-semibold text-sm'>Balance Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {studentreportData
+                                        .filter((student) => selectedIds.includes(student.id))
+                                        .map((student, index) => (
+                                            <tr key={student.id} className='border-b hover:bg-gray-50'>
+                                                <td className='border-r p-3 text-sm'>{index + 1}</td>
+                                                <td className='border-r p-3 text-sm'>{student.name}</td>
+                                                <td className='border-r p-3 text-sm'>{student.admissionNo}</td>
+                                                <td className='border-r p-3 text-sm'>{student.classSection}</td>
+                                                <td className='border-r p-3 text-sm'>{student.fatherName}</td>
+                                                <td className='border-r p-3 text-sm'>{student.mobileNumber}</td>
+                                                <td className='border-r p-3 text-sm'>{student.emailId}</td>
+                                                <td className='p-3 font-semibold text-sm'>
+                                                    ₹{student.balanceAmount.toLocaleString('en-IN')}
                                                 </td>
                                             </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
+                                        ))}
+                                </tbody>
+                            </table>
+                        </div>
 
-                            {/* SMS Template Selection */}
-                            <div>
-                                <Label className='mb-2 block font-semibold'>SMS Template:</Label>
-                                <Select value={smsTemplate} onValueChange={setSmsTemplate}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder='-Select-' />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value='sms_fee_reminder'>Fee Reminder SMS</SelectItem>
-                                        <SelectItem value='sms_urgent'>Urgent Payment SMS</SelectItem>
-                                        <SelectItem value='sms_short'>Short Balance Alert</SelectItem>
-                                        <SelectItem value='sms_detailed'>Detailed Balance SMS</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                        <div className='space-y-6 p-6'>
+                            <div className='space-y-4'>
+                                {/* Email Template Selection */}
+                                <div className='flex items-center justify-center gap-3'>
+                                    <Label className='whitespace-nowrap font-semibold'>Email Template:*</Label>
+                                    <div className='max-w-md flex-1'>
+                                        <Select value={emailTemplate} onValueChange={setEmailTemplate}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='-Select-' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value='fee_reminder'>Fee Reminder Template</SelectItem>
+                                                <SelectItem value='default_alert'>Default Alert Template</SelectItem>
+                                                <SelectItem value='custom'>Custom Template</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
 
-                            {/* SMS Content */}
-                            <div>
-                                <Label className='mb-2 block font-semibold'>SMS Content:</Label>
-                                <Textarea
-                                    value={smsContent}
-                                    onChange={(e) => setSmsContent(e.target.value)}
-                                    placeholder='Enter SMS content here...'
-                                    className='min-h-[100px]'
-                                    maxLength={160}
-                                />
-                                <p className='mt-1 text-gray-500 text-sm'>Characters: {smsContent.length}/160</p>
+                                {/* Email Content Title */}
+                                <div className='flex items-center justify-center gap-3'>
+                                    <Label className='whitespace-nowrap font-semibold'>SMS Content:</Label>
+                                    <div className='max-w-md flex-1'>
+                                        <div className='text-gray-600 text-sm'>Sub:</div>
+                                        {/* You would add the email subject input/field here */}
+                                        {/* Example: <Input placeholder="Enter email subject" /> */}
+                                    </div>
+                                </div>
+                                {/* Template Preview */}
+                                {/* <div className='flex items-center gap-3'>
+                                    <div className='flex-1'>
+                                        <div className='rounded-lg border p-4'>
+                                            <div className='mb-3 flex items-center gap-2'>
+                                                <h3 className='font-medium text-lg'>Template Preview:</h3>
+                                                <button
+                                                    type="button"
+                                                    className='ml-2 flex items-center gap-1 text-blue-600 hover:text-blue-800'
+                                                >
+                                                    <Eye className='h-4 w-4' />
+                                                    <span>Preview</span>
+                                                </button>
+                                            </div>
+                                            <div className='min-h-[100px] rounded border bg-gray-50 p-3'>
+                                                <p className='text-gray-700'>Thank You</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div> */}
                             </div>
-
-                            {/* Search Bar for SMS */}
-                            <div>
-                                <Label className='mb-2 block font-semibold'>Search Students:</Label>
-                                <Input
-                                    type='text'
-                                    placeholder='Search students by name or mobile...'
-                                    className='w-full'
-                                    onChange={(e) => setSmsSearch(e.target.value)}
-                                />
-                            </div>
-
                             {/* Action Buttons */}
-                            <div className='flex justify-end gap-3 pt-4'>
-                                <Button variant='outline' onClick={() => setShowSMSModal(false)}>
+                            <div className='flex justify-end gap-3 border-t pt-6'>
+                                <Button variant='outline' onClick={() => setShowEmailModal(false)} className='border-gray-300'>
                                     Close
                                 </Button>
-                                <Button
-                                    onClick={handleSendSMS}
-                                    className='bg-green-600 hover:bg-green-700'
-                                    disabled={!smsTemplate || smsContent.length === 0}>
-                                    <span className='mr-2'>📱</span>
+                                <Button onClick={handleSendEmail} className='bg-gray-800 text-white hover:bg-gray-900'>
                                     Send SMS
                                 </Button>
                             </div>

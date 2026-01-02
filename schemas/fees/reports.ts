@@ -386,3 +386,76 @@ export const excelImportNotDoneReportSchema = {
         id: deleteIdSchema('id')
     })
 };
+
+export const feesGroupwiseStudentReportSchema = z
+    .object({
+        radio_val: z.enum(['all', 'individual', 'student_wise', 'admCat', 'unmapped', 'Termwise']).default('all'),
+        stud_sel: z.enum(['S', 'L', 'D', 'N']).default('S'),
+        academicYearId: z.number().optional(),
+        fmcC_Id: z.number().optional(),
+        fmg_id: z.number().optional(),
+        classId: z.number().optional(),
+        sectionId: z.number().optional(),
+        studentids: z.number().optional(),
+        groupIds: z.array(z.number()).optional(),
+        groupIdsNew: z.array(z.number()).optional(),
+        group_wise: z.boolean().optional(),
+        amntchecked: z.boolean().optional(),
+        bulkdownload: z.boolean().optional()
+    })
+    .superRefine((data, ctx) => {
+        if (!data.academicYearId) {
+            ctx.addIssue({
+                path: ['academicYearId'],
+                message: 'Academic Year is required',
+                code: z.ZodIssueCode.custom
+            });
+        }
+
+        if (data.radio_val === 'individual' || data.radio_val === 'student_wise' || data.radio_val === 'admCat') {
+            if (!data.classId || data.classId === 0) {
+                ctx.addIssue({
+                    path: ['classId'],
+                    message: 'Class is required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+
+            if (!data.sectionId || data.sectionId === 0) {
+                ctx.addIssue({
+                    path: ['sectionId'],
+                    message: 'Section is required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+        }
+
+        if (data.radio_val === 'admCat') {
+            if (!data.fmcC_Id) {
+                ctx.addIssue({
+                    path: ['fmcC_Id'],
+                    message: 'Category is required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+        }
+
+        if (data.radio_val === 'all' || data.radio_val === 'individual' || data.radio_val === 'unmapped') {
+            if (!data.groupIdsNew || data.groupIdsNew.length === 0) {
+                ctx.addIssue({
+                    path: ['groupIdsNew'],
+                    message: 'Fee Groups are required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+        }
+        if (data.radio_val === 'student_wise') {
+            if (!data.studentids) {
+                ctx.addIssue({
+                    path: ['studentids'],
+                    message: 'Student is required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+        }
+    });

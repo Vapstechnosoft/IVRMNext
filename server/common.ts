@@ -854,6 +854,22 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/transactions/feesreceiptimportdelete',
                                             title: 'Fee Receipt Import Delete',
                                             description: 'Manage Fee Receipt Import Delete'
+                                        },
+                                        {
+                                            id: 516,
+                                            name: 'Fee Receipt Import',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/feesreceiptimportstthomas',
+                                            title: 'Fee Receipt Import',
+                                            description: 'Manage Fee Receipt Import'
+                                        },
+                                        {
+                                            id: 517,
+                                            name: 'Bank Payment Import',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/bankpaymentimportstthomas',
+                                            title: 'Bank Payment Import',
+                                            description: 'Manage Bank Payment Import'
                                         }
                                     ]
                                 },
@@ -981,6 +997,14 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/feereports/excelnotimportedstudentdetailsreport',
                                             title: 'Excel Not Imported Student Details Report',
                                             description: 'Manage Excel Not Imported Student Details Report'
+                                        },
+                                        {
+                                            id: 10026,
+                                            name: 'Fee Group Wise Student Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feegroupwisestudentreport',
+                                            title: 'Fee Group Wise Student Report',
+                                            description: 'Manage Fee Group Wise Student Report Details'
                                         }
                                     ]
                                 }
