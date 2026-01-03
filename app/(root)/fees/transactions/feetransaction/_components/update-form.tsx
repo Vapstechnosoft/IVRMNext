@@ -362,11 +362,11 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                 const bank = JSON.parse(JSON.stringify(array.editBankDetails || []));
                 const narration = JSON.parse(JSON.stringify(array.narrationlists || []));
                 const modeofPayment = JSON.parse(JSON.stringify(array.fetchmodeofpayments || []));
+                setPreSelectedTerm(PreSelectedtermList || []);
                 setMasterModeofPaymentList(modeofPayment || []);
                 SetStudentDetails(student || []);
                 SetFeeDetails(feeDetails || []);
                 SetStudentUserNameDetails(student || []);
-                setPreSelectedTerm(PreSelectedtermList || []);
                 setHeadofUpdate(feeHeads || []);
                 setMasterBanks(bank || []);
                 setMasternarration(narration || []);
@@ -390,6 +390,23 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
         setselectedTerm(matchedTerms);
     }, [terms, preSelectedTerm]);
 
+    useEffect(() => {
+        if (masterBanks.length === 0) return;
+
+        const initialSelectedBanks: Record<number, string> = {};
+        masterModeofPaymentList.forEach((paymentMethod) => {
+            const matchingBank = masterBanks.find((masterBank) => masterBank.fmbanK_BankName === paymentMethod.bank_Name);
+            if (matchingBank && paymentMethod.ivrmmoD_Id) {
+                initialSelectedBanks[paymentMethod.ivrmmoD_Id] = matchingBank.fmbanK_Id.toString();
+            }
+        });
+        setSelectedBanks((prev) => ({
+            ...prev,
+            ...initialSelectedBanks
+        }));
+    }, [masterBanks, masterModeofPaymentList]);
+    console.log('selectedBank', selectedBanks);
+
     const totalpaying = feeHeads.reduce((sum: number, f: any) => {
         const amount = Number.parseFloat(f.fsS_ToBePaid?.toString() || '0') || 0;
         return sum + amount;
@@ -403,6 +420,10 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
         console.log('Total updated:', Total);
     }, [Total, feeHeads]);
     const [modeType, setModeType] = useState<string>(masterModeofPaymentList.length === 1 ? 'Single' : 'Multiple');
+
+    useEffect(() => {
+        setModeType(masterModeofPaymentList.length === 1 ? 'Single' : 'Multiple');
+    }, [masterModeofPaymentList]);
 
     useEffect(() => {
         setchequeDates({});
@@ -1466,94 +1487,92 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                                                     </td>
                                                     <td className='border p-2 font-semibold'>{f.ivrmmoD_ModeOfPayment}</td>
                                                     <td className='border p-2'>
-                                                        {/* {f.ivrmmoD_Flag.toLowerCase() !== 'c' &&
-                                                            modeType === 'Single' &&
-                                                            payType === f.ivrmmoD_ModeOfPayment && (
-                                                                
-                                                            )} */}
-                                                        <Popover>
-                                                            <PopoverTrigger asChild>
-                                                                <Button
-                                                                    variant='outline'
-                                                                    className='w-full justify-start text-left font-normal'
-                                                                    disabled>
-                                                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                                                    {!chequedates[f.ivrmmoD_Id]
-                                                                        ? format(f.bank_Date ?? new Date(), 'PPP')
-                                                                        : chequedates[f.ivrmmoD_Id]
-                                                                          ? format(chequedates[f.ivrmmoD_Id]!, 'PPP')
-                                                                          : 'Select Date'}
-                                                                </Button>
-                                                            </PopoverTrigger>
+                                                        {f.ivrmmoD_Flag.toLowerCase() !== 'c' && modeType === 'Single' && (
+                                                            <Popover>
+                                                                <PopoverTrigger asChild>
+                                                                    <Button
+                                                                        variant='outline'
+                                                                        className='w-full justify-start text-left font-normal'
+                                                                        disabled>
+                                                                        <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                        {!chequedates[f.ivrmmoD_Id]
+                                                                            ? format(f.bank_Date ?? new Date(), 'PPP')
+                                                                            : chequedates[f.ivrmmoD_Id]
+                                                                              ? format(chequedates[f.ivrmmoD_Id]!, 'PPP')
+                                                                              : 'Select Date'}
+                                                                    </Button>
+                                                                </PopoverTrigger>
 
-                                                            <PopoverContent className='w-auto p-0' align='start'>
-                                                                <Calendar
-                                                                    mode='single'
-                                                                    selected={chequedates[f.ivrmmoD_Id] ?? undefined}
-                                                                    onSelect={(date) =>
-                                                                        setchequeDates((prev) => ({
-                                                                            ...prev,
-                                                                            [f.ivrmmoD_Id]: date ?? null
-                                                                        }))
-                                                                    }
-                                                                />
-                                                            </PopoverContent>
-                                                        </Popover>
-                                                        {checkPayType.includes(f.ivrmmoD_ModeOfPayment) &&
-                                                            modeType === 'Multiple' &&
-                                                            f.ivrmmoD_Flag.toLowerCase() !== 'c' && (
-                                                                <Popover>
-                                                                    <PopoverTrigger asChild>
-                                                                        <Button
-                                                                            variant='outline'
-                                                                            className='w-full justify-start text-left font-normal'>
-                                                                            <CalendarIcon className='mr-2 h-4 w-4' />
-                                                                            {!chequedates[f.ivrmmoD_Id]
-                                                                                ? format(f.bank_Date ?? new Date(), 'PPP')
-                                                                                : chequedates[f.ivrmmoD_Id]
-                                                                                  ? format(chequedates[f.ivrmmoD_Id]!, 'PPP')
-                                                                                  : 'Select Date'}
-                                                                        </Button>
-                                                                    </PopoverTrigger>
+                                                                <PopoverContent className='w-auto p-0' align='start'>
+                                                                    <Calendar
+                                                                        mode='single'
+                                                                        selected={chequedates[f.ivrmmoD_Id] ?? undefined}
+                                                                        onSelect={(date) =>
+                                                                            setchequeDates((prev) => ({
+                                                                                ...prev,
+                                                                                [f.ivrmmoD_Id]: date ?? null
+                                                                            }))
+                                                                        }
+                                                                    />
+                                                                </PopoverContent>
+                                                            </Popover>
+                                                        )}
 
-                                                                    <PopoverContent className='w-auto p-0' align='start'>
-                                                                        <Calendar
-                                                                            mode='single'
-                                                                            selected={chequedates[f.ivrmmoD_Id] ?? undefined}
-                                                                            onSelect={(date) =>
-                                                                                setchequeDates((prev) => ({
-                                                                                    ...prev,
-                                                                                    [f.ivrmmoD_Id]: date ?? null
-                                                                                }))
-                                                                            }
-                                                                        />
-                                                                    </PopoverContent>
-                                                                </Popover>
-                                                            )}
+                                                        {modeType === 'Multiple' && f.ivrmmoD_Flag.toLowerCase() !== 'c' && (
+                                                            <Popover>
+                                                                <PopoverTrigger asChild>
+                                                                    <Button
+                                                                        variant='outline'
+                                                                        className='w-full justify-start text-left font-normal'>
+                                                                        <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                        {!chequedates[f.ivrmmoD_Id]
+                                                                            ? format(f.bank_Date ?? new Date(), 'PPP')
+                                                                            : chequedates[f.ivrmmoD_Id]
+                                                                              ? format(chequedates[f.ivrmmoD_Id]!, 'PPP')
+                                                                              : 'Select Date'}
+                                                                    </Button>
+                                                                </PopoverTrigger>
+
+                                                                <PopoverContent className='w-auto p-0' align='start'>
+                                                                    <Calendar
+                                                                        mode='single'
+                                                                        selected={chequedates[f.ivrmmoD_Id] ?? undefined}
+                                                                        onSelect={(date) =>
+                                                                            setchequeDates((prev) => ({
+                                                                                ...prev,
+                                                                                [f.ivrmmoD_Id]: date ?? null
+                                                                            }))
+                                                                        }
+                                                                    />
+                                                                </PopoverContent>
+                                                            </Popover>
+                                                        )}
                                                     </td>
                                                     <td className='border p-2'>
-                                                        <InputText
-                                                            type='number'
-                                                            value={chequeNo?.[f.ivrmmoD_Id] ?? f.bank_No ?? ''}
-                                                            onChange={(e) => {
-                                                                const v = e.target.value;
-                                                                if (v === '') {
-                                                                    setChequeNo((prev) => ({
-                                                                        ...prev,
-                                                                        [f.ivrmmoD_Id]: ''
-                                                                    }));
-                                                                    return;
-                                                                }
-                                                                if (/^\d*\.?\d*$/.test(v)) {
-                                                                    setChequeNo((prev) => ({
-                                                                        ...prev,
-                                                                        [f.ivrmmoD_Id]: v
-                                                                    }));
-                                                                }
-                                                            }}
-                                                            className='flex rounded-md border border-gray-300 transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20'
-                                                            disabled={payType !== f.ivrmmoD_ModeOfPayment}
-                                                        />
+                                                        {f.ivrmmoD_Flag.toLowerCase() !== 'c' && (
+                                                            <InputText
+                                                                type='number'
+                                                                value={chequeNo?.[f.ivrmmoD_Id] ?? f.bank_No ?? ''}
+                                                                onChange={(e) => {
+                                                                    const v = e.target.value;
+                                                                    if (v === '') {
+                                                                        setChequeNo((prev) => ({
+                                                                            ...prev,
+                                                                            [f.ivrmmoD_Id]: ''
+                                                                        }));
+                                                                        return;
+                                                                    }
+                                                                    if (/^\d*\.?\d*$/.test(v)) {
+                                                                        setChequeNo((prev) => ({
+                                                                            ...prev,
+                                                                            [f.ivrmmoD_Id]: v
+                                                                        }));
+                                                                    }
+                                                                }}
+                                                                className='flex rounded-md border border-gray-300 transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20'
+                                                                disabled={payType !== f.ivrmmoD_ModeOfPayment}
+                                                            />
+                                                        )}
                                                     </td>
 
                                                     <td className='border p-2'>
@@ -1702,7 +1721,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                         </Button>
 
                         <Button type='submit' disabled={isSubmitting}>
-                            <Save className='mr-2 h-4 w-4' /> Save
+                            <Save className='mr-2 h-4 w-4' /> Update
                         </Button>
                     </div>
                 )}

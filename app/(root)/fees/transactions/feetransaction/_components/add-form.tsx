@@ -630,7 +630,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                         fyppM_TransactionTypeFlag: selectedPayment.ivrmmoD_Flag,
                         fyppM_BankName: selectedBankName,
                         fyppM_DDChequeDate: chequedates[selectedPayment.ivrmmoD_Id] ?? new Date(),
-                        fyppM_DDChequeNo: chequeNo[selectedPayment.ivrmmoD_Id],
+                        fyppM_DDChequeNo: chequeNo[selectedPayment.ivrmmoD_Id] ?? '',
                         ivrmmoD_ModeOfPayment_Code: selectedPayment.ivrmmoD_ModeOfPayment_Code,
                         fyppM_Id: 0
                     };
