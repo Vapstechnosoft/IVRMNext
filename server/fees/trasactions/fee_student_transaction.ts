@@ -39,3 +39,18 @@ export async function getStudentPrintDetails(payload: any) {
     const url = '/FeeStudentTransaction/fee-print-details';
     return await api.post<IFeePreAdmissionTransactionDetails[]>('fees', url, payload);
 }
+
+export async function masterBank() {
+    const url = '/FeesCommon/bank-details';
+    return await api.get<any[]>('fees', url);
+}
+
+export async function deletefeeTransaction(payload: any) {
+    const url = '/FeeStudentTransaction/fee-delete-transaction';
+    return await api.post('fees', url, payload);
+}
+
+export async function updateFeeStudentTransactionDetails(payload: any) {
+    const url = '/FeeStudentTransaction/fee-edit-transaction';
+    return await api.post<any[]>('fees', url, payload);
+}

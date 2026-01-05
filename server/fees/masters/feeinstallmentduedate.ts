@@ -1,7 +1,7 @@
 'use server';
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { IMasterFeesInstallmentList } from '@/types/fees/masters';
+import type { IAcademicYearDataDetails, IMasterFeesInstallmentList } from '@/types/fees/masters';
 import type { IMasterFeeInstallmentDropDown } from '@/types/fees/masters/masters';
 
 export async function addOrUpdateInsallmentDueDate(data: any) {
@@ -39,4 +39,9 @@ export async function deleteInstallmentDueDate(ftidd_id: number) {
 export async function saveInstallmentDueDate(payload: any) {
     const url = '/fee_installment/SaveInstallmentDueDate';
     return await api.post('fees', url, payload);
+}
+
+export async function getAcademicYearDetailsData(asmayId: number) {
+    const url = `/FeesCommon/academic-year-by-id?asmay_Id=${asmayId}`;
+    return await api.get<IAcademicYearDataDetails[]>('fees', url);
 }

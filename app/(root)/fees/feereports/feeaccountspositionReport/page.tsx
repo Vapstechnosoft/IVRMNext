@@ -21,16 +21,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 import { FormError } from '@/components/ui/extension/field';
 import { feeAccountsPositionReport } from '@/schemas/fees/reports';
+import { getFeeAccountsPositionReport, onChangeofCustomFeeGroup } from '@/server/fees/reports/fee_accounts_position_report';
 import type { IFeeCustomGroupDropdownList, IFeeGroupDropdownList, IFeeTermDropdownList } from '@/types/fees/reports/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Input } from 'react-aria-components';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { Controller, type SubmitHandler, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-import { type IFeeAccountsPositionReport, exportToExcel, printTable } from './_components/export_and_excel';
+import {
+    type IFeeAccountsPositionReport,
+    exportToExcelforAll,
+    exportToExcelforHeadWise,
+    exportToExcelforIndividual,
+    exportToExcelforRoute,
+    printTable
+} from './_components/export_and_excel';
 
 type FormFields = z.infer<typeof feeAccountsPositionReport>;
 
@@ -95,7 +103,7 @@ export default function FeeAccountsPositionReport() {
     const [feeTerms, setFeeTerms] = useState<IFeeTermDropdownList[]>([]);
     const [customGroups, setCustomGroups] = useState<IFeeCustomGroupDropdownList[]>([]);
     const [reportData, setReportData] = useState<IFeeAccountsPositionReport[]>([]);
-    const [reportLoading, setReportLoading] = useState(false); // ← ADD THIS LINE
+    const [reportLoading, setReportLoading] = useState(false);
     const [showReport, setShowReport] = useState(false);
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [filterType, setFilterType] = useState('individual');
@@ -103,7 +111,44 @@ export default function FeeAccountsPositionReport() {
     const [selectedSectionId, setSelectedSectionId] = useState<number | null>(null);
     const [specialFlag, setSepecialFlag] = useState(false);
     const [leftFlag, setLeftFlag] = useState(false);
+    const [customOnChangeFeeGroups, setCustomOnChangeFeeGroups] = useState<any[]>([]);
+    const [loadingCustomOnChangeFeeGroups, setLoadingCustomOnChangeFeeGroups] = useState(false);
     const selectedFilterValue = filterOptions.find((opt) => opt.value === filterType)?.value || '';
+
+    const watchCustomGroupIds = useWatch({
+        control,
+        name: 'customGroupIds'
+    });
+
+    useEffect(() => {
+        const fetchFeeGroupsForCustomGroups = async (selectedIds: number[]) => {
+            if (selectedIds.length === 0) {
+                setCustomOnChangeFeeGroups([]);
+                return;
+            }
+            try {
+                setLoadingCustomOnChangeFeeGroups(true);
+                const response = await onChangeofCustomFeeGroup(selectedIds.map((id) => id));
+                // const response=await onChangeofCustomFeeGroup([1])
+                setCustomOnChangeFeeGroups(response.data || []);
+                if (response?.data?.length === 0) {
+                    toast.info('No Fee Groups Found for the Selected Custom Groups!!');
+                    return;
+                }
+            } catch (error) {
+                console.error('Error fetching fee groups:', error);
+                toast.error('Failed to fetch fee groups for selected custom groups');
+                setCustomOnChangeFeeGroups([]);
+            } finally {
+                setLoadingCustomOnChangeFeeGroups(false);
+            }
+        };
+        if (watchCustomGroupIds && watchCustomGroupIds.length > 0) {
+            fetchFeeGroupsForCustomGroups(watchCustomGroupIds);
+        } else {
+            setCustomOnChangeFeeGroups([]);
+        }
+    }, [watchCustomGroupIds]);
 
     useEffect(() => {
         setReportData([]);
@@ -164,7 +209,13 @@ export default function FeeAccountsPositionReport() {
             toast.error('No data selected to export');
             return;
         }
-        exportToExcel(rowsToExport, 'AccountPosition_Report');
+        selectedFilterValue === 'individual'
+            ? exportToExcelforIndividual(rowsToExport, 'AccountPosition_Report')
+            : selectedFilterValue === 'headwise'
+              ? exportToExcelforHeadWise(rowsToExport, 'AccountPosition_Report')
+              : selectedFilterValue === 'All'
+                ? exportToExcelforAll(rowsToExport, 'AccountPosition_Report')
+                : exportToExcelforRoute(rowsToExport, 'AccountPosition_Report');
     };
 
     const handlePrint = () => {
@@ -199,20 +250,17 @@ export default function FeeAccountsPositionReport() {
 
         const printableRows = rowsToPrint.map((row, index) => ({
             'Sl No': index + 1,
-            'Student Name':
-                selectedFilterValue === 'individual'
-                    ? `${row.studentName}`
-                    : selectedFilterValue === 'headwise'
-                      ? `${row.feeHead}`
-                      : selectedFilterValue === 'All'
-                        ? `${row.className}`
-                        : `${row.RouteName}`,
+            'Student Name': selectedFilterValue === 'individual' ? `${row.studentName}` : '',
+            'Fee Head': selectedFilterValue === 'headwise' ? `${row.feeHead}` : '',
+            'Class Name': selectedFilterValue === 'All' ? `${row.className}` : '',
+            'Route Name': selectedFilterValue === 'route' ? `${row.RouteName}` : '',
             'Adm.No': selectedFilterValue === 'individual' ? row.admNumber : '',
             'Charges as per Academic year': `${row.ChargesasperAcademicyear?.toLocaleString('en-IN') || '0'}`,
             'Concession as per Academic year': `${row.ConcessionasperAcademicyear?.toLocaleString('en-IN') || '0'}`,
             'Rebate/Scholarship as per Academic year': `${row.RebateScholarshipasperAcademicyear?.toLocaleString('en-IN') || '0'}`,
-            'Waive Off as per Academic year': `${row.waivedOffasperAcademicyear?.toLocaleString('en-IN') || '0'}`,
             Fine: `${row.fine?.toLocaleString('en-IN') || '0'}`,
+            'Waive Off as per Academic year': `${row.waivedOffasperAcademicyear?.toLocaleString('en-IN') || '0'}`,
+
             'Collection as per Academic year': `${row.collectionasperAcademicyear?.toLocaleString('en-IN') || '0'}`,
             Balance: `${row.balance?.toLocaleString('en-IN') || '0'}`,
             'Last Year Due': `${row.lastyearDue?.toLocaleString('en-IN') || '0'}`
@@ -242,6 +290,20 @@ export default function FeeAccountsPositionReport() {
         };
 
         printTable(columns, printableRows, sumRow);
+    };
+
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
+    const fetchReportData = async () => {
+        setReportLoading(true);
+        try {
+            const reportArray = await getFeeAccountsPositionReport(127, 1);
+            setReportData(reportArray.data || []);
+        } catch (e) {
+            console.error('Failed to load the Fee Accounts Position Report!!', e);
+            setReportData([]);
+        } finally {
+            setReportLoading(false);
+        }
     };
 
     const onSubmit: SubmitHandler<FormFields> = async () => {
@@ -506,10 +568,6 @@ export default function FeeAccountsPositionReport() {
         setReportLoading(false);
 
         toast.success('Report generated successfully!');
-
-        setTimeout(() => {
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        }, 100);
     };
 
     return (
@@ -779,87 +837,175 @@ export default function FeeAccountsPositionReport() {
                                     </div>
 
                                     {/* Fee Group */}
-                                    <div className='space-y-3'>
-                                        <Label className='font-semibold text-lg'>
-                                            Fee Group <span className='text-red-500'>*</span>
-                                        </Label>
-                                        <Card className='border bg-gray-50 p-4'>
-                                            <Controller
-                                                name='feeGroupIds'
-                                                control={control}
-                                                render={({ field }) => {
-                                                    const selectedIds = field.value ?? [];
-                                                    const allIds = feeGroups.map((g) => g.fmG_Id);
+                                    {customOnChangeFeeGroups.length > 0 ? (
+                                        <div className='space-y-3'>
+                                            <Label className='font-semibold text-lg'>
+                                                Fee Group <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <Card className='border bg-gray-50 p-4'>
+                                                <Controller
+                                                    name='feeGroupIds'
+                                                    control={control}
+                                                    render={({ field }) => {
+                                                        const selectedIds = field.value ?? [];
+                                                        const allIds = customOnChangeFeeGroups.map((g) => g.fmG_Id);
 
-                                                    const isAllSelected = allIds.length > 0 && selectedIds.length === allIds.length;
+                                                        const isAllSelected = allIds.length > 0 && selectedIds.length === allIds.length;
 
-                                                    const isIndeterminate = selectedIds.length > 0 && selectedIds.length < allIds.length;
+                                                        const isIndeterminate =
+                                                            selectedIds.length > 0 && selectedIds.length < allIds.length;
 
-                                                    return (
-                                                        <div className='max-h-64 space-y-3 overflow-y-auto'>
-                                                            {/* SELECT ALL */}
-                                                            <Label className='flex cursor-pointer items-center gap-3 rounded border-b bg-white px-2 py-2 font-medium hover:bg-gray-200'>
-                                                                <Checkbox
-                                                                    checked={isAllSelected}
-                                                                    indeterminate={isIndeterminate}
-                                                                    onCheckedChange={(checked: boolean | 'indeterminate') => {
-                                                                        const value = checked === true ? allIds : [];
+                                                        return (
+                                                            <div className='max-h-64 space-y-3 overflow-y-auto'>
+                                                                {/* SELECT ALL */}
+                                                                <Label className='flex cursor-pointer items-center gap-3 rounded border-b bg-white px-2 py-2 font-medium hover:bg-gray-200'>
+                                                                    <Checkbox
+                                                                        checked={isAllSelected}
+                                                                        indeterminate={isIndeterminate}
+                                                                        onCheckedChange={(checked: boolean | 'indeterminate') => {
+                                                                            const value = checked === true ? allIds : [];
 
-                                                                        field.onChange(value);
-                                                                        setValue('feeGroupIds', value, {
-                                                                            shouldValidate: true,
-                                                                            shouldDirty: true,
-                                                                            shouldTouch: true
-                                                                        });
-                                                                    }}
-                                                                />
-                                                                <span>Select All</span>
-                                                            </Label>
+                                                                            field.onChange(value);
+                                                                            setValue('feeGroupIds', value, {
+                                                                                shouldValidate: true,
+                                                                                shouldDirty: true,
+                                                                                shouldTouch: true
+                                                                            });
+                                                                        }}
+                                                                    />
+                                                                    <span>Select All</span>
+                                                                </Label>
 
-                                                            {/* LOADING */}
-                                                            {loadingfeegroup ? (
-                                                                <div className='py-4 text-center text-gray-500'>Loading...</div>
-                                                            ) : feeGroups.length > 0 ? (
-                                                                feeGroups.map((group) => {
-                                                                    const checked = selectedIds.includes(group.fmG_Id);
+                                                                {/* LOADING */}
+                                                                {loadingCustomOnChangeFeeGroups ? (
+                                                                    <div className='py-4 text-center text-gray-500'>Loading...</div>
+                                                                ) : customOnChangeFeeGroups.length > 0 ? (
+                                                                    customOnChangeFeeGroups.map((group) => {
+                                                                        const checked = selectedIds.includes(group.fmG_Id);
 
-                                                                    return (
-                                                                        <Label
-                                                                            key={group.fmG_Id}
-                                                                            className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'>
-                                                                            <Checkbox
-                                                                                checked={checked}
-                                                                                onCheckedChange={(checked: boolean | 'indeterminate') => {
-                                                                                    const value =
-                                                                                        checked === true
-                                                                                            ? [...selectedIds, group.fmG_Id]
-                                                                                            : selectedIds.filter(
-                                                                                                  (id) => id !== group.fmG_Id
-                                                                                              );
+                                                                        return (
+                                                                            <Label
+                                                                                key={group.fmG_Id}
+                                                                                className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'>
+                                                                                <Checkbox
+                                                                                    checked={checked}
+                                                                                    onCheckedChange={(
+                                                                                        checked: boolean | 'indeterminate'
+                                                                                    ) => {
+                                                                                        const value =
+                                                                                            checked === true
+                                                                                                ? [...selectedIds, group.fmG_Id]
+                                                                                                : selectedIds.filter(
+                                                                                                      (id) => id !== group.fmG_Id
+                                                                                                  );
 
-                                                                                    field.onChange(value);
-                                                                                    setValue('feeGroupIds', value, {
-                                                                                        shouldValidate: true,
-                                                                                        shouldDirty: true,
-                                                                                        shouldTouch: true
-                                                                                    });
-                                                                                }}
-                                                                            />
-                                                                            <span className='text-sm'>{group.fmG_GroupName}</span>
-                                                                        </Label>
-                                                                    );
-                                                                })
-                                                            ) : (
-                                                                <div className='py-4 text-center text-gray-500'>No fee groups</div>
-                                                            )}
-                                                        </div>
-                                                    );
-                                                }}
-                                            />
-                                        </Card>
-                                        {errors.feeGroupIds && <FormError>{errors.feeGroupIds.message}</FormError>}
-                                    </div>
+                                                                                        field.onChange(value);
+                                                                                        setValue('feeGroupIds', value, {
+                                                                                            shouldValidate: true,
+                                                                                            shouldDirty: true,
+                                                                                            shouldTouch: true
+                                                                                        });
+                                                                                    }}
+                                                                                />
+                                                                                <span className='text-sm'>{group.fmG_GroupName}</span>
+                                                                            </Label>
+                                                                        );
+                                                                    })
+                                                                ) : (
+                                                                    <div className='py-4 text-center text-gray-500'>No fee groups</div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    }}
+                                                />
+                                            </Card>
+                                            {errors.feeGroupIds && <FormError>{errors.feeGroupIds.message}</FormError>}
+                                        </div>
+                                    ) : (
+                                        <div className='space-y-3'>
+                                            <Label className='font-semibold text-lg'>
+                                                Fee Group <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <Card className='border bg-gray-50 p-4'>
+                                                <Controller
+                                                    name='feeGroupIds'
+                                                    control={control}
+                                                    render={({ field }) => {
+                                                        const selectedIds = field.value ?? [];
+                                                        const allIds = feeGroups.map((g) => g.fmG_Id);
 
+                                                        const isAllSelected = allIds.length > 0 && selectedIds.length === allIds.length;
+
+                                                        const isIndeterminate =
+                                                            selectedIds.length > 0 && selectedIds.length < allIds.length;
+
+                                                        return (
+                                                            <div className='max-h-64 space-y-3 overflow-y-auto'>
+                                                                {/* SELECT ALL */}
+                                                                <Label className='flex cursor-pointer items-center gap-3 rounded border-b bg-white px-2 py-2 font-medium hover:bg-gray-200'>
+                                                                    <Checkbox
+                                                                        checked={isAllSelected}
+                                                                        indeterminate={isIndeterminate}
+                                                                        onCheckedChange={(checked: boolean | 'indeterminate') => {
+                                                                            const value = checked === true ? allIds : [];
+
+                                                                            field.onChange(value);
+                                                                            setValue('feeGroupIds', value, {
+                                                                                shouldValidate: true,
+                                                                                shouldDirty: true,
+                                                                                shouldTouch: true
+                                                                            });
+                                                                        }}
+                                                                    />
+                                                                    <span>Select All</span>
+                                                                </Label>
+
+                                                                {/* LOADING */}
+                                                                {loadingfeegroup ? (
+                                                                    <div className='py-4 text-center text-gray-500'>Loading...</div>
+                                                                ) : feeGroups.length > 0 ? (
+                                                                    feeGroups.map((group) => {
+                                                                        const checked = selectedIds.includes(group.fmG_Id);
+
+                                                                        return (
+                                                                            <Label
+                                                                                key={group.fmG_Id}
+                                                                                className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'>
+                                                                                <Checkbox
+                                                                                    checked={checked}
+                                                                                    onCheckedChange={(
+                                                                                        checked: boolean | 'indeterminate'
+                                                                                    ) => {
+                                                                                        const value =
+                                                                                            checked === true
+                                                                                                ? [...selectedIds, group.fmG_Id]
+                                                                                                : selectedIds.filter(
+                                                                                                      (id) => id !== group.fmG_Id
+                                                                                                  );
+
+                                                                                        field.onChange(value);
+                                                                                        setValue('feeGroupIds', value, {
+                                                                                            shouldValidate: true,
+                                                                                            shouldDirty: true,
+                                                                                            shouldTouch: true
+                                                                                        });
+                                                                                    }}
+                                                                                />
+                                                                                <span className='text-sm'>{group.fmG_GroupName}</span>
+                                                                            </Label>
+                                                                        );
+                                                                    })
+                                                                ) : (
+                                                                    <div className='py-4 text-center text-gray-500'>No fee groups</div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    }}
+                                                />
+                                            </Card>
+                                            {errors.feeGroupIds && <FormError>{errors.feeGroupIds.message}</FormError>}
+                                        </div>
+                                    )}
                                     {/* Term */}
                                     <div className='space-y-3'>
                                         <Label className='font-semibold text-lg'>

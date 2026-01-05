@@ -55,7 +55,7 @@ import {
     getFeeOnlinePaymentHeadGroupTable,
     getGroupNameDropDownList,
     getHeadNameDropDownList,
-    getInstituteDropDownList,
+    getInstitutionDetails,
     getOnlinePaymentHeadGroupInstallment,
     getSubMerchantDropDownList
 } from '@/server/fees/masters/online_payment_head_group';
@@ -477,7 +477,7 @@ export const useInstituteDropDown = () => {
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.FEE_INSTITUTE_DROPDOWN],
-            queryFn: async () => getInstituteDropDownList(),
+            queryFn: async () => getInstitutionDetails(),
 
             staleTime: 0
         }),

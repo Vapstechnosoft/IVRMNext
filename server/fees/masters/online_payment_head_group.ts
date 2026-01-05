@@ -2,7 +2,7 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { IFeeOnlinehaedgroupMappingList, IMasterClassYearlyList } from '@/types/fees/masters/masters';
+import type { IFeeOnlinehaedgroupMappingList, IMasterClassYearlyList, IinstitutionDetails } from '@/types/fees/masters/masters';
 
 export async function getAcademicYearDropdown() {
     const url = '/fee_class_category/academicyearlist';
@@ -66,4 +66,9 @@ export async function getOnlinePaymentHeadGroupEdit(fopM_Id: number) {
 export async function deleteOnlinePaymentHeadGroup(fopM_Id: number) {
     const url = `/OnlinePaymentHeadGroupMapping/deleteDetails/${fopM_Id}`;
     return await api.put('fees', url);
+}
+
+export async function getInstitutionDetails() {
+    const url = '/FeesCommon/institution-details';
+    return await api.get<IinstitutionDetails[]>('fees', url);
 }

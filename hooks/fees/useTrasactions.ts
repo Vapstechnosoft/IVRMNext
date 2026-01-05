@@ -41,7 +41,11 @@ import {
     getOpeningSectionDropdownData
 } from '@/server/fees/trasactions/fee_opening_balance';
 import { getFeeRefundableDetails } from '@/server/fees/trasactions/fee_refundable';
-import { getFeeStudentTransactionDetails, masterconfiguration } from '@/server/fees/trasactions/fee_student_transaction';
+import {
+    getFeeStudentTransactionDetails,
+    masterconfiguration,
+    updateFeeStudentTransactionDetails
+} from '@/server/fees/trasactions/fee_student_transaction';
 import {
     getFeePreadmissionTransactionList,
     getFeeProspectusTransactionList,
@@ -988,5 +992,21 @@ export const useFeeMasterConfiguration = () => {
                 queryKey: [FEES_QUERY_KEYS.FEE_MASTER_CONFIGURATION]
             });
         }
+    };
+};
+
+export const useUpdateFeeTransactionList = (payload: any) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_UPDATE_TRANSACTION],
+            queryFn: async () => updateFeeStudentTransactionDetails(payload)
+        }),
+
+        refetchAll: () =>
+            queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_UPDATE_TRANSACTION]
+            })
     };
 };

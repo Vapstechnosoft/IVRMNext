@@ -81,7 +81,7 @@ export default function ReceiptViewPage({ rowData, onClose, asmayId }: ReceiptVi
     const discountAmount = studentDetails[0]?.concession_amount;
     const paidAmount = studentDetails[0]?.paid_amount;
     const currentPaidAmount = currentPaymentDetails.reduce((sum, p) => {
-        return sum + p.ftP_Paid_Amt;
+        return sum + p.fyppM_TotalPaidAmount;
     }, 0);
 
     const handlePrint = () => {
@@ -356,13 +356,13 @@ export default function ReceiptViewPage({ rowData, onClose, asmayId }: ReceiptVi
                                         </tr>
                                     </thead>
                                     {currentPaymentDetails.map((p, index) => (
-                                        <tbody key={p.ftP_Paid_Amt}>
+                                        <tbody key={index + 1}>
                                             <tr>
                                                 <td className='border border-gray-400 p-2 text-center'>{index + 1}</td>
-                                                <td className='border border-gray-400 p-2 text-right'>{p.ftP_Paid_Amt}</td>
-                                                <td className='border border-gray-400 p-2'>{p.fyP_Bank_Name}</td>
-                                                <td className='border border-gray-400 p-2'>{p.fyP_DD_Cheque_No}</td>
-                                                <td className='border border-gray-400 p-2'>{formatDate(p.fyP_Date)}</td>
+                                                <td className='border border-gray-400 p-2 text-right'>{p.fyppM_TotalPaidAmount}</td>
+                                                <td className='border border-gray-400 p-2'>{p.fyppM_BankName}</td>
+                                                <td className='border border-gray-400 p-2'>{p.fyppM_DDChequeNo}</td>
+                                                <td className='border border-gray-400 p-2'>{formatDate(p.fyppM_DDChequeDate)}</td>
                                             </tr>
                                         </tbody>
                                     ))}
@@ -457,13 +457,13 @@ export default function ReceiptViewPage({ rowData, onClose, asmayId }: ReceiptVi
                                         </tr>
                                     </thead>
                                     {currentPaymentDetails.map((p, index) => (
-                                        <tbody key={p.ftP_Paid_Amt}>
+                                        <tbody key={index + 1}>
                                             <tr>
                                                 <td className='border border-gray-400 p-2 text-center'>{index + 1}</td>
-                                                <td className='border border-gray-400 p-2 text-right'>{p.ftP_Paid_Amt}</td>
-                                                <td className='border border-gray-400 p-2'>{p.fyP_Bank_Name}</td>
-                                                <td className='border border-gray-400 p-2'>{p.fyP_DD_Cheque_No}</td>
-                                                <td className='border border-gray-400 p-2'>{formatDate(p.fyP_Date)}</td>
+                                                <td className='border border-gray-400 p-2 text-right'>{p.fyppM_TotalPaidAmount}</td>
+                                                <td className='border border-gray-400 p-2'>{p.fyppM_BankName}</td>
+                                                <td className='border border-gray-400 p-2'>{p.fyppM_DDChequeNo}</td>
+                                                <td className='border border-gray-400 p-2'>{formatDate(p.fyppM_DDChequeDate)}</td>
                                             </tr>
                                         </tbody>
                                     ))}

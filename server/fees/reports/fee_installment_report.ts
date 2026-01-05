@@ -5,6 +5,7 @@ import type {
     IInstallmentReportFeeBusRoutrDropdownList,
     IInstallmentReportFeeCategoryDropdownList,
     IInstallmentReportFeeTermDropdownList,
+    InstallmentReportData,
     InstallmentReportGroupDropdownList,
     InstallmentReportHeadDropdownList,
     InstallmentReportInstallemntDropdownList
@@ -21,7 +22,8 @@ export async function getFeeInstallmentReportCategoryDropdown() {
 }
 
 export async function getInstallemntReportInstallmentDropdownData(asmaY_Id: number) {
-    const url = `/FeeInstallmentReport/installment-dropdown?asmay_id=${asmaY_Id}`;
+    //const url = `/FeeInstallmentReport/installment-dropdown-by-yearid?asmay_id=${asmaY_Id}`;
+    const url = `/FeeInstallmentReport/installment-dropdown-by-yearid?asmayId=${asmaY_Id}`;
 
     console.info('getInstallmentDropdownData url:', url);
     return await api.get<InstallmentReportInstallemntDropdownList[]>('fees', url);
@@ -42,4 +44,9 @@ export async function getFeeInstallmentReportHeadDropdown(asmay_Id: number, fmg_
 
     console.info('getFeeInstallmentReportHeadDropdown url:', url);
     return await api.get<InstallmentReportHeadDropdownList[]>('fees', url);
+}
+
+export async function getInstallmentReportDetails(data: any) {
+    const url = '/FeeInstallmentReport/fee-installment-report';
+    return await api.post<InstallmentReportData[]>('fees', url, data);
 }

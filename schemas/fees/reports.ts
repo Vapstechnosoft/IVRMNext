@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createStringOnlyOptionalSchema } from '../validationSchemas';
+import { createStringOnlyOptionalSchema, deleteIdSchema } from '../validationSchemas';
 
 export const feeAuditSchema = z.object({
     academicYearId: z.string().min(1, 'Academic Year is required'),
@@ -173,7 +173,10 @@ export const feesInstallmentReportSchema = z
         groupIds: z.array(z.number()).optional(),
         busrouteid: z.number().optional(),
         headIds: z.array(z.number()).optional(),
-        groupIdsNew: z.array(z.number()).optional()
+        groupIdsNew: z.array(z.number()).optional(),
+        Active: z.number().optional(),
+        Deactive: z.number().optional(),
+        left: z.number().optional()
     })
     .superRefine((data, ctx) => {
         /* Academic Year */
@@ -372,3 +375,123 @@ export const feeStudentTermWisePaidReportSchema = z.object({
     asms_Id: z.number({ message: 'Section Year is required' }),
     termIds: z.array(z.number()).min(1, 'Please select at least one Term')
 });
+
+export const excelImportNotDoneReportSchema = {
+    addOrUpdate: z.object({
+        academicYearId: z.string().min(1, 'Academic Year is required'),
+        fromDate: z.date().optional(),
+        toDate: z.date().optional()
+    }),
+    delete: z.object({
+        id: deleteIdSchema('id')
+    })
+};
+
+export const feesGroupwiseStudentReportSchema = z
+    .object({
+        radio_val: z.enum(['all', 'individual', 'student_wise', 'admCat', 'unmapped', 'Termwise']).default('all'),
+        stud_sel: z.enum(['S', 'L', 'D', 'N']).default('S'),
+        academicYearId: z.number().optional(),
+        fmcC_Id: z.number().optional(),
+        fmg_id: z.number().optional(),
+        classId: z.number().optional(),
+        sectionId: z.number().optional(),
+        studentids: z.number().optional(),
+        groupIds: z.array(z.number()).optional(),
+        groupIdsNew: z.array(z.number()).optional(),
+        group_wise: z.boolean().optional(),
+        amntchecked: z.boolean().optional(),
+        bulkdownload: z.boolean().optional(),
+        admno: z.string().optional()
+    })
+    .superRefine((data, ctx) => {
+        if (!data.academicYearId) {
+            ctx.addIssue({
+                path: ['academicYearId'],
+                message: 'Academic Year is required',
+                code: z.ZodIssueCode.custom
+            });
+        }
+
+        // if (data.radio_val === 'Termwise') {
+        //     ctx.addIssue({
+        //         path: ['admno'],
+        //         message: 'Admission Number is required',
+        //         code: z.ZodIssueCode.custom
+        //     });
+        // }
+
+        if (data.radio_val === 'individual' || data.radio_val === 'student_wise' || data.radio_val === 'admCat') {
+            if (!data.classId || data.classId === 0) {
+                ctx.addIssue({
+                    path: ['classId'],
+                    message: 'Class is required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+
+            if (!data.sectionId || data.sectionId === 0) {
+                ctx.addIssue({
+                    path: ['sectionId'],
+                    message: 'Section is required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+        }
+
+        if (data.radio_val === 'admCat') {
+            if (!data.fmcC_Id) {
+                ctx.addIssue({
+                    path: ['fmcC_Id'],
+                    message: 'Category is required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+        }
+
+        if (data.radio_val === 'all' || data.radio_val === 'individual' || data.radio_val === 'unmapped') {
+            if (!data.groupIdsNew || data.groupIdsNew.length === 0) {
+                ctx.addIssue({
+                    path: ['groupIdsNew'],
+                    message: 'Fee Groups are required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+        }
+        if (data.radio_val === 'student_wise') {
+            if (!data.studentids) {
+                ctx.addIssue({
+                    path: ['studentids'],
+                    message: 'Student is required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+        }
+    });
+
+export const feeDefaulterreportStthomas = z
+    .object({
+        academicYearId: z.string().min(1, 'Academic Year is required'),
+        classId: z.string().min(1, 'Class is required'),
+        sectionId: z.string().min(1, 'Section is required'),
+        //    sectionId: z.string().refine(val => val !== 'all', {
+        //         message: 'Section is required'
+        //     }),
+        studentId: z.string().optional(),
+        feeTerm: z.string().optional(),
+        breakdown: z.string().optional(),
+        reportType: z.enum(['All', 'Individual']).default('All'),
+        filterdata: z.enum(['NameRegNo', 'RegNoName']).default('NameRegNo'),
+        terms: z.array(z.string()).nonempty('Please select at least one Term')
+    })
+    .superRefine((data, ctx) => {
+        if (data.reportType === 'Individual') {
+            if (!data.studentId) {
+                ctx.addIssue({
+                    path: ['studentId'],
+                    message: 'Student is required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+        }
+    });

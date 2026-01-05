@@ -95,6 +95,8 @@ export default function DailyFeeCollectionReportForm() {
     const [groupManualLoading, setGroupManualLoading] = useState(false);
     const [classes, setClasses] = useState<any[]>([]);
 
+    const [selectedAsmayId, setSelectedAsmayId] = useState<number | null>(null);
+
     const {
         data: academicData,
         error: academicError,
@@ -102,6 +104,12 @@ export default function DailyFeeCollectionReportForm() {
         refetch: refetchAcademicYears
     } = useAcademicYearDropdown();
     const { data: classData, error: classError } = useClassDropdownDropdown();
+
+    // useEffect(() => {
+    //     if (!loadingAcademic && academicData?.data?.length && selectedAsmayId === null) {
+    //         setSelectedAsmayId(Number(academicData.data[0].asmaY_Id));
+    //     }
+    // }, [loadingAcademic, academicData, selectedAsmayId]);
 
     // useEffect(() => {
     //     if (academicError) toast.error('Failed to load academic years');
@@ -139,7 +147,7 @@ export default function DailyFeeCollectionReportForm() {
     useEffect(() => {
         if (academicError) toast.error('Failed to load academic years');
 
-        if (academicData?.data) {
+        if (!loadingAcademic && academicData?.data?.length && selectedAsmayId === null) {
             const years = academicData.data.map((i: any) => ({
                 asmaY_Id: i.asmaY_Id,
                 asmaY_Year: i.asmaY_Year
@@ -291,39 +299,6 @@ export default function DailyFeeCollectionReportForm() {
             ToDate: data.toDate,
             All_List: [{ columnID: '1' }]
         };
-
-        // // ===================================================
-        // // REPORT 1 → HEADWISE
-        // // ===================================================
-        // if (data.headwise === true && data.paymentwise === false) {
-        //     params.Headwise = true;
-        //     params.Paymentwise = false;
-
-        //     console.log('REPORT 1 (HEADWISE) PARAMS', params);
-        // }
-
-        // // ===================================================
-        // // REPORT 2 → PAYMENTWISE
-        // // ===================================================
-        // if (data.paymentwise === true) {
-        //     params.Paymentwise = true;
-        //     params.Headwise = false;
-
-        //     console.log('REPORT 2 (PAYMENTWISE) PARAMS', params);
-        // }
-
-        // // ===================================================
-        // // REPORT 3 → MULTIPLE PAYMENT (students only)
-        // // Trigger:
-        // // Fmc_allorsudentorother === "stud"
-        // // Fmc_allorcorddorop === "multiplepaymentmode"
-        // // ===================================================
-        // if (data.Fmc_allorsudentorother === 'stud' && data.Fmc_allorcorddorop === 'All') {
-        //     params.regornamedetails = 'students';
-        //     params.allorstdorothersflag = 'multiplepaymentmode';
-
-        //     console.log('REPORT 3 (MULTIPLE PAYMENT STUDENTS) PARAMS', params);
-        // }
 
         // // ===================================================
         // // REPORT 4 → STUDENTS / ALL (NOT multiplepaymentmode)
@@ -796,7 +771,11 @@ export default function DailyFeeCollectionReportForm() {
                                             const num = Number(v);
                                             field.onChange(num);
                                             onYearChange(num);
-                                        }}>
+                                        }}
+
+                                        // value={selectedAsmayId?.toString() || ''}
+                                        // onValueChange={(v) => setSelectedAsmayId(v ? Number(v) : null)}
+                                    >
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder={loadingAcademic ? 'Loading...' : 'Select Academic Year'} />
                                         </SelectTrigger>
@@ -1090,22 +1069,7 @@ export default function DailyFeeCollectionReportForm() {
                         </div>
                         <div className='my-6 border-gray-300 border-t' />
 
-                        {/* 🔹 ACTION BUTTONS */}
-                        {/* <div className='mb-4 flex justify-end gap-2'>
-                        <Button size='sm' className='h-8 w-auto px-3 text-xs' onClick={handleExportExcel}>
-                            Export Excel
-                        </Button>
-
-                        <Button size='sm' variant='outline' className='h-8 w-auto px-3 text-xs' onClick={handlePrint}>
-                            Print
-                        </Button>
-                    </div> */}
-
                         <div className='flex items-center justify-between border-b bg-muted/40 px-8 py-4'>
-                            {/* <div className="font-semibold text-lg text-primary">
-                                                            Report Actions
-                                                        </div> */}
-
                             <div className='flex gap-3'>
                                 <Button variant='outline' onClick={handlePrint}>
                                     🖨 Print

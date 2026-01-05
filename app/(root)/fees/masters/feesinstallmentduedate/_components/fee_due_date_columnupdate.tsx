@@ -11,10 +11,14 @@ import { useEffect, useState } from 'react';
 
 function CalendarCell({
     row,
-    field
+    field,
+    minDate, // Add this prop
+    maxDate
 }: {
     row: any;
     field: keyof IMasterFeesInstallmentDueDateList;
+    minDate?: Date | null; // Add this
+    maxDate?: Date | null;
 }) {
     const fdateRaw = row.original.fdate;
     const tdateRaw = row.original.tdate;
@@ -50,11 +54,18 @@ function CalendarCell({
             if (newDate > maxDate) newDate = maxDate;
         }
 
+        if (minDate && newDate && newDate < minDate) {
+            newDate = minDate;
+        }
+        if (maxDate && newDate && newDate > maxDate) {
+            newDate = maxDate;
+        }
+
         // Only update if different from current state
         if ((newDate && !date) || (!newDate && date) || (newDate && date && newDate.getTime() !== date.getTime())) {
             setDate(newDate);
         }
-    }, [initialValue, fromDate, toDate, field, date]);
+    }, [initialValue, fromDate, toDate, field, date, minDate, maxDate]);
 
     // Calendar boundaries
     let fromDateProp: Date | undefined;
@@ -76,6 +87,29 @@ function CalendarCell({
         d.setDate(d.getDate() + 1);
         fromDateProp = d;
     }
+
+    const applyGlobalBoundaries = (dateProp: Date | undefined, isFromDate: boolean): Date | undefined => {
+        // If no global boundaries, return original
+        if (!minDate && !maxDate) return dateProp;
+
+        // Handle "from date" case
+        if (isFromDate) {
+            if (dateProp && minDate) {
+                return dateProp > minDate ? dateProp : minDate;
+            }
+            return dateProp || minDate || undefined;
+        }
+
+        // Handle "to date" case
+        if (dateProp && maxDate) {
+            return dateProp < maxDate ? dateProp : maxDate;
+        }
+        return dateProp || maxDate || undefined;
+    };
+
+    // ▼▼▼ APPLY THE BOUNDARIES ▼▼▼
+    fromDateProp = applyGlobalBoundaries(fromDateProp, true);
+    toDateProp = applyGlobalBoundaries(toDateProp, false);
 
     const handleSelect = (selected: Date | undefined) => {
         if (!selected) {
@@ -124,7 +158,11 @@ function CalendarCell({
     );
 }
 
-export const masterFeeInstallmentDueDateUpdateColumn: ColumnDef<IMasterFeesInstallmentDueDateList>[] = [
+//export const masterFeeInstallmentDueDateUpdateColumn : ColumnDef<IMasterFeesInstallmentDueDateList>[] = [
+export const masterFeeInstallmentDueDateUpdateColumn = (
+    minDate?: Date | null,
+    maxDate?: Date | null
+): ColumnDef<IMasterFeesInstallmentDueDateList>[] => [
     {
         accessorKey: 'ftidD_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='SL NO' />,
@@ -140,21 +178,21 @@ export const masterFeeInstallmentDueDateUpdateColumn: ColumnDef<IMasterFeesInsta
     {
         accessorKey: 'fdate',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Installment From Date' />,
-        cell: ({ row }) => <CalendarCell row={row} field='fdate' />
+        cell: ({ row }) => <CalendarCell row={row} field='fdate' minDate={minDate} maxDate={maxDate} />
     },
     {
         accessorKey: 'tdate',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Installment To Date' />,
-        cell: ({ row }) => <CalendarCell row={row} field='tdate' />
+        cell: ({ row }) => <CalendarCell row={row} field='tdate' minDate={minDate} maxDate={maxDate} />
     },
     {
         accessorKey: 'aplc',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Installment Applicable' />,
-        cell: ({ row }) => <CalendarCell row={row} field='aplc' />
+        cell: ({ row }) => <CalendarCell row={row} field='aplc' minDate={minDate} maxDate={maxDate} />
     },
     {
         accessorKey: 'ddate',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Installment Due Date' />,
-        cell: ({ row }) => <CalendarCell row={row} field='ddate' />
+        cell: ({ row }) => <CalendarCell row={row} field='ddate' minDate={minDate} maxDate={maxDate} />
     }
 ];
