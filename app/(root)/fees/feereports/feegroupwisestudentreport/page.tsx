@@ -23,7 +23,6 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { feesGroupwiseStudentReportSchema } from '@/schemas/fees/reports';
 import { getFeesSectionListByClassId } from '@/server/fees/reports/fee_DefaulterReport';
-import { getInstallmentReportDetails } from '@/server/fees/reports/fee_installment_report';
 import type {
     IFeeClassDropdownList,
     IFeeSectionDropdownList,
@@ -34,7 +33,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
 import type { z } from 'zod';
+import { printTable } from './excelandprint';
 
 type FormFields = z.infer<typeof feesGroupwiseStudentReportSchema>;
 
@@ -51,6 +52,192 @@ interface IAcademicYear {
     asmaY_Order?: number;
 }
 
+// Static student data for Termwise report
+const staticStudents = [
+    {
+        id: 1,
+        admNo: 'ADM-2024-1A-001',
+        name: 'SANKALAN CHOWDHURY',
+        class: '1',
+        section: 'A',
+        feeData: {
+            tuition: [2525, 2525, 1894, 1894, 1894, 1894, 1894, 1894, 1894, 5882],
+            development: [200, 200, 200, 200, 200, 200, 200, 200, 200, 600],
+            maintenance: [200, 200, 200, 200, 200, 200, 200, 200, 200, 600],
+            games: [50, 50, 50, 50, 50, 50, 50, 50, 50, 150],
+            session: [700, 700, 700, 700, 700, 700, 700, 700, 700, 2100],
+            library: [50, 50, 50, 50, 50, 50, 50, 50, 50, 150],
+            computer: [125, 125, 125, 125, 125, 125, 125, 125, 125, 375],
+            fine: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            paidDates: [
+                '22/04/2025',
+                '15/05/2025',
+                '14/06/2025',
+                '07/07/2025',
+                '02/08/2025',
+                '01/09/2025',
+                '08/10/2025',
+                '06/11/2025',
+                '03/12/2025',
+                '05/01/2026'
+            ]
+        }
+    },
+    {
+        id: 2,
+        admNo: 'ADM-2024-1A-002',
+        name: 'ARJUN SHARMA',
+        class: '1',
+        section: 'A',
+        feeData: {
+            tuition: [2500, 2500, 1900, 1900, 1900, 1900, 1900, 1900, 1900, 5700],
+            development: [200, 200, 200, 200, 200, 200, 200, 200, 200, 600],
+            maintenance: [200, 200, 200, 200, 200, 200, 200, 200, 200, 600],
+            games: [50, 50, 50, 50, 50, 50, 50, 50, 50, 150],
+            session: [700, 700, 700, 700, 700, 700, 700, 700, 700, 2100],
+            library: [50, 50, 50, 50, 50, 50, 50, 50, 50, 150],
+            computer: [125, 125, 125, 125, 125, 125, 125, 125, 125, 375],
+            fine: [50, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            paidDates: [
+                '20/04/2025',
+                '14/05/2025',
+                '15/06/2025',
+                '05/07/2025',
+                '01/08/2025',
+                '02/09/2025',
+                '07/10/2025',
+                '05/11/2025',
+                '02/12/2025',
+                '04/01/2026'
+            ]
+        }
+    },
+    {
+        id: 3,
+        admNo: 'ADM-2024-1A-003',
+        name: 'PRIYA PATEL',
+        class: '1',
+        section: 'B',
+        feeData: {
+            tuition: [2600, 2600, 1950, 1950, 1950, 1950, 1950, 1950, 1950, 5850],
+            development: [200, 200, 200, 200, 200, 200, 200, 200, 200, 600],
+            maintenance: [200, 200, 200, 200, 200, 200, 200, 200, 200, 600],
+            games: [50, 50, 50, 50, 50, 50, 50, 50, 50, 150],
+            session: [700, 700, 700, 700, 700, 700, 700, 700, 700, 2100],
+            library: [50, 50, 50, 50, 50, 50, 50, 50, 50, 150],
+            computer: [125, 125, 125, 125, 125, 125, 125, 125, 125, 375],
+            fine: [0, 25, 0, 0, 0, 0, 0, 0, 0, 0],
+            paidDates: [
+                '25/04/2025',
+                '18/05/2025',
+                '16/06/2025',
+                '08/07/2025',
+                '03/08/2025',
+                '03/09/2025',
+                '09/10/2025',
+                '07/11/2025',
+                '04/12/2025',
+                '06/01/2026'
+            ]
+        }
+    },
+    {
+        id: 4,
+        admNo: 'ADM-2024-2B-001',
+        name: 'RAHUL VERMA',
+        class: '2',
+        section: 'B',
+        feeData: {
+            tuition: [2800, 2800, 2100, 2100, 2100, 2100, 2100, 2100, 2100, 6300],
+            development: [250, 250, 250, 250, 250, 250, 250, 250, 250, 750],
+            maintenance: [250, 250, 250, 250, 250, 250, 250, 250, 250, 750],
+            games: [75, 75, 75, 75, 75, 75, 75, 75, 75, 225],
+            session: [800, 800, 800, 800, 800, 800, 800, 800, 800, 2400],
+            library: [75, 75, 75, 75, 75, 75, 75, 75, 75, 225],
+            computer: [150, 150, 150, 150, 150, 150, 150, 150, 150, 450],
+            fine: [0, 0, 50, 0, 0, 0, 0, 0, 0, 0],
+            paidDates: [
+                '21/04/2025',
+                '16/05/2025',
+                '17/06/2025',
+                '09/07/2025',
+                '04/08/2025',
+                '04/09/2025',
+                '10/10/2025',
+                '08/11/2025',
+                '05/12/2025',
+                '07/01/2026'
+            ]
+        }
+    },
+    {
+        id: 5,
+        admNo: 'ADM-2024-3C-001',
+        name: 'ANANYA SINGH',
+        class: '3',
+        section: 'C',
+        feeData: {
+            tuition: [3000, 3000, 2250, 2250, 2250, 2250, 2250, 2250, 2250, 6750],
+            development: [300, 300, 300, 300, 300, 300, 300, 300, 300, 900],
+            maintenance: [300, 300, 300, 300, 300, 300, 300, 300, 300, 900],
+            games: [100, 100, 100, 100, 100, 100, 100, 100, 100, 300],
+            session: [900, 900, 900, 900, 900, 900, 900, 900, 900, 2700],
+            library: [100, 100, 100, 100, 100, 100, 100, 100, 100, 300],
+            computer: [200, 200, 200, 200, 200, 200, 200, 200, 200, 600],
+            fine: [100, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            paidDates: [
+                '23/04/2025',
+                '17/05/2025',
+                '18/06/2025',
+                '10/07/2025',
+                '05/08/2025',
+                '05/09/2025',
+                '11/10/2025',
+                '09/11/2025',
+                '06/12/2025',
+                '08/01/2026'
+            ]
+        }
+    }
+];
+
+// Static fee report data
+const staticFeeReportData = [
+    {
+        id: 1,
+        slNo: 1,
+        termsName: 'Term 1',
+        todayPaidCount: 45,
+        todayCollection: 125000,
+        stillNowPaidCount: 320,
+        stillNowCollection: 850000,
+        totalStrength: 450,
+        defaulters: 130
+    },
+    {
+        id: 2,
+        slNo: 2,
+        termsName: 'Term 2',
+        todayPaidCount: 38,
+        todayCollection: 98000,
+        stillNowPaidCount: 280,
+        stillNowCollection: 720000,
+        totalStrength: 450,
+        defaulters: 170
+    },
+    {
+        id: 3,
+        slNo: 3,
+        termsName: 'Term 3',
+        todayPaidCount: 52,
+        todayCollection: 145000,
+        stillNowPaidCount: 350,
+        stillNowCollection: 920000,
+        totalStrength: 450,
+        defaulters: 100
+    }
+];
+
 export default function FeeGroupwiseStudentReport() {
     type catg = 'all' | 'individual' | 'student_wise' | 'admCat' | 'unmapped' | 'Termwise';
     const userTypeOptions: { label: string; value: catg }[] = [
@@ -60,8 +247,6 @@ export default function FeeGroupwiseStudentReport() {
         { label: 'Admission Category', value: 'admCat' },
         { label: 'Unmapped', value: 'unmapped' },
         { label: 'Termwise Paid Details', value: 'Termwise' }
-        // { label: 'Group Wise', value: 'group_wise' },
-        // { label: 'Amount', value: 'amount' }
     ];
 
     type stud_sel = 'S' | 'L' | 'D' | 'N';
@@ -94,6 +279,11 @@ export default function FeeGroupwiseStudentReport() {
     });
 
     const [loading, setLoading] = useState(false);
+    const [reportData, setReportData] = useState<any[]>([]);
+    const [reportLoading, setReportLoading] = useState(false);
+    const [showReport, setShowReport] = useState(false);
+    const [selectedStudent, setSelectedStudent] = useState<any>(null);
+    const [searchAdmNo, setSearchAdmNo] = useState('');
 
     const [filters, setFilters] = useState({
         catg: 'Category' as catg,
@@ -102,59 +292,95 @@ export default function FeeGroupwiseStudentReport() {
         academicYearId: '',
         classId: 0,
         sectionId: 0
-        //installmentIds: [] as number[],
-        //termIds: [] as number[],
-        // groupIds: [] as number[],
-        //headIds: [] as number[]
     });
 
     const [academicYears, setAcademicYears] = useState<IAcademicYear[]>([]);
     const [classes, setClasses] = useState<IFeeClassDropdownList[]>([]);
     const [sections, setSections] = useState<IFeeSectionDropdownList[]>([]);
-
-    const [reportData, setReportData] = useState<any[]>([]);
-    const [reportLoading, setReportLoading] = useState(false); // ← ADD THIS LINE
-    const [showReport, setShowReport] = useState(false);
-
     const [feeTerms, setfeeTerms] = useState<IInstallmentReportFeeTermDropdownList[]>([]);
-
     const [feeGroups, setfeeGroups] = useState<InstallmentReportGroupDropdownList[]>([]);
-
     const [search, setSearch] = useState('');
     const [sortKey, setSortKey] = useState<'feeGroup' | 'totalDue' | null>(null);
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
-
     const [sectionLoading, setSectionLoading] = useState(false);
 
     // Hooks
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
     const { data: classListResponse, isLoading: loadingClasses, error: classListError } = useFeeClassListDefaulterreport();
-
     const {
         data: feeInstallmentData,
         isLoading: feeInstallmentLoading,
         error: feeInstallmentError
     } = useFeeTransInstallmentYearlyfeecollectionreport();
-
     const { data: termsdropdowndata, isLoading: termsloading, error: termserror } = useFeeInstallmentreporttermDropdown();
-    //useFeeInstallmentreportGroupDropdown
-
     const { data: groupsdata, isLoading: groupsloading, error: groupserror } = useFeeInstallmentreportGroupDropdown();
-
     const {
         data: categorydropdowndata,
         isLoading: categoryloading,
         error: categoryerror,
         refetchAll: refetchCategory
     } = useFeeInstallmentreportCategoryDropdown();
-
     const {
         data: busroutedata,
         isLoading: busrouteLoading,
         error: busrouteError,
         refetchAll: refetchBusRoute
     } = useFeeInstallmentreportBusRouteDropdown();
+    const {
+        data: sectionListResponse,
+        isLoading: loadingSections,
+        error: sectionListError,
+        refetch: refetchSections
+    } = useFeeSectionListDefaulterreport();
+
+    // Filtered students based on search
+    const filteredStudents = staticStudents.filter(
+        (student) =>
+            student.admNo.toLowerCase().includes(searchAdmNo.toLowerCase()) ||
+            student.name.toLowerCase().includes(searchAdmNo.toLowerCase())
+    );
+
+    // Calculate totals for a student
+    const calculateTotals = (feeData: any) => {
+        const months = ['April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December', 'Jan-Mar'];
+        const totals = {
+            tuition: 0,
+            development: 0,
+            maintenance: 0,
+            games: 0,
+            session: 0,
+            library: 0,
+            computer: 0,
+            fine: 0,
+            monthlyTotals: Array(10).fill(0)
+        };
+
+        // Calculate category totals
+        totals.tuition = feeData.tuition.reduce((a: number, b: number) => a + b, 0);
+        totals.development = feeData.development.reduce((a: number, b: number) => a + b, 0);
+        totals.maintenance = feeData.maintenance.reduce((a: number, b: number) => a + b, 0);
+        totals.games = feeData.games.reduce((a: number, b: number) => a + b, 0);
+        totals.session = feeData.session.reduce((a: number, b: number) => a + b, 0);
+        totals.library = feeData.library.reduce((a: number, b: number) => a + b, 0);
+        totals.computer = feeData.computer.reduce((a: number, b: number) => a + b, 0);
+        totals.fine = feeData.fine.reduce((a: number, b: number) => a + b, 0);
+
+        // Calculate monthly totals
+        for (let i = 0; i < 10; i++) {
+            totals.monthlyTotals[i] =
+                feeData.tuition[i] +
+                feeData.development[i] +
+                feeData.maintenance[i] +
+                feeData.games[i] +
+                feeData.session[i] +
+                feeData.library[i] +
+                feeData.computer[i] +
+                feeData.fine[i];
+        }
+
+        return totals;
+    };
 
     useEffect(() => {
         if (termserror) toast.error(termserror?.message || 'Failed to load fee terms');
@@ -165,13 +391,6 @@ export default function FeeGroupwiseStudentReport() {
         if (groupserror) toast.error(groupserror?.message || 'Failed to load fee groups');
         else if (groupsdata?.data) setfeeGroups(groupsdata.data);
     }, [groupsdata, groupserror]);
-
-    const {
-        data: sectionListResponse,
-        isLoading: loadingSections,
-        error: sectionListError,
-        refetch: refetchSections
-    } = useFeeSectionListDefaulterreport();
 
     // Load data effects (unchanged)
     useEffect(() => {
@@ -186,7 +405,6 @@ export default function FeeGroupwiseStudentReport() {
                 asmaY_Year: item.asmaY_Year ?? 'Unknown Year',
                 asmaY_Order: item.asmaY_Order ?? 0
             }));
-            //  formatted.sort((a, b) => (b.asmaY_Order || 0) - (a.asmaY_Order || 0));
             setAcademicYears(formatted);
         }
     }, [academicData, academicError]);
@@ -202,19 +420,8 @@ export default function FeeGroupwiseStudentReport() {
         }
     }, [classListResponse, classListError]);
 
-    useEffect(() => {
-        if (filters.classId > 0) refetchSections();
-        else {
-            setSections([]);
-            setFilters((prev) => ({ ...prev, sectionId: 0 }));
-        }
-    }, [filters.classId, refetchSections]);
-
     const classId = watch('classId') ?? 0;
     const academicYearId = watch('academicYearId');
-    //const includeClassSection = watch('includeClassSection');
-
-    //getInstallmentDropdownData
 
     useEffect(() => {
         const fetchSections = async () => {
@@ -225,15 +432,10 @@ export default function FeeGroupwiseStudentReport() {
             }
 
             setSectionLoading(true);
-
             try {
                 const result = await getFeesSectionListByClassId(Number(academicYearId), classId);
-
-                console.log('sectionsdata', result);
-
                 const data = Array.isArray(result?.data) ? result.data : [];
                 setSections(data);
-
                 if (data.length === 0) {
                     toast.info('No sections found for this class');
                 }
@@ -248,167 +450,12 @@ export default function FeeGroupwiseStudentReport() {
         fetchSections();
     }, [academicYearId, classId, setValue]);
 
-    //heads
-
-    const groupidnew = watch('fmg_id');
-
-    console.log('groupidnew', groupidnew);
-
-    const toggleRow = (id: number) => {
-        setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-    };
-
-    const toggleAll = () => {
-        if (selectedIds.length === reportData.length) {
-            setSelectedIds([]);
-        } else {
-            setSelectedIds(reportData.map((r) => r.id));
-        }
-    };
-
-    const selectedRows = reportData.filter((r) => selectedIds.includes(r.id));
-
-    function transformReportData(apiData: any[]) {
-        const studentMap = new Map<string, any>();
-
-        apiData.forEach((item) => {
-            const key = `${item.amaY_RollNo}-${item.studentName}`;
-
-            if (!studentMap.has(key)) {
-                studentMap.set(key, {
-                    rollNo: item.amaY_RollNo,
-                    studentName: item.studentName?.trim(),
-                    className: item.className,
-                    sectionName: item.sectionName,
-                    installments: {}
-                });
-            }
-
-            studentMap.get(key).installments[String(item.ftI_Id)] = {
-                receiptNo: item.receiptNo,
-                date: item.date,
-                chequeNo: item.chequeNo,
-                amount: item.paid
-            };
-        });
-
-        return Array.from(studentMap.values());
-    }
-
-    // const handleExportAlltype = () => {
-    //     if (!reportData.length) {
-    //         toast.error('No data to export');
-    //         return;
-    //     }
-
-    //     const groupedRows = transformReportData(reportData);
-
-    //     exportToExcelAll(groupedRows, installments, 'Fee Consolidated Report');
-    // };
-
-    const getColumns = () => {
-        // CONSOLIDATE
-        if (selectedCatg === 'all') {
-            return [
-                'Sl No',
-                'Terms Name',
-                'Today Paid Count',
-                'Today Collection',
-                'Still Now Paid Count',
-                'Still Now Collection',
-                'Total Strength',
-                'Defaulters'
-            ];
-        }
-
-        // DETAILED
-        const cols = ['Sl No', 'Roll No', 'Student Name', 'Admission No', 'Class', 'Section', 'Balance', 'Total'];
-
-        // selectedInstallmentData.forEach((inst: any) => {
-        //     const name = inst.ftI_InstallmentName;
-        //     cols.push(
-        //         `${name} Net`,
-        //         `${name} Paid`,
-        //         `${name} Balance`,
-        //         `${name} Concession`,
-        //         `${name} Fine`,
-        //         `${name} Waiver`,
-        //         `${name} Opening`,
-        //         `${name} Net 2`,
-        //         `${name} Paid 2`,
-        //         `${name} Balance 2`
-        //     );
-        // });
-
-        return cols;
-    };
-
-    const getRows = () => {
-        // CONSOLIDATE
-        if (selectedCatg === 'all') {
-            return reportData.map((row: any) => ({
-                'Sl No': row.slNo,
-                'Terms Name': row.termsName,
-                'Today Paid Count': row.todayPaidCount,
-                'Today Collection': row.todayCollection,
-                'Still Now Paid Count': row.stillNowPaidCount,
-                'Still Now Collection': row.stillNowCollection,
-                'Total Strength': row.totalStrength,
-                Defaulters: row.defaulters
-            }));
-        }
-
-        // DETAILED
-        return reportData.map((row: any, index: number) => {
-            const data: any = {
-                'Sl No': index + 1,
-                'Roll No': row.rollNo,
-                'Student Name': row.studentName,
-                'Admission No': row.admNo,
-                Class: row.className,
-                Section: row.sectionName,
-                Balance: row.balance,
-                Total: row.total
-            };
-
-            // selectedInstallmentData.forEach((inst: any) => {
-            //     const instData = row.installments?.[inst.ftI_Id] || {};
-            //     const name = inst.ftI_InstallmentName;
-
-            //     data[`${name} Net`] = instData.net || 0;
-            //     data[`${name} Paid`] = instData.paid || 0;
-            //     data[`${name} Balance`] = instData.balance || 0;
-            //     data[`${name} Concession`] = instData.concession || 0;
-            //     data[`${name} Fine`] = instData.fine || 0;
-            //     data[`${name} Waiver`] = instData.waiver || 0;
-            //     data[`${name} Opening`] = instData.opening || 0;
-            //     data[`${name} Net 2`] = instData.net2 || 0;
-            //     data[`${name} Paid 2`] = instData.paid2 || 0;
-            //     data[`${name} Balance 2`] = instData.balance2 || 0;
-            // });
-
-            return data;
-        });
-    };
-
-    const handleExportAlltype = () => {
-        const rows = getRows();
-        // exportToExcelInstallmentReport(rows, `${selectedCatg}_Fee_Report`);
-    };
-    const handlePrintAlltype = () => {
-        const columns = getColumns();
-        const rows = getRows();
-
-        // printTableInstallmentReport(columns, rows);
-    };
-
     const selectedCatg = watch('radio_val');
 
     useEffect(() => {
         if (selectedCatg === 'all' || selectedCatg === 'individual' || selectedCatg === 'student_wise' || selectedCatg === 'admCat') {
             setValue('group_wise', true, { shouldDirty: true, shouldValidate: true });
         } else {
-            // Optional: Uncheck when switching to other categories
             setValue('group_wise', false, { shouldDirty: true, shouldValidate: true });
         }
     }, [selectedCatg, setValue]);
@@ -417,212 +464,383 @@ export default function FeeGroupwiseStudentReport() {
         if (selectedCatg === 'student_wise' || selectedCatg === 'admCat') {
             setValue('amntchecked', true, { shouldDirty: true, shouldValidate: true });
         } else {
-            // Optional: Uncheck when switching to other categories
             setValue('amntchecked', false, { shouldDirty: true, shouldValidate: true });
         }
     }, [selectedCatg, setValue]);
 
-    const allTermIds = feeTerms.map((t) => t.fmT_Id);
-
-    //const isAllTermsSelected = feeTerms.length > 0 && filters.termIds.length === feeTerms.length;
-
     const groupIds = watch('groupIds') ?? [];
-
-    const togglegroups = (id: number) => {
-        const updated = groupIds.includes(id) ? groupIds.filter((x) => x !== id) : [...groupIds, id];
-
-        setValue('groupIds', updated, {
-            shouldDirty: true,
-            shouldValidate: true
-        });
-    };
-
     const groupIdsnew = watch('groupIdsNew') ?? [];
-
-    const togglegroupsnew = (id: number) => {
-        const updated = groupIdsnew.includes(id) ? groupIdsnew.filter((x) => x !== id) : [...groupIdsnew, id];
-
-        setValue('groupIdsNew', updated, {
-            shouldDirty: true,
-            shouldValidate: true
-        });
-    };
-
-    const allGroupIds = feeGroups.map((t) => t.fmG_Id);
-
-    //const isAllGroupsSelected = feeGroups.length > 0 && filters.groupIds.length === feeGroups.length;
-
     const isAllGroupsSelected = feeGroups.length > 0 && groupIds.length === feeGroups.length;
-    // const toggleAllGroups = () => {
-    //     setFilters((prev) => ({
-    //         ...prev,
-    //         groupIds: isAllGroupsSelected ? [] : allGroupIds
-    //     }));
-    // };
+    const isAllGroupsSelectedNew = feeGroups.length > 0 && groupIdsnew.length === feeGroups.length;
 
     const toggleAllGroups = () => {
         setValue('groupIds', isAllGroupsSelected ? [] : feeGroups.map((g) => g.fmG_Id), { shouldDirty: true, shouldValidate: true });
     };
-    const isAllGroupsSelectedNew = feeGroups.length > 0 && groupIdsnew.length === feeGroups.length;
 
     const toggleAllGroupsnew = () => {
         setValue('groupIdsNew', isAllGroupsSelectedNew ? [] : feeGroups.map((g) => g.fmG_Id), { shouldDirty: true, shouldValidate: true });
     };
 
-    // const handleSubmit = async () => {
+    const togglegroups = (id: number) => {
+        const updated = groupIds.includes(id) ? groupIds.filter((x) => x !== id) : [...groupIds, id];
+        setValue('groupIds', updated, { shouldDirty: true, shouldValidate: true });
+    };
+
+    const togglegroupsnew = (id: number) => {
+        const updated = groupIdsnew.includes(id) ? groupIdsnew.filter((x) => x !== id) : [...groupIdsnew, id];
+        setValue('groupIdsNew', updated, { shouldDirty: true, shouldValidate: true });
+    };
+
+    const handleExport = () => {
+        // if (!selectedRows.length) {
+        //     toast.error('Please select at least one record');
+        //     return;
+        // }
+        //exportToExcel(selectedRows, 'Audit-Report');
+    };
+
+    const handlePrint = () => {
+        if (!selectedStudent) {
+            toast.error('Please select a student first');
+            return;
+        }
+
+        const columns = [
+            'SL No',
+            'Head Name',
+            'April',
+            'May',
+            'June',
+            'July',
+            'August',
+            'September',
+            'October',
+            'November',
+            'December',
+            'January to March',
+            'Opening Balance',
+            'New Admission Fees',
+            'Controlling Fees',
+            'Outstanding Fee 2024-23',
+            'Active CISCE Fee'
+        ];
+
+        const feeRows = [
+            {
+                id: 1,
+                name: 'Tuition Fees',
+                data: selectedStudent.feeData.tuition
+            },
+            {
+                id: 2,
+                name: 'Development Fees',
+                data: selectedStudent.feeData.development
+            },
+            {
+                id: 3,
+                name: 'Maintenance Fees',
+                data: selectedStudent.feeData.maintenance
+            },
+            {
+                id: 4,
+                name: 'Games & Co Curricular',
+                data: selectedStudent.feeData.games
+            },
+            {
+                id: 5,
+                name: 'Session Fees / Diary! Smart card / Magazine / Digital Campus / Science Park',
+                data: selectedStudent.feeData.session
+            },
+            {
+                id: 6,
+                name: 'Library/Hand Work Fees',
+                data: selectedStudent.feeData.library
+            },
+            {
+                id: 7,
+                name: 'Computer Fees',
+                data: selectedStudent.feeData.computer
+            },
+            {
+                id: 8,
+                name: 'Fine',
+                data: selectedStudent.feeData.fine
+            }
+        ];
+
+        // Create rows for printing
+        const rowsToPrint = feeRows.map((item) => {
+            const row: any = {
+                'SL No': item.id,
+                'Head Name': item.name
+            };
+
+            // Add monthly amounts
+            item.data.forEach((amount: number, index: number) => {
+                const monthName = [
+                    'April',
+                    'May',
+                    'June',
+                    'July',
+                    'August',
+                    'September',
+                    'October',
+                    'November',
+                    'December',
+                    'January to March'
+                ][index];
+                row[monthName] = amount.toLocaleString();
+            });
+
+            // Add empty columns for additional fields
+            row['Opening Balance'] = '';
+            row['New Admission Fees'] = '';
+            row['Controlling Fees'] = '';
+            row['Outstanding Fee 2024-23'] = '';
+            row['Active CISCE Fee'] = '';
+
+            return row;
+        });
+
+        // Add SUM row
+        const totals = calculateTotals(selectedStudent.feeData);
+        const sumRow: any = {
+            'SL No': '',
+            'Head Name': 'SUM'
+        };
+
+        totals.monthlyTotals.forEach((total: number, index: number) => {
+            const monthName = [
+                'April',
+                'May',
+                'June',
+                'July',
+                'August',
+                'September',
+                'October',
+                'November',
+                'December',
+                'January to March'
+            ][index];
+            sumRow[monthName] = total.toLocaleString();
+        });
+
+        sumRow['Opening Balance'] = '';
+        sumRow['New Admission Fees'] = '';
+        sumRow['Controlling Fees'] = '';
+        sumRow['Outstanding Fee 2024-23'] = '';
+        sumRow['Active CISCE Fee'] = '';
+
+        rowsToPrint.push(sumRow);
+
+        // Add Paid Date row
+        const paidDateRow: any = {
+            'SL No': '',
+            'Head Name': 'Paid Date'
+        };
+
+        selectedStudent.feeData.paidDates.forEach((date: string, index: number) => {
+            const monthName = [
+                'April',
+                'May',
+                'June',
+                'July',
+                'August',
+                'September',
+                'October',
+                'November',
+                'December',
+                'January to March'
+            ][index];
+            paidDateRow[monthName] = date;
+        });
+
+        paidDateRow['Opening Balance'] = '';
+        paidDateRow['New Admission Fees'] = '';
+        paidDateRow['Controlling Fees'] = '';
+        paidDateRow['Outstanding Fee 2024-23'] = '';
+        paidDateRow['Active CISCE Fee'] = '';
+
+        rowsToPrint.push(paidDateRow);
+
+        // Create print title with student details
+        const printTitle = `FEE TERMWISE REPORT - ${selectedStudent.name} (Admission No: ${selectedStudent.admNo}) - Class ${selectedStudent.class} Section ${selectedStudent.section}`;
+
+        // Call the printTable function with student details
+        printTable(columns, rowsToPrint, printTitle);
+    };
+
+    // Add these functions to your component
+    const handleExportExcel = () => {
+        if (!selectedStudent) {
+            toast.error('Please select a student first');
+            return;
+        }
+
+        const feeRows = [
+            {
+                id: 1,
+                name: 'Tuition Fees',
+                data: selectedStudent.feeData.tuition
+            },
+            {
+                id: 2,
+                name: 'Development Fees',
+                data: selectedStudent.feeData.development
+            },
+            {
+                id: 3,
+                name: 'Maintenance Fees',
+                data: selectedStudent.feeData.maintenance
+            },
+            {
+                id: 4,
+                name: 'Games & Co Curricular',
+                data: selectedStudent.feeData.games
+            },
+            {
+                id: 5,
+                name: 'Session Fees / Diary! Smart card / Magazine / Digital Campus / Science Park',
+                data: selectedStudent.feeData.session
+            },
+            {
+                id: 6,
+                name: 'Library/Hand Work Fees',
+                data: selectedStudent.feeData.library
+            },
+            {
+                id: 7,
+                name: 'Computer Fees',
+                data: selectedStudent.feeData.computer
+            },
+            {
+                id: 8,
+                name: 'Fine',
+                data: selectedStudent.feeData.fine
+            }
+        ];
+
+        const totals = calculateTotals(selectedStudent.feeData);
+        const monthNames = ['April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December', 'January to March'];
+
+        // Create data for Excel
+        const excelData = [];
+
+        // Header row 1: Student Information
+        excelData.push(['FEE TERMWISE REPORT']);
+        excelData.push([]);
+        excelData.push(['Student Name:', selectedStudent.name]);
+        excelData.push(['Admission No:', selectedStudent.admNo]);
+        excelData.push(['Class:', selectedStudent.class, 'Section:', selectedStudent.section]);
+        excelData.push([]);
+
+        // Header row 2: Table headers
+        const headers = [
+            'SL No',
+            'Head Name',
+            ...monthNames,
+            'Opening Balance',
+            'New Admission Fees',
+            'Controlling Fees',
+            'Outstanding Fee 2024-23',
+            'Active CISCE Fee'
+        ];
+        excelData.push(headers);
+
+        // Add fee rows
+        feeRows.forEach((item) => {
+            const row = [
+                item.id,
+                item.name,
+                ...item.data.map((amount: number) => amount),
+                '',
+                '',
+                '',
+                '',
+                '' // Empty values for additional columns
+            ];
+            excelData.push(row);
+        });
+
+        // Add SUM row
+        const sumRow = ['', 'SUM', ...totals.monthlyTotals, '', '', '', '', ''];
+        excelData.push(sumRow);
+
+        // Add Paid Date row
+        const paidDateRow = ['', 'Paid Date', ...selectedStudent.feeData.paidDates, '', '', '', '', ''];
+        excelData.push(paidDateRow);
+
+        // Create worksheet
+        const ws = XLSX.utils.aoa_to_sheet(excelData);
+
+        // Apply styling and formatting
+        const wscols = [
+            { wch: 8 }, // SL No
+            { wch: 60 }, // Head Name
+            { wch: 10 }, // April
+            { wch: 10 }, // May
+            { wch: 10 }, // June
+            { wch: 10 }, // July
+            { wch: 10 }, // August
+            { wch: 10 }, // September
+            { wch: 10 }, // October
+            { wch: 10 }, // November
+            { wch: 10 }, // December
+            { wch: 15 }, // January to March
+            { wch: 15 }, // Opening Balance
+            { wch: 15 }, // New Admission Fees
+            { wch: 15 }, // Controlling Fees
+            { wch: 20 }, // Outstanding Fee 2024-23
+            { wch: 15 } // Active CISCE Fee
+        ];
+        ws['!cols'] = wscols;
+
+        // Create workbook
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Fee Report');
+
+        // Generate file name
+        const fileName = `Fee_Termwise_Report_${selectedStudent.admNo}_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+        // Save the file
+        XLSX.writeFile(wb, fileName);
+        // toast.success('Excel file downloaded successfully');
+    };
+
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         setReportLoading(true);
         setShowReport(false);
+        setSelectedStudent(null);
 
         try {
-            // Extract values from form
             const radioSelected = data.radio_val;
-            const academicYearId = Number(data.academicYearId);
-            const classId = data.classId || 0;
-            const sectionId = data.sectionId || 0;
-            const categoryId = data.fmcC_Id || 0;
-            const studentId = data.studentids || 0;
-            const groupId = data.fmg_id || 0;
 
-            // Handle fee group selection (selectfeegroup array)
-            const selectfeegroup: Array<{ fmG_Id: number }> = [];
-
-            // For 'all' and 'individual' categories, use groupIdsNew
-            if (radioSelected === 'all' || radioSelected === 'individual' || radioSelected === 'unmapped') {
-                if (data.groupIdsNew && Array.isArray(data.groupIdsNew)) {
-                    data.groupIdsNew.forEach((groupItemId: number) => {
-                        selectfeegroup.push({ fmG_Id: groupItemId });
-                    });
+            if (radioSelected === 'Termwise') {
+                if (data.admno === '' || data.admno === null || data.admno === undefined) {
+                    toast.error('Admission Number is required');
+                    return;
                 }
-            }
-            // For 'admCat' category, use groupIds
-            else if (radioSelected === 'admCat') {
-                if (data.groupIds && Array.isArray(data.groupIds)) {
-                    data.groupIds.forEach((groupItemId: number) => {
-                        selectfeegroup.push({ fmG_Id: groupItemId });
-                    });
+                // For Termwise report, find the selected student
+                const selectedAdmNo = data.admno;
+                const student = staticStudents.find((s) => s.admNo === selectedAdmNo);
+
+                if (student) {
+                    setSelectedStudent(student);
+                    setReportData([student]); // Set report data with student
+                    setShowReport(true);
+                } else {
+                    toast.error('Student not found');
                 }
+            } else {
+                // For other report types, use static data
+                setReportData(staticFeeReportData);
+                setShowReport(true);
             }
-
-            let payload: any = {};
-            let validate = false;
-
-            switch (radioSelected) {
-                case 'all':
-                    if (academicYearId && data.groupIdsNew && data.groupIdsNew.length > 0) {
-                        validate = true;
-                    }
-
-                    payload = {
-                        radio_selected: radioSelected,
-                        ASMAY_Id: academicYearId,
-                        selectfeegroup: selectfeegroup
-                    };
-                    break;
-
-                case 'individual':
-                    if (academicYearId && classId && sectionId) {
-                        validate = true;
-                    }
-
-                    payload = {
-                        radio_selected: radioSelected,
-                        ASMAY_Id: academicYearId,
-                        selectfeegroup: selectfeegroup,
-                        ASMCL_Id: classId,
-                        ASMS_Id: sectionId,
-                        Stud_Sel: data.stud_sel
-                    };
-                    break;
-
-                case 'student_wise':
-                    // Validation from AngularJS
-                    if (academicYearId && classId && sectionId && studentId) {
-                        validate = true;
-                    }
-
-                    payload = {
-                        radio_selected: radioSelected,
-                        ASMAY_Id: academicYearId,
-                        ASMCL_Id: classId,
-                        ASMS_Id: sectionId,
-                        Stud_Id: studentId
-                    };
-                    break;
-
-                case 'Termwise': {
-                    const termStudentId = data.studentids || 0;
-
-                    if (academicYearId && termStudentId) {
-                        validate = true;
-                    }
-
-                    payload = {
-                        radio_selected: radioSelected,
-                        ASMAY_Id: academicYearId,
-                        Stud_Id: termStudentId
-                    };
-                    break;
-                }
-
-                case 'admCat':
-                    if (academicYearId && classId && sectionId && categoryId) {
-                        validate = true;
-                    }
-
-                    payload = {
-                        radio_selected: radioSelected,
-                        ASMAY_Id: academicYearId,
-                        ASMCL_Id: classId,
-                        ASMS_Id: sectionId,
-                        FMCC_Id: categoryId
-                    };
-                    break;
-
-                case 'unmapped':
-                    if (academicYearId && data.groupIdsNew && data.groupIdsNew.length > 0) {
-                        validate = true;
-                    }
-
-                    payload = {
-                        radio_selected: radioSelected,
-                        ASMAY_Id: academicYearId,
-                        selectfeegroup: selectfeegroup
-                    };
-                    break;
-            }
-
-            // Add validation flag if needed
-            if (!validate) {
-                toast.error('Please fill all required fields');
-                setReportLoading(false);
-                return;
-            }
-
-            // Add additional flags from checkboxes
-            if (data.group_wise) {
-                payload.group_wise = data.group_wise;
-            }
-
-            if (data.amntchecked) {
-                payload.amntchecked = data.amntchecked;
-            }
-
-            if (data.bulkdownload) {
-                payload.bulkdownload = data.bulkdownload;
-            }
-
-            console.log('Generated payload:', payload);
-
-            // Call API with the payload
-            const apiData = await getInstallmentReportDetails(payload);
-
-            // Process API response...
-            // (Your existing transformation logic here)
         } catch (error: any) {
             console.error('Error generating report:', error);
             toast.error(error.message || 'Failed to generate report');
             setShowReport(false);
+        } finally {
             setReportLoading(false);
         }
 
@@ -630,9 +848,6 @@ export default function FeeGroupwiseStudentReport() {
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         }, 100);
     };
-
-    // const isAcademicYearSelected = !!filters.academicYearId;
-    const isAcademicYearSelected = watch('academicYearId');
 
     return (
         <div className='min-h-screen bg-gray-50 py-8'>
@@ -653,7 +868,7 @@ export default function FeeGroupwiseStudentReport() {
                                                         <label key={value} className='flex cursor-pointer items-center gap-3'>
                                                             <input
                                                                 type='radio'
-                                                                name={field.name} // IMPORTANT
+                                                                name={field.name}
                                                                 value={value}
                                                                 checked={field.value === value}
                                                                 onChange={() => field.onChange(value)}
@@ -666,11 +881,10 @@ export default function FeeGroupwiseStudentReport() {
                                             )}
                                         />
                                     </div>
-                                    {/* Checkboxes section - placed below */}
 
                                     <div className='mt-6 pt-6'>
                                         <div className='flex flex-wrap items-center justify-center gap-8'>
-                                            {selectedCatg !== 'unmapped' && (
+                                            {selectedCatg !== 'unmapped' && selectedCatg !== 'Termwise' && (
                                                 <Label className='flex cursor-pointer items-center gap-3'>
                                                     <Controller
                                                         name='group_wise'
@@ -687,7 +901,7 @@ export default function FeeGroupwiseStudentReport() {
                                                 </Label>
                                             )}
 
-                                            {selectedCatg !== 'unmapped' && (
+                                            {selectedCatg !== 'unmapped' && selectedCatg !== 'Termwise' && (
                                                 <Label className='flex cursor-pointer items-center gap-3'>
                                                     <Controller
                                                         name='amntchecked'
@@ -723,7 +937,6 @@ export default function FeeGroupwiseStudentReport() {
                                         <Label className='w-36 text-right'>
                                             Academic Year <span className='text-red-500'>*</span>
                                         </Label>
-
                                         <div className='flex-1'>
                                             <Controller
                                                 name='academicYearId'
@@ -757,7 +970,6 @@ export default function FeeGroupwiseStudentReport() {
                                                 </Label>
                                                 <input type='hidden' {...register('groupIdsNew')} />
                                                 <Card className={cn('w-[360px] border bg-gray-50 p-4', errors.groupIdsNew)}>
-                                                    {/* Search Input */}
                                                     <div className='mb-3'>
                                                         <Input
                                                             type='text'
@@ -767,7 +979,6 @@ export default function FeeGroupwiseStudentReport() {
                                                             className='w-full'
                                                         />
                                                     </div>
-
                                                     <div className='max-h-64 space-y-3 overflow-y-auto'>
                                                         {feeGroups.length > 0 && (
                                                             <>
@@ -778,8 +989,6 @@ export default function FeeGroupwiseStudentReport() {
                                                                     />
                                                                     <span>Select All</span>
                                                                 </Label>
-
-                                                                {/* Filter groups based on search */}
                                                                 {groupsloading ? (
                                                                     <div className='py-6 text-center text-gray-500'>Loading...</div>
                                                                 ) : feeGroups.length > 0 ? (
@@ -807,8 +1016,6 @@ export default function FeeGroupwiseStudentReport() {
                                                                 ) : (
                                                                     <div className='py-4 text-center text-gray-500'>No Groups</div>
                                                                 )}
-
-                                                                {/* Show message if no results found */}
                                                                 {search &&
                                                                     feeGroups.filter((g) =>
                                                                         g.fmg_groupname.toLowerCase().includes(search.toLowerCase())
@@ -825,19 +1032,67 @@ export default function FeeGroupwiseStudentReport() {
                                             </>
                                         </div>
                                     )}
+
+                                    {selectedCatg === 'Termwise' && (
+                                        <div className='flex w-[420px] items-center gap-4'>
+                                            <Label className='w-36 text-right'>
+                                                Admission No <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <div className='flex-1'>
+                                                <Controller
+                                                    name='admno'
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <Select
+                                                            value={field.value?.toString()}
+                                                            onValueChange={(v) => {
+                                                                field.onChange(v);
+                                                                const student = staticStudents.find((s) => s.admNo === v);
+                                                                // You can handle selected student logic here if needed
+                                                            }}>
+                                                            <SelectTrigger className='w-full'>
+                                                                <SelectValue placeholder='--Select Admission No--' />
+                                                            </SelectTrigger>
+                                                            <SelectContent className='max-h-64'>
+                                                                {staticStudents
+                                                                    .filter(
+                                                                        (student) =>
+                                                                            student.admNo
+                                                                                .toLowerCase()
+                                                                                .includes(searchAdmNo.toLowerCase()) ||
+                                                                            student.name.toLowerCase().includes(searchAdmNo.toLowerCase())
+                                                                    )
+                                                                    .map((student) => (
+                                                                        <SelectItem key={student.id} value={student.admNo}>
+                                                                            {student.admNo}
+                                                                        </SelectItem>
+                                                                    ))}
+                                                                {staticStudents.filter(
+                                                                    (student) =>
+                                                                        student.admNo.toLowerCase().includes(searchAdmNo.toLowerCase()) ||
+                                                                        student.name.toLowerCase().includes(searchAdmNo.toLowerCase())
+                                                                ).length === 0 && (
+                                                                    <div className='p-3 text-center text-gray-500 text-sm'>
+                                                                        No admission numbers found
+                                                                    </div>
+                                                                )}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    )}
+                                                />
+                                                {errors.admno && <FormError>{errors.admno.message}</FormError>}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
-                                {(selectedCatg === 'individual' ||
-                                    selectedCatg === 'student_wise' ||
-                                    selectedCatg === 'admCat' ||
-                                    selectedCatg === 'Termwise') && (
+                                {(selectedCatg === 'individual' || selectedCatg === 'student_wise' || selectedCatg === 'admCat') && (
                                     <div className='mt-4 flex items-center gap-12'>
                                         {/* Class */}
                                         <div className='flex w-[420px] items-center gap-4'>
                                             <Label className='w-36 text-right'>
                                                 Class <span className='text-red-500'>*</span>
                                             </Label>
-
                                             <div className='flex-1'>
                                                 <Controller
                                                     name='classId'
@@ -871,7 +1126,6 @@ export default function FeeGroupwiseStudentReport() {
                                             <Label className='w-36 text-right'>
                                                 Section <span className='text-red-500'>*</span>
                                             </Label>
-
                                             <div className='flex-1'>
                                                 <Controller
                                                     name='sectionId'
@@ -897,44 +1151,11 @@ export default function FeeGroupwiseStudentReport() {
                                             </div>
                                         </div>
 
-                                        {(selectedCatg === 'student_wise' || selectedCatg === 'Termwise') && (
-                                            <div className='flex w-[420px] items-center gap-4'>
-                                                <Label className='w-36 text-right'>
-                                                    Student <span className='text-red-500'>*</span>
-                                                </Label>
-
-                                                <div className='flex-1'>
-                                                    <Controller
-                                                        name='studentids'
-                                                        control={control}
-                                                        render={({ field }) => (
-                                                            <Select
-                                                                value={field.value ? field.value.toString() : ''}
-                                                                onValueChange={(v) => field.onChange(Number(v))}>
-                                                                <SelectTrigger className='w-full'>
-                                                                    <SelectValue placeholder='--All--' />
-                                                                </SelectTrigger>
-                                                                <SelectContent>
-                                                                    {sections.map((sec) => (
-                                                                        <SelectItem key={sec.asmS_Id} value={sec.asmS_Id.toString()}>
-                                                                            {sec.asmC_SectionName}
-                                                                        </SelectItem>
-                                                                    ))}
-                                                                </SelectContent>
-                                                            </Select>
-                                                        )}
-                                                    />
-                                                    {errors.studentids && <FormError>{errors.studentids.message}</FormError>}
-                                                </div>
-                                            </div>
-                                        )}
-
                                         {selectedCatg === 'admCat' && (
                                             <div className='flex w-[420px] items-center gap-4'>
                                                 <Label className='w-36 text-right'>
                                                     Category <span className='text-red-500'>*</span>
                                                 </Label>
-
                                                 <div className='flex-1'>
                                                     <Controller
                                                         name='fmcC_Id'
@@ -965,12 +1186,9 @@ export default function FeeGroupwiseStudentReport() {
 
                                 {selectedCatg === 'individual' && (
                                     <div className='space-y-4'>
-                                        {/* Label at the top */}
                                         <div className='flex items-center gap-4'>
                                             <Label className='font-semibold text-gray-700 text-lg'>Student Selection Options</Label>
                                         </div>
-
-                                        {/* Radio buttons in card layout */}
                                         <Card className='border bg-gray-50 p-5 shadow-sm'>
                                             <Controller
                                                 name='stud_sel'
@@ -1006,106 +1224,240 @@ export default function FeeGroupwiseStudentReport() {
                                             {isSubmitting ? 'Generating...' : 'Report'}
                                         </Button>
                                     </div>
+
                                     {showReport && (
                                         <CollapsibleSection defaultOpen={true}>
                                             <div className='mt-10 rounded-lg border bg-white shadow-xl'>
-                                                {/* Dynamic Sub-Header Based on Selection */}
                                                 <div className='flex items-center justify-between border-b bg-gray-50 px-8 py-4'>
                                                     <h2 className='whitespace-nowrap font-bold text-2xl text-primary'>
                                                         {selectedCatg === 'all'
                                                             ? 'CONSOLIDATE REPORT'
-                                                            : `REPORT FOR ${
-                                                                  selectedCatg === 'student_wise'
-                                                                      ? categorydropdowndata?.data?.find(
-                                                                            (cat) => cat.fmcC_Id === watch('fmcC_Id')
-                                                                        )?.fmcC_ClassCategoryName || ''
-                                                                      : classes.find((cls) => cls.asmcL_Id === watch('classId'))
-                                                                            ?.asmcL_ClassName || ''
-                                                              }${
-                                                                  watch('sectionId')
-                                                                      ? ` ${
-                                                                            sections.find((sec) => sec.asmS_Id === watch('sectionId'))
-                                                                                ?.asmC_SectionName || ''
-                                                                        }`
-                                                                      : ''
-                                                              }`}
+                                                            : selectedCatg === 'Termwise'
+                                                              ? 'TERMWISE FEE REPORT'
+                                                              : `REPORT FOR ${
+                                                                    selectedCatg === 'student_wise'
+                                                                        ? categorydropdowndata?.data?.find(
+                                                                              (cat) => cat.fmcC_Id === watch('fmcC_Id')
+                                                                          )?.fmcC_ClassCategoryName || ''
+                                                                        : classes.find((cls) => cls.asmcL_Id === watch('classId'))
+                                                                              ?.asmcL_ClassName || ''
+                                                                }${
+                                                                    watch('sectionId')
+                                                                        ? ` ${
+                                                                              sections.find((sec) => sec.asmS_Id === watch('sectionId'))
+                                                                                  ?.asmC_SectionName || ''
+                                                                          }`
+                                                                        : ''
+                                                                }`}
                                                     </h2>
 
                                                     <div className='flex gap-2'>
-                                                        <Button size='sm' onClick={handleExportAlltype} className='h-8 px-3 text-xs'>
+                                                        <Button
+                                                            size='sm'
+                                                            className='h-8 px-3 text-xs'
+                                                            onClick={handleExportExcel}
+                                                            disabled={!selectedStudent}>
                                                             Export Excel
                                                         </Button>
-
                                                         <Button
                                                             size='sm'
                                                             variant='outline'
-                                                            onClick={handlePrintAlltype}
-                                                            className='h-8 px-3 text-xs'>
+                                                            className='h-8 px-3 text-xs'
+                                                            onClick={handlePrint}
+                                                            disabled={!selectedStudent}>
                                                             Export PDF
                                                         </Button>
                                                     </div>
                                                 </div>
 
-                                                {showReport && selectedCatg === 'student_wise' && (
+                                                {showReport && selectedCatg === 'Termwise' && selectedStudent && (
+                                                    <div className='overflow-x-auto px-8 pb-8'>
+                                                        <div className='mb-6'>
+                                                            <div className='mb-4 text-center'>
+                                                                <h3 className='font-bold text-xl'>FEE TERMWISE REPORT</h3>
+                                                                <p className='mt-2 text-lg'>
+                                                                    Student Name: {selectedStudent.name} | Class {selectedStudent.class}{' '}
+                                                                    Section {selectedStudent.section} | Admission No:{' '}
+                                                                    {selectedStudent.admNo}
+                                                                </p>
+                                                            </div>
+
+                                                            <table className='w-full border-collapse border border-gray-300 text-sm'>
+                                                                <thead className='bg-primary text-white'>
+                                                                    <tr>
+                                                                        <th className='border px-2 py-2 text-center font-semibold'>
+                                                                            SL No
+                                                                        </th>
+                                                                        <th className='border px-2 py-2 text-center font-semibold'>
+                                                                            Head Name
+                                                                        </th>
+                                                                        <th className='border px-2 py-2 text-center font-semibold'>
+                                                                            April
+                                                                        </th>
+                                                                        <th className='border px-2 py-2 text-center font-semibold'>May</th>
+                                                                        <th className='border px-2 py-2 text-center font-semibold'>June</th>
+                                                                        <th className='border px-2 py-2 text-center font-semibold'>July</th>
+                                                                        <th className='border px-2 py-2 text-center font-semibold'>
+                                                                            August
+                                                                        </th>
+                                                                        <th className='border px-2 py-2 text-center font-semibold'>
+                                                                            September
+                                                                        </th>
+                                                                        <th className='border px-2 py-2 text-center font-semibold'>
+                                                                            October
+                                                                        </th>
+                                                                        <th className='border px-2 py-2 text-center font-semibold'>
+                                                                            November
+                                                                        </th>
+                                                                        <th className='border px-2 py-2 text-center font-semibold'>
+                                                                            December
+                                                                        </th>
+                                                                        <th className='border px-2 py-2 text-center font-semibold'>
+                                                                            January to March
+                                                                        </th>
+                                                                        <th className='border px-2 py-2 text-center font-semibold'>
+                                                                            Opening Balance
+                                                                        </th>
+                                                                        <th className='border px-2 py-2 text-center font-semibold'>
+                                                                            New Admission Fees
+                                                                        </th>
+                                                                        <th className='border px-2 py-2 text-center font-semibold'>
+                                                                            Controlling Fees
+                                                                        </th>
+                                                                        <th className='border px-2 py-2 text-center font-semibold'>
+                                                                            Outstanding Fee 2024-23
+                                                                        </th>
+                                                                        <th className='border px-2 py-2 text-center font-semibold'>
+                                                                            Active CISCE Fee
+                                                                        </th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {[
+                                                                        {
+                                                                            id: 1,
+                                                                            name: 'Tuition Fees',
+                                                                            data: selectedStudent.feeData.tuition
+                                                                        },
+                                                                        {
+                                                                            id: 2,
+                                                                            name: 'Development Fees',
+                                                                            data: selectedStudent.feeData.development
+                                                                        },
+                                                                        {
+                                                                            id: 3,
+                                                                            name: 'Maintenance Fees',
+                                                                            data: selectedStudent.feeData.maintenance
+                                                                        },
+                                                                        {
+                                                                            id: 4,
+                                                                            name: 'Games & Co Curricular',
+                                                                            data: selectedStudent.feeData.games
+                                                                        },
+                                                                        {
+                                                                            id: 5,
+                                                                            name: 'Session Fees / Diary! Smart card / Magazine / Digital Campus / Science Park',
+                                                                            data: selectedStudent.feeData.session
+                                                                        },
+                                                                        {
+                                                                            id: 6,
+                                                                            name: 'Library/Hand Work Fees',
+                                                                            data: selectedStudent.feeData.library
+                                                                        },
+                                                                        {
+                                                                            id: 7,
+                                                                            name: 'Computer Fees',
+                                                                            data: selectedStudent.feeData.computer
+                                                                        },
+                                                                        { id: 8, name: 'Fine', data: selectedStudent.feeData.fine }
+                                                                    ].map((item, index) => (
+                                                                        <tr
+                                                                            key={item.id}
+                                                                            className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                                                            <td className='border px-2 py-2 text-center'>{item.id}</td>
+                                                                            <td className='border px-2 py-2 text-left'>{item.name}</td>
+                                                                            {item.data.map((amount: number, i: number) => (
+                                                                                <td key={i} className='border px-2 py-2 text-right'>
+                                                                                    {amount.toLocaleString()}
+                                                                                </td>
+                                                                            ))}
+                                                                            {/* These empty cells should be self-closing */}
+                                                                            <td className='border px-2 py-2 text-right' />
+                                                                            <td className='border px-2 py-2 text-right' />
+                                                                            <td className='border px-2 py-2 text-right' />
+                                                                            <td className='border px-2 py-2 text-right' />
+                                                                            <td className='border px-2 py-2 text-right' />
+                                                                        </tr>
+                                                                    ))}
+
+                                                                    {/* SUM Row */}
+                                                                    <tr className='bg-primary/10 font-bold'>
+                                                                        <td className='border px-2 py-2 text-center' colSpan={2}>
+                                                                            SUM
+                                                                        </td>
+                                                                        {calculateTotals(selectedStudent.feeData).monthlyTotals.map(
+                                                                            (total, i) => (
+                                                                                <td key={i} className='border px-2 py-2 text-right'>
+                                                                                    {total.toLocaleString()}
+                                                                                </td>
+                                                                            )
+                                                                        )}
+                                                                        {/* These empty cells should be self-closing */}
+                                                                        <td className='border px-2 py-2 text-right' colSpan={5} />
+                                                                    </tr>
+
+                                                                    {/* Paid Date Row */}
+                                                                    <tr className='bg-primary/5'>
+                                                                        <td className='border px-2 py-2 text-center' colSpan={2}>
+                                                                            Paid Date
+                                                                        </td>
+                                                                        {selectedStudent.feeData.paidDates.map(
+                                                                            (date: string, i: number) => (
+                                                                                <td key={i} className='border px-2 py-2 text-center'>
+                                                                                    {date}
+                                                                                </td>
+                                                                            )
+                                                                        )}
+                                                                        <td className='border px-2 py-2 text-center' colSpan={5} />
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* {showReport && selectedCatg === 'all' && (
                                                     <div className='overflow-x-auto px-8 pb-8'>
                                                         <table className='w-full border-collapse border border-gray-300 text-sm'>
                                                             <thead className='bg-primary text-white'>
                                                                 <tr>
                                                                     <th className='border px-2 py-2 text-center font-semibold'>Sl No</th>
-                                                                    <th className='border px-2 py-2 text-center font-semibold'>
-                                                                        Terms Name
-                                                                    </th>
-                                                                    <th className='border px-2 py-2 text-center font-semibold'>
-                                                                        Today Paid Count
-                                                                    </th>
-                                                                    <th className='border px-2 py-2 text-center font-semibold'>
-                                                                        Today Collection
-                                                                    </th>
-                                                                    <th className='border px-2 py-2 text-center font-semibold'>
-                                                                        Still Now Paid Count
-                                                                    </th>
-                                                                    <th className='border px-2 py-2 text-center font-semibold'>
-                                                                        Still Now Collection
-                                                                    </th>
-                                                                    <th className='border px-2 py-2 text-center font-semibold'>
-                                                                        Total Strength
-                                                                    </th>
-                                                                    <th className='border px-2 py-2 text-center font-semibold'>
-                                                                        Defaulters
-                                                                    </th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>Terms Name</th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>Today Paid Count</th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>Today Collection</th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>Still Now Paid Count</th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>Still Now Collection</th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>Total Strength</th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>Defaulters</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
-                                                                {reportData.map((row, index) => (
-                                                                    <tr
-                                                                        key={row.id}
-                                                                        className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                                                {staticFeeReportData.map((row, index) => (
+                                                                    <tr key={row.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                                                                         <td className='border px-2 py-2 text-center'>{row.slNo}</td>
                                                                         <td className='border px-2 py-2 text-left'>{row.termsName}</td>
-                                                                        <td className='border px-2 py-2 text-right'>
-                                                                            {row.todayPaidCount?.toLocaleString() || '-'}
-                                                                        </td>
-                                                                        <td className='border px-2 py-2 text-right'>
-                                                                            {row.todayCollection?.toLocaleString() || '-'}
-                                                                        </td>
-                                                                        <td className='border px-2 py-2 text-right'>
-                                                                            {row.stillNowPaidCount?.toLocaleString() || '-'}
-                                                                        </td>
-                                                                        <td className='border px-2 py-2 text-right'>
-                                                                            {row.stillNowCollection?.toLocaleString() || '-'}
-                                                                        </td>
-                                                                        <td className='border px-2 py-2 text-right'>
-                                                                            {row.totalStrength?.toLocaleString() || '-'}
-                                                                        </td>
-                                                                        <td className='border px-2 py-2 text-right'>
-                                                                            {row.defaulters?.toLocaleString() || '-'}
-                                                                        </td>
+                                                                        <td className='border px-2 py-2 text-right'>{row.todayPaidCount?.toLocaleString() || '-'}</td>
+                                                                        <td className='border px-2 py-2 text-right'>₹{row.todayCollection?.toLocaleString() || '-'}</td>
+                                                                        <td className='border px-2 py-2 text-right'>{row.stillNowPaidCount?.toLocaleString() || '-'}</td>
+                                                                        <td className='border px-2 py-2 text-right'>₹{row.stillNowCollection?.toLocaleString() || '-'}</td>
+                                                                        <td className='border px-2 py-2 text-right'>{row.totalStrength?.toLocaleString() || '-'}</td>
+                                                                        <td className='border px-2 py-2 text-right'>{row.defaulters?.toLocaleString() || '-'}</td>
                                                                     </tr>
                                                                 ))}
                                                             </tbody>
                                                         </table>
                                                     </div>
-                                                )}
+                                                )} */}
                                             </div>
                                         </CollapsibleSection>
                                     )}

@@ -183,9 +183,15 @@ export interface IspecialFeeHeadList {
     fmH_Id: number;
 }
 
+// export interface IspecialFeeHeadDropdownList {
+//     fmH_Id: number;
+
+//     fmH_FeeName: string;
+// }
+
 export interface IspecialFeeHeadDropdownList {
     fmH_Id: number;
-
+    amount: number;
     fmH_FeeName: string;
 }
 

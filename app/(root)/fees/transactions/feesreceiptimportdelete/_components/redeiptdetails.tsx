@@ -20,35 +20,35 @@ export const feereceiptimportdeleteColumns: ColumnDef<IFeeReceiptImportDelate>[]
         accessorKey: 'studentname',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
         cell: ({ row }) => <div>{row.getValue('studentname')}</div>,
-        enableSorting: true,
-        enableHiding: true
+        enableSorting: false,
+        enableHiding: false
     },
     {
         accessorKey: 'admissionnumber',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Admission No' />,
         cell: ({ row }) => <div>{row.getValue('admissionnumber')}</div>,
-        enableSorting: true,
-        enableHiding: true
+        enableSorting: false,
+        enableHiding: false
     },
     {
         accessorKey: 'date',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Date' />,
         cell: ({ row }) => <div>{row.getValue('date')}</div>,
-        enableSorting: true,
-        enableHiding: true
+        enableSorting: false,
+        enableHiding: false
     },
     {
         accessorKey: 'receiptno',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Receipt No' />,
         cell: ({ row }) => <div>{row.getValue('receiptno')}</div>,
-        enableSorting: true,
-        enableHiding: true
+        enableSorting: false,
+        enableHiding: false
     },
     {
         accessorKey: 'amount',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Amount' />,
         cell: ({ row }) => <div>₹{Number(row.getValue('amount')).toLocaleString('en-IN')}</div>,
-        enableSorting: true,
-        enableHiding: true
+        enableSorting: false,
+        enableHiding: false
     }
 ];

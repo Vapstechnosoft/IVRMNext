@@ -20,12 +20,13 @@ export default function FeesReceiptImportDelete(props: { searchParams: SearchPar
     const [isReportGenerated, setIsReportGenerated] = useState(false);
     const [selectedAsmayId, setSelectedAsmayId] = useState<number | null>(null);
     const [selectedDate, setSelectedDate] = useState<string>('');
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const { data: response, isLoading, error } = useFeeRefundableList(Number(selectedAsmayId), searchParams);
     const { data: academicYearData, isLoading: loadingYears } = useopeningacademicyerdropdowndatafee();
 
     // Static data for demonstration
-    const staticData: IFeeReceiptImportDelate[] = [
+    const initialStaticData: IFeeReceiptImportDelate[] = [
         {
             studentname: 'John Doe',
             admissionnumber: 'ADM2024001',
@@ -68,17 +69,14 @@ export default function FeesReceiptImportDelete(props: { searchParams: SearchPar
         }
     ];
 
+    // Working data that can be modified
+    const [staticData, setStaticData] = useState<IFeeReceiptImportDelate[]>(initialStaticData);
+
     useEffect(() => {
         if (!loadingYears && academicYearData?.data?.length && selectedAsmayId === null) {
             setSelectedAsmayId(Number(academicYearData.data[0].asmaY_Id));
         }
     }, [loadingYears, academicYearData, selectedAsmayId]);
-
-    // Set today's date as default
-    // useEffect(() => {
-    //     const today = new Date().toISOString().split('T')[0];
-    //     setSelectedDate(today);
-    // }, []);
 
     const handleReportClick = () => {
         // Validate academic year and date
@@ -91,22 +89,37 @@ export default function FeesReceiptImportDelete(props: { searchParams: SearchPar
             toast.error('Please select a date');
             return;
         }
+        setTimeout(() => {
+            setIsReportGenerated(true);
 
+            toast.success('Report generated successfully!');
+        }, 1000);
         // Add your report generation logic here
-        setIsReportGenerated(true);
-        // toast.success("Report generated successfully!");
     };
 
     const handleResetClick = () => {
         setIsReportGenerated(false);
-        //toast.info("Report reset successfully");
+        setStaticData(initialStaticData);
+        // toast.info("Report reset successfully");
+    };
+
+    const handleDeleteAll = () => {
+        setIsDeleting(true);
+
+        // Simulate delete operation with loading
+        setTimeout(() => {
+            setStaticData([]);
+            setIsDeleting(false);
+            toast.success('All data deleted successfully!');
+            setIsReportGenerated(false);
+        }, 1000);
     };
 
     return (
         <>
             <FormProvider<IFeeReceiptImportDelate>>
                 <FeesReceiptImportDeletePageContent
-                    response={staticData} // Pass static data
+                    response={staticData} // Pass working data
                     isLoading={isLoading}
                     error={error}
                     selectedAsmayId={selectedAsmayId}
@@ -118,6 +131,8 @@ export default function FeesReceiptImportDelete(props: { searchParams: SearchPar
                     setSelectedDate={setSelectedDate}
                     onReportClick={handleReportClick}
                     onResetClick={handleResetClick}
+                    onDeleteAll={handleDeleteAll}
+                    isDeleting={isDeleting}
                 />
             </FormProvider>
         </>
@@ -136,7 +151,9 @@ function FeesReceiptImportDeletePageContent({
     selectedDate,
     setSelectedDate,
     onReportClick,
-    onResetClick
+    onResetClick,
+    onDeleteAll,
+    isDeleting
 }: {
     response: any;
     isLoading: boolean;
@@ -150,6 +167,8 @@ function FeesReceiptImportDeletePageContent({
     setSelectedDate: (date: string) => void;
     onReportClick: () => void;
     onResetClick: () => void;
+    onDeleteAll: () => void;
+    isDeleting: boolean;
 }) {
     const { openAddForm } = useFormContext<IFeeReceiptImportDelate>();
 
@@ -169,6 +188,12 @@ function FeesReceiptImportDeletePageContent({
     const handleReset = () => {
         onResetClick();
     };
+
+    // Get selected academic year label
+    const selectedAcademicYearLabel =
+        selectedAsmayId && academicYearData?.data
+            ? academicYearData.data.find((item: any) => item.asmaY_Id === selectedAsmayId)?.asmaY_Year
+            : '';
 
     return (
         <div className='min-h-screen'>
@@ -220,11 +245,12 @@ function FeesReceiptImportDeletePageContent({
                         <Button
                             type='button'
                             onClick={handleReport}
+                            disabled={isDeleting}
                             className='shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                             Report
                         </Button>
 
-                        <Button variant='outline' onClick={handleReset} type='button'>
+                        <Button variant='outline' onClick={handleReset} type='button' disabled={isDeleting}>
                             Reset
                         </Button>
                     </div>
@@ -237,6 +263,20 @@ function FeesReceiptImportDeletePageContent({
                         variant='default'
                         size='lg'
                         className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                        {/* Display Academic Year and Date Info */}
+                        {/* <div className="mb-4 rounded-lg bg-blue-50 p-4">
+                            <div className="flex flex-col gap-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="font-semibold text-blue-700">Academic Year:</span>
+                                    <span className="text-blue-900">{selectedAcademicYearLabel || 'Not selected'}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="font-semibold text-blue-700">Date:</span>
+                                    <span className="text-blue-900">{selectedDate || 'Not selected'}</span>
+                                </div>
+                            </div>
+                        </div> */}
+
                         <GenericDataTable<IFeeReceiptImportDelate>
                             {...tableProps}
                             columns={feereceiptimportdeleteColumns}
@@ -248,21 +288,35 @@ function FeesReceiptImportDeletePageContent({
                             noDataDescription=''
                             errorTitle='Error Loading Fees Receipt Import Delete Data'
                         />
+
+                        {/* Action Buttons */}
                         <div className='flex flex-col items-center justify-center'>
                             <div className='mt-4 flex items-center gap-4'>
                                 <Button
                                     type='button'
-                                    onClick={handleReport}
-                                    className='shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                                    Delete
+                                    onClick={onDeleteAll}
+                                    disabled={isDeleting || response.length === 0}
+                                    className='bg-red-500 text-white shadow-md transition-all duration-200 hover:scale-105 hover:bg-red-600 hover:shadow-lg'>
+                                    {isDeleting ? <div className='flex items-center gap-2'>Deleting...</div> : 'Delete All'}
                                 </Button>
 
-                                <Button variant='outline' onClick={handleReset} type='button'>
+                                <Button variant='outline' onClick={handleReset} type='button' disabled={isDeleting}>
                                     Cancel
                                 </Button>
                             </div>
                         </div>
                     </CollapsibleSection>
+                )}
+
+                {/* Delete Loading State */}
+                {isDeleting && (
+                    <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50'>
+                        <div className='rounded-lg bg-white p-8 shadow-2xl'>
+                            <div className='flex flex-col items-center gap-4'>
+                                <p className='font-semibold text-gray-700 text-lg'>Deleting all data...</p>
+                            </div>
+                        </div>
+                    </div>
                 )}
 
                 <FormSections />

@@ -401,7 +401,8 @@ export const feesGroupwiseStudentReportSchema = z
         groupIdsNew: z.array(z.number()).optional(),
         group_wise: z.boolean().optional(),
         amntchecked: z.boolean().optional(),
-        bulkdownload: z.boolean().optional()
+        bulkdownload: z.boolean().optional(),
+        admno: z.string().optional()
     })
     .superRefine((data, ctx) => {
         if (!data.academicYearId) {
@@ -411,6 +412,14 @@ export const feesGroupwiseStudentReportSchema = z
                 code: z.ZodIssueCode.custom
             });
         }
+
+        // if (data.radio_val === 'Termwise') {
+        //     ctx.addIssue({
+        //         path: ['admno'],
+        //         message: 'Admission Number is required',
+        //         code: z.ZodIssueCode.custom
+        //     });
+        // }
 
         if (data.radio_val === 'individual' || data.radio_val === 'student_wise' || data.radio_val === 'admCat') {
             if (!data.classId || data.classId === 0) {

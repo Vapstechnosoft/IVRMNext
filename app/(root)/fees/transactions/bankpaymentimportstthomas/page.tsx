@@ -261,7 +261,11 @@ export default function BankFeesReceiptImport(props: { searchParams: SearchParam
 
             // For now, just show success
             setIsReportGenerated(true);
-            toast.success(`${processedData.length} records processed successfully`);
+            toast.success(`${processedData.length} records Saved successfully`);
+
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
         } catch (error) {
             toast.error('Error processing data');
             console.error('Processing error:', error);

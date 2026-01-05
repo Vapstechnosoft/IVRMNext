@@ -6,14 +6,14 @@ import { Card } from '@/components/ui/card';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FormProvider, useFormContext } from '@/components/ui/form/form-provider'; // Added useFormContext
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { excelImportNotDoneReportSchema } from '@/schemas/fees/reports';
 import type { ExcelNotImportedStudentDetailsReport } from '@/types/fees/reports/reports';
 import { zodResolver } from '@hookform/resolvers/zod/dist/zod.js';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react'; // Added useRef
 import { Input } from 'react-aria-components';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -41,6 +41,7 @@ function ExcelNotImportedReportContent() {
     const {
         control,
         handleSubmit,
+        watch,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(excelImportNotDoneReportSchema.addOrUpdate),
@@ -53,12 +54,16 @@ function ExcelNotImportedReportContent() {
 
     const [academicYears, setAcademicYears] = useState<IAcademicYear[]>([]);
     const [showReport, setShowReport] = useState(false);
+    const [selectedAcademicYearLabel, setSelectedAcademicYearLabel] = useState<string>('');
+    const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [reportData, setReportData] = useState<ExcelNotImportedStudentDetailsReport[]>([]);
 
-    // Get form context for delete form
-    const { isDeleteFormOpen, selectedRow, closeToggleForm } = useFormContext<ExcelNotImportedStudentDetailsReport>();
+    // Use ref to track deleted IDs persistently
+    const deletedIdsRef = useRef<Set<number>>(new Set());
 
-    // Static data for demonstration
-    const staticData: ExcelNotImportedStudentDetailsReport[] = [
+    // Original data - keep this constant for reference
+    const initialStaticData: ExcelNotImportedStudentDetailsReport[] = [
         {
             academicyear: '2024-2025',
             admissionNo: 'ADM2024001',
@@ -106,12 +111,47 @@ function ExcelNotImportedReportContent() {
         }
     ];
 
+    // Get form context for delete form
+    const { isDeleteFormOpen, selectedRow, closeToggleForm } = useFormContext<ExcelNotImportedStudentDetailsReport>();
+
+    const academicYearId = watch('academicYearId');
+
+    // Update selected academic year label when academicYearId changes
+    useEffect(() => {
+        if (academicYearId && academicYears.length > 0) {
+            const selectedYear = academicYears.find((year) => year.asmaY_Id.toString() === academicYearId);
+            if (selectedYear) {
+                setSelectedAcademicYearLabel(selectedYear.asmaY_Year);
+            }
+        } else {
+            setSelectedAcademicYearLabel('');
+        }
+    }, [academicYearId, academicYears]);
+
+    // Function to handle delete
+    const handleDelete = (id: number) => {
+        setIsDeleting(true);
+
+        // Add the ID to the deleted IDs set
+        deletedIdsRef.current.add(id);
+
+        // Update report data by filtering out the deleted ID
+        setReportData((prevData) => prevData.filter((item) => item.id !== id));
+
+        toast.success('Record deleted successfully!');
+
+        // Use setTimeout to ensure state updates are complete
+        setTimeout(() => {
+            setIsDeleting(false);
+        }, 100);
+    };
+
     const tableProps = {
-        data: staticData,
-        totalCount: staticData.length,
+        data: reportData,
+        totalCount: reportData.length,
         pageSize: 10,
         currentPage: 1,
-        totalPages: Math.ceil(staticData.length / 10)
+        totalPages: Math.ceil(reportData.length / 10)
     };
 
     // Hooks
@@ -133,9 +173,13 @@ function ExcelNotImportedReportContent() {
             setAcademicYears(formatted);
         }
     }, [academicData, academicError]);
+
     const handleCancel = () => {
         setShowReport(false);
-
+        setReportData([]);
+        setIsGeneratingReport(false);
+        // Clear deleted IDs when canceling
+        deletedIdsRef.current.clear();
         toast.info('Report cancelled');
     };
 
@@ -151,8 +195,8 @@ function ExcelNotImportedReportContent() {
             { key: 'remarks', label: 'Remarks' }
         ];
 
-        // Use all staticData rows and add serial numbers
-        const rowsToPrint = staticData.map((row, index) => ({
+        // Use all reportData rows and add serial numbers
+        const rowsToPrint = reportData.map((row, index) => ({
             ...row,
             slNo: index + 1
         }));
@@ -162,17 +206,49 @@ function ExcelNotImportedReportContent() {
     };
 
     const onSubmit: SubmitHandler<FormFields> = async (data: FormFields) => {
-        const payload = {
-            asmayId: data.academicYearId,
-            fromDate: filters.fromDate.toISOString().split('T')[0],
-            toDate: filters.toDate.toISOString().split('T')[0],
-            flag: filters.breakdown
-        };
+        // Check if we're in the middle of a delete operation
+        if (isDeleting) {
+            return;
+        }
+        if (!isDeleting) {
+            // Set loading state
+            setIsGeneratingReport(true);
+            setShowReport(false);
 
-        console.log('payload', payload);
-        // For now, just show the static data
-        setShowReport(true);
-        toast.success('Report generated successfully!');
+            const payload = {
+                asmayId: data.academicYearId,
+                fromDate: filters.fromDate.toISOString().split('T')[0],
+                toDate: filters.toDate.toISOString().split('T')[0],
+                flag: filters.breakdown
+            };
+
+            // Simulate 1-second loading delay
+            setTimeout(() => {
+                // Find the selected academic year
+                const selectedYear = academicYears.find((year) => year.asmaY_Id.toString() === data.academicYearId);
+                const selectedYearLabel = selectedYear ? selectedYear.asmaY_Year : '';
+
+                // Filter out deleted IDs from initial static data
+                const filteredData = initialStaticData.filter((item) => !deletedIdsRef.current.has(item.id));
+
+                // Update data with selected academic year
+                if (selectedYearLabel) {
+                    const updatedData = filteredData.map((item) => ({
+                        ...item,
+                        academicyear: selectedYearLabel
+                    }));
+                    setReportData(updatedData);
+                } else {
+                    // If no academic year selected, show filtered data
+                    setReportData(filteredData);
+                }
+
+                // Show the report
+                setShowReport(true);
+                setIsGeneratingReport(false);
+                toast.success('Report generated successfully!');
+            }, 1000);
+        }
     };
 
     return (
@@ -199,7 +275,7 @@ function ExcelNotImportedReportContent() {
                                                         setFilters((prev) => ({ ...prev, academicYearId: value }));
                                                     }}
                                                     value={field.value?.toString() || undefined}
-                                                    disabled={loadingAcademic}>
+                                                    disabled={loadingAcademic || isGeneratingReport}>
                                                     <SelectTrigger className='w-full'>
                                                         <SelectValue
                                                             placeholder={loadingAcademic ? 'Loading...' : 'Select Academic Year'}
@@ -246,6 +322,7 @@ function ExcelNotImportedReportContent() {
                                                     }))
                                                 }
                                                 className='rounded border px-3 py-1'
+                                                disabled={isGeneratingReport}
                                             />
                                         </div>
 
@@ -264,6 +341,7 @@ function ExcelNotImportedReportContent() {
                                                     }))
                                                 }
                                                 className='rounded border px-3 py-1'
+                                                disabled={isGeneratingReport}
                                             />
                                         </div>
                                     </div>
@@ -272,16 +350,21 @@ function ExcelNotImportedReportContent() {
                                 <div>
                                     <div className='flex justify-end gap-4 border-t pt-8'>
                                         <div className='min-w-0 flex-1'>
-                                            <Button size='lg' variant='outline' className='w-full px-8' onClick={() => handleCancel()}>
+                                            <Button
+                                                size='lg'
+                                                variant='outline'
+                                                className='w-full px-8'
+                                                onClick={() => handleCancel()}
+                                                disabled={isGeneratingReport}>
                                                 Cancel
                                             </Button>
                                         </div>
                                         <div className='min-w-0 flex-1'>
-                                            <Button type='submit' disabled={isSubmitting} className='w-full px-12'>
-                                                {isSubmitting ? 'Generating...' : 'Report'}
+                                            <Button type='submit' disabled={isSubmitting || isGeneratingReport} className='w-full px-12'>
+                                                {isGeneratingReport ? 'Generating...' : 'Report'}
                                             </Button>
                                         </div>
-                                        {showReport && (
+                                        {showReport && !isGeneratingReport && (
                                             <div className='min-w-0 flex-1'>
                                                 <Button
                                                     variant='outline'
@@ -293,7 +376,22 @@ function ExcelNotImportedReportContent() {
                                         )}
                                     </div>
                                 </div>
-                                {showReport && (
+
+                                {/* Loading state */}
+                                {isGeneratingReport && (
+                                    <div className='mt-8'>
+                                        <CollapsibleSection defaultOpen={true}>
+                                            <div className='flex h-64 items-center justify-center rounded-lg border border-gray-200 bg-white'>
+                                                <div className='text-center'>
+                                                    <div className='mx-auto h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent' />
+                                                    <p className='mt-4 font-medium text-gray-700 text-lg'>Generating report...</p>
+                                                </div>
+                                            </div>
+                                        </CollapsibleSection>
+                                    </div>
+                                )}
+
+                                {showReport && !isGeneratingReport && (
                                     <>
                                         <CollapsibleSection defaultOpen={true}>
                                             <GenericDataTable<ExcelNotImportedStudentDetailsReport>
@@ -306,11 +404,16 @@ function ExcelNotImportedReportContent() {
                                                 noDataTitle='No Excel Not Imported Student Data Found'
                                                 noDataDescription=''
                                                 errorTitle='Error Loading Excel Not Imported Student Data'
+                                                isPaginationRequired={false}
                                             />
                                         </CollapsibleSection>
 
                                         {isDeleteFormOpen && selectedRow && (
-                                            <DeleteExcelNotImportedForm rowData={selectedRow} onClose={closeToggleForm} />
+                                            <DeleteExcelNotImportedForm
+                                                rowData={selectedRow}
+                                                onClose={closeToggleForm}
+                                                onDelete={handleDelete}
+                                            />
                                         )}
                                     </>
                                 )}
