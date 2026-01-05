@@ -795,10 +795,6 @@ export interface IStudentTransaction {
     areaName?: string;
 }
 
-export interface IStudentTransactionGrid extends IStudentTransaction {
-    slNo: number;
-}
-
 export interface IExamTerm {
     ecT_Id: number;
     ecT_TermName: string;
