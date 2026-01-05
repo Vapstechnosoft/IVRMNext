@@ -1326,6 +1326,14 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/calculation/marks-calculation',
                                             title: 'Exam Marks Calculation',
                                             description: 'Manage Exam Marks Calculation Details'
+                                        },
+                                        {
+                                            id: 93,
+                                            name: 'Promotion Calculation',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/calculation/promotion-calculation',
+                                            title: 'Promotion Calculation',
+                                            description: 'Manage Promotion Calculation Details'
                                         }
                                     ]
                                 },
@@ -1437,6 +1445,46 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/reports/juniors-progress-card-report',
                                             title: 'Juniors Progress Card Report',
                                             description: 'View Juniors Progress Card Report'
+                                        },
+                                        {
+                                            id: 84,
+                                            name: 'Report Card VI_VIII',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Report_Card_VI_VIII',
+                                            title: 'Report Card VI_VIII',
+                                            description: 'Report Card VI_VIII'
+                                        },
+                                        {
+                                            id: 85,
+                                            name: 'Report Card X_XII',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Report_Card_X_XII',
+                                            title: 'Report Card X_XII',
+                                            description: 'Report Card X_XII'
+                                        },
+                                        {
+                                            id: 86,
+                                            name: 'Report Card XI',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Report_Card_XI',
+                                            title: 'Report Card XI',
+                                            description: 'Report Card XI'
+                                        },
+                                        {
+                                            id: 87,
+                                            name: 'Report Card_IX',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Report_Card_IX',
+                                            title: 'Report Card_IX',
+                                            description: 'Report Card_IX'
+                                        },
+                                        {
+                                            id: 88,
+                                            name: 'Report Card_X',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Report_Card_X',
+                                            title: 'Report Card_X',
+                                            description: 'Report Card_X'
                                         }
                                     ]
                                 }

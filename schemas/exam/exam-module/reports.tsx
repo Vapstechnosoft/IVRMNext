@@ -416,3 +416,69 @@ export const gradeSlabReportSchema = {
             }
         })
 };
+
+
+export const reportCardIXSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    brngroup: z.string().min(1, 'Group is required'),
+    exmname: z.string().min(1, 'Exam Name is required'),
+    printLogo: z.boolean().default(true),
+    superAverage: z.boolean().default(true),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type ReportCardIXSchema = z.infer<typeof reportCardIXSchema>;
+
+export const reportCardXSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    brngroup: z.string().min(1, 'Group is required'),
+    exmname: z.string().min(1, 'Exam Name is required'),
+    printLogo: z.boolean().default(true),
+    superAverage: z.boolean().default(true),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type ReportCardXSchema = z.infer<typeof reportCardXSchema>;
+
+export const reportCardXiSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    brngroup: z.string().min(1, 'Group is required'),
+    exmname: z.string().min(1, 'Exam Name is required'),
+    printLogo: z.boolean().default(true),
+    superAverage: z.boolean().default(true),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type ReportCardXiSchema = z.infer<typeof reportCardXiSchema>;
+
+export const reportCardViViiiSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    brngroup: z.string().optional(),
+    exmname: z.string().min(1, 'Exam Name is required'),
+    superAverage: z.boolean().default(true),
+    printLogo: z.boolean().default(true),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student'),
+});
+
+export type ReportCardViViiiSchema = z.infer<typeof reportCardViViiiSchema>;
+
+export const reportCardXXiiSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    brngroup: z.string().min(1, 'Group is required'),
+    exmname: z.string().min(1, 'Exam Name is required'),
+    printLogo: z.boolean().default(true),
+    superAverage: z.boolean().default(true),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type ReportCardXXiiSchema = z.infer<typeof reportCardXXiiSchema>;
