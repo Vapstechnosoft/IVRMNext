@@ -17,34 +17,39 @@ export const PromotionalSettingDetailsColumns: ColumnDef<IPromotionalSubjectDeta
         enableSorting: false
     },
     {
-        accessorKey: 'subjectName',
+        accessorKey: 'ismS_SubjectName',
         header: ({ column }) => <DataTableColumnHeader title='Subject Name' column={column} />,
-        enableSorting: false
+        enableSorting: false,
+        cell: ({ row }) => row.getValue('ismS_SubjectName')
     },
     {
-        accessorKey: 'gradeName',
+        accessorKey: 'emgR_GradeName',
         header: ({ column }) => <DataTableColumnHeader title='Grade Name' column={column} />,
-        enableSorting: false
+        enableSorting: false,
+        cell: ({ row }) => row.getValue('emgR_GradeName')
     },
     {
-        accessorKey: 'maxMarks',
+        accessorKey: 'empS_MaxMarks',
         header: ({ column }) => <DataTableColumnHeader title='Max. Marks' column={column} />,
-        enableSorting: false
+        enableSorting: false,
+        cell: ({ row }) => row.getValue('empS_MaxMarks')
     },
     {
-        accessorKey: 'minMarks',
+        accessorKey: 'empS_MinMarks',
         header: ({ column }) => <DataTableColumnHeader title='Min. Marks' column={column} />,
-        enableSorting: false
+        enableSorting: false,
+        cell: ({ row }) => row.getValue('empS_MinMarks')
     },
     {
-        accessorKey: 'convertedMarks',
+        accessorKey: 'empS_ConvertForMarks',
         header: ({ column }) => <DataTableColumnHeader title='Converted Marks For' column={column} />,
-        enableSorting: false
+        enableSorting: false,
+        cell: ({ row }) => row.getValue('empS_ConvertForMarks')
     },
     {
-        accessorKey: 'aplResult',
+        accessorKey: 'empS_AppToResultFlg',
         header: ({ column }) => <DataTableColumnHeader title='Apl. Result' column={column} />,
-        cell: ({ row }) => getStatusBadge((row.getValue('aplResult') as boolean) === true ? 'yes' : 'no'),
+        cell: ({ row }) => getStatusBadge((row.getValue('empS_AppToResultFlg') as boolean) === true ? 'yes' : 'no'),
         enableSorting: false
     },
     {
@@ -60,7 +65,7 @@ export const PromotionalSettingDetailsColumns: ColumnDef<IPromotionalSubjectDeta
 // MAPPING CELL
 // -------------------------
 function MappingCell({ rowData }: { rowData: IPromotionalSubjectDetails }) {
-    const showEye = rowData.aplResult || rowData.convertedMarks;
+    const showEye = rowData.empS_AppToResultFlg || rowData.empS_ConvertForMarks;
     const { openMappedview } = useFormContext<IPromotionalSubjectDetails>();
     const handleOpenView = useCallback(() => openMappedview(rowData), [openMappedview, rowData]);
     if (!showEye) return <div>-</div>;

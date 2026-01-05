@@ -1,0 +1,110 @@
+'use client';
+
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+interface ReportListProps {
+    data: any[];
+    institution: any;
+    criteria: any;
+}
+
+export const ReportList: React.FC<ReportListProps> = ({ data, institution, criteria }) => {
+
+    if (!data || data.length === 0) return null;
+
+    // Grouping logic based on the original Angular code
+    const groupedData: any[] = [];
+
+    // Get unique classes
+    const classes = Array.from(new Set(data.map(item => item.ASMCL_Id)))
+        .map(id => {
+            const item = data.find(i => i.ASMCL_Id === id);
+            return { id, name: item.ASMCL_ClassName };
+        });
+
+    classes.forEach(cls => {
+        // Get sections for this class
+        const classItems = data.filter(item => item.ASMCL_Id === cls.id);
+        const sections = Array.from(new Set(classItems.map(item => item.ASMS_Id)))
+            .map(id => {
+                const item = classItems.find(i => i.ASMS_Id === id);
+                return { id, name: item.ASMC_SectionName };
+            });
+
+        sections.forEach(sec => {
+            const sectionItems = classItems.filter(item => item.ASMS_Id === sec.id);
+            groupedData.push({
+                className: cls.name,
+                sectionName: sec.name,
+                items: sectionItems
+            });
+        });
+    });
+
+    return (
+        <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Percentagewise Student Details</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div id="report-print-section" className="p-4 bg-white">
+                    {/* Header for Print - Visible only in Print usually, but here shown for preview */}
+                    <div className="text-center mb-4">
+                        {institution && institution[0] && (
+                            <>
+                                <h2 className="text-xl font-bold">{institution[0].mI_Name}</h2>
+                                <p>{institution[0].MI_Address1}</p>
+                            </>
+                        )}
+                        <h3 className="text-lg font-semibold mt-2">Percentage Wise Report</h3>
+                        <p>{criteria}</p>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full border-collapse border border-gray-300">
+                            <thead>
+                                <tr className="bg-gray-100">
+                                    <th className="border border-gray-300 p-2">Sl No.</th>
+                                    <th className="border border-gray-300 p-2">Class</th>
+                                    <th className="border border-gray-300 p-2">Section</th>
+                                    <th className="border border-gray-300 p-2">Student</th>
+                                    <th className="border border-gray-300 p-2">Obtained Marks</th>
+                                    <th className="border border-gray-300 p-2">Max Marks</th>
+                                    <th className="border border-gray-300 p-2">Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {groupedData.map((group, groupIndex) =>
+                                    group.items.map((item: any, itemIndex: number) => (
+                                        <tr key={`${groupIndex}-${itemIndex}`} className="text-center">
+                                            {itemIndex === 0 && (
+                                                <td className="border border-gray-300 p-2 align-middle" rowSpan={group.items.length}>
+                                                    {groupIndex + 1}
+                                                </td>
+                                            )}
+                                            {itemIndex === 0 && (
+                                                <td className="border border-gray-300 p-2 align-middle" rowSpan={group.items.length}>
+                                                    {group.className}
+                                                </td>
+                                            )}
+                                            {itemIndex === 0 && (
+                                                <td className="border border-gray-300 p-2 align-middle" rowSpan={group.items.length}>
+                                                    {group.sectionName}
+                                                </td>
+                                            )}
+                                            <td className="border border-gray-300 p-2 text-left">{item.studentname}</td>
+                                            <td className="border border-gray-300 p-2">{item.ESTMP_TotalObtMarks}</td>
+                                            <td className="border border-gray-300 p-2">{item.ESTMP_TotalMaxMarks}</td>
+                                            <td className="border border-gray-300 p-2">{item.ESTMP_Percentage}</td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    );
+};

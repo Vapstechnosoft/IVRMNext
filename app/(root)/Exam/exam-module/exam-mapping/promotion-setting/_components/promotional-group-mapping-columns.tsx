@@ -9,47 +9,48 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
 import { useCallback } from 'react';
 
+/* --------------------------------
+   PROMOTIONAL GROUP COLUMNS
+-------------------------------- */
 export const PromotionalGroupMappingColumns: ColumnDef<IPromotionalGroupDetails>[] = [
     {
-        accessorKey: 'slNo',
-        header: ({ column }) => <DataTableColumnHeader title='SLNO' column={column} />,
+        id: 'slNo',
+        header: ({ column }) => <DataTableColumnHeader title='SL NO' column={column} />,
         cell: ({ row }) => row.index + 1,
         enableSorting: false
     },
     {
-        accessorKey: 'groupName',
+        accessorKey: 'emcA_CategoryName',
         header: ({ column }) => <DataTableColumnHeader title='Group Name' column={column} />,
         enableSorting: false
     },
     {
-        accessorKey: 'displayName',
-        header: ({ column }) => <DataTableColumnHeader title='Display Name' column={column} />,
+        accessorKey: 'emgR_GradeName',
+        header: ({ column }) => <DataTableColumnHeader title='Grade Name' column={column} />,
         enableSorting: false
     },
     {
-        accessorKey: 'percentage',
-        header: ({ column }) => <DataTableColumnHeader title='Percentage' column={column} />,
+        accessorKey: 'emP_MarksPerFlg',
+        header: ({ column }) => <DataTableColumnHeader title='Type' column={column} />,
+        cell: ({ row }) => getStatusBadge(row.original.emP_MarksPerFlg === 'M' ? 'marks' : 'percentage'),
         enableSorting: false
     },
     {
-        accessorKey: 'marks',
-        header: ({ column }) => <DataTableColumnHeader title='Marks' column={column} />,
+        accessorKey: 'emP_BestOf',
+        header: ({ column }) => <DataTableColumnHeader title='Best Of' column={column} />,
+        cell: ({ row }) => row.original.emP_BestOf ?? '-',
         enableSorting: false
     },
     {
-        accessorKey: 'maxOff',
-        header: ({ column }) => <DataTableColumnHeader title='Max Off' column={column} />,
+        accessorKey: 'emP_PassToIndSubjectFlg',
+        header: ({ column }) => <DataTableColumnHeader title='Pass to Individual' column={column} />,
+        cell: ({ row }) => getStatusBadge(row.original.emP_PassToIndSubjectFlg === true ? 'yes' : 'no'),
         enableSorting: false
     },
     {
-        accessorKey: 'bestOff',
-        header: ({ column }) => <DataTableColumnHeader title='Best Off' column={column} />,
-        enableSorting: false
-    },
-    {
-        accessorKey: 'roundOffFlag',
-        header: ({ column }) => <DataTableColumnHeader title='Round Off' column={column} />,
-        cell: ({ row }) => getStatusBadge(row.original.roundOffFlag ? 'yes' : 'no'),
+        accessorKey: 'emP_PassToOverallFlag',
+        header: ({ column }) => <DataTableColumnHeader title='Pass to Overall' column={column} />,
+        cell: ({ row }) => getStatusBadge(row.original.emP_PassToOverallFlag === true ? 'yes' : 'no'),
         enableSorting: false
     },
     {
@@ -61,31 +62,47 @@ export const PromotionalGroupMappingColumns: ColumnDef<IPromotionalGroupDetails>
     }
 ];
 
-/* -------------------------
+/* --------------------------------
    VIEW (EYE) CELL
-------------------------- */
+-------------------------------- */
 function MappingCell({ rowData }: { rowData: IPromotionalGroupDetails }) {
     const { openMappedview } = useFormContext<IPromotionalGroupDetails>();
-    const handleOpenView = useCallback(() => openMappedview(rowData), [openMappedview, rowData]);
+
+    const handleOpenView = useCallback(() => {
+        openMappedview(rowData);
+    }, [openMappedview, rowData]);
 
     return (
-        <button onClick={handleOpenView} type='button' className='rounded-md p-2 transition hover:bg-muted' title='View Group Details'>
+        <button
+            onClick={handleOpenView}
+            type='button'
+            className='rounded-md p-2 transition hover:bg-muted'
+            title='View Group Details'
+        >
             <Eye className='h-4 w-4 text-blue-600' />
         </button>
     );
 }
 
-/* -------------------------
+/* --------------------------------
    ACTION BUTTONS CELL
-------------------------- */
+-------------------------------- */
 function ActionButtonsCell({ rowData }: { rowData: IPromotionalGroupDetails }) {
     const { openToggleForm } = useFormContext<IPromotionalGroupDetails>();
-    const handleToggle = useCallback(() => openToggleForm(rowData), [openToggleForm, rowData]);
+
+    const handleToggle = useCallback(() => {
+        openToggleForm(rowData);
+    }, [openToggleForm, rowData]);
 
     return (
         <div className='flex justify-center gap-1'>
             <MappingCell rowData={rowData} />
-            <ActionButtons rowData={rowData} buttons={{ toggle: true }} onToggle={handleToggle} toggleConditionKey='isActiveFlag' />
+            <ActionButtons
+                rowData={rowData}
+                buttons={{ toggle: true }}
+                onToggle={handleToggle}
+                toggleConditionKey='emP_ActiveFlag'
+            />
         </div>
     );
 }

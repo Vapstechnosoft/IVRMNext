@@ -6,7 +6,7 @@ export const studentMarksPublishSchema = {
     search: z
         .object({
             // Radio type (Exam or Promotion)
-            radiotype: z.enum(['EXAM', 'PROMOTION'], {
+            radiotype: z.enum(['Exam', 'Promotion'], {
                 required_error: 'Please select Exam or Promotion type',
                 invalid_type_error: 'Type must be either EXAM or PROMOTION'
             }),
@@ -45,7 +45,7 @@ export const studentMarksPublishSchema = {
         })
         .superRefine((data, ctx) => {
             // Validation 1: Exam Name is required only when radiotype is EXAM
-            if (data.radiotype === 'EXAM' && (!data.emE_Id || data.emE_Id <= 0)) {
+            if (data.radiotype === 'Exam' && (!data.emE_Id || data.emE_Id <= 0)) {
                 ctx.addIssue({
                     path: ['emE_Id'],
                     code: z.ZodIssueCode.custom,
@@ -144,7 +144,7 @@ export const studentMarksPublishValidators = {
         if (!data.asmS_Id || data.asmS_Id <= 0) errors.push('Section is required');
 
         // Check exam requirement for EXAM type
-        if (data.radiotype === 'EXAM' && (!data.emE_Id || data.emE_Id <= 0)) {
+        if (data.radiotype === 'Exam' && (!data.emE_Id || data.emE_Id <= 0)) {
             errors.push('Exam Name is required for Exam Wise');
         }
 

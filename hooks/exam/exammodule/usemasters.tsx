@@ -11,7 +11,7 @@ import {
 
 import { getCategoryMappedSections } from '@/server/exam/exam-module/masters/category-class-mapping';
 
-import { getMasterExam } from '@/server/exam/exam-module/masters/exam';
+import { getMasterExam, getMasterExamOrderData } from '@/server/exam/exam-module/masters/exam';
 import { getMasterExamPaper } from '@/server/exam/exam-module/masters/exam-paper';
 import { getGradeDetailsById, getMasterGrade } from '@/server/exam/exam-module/masters/grade';
 import { getMasterLifeSkillAreas, getMasterLifeSkillMappings, getMasterLifeSkills } from '@/server/exam/exam-module/masters/life-skills';
@@ -79,6 +79,24 @@ export const useMasterExam = (searchParams?: ApiSearchparams) => {
         }
     };
 };
+
+export const useMasterOrderedExamDropdownList = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.MASTER_EXAM_ORDERED_DROPDOWN_LIST, searchParams ?? {}],
+            queryFn: async () => getMasterExamOrderData(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.MASTER_EXAM_ORDERED_DROPDOWN_LIST]
+            });
+        }
+    };
+};
+
 
 export const useMasterExamPaper = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();

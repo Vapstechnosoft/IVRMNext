@@ -770,78 +770,71 @@ export const hallTicketGenerationSchema = z
             }
         }
     });
-
 export const StudentTransactionSchema = {
-    search: z
-        .object({
-            academicYearId: z
-                .number({
-                    required_error: 'Academic Year is required'
-                })
-                .min(1, 'Select Academic Year'),
+    search: z.object({
+        academicYearId: z.coerce
+            .number()
+            .min(1, 'Academic Year is required')
+            .refine(val => val !== 0, 'Select Academic Year'),
+        classId: z.coerce
+            .number()
+            .min(1, 'Class is required')
+            .refine(val => val !== 0, 'Select Class'),
+        sectionId: z.coerce
+            .number()
+            .min(1, 'Section is required')
+            .refine(val => val !== 0, 'Select Section'),
+        examTermId: z.coerce.number().optional(),
+        emE_Id: z.coerce.number().optional(),
+        skillActivityType: z.enum(['Skills', 'Activities']).optional(),
+        nameId: z.coerce.number().optional(),
+        areaId: z.coerce.number().optional(),
+        exam_termwise_flag: z.enum(['TermWise', 'ExamWise']).default('TermWise'),
+    }).superRefine((data, ctx) => {
+        // Conditional validation for exam term/exam
+        if (data.exam_termwise_flag === 'TermWise' && (!data.examTermId || data.examTermId === 0)) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Exam Term is required',
+                path: ['examTermId']
+            });
+        }
 
-            classId: z
-                .number({
-                    required_error: 'Class is required'
-                })
-                .min(1, 'Select Class'),
+        if (data.exam_termwise_flag === 'ExamWise' && (!data.emE_Id || data.emE_Id === 0)) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Exam is required',
+                path: ['emE_Id']
+            });
+        }
 
-            sectionId: z
-                .number({
-                    required_error: 'Section is required'
-                })
-                .min(1, 'Select Section'),
+        // Conditional validation for skill/activity type
+        if (!data.skillActivityType) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Skill/Activities type is required',
+                path: ['skillActivityType']
+            });
+        }
 
-            examTermId: z
-                .number({
-                    required_error: 'Exam Term is required'
-                })
-                .min(1, 'Select Exam Term'),
+        // Conditional validation for name
+        if (data.skillActivityType && (!data.nameId || data.nameId === 0)) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: data.skillActivityType === 'Skills' ? 'Skills Name is required' : 'Activities Name is required',
+                path: ['nameId']
+            });
+        }
 
-            // Use .optional() after enum - this makes type: 'skill' | 'activity' | undefined
-            skillActivityType: z.enum(['Skills', 'Activities']).optional(),
-
-            nameId: z.number().min(1).optional(),
-
-            areaId: z.number().min(1).optional()
-        })
-        .superRefine((data, ctx) => {
-            // Conditional validation: If examTermId is selected, then skillActivityType is required
-            if (data.examTermId && data.examTermId > 0) {
-                if (!data.skillActivityType) {
-                    ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: 'Select Skill/Activities type',
-                        path: ['skillActivityType']
-                    });
-                }
-
-                // If skillActivityType is selected, then nameId is required
-                if (data.skillActivityType && (!data.nameId || data.nameId === 0)) {
-                    ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: data.skillActivityType === 'Skills' ? 'Select Skill Name' : 'Select Activities Name',
-                        path: ['nameId']
-                    });
-                }
-
-                // If nameId is selected, then areaId is required
-                if (data.nameId && data.nameId > 0 && (!data.areaId || data.areaId === 0)) {
-                    ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: data.skillActivityType === 'Skills' ? 'Select Skill Area' : 'Select Activities Area',
-                        path: ['areaId']
-                    });
-                }
-            }
-        }),
-
-    score: z.object({
-        studentId: z.number().positive(),
-        score: z.number().min(0).max(100, 'Score must be between 0-100')
-    })
+        // Conditional validation for area
+        if (data.skillActivityType && data.nameId && data.nameId !== 0 && (!data.areaId || data.areaId === 0)) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: data.skillActivityType === 'Skills' ? 'Skill Area is required' : 'Activities Area is required',
+                path: ['areaId']
+            });
+        }
+    }),
 };
-
-// The inferred type will now be:
 
 export type StudentTransactionFormData = z.infer<typeof StudentTransactionSchema.search>;

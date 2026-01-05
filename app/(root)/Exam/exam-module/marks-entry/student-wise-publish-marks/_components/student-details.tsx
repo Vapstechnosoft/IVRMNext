@@ -12,6 +12,7 @@ import { Send, Mail, Bell, X } from 'lucide-react';
 import { Label } from '@/components/ui/extension/field';
 import { StudentMarksPublishColumns } from './student-details-columns';
 import { IStudentDetails } from '@/types/exam/exam-module/marks-entry';
+import { getStudentWisePublishMarksData, StudentsMarksPublish } from '@/server/exam/exam-module/marks-entry/student-wise-publish-marks';
 
 interface Props {
     searchParams: any;
@@ -19,6 +20,7 @@ interface Props {
     isLoading: boolean;
     onClose: () => void;
     onRefresh: (params: any, data: any[]) => void;
+    searchPayload: any
 }
 
 export default function StudentMarksPublishDetails({
@@ -26,7 +28,8 @@ export default function StudentMarksPublishDetails({
     studentData,
     isLoading,
     onClose,
-    onRefresh
+    onRefresh,
+    searchPayload
 }: Props) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [selectedRows, setSelectedRows] = useState<IStudentDetails[]>([]);
@@ -54,26 +57,11 @@ export default function StudentMarksPublishDetails({
         setLocalLoading(true);
         try {
             // Simulate API call to refresh data
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            // Use the same mock data for refresh
-            const mockData = [
-                ...studentData,
-                {
-                    amsT_Id: studentData.length + 1,
-                    amsT_FirstName: "NEW STUDENT",
-                    amsT_AdmNo: `ADM/${1000 + studentData.length}/24-25`,
-                    amaY_Rollno: studentData.length + 1,
-                    obtainedmarks: 25,
-                    totalmaxmarks: 46,
-                    percentage: 54,
-                    estmP_PublishToStudentFlg: 0,
-                    estmP_Id: 200 + studentData.length
-                }
-            ];
-
-            onRefresh(searchParams, mockData);
-            toast.success('Data refreshed successfully');
+            const { data: response } = await getStudentWisePublishMarksData(searchPayload);
+            const apiStudents = Array.isArray(response)
+                ? response
+                : [];
+            onRefresh(searchParams, apiStudents);
         } catch (error: any) {
             toast.error('Failed to refresh data');
         } finally {
@@ -84,6 +72,7 @@ export default function StudentMarksPublishDetails({
     // ---- UPDATE BUTTON HANDLER ----
     async function handleUpdate() {
         setIsSubmitting(true);
+
         if (selectedRows.length === 0) {
             toast.warning('Please select at least one student');
             setIsSubmitting(false);
@@ -92,29 +81,39 @@ export default function StudentMarksPublishDetails({
 
         try {
             const payload = {
-                ASMAY_Id: searchParams.asmaY_Id,
-                ASMCL_Id: searchParams.asmcL_Id,
-                ASMS_Id: searchParams.asmS_Id,
-                EME_Id: searchParams.emE_Id || 0,
+                emE_Id: searchParams.emE_Id || 0,
+                emE_ExamName: searchParams.emE_ExamName || '',
+                asmaY_Id: searchParams.asmaY_Id,
                 radiotype: searchParams.radiotype,
-                SMSFLAG: smsFlag,
-                EMAILFLAG: emailFlag,
-                selectedstudents: selectedRows.map(s => ({
-                    AMST_Id: s.amsT_Id,
-                    ESTMP_Id: s.estmP_Id,
-                    AMST_FirstName: s.amsT_FirstName,
-                    ESTMP_PublishToStudentFlg: s.estmP_PublishToStudentFlg
-                })),
-                ELP_ActiveFlg: notificationFlag,
-                EME_ExamName: searchParams.emE_ExamName || ''
+
+                // flags
+                smsflag: smsFlag,
+                emailflag: emailFlag,
+                notifyflag: notificationFlag,
+
+                // optional / backend-required
+                ismS_SubjectName: searchParams.ismS_SubjectName || '',
+
+                // students list
+                selectedstudentslist: selectedRows.map((s) => ({
+                    amsT_Id: s.amsT_Id,
+                    estmP_Id: s.estmP_Id,
+                    amsT_FirstName: s.amsT_FirstName,
+                    estmP_PublishToStudentFlg: s.estmP_PublishToStudentFlg
+                }))
             };
+            console.log('update payload', payload);
+            const response = await StudentsMarksPublish(payload);
 
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            toast.success(`${selectedRows.length} student(s) updated successfully`);
-
-            // Clear selections after update
+            if (!response?.success) {
+                toast.error(response?.message || 'Update failed');
+                return;
+            }
+            console.log('response', response);
+            console.log('selectedRows', selectedRows);
+            toast.success(`${selectedRows.length} ${response.message}`);
+            handleRefresh();
+            // reset UI
             setSelectedRows([]);
             setSmsFlag(false);
             setEmailFlag(false);
@@ -127,45 +126,6 @@ export default function StudentMarksPublishDetails({
         }
     }
 
-    // Get title based on search type
-    const getTitle = () => {
-        const year = searchParams.asmaY_Year || academicYearName(searchParams.asmaY_Id);
-        const className = searchParams.asmcL_ClassName || classData.find(c => c.asmcL_Id === searchParams.asmcL_Id)?.asmcL_ClassName || 'Class';
-        const sectionName = searchParams.asmC_SectionName || sectionData.find(s => s.asmS_Id === searchParams.asmS_Id)?.asmC_SectionName || 'Section';
-
-        const baseTitle = `${year} / ${className} / ${sectionName}`;
-
-        if (searchParams.radiotype === 'EXAM') {
-            const examName = searchParams.emE_ExamName || examData.find(e => e.emE_Id === searchParams.emE_Id)?.emE_ExamName || 'Exam';
-            return `${baseTitle} / ${examName}`;
-        }
-
-        return `${baseTitle} / Promotion`;
-    };
-
-    // Mock data for display
-    const academicYearName = (id: number) => {
-        const years = ['2024-25', '2023-24', '2022-23'];
-        return years[id % years.length] || '2024-25';
-    };
-
-    const classData = [
-        { asmcL_Id: 1, asmcL_ClassName: 'Class I' },
-        { asmcL_Id: 2, asmcL_ClassName: 'Class II' },
-        { asmcL_Id: 3, asmcL_ClassName: 'Class III' },
-    ];
-
-    const sectionData = [
-        { asmS_Id: 1, asmC_SectionName: 'Section A' },
-        { asmS_Id: 2, asmC_SectionName: 'Section B' },
-        { asmS_Id: 3, asmC_SectionName: 'Section C' },
-    ];
-
-    const examData = [
-        { emE_Id: 1, emE_ExamName: 'First Term Exam' },
-        { emE_Id: 2, emE_ExamName: 'Mid Term Exam' },
-        { emE_Id: 3, emE_ExamName: 'Final Exam' },
-    ];
 
     return (
         <FormProvider>

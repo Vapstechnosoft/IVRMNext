@@ -654,19 +654,6 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 toast.error('Fix validation errors before saving');
                 return;
             }
-
-            const exm_subject_subexams_list = buildExmSubjectSubExamsList();
-            const exm_subject_subsubjects_list = buildExmSubjectSubsubjectsList();
-            const exm_subject_subsubjects_subexam = buildExmSubjectSubsubjectsSubexamList();
-
-            const exams_list = exams
-                .filter((e) => e.checked)
-                .map((e) => ({
-                    EME_Id: e.EME_Id,
-                    EME_ExamName: e.EME_ExamName,
-                    checked: true
-                }));
-
             const checkedSubjects = (subjects?.length > 0 ? subjects : (values.yearly_category_exam_subjects ?? [])).filter(
                 (s: any) => s.checkedvalue === true
             );
@@ -675,6 +662,23 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 toast.error('Select at least one subject');
                 return;
             }
+            const exams_list = exams
+                .filter((e) => e.checked)
+                .map((e) => ({
+                    EME_Id: e.EME_Id,
+                    EME_ExamName: e.EME_ExamName,
+                    checked: true
+                }));
+            if (exams_list.length === 0) {
+                toast.error('Select at least one exam');
+                return;
+            }
+            const exm_subject_subexams_list = buildExmSubjectSubExamsList();
+            const exm_subject_subsubjects_list = buildExmSubjectSubsubjectsList();
+            const exm_subject_subsubjects_subexam = buildExmSubjectSubsubjectsSubexamList();
+
+
+
 
             const yearly_category_exam_subjects = checkedSubjects.map((s: any, index: number) => ({
                 EYCES_Id: s.EYCES_Id ?? 0,

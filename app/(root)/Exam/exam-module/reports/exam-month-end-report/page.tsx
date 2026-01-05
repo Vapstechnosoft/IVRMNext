@@ -7,24 +7,26 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useMasterOrderedExamDropdownList } from '@/hooks/exam/exammodule/usemasters';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { ExamMonthEndReportFormValues, examMonthEndReportSchema } from '@/schemas/exam/exam-module/reports';
 import { getInitialData, getReportData } from '@/server/exam/exam-module/reports/exam-month-end-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Check, Loader2, Printer, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { AwaitedReactNode, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { toast } from 'sonner';
 
 export default function ExamMonthEndReportPage() {
     const [isLoading, setIsLoading] = useState(true);
-    const [acdList, setAcdList] = useState<any[]>([]);
     const [monthList, setMonthList] = useState<any[]>([]);
-    const [examList, setExamList] = useState<any[]>([]);
     const [reportData, setReportData] = useState<any[] | null>(null);
     const [selectedYear, setSelectedYear] = useState('');
     const [selectedMonth, setSelectedMonth] = useState('');
     const [selectedExam, setSelectedExam] = useState('');
+    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
+    const { data: examData, isLoading: examDataLoading, error: examDataError } = useMasterOrderedExamDropdownList();
 
     const {
         control,
@@ -38,7 +40,7 @@ export default function ExamMonthEndReportPage() {
         defaultValues: {
             radiodata: 'All',
             iename: '',
-            ASMAY_Id: '',
+            ASMAY_Id: undefined,
             IVRM_Month_Id: '',
             EME_Id: ''
         }
@@ -50,13 +52,7 @@ export default function ExamMonthEndReportPage() {
         const fetchData = async () => {
             try {
                 const data = await getInitialData();
-                setAcdList(data.acdlist);
                 setMonthList(data.monthlist);
-                setExamList(data.examlist);
-
-                // Set default selected values if any
-                const defaultYear = data.acdlist.find((y: any) => y.Selected)?.asmaY_Id;
-                if (defaultYear) reset((values) => ({ ...values, ASMAY_Id: String(defaultYear) }));
             } catch (error) {
                 console.error('Error fetching initial data', error);
                 toast.error('Failed to load initial data');
@@ -70,21 +66,41 @@ export default function ExamMonthEndReportPage() {
     const onSubmit = async (data: ExamMonthEndReportFormValues) => {
         try {
             const response = await getReportData(data);
-            setReportData(response.datareport);
+            const safeReportData = Array.isArray(response.data) ? response.data : [];
+            // Set report table data
+            setReportData(safeReportData);
 
-            // For display purposes
-            const year = acdList.find((i: any) => String(i.asmaY_Id) === data.ASMAY_Id)?.asmaY_Year;
-            const month = monthList.find((i: any) => String(i.ivrM_Month_Id) === data.IVRM_Month_Id)?.ivrM_Month_Name;
-            const exam = examList.find((i: any) => String(i.emE_Id) === data.EME_Id)?.emE_ExamName;
+            if (safeReportData.length === 0) {
+                toast.info('No data found for the selected criteria');
+                return;
+            }
 
-            setSelectedYear(year || '');
-            setSelectedMonth(month || '');
-            setSelectedExam(exam || '');
+            // Resolve Academic Year name
+            const year = academicYear?.data?.find(
+                (i: any) => String(i.asmaY_Id) === String(data.ASMAY_Id)
+            )?.asmaY_Year ?? '';
+
+            // Resolve Month name
+            const month = monthList?.find(
+                (i: any) => String(i.ivrM_Month_Id) === String(data.IVRM_Month_Id)
+            )?.ivrM_Month_Name ?? '';
+
+            // Resolve Exam name
+            const exam = examData?.data?.find(
+                (i: any) => String(i.emE_Id) === String(data.EME_Id)
+            )?.emE_ExamName ?? '';
+
+            // Set display values
+            setSelectedYear(year);
+            setSelectedMonth(month);
+            setSelectedExam(exam);
         } catch (error) {
             console.error('Error fetching report', error);
             toast.error('Failed to generate report');
+            setReportData([]);
         }
     };
+
 
     const handlePrint = () => {
         const tableContent = document.getElementById("reportTable");
@@ -272,16 +288,35 @@ export default function ExamMonthEndReportPage() {
                                     name='ASMAY_Id'
                                     control={control}
                                     render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value}>
-                                            <SelectTrigger className={errors.ASMAY_Id ? 'border-destructive' : ''}>
-                                                <SelectValue placeholder='Select Academic Year' />
+                                        <Select
+                                            onValueChange={field.onChange}
+                                            value={field.value ?? undefined}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue
+                                                    placeholder={academicYearLoading ? 'Loading Academic Year...' : 'Select Academic Year'}
+                                                />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {acdList.map((item: any) => (
-                                                    <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
-                                                        {item.asmaY_Year}
+                                                {academicYearLoading ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading Academic Year...
                                                     </SelectItem>
-                                                ))}
+                                                ) : academicYearError ? (
+                                                    <SelectItem value='error' disabled>
+                                                        Error loading Academic Year
+                                                    </SelectItem>
+                                                ) : academicYear?.data?.length === 0 ? (
+                                                    <SelectItem value='none' disabled>
+                                                        No academic years available
+                                                    </SelectItem>
+                                                ) : (
+                                                    academicYear?.data?.map((item) => (
+                                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                            {item.asmaY_Year}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     )}
@@ -329,11 +364,25 @@ export default function ExamMonthEndReportPage() {
                                                 <SelectValue placeholder='Select Exam' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {examList.map((item: any) => (
-                                                    <SelectItem key={item.emE_Id} value={String(item.emE_Id)}>
-                                                        {item.emE_ExamName}
+                                                {examDataLoading ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading Academic Year...
                                                     </SelectItem>
-                                                ))}
+                                                ) : examDataError ? (
+                                                    <SelectItem value='error' disabled>
+                                                        Error loading Academic Year
+                                                    </SelectItem>
+                                                ) : examData?.data?.length === 0 ? (
+                                                    <SelectItem value='none' disabled>
+                                                        No academic years available
+                                                    </SelectItem>
+                                                ) : (
+                                                    examData?.data?.map((item: { emE_Id: number; emE_ExamName: string }) => (
+                                                        <SelectItem key={item.emE_Id} value={String(item.emE_Id)}>
+                                                            {item.emE_ExamName}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     )}
@@ -431,7 +480,7 @@ export default function ExamMonthEndReportPage() {
                                         {reportData.map((item: any, index: number) => (
                                             <TableRow key={index} className='hover:bg-muted/50'>
                                                 <TableCell className='text-center'>{index + 1}</TableCell>
-                                                <TableCell className='font-medium'>{item.asmcL_ClassName}</TableCell>
+                                                <TableCell className='font-medium'>{item.class}</TableCell>
                                                 <TableCell className='text-center font-semibold text-green-600'>{item.pass}</TableCell>
                                                 <TableCell className='text-center font-semibold text-destructive'>{item.fail}</TableCell>
                                             </TableRow>
@@ -447,7 +496,7 @@ export default function ExamMonthEndReportPage() {
                                     <ResponsiveContainer width='100%' height='100%'>
                                         <BarChart data={reportData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                                             <CartesianGrid strokeDasharray='3 3' vertical={false} />
-                                            <XAxis dataKey='asmcL_ClassName' />
+                                            <XAxis dataKey='class' />
                                             <YAxis />
                                             <Tooltip
                                                 contentStyle={{

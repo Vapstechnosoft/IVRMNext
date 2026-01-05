@@ -47,16 +47,16 @@ export const PromotionSettingColumns: ColumnDef<IPromotionSetting>[] = [
 
     // Pass To Individual
     {
-        accessorKey: 'pass_to_individual',
+        accessorKey: 'emP_PassToIndSubjectFlg',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Pass To Individual' />,
-        cell: ({ row }) => getStatusBadge((row.getValue('pass_to_individual') as boolean) === true ? 'yes' : 'no')
+        cell: ({ row }) => getStatusBadge((row.getValue('emP_PassToIndSubjectFlg') as boolean) === true ? 'yes' : 'no')
     },
 
     // Pass To Overall
     {
-        accessorKey: 'pass_to_overall',
+        accessorKey: 'emP_PassToOverallFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Pass To Overall' />,
-        cell: ({ row }) => getStatusBadge((row.getValue('pass_to_overall') as boolean) === true ? 'yes' : 'no')
+        cell: ({ row }) => getStatusBadge((row.getValue('emP_PassToOverallFlag') as boolean) === true ? 'yes' : 'no')
     },
 
     // Best Applicable
@@ -125,7 +125,7 @@ function ActionButtonsCell({ rowData }: { rowData: IPromotionSetting }) {
                 buttons={{ edit: true, delete: false, toggle: true }}
                 onEdit={handleEdit}
                 onToggle={handleToggle}
-                toggleConditionKey='best_applicable' // or another boolean status
+                toggleConditionKey='emP_ActiveFlag' // or another boolean status
             />
         </div>
     );

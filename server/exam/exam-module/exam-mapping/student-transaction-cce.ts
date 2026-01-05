@@ -1,31 +1,27 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type { GetStudentDetailsParams, ICoScholasticActivityAreaMapping, IExamSubjectWizard, IStudentTransaction } from '@/types/exam/exam-module/exam-mapping';
-import type { ILifeSkillArea } from '@/types/exam/exam-module/masters';
-import { IStudentDetails } from '@/types/fees/transactions/transactions';
 
-export async function getLifeSkillAreasBasedOnLifeSkill(asmaY_Id: number, ecact_Id: number) {
-    if (!ecact_Id) throw new Error('Exam Subject Wizard ID is required');
-    const url = `student_transaction/onchange_skills/30/${asmaY_Id}/${ecact_Id}`;
-    return await api.get<ILifeSkillArea>('exam', url);
+// Get student list based on selections
+export async function getStudentList(params: any) {
+    return await api.post<any>('exam', '/student_transaction/get_student_details', params);
 }
 
-export async function getCoScholasticAreasBasedOnCoScholasticActivity(asmaY_Id: number, ecact_Id: number) {
-    if (!ecact_Id) throw new Error('Exam Subject Wizard ID is required');
-    const url = `student_transaction/onchange_activities/30/${asmaY_Id}/${ecact_Id}`;
-    return await api.get<ICoScholasticActivityAreaMapping>('exam', url);
+// Save CCE student marks
+export async function saveCCEStudentMarks(params: any) {
+    return await api.post<any>('exam', '/student_transaction/add_cce_student_marks', params);
+}
+// Load skills/activities based on selection
+export async function onchangeSkillActivityFlag(params: any) {
+    return await api.post<any>('exam', '/student_transaction/onchangeactivitesskillflag', params);
 }
 
-export async function getStudentTransactionCCEDetails(params: GetStudentDetailsParams) {
-  console.log('params', params);
-  const queryParams = new URLSearchParams();
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') {
-      queryParams.append(key, value.toString());
-    }
-  });
-  const url = `/student_transaction/get_student_details${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-  console.log(url);
-  return await api.get<any>('exam', url);
+// Load activities areas when activity is selected
+export async function onchangeActivities(params: any) {
+    return await api.get<any>('exam', `/student_transaction/onchange_activities/30/${params.ASMAY_Id}/${params.ECACT_Id}`);
+}
+
+// Load skill areas when skill is selected
+export async function onchangeSkills(params: any) {
+    return await api.get<any>('exam', `/student_transaction/onchangeskills/30/${params.ASMAY_Id}/${params.ECS_Id}`);
 }

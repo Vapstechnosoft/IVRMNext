@@ -2,126 +2,112 @@
 'use client';
 
 import { Checkbox } from '@/components/ui/checkbox';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { Input } from '@/components/ui/input';
-import type { IStudentTransactionGrid } from '@/types/exam/exam-module/exam-mapping';
-import type { ColumnDef } from '@tanstack/react-table';
-import { useEffect, useState } from 'react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ColumnDef } from '@tanstack/react-table';
+import type { IStudentTransaction } from '@/types/exam/exam-module/exam-mapping';
 
-type ScoreUpdateHandler = (studentId: number, score: number) => void;
+interface StudentTransactionColumnsProps {
+    onScoreChange: (studentId: number, score: string) => void;
+    onCheckboxChange: (studentId: number, isChecked: boolean) => void;
+    onToggleAll: () => void;
+    hideSaveButton: boolean;
+    isSelectAll: boolean;
+    selectedStudentIds: number[];
+}
 
-export const StudentTransactionColumns = (onScoreUpdate: ScoreUpdateHandler): ColumnDef<IStudentTransactionGrid>[] => [
-    // SELECT
-    {
-        id: 'select',
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox
-                checked={row.getIsSelected()}
-                onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label={`Select ${row.original.studentName}`}
-            />
-        ),
-        enableSorting: false,
-        size: 40
-    },
-
-    {
-        accessorKey: 'slno',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='SL No' />,
-        cell: ({ row, table }) => {
-            const pageIndex = table.getState().pagination.pageIndex;
-            const pageSize = table.getState().pagination.pageSize;
-            return <div>{pageIndex * pageSize + row.index + 1}</div>;
-        },
-        enableSorting: false,
-        enableHiding: true
-    },
-
-    // STUDENT NAME
-    {
-        accessorKey: 'studentName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
-        cell: ({ row }) => <div className='font-medium'>{row.original.studentName}</div>,
-        size: 200
-    },
-
-    // REG NO
-    {
-        accessorKey: 'regNumber',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Reg.No' />,
-        cell: ({ row }) => <div>{row.getValue('regNumber')}</div>,
-        size: 120
-    },
-
-    // ROLL NO
-    {
-        accessorKey: 'rollNumber',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Roll No' />,
-        cell: ({ row }) => <div>{row.getValue('rollNumber')}</div>,
-        size: 80
-    },
-
-    // ✅ SCORE — FIXED (NO FOCUS LOSS)
-    {
-        accessorKey: 'score',
-        header: ({ column }) => <DataTableColumnHeader column={column} className='PL-4 text-left' title='Score' />,
-        cell: ({ row }) => {
-            const { amsT_Id: studentId, score } = row.original;
-
-            // ✅ Local state ONLY
-            const [localValue, setLocalValue] = useState<string>(score !== null && score !== undefined ? score.toString() : '');
-
-            // ✅ Sync when data changes (pagination / reload)
-            useEffect(() => {
-                setLocalValue(score !== null && score !== undefined ? score.toString() : '');
-            }, [score]);
-
-            const handleBlur = () => {
-                const num = Number(localValue);
-
-                if (Number.isNaN(num) || localValue === '') {
-                    setLocalValue('0');
-                    onScoreUpdate(studentId, 0);
-                } else if (num < 0) {
-                    setLocalValue('0');
-                    onScoreUpdate(studentId, 0);
-                } else if (num > 100) {
-                    setLocalValue('100');
-                    onScoreUpdate(studentId, 100);
-                } else {
-                    onScoreUpdate(studentId, num);
-                }
-            };
-
-            return (
-                <div className='w-24'>
-                    <Input
-                        type='text'
-                        inputMode='numeric'
-                        value={localValue}
-                        onChange={(e) => {
-                            const value = e.target.value;
-
-                            // ✅ only numbers / empty
-                            if (value === '' || /^\d+$/.test(value)) {
-                                setLocalValue(value);
-                            }
-                        }}
-                        onBlur={handleBlur}
-                        className='text-center'
-                        placeholder='0-100'
+export const StudentTransactionColumns = ({
+    onScoreChange,
+    onCheckboxChange,
+    onToggleAll,
+    hideSaveButton,
+    isSelectAll,
+    selectedStudentIds
+}: StudentTransactionColumnsProps): ColumnDef<IStudentTransaction>[] => [
+        {
+            id: 'select',
+            header: () => (
+                <div className="flex justify-center">
+                    <Checkbox
+                        checked={isSelectAll}
+                        onCheckedChange={onToggleAll}
+                        aria-label='Select all'
+                        disabled={hideSaveButton}
                     />
                 </div>
-            );
+            ),
+            cell: ({ row }) => {
+                const student = row.original;
+                const isChecked = selectedStudentIds.includes(student.amsT_Id);
+
+                return (
+                    <div className="flex justify-center">
+                        <Checkbox
+                            checked={isChecked}
+                            onCheckedChange={(checked) => {
+                                onCheckboxChange(student.amsT_Id, !!checked);
+                            }}
+                            aria-label='Select row'
+                            disabled={hideSaveButton}
+                        />
+                    </div>
+                );
+            },
+            enableSorting: false,
+            enableHiding: false,
+            size: 50,
         },
-        enableSorting: false,
-        size: 100
-    }
-];
+        {
+            accessorKey: 'slNo',
+            header: () => <div className='text-center'>SL.NO.</div>,
+            cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
+            size: 70,
+        },
+        {
+            accessorKey: 'studentName',
+            header: 'Student Name',
+            cell: ({ row }) => <div className='text-left'>{row.original.studentName}</div>,
+            size: 200,
+        },
+        {
+            accessorKey: 'regNumber',
+            header: 'Reg.No.',
+            cell: ({ row }) => <div className='text-left'>{row.original.regNumber}</div>,
+            size: 120,
+        },
+        {
+            accessorKey: 'rollNumber',
+            header: 'Roll No.',
+            cell: ({ row }) => <div className='text-center'>{row.original.rollNumber}</div>,
+            size: 100,
+        },
+        {
+            accessorKey: 'score',
+            header: 'Score',
+            cell: ({ row }) => {
+                const student = row.original;
+                const isChecked = selectedStudentIds.includes(student.amsT_Id);
+
+                return (
+                    <div className="w-32 mx-auto">
+                        <Select
+                            value={student.ecsactT_Score || ''}
+                            onValueChange={(value) => onScoreChange(student.amsT_Id, value)}
+                            disabled={!isChecked || hideSaveButton}>
+                            <SelectTrigger className='w-full'>
+                                <SelectValue placeholder='-- Select --' />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value='A+'>A+</SelectItem>
+                                <SelectItem value='A'>A</SelectItem>
+                                <SelectItem value='B'>B</SelectItem>
+                                <SelectItem value='C'>C</SelectItem>
+                                <SelectItem value='D'>D</SelectItem>
+                                <SelectItem value='AB'>AB</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                );
+            },
+            size: 120,
+        },
+    ];

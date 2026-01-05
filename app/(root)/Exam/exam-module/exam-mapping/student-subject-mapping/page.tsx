@@ -10,7 +10,9 @@ import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { getCategoryDropDowByExamYearCategoryList } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
 import {
     addOrUpdateStudentSubjectMappings,
-    getStudentsForSubjectMapping
+    getSectionListbyClassSectionSubjectGroup,
+    getStudentsForSubjectMapping,
+    getSubjectlistByCatGroupClass
 } from '@/server/exam/exam-module/exam-mapping/student-subject-mapping';
 import {
     getClassDropDownByAcademicYearlist,
@@ -133,32 +135,6 @@ function StudentSubjectMappingContent() {
         }
     }, [academicYear, setValue, getValues]);
 
-    // Load classes
-    useEffect(() => {
-        if (!watchedAcademicYear) {
-            setClasses([]);
-            setValue('asmcL_Id', undefined);
-            return;
-        }
-
-        const fetchClasses = async () => {
-            setLoadingClasses(true);
-            try {
-                const { data } = await getClassDropDownByAcademicYearlist(watchedAcademicYear);
-                setClasses(Array.isArray(data) ? data : []);
-                setValue('asmcL_Id', undefined);
-                setValue('asmS_Id', undefined);
-            } catch (err: any) {
-                console.error(err);
-                toast.error('Failed to load classes');
-            } finally {
-                setLoadingClasses(false);
-            }
-        };
-
-        fetchClasses();
-    }, [watchedAcademicYear, setValue]);
-
     // Load sections
     useEffect(() => {
         if (!watchedAcademicYear || !watchedClass) {
@@ -170,7 +146,7 @@ function StudentSubjectMappingContent() {
         const fetchSections = async () => {
             setLoadingSections(true);
             try {
-                const { data } = await getSectionsDropDownByAcademicYearandClasslist(watchedAcademicYear, watchedClass);
+                const { data } = await getSectionListbyClassSectionSubjectGroup(watchedAcademicYear, watchedCategory as number, watchedClass);
                 setSections(Array.isArray(data) ? data : []);
                 setValue('asmS_Id', undefined);
             } catch (err: any) {
@@ -197,6 +173,7 @@ function StudentSubjectMappingContent() {
             try {
                 const { data: response } = await getCategoryDropDowByExamYearCategoryList(MI_Id, watchedAcademicYear);
                 const cats: any[] = Array.isArray(response) ? response : [];
+                console.log('cats', cats);
                 const normalized = cats.map((c) => ({
                     emcA_Id: c.emcA_Id ?? c.eyC_Id,
                     emcA_CategoryName: c.emcA_CategoryName ?? c.eyC_CategoryName
@@ -226,10 +203,15 @@ function StudentSubjectMappingContent() {
         const fetchSubjectGroups = async () => {
             setLoadingSG(true);
             try {
-                const data = await getSubjectGroupDropDownByYearCategoryList(watchedAcademicYear, watchedCategory);
-                const groups = Array.isArray(data) ? data : (data?.data ?? []);
-                setSubjectGroups(groups);
+                console.log('watchedAcademicYear', watchedAcademicYear);
+                console.log('watchedCategory', watchedCategory);
+                const data = await getSubjectlistByCatGroupClass(watchedAcademicYear, watchedCategory);
+                const safeData = Array.isArray(data) ? data : (data?.data ?? []);
+                console.log('safeData', safeData);
+                setSubjectGroups(safeData.grouplist);
+                setClasses(safeData.classlist);
                 setValue('subject_group_id', undefined);
+                setValue('asmcL_Id', undefined);
             } catch (err: any) {
                 console.error(err);
                 toast.error(err?.message ?? 'Failed to load subject groups');
@@ -260,7 +242,7 @@ function StudentSubjectMappingContent() {
                 ASMCL_Id: form.asmcL_Id,
                 ASMS_Id: form.asmS_Id,
                 EME_Id: form.eme_Id ?? 0,
-                EMCA_Id: form.emcA_Id,
+                //  EMCA_Id: form.emcA_Id,
                 Left_Flag: form.Left_Flag ?? true,
                 Deactive_Flag: form.Deactive_Flag ?? true,
                 EMG_Id: FIXED_EMG_ID

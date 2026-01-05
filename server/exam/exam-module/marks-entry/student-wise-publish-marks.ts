@@ -1,4 +1,4 @@
-// hooks/exam/exammodule/useStudentMarks.ts
+'use server';
 import { api } from '@/lib/apiService';
 import { useQuery } from '@tanstack/react-query';
 
@@ -13,30 +13,29 @@ interface SearchParams {
   feeinstallmentcheckbox?: boolean;
 }
 
-export const useSearchStudentMarks = (params: SearchParams) => {
-  return useQuery({
-    queryKey: ['student-marks', params],
-    queryFn: async () => {
-      const response = await api.post('exam', '/api/exam/search-students', params);
-      return response.data;
-    },
-    enabled: !!params.ASMAY_Id && !!params.ASMCL_Id && !!params.ASMS_Id,
-    refetchOnWindowFocus: false
-  });
-};
+export async function getStudentWisePublishMarksData(data: any) {
+    const url = '/exam_calculation/student_list_for_marks_publish';
+    return await api.post<any>('exam', url,data);
+}
 
-export const useCheckMarksCalculation = (params: {
-  ASMS_Id: number;
-  ASMCL_Id: number;
-  ASMAY_Id: number;
-  radiotype: 'EXAM' | 'PROMOTION';
-}) => {
-  return useQuery({
-    queryKey: ['check-marks-calculation', params],
-    queryFn: async () => {
-      const response = await api.post('exam','/api/exam/check-marks-calculation', params);
-      return response.data;
-    },
-    enabled: !!params.ASMS_Id && !!params.ASMCL_Id && !!params.ASMAY_Id,
-  });
-};
+export async function StudentsMarksPublish(data: any) {
+    const url = '/exam_calculation/students_marks_publish';
+    return await api.post<any>('exam', url,data);
+}
+
+
+// export async function useCheckMarksCalculation = (params: {
+//   ASMS_Id: number;
+//   ASMCL_Id: number;
+//   ASMAY_Id: number;
+//   radiotype: 'EXAM' | 'PROMOTION';
+// }) => {
+//   return useQuery({
+//     queryKey: ['check-marks-calculation', params],
+//     queryFn: async () => {
+//       const response = await api.post('exam','/api/exam/check-marks-calculation', params);
+//       return response.data;
+//     },
+//     enabled: !!params.ASMS_Id && !!params.ASMCL_Id && !!params.ASMAY_Id,
+//   });
+// };

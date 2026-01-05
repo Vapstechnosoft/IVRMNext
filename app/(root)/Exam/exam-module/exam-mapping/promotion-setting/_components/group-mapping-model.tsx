@@ -297,19 +297,19 @@ export function ViewGroupsModal({
             const groupExam = group.exams.find((g) => g.id === exam.id);
             return groupExam
                 ? {
-                      ...exam,
-                      isSelected: true,
-                      convertedMarks: groupExam.marks.toString(),
-                      conversionRequired: groupExam.conversionRequired || false,
-                      error: undefined
-                  }
+                    ...exam,
+                    isSelected: true,
+                    convertedMarks: groupExam.marks.toString(),
+                    conversionRequired: groupExam.conversionRequired || false,
+                    error: undefined
+                }
                 : {
-                      ...exam,
-                      isSelected: false,
-                      convertedMarks: '',
-                      conversionRequired: false,
-                      error: undefined
-                  };
+                    ...exam,
+                    isSelected: false,
+                    convertedMarks: '',
+                    conversionRequired: false,
+                    error: undefined
+                };
         });
 
         setLeftExams(updatedLeftExams);
@@ -364,7 +364,7 @@ export function ViewGroupsModal({
                 <div className='relative z-[9991] w-[95%] max-w-6xl overflow-hidden rounded-xl border bg-white shadow-xl md:w-[90%]'>
                     {/* HEADER */}
                     <div className='flex items-center justify-between bg-gray-100 px-4 py-2 font-semibold text-lg'>
-                        <span>{subject.name.toUpperCase()} - GROUP MAPPING</span>
+                        <span>{subject.ismS_SubjectName.toUpperCase()} - GROUP MAPPING</span>
                         <Button
                             type='button'
                             onClick={onClose}

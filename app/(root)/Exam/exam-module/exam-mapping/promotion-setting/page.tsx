@@ -20,6 +20,7 @@ import type { IPromotionSetting, IPromotionalSubjectDetails } from '@/types/exam
 import AddPromotionalSetting from './_components/add-from';
 import { PromotionSettingColumns } from './_components/columns';
 import PromotionalSettingDetailsPage from './_components/promotional-setting-details-view';
+import TogglePromotionalSettingForm from './_components/toggle-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -59,14 +60,14 @@ function PromotionalSettingPageContent({
         (async () => {
             if (isOrderDetailsOpen && selectedRow?.asmaY_Id) {
                 try {
-                    const response = await getPromotionalSettingDetails(30, selectedRow.asmaY_Id);
+                    const response = await getPromotionalSettingDetails(selectedRow.emP_Id);
 
                     if (response.success && response.data) {
                         const items: IPromotionalSubjectDetails[] = Array.isArray(response.data) ? response.data : [];
 
                         const mapped = items.map((x) => ({
                             ...x,
-                            id: x.slNo // the row id for ordering
+                            id: x.emP_Id // the row id for ordering
                         }));
 
                         setOrderData(mapped);
@@ -238,9 +239,9 @@ function FormSections() {
             )}
 
             {/* Toggle Form */}
-            {/* {isToggleFormOpen && selectedRow && (
+            {isToggleFormOpen && selectedRow && (
                 <TogglePromotionalSettingForm rowData={selectedRow} onClose={closeToggleForm} />
-            )} */}
+            )}
 
             {/* Details View */}
             {isDetailsViewOpen && selectedRow && <PromotionalSettingDetailsPage rowData={selectedRow} onClose={closeDetailsView} />}
