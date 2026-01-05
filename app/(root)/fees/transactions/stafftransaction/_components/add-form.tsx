@@ -18,7 +18,6 @@ import { toast } from 'sonner';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { InputText } from '@/components/ui/extension/input-text';
-import { useStudentClassDropDown, useStudentSectionDropDown } from '@/hooks/fees/useMasters';
 import { useFeeDefaulterReport } from '@/hooks/fees/useReports';
 import { useFeeMasterConfiguration, useFeeTransactionList } from '@/hooks/fees/useTrasactions';
 import { feesStaffOtherTransactionSchema } from '@/schemas/fees/trasactions';
@@ -30,10 +29,8 @@ import {
     searchStudentName
 } from '@/server/fees/trasactions/fee_student_transaction';
 import type {
-    IFeeTDetails,
     IFeeTermDetails,
     IStudentSearchList,
-    IStudentTDetails,
     IStudentTermList,
     MasterModeofPayment,
     MasterNarration,
@@ -65,24 +62,14 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
     });
 
     const [selectedAsmayId, setSelectedAsmayId] = useState<number | null>(null);
-    const [selectedclassId, setSelectedClassId] = useState<number | null>(null);
-    const [selectedSectionId, setSelectedSectionId] = useState<number | null>(null);
-    const [studentSearch, setStudentSearch] = useState('');
     const [students, setStudents] = useState<IStudentSearchList[]>([]);
-    const [loadingStudents, setLoadingStudents] = useState(false);
     const [selectedStudent, setSelectedStudent] = useState<number | null>(null);
-
     const [staffSearch, setStaffSearch] = useState('');
     const [staff, setStaff] = useState<IStudentSearchList[]>([]);
-    const [loadingStaff, setLoadingStaff] = useState(false);
     const [selectedStaff, setSelectedStaff] = useState<IStudentSearchList | null>(null);
     const [selectedTerm, setselectedTerm] = useState<string[]>([]);
     const [terms, setTerms] = useState<IStudentTermList[]>([]);
     const [loadingTerm, setLoadingTerm] = useState(false);
-    const [studentDetails, SetStudentDetails] = useState<IStudentTDetails[]>([]);
-    const [feeDetails, SetFeeDetails] = useState<IFeeTDetails[]>([]);
-    const [studentUserNameDetails, SetStudentUserNameDetails] = useState<IFeeTDetails[]>([]);
-    // const [studentAmountDetails, SetStudentAmountDetails] = useState<IFeeTDetails[]>([]);
     const [feeHeads, setFeeHeads] = useState<IFeeTermDetails[]>([]);
     const [masternarration, setMasternarration] = useState<MasterNarration[]>([]);
     const [masterModeofPaymentList, setMasterModeofPaymentList] = useState<MasterModeofPayment[]>([]);
@@ -144,10 +131,6 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
     const [selectAll, setSelectAll] = useState(false);
     const [sms, setSms] = useState(false);
     const [email, setEmail] = useState(false);
-    const [openFeeDetails, setOpenFeeDetails] = useState(false);
-
-    const [openStudentDetails, setOpenStudentDetails] = useState(false);
-    const [challenSearch, setChallenSearch] = useState('');
     const [todaysDate, setTodaysDate] = useState<Date | undefined>(new Date());
     const [selectedNarration, setSelectedNarration] = useState<number | null>(null);
     const [narrationRemark, setNarrationRemark] = useState('');
@@ -159,6 +142,86 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
         { value: 'Others', label: 'Others' }
     ];
 
+    const staticData: IStudentSearchList[] = [
+        {
+            amsT_StudentName: 'RENA',
+            amst_Id: 1
+        },
+        {
+            amsT_StudentName: 'PRIYA',
+            amst_Id: 2
+        },
+        {
+            amsT_StudentName: 'SUGUNA',
+            amst_Id: 3
+        },
+        {
+            amsT_StudentName: 'ROHINI',
+            amst_Id: 4
+        },
+        {
+            amsT_StudentName: 'RITA',
+            amst_Id: 5
+        }
+    ];
+
+    const staticStudentData: IStudentSearchList[] = [
+        {
+            amsT_StudentName: 'LAKSHYA',
+            amst_Id: 1
+        },
+        {
+            amsT_StudentName: 'LALITH SIDDARTH ',
+            amst_Id: 2
+        },
+        {
+            amsT_StudentName: 'KEERTHI BHUSHAN REDDY GS',
+            amst_Id: 3
+        },
+        {
+            amsT_StudentName: 'KISHAN K S',
+            amst_Id: 4
+        },
+        {
+            amsT_StudentName: 'DIGANTH P',
+            amst_Id: 5
+        },
+        {
+            amsT_StudentName: 'KAVERI S',
+            amst_Id: 6
+        },
+        {
+            amsT_StudentName: 'KUSHAL S',
+            amst_Id: 7
+        },
+        {
+            amsT_StudentName: 'KEERTHI BOMMAJJAL N',
+            amst_Id: 8
+        }
+    ];
+
+    const staticTermData: IStudentTermList[] = [
+        {
+            fmG_GroupName: 'I Term',
+            fmG_Id: 1,
+            checked: false,
+            disablepaisterms: false,
+            fmT_Id: 1
+        }
+    ];
+
+    useEffect(() => {
+        setStaff(staticData);
+    }, []);
+
+    useEffect(() => {
+        setStudents(staticStudentData);
+    }, [selectedAsmayId]);
+
+    useEffect(() => {
+        setTerms(staticTermData);
+    }, [selectedStudent, selectedStaff]);
+
     const selectedLabel = filterOptions.find((opt) => opt.value === filterType)?.label || '';
 
     const { data: academicYearData, isLoading: loadingYears } = useFeeDefaulterReport();
@@ -166,27 +229,11 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
     const { data: masterConfiguration } = useFeeMasterConfiguration();
 
     const config = masterConfiguration?.data?.[0]?.fmC_AutoReceiptFeeGroupFlag ?? 0;
-    // console.log("masterConfiguration", masterConfiguration);
-    // console.log("config", config);
 
     useEffect(() => {
-        setStudentSearch('');
-        setChallenSearch('');
         setTerms([]);
-        SetStudentDetails([]);
-        SetFeeDetails([]);
         setselectedTerm([]);
-    }, [selectedAsmayId, selectedclassId, selectedSectionId, filterType]);
-
-    useEffect(() => {
-        setSelectedClassId(0);
-        setSelectedSectionId(0);
-    }, [classs, section]);
-
-    useEffect(() => {
-        setselectedTerm([]);
-        setTerms([]);
-    }, [studentSearch]);
+    }, [selectedAsmayId, filterType]);
 
     useEffect(() => {
         setFeeHeads([]);
@@ -196,11 +243,6 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
         setPayableAmount({});
         setToatlAdjusted({});
     }, [selectedTerm]);
-
-    useEffect(() => {
-        if (!amountCheck) setselectedTerm([]);
-        if (!amountCheck) setAmountforTerm('');
-    }, [amountCheck]);
 
     useEffect(() => {
         setchequeDates({});
@@ -217,25 +259,15 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
         }
     }, [payType, TotalPaying, modeType]);
 
-    const { data: feeclassData, isLoading: feeclassDataLoading } = useStudentClassDropDown(classs);
-
-    const { data: feeSectionData, isLoading: feeSectionDataLoading } = useStudentSectionDropDown(section);
-
     useEffect(() => {
-        if (!studentSearch.trim()) {
-            setStudents([]);
-            return;
-        }
-
         const fetchStudents = async () => {
-            setLoadingStudents(true);
             try {
                 const payload = {
                     asmaY_Id: selectedAsmayId,
                     filterinitialdata: filterType,
-                    searchfilter: studentSearch,
-                    asmcL_ID: selectedclassId ?? 0,
-                    asmS_Id: selectedSectionId ?? 0,
+                    searchfilter: '',
+                    asmcL_ID: 0,
+                    asmS_Id: 0,
                     amsT_SOL: 'string'
                 };
                 const studentsArray = await searchStudentName(payload);
@@ -244,21 +276,13 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
             } catch (error) {
                 console.error('Failed to fetch students:', error);
                 setStudents([]);
-            } finally {
-                setLoadingStudents(false);
             }
         };
 
         fetchStudents();
-    }, [studentSearch]);
+    }, []);
 
     useEffect(() => {
-        if (!selectedStudent) {
-            setTerms([]);
-            SetStudentDetails([]);
-            SetFeeDetails([]);
-            return;
-        }
         const fetchStudentsDetails = async () => {
             setLoadingTerm(true);
             try {
@@ -271,14 +295,9 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
                 };
                 const termArray = await getStudentDetails(payload);
                 const termList = JSON.parse(JSON.stringify(termArray.masterGroupDetails || []));
-                const studentDetails = JSON.parse(JSON.stringify(termArray.fillstudents || []));
-                const feeDetails = JSON.parse(JSON.stringify(termArray.showstaticticsdetails || []));
-                const studentUserNameArray = JSON.parse(JSON.stringify(termArray.filusernames || []));
                 // const studentAmountDetails = JSON.parse(JSON.stringify(termArray.fillstudentviewdetails || []));
                 setTerms(termList || []);
-                SetStudentDetails(studentDetails || []);
-                SetFeeDetails(feeDetails || []);
-                SetStudentUserNameDetails(studentUserNameArray || []);
+
                 // SetStudentAmountDetails(studentAmountDetails || []);
             } catch (error) {
                 console.error('Failed to fetch students:', error);
@@ -288,7 +307,7 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
             }
         };
         fetchStudentsDetails();
-    }, [selectedStudent]);
+    }, []);
 
     useEffect(() => {
         if (!selectedTerm || selectedTerm.length === 0) {
@@ -327,7 +346,7 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
         };
 
         fetchFeeHeadDetails();
-    }, [selectedTerm, filterType, selectedStudent, selectedAsmayId]);
+    }, [filterType, selectedAsmayId]);
 
     useEffect(() => {
         setIsLoadingMasterBanks(true);
@@ -349,26 +368,6 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
             const amount = Number.parseFloat(f.fsS_ConcessionAmount.toString()) || 0;
             return sum + amount;
         }, 0);
-        const totalconcession = feeDetails.reduce((sum, f) => {
-            const amount = Number.parseFloat(f.fsS_ConcessionAmount.toString()) || 0;
-            return sum + amount;
-        }, 0);
-        const totalWaivedOff = feeDetails.reduce((sum, f) => {
-            const amount = Number.parseFloat(f.fsS_WaivedAmount.toString()) || 0;
-            return sum + amount;
-        }, 0);
-        const totalPayable = feeDetails.reduce((sum, f) => {
-            const amount = Number.parseFloat(f.fsS_TotalToBePaid.toString()) || 0;
-            return sum + amount;
-        }, 0);
-        const overAllOutStanding = feeDetails.reduce((sum, f) => {
-            const amount = Number.parseFloat(f.fsS_ToBePaid.toString()) || 0;
-            return sum + amount;
-        }, 0);
-        const totalfine = feeDetails.reduce((sum, f) => {
-            const amount = Number.parseFloat(f.fsS_FineAmount.toString()) || 0;
-            return sum + amount;
-        }, 0);
         const fine = feeHeads.reduce((sum, f) => {
             const amount = Number.parseFloat(f.fsS_FineAmount.toString()) || 0;
             return sum + amount;
@@ -382,11 +381,8 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
             return sum + amount;
         }, 0);
         setConcessionAmount(concession);
-        setTotalConcession(totalconcession);
         settotalPayable(totalPayable);
-        setTotalFine(totalfine);
         setoverAllOutStanding(overAllOutStanding);
-        setTotalWaivedOff(totalWaivedOff);
         setFineAmount(fine);
         setTotalCurrentFee(totalCurrentFee);
         setTotalOutStanding(totalpaying);
@@ -697,14 +693,12 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
             console.error('API Error:', err);
             toast.error(err?.message || 'Something went wrong');
         }
-        // toast.success("Fee Transaction Saved Successfully!");
         onSuccess?.();
     };
 
     const handleReset = () => {
         reset();
         setSelectedAsmayId(0);
-        setStudentSearch('');
         setStudents([]);
         setTerms([]);
         setselectedTerm([]);
@@ -714,8 +708,6 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
         setDeative(false);
         setFilterType('regular');
         setTodaysDate(new Date());
-        setSelectedClassId(null);
-        setSelectedSectionId(null);
         setSms(false);
         setEmail(false);
         setAmountCheck(false);
@@ -838,9 +830,7 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
 
                                         {staffSearch.trim() !== '' && !selectedStaff && (
                                             <ul className='absolute top-full left-0 z-10 mt-1 max-h-40 w-full overflow-y-auto rounded border bg-white shadow-md'>
-                                                {loadingStaff ? (
-                                                    <li className='px-3 py-2 text-gray-500'>Loading...</li>
-                                                ) : staff.length === 0 ? (
+                                                {staff.length === 0 ? (
                                                     <li className='px-3 py-2 text-gray-500'>No Staff found</li>
                                                 ) : (
                                                     staff.map((staff) => (
@@ -879,17 +869,11 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
                                                     <SelectValue placeholder='--Select Student Name--' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {loadingYears ? (
-                                                        <SelectItem value='loading' disabled>
-                                                            Loading...
+                                                    {students?.map((item: IStudentSearchList) => (
+                                                        <SelectItem key={item.amst_Id} value={item.amst_Id.toString()}>
+                                                            {item.amsT_StudentName}
                                                         </SelectItem>
-                                                    ) : (
-                                                        academicYearData?.data?.map((item: any) => (
-                                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                                {item.asmaY_Year}
-                                                            </SelectItem>
-                                                        ))
-                                                    )}
+                                                    ))}
                                                 </SelectContent>
                                             </Select>
                                         )}
@@ -921,7 +905,7 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
                             </div>
                         </div>
                     </div>
-                    {filterType === 'Staff' ? (
+                    {filterType === 'Staff' && selectedStaff != null ? (
                         <div className='max-h-[250px] overflow-auto rounded border bg-gray-50 p-4 shadow-inner' style={{ width: '30%' }}>
                             <h3 className='mb-2 font-bold text-lg'>Staff Information</h3>
                             <div className='flex min-w-[220px] max-w-[300px] flex-[1] flex-col items-center'>
@@ -929,51 +913,48 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
                                     <div className='mt-1 px-4 pb-5 font-semibold text-xs'>
                                         <div className='grid grid-cols-2 gap-x-5 gap-y-3 border-gray-300 border-t pt-3 '>
                                             <div>Name</div>
-                                            <div className='text-gray-700'>
-                                                : {studentDetails?.[0]?.amsT_FirstName || 'RITA'}
-                                                {studentDetails?.[0]?.amsT_MiddleName}
-                                                {studentDetails?.[0]?.amsT_LastName}
-                                            </div>
+                                            <div className='text-gray-700'>: {'RITA'}</div>
 
                                             <div>Code</div>
-                                            <div className='text-gray-700'>: {studentDetails?.[0]?.classname ?? 'VSS123'}</div>
+                                            <div className='text-gray-700'>: {'VSS123'}</div>
 
                                             <div>Department</div>
-                                            <div className='text-gray-700'>: {studentDetails?.[0]?.amsT_AdmNo ?? 'General'}</div>
+                                            <div className='text-gray-700'>: {'General'}</div>
 
                                             <div>Designation</div>
-                                            <div className='text-gray-700'>: {studentDetails?.[0]?.amst_mobile ?? 'Teacher'}</div>
+                                            <div className='text-gray-700'>: {'Teacher'}</div>
                                         </div>
                                     </div>
                                 </Card>
                             </div>
                         </div>
                     ) : (
-                        <div className='max-h-[250px] overflow-auto rounded border bg-gray-50 p-4 shadow-inner' style={{ width: '30%' }}>
-                            <h3 className='mb-2 font-bold text-lg'>Student Information</h3>
-                            <div className='flex min-w-[220px] max-w-[300px] flex-[1] flex-col items-center'>
-                                <Card className='w-full p-0 shadow'>
-                                    <div className='mt-1 px-4 pb-5 font-semibold text-xs'>
-                                        <div className='grid grid-cols-2 gap-x-5 gap-y-3 border-gray-300 border-t pt-3 '>
-                                            <div>Name</div>
-                                            <div className='text-gray-700'>
-                                                : {studentDetails?.[0]?.amsT_FirstName || 'KEERTHI BHUSHAN REDDY GS'}
-                                                {studentDetails?.[0]?.amsT_MiddleName}
-                                                {studentDetails?.[0]?.amsT_LastName}
-                                            </div>
+                        filterType === 'Others' &&
+                        selectedStudent != null && (
+                            <div
+                                className='max-h-[250px] overflow-auto rounded border bg-gray-50 p-4 shadow-inner'
+                                style={{ width: '30%' }}>
+                                <h3 className='mb-2 font-bold text-lg'>Student Information</h3>
+                                <div className='flex min-w-[220px] max-w-[300px] flex-[1] flex-col items-center'>
+                                    <Card className='w-full p-0 shadow'>
+                                        <div className='mt-1 px-4 pb-5 font-semibold text-xs'>
+                                            <div className='grid grid-cols-2 gap-x-5 gap-y-3 border-gray-300 border-t pt-3 '>
+                                                <div>Name</div>
+                                                <div className='text-gray-700'>: {'KEERTHI BHUSHAN REDDY GS'}</div>
 
-                                            <div>MobileNo</div>
-                                            <div className='text-gray-700'>
-                                                : {studentDetails?.[0]?.classname ?? 'VII'} / {studentDetails?.[0]?.sectionname ?? 'A'}
-                                            </div>
+                                                <div>MobileNo</div>
+                                                <div className='text-gray-700'>
+                                                    : {'VII'} / {'A'}
+                                                </div>
 
-                                            <div>Email-Id</div>
-                                            <div className='text-gray-700'>: {studentDetails?.[0]?.amsT_AdmNo ?? 'test@gmail.com'}</div>
+                                                <div>Email-Id</div>
+                                                <div className='text-gray-700'>: {'test@gmail.com'}</div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </Card>
+                                    </Card>
+                                </div>
                             </div>
-                        </div>
+                        )
                     )}
                 </div>
                 {loadingFeeHead ? (
