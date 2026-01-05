@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ReportForm } from './_components/report-form';
 import { ReportList } from './_components/report-list';
 
@@ -28,12 +28,12 @@ export default function MarksEntryReportPage() {
     }, [reportData]);
 
     return (
-        <div className="container mx-auto space-y-6 py-6 transition-all duration-500 ease-in-out">
+        <div className='container mx-auto space-y-6 py-6 transition-all duration-500 ease-in-out'>
             <ReportForm onReportGenerated={handleReportGenerated} onReset={handleReset} />
 
-            <div ref={listRef} className="mt-6 ease-in-out duration-300">
+            <div ref={listRef} className='mt-6 duration-300 ease-in-out'>
                 {reportData && (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className='fade-in slide-in-from-bottom-4 animate-in duration-500'>
                         <ReportList data={reportData} />
                     </div>
                 )}

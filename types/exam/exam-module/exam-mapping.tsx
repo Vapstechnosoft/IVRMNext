@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import type { ReactNode } from 'react';
 
 // EXAM MAPPING
 export interface IYearlyCategorySubjectMapping {
@@ -82,7 +82,6 @@ export interface IExamLoginPrivilegesEditDetails {
     hrmE_Id: number;
     emsS_Id: number;
 }
-
 
 export interface IYearlyCategorySubjectMappingView {
     slno?: number;
@@ -367,7 +366,6 @@ export interface IExamMarksProcessCondition {
     eycE_MarksPublishDate?: string | null;
 }
 
-
 export interface IExamWiseRemarksGrid {
     asmS_Id: number;
     asmC_SectionName: string;
@@ -552,7 +550,6 @@ export interface IPromotionalSubjectDetails {
 
     empS_SubjOrder: number;
 }
-
 
 export interface IPromotionalGroupDetails {
     emP_Id: number;
@@ -783,7 +780,6 @@ export type IStudentMarksRow = {
     // selection
     selected?: boolean;
 };
-
 
 // types/exam/exam-module/exam-mapping.ts
 export interface IStudentTransaction {

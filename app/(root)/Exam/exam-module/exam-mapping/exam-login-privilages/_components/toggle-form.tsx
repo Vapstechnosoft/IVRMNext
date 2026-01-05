@@ -21,13 +21,7 @@ interface ToggleLoginPrivilegeFormProps {
     onClose: () => void;
 }
 
-export default function ToggleLoginPrivilegeForm({
-    rowData,
-    elpId,
-    asmclId,
-    asmsId,
-    onClose
-}: ToggleLoginPrivilegeFormProps) {
+export default function ToggleLoginPrivilegeForm({ rowData, elpId, asmclId, asmsId, onClose }: ToggleLoginPrivilegeFormProps) {
     const { refetchAll } = useExamLoginPrivilegesDetails(elpId, asmclId, asmsId);
     const isActive = rowData.activeFlg;
 
@@ -61,26 +55,20 @@ export default function ToggleLoginPrivilegeForm({
     };
 
     return (
-        <AdaptiveDialog
-            title='Toggle Login Privilege Status'
-            isOpen={true}
-            onClose={closeDialog}
-        >
+        <AdaptiveDialog title='Toggle Login Privilege Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <input type='hidden' {...register('lpD_Id')} defaultValue={rowData.asmS_Id} />
                     <p>
-                        Are you sure you want to{' '}
-                        <strong>{isActive ? 'deactivate' : 'activate'}</strong> the login privilege for{' '}
+                        Are you sure you want to <strong>{isActive ? 'deactivate' : 'activate'}</strong> the login privilege for{' '}
                         <strong>
                             {rowData.ismS_SubjectName} - {rowData.emsS_SubSubjectName}
                         </strong>
                         ?
                     </p>
-                    <p className='text-sm text-muted-foreground'>
-                        Category: <strong>{rowData.asmcL_ClassName}</strong> |
-                        Class: <strong>{rowData.asmcL_ClassName}</strong> |
-                        Subject: <strong>{rowData.ismS_SubjectName}</strong>
+                    <p className='text-muted-foreground text-sm'>
+                        Category: <strong>{rowData.asmcL_ClassName}</strong> | Class: <strong>{rowData.asmcL_ClassName}</strong> | Subject:{' '}
+                        <strong>{rowData.ismS_SubjectName}</strong>
                     </p>
                     <FormError>{errors.lpD_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>
@@ -89,11 +77,7 @@ export default function ToggleLoginPrivilegeForm({
                     <Button variant='secondary' onClick={closeDialog} type='button'>
                         Cancel
                     </Button>
-                    <Button
-                        type='submit'
-                        isLoading={isSubmitting}
-                        variant={isActive ? 'destructive' : 'default'}
-                    >
+                    <Button type='submit' isLoading={isSubmitting} variant={isActive ? 'destructive' : 'default'}>
                         {isActive ? 'Deactivate' : 'Activate'}
                     </Button>
                 </AdaptiveFooter>

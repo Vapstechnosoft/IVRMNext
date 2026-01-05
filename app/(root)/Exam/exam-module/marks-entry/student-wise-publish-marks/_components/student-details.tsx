@@ -1,18 +1,16 @@
 // app/exam/exam-module/student-marks-publish/_components/student-details.tsx
 'use client';
-
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/extension/field';
 import { FormProvider } from '@/components/ui/form/form-provider';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
-import { useState, useEffect } from 'react';
+import { StudentsMarksPublish, getStudentWisePublishMarksData } from '@/server/exam/exam-module/marks-entry/student-wise-publish-marks';
+import type { IStudentDetails } from '@/types/exam/exam-module/marks-entry';
+import { Bell, Mail, Send, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Send, Mail, Bell, X } from 'lucide-react';
-import { Label } from '@/components/ui/extension/field';
 import { StudentMarksPublishColumns } from './student-details-columns';
-import { IStudentDetails } from '@/types/exam/exam-module/marks-entry';
-import { getStudentWisePublishMarksData, StudentsMarksPublish } from '@/server/exam/exam-module/marks-entry/student-wise-publish-marks';
 
 interface Props {
     searchParams: any;
@@ -20,17 +18,10 @@ interface Props {
     isLoading: boolean;
     onClose: () => void;
     onRefresh: (params: any, data: any[]) => void;
-    searchPayload: any
+    searchPayload: any;
 }
 
-export default function StudentMarksPublishDetails({
-    searchParams,
-    studentData,
-    isLoading,
-    onClose,
-    onRefresh,
-    searchPayload
-}: Props) {
+export default function StudentMarksPublishDetails({ searchParams, studentData, isLoading, onClose, onRefresh, searchPayload }: Props) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [selectedRows, setSelectedRows] = useState<IStudentDetails[]>([]);
     const [smsFlag, setSmsFlag] = useState(false);
@@ -58,9 +49,7 @@ export default function StudentMarksPublishDetails({
         try {
             // Simulate API call to refresh data
             const { data: response } = await getStudentWisePublishMarksData(searchPayload);
-            const apiStudents = Array.isArray(response)
-                ? response
-                : [];
+            const apiStudents = Array.isArray(response) ? response : [];
             onRefresh(searchParams, apiStudents);
         } catch (error: any) {
             toast.error('Failed to refresh data');
@@ -118,7 +107,6 @@ export default function StudentMarksPublishDetails({
             setSmsFlag(false);
             setEmailFlag(false);
             setNotificationFlag(false);
-
         } catch (error: any) {
             toast.error(error.message || 'Failed to update records');
         } finally {
@@ -126,22 +114,15 @@ export default function StudentMarksPublishDetails({
         }
     }
 
-
     return (
         <FormProvider>
-            <div className="relative w-fit">
+            <div className='relative w-fit'>
                 {/* Close Button - Top Right */}
-                <Button
-                    type="button"
-                    onClick={onClose}
-                    variant="ghost"
-                    size="sm"
-                    className="flex w-fit z-10"
-                >
-                    <X className="h-4 w-4 mr-2" />
+                <Button type='button' onClick={onClose} variant='ghost' size='sm' className='z-10 flex w-fit'>
+                    <X className='mr-2 h-4 w-4' />
                     Close
                 </Button>
-                <div className="mt-4">
+                <div className='mt-4'>
                     <GenericDataTable
                         {...tableProps}
                         columns={StudentMarksPublishColumns}
@@ -150,44 +131,36 @@ export default function StudentMarksPublishDetails({
                         onRowSelectionChange={(rows) => {
                             setSelectedRows(rows);
                         }}
-                        noDataTitle="No Students Found"
-                        noDataDescription="No student marks data available for the selected criteria."
+                        noDataTitle='No Students Found'
+                        noDataDescription='No student marks data available for the selected criteria.'
                     />
                 </div>
 
                 {/* Communication Options */}
                 {selectedRows.length > 0 && (
-                    <div className="mt-6 flex justify-center gap-6 border-t pt-6">
-                        <div className="flex items-center space-x-2">
-                            <Checkbox
-                                id="sms"
-                                checked={smsFlag}
-                                onCheckedChange={(checked) => setSmsFlag(checked as boolean)}
-                            />
-                            <Label htmlFor="sms" className="flex items-center gap-2">
-                                <Send className="h-4 w-4" />
+                    <div className='mt-6 flex justify-center gap-6 border-t pt-6'>
+                        <div className='flex items-center space-x-2'>
+                            <Checkbox id='sms' checked={smsFlag} onCheckedChange={(checked) => setSmsFlag(checked as boolean)} />
+                            <Label htmlFor='sms' className='flex items-center gap-2'>
+                                <Send className='h-4 w-4' />
                                 SMS
                             </Label>
                         </div>
-                        <div className="flex items-center space-x-2">
-                            <Checkbox
-                                id="email"
-                                checked={emailFlag}
-                                onCheckedChange={(checked) => setEmailFlag(checked as boolean)}
-                            />
-                            <Label htmlFor="email" className="flex items-center gap-2">
-                                <Mail className="h-4 w-4" />
+                        <div className='flex items-center space-x-2'>
+                            <Checkbox id='email' checked={emailFlag} onCheckedChange={(checked) => setEmailFlag(checked as boolean)} />
+                            <Label htmlFor='email' className='flex items-center gap-2'>
+                                <Mail className='h-4 w-4' />
                                 EMAIL
                             </Label>
                         </div>
-                        <div className="flex items-center space-x-2">
+                        <div className='flex items-center space-x-2'>
                             <Checkbox
-                                id="notification"
+                                id='notification'
                                 checked={notificationFlag}
                                 onCheckedChange={(checked) => setNotificationFlag(checked as boolean)}
                             />
-                            <Label htmlFor="notification" className="flex items-center gap-2">
-                                <Bell className="h-4 w-4" />
+                            <Label htmlFor='notification' className='flex items-center gap-2'>
+                                <Bell className='h-4 w-4' />
                                 NOTIFICATION
                             </Label>
                         </div>
@@ -195,23 +168,12 @@ export default function StudentMarksPublishDetails({
                 )}
 
                 {/* BOTTOM BUTTONS */}
-                <div className="mt-6 flex w-fit justify-center gap-4 pt-4">
-
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleRefresh}
-                        disabled={localLoading}
-                    >
+                <div className='mt-6 flex w-fit justify-center gap-4 pt-4'>
+                    <Button type='button' variant='outline' size='sm' onClick={handleRefresh} disabled={localLoading}>
                         {localLoading ? 'Refreshing...' : 'Refresh Data'}
                     </Button>
 
-                    <Button
-                        onClick={handleUpdate}
-                        disabled={isSubmitting || selectedRows.length === 0}
-                        className="px-8 py-2"
-                    >
+                    <Button onClick={handleUpdate} disabled={isSubmitting || selectedRows.length === 0} className='px-8 py-2'>
                         {isSubmitting ? 'Updating...' : 'UPDATE'}
                     </Button>
                 </div>

@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useMasterGrade } from '@/hooks/exam/exammodule/usemasters';
 import { gradeSlabReportSchema } from '@/schemas/exam/exam-module/reports';
 import { getReportDetails } from '@/server/exam/exam-module/reports/grade-slab-report';
-import { IMasterGrade } from '@/types/exam/exam-module/masters';
+import type { IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
@@ -27,7 +27,6 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
     const [grades, setGrades] = useState<any[]>([]);
     const [initialLoading, setInitialLoading] = useState(true);
     const { data: gradeData, error: gradeError } = useMasterGrade();
-
 
     const methods = useForm<FormFields>({
         resolver: zodResolver(gradeSlabReportSchema.addOrUpdate),
@@ -99,7 +98,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
             console.log(safeData);
             onReportGenerated(safeData, {});
         } catch (error) {
-            console.error("Error generating report:", error);
+            console.error('Error generating report:', error);
         }
     };
 
@@ -112,37 +111,41 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
     };
 
     if (initialLoading) {
-        return <div className="flex justify-center p-4"><Loader2 className="animate-spin" /></div>;
+        return (
+            <div className='flex justify-center p-4'>
+                <Loader2 className='animate-spin' />
+            </div>
+        );
     }
 
     return (
-        <div className="w-full mx-auto p-4 bg-white rounded-lg shadow-md border border-gray-200">
-            <div className="flex justify-between items-center mb-4 border-b pb-2">
-                <h3 className="text-lg font-semibold text-gray-800">Grade Slab Report</h3>
+        <div className='mx-auto w-full rounded-lg border border-gray-200 bg-white p-4 shadow-md'>
+            <div className='mb-4 flex items-center justify-between border-b pb-2'>
+                <h3 className='font-semibold text-gray-800 text-lg'>Grade Slab Report</h3>
             </div>
 
             <FormProvider {...methods}>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <form onSubmit={handleSubmit(onSubmit)} className='space-y-6' noValidate>
+                    <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                         {/* Radio Buttons for Type */}
-                        <div className="flex justify-center items-center p-4 bg-gray-50 rounded-md">
+                        <div className='flex items-center justify-center rounded-md bg-gray-50 p-4'>
                             <Controller
                                 control={control}
-                                name="type"
+                                name='type'
                                 render={({ field }) => (
-                                    <div className="flex flex-col space-y-3">
-                                        <RadioGroup
-                                            onValueChange={field.onChange}
-                                            value={field.value}
-                                            className="flex flex-row space-x-6"
-                                        >
-                                            <div className="flex items-center space-x-2">
-                                                <RadioGroupItem value="1" id="r1" />
-                                                <Label htmlFor="r1" className="cursor-pointer font-medium">All</Label>
+                                    <div className='flex flex-col space-y-3'>
+                                        <RadioGroup onValueChange={field.onChange} value={field.value} className='flex flex-row space-x-6'>
+                                            <div className='flex items-center space-x-2'>
+                                                <RadioGroupItem value='1' id='r1' />
+                                                <Label htmlFor='r1' className='cursor-pointer font-medium'>
+                                                    All
+                                                </Label>
                                             </div>
-                                            <div className="flex items-center space-x-2">
-                                                <RadioGroupItem value="2" id="r2" />
-                                                <Label htmlFor="r2" className="cursor-pointer font-medium">Individual</Label>
+                                            <div className='flex items-center space-x-2'>
+                                                <RadioGroupItem value='2' id='r2' />
+                                                <Label htmlFor='r2' className='cursor-pointer font-medium'>
+                                                    Individual
+                                                </Label>
                                             </div>
                                         </RadioGroup>
                                     </div>
@@ -151,24 +154,20 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                         </div>
 
                         {/* Grade Selection */}
-                        <div className="flex items-center">
+                        <div className='flex items-center'>
                             <Controller
                                 control={control}
-                                name="emgR_Id"
+                                name='emgR_Id'
                                 render={({ field, fieldState }) => (
-                                    <div className="w-full flex flex-col gap-2">
-                                        <div className="flex items-center gap-2">
-                                            <Label className="w-1/4 text-right font-medium text-sm">
-                                                Grade <span className="text-red-500">*</span>
+                                    <div className='flex w-full flex-col gap-2'>
+                                        <div className='flex items-center gap-2'>
+                                            <Label className='w-1/4 text-right font-medium text-sm'>
+                                                Grade <span className='text-red-500'>*</span>
                                             </Label>
-                                            <div className="w-3/4">
-                                                <Select
-                                                    onValueChange={field.onChange}
-                                                    value={field.value}
-                                                    disabled={watchType === '1'}
-                                                >
+                                            <div className='w-3/4'>
+                                                <Select onValueChange={field.onChange} value={field.value} disabled={watchType === '1'}>
                                                     <SelectTrigger className={watchType === '1' ? 'bg-gray-100' : ''}>
-                                                        <SelectValue placeholder="Select Grade" />
+                                                        <SelectValue placeholder='Select Grade' />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {grades.map((grade: any) => (
@@ -181,7 +180,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                             </div>
                                         </div>
                                         {/* Error Message with margin to align with input */}
-                                        <div className="pl-[25%]">
+                                        <div className='pl-[25%]'>
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </div>
                                     </div>
@@ -190,13 +189,13 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                         </div>
                     </div>
 
-                    <div className="flex justify-center gap-4 pt-4 border-t">
-                        <Button type="submit" disabled={isSubmitting} className="flex w-fit">
-                            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    <div className='flex justify-center gap-4 border-t pt-4'>
+                        <Button type='submit' disabled={isSubmitting} className='flex w-fit'>
+                            {isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
                             Report
                         </Button>
-                        <Button type="button" variant="outline" onClick={handleCancel} className="flex w-fit">
-                            <X className="mr-2 h-4 w-4" />
+                        <Button type='button' variant='outline' onClick={handleCancel} className='flex w-fit'>
+                            <X className='mr-2 h-4 w-4' />
                             Cancel
                         </Button>
                     </div>

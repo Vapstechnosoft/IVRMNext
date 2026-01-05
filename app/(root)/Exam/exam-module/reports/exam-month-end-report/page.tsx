@@ -9,11 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useMasterOrderedExamDropdownList } from '@/hooks/exam/exammodule/usemasters';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import { ExamMonthEndReportFormValues, examMonthEndReportSchema } from '@/schemas/exam/exam-module/reports';
+import { type ExamMonthEndReportFormValues, examMonthEndReportSchema } from '@/schemas/exam/exam-module/reports';
 import { getInitialData, getReportData } from '@/server/exam/exam-module/reports/exam-month-end-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Check, Loader2, Printer, X } from 'lucide-react';
-import { AwaitedReactNode, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { toast } from 'sonner';
@@ -76,19 +76,13 @@ export default function ExamMonthEndReportPage() {
             }
 
             // Resolve Academic Year name
-            const year = academicYear?.data?.find(
-                (i: any) => String(i.asmaY_Id) === String(data.ASMAY_Id)
-            )?.asmaY_Year ?? '';
+            const year = academicYear?.data?.find((i: any) => String(i.asmaY_Id) === String(data.ASMAY_Id))?.asmaY_Year ?? '';
 
             // Resolve Month name
-            const month = monthList?.find(
-                (i: any) => String(i.ivrM_Month_Id) === String(data.IVRM_Month_Id)
-            )?.ivrM_Month_Name ?? '';
+            const month = monthList?.find((i: any) => String(i.ivrM_Month_Id) === String(data.IVRM_Month_Id))?.ivrM_Month_Name ?? '';
 
             // Resolve Exam name
-            const exam = examData?.data?.find(
-                (i: any) => String(i.emE_Id) === String(data.EME_Id)
-            )?.emE_ExamName ?? '';
+            const exam = examData?.data?.find((i: any) => String(i.emE_Id) === String(data.EME_Id))?.emE_ExamName ?? '';
 
             // Set display values
             setSelectedYear(year);
@@ -101,11 +95,10 @@ export default function ExamMonthEndReportPage() {
         }
     };
 
-
     const handlePrint = () => {
-        const tableContent = document.getElementById("reportTable");
-        const chartContent = document.getElementById("reportChart");
-        const footerContent = document.getElementById("reportFooter");
+        const tableContent = document.getElementById('reportTable');
+        const chartContent = document.getElementById('reportChart');
+        const footerContent = document.getElementById('reportFooter');
 
         // Construct Header
         const printHeader = `
@@ -212,7 +205,6 @@ export default function ExamMonthEndReportPage() {
         }
     };
 
-
     const handleCancel = () => {
         reset({
             radiodata: 'All',
@@ -288,10 +280,7 @@ export default function ExamMonthEndReportPage() {
                                     name='ASMAY_Id'
                                     control={control}
                                     render={({ field }) => (
-                                        <Select
-                                            onValueChange={field.onChange}
-                                            value={field.value ?? undefined}
-                                        >
+                                        <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                                             <SelectTrigger>
                                                 <SelectValue
                                                     placeholder={academicYearLoading ? 'Loading Academic Year...' : 'Select Academic Year'}
@@ -425,11 +414,11 @@ export default function ExamMonthEndReportPage() {
             </Card>
 
             {reportData && reportData.length > 0 && (
-                <div id="printSectionId">
+                <div id='printSectionId'>
                     <Card className='fade-in-50 slide-in-from-bottom-5 w-full animate-in shadow-lg'>
                         <CardHeader className='pb-2 text-center'>
-                            <div className='mb-2 flex w-full items-center justify-center hidden print:flex'>
-                                <img src="/assets/tunbridge_logo.png" alt="Institution Logo" className="h-24 w-auto object-contain" />
+                            <div className='mb-2 flex hidden w-full items-center justify-center print:flex'>
+                                <img src='/assets/tunbridge_logo.png' alt='Institution Logo' className='h-24 w-auto object-contain' />
                             </div>
                             <h3 className='font-bold text-xl uppercase tracking-wide'>Exam Module</h3>
                             <h4 className='font-semibold text-lg text-primary'>
@@ -454,7 +443,11 @@ export default function ExamMonthEndReportPage() {
                                         <div className='flex'>
                                             <span className='w-32 font-semibold'>Date:</span>
                                             <span>
-                                                {currentDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                {currentDate.toLocaleDateString('en-GB', {
+                                                    day: '2-digit',
+                                                    month: 'short',
+                                                    year: 'numeric'
+                                                })}
                                             </span>
                                         </div>
                                         <div className='flex'>
@@ -467,7 +460,7 @@ export default function ExamMonthEndReportPage() {
 
                             {/* Table */}
                             <div className='overflow-hidden rounded-md border'>
-                                <Table id="reportTable">
+                                <Table id='reportTable'>
                                     <TableHeader className='bg-primary/10'>
                                         <TableRow>
                                             <TableHead className='w-[80px] text-center font-bold'>Sl No.</TableHead>
@@ -490,7 +483,7 @@ export default function ExamMonthEndReportPage() {
                             </div>
 
                             {/* Chart */}
-                            <div className='border-t pt-6' id="reportChart">
+                            <div className='border-t pt-6' id='reportChart'>
                                 <h3 className='mb-6 text-center font-semibold text-lg uppercase'>Graphical Analysis</h3>
                                 <div className='h-[350px] w-full'>
                                     <ResponsiveContainer width='100%' height='100%'>
@@ -515,7 +508,7 @@ export default function ExamMonthEndReportPage() {
                             </div>
 
                             {/* Footer Signatures */}
-                            <div className='mt-8 grid grid-cols-2 gap-8 pt-12' id="reportFooter">
+                            <div className='mt-8 grid grid-cols-2 gap-8 pt-12' id='reportFooter'>
                                 <div className='space-y-8'>
                                     <div className='w-2/3 border-black/50 border-b' />
                                     <div className='font-medium text-sm'>Implementation Engineer</div>

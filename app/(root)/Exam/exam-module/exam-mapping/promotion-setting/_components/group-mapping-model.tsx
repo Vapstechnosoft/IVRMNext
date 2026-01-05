@@ -297,19 +297,19 @@ export function ViewGroupsModal({
             const groupExam = group.exams.find((g) => g.id === exam.id);
             return groupExam
                 ? {
-                    ...exam,
-                    isSelected: true,
-                    convertedMarks: groupExam.marks.toString(),
-                    conversionRequired: groupExam.conversionRequired || false,
-                    error: undefined
-                }
+                      ...exam,
+                      isSelected: true,
+                      convertedMarks: groupExam.marks.toString(),
+                      conversionRequired: groupExam.conversionRequired || false,
+                      error: undefined
+                  }
                 : {
-                    ...exam,
-                    isSelected: false,
-                    convertedMarks: '',
-                    conversionRequired: false,
-                    error: undefined
-                };
+                      ...exam,
+                      isSelected: false,
+                      convertedMarks: '',
+                      conversionRequired: false,
+                      error: undefined
+                  };
         });
 
         setLeftExams(updatedLeftExams);

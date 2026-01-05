@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { togglePromotionDetails, togglePromotionSubjects } from '@/server/exam/exam-module/exam-mapping/promotional-setting';
+import { togglePromotionSubjects } from '@/server/exam/exam-module/exam-mapping/promotional-setting';
 import type { IPromotionalSubjectDetails } from '@/types/exam/exam-module/exam-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -37,11 +37,11 @@ export default function PromotionalSettingDetailsToggleForm({ rowData, onClose }
         }
     });
 
-/*************  ✨ Windsurf Command ⭐  *************/
-/**
- * Resets the form and closes the dialog.
- */
-/*******  5a146f79-5790-446f-9a4f-18844a70cf26  *******/    function closeDialog() {
+    /*************  ✨ Windsurf Command ⭐  *************/
+    /**
+     * Resets the form and closes the dialog.
+     */
+    /*******  5a146f79-5790-446f-9a4f-18844a70cf26  *******/ function closeDialog() {
         reset();
         onClose();
     }

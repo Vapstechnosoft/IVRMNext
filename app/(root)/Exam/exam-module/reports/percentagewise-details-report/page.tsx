@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ReportForm } from './_components/report-form';
 import { ReportList } from './_components/report-list';
 
@@ -68,12 +68,12 @@ export default function PercentagewiseDetailsReportPage() {
         // Prepare data for Excel
         const exportData = reportData.map((item, index) => ({
             'Sl No.': index + 1,
-            'Class': item.ASMCL_ClassName,
-            'Section': item.ASMC_SectionName,
-            'Student': item.studentname,
+            Class: item.ASMCL_ClassName,
+            Section: item.ASMC_SectionName,
+            Student: item.studentname,
             'Obtained Marks': item.ESTMP_TotalObtMarks,
             'Max Marks': item.ESTMP_TotalMaxMarks,
-            'Percentage': item.ESTMP_Percentage
+            Percentage: item.ESTMP_Percentage
         }));
 
         const ws = XLSX.utils.json_to_sheet(exportData);
@@ -82,19 +82,9 @@ export default function PercentagewiseDetailsReportPage() {
     };
 
     return (
-        <div className="container mx-auto p-4">
-            <ReportForm
-                onReportGenerated={handleReportGenerated}
-                onPrint={handlePrint}
-                onExcel={handleExcel}
-            />
-            {reportData.length > 0 && (
-                <ReportList
-                    data={reportData}
-                    institution={institutionDetails}
-                    criteria={reportCriteria}
-                />
-            )}
+        <div className='container mx-auto p-4'>
+            <ReportForm onReportGenerated={handleReportGenerated} onPrint={handlePrint} onExcel={handleExcel} />
+            {reportData.length > 0 && <ReportList data={reportData} institution={institutionDetails} criteria={reportCriteria} />}
         </div>
     );
 }

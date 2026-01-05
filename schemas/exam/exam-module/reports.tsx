@@ -232,33 +232,41 @@ export const tbs_reportschoolSchema = {
         })
 };
 
-
-export const examLoginPrivilegesReportSchema = z.object({
-    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
-    EMCA_Id: z.string().min(1, 'Category is required'),
-    type: z.enum(['all', 'individual']),
-    ASMCL_Id: z.string().optional(),
-    ASMS_Id: z.string().optional(),
-    HRME_Id: z.string().optional(), // Employee
-    employeeChecked: z.boolean().default(false),
-    selectAllEmployees: z.boolean().default(false),
-}).refine((data) => {
-    if (data.type === 'individual') {
-        return !!data.ASMCL_Id && !!data.ASMS_Id;
-    }
-    return true;
-}, {
-    message: "Class and Section are required for Individual report",
-    path: ["ASMCL_Id"],
-}).refine((data) => {
-    if (data.employeeChecked && !data.HRME_Id) {
-        return false;
-    }
-    return true;
-}, {
-    message: "Employee is required when checked",
-    path: ["HRME_Id"],
-});
+export const examLoginPrivilegesReportSchema = z
+    .object({
+        ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+        EMCA_Id: z.string().min(1, 'Category is required'),
+        type: z.enum(['all', 'individual']),
+        ASMCL_Id: z.string().optional(),
+        ASMS_Id: z.string().optional(),
+        HRME_Id: z.string().optional(), // Employee
+        employeeChecked: z.boolean().default(false),
+        selectAllEmployees: z.boolean().default(false)
+    })
+    .refine(
+        (data) => {
+            if (data.type === 'individual') {
+                return !!data.ASMCL_Id && !!data.ASMS_Id;
+            }
+            return true;
+        },
+        {
+            message: 'Class and Section are required for Individual report',
+            path: ['ASMCL_Id']
+        }
+    )
+    .refine(
+        (data) => {
+            if (data.employeeChecked && !data.HRME_Id) {
+                return false;
+            }
+            return true;
+        },
+        {
+            message: 'Employee is required when checked',
+            path: ['HRME_Id']
+        }
+    );
 
 export type ExamLoginPrivilegesSchema = z.infer<typeof examLoginPrivilegesReportSchema>;
 
@@ -269,7 +277,7 @@ export const juniorsProgressCardReportSchema = z.object({
     EME_Id: z.string().min(1, 'Exam Name is required'),
     superAverage: z.boolean().default(false),
     printLogo: z.boolean().default(false),
-    selectedStudents: z.array(z.string()).min(1, 'Select at least one student'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
 });
 
 export type JuniorsProgressCardReportSchema = z.infer<typeof juniorsProgressCardReportSchema>;
@@ -281,96 +289,112 @@ export const juniorsProgressCardReportSchemaForPrint = z.object({
     EME_Id: z.string().min(1, 'Exam Name is required'),
     superAverage: z.boolean().default(false),
     printLogo: z.boolean().default(false),
-    selectedStudents: z.array(z.string()).min(1, 'Select at least one student'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
 });
 
 export const marksEntryReportSchema = z.object({
     ASMAY_Id: z.string().min(1, 'Academic Year is required'),
     ASMCL_Id: z.string().min(1, 'Class is required'),
     ASMS_Id: z.string().min(1, 'Section is required'),
-    EME_Id: z.string().min(1, 'Exam Name is required'),
+    EME_Id: z.string().min(1, 'Exam Name is required')
 });
 
 export type MarksEntryReportSchema = z.infer<typeof marksEntryReportSchema>;
 
-export const percentageWiseDetailsReportSchema = z.object({
-    ASMAY_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Academic Year is required')),
-    EMCA_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Category is required')),
-    ASMCL_Id: z.preprocess((val) => Number(val), z.number().optional()), // Conditional validation logic in component or refine
-    ASMS_Id: z.preprocess((val) => Number(val), z.number().optional()), // Conditional validation logic in component or refine
-    EME_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Exam is required')),
-    percent: z.string().min(1, 'Percentage is required'),
-    qualification_type: z.enum(['all', 'individual']),
-}).refine((data) => {
-    if (data.qualification_type === 'individual') {
-        return !!data.ASMCL_Id && data.ASMCL_Id > 0;
-    }
-    return true;
-}, {
-    message: 'Class is required',
-    path: ['ASMCL_Id']
-}).refine((data) => {
-    if (data.qualification_type === 'individual') {
-        // Section can be 0 (All) but generally selected. 
-        // In the angular code: value="0">All</option> and required if individual.
-        // If 0 is valid "All" for section, then we just need it to be present. 
-        // If the requirement is "Select Section" (validation failure), then it should not be empty.
-        // However, the angular code says `value="" label="Select Section"` and `value="0">All`.
-        // So if it's 0, it is valid "All". If it's undefined or empty, it's invalid.
-        return data.ASMS_Id !== undefined && data.ASMS_Id !== null;
-    }
-    return true;
-}, {
-    message: 'Section is required',
-    path: ['ASMS_Id']
-});
+export const percentageWiseDetailsReportSchema = z
+    .object({
+        ASMAY_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Academic Year is required')),
+        EMCA_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Category is required')),
+        ASMCL_Id: z.preprocess((val) => Number(val), z.number().optional()), // Conditional validation logic in component or refine
+        ASMS_Id: z.preprocess((val) => Number(val), z.number().optional()), // Conditional validation logic in component or refine
+        EME_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Exam is required')),
+        percent: z.string().min(1, 'Percentage is required'),
+        qualification_type: z.enum(['all', 'individual'])
+    })
+    .refine(
+        (data) => {
+            if (data.qualification_type === 'individual') {
+                return !!data.ASMCL_Id && data.ASMCL_Id > 0;
+            }
+            return true;
+        },
+        {
+            message: 'Class is required',
+            path: ['ASMCL_Id']
+        }
+    )
+    .refine(
+        (data) => {
+            if (data.qualification_type === 'individual') {
+                // Section can be 0 (All) but generally selected.
+                // In the angular code: value="0">All</option> and required if individual.
+                // If 0 is valid "All" for section, then we just need it to be present.
+                // If the requirement is "Select Section" (validation failure), then it should not be empty.
+                // However, the angular code says `value="" label="Select Section"` and `value="0">All`.
+                // So if it's 0, it is valid "All". If it's undefined or empty, it's invalid.
+                return data.ASMS_Id !== undefined && data.ASMS_Id !== null;
+            }
+            return true;
+        },
+        {
+            message: 'Section is required',
+            path: ['ASMS_Id']
+        }
+    );
 
 export type PercentageWiseDetailsReportSchema = z.infer<typeof percentageWiseDetailsReportSchema>;
 
-export const promotionDetailsReportSchema = z.object({
-    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
-    ASMCL_Id: z.string().min(1, 'Class is required'),
-    ASMS_Id: z.string().min(1, 'Section is required'),
-    EMPG_GroupName: z.string().optional(), // Term
-    superAverage: z.boolean().default(false),
-    selectedStudents: z.array(z.string()).min(1, 'Select at least one student'),
-}).refine((data) => {
-    if (!data.superAverage && !data.EMPG_GroupName) {
-        return false;
-    }
-    return true;
-}, {
-    message: "Term is required when Super Average is not selected",
-    path: ["EMPG_GroupName"],
-});
+export const promotionDetailsReportSchema = z
+    .object({
+        ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+        ASMCL_Id: z.string().min(1, 'Class is required'),
+        ASMS_Id: z.string().min(1, 'Section is required'),
+        EMPG_GroupName: z.string().optional(), // Term
+        superAverage: z.boolean().default(false),
+        selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+    })
+    .refine(
+        (data) => {
+            if (!data.superAverage && !data.EMPG_GroupName) {
+                return false;
+            }
+            return true;
+        },
+        {
+            message: 'Term is required when Super Average is not selected',
+            path: ['EMPG_GroupName']
+        }
+    );
 
 export type PromotionDetailsReportSchema = z.infer<typeof promotionDetailsReportSchema>;
 
-export const toppersListReportSchema = z.object({
-    type: z.enum(['1', '2']), // 1: All, 2: Individual
-    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
-    ASMCL_Id: z.string().min(1, 'Class is required'),
-    ASMS_Id: z.string().optional(), // Section (Validation depends on type)
-    topper: z.string().min(1, 'Top count is required').regex(/^\d+$/, 'Must be a number'),
-    EME_Id: z.string().min(1, 'Exam is required'),
-    subjectwise: z.boolean().default(false),
-    ISMS_Id: z.string().optional(), // Subject (Validation depends on subjectwise)
-}).superRefine((data, ctx) => {
-    if (data.type === '2' && !data.ASMS_Id) {
-        ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: 'Section is required for Individual type',
-            path: ['ASMS_Id'],
-        });
-    }
-    if (data.subjectwise && !data.ISMS_Id) {
-        ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: 'Subject is required when Subjectwise is checked',
-            path: ['ISMS_Id'],
-        });
-    }
-});
+export const toppersListReportSchema = z
+    .object({
+        type: z.enum(['1', '2']), // 1: All, 2: Individual
+        ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+        ASMCL_Id: z.string().min(1, 'Class is required'),
+        ASMS_Id: z.string().optional(), // Section (Validation depends on type)
+        topper: z.string().min(1, 'Top count is required').regex(/^\d+$/, 'Must be a number'),
+        EME_Id: z.string().min(1, 'Exam is required'),
+        subjectwise: z.boolean().default(false),
+        ISMS_Id: z.string().optional() // Subject (Validation depends on subjectwise)
+    })
+    .superRefine((data, ctx) => {
+        if (data.type === '2' && !data.ASMS_Id) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Section is required for Individual type',
+                path: ['ASMS_Id']
+            });
+        }
+        if (data.subjectwise && !data.ISMS_Id) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Subject is required when Subjectwise is checked',
+                path: ['ISMS_Id']
+            });
+        }
+    });
 
 export type ToppersListSchema = z.infer<typeof toppersListReportSchema>;
 

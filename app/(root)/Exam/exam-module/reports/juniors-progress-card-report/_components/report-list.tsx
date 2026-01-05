@@ -1,16 +1,9 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useRef } from 'react';
 import * as XLSX from 'xlsx';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
 
 interface ReportListProps {
     data: any;
@@ -59,10 +52,10 @@ export const ReportList = ({ data }: ReportListProps) => {
             const row: any = {
                 'Adm No': student.amsT_AdmNo,
                 'Student Name': student.studentname,
-                'Class': data.class,
-                'Section': data.section,
-                'Total': student.total,
-                'Percentage': student.percentage
+                Class: data.class,
+                Section: data.section,
+                Total: student.total,
+                Percentage: student.percentage
             };
             student.subjects.forEach((sub: any) => {
                 row[`${sub.name} Marks`] = sub.marks;
@@ -72,40 +65,48 @@ export const ReportList = ({ data }: ReportListProps) => {
         });
         const ws = XLSX.utils.json_to_sheet(flatData);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Progress Report");
-        XLSX.writeFile(wb, "Juniors_Progress_Card.xlsx");
+        XLSX.utils.book_append_sheet(wb, ws, 'Progress Report');
+        XLSX.writeFile(wb, 'Juniors_Progress_Card.xlsx');
     };
 
     return (
-        <div className="space-y-4">
-            <div className="flex justify-end space-x-2">
-                <Button onClick={handlePrint} variant="outline">
-                    <i className="fa fa-print mr-2" /> Print
+        <div className='space-y-4'>
+            <div className='flex justify-end space-x-2'>
+                <Button onClick={handlePrint} variant='outline'>
+                    <i className='fa fa-print mr-2' /> Print
                 </Button>
-                <Button onClick={handleExport} variant="outline">
-                    <i className="fa fa-file-excel-o mr-2" /> Export to Excel
+                <Button onClick={handleExport} variant='outline'>
+                    <i className='fa fa-file-excel-o mr-2' /> Export to Excel
                 </Button>
             </div>
 
-            <div ref={componentRef} className="space-y-8">
+            <div ref={componentRef} className='space-y-8'>
                 {data.students.map((student: any, index: number) => (
-                    <div key={student.amsT_Id} className="border p-6 rounded-lg shadow-sm bg-white page-break">
+                    <div key={student.amsT_Id} className='page-break rounded-lg border bg-white p-6 shadow-sm'>
                         {/* Header */}
-                        <div className="header">
-                            <h2 className="text-xl font-bold uppercase">St. Thomas' Church School</h2>
-                            <h3 className="text-lg font-semibold uppercase">Progress Report</h3>
-                            <p className="text-sm">Academic Year: {data.year}</p>
+                        <div className='header'>
+                            <h2 className='font-bold text-xl uppercase'>St. Thomas' Church School</h2>
+                            <h3 className='font-semibold text-lg uppercase'>Progress Report</h3>
+                            <p className='text-sm'>Academic Year: {data.year}</p>
                         </div>
 
                         {/* Student Details */}
-                        <div className="student-info grid grid-cols-2 gap-4 text-sm border-b pb-4 mb-4">
+                        <div className='student-info mb-4 grid grid-cols-2 gap-4 border-b pb-4 text-sm'>
                             <div>
-                                <p><strong>Name:</strong> {student.studentname}</p>
-                                <p><strong>Class:</strong> {data.class}</p>
+                                <p>
+                                    <strong>Name:</strong> {student.studentname}
+                                </p>
+                                <p>
+                                    <strong>Class:</strong> {data.class}
+                                </p>
                             </div>
                             <div>
-                                <p><strong>Adm. No:</strong> {student.amsT_AdmNo || 'A00' + (index + 1)}</p>
-                                <p><strong>Section:</strong> {data.section}</p>
+                                <p>
+                                    <strong>Adm. No:</strong> {student.amsT_AdmNo || 'A00' + (index + 1)}
+                                </p>
+                                <p>
+                                    <strong>Section:</strong> {data.section}
+                                </p>
                             </div>
                         </div>
 
@@ -113,7 +114,7 @@ export const ReportList = ({ data }: ReportListProps) => {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="text-left w-[40%]">Subject</TableHead>
+                                    <TableHead className='w-[40%] text-left'>Subject</TableHead>
                                     <TableHead>Marks</TableHead>
                                     <TableHead>Grade</TableHead>
                                 </TableRow>
@@ -121,27 +122,29 @@ export const ReportList = ({ data }: ReportListProps) => {
                             <TableBody>
                                 {student.subjects.map((sub: any, idx: number) => (
                                     <TableRow key={idx}>
-                                        <TableCell className="text-left font-medium">{sub.name}</TableCell>
+                                        <TableCell className='text-left font-medium'>{sub.name}</TableCell>
                                         <TableCell>{sub.marks}</TableCell>
                                         <TableCell>{sub.grade}</TableCell>
                                     </TableRow>
                                 ))}
-                                <TableRow className="font-bold bg-gray-50">
-                                    <TableCell className="text-left">Total</TableCell>
-                                    <TableCell colSpan={2}>{student.total} / {student.subjects.length * 100} ({student.percentage}%)</TableCell>
+                                <TableRow className='bg-gray-50 font-bold'>
+                                    <TableCell className='text-left'>Total</TableCell>
+                                    <TableCell colSpan={2}>
+                                        {student.total} / {student.subjects.length * 100} ({student.percentage}%)
+                                    </TableCell>
                                 </TableRow>
                             </TableBody>
                         </Table>
 
                         {/* Footer / Signatures */}
-                        <div className="mt-12 flex justify-between text-sm font-semibold pt-4 border-t">
-                            <div className="text-center">
+                        <div className='mt-12 flex justify-between border-t pt-4 font-semibold text-sm'>
+                            <div className='text-center'>
                                 <p>Class Teacher</p>
                             </div>
-                            <div className="text-center">
+                            <div className='text-center'>
                                 <p>Principal</p>
                             </div>
-                            <div className="text-center">
+                            <div className='text-center'>
                                 <p>Parent</p>
                             </div>
                         </div>

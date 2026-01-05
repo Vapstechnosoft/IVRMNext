@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ReportForm } from './_components/report-form';
 import { ReportList } from './_components/report-list';
 
@@ -35,10 +35,10 @@ export default function ToppersListReportPage() {
     }, [reportData]);
 
     return (
-        <div className="container mx-auto py-8">
+        <div className='container mx-auto py-8'>
             <ReportForm onReportGenerated={handleReportGenerated} onReset={handleReset} />
 
-            <div ref={listRef} className="mt-6 ease-in-out duration-300">
+            <div ref={listRef} className='mt-6 duration-300 ease-in-out'>
                 {reportData.length > 0 && (
                     <ReportList
                         data={reportData}

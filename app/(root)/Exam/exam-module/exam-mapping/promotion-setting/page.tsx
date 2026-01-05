@@ -239,9 +239,7 @@ function FormSections() {
             )}
 
             {/* Toggle Form */}
-            {isToggleFormOpen && selectedRow && (
-                <TogglePromotionalSettingForm rowData={selectedRow} onClose={closeToggleForm} />
-            )}
+            {isToggleFormOpen && selectedRow && <TogglePromotionalSettingForm rowData={selectedRow} onClose={closeToggleForm} />}
 
             {/* Details View */}
             {isDetailsViewOpen && selectedRow && <PromotionalSettingDetailsPage rowData={selectedRow} onClose={closeDetailsView} />}

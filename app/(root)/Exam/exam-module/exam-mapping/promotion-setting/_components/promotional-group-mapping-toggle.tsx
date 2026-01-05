@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { togglePromotionSubjectGroupExams, togglePromotionSubjectGroups } from '@/server/exam/exam-module/exam-mapping/promotional-setting';
+import { togglePromotionSubjectGroups } from '@/server/exam/exam-module/exam-mapping/promotional-setting';
 import type { IPromotionalGroupDetails } from '@/types/exam/exam-module/exam-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';

@@ -12,19 +12,25 @@ export const studentMarksPublishSchema = {
             }),
 
             // Academic Year (always required)
-            asmaY_Id: z.number({
-                required_error: 'Academic Year is required'
-            }).min(1, { message: 'Please select Academic Year' }),
+            asmaY_Id: z
+                .number({
+                    required_error: 'Academic Year is required'
+                })
+                .min(1, { message: 'Please select Academic Year' }),
 
             // Class (always required)
-            asmcL_Id: z.number({
-                required_error: 'Class is required'
-            }).min(1, { message: 'Please select Class' }),
+            asmcL_Id: z
+                .number({
+                    required_error: 'Class is required'
+                })
+                .min(1, { message: 'Please select Class' }),
 
             // Section (always required)
-            asmS_Id: z.number({
-                required_error: 'Section is required'
-            }).min(1, { message: 'Please select Section' }),
+            asmS_Id: z
+                .number({
+                    required_error: 'Section is required'
+                })
+                .min(1, { message: 'Please select Section' }),
 
             // Exam (required only when radiotype is EXAM)
             emE_Id: z.number().optional(),
@@ -81,14 +87,16 @@ export const studentMarksPublishSchema = {
     // Update status validation
     update: z.object({
         // Selected students array (must have at least one)
-        selectedstudents: z.array(
-            z.object({
-                AMST_Id: z.number({ required_error: 'Student ID is required' }),
-                ESTMP_Id: z.number().optional(),
-                AMST_FirstName: z.string({ required_error: 'Student name is required' }),
-                ESTMP_PublishToStudentFlg: z.boolean().default(false)
-            })
-        ).min(1, { message: 'Select at least one student' }),
+        selectedstudents: z
+            .array(
+                z.object({
+                    AMST_Id: z.number({ required_error: 'Student ID is required' }),
+                    ESTMP_Id: z.number().optional(),
+                    AMST_FirstName: z.string({ required_error: 'Student name is required' }),
+                    ESTMP_PublishToStudentFlg: z.boolean().default(false)
+                })
+            )
+            .min(1, { message: 'Select at least one student' }),
 
         // Communication flags
         SMSFLAG: z.boolean(),
@@ -118,7 +126,7 @@ export const studentMarksPublishSchema = {
         percentage: z.number().default(0),
         estmP_PublishToStudentFlg: z.union([
             z.boolean(),
-            z.number().refine(val => val === 0 || val === 1, {
+            z.number().refine((val) => val === 0 || val === 1, {
                 message: 'Publish flag must be 0 or 1'
             })
         ]),
@@ -194,7 +202,7 @@ export const studentMarksPublishValidators = {
 
     // Validate student selection for update
     validateStudentSelection: (students: StudentMarksPublishStudent[]): { valid: boolean; selectedCount: number } => {
-        const selectedStudents = students.filter(s => s.checkedvalue);
+        const selectedStudents = students.filter((s) => s.checkedvalue);
         return {
             valid: selectedStudents.length > 0,
             selectedCount: selectedStudents.length

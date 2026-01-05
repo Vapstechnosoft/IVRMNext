@@ -14,11 +14,6 @@ import {
     getStudentsForSubjectMapping,
     getSubjectlistByCatGroupClass
 } from '@/server/exam/exam-module/exam-mapping/student-subject-mapping';
-import {
-    getClassDropDownByAcademicYearlist,
-    getSectionsDropDownByAcademicYearandClasslist
-} from '@/server/exam/exam-module/reports/cumulative-report';
-import { getSubjectGroupDropDownByYearCategoryList } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 import { useCallback, useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -146,7 +141,11 @@ function StudentSubjectMappingContent() {
         const fetchSections = async () => {
             setLoadingSections(true);
             try {
-                const { data } = await getSectionListbyClassSectionSubjectGroup(watchedAcademicYear, watchedCategory as number, watchedClass);
+                const { data } = await getSectionListbyClassSectionSubjectGroup(
+                    watchedAcademicYear,
+                    watchedCategory as number,
+                    watchedClass
+                );
                 setSections(Array.isArray(data) ? data : []);
                 setValue('asmS_Id', undefined);
             } catch (err: any) {

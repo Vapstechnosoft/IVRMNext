@@ -1,14 +1,7 @@
 'use client';
 
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useRef } from 'react';
 import * as XLSX from 'xlsx';
 
@@ -69,31 +62,31 @@ export const ReportList = ({ data }: ReportListProps) => {
         if (!tableRef.current) return;
 
         const workbook = XLSX.utils.table_to_book(tableRef.current, {
-            sheet: 'Report',
+            sheet: 'Report'
         });
 
         XLSX.writeFile(workbook, 'Exam_Login_Privileges_Report.xlsx');
     };
 
     return (
-        <div className="space-y-4">
-            <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={handlePrint}>
-                    <i className="fa fa-print mr-2" />
+        <div className='space-y-4'>
+            <div className='flex justify-end gap-2'>
+                <Button variant='outline' onClick={handlePrint}>
+                    <i className='fa fa-print mr-2' />
                     Print
                 </Button>
 
-                <Button variant="outline" onClick={handleExport}>
-                    <i className="fa fa-file-excel-o mr-2" />
+                <Button variant='outline' onClick={handleExport}>
+                    <i className='fa fa-file-excel-o mr-2' />
                     Export to Excel
                 </Button>
             </div>
 
-            <div className="rounded-md border overflow-auto">
+            <div className='overflow-auto rounded-md border'>
                 <Table ref={tableRef}>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="w-[80px] text-center">Sl. No.</TableHead>
+                            <TableHead className='w-[80px] text-center'>Sl. No.</TableHead>
                             <TableHead>Class</TableHead>
                             <TableHead>Section</TableHead>
                             <TableHead>Teacher Name</TableHead>
@@ -108,7 +101,7 @@ export const ReportList = ({ data }: ReportListProps) => {
                             if (subjects.length === 0) {
                                 return (
                                     <TableRow key={index}>
-                                        <TableCell className="text-center">{index + 1}</TableCell>
+                                        <TableCell className='text-center'>{index + 1}</TableCell>
                                         <TableCell>{item.ASMCL_ClassName}</TableCell>
                                         <TableCell>{item.ASMC_SectionName}</TableCell>
                                         <TableCell>{item.Employeename}</TableCell>
@@ -120,31 +113,24 @@ export const ReportList = ({ data }: ReportListProps) => {
                             return (
                                 <>
                                     <TableRow key={`${index}-0`}>
-                                        <TableCell
-                                            rowSpan={subjects.length}
-                                            className="text-center align-top"
-                                        >
+                                        <TableCell rowSpan={subjects.length} className='text-center align-top'>
                                             {index + 1}
                                         </TableCell>
-                                        <TableCell rowSpan={subjects.length} className="align-top">
+                                        <TableCell rowSpan={subjects.length} className='align-top'>
                                             {item.ASMCL_ClassName}
                                         </TableCell>
-                                        <TableCell rowSpan={subjects.length} className="align-top">
+                                        <TableCell rowSpan={subjects.length} className='align-top'>
                                             {item.ASMC_SectionName}
                                         </TableCell>
-                                        <TableCell rowSpan={subjects.length} className="align-top">
+                                        <TableCell rowSpan={subjects.length} className='align-top'>
                                             {item.Employeename}
                                         </TableCell>
-                                        <TableCell>
-                                            {subjects[0].ISMS_SubjectName}
-                                        </TableCell>
+                                        <TableCell>{subjects[0].ISMS_SubjectName}</TableCell>
                                     </TableRow>
 
                                     {subjects.slice(1).map((sub: any, subIndex: number) => (
                                         <TableRow key={`${index}-${subIndex + 1}`}>
-                                            <TableCell>
-                                                {sub.ISMS_SubjectName}
-                                            </TableCell>
+                                            <TableCell>{sub.ISMS_SubjectName}</TableCell>
                                         </TableRow>
                                     ))}
                                 </>

@@ -36,9 +36,18 @@ const SUBJECTS = [
 // Mock Student Data Generator
 const generateToppers = (count: number, subjectwise: boolean) => {
     const list = [];
-    const names = ['JOYABRATA PAUL', 'ADRITO DAS', 'AISHANYA SHOW', 'ADRIJA CHHAULEY', 'AHMAD AMIN', 'PRACHURYA PANJA', 'RANAJAY SAHA', 'ALMAAN ALI KHAN'];
+    const names = [
+        'JOYABRATA PAUL',
+        'ADRITO DAS',
+        'AISHANYA SHOW',
+        'ADRIJA CHHAULEY',
+        'AHMAD AMIN',
+        'PRACHURYA PANJA',
+        'RANAJAY SAHA',
+        'ALMAAN ALI KHAN'
+    ];
     const sections = ['A', 'A', 'B', 'B', 'C', 'C', 'D', 'D'];
-    
+
     for (let i = 0; i < Math.min(count, names.length); i++) {
         if (subjectwise) {
             list.push({
@@ -70,7 +79,7 @@ export async function getDetails() {
     return {
         acdlist: ACADEMIC_YEARS,
         catlist: [],
-        ctlist: [], // Initially empty, fetched after year selection usually, or we can return all? Angular code does onselectAcdYear but bindData returns ctlist. Let's return classes here for simplicity matching the 'bindData' logic which returned everything. 
+        ctlist: [] // Initially empty, fetched after year selection usually, or we can return all? Angular code does onselectAcdYear but bindData returns ctlist. Let's return classes here for simplicity matching the 'bindData' logic which returned everything.
         // usage: $scope.acdlist = promise.acdlist; ... $scope.ctlist = promise.ctlist;
         // So we should return all lists if possible or empty and let dependents fetch.
         // Grade Slab pattern used separate calls. Let's assume standard flow.
@@ -102,21 +111,23 @@ export async function getSubjects(data: any) {
 
 export async function getReportDetails(data: any) {
     // Generate mock report based on parameters
-    
+
     // Mimic the processing delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     const isSubjectwise = data.subjectwise === true || data.subjectwise === 'true';
-    const limit = parseInt(data.topper) || 10;
+    const limit = Number.parseInt(data.topper) || 10;
 
     const reportData = generateToppers(limit, isSubjectwise);
 
     return {
         datareport: reportData,
-        masterinstitution: [{
-            mI_Name: "St. Thomas' Church School",
-            mI_Address1: "3, Church Road, Howrah-711101 West Bengal, India",
-            mI_Logo: "" // Use default in UI
-        }] // Mock Institution
+        masterinstitution: [
+            {
+                mI_Name: "St. Thomas' Church School",
+                mI_Address1: '3, Church Road, Howrah-711101 West Bengal, India',
+                mI_Logo: '' // Use default in UI
+            }
+        ] // Mock Institution
     };
 }

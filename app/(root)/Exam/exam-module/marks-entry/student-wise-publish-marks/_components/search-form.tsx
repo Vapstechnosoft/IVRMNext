@@ -11,8 +11,7 @@ import { studentMarksPublishSchema } from '@/schemas/exam/exam-module/marks-entr
 import {
     getClassDropDownByAcademicYearlist,
     getExamsDropDownByAcademicYearandClassandSectionlist,
-    getSectionsDropDownByAcademicYearandClasslist,
-    getStudentsDropDownByAcademicYearandClassandSectionlist
+    getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/tbs-report-school';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RotateCcw, Search } from 'lucide-react';
@@ -112,9 +111,9 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
             setValue('emE_Id', 0);
 
             // Force re-render of selects
-            setClassKey(prev => prev + 1);
-            setSectionKey(prev => prev + 1);
-            setExamKey(prev => prev + 1);
+            setClassKey((prev) => prev + 1);
+            setSectionKey((prev) => prev + 1);
+            setExamKey((prev) => prev + 1);
 
             setProcessBtnEnabled(false);
             return;
@@ -126,7 +125,7 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                 // Clear previous data first
                 setClasses([]);
                 setValue('asmcL_Id', 0);
-                setClassKey(prev => prev + 1);
+                setClassKey((prev) => prev + 1);
 
                 const res = await getClassDropDownByAcademicYearlist(academicYearId);
                 const classData = res.data || [];
@@ -138,8 +137,8 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                 setStudents([]);
                 setValue('asmS_Id', 0);
                 setValue('emE_Id', 0);
-                setSectionKey(prev => prev + 1);
-                setExamKey(prev => prev + 1);
+                setSectionKey((prev) => prev + 1);
+                setExamKey((prev) => prev + 1);
 
                 if (classData.length === 0) {
                     toast.info('No classes found for selected academic year');
@@ -169,8 +168,8 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
             setValue('emE_Id', 0);
 
             // Force re-render
-            setSectionKey(prev => prev + 1);
-            setExamKey(prev => prev + 1);
+            setSectionKey((prev) => prev + 1);
+            setExamKey((prev) => prev + 1);
 
             setProcessBtnEnabled(false);
             return;
@@ -182,7 +181,7 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                 // Clear previous data first
                 setSections([]);
                 setValue('asmS_Id', 0);
-                setSectionKey(prev => prev + 1);
+                setSectionKey((prev) => prev + 1);
 
                 const res = await getSectionsDropDownByAcademicYearandClasslist(academicYearId, classId);
                 const sectionData = res.data || [];
@@ -192,7 +191,7 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                 setExams([]);
                 setStudents([]);
                 setValue('emE_Id', 0);
-                setExamKey(prev => prev + 1);
+                setExamKey((prev) => prev + 1);
 
                 if (sectionData.length === 0) {
                     toast.info('No sections found for selected class');
@@ -215,7 +214,7 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
             setExams([]);
             setStudents([]);
             setValue('emE_Id', 0);
-            setExamKey(prev => prev + 1);
+            setExamKey((prev) => prev + 1);
             setProcessBtnEnabled(false);
             return;
         }
@@ -226,7 +225,7 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                 // Clear previous data first
                 setExams([]);
                 setValue('emE_Id', 0);
-                setExamKey(prev => prev + 1);
+                setExamKey((prev) => prev + 1);
 
                 // Load exams (only for Exam Wise mode)
                 if (radiotype === 'Exam') {
@@ -260,7 +259,7 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
         if (radiotype !== 'Exam') {
             setExams([]);
             setValue('emE_Id', 0);
-            setExamKey(prev => prev + 1);
+            setExamKey((prev) => prev + 1);
         }
     }, [radiotype, setValue]);
 
@@ -278,15 +277,11 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                 feeinstallmentcheckbox: formData.feeinstallmentcheckbox,
                 fmT_Id: formData.feeinstallmentcheckbox ? formData.FMT_Id : 0,
                 ismS_Id: 0,
-                tempGroupList: formData.feeGroupIds?.length
-                    ? formData.feeGroupIds
-                    : [0]
+                tempGroupList: formData.feeGroupIds?.length ? formData.feeGroupIds : [0]
             };
             console.log('Payload:', payload);
             const { data: response } = await getStudentWisePublishMarksData(payload);
-            const apiStudents = Array.isArray(response)
-                ? response
-                : [];
+            const apiStudents = Array.isArray(response) ? response : [];
             if (isInitialLoad) {
                 onSuccess?.(formData, apiStudents);
                 setIsInitialLoad(false);
@@ -326,9 +321,9 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
         setStudents([]);
 
         // Reset keys to force re-render
-        setClassKey(prev => prev + 1);
-        setSectionKey(prev => prev + 1);
-        setExamKey(prev => prev + 1);
+        setClassKey((prev) => prev + 1);
+        setSectionKey((prev) => prev + 1);
+        setExamKey((prev) => prev + 1);
 
         setProcessBtnEnabled(false);
     };
@@ -345,23 +340,25 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                             <>
                                 <button
                                     type='button'
-                                    className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${field.value === 'Exam'
-                                        ? 'bg-purple-600 text-white'
-                                        : 'bg-transparent text-gray-600 hover:bg-gray-100'
-                                        }`}
+                                    className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${
+                                        field.value === 'Exam'
+                                            ? 'bg-purple-600 text-white'
+                                            : 'bg-transparent text-gray-600 hover:bg-gray-100'
+                                    }`}
                                     onClick={() => field.onChange('Exam')}>
                                     Exam Wise
                                 </button>
                                 <button
                                     type='button'
-                                    className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${field.value === 'Promotion'
-                                        ? 'bg-purple-600 text-white'
-                                        : 'bg-transparent text-gray-600 hover:bg-gray-100'
-                                        }`}
+                                    className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${
+                                        field.value === 'Promotion'
+                                            ? 'bg-purple-600 text-white'
+                                            : 'bg-transparent text-gray-600 hover:bg-gray-100'
+                                    }`}
                                     onClick={() => {
                                         field.onChange('Promotion');
                                         setValue('emE_Id', 0);
-                                        setExamKey(prev => prev + 1);
+                                        setExamKey((prev) => prev + 1);
                                     }}>
                                     Promotion
                                 </button>
@@ -450,10 +447,10 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                                                     loadingFeeTerm
                                                         ? 'Loading fee terms...'
                                                         : !feeInstallmentCheckbox
-                                                            ? 'Enable Exclude Fee Defaulters first'
-                                                            : feeTerms.length === 0
-                                                                ? 'No fee terms available'
-                                                                : 'Select Fee Term'
+                                                          ? 'Enable Exclude Fee Defaulters first'
+                                                          : feeTerms.length === 0
+                                                            ? 'No fee terms available'
+                                                            : 'Select Fee Term'
                                                 }
                                             />
                                         </SelectTrigger>
@@ -502,8 +499,8 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                                             loadingFeeGroup
                                                 ? 'Loading fee groups...'
                                                 : !feeInstallmentCheckbox
-                                                    ? 'Enable Exclude Fee Defaulters first'
-                                                    : 'Search here...'
+                                                  ? 'Enable Exclude Fee Defaulters first'
+                                                  : 'Search here...'
                                         }
                                         height='150px'
                                         isSearchRequired={true}
@@ -537,10 +534,10 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                                                     loadingClasses
                                                         ? 'Loading classes...'
                                                         : !academicYearId
-                                                            ? 'Select Academic Year first'
-                                                            : classes.length === 0
-                                                                ? 'No classes available'
-                                                                : 'Select Class'
+                                                          ? 'Select Academic Year first'
+                                                          : classes.length === 0
+                                                            ? 'No classes available'
+                                                            : 'Select Class'
                                                 }
                                             />
                                         </SelectTrigger>
@@ -587,10 +584,10 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                                                     loadingSections
                                                         ? 'Loading sections...'
                                                         : !classId
-                                                            ? 'Select Class first'
-                                                            : sections.length === 0
-                                                                ? 'No sections available'
-                                                                : 'Select Section'
+                                                          ? 'Select Class first'
+                                                          : sections.length === 0
+                                                            ? 'No sections available'
+                                                            : 'Select Section'
                                                 }
                                             />
                                         </SelectTrigger>
@@ -637,12 +634,12 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                                                     loadingExams
                                                         ? 'Loading exams...'
                                                         : radiotype !== 'Exam'
-                                                            ? 'Select Exam Wise mode'
-                                                            : !sectionId
-                                                                ? 'Select Section first'
-                                                                : exams.length === 0
-                                                                    ? 'No exams available'
-                                                                    : 'Select Exam Name'
+                                                          ? 'Select Exam Wise mode'
+                                                          : !sectionId
+                                                            ? 'Select Section first'
+                                                            : exams.length === 0
+                                                              ? 'No exams available'
+                                                              : 'Select Exam Name'
                                                 }
                                             />
                                         </SelectTrigger>
@@ -676,9 +673,10 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
             <div className='flex justify-center gap-4 pt-4'>
                 <Button
                     type='submit'
-                    disabled={loading || !isValid || !academicYearId || !classId || !sectionId || (radiotype === 'Exam' && !watch('emE_Id'))}
-                    className='min-w-[120px]'
-                >
+                    disabled={
+                        loading || !isValid || !academicYearId || !classId || !sectionId || (radiotype === 'Exam' && !watch('emE_Id'))
+                    }
+                    className='min-w-[120px]'>
                     {loading ? (
                         <span className='flex items-center gap-2'>
                             <Search className='h-4 w-4' />

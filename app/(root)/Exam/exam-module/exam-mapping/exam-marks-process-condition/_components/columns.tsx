@@ -11,22 +11,13 @@ export const ExamMarksProcessConditionColumns: ColumnDef<IExamMarksProcessCondit
         id: 'select',
         header: ({ table }) => (
             <Checkbox
-                checked={
-                    table.getIsAllPageRowsSelected() ||
-                    (table.getIsSomePageRowsSelected() && 'indeterminate')
-                }
-                onCheckedChange={(value) =>
-                    table.toggleAllPageRowsSelected(!!value)
-                }
-                aria-label="Select all"
+                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
+                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                aria-label='Select all'
             />
         ),
         cell: ({ row }) => (
-            <Checkbox
-                checked={row.getIsSelected()}
-                onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label="Select row"
-            />
+            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
         ),
         enableSorting: false,
         enableHiding: false,
@@ -36,9 +27,7 @@ export const ExamMarksProcessConditionColumns: ColumnDef<IExamMarksProcessCondit
     // Serial Number
     {
         id: 'slno',
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Sl.No" />
-        ),
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -50,33 +39,25 @@ export const ExamMarksProcessConditionColumns: ColumnDef<IExamMarksProcessCondit
     // Academic Year
     {
         accessorKey: 'asmaY_Year',
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Academic Year" />
-        )
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' />
     },
 
     // ✅ Category Name (ADDED BEFORE EXAM NAME)
     {
         accessorKey: 'emcA_CategoryName',
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Category Name" />
-        )
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Category Name' />
     },
 
     // Exam Name
     {
         accessorKey: 'emE_ExamName',
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Exam Name" />
-        )
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Exam Name' />
     },
 
     // Exam Start Date
     {
         accessorKey: 'eycE_ExamStartDate',
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Exam Start Date" />
-        ),
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Exam Start Date' />,
         cell: ({ row }) => {
             const value = row.original.eycE_ExamStartDate;
             return <div>{value ? value.split('T')[0] : '-'}</div>;
@@ -86,9 +67,7 @@ export const ExamMarksProcessConditionColumns: ColumnDef<IExamMarksProcessCondit
     // Exam End Date
     {
         accessorKey: 'eycE_ExamEndDate',
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Exam End Date" />
-        ),
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Exam End Date' />,
         cell: ({ row }) => {
             const value = row.original.eycE_ExamEndDate;
             return <div>{value ? value.split('T')[0] : '-'}</div>;
@@ -98,12 +77,7 @@ export const ExamMarksProcessConditionColumns: ColumnDef<IExamMarksProcessCondit
     // Marks Entry Last Date
     {
         accessorKey: 'eycE_MarksEntryLastDate',
-        header: ({ column }) => (
-            <DataTableColumnHeader
-                column={column}
-                title="Marks Entry Last Date"
-            />
-        ),
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Marks Entry Last Date' />,
         cell: ({ row }) => {
             const value = row.original.eycE_MarksEntryLastDate;
             return <div>{value ? value.split('T')[0] : '-'}</div>;
@@ -113,12 +87,7 @@ export const ExamMarksProcessConditionColumns: ColumnDef<IExamMarksProcessCondit
     // Marks Process Last Date
     {
         accessorKey: 'eycE_MarksProcessLastDate',
-        header: ({ column }) => (
-            <DataTableColumnHeader
-                column={column}
-                title="Marks Process Last Date"
-            />
-        ),
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Marks Process Last Date' />,
         cell: ({ row }) => {
             const value = row.original.eycE_MarksProcessLastDate;
             return <div>{value ? value.split('T')[0] : '-'}</div>;
@@ -128,12 +97,7 @@ export const ExamMarksProcessConditionColumns: ColumnDef<IExamMarksProcessCondit
     // Marks Publish Date
     {
         accessorKey: 'eycE_MarksPublishDate',
-        header: ({ column }) => (
-            <DataTableColumnHeader
-                column={column}
-                title="Marks Publish Date"
-            />
-        ),
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Marks Publish Date' />,
         cell: ({ row }) => {
             const value = row.original.eycE_MarksPublishDate;
             return <div>{value ? value.split('T')[0] : '-'}</div>;

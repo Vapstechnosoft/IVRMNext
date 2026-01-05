@@ -1,6 +1,6 @@
 'use server';
 
-import { api, ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 
 export const getInitialData = async () => {
     // Mock data for initial dropdowns

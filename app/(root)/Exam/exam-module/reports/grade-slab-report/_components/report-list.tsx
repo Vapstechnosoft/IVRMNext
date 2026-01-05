@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Printer, FileSpreadsheet, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { FileSpreadsheet, Printer, Search } from 'lucide-react';
+import React, { useRef, useState } from 'react';
 import * as XLSX from 'xlsx';
 
-const DEFAULT_LOGO_BASE64 = "data:image/png;base64,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";
+const DEFAULT_LOGO_BASE64 =
+    'data:image/png;base64,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';
 
 interface ReportListProps {
     data: any[];
@@ -54,7 +55,7 @@ export const ReportList: React.FC<ReportListProps> = ({ data, institution }) => 
                         <div class="text-content">
                             <div class="school-name">${inst?.mI_Name || "St. Thomas' Church School"}</div>
                             <div class="school-address">(Diocese of Calcutta, CNI)</div>
-                            <div class="school-address">${inst?.mI_Address1 || "3, Church Road, Howrah-711101 West Bengal, India"}</div>
+                            <div class="school-address">${inst?.mI_Address1 || '3, Church Road, Howrah-711101 West Bengal, India'}</div>
                             <div class="school-address">Phone No : +91 33 2641 2138, Email ID : stcsh1860@gmail.com</div>
                         </div>
                     </div>
@@ -86,10 +87,10 @@ export const ReportList: React.FC<ReportListProps> = ({ data, institution }) => 
         const wsData: any[][] = [];
 
         // Appending Header Info
-        wsData.push([inst?.mI_Name || "SCHOOL NAME"]);
-        wsData.push([inst?.mI_Address1 || "SCHOOL ADDRESS"]);
-        wsData.push(["(Diocese of Calcutta, CNI)"]);
-        wsData.push(["Grade Slab Report"]);
+        wsData.push([inst?.mI_Name || 'SCHOOL NAME']);
+        wsData.push([inst?.mI_Address1 || 'SCHOOL ADDRESS']);
+        wsData.push(['(Diocese of Calcutta, CNI)']);
+        wsData.push(['Grade Slab Report']);
         wsData.push([]);
 
         // Table Headers
@@ -133,11 +134,11 @@ export const ReportList: React.FC<ReportListProps> = ({ data, institution }) => 
         ws['!merges'] = merges;
         // Setting column widths
         ws['!cols'] = [
-            { wch: 8 },  // SL No
+            { wch: 8 }, // SL No
             { wch: 30 }, // Grade Type
             { wch: 20 }, // Slab In
             { wch: 20 }, // Grade Slab
-            { wch: 15 }  // Grade
+            { wch: 15 } // Grade
         ];
 
         XLSX.utils.book_append_sheet(wb, ws, 'Grade Slab Report');
@@ -163,11 +164,13 @@ export const ReportList: React.FC<ReportListProps> = ({ data, institution }) => 
                     emgR_Id: curr.emgR_Id,
                     emgR_GradeName: curr.emgR_GradeName,
                     emgR_MarksPerFlag: curr.emgR_MarksPerFlag,
-                    grd_details: [{
-                        emgD_From: curr.emgD_From,
-                        emgD_To: curr.emgD_To,
-                        emgD_Name: curr.emgD_Name
-                    }]
+                    grd_details: [
+                        {
+                            emgD_From: curr.emgD_From,
+                            emgD_To: curr.emgD_To,
+                            emgD_Name: curr.emgD_Name
+                        }
+                    ]
                 });
             }
             return acc;
@@ -176,86 +179,95 @@ export const ReportList: React.FC<ReportListProps> = ({ data, institution }) => 
     };
 
     // Filter Logic
-    const filteredData = groupData(data).filter((group: { emgR_GradeName: string; grd_details: any[]; }) =>
-        group.emgR_GradeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        group.grd_details.some((detail: any) => detail.emgD_Name.toLowerCase().includes(searchTerm.toLowerCase()))
+    const filteredData = groupData(data).filter(
+        (group: { emgR_GradeName: string; grd_details: any[] }) =>
+            group.emgR_GradeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            group.grd_details.some((detail: any) => detail.emgD_Name.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
     if (!data || data.length === 0) return null;
 
     return (
-        <Card className="mt-6 border-t-4 border-t-blue-600 shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between border-b pb-4 bg-white">
-                <CardTitle className="text-blue-900 font-bold uppercase text-lg">Grade Slab Report</CardTitle>
-                <div className="flex space-x-2">
-                    <Button onClick={handleExport} variant="outline" className="bg-white hover:bg-gray-50 text-green-700 border-green-600 h-8 flex items-center gap-2">
-                        <FileSpreadsheet className="h-4 w-4" /> Excel
+        <Card className='mt-6 border-t-4 border-t-blue-600 shadow-sm'>
+            <CardHeader className='flex flex-row items-center justify-between border-b bg-white pb-4'>
+                <CardTitle className='font-bold text-blue-900 text-lg uppercase'>Grade Slab Report</CardTitle>
+                <div className='flex space-x-2'>
+                    <Button
+                        onClick={handleExport}
+                        variant='outline'
+                        className='flex h-8 items-center gap-2 border-green-600 bg-white text-green-700 hover:bg-gray-50'>
+                        <FileSpreadsheet className='h-4 w-4' /> Excel
                     </Button>
-                    <Button onClick={handlePrint} variant="outline" className="bg-white hover:bg-gray-50 text-blue-700 border-blue-600 h-8 flex items-center gap-2">
-                        <Printer className="h-4 w-4" /> Print
+                    <Button
+                        onClick={handlePrint}
+                        variant='outline'
+                        className='flex h-8 items-center gap-2 border-blue-600 bg-white text-blue-700 hover:bg-gray-50'>
+                        <Printer className='h-4 w-4' /> Print
                     </Button>
                 </div>
             </CardHeader>
-            <CardContent className="p-0">
-                <div className="flex justify-end p-4 bg-white border-b border-gray-100">
-                    <div className="relative w-full max-w-sm">
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-muted-foreground">
-                            <Search className="h-4 w-4" />
+            <CardContent className='p-0'>
+                <div className='flex justify-end border-gray-100 border-b bg-white p-4'>
+                    <div className='relative w-full max-w-sm'>
+                        <div className='pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground'>
+                            <Search className='h-4 w-4' />
                         </div>
                         <Input
-                            type="text"
-                            placeholder="Search Grade Type Here..."
+                            type='text'
+                            placeholder='Search Grade Type Here...'
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pr-10 border-blue-200 focus:border-blue-500 rounded-sm"
+                            className='rounded-sm border-blue-200 pr-10 focus:border-blue-500'
                         />
                     </div>
                 </div>
 
-                <div ref={componentRef} className="p-4 bg-white">
-                    <div className="table-responsive overflow-x-auto">
-                        <table className="w-full border-collapse border border-gray-300 text-sm">
-                            <thead className="bg-[#1976d2] text-white">
+                <div ref={componentRef} className='bg-white p-4'>
+                    <div className='table-responsive overflow-x-auto'>
+                        <table className='w-full border-collapse border border-gray-300 text-sm'>
+                            <thead className='bg-[#1976d2] text-white'>
                                 <tr>
-                                    <th className="border border-white/20 p-3 w-16 text-center font-semibold">SL.No.</th>
-                                    <th className="border border-white/20 p-3 text-center font-semibold">GRADE TYPE</th>
-                                    <th className="border border-white/20 p-3 text-center font-semibold">SLAB IN(marks or %)</th>
-                                    <th className="border border-white/20 p-3 text-center font-semibold">GRADE SLAB</th>
-                                    <th className="border border-white/20 p-3 text-center font-semibold">GRADE</th>
+                                    <th className='w-16 border border-white/20 p-3 text-center font-semibold'>SL.No.</th>
+                                    <th className='border border-white/20 p-3 text-center font-semibold'>GRADE TYPE</th>
+                                    <th className='border border-white/20 p-3 text-center font-semibold'>SLAB IN(marks or %)</th>
+                                    <th className='border border-white/20 p-3 text-center font-semibold'>GRADE SLAB</th>
+                                    <th className='border border-white/20 p-3 text-center font-semibold'>GRADE</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredData.map((group: any, groupIndex: number) =>
-                                (
+                                {filteredData.map((group: any, groupIndex: number) => (
                                     <React.Fragment key={groupIndex}>
                                         {group.grd_details.map((item: any, itemIndex: number) => (
-                                            <tr key={`${groupIndex}-${itemIndex}`} className="text-center hover:bg-accent/90">
+                                            <tr key={`${groupIndex}-${itemIndex}`} className='text-center hover:bg-accent/90'>
                                                 {itemIndex === 0 && (
-                                                    <td className="border border-gray-300 p-2 align-middle font-medium bg-blue-50/30" rowSpan={group.grd_details.length}>
+                                                    <td
+                                                        className='border border-gray-300 bg-blue-50/30 p-2 align-middle font-medium'
+                                                        rowSpan={group.grd_details.length}>
                                                         {groupIndex + 1}
                                                     </td>
                                                 )}
                                                 {itemIndex === 0 && (
-                                                    <td className="border border-gray-300 p-2 align-middle font-medium bg-blue-50/30" rowSpan={group.grd_details.length}>
+                                                    <td
+                                                        className='border border-gray-300 bg-blue-50/30 p-2 align-middle font-medium'
+                                                        rowSpan={group.grd_details.length}>
                                                         {group.emgR_GradeName}
                                                     </td>
                                                 )}
                                                 {itemIndex === 0 && (
-                                                    <td className="border border-gray-300 p-2 align-middle font-medium bg-blue-50/30" rowSpan={group.grd_details.length}>
+                                                    <td
+                                                        className='border border-gray-300 bg-blue-50/30 p-2 align-middle font-medium'
+                                                        rowSpan={group.grd_details.length}>
                                                         {group.emgR_MarksPerFlag}
                                                     </td>
                                                 )}
-                                                <td className="border border-gray-300 p-2">
+                                                <td className='border border-gray-300 p-2'>
                                                     {item.emgD_From} - {item.emgD_To}
                                                 </td>
-                                                <td className="border border-gray-300 p-2 font-semibold">
-                                                    {item.emgD_Name}
-                                                </td>
+                                                <td className='border border-gray-300 p-2 font-semibold'>{item.emgD_Name}</td>
                                             </tr>
                                         ))}
                                     </React.Fragment>
-                                )
-                                )}
+                                ))}
                             </tbody>
                         </table>
                     </div>

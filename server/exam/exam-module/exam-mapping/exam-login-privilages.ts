@@ -2,7 +2,7 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { IExamLoginPrivileges, IExamLoginPrivilegesEditDetails, ILoginPrivilegeDetails } from '@/types/exam/exam-module/exam-mapping';
+import type { IExamLoginPrivileges, ILoginPrivilegeDetails } from '@/types/exam/exam-module/exam-mapping';
 
 /* ===================== LIST ===================== */
 

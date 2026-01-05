@@ -1,31 +1,27 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import {
-    getReportDetails
-} from '@/server/exam/exam-module/reports/percentagewise-details-report';
 import { Button } from '@/components/ui/button';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Printer, FileSpreadsheet } from 'lucide-react';
-import { toast } from 'sonner';
-import { percentageWiseDetailsReportSchema, PercentageWiseDetailsReportSchema } from '@/schemas/exam/exam-module/reports';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { type PercentageWiseDetailsReportSchema, percentageWiseDetailsReportSchema } from '@/schemas/exam/exam-module/reports';
+import {
+    getCategoryDropDownByAcademicYearlist,
+    getExamGroupsByCategory
+} from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
+import { getReportDetails } from '@/server/exam/exam-module/reports/percentagewise-details-report';
+import {
+    getClassDropDownByYearCategoryList,
+    getSectionDropDownByYearCategoryClassList
+} from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 import { getAcademicYearDropdown } from '@/server/fees/masters/class_yearly_category';
-import { getCategoryDropDownByAcademicYearlist, getExamGroupsByCategory } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
-import { getExamsByCategoryandAcademicYear } from '@/server/exam/exam-module/masters/exam';
-import { getSectionListbyClassSectionSubjectGroup } from '@/server/exam/exam-module/exam-mapping/student-subject-mapping';
-import { getClassDropDownByYearCategoryList, getSectionDropDownByYearCategoryClassList } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
-import { getClassDropDownByAcademicYearlist } from '@/server/exam/exam-module/reports/cumulative-report';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { FileSpreadsheet, Loader2, Printer } from 'lucide-react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 interface ReportFormProps {
     onReportGenerated: (data: any, payload: any) => void;
@@ -58,7 +54,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
             ASMCL_Id: 0,
             ASMS_Id: 0,
             EME_Id: 0,
-            percent: '',
+            percent: ''
         }
     });
 
@@ -139,8 +135,6 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
         }
     }, [selectedClass, selectedYear, selectedCategory]);
 
-
-
     const onSubmit = async (data: PercentageWiseDetailsReportSchema) => {
         setLoading(true);
 
@@ -189,7 +183,6 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
         }
     };
 
-
     const handleCancel = () => {
         form.reset({
             qualification_type: 'all',
@@ -198,52 +191,49 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
             ASMCL_Id: 0,
             ASMS_Id: 0,
             EME_Id: 0,
-            percent: '',
+            percent: ''
         });
         onReportGenerated(null, null);
     };
 
     return (
-        <Card className="mb-6">
+        <Card className='mb-6'>
             <CardContent>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                    <div className="flex justify-center mb-6 mt-6">
+                <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                    <div className='mt-6 mb-6 flex justify-center'>
                         <Controller
                             control={control}
-                            name="qualification_type"
+                            name='qualification_type'
                             render={({ field }) => (
-                                <RadioGroup
-                                    onValueChange={field.onChange}
-                                    defaultValue={field.value}
-                                    className="flex space-x-4"
-                                >
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="all" id="r1" />
-                                        <Label htmlFor="r1">All</Label>
+                                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className='flex space-x-4'>
+                                    <div className='flex items-center space-x-2'>
+                                        <RadioGroupItem value='all' id='r1' />
+                                        <Label htmlFor='r1'>All</Label>
                                     </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="individual" id="r2" />
-                                        <Label htmlFor="r2">Individual</Label>
+                                    <div className='flex items-center space-x-2'>
+                                        <RadioGroupItem value='individual' id='r2' />
+                                        <Label htmlFor='r2'>Individual</Label>
                                     </div>
                                 </RadioGroup>
                             )}
                         />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                         {/* Academic Year */}
-                        <div className="space-y-2">
-                            <Label>Academic Year <span className="text-red-500">*</span></Label>
+                        <div className='space-y-2'>
+                            <Label>
+                                Academic Year <span className='text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 control={control}
-                                name="ASMAY_Id"
+                                name='ASMAY_Id'
                                 render={({ field }) => (
                                     <Select
                                         onValueChange={(val) => field.onChange(Number(val))}
-                                        value={field.value ? String(field.value) : undefined}
-                                    >
+                                        value={field.value ? String(field.value) : undefined}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Academic Year" />
+                                            <SelectValue placeholder='Select Academic Year' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {academicYears.map((item) => (
@@ -256,23 +246,24 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                                 )}
                             />
                             {form.formState.errors.ASMAY_Id && (
-                                <p className="text-sm text-red-500">{form.formState.errors.ASMAY_Id.message}</p>
+                                <p className='text-red-500 text-sm'>{form.formState.errors.ASMAY_Id.message}</p>
                             )}
                         </div>
 
                         {/* Category */}
-                        <div className="space-y-2">
-                            <Label>Category <span className="text-red-500">*</span></Label>
+                        <div className='space-y-2'>
+                            <Label>
+                                Category <span className='text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 control={control}
-                                name="EMCA_Id"
+                                name='EMCA_Id'
                                 render={({ field }) => (
                                     <Select
                                         onValueChange={(val) => field.onChange(Number(val))}
-                                        value={field.value ? String(field.value) : undefined}
-                                    >
+                                        value={field.value ? String(field.value) : undefined}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Category" />
+                                            <SelectValue placeholder='Select Category' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {categories.map((item) => (
@@ -285,24 +276,25 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                                 )}
                             />
                             {form.formState.errors.EMCA_Id && (
-                                <p className="text-sm text-red-500">{form.formState.errors.EMCA_Id.message}</p>
+                                <p className='text-red-500 text-sm'>{form.formState.errors.EMCA_Id.message}</p>
                             )}
                         </div>
 
                         {/* Class */}
-                        <div className="space-y-2">
-                            <Label>Class <span className="text-red-500">*</span></Label>
+                        <div className='space-y-2'>
+                            <Label>
+                                Class <span className='text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 control={control}
-                                name="ASMCL_Id"
+                                name='ASMCL_Id'
                                 render={({ field }) => (
                                     <Select
                                         onValueChange={(val) => field.onChange(Number(val))}
                                         value={field.value ? String(field.value) : undefined}
-                                        disabled={qualificationType === 'all'}
-                                    >
+                                        disabled={qualificationType === 'all'}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Class" />
+                                            <SelectValue placeholder='Select Class' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {classes.map((item) => (
@@ -315,27 +307,28 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                                 )}
                             />
                             {form.formState.errors.ASMCL_Id && (
-                                <p className="text-sm text-red-500">{form.formState.errors.ASMCL_Id.message}</p>
+                                <p className='text-red-500 text-sm'>{form.formState.errors.ASMCL_Id.message}</p>
                             )}
                         </div>
 
                         {/* Section */}
-                        <div className="space-y-2">
-                            <Label>Section <span className="text-red-500">*</span></Label>
+                        <div className='space-y-2'>
+                            <Label>
+                                Section <span className='text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 control={control}
-                                name="ASMS_Id"
+                                name='ASMS_Id'
                                 render={({ field }) => (
                                     <Select
                                         onValueChange={(val) => field.onChange(Number(val))}
                                         value={field.value !== undefined ? String(field.value) : undefined}
-                                        disabled={qualificationType === 'all'}
-                                    >
+                                        disabled={qualificationType === 'all'}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Section" />
+                                            <SelectValue placeholder='Select Section' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="0">All</SelectItem>
+                                            <SelectItem value='0'>All</SelectItem>
                                             {sections.map((item) => (
                                                 <SelectItem key={item.asmS_Id} value={String(item.asmS_Id)}>
                                                     {item.asmC_SectionName}
@@ -346,23 +339,24 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                                 )}
                             />
                             {form.formState.errors.ASMS_Id && (
-                                <p className="text-sm text-red-500">{form.formState.errors.ASMS_Id.message}</p>
+                                <p className='text-red-500 text-sm'>{form.formState.errors.ASMS_Id.message}</p>
                             )}
                         </div>
 
                         {/* Exam */}
-                        <div className="space-y-2">
-                            <Label>Exam <span className="text-red-500">*</span></Label>
+                        <div className='space-y-2'>
+                            <Label>
+                                Exam <span className='text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 control={control}
-                                name="EME_Id"
+                                name='EME_Id'
                                 render={({ field }) => (
                                     <Select
                                         onValueChange={(val) => field.onChange(Number(val))}
-                                        value={field.value ? String(field.value) : undefined}
-                                    >
+                                        value={field.value ? String(field.value) : undefined}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Exam" />
+                                            <SelectValue placeholder='Select Exam' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {exams.map((item) => (
@@ -374,24 +368,21 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                                     </Select>
                                 )}
                             />
-                            {form.formState.errors.EME_Id && (
-                                <p className="text-sm text-red-500">{form.formState.errors.EME_Id.message}</p>
-                            )}
+                            {form.formState.errors.EME_Id && <p className='text-red-500 text-sm'>{form.formState.errors.EME_Id.message}</p>}
                         </div>
 
                         {/* Percentage */}
-                        <div className="space-y-2">
-                            <Label>Percentage <span className="text-red-500">*</span></Label>
+                        <div className='space-y-2'>
+                            <Label>
+                                Percentage <span className='text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 control={control}
-                                name="percent"
+                                name='percent'
                                 render={({ field }) => (
-                                    <Select
-                                        onValueChange={field.onChange}
-                                        value={field.value}
-                                    >
+                                    <Select onValueChange={field.onChange} value={field.value}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Percentage" />
+                                            <SelectValue placeholder='Select Percentage' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {percentageArray.map((item) => (
@@ -404,17 +395,17 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                                 )}
                             />
                             {form.formState.errors.percent && (
-                                <p className="text-sm text-red-500">{form.formState.errors.percent.message}</p>
+                                <p className='text-red-500 text-sm'>{form.formState.errors.percent.message}</p>
                             )}
                         </div>
                     </div>
 
-                    <div className="flex justify-center space-x-4">
-                        <Button type="submit" disabled={loading}>
-                            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    <div className='flex justify-center space-x-4'>
+                        <Button type='submit' disabled={loading}>
+                            {loading && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
                             Report
                         </Button>
-                        <Button type="button" variant="destructive" onClick={handleCancel}>
+                        <Button type='button' variant='destructive' onClick={handleCancel}>
                             Cancel
                         </Button>
                         <Button

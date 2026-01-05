@@ -1,11 +1,16 @@
 import { EXAM_QUERY_KEYS } from '@/constants/query-keys';
 import { getCoScholasticActivityAreaMapping } from '@/server/exam/exam-module/exam-mapping/co-scholastic-activitiy-area-mapping';
-import { getClassTeacherDropdwonList, getEmployeeDropdwonList, getExamLoginPrivileges, getLoginPrivilegesDetails, getUserDropdwonList } from '@/server/exam/exam-module/exam-mapping/exam-login-privilages';
+import {
+    getClassTeacherDropdwonList,
+    getEmployeeDropdwonList,
+    getExamLoginPrivileges,
+    getLoginPrivilegesDetails,
+    getUserDropdwonList
+} from '@/server/exam/exam-module/exam-mapping/exam-login-privilages';
 import { getExamMarksProcessCondition } from '@/server/exam/exam-module/exam-mapping/exam-marks-process-condition';
 import {
     getExamSubjectGroupMapping,
-    getExamSubjectGroupMappingDetails,
-    getSubjectsForPromotionalExam
+    getExamSubjectGroupMappingDetails
 } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
 import {
     getExamSubjectWizard,
@@ -19,7 +24,12 @@ import {
     getExamTermAndExamMappingDetails
 } from '@/server/exam/exam-module/exam-mapping/examTerm-and-exam-mappiong';
 import { getHallTicketGeneratedList, getHallTicketStudentList } from '@/server/exam/exam-module/exam-mapping/hallTicket-generation';
-import { getPromotionalSettingDetails, getPromotionalSettings, getPromotionSubjectMappingList, viewIndividualSubjectGroups, viewSubjectsGroupExams } from '@/server/exam/exam-module/exam-mapping/promotional-setting';
+import {
+    getPromotionalSettingDetails,
+    getPromotionalSettings,
+    viewIndividualSubjectGroups,
+    viewSubjectsGroupExams
+} from '@/server/exam/exam-module/exam-mapping/promotional-setting';
 
 import { getYearlyCategoryDatesMapping } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
 import { getYearlyCategorySubjectMapping } from '@/server/exam/exam-module/exam-mapping/yearly-category-subject-mapping';
@@ -349,7 +359,6 @@ export const usePromotionalSetting = (searchParams?: ApiSearchparams) => {
     };
 };
 
-
 export const usePromotionalSettingDetails = (emp_Id: number, searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
@@ -406,9 +415,6 @@ export const usePromotionalGroupMappedExams = (groupId: number, searchParams?: A
         }
     };
 };
-
-
-
 
 export const useClassTeacherDropdownList = () => {
     const queryClient = useQueryClient();

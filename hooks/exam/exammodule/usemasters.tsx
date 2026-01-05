@@ -97,7 +97,6 @@ export const useMasterOrderedExamDropdownList = (searchParams?: ApiSearchparams)
     };
 };
 
-
 export const useMasterExamPaper = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 

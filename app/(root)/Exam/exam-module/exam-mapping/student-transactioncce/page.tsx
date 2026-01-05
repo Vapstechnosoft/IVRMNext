@@ -1,10 +1,10 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { StudentTransactionSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import {
@@ -13,6 +13,24 @@ import {
     onchangeSkills,
     saveCCEStudentMarks
 } from '@/server/exam/exam-module/exam-mapping/student-transaction-cce';
+import { getCoScholasticActivities } from '@/server/exam/exam-module/masters/co-scholastic-activity';
+import { getMasterLifeSkills } from '@/server/exam/exam-module/masters/life-skills';
+import {
+    getClassDropDownByAcademicYearlist,
+    getExamsDropDownByAcademicYearandClassandSectionlist,
+    getSectionsDropDownByAcademicYearandClasslist
+} from '@/server/exam/exam-module/reports/cumulative-report';
+import type {
+    IActivityArea,
+    IActivityName,
+    IClass,
+    IExamMaster,
+    ISavedScore,
+    ISection,
+    ISkillArea,
+    ISkillName,
+    IStudentTransaction
+} from '@/types/exam/exam-module/exam-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RotateCcw, Search } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -20,22 +38,6 @@ import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 import { StudentTransactionColumns } from './_components/columns';
-import type {
-    IActivityArea,
-    IActivityName,
-    IClass,
-    IExamMaster,
-    IExamTerm,
-    ISavedScore,
-    ISection,
-    ISkillArea,
-    ISkillName,
-    IStudentTransaction
-} from '@/types/exam/exam-module/exam-mapping';
-import { getClassDropDownByAcademicYearlist, getExamsDropDownByAcademicYearandClassandSectionlist, getSectionsDropDownByAcademicYearandClasslist } from '@/server/exam/exam-module/reports/cumulative-report';
-import { getClassDropDownByYearCategoryList, getSectionDropDownByYearCategoryClassList } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
-import { getMasterLifeSkillAreas, getMasterLifeSkills } from '@/server/exam/exam-module/masters/life-skills';
-import { getCoScholasticActivities } from '@/server/exam/exam-module/masters/co-scholastic-activity';
 
 type FormFields = z.infer<typeof StudentTransactionSchema.search>;
 
@@ -359,7 +361,6 @@ function StudentTransactionContent() {
                     setActivityAreas(areasList);
                     setSkillAreas([]);
                 }
-
             } catch (err) {
                 console.error(`Error loading ${watchSkillActivity} areas:`, err);
                 toast.error(`Failed to load ${watchSkillActivity} areas`);
@@ -376,19 +377,17 @@ function StudentTransactionContent() {
     // Handle score change
     const handleScoreChange = useCallback((studentId: number, score: string) => {
         setStudents((prev) => {
-            return prev.map((s) =>
-                s.amsT_Id === studentId ? { ...s, ecsactT_Score: score } : s
-            );
+            return prev.map((s) => (s.amsT_Id === studentId ? { ...s, ecsactT_Score: score } : s));
         });
     }, []);
 
     // Handle checkbox change for individual student
     const handleCheckboxChange = useCallback((studentId: number, isChecked: boolean) => {
-        setSelectedStudentIds(prev => {
+        setSelectedStudentIds((prev) => {
             if (isChecked) {
                 return [...prev, studentId];
             } else {
-                return prev.filter(id => id !== studentId);
+                return prev.filter((id) => id !== studentId);
             }
         });
     }, []);
@@ -398,7 +397,7 @@ function StudentTransactionContent() {
         if (isSelectAll) {
             setSelectedStudentIds([]);
         } else {
-            const allIds = students.map(s => s.amsT_Id);
+            const allIds = students.map((s) => s.amsT_Id);
             setSelectedStudentIds(allIds);
         }
         setIsSelectAll(!isSelectAll);
@@ -535,14 +534,10 @@ function StudentTransactionContent() {
         }
 
         // Get selected students with their scores
-        const selectedStudents = students.filter((student) =>
-            selectedStudentIds.includes(student.amsT_Id)
-        );
+        const selectedStudents = students.filter((student) => selectedStudentIds.includes(student.amsT_Id));
 
         // Validate that all selected students have scores
-        const studentsWithoutScores = selectedStudents.filter((student) =>
-            !student.ecsactT_Score || student.ecsactT_Score.trim() === ''
-        );
+        const studentsWithoutScores = selectedStudents.filter((student) => !student.ecsactT_Score || student.ecsactT_Score.trim() === '');
 
         if (studentsWithoutScores.length > 0) {
             toast.error('Please enter scores for all selected students');
@@ -618,31 +613,44 @@ function StudentTransactionContent() {
     };
 
     // Handle row selection change (for table component if it supports it)
-    const handleRowSelectionChange = useCallback((selectedRows: any[]) => {
-        const selectedIds = selectedRows.map((row) => row.amsT_Id);
-        setSelectedStudentIds(selectedIds);
-        setIsSelectAll(selectedIds.length === students.length && students.length > 0);
-    }, [students]);
+    const handleRowSelectionChange = useCallback(
+        (selectedRows: any[]) => {
+            const selectedIds = selectedRows.map((row) => row.amsT_Id);
+            setSelectedStudentIds(selectedIds);
+            setIsSelectAll(selectedIds.length === students.length && students.length > 0);
+        },
+        [students]
+    );
 
     // Update columns with proper callbacks
-    const columns = useMemo(() => StudentTransactionColumns({
-        onScoreChange: handleScoreChange,
-        onCheckboxChange: handleCheckboxChange,
-        onToggleAll: handleToggleAll,
-        hideSaveButton,
-        isSelectAll,
-        selectedStudentIds
-    }), [handleScoreChange, handleCheckboxChange, handleToggleAll, hideSaveButton, isSelectAll, selectedStudentIds]);
+    const columns = useMemo(
+        () =>
+            StudentTransactionColumns({
+                onScoreChange: handleScoreChange,
+                onCheckboxChange: handleCheckboxChange,
+                onToggleAll: handleToggleAll,
+                hideSaveButton,
+                isSelectAll,
+                selectedStudentIds
+            }),
+        [handleScoreChange, handleCheckboxChange, handleToggleAll, hideSaveButton, isSelectAll, selectedStudentIds]
+    );
 
     // Check if all required fields are filled for search
-    const allFieldsFilled = watchAcademicYear && watchAcademicYear !== 0 &&
-        watchClass && watchClass !== 0 &&
-        watchSection && watchSection !== 0 &&
+    const allFieldsFilled =
+        watchAcademicYear &&
+        watchAcademicYear !== 0 &&
+        watchClass &&
+        watchClass !== 0 &&
+        watchSection &&
+        watchSection !== 0 &&
         ((watchExamType === 'TermWise' && watchExamTerm && watchExamTerm !== 0) ||
             (watchExamType === 'ExamWise' && watchEmEId && watchEmEId !== 0)) &&
         watchSkillActivity &&
-        watchName && watchName !== 0 &&
-        watchArea && watchArea !== 0;
+        watchName &&
+        watchName !== 0 &&
+        watchArea &&
+        watchArea !== 0;
 
     return (
         <FormProvider {...methods}>
@@ -651,7 +659,7 @@ function StudentTransactionContent() {
                     {/* Filters Section */}
                     <div className='rounded-lg border bg-white p-6 shadow-sm'>
                         {/* Radio Buttons */}
-                        <div className='flex justify-center mb-6'>
+                        <div className='mb-6 flex justify-center'>
                             <div className='inline-flex rounded-lg border p-1'>
                                 <Controller
                                     control={control}
@@ -660,10 +668,11 @@ function StudentTransactionContent() {
                                         <>
                                             <button
                                                 type='button'
-                                                className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${field.value === 'TermWise'
-                                                    ? 'bg-purple-600 text-white'
-                                                    : 'bg-transparent text-gray-600 hover:bg-gray-100'
-                                                    }`}
+                                                className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${
+                                                    field.value === 'TermWise'
+                                                        ? 'bg-purple-600 text-white'
+                                                        : 'bg-transparent text-gray-600 hover:bg-gray-100'
+                                                }`}
                                                 onClick={() => {
                                                     field.onChange('TermWise');
                                                     setValue('emE_Id', 0);
@@ -674,10 +683,11 @@ function StudentTransactionContent() {
                                             </button>
                                             <button
                                                 type='button'
-                                                className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${field.value === 'ExamWise'
-                                                    ? 'bg-purple-600 text-white'
-                                                    : 'bg-transparent text-gray-600 hover:bg-gray-100'
-                                                    }`}
+                                                className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${
+                                                    field.value === 'ExamWise'
+                                                        ? 'bg-purple-600 text-white'
+                                                        : 'bg-transparent text-gray-600 hover:bg-gray-100'
+                                                }`}
                                                 onClick={() => {
                                                     field.onChange('ExamWise');
                                                     setValue('examTermId', 0);
@@ -712,7 +722,9 @@ function StudentTransactionContent() {
                                                 }}
                                                 disabled={loadingAcademicYears}>
                                                 <SelectTrigger id='academic-year'>
-                                                    <SelectValue placeholder={loadingAcademicYears ? 'Loading...' : 'Select Academic Year'} />
+                                                    <SelectValue
+                                                        placeholder={loadingAcademicYears ? 'Loading...' : 'Select Academic Year'}
+                                                    />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {academicYears.map((year) => (
@@ -752,7 +764,7 @@ function StudentTransactionContent() {
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {classes.length === 0 ? (
-                                                        <SelectItem value="placeholder" disabled>
+                                                        <SelectItem value='placeholder' disabled>
                                                             No classes available
                                                         </SelectItem>
                                                     ) : (
@@ -794,14 +806,14 @@ function StudentTransactionContent() {
                                                             !watchClass
                                                                 ? 'Select Class first'
                                                                 : loadingSections
-                                                                    ? 'Loading...'
-                                                                    : 'Select Section'
+                                                                  ? 'Loading...'
+                                                                  : 'Select Section'
                                                         }
                                                     />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {sections.length === 0 ? (
-                                                        <SelectItem value="placeholder" disabled>
+                                                        <SelectItem value='placeholder' disabled>
                                                             No sections available
                                                         </SelectItem>
                                                     ) : (
@@ -844,22 +856,19 @@ function StudentTransactionContent() {
                                                                 !watchSection
                                                                     ? 'Select Section first'
                                                                     : loadingExamData
-                                                                        ? 'Loading...'
-                                                                        : 'Select Exam Term'
+                                                                      ? 'Loading...'
+                                                                      : 'Select Exam Term'
                                                             }
                                                         />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {examTerms.length === 0 ? (
-                                                            <SelectItem value="placeholder" disabled>
+                                                            <SelectItem value='placeholder' disabled>
                                                                 No exam terms available
                                                             </SelectItem>
                                                         ) : (
                                                             examTerms.map((term) => (
-                                                                <SelectItem
-                                                                    key={term.emE_Id}
-                                                                    value={term.emE_Id.toString()}
-                                                                >
+                                                                <SelectItem key={term.emE_Id} value={term.emE_Id.toString()}>
                                                                     {term.emE_ExamName}
                                                                 </SelectItem>
                                                             ))
@@ -898,48 +907,38 @@ function StudentTransactionContent() {
                                                                 !watchSection
                                                                     ? 'Select Section first'
                                                                     : loadingExamData
-                                                                        ? 'Loading...'
-                                                                        : 'Select Exam'
+                                                                      ? 'Loading...'
+                                                                      : 'Select Exam'
                                                             }
                                                         />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {watchExamType === 'ExamWise' ? (
                                                             exams.length === 0 ? (
-                                                                <SelectItem value="placeholder" disabled>
+                                                                <SelectItem value='placeholder' disabled>
                                                                     No exams available
                                                                 </SelectItem>
                                                             ) : (
                                                                 exams.map((exam) => (
-                                                                    <SelectItem
-                                                                        key={exam.emE_Id}
-                                                                        value={exam.emE_Id.toString()}
-                                                                    >
+                                                                    <SelectItem key={exam.emE_Id} value={exam.emE_Id.toString()}>
                                                                         {exam.emE_ExamName}
                                                                     </SelectItem>
                                                                 ))
                                                             )
-                                                        ) :
-                                                            watchExamType === 'TermWise' ? (
-                                                                examTerms.length === 0 ? (
-                                                                    <SelectItem value="placeholder" disabled>
-                                                                        No exams available
+                                                        ) : watchExamType === 'TermWise' ? (
+                                                            examTerms.length === 0 ? (
+                                                                <SelectItem value='placeholder' disabled>
+                                                                    No exams available
+                                                                </SelectItem>
+                                                            ) : (
+                                                                examTerms.map((exam) => (
+                                                                    <SelectItem key={exam.emE_Id} value={exam.emE_Id.toString()}>
+                                                                        {exam.emE_ExamName}
                                                                     </SelectItem>
-                                                                ) : (
-                                                                    examTerms.map((exam) => (
-                                                                        <SelectItem
-                                                                            key={exam.emE_Id}
-                                                                            value={exam.emE_Id.toString()}
-                                                                        >
-                                                                            {exam.emE_ExamName}
-                                                                        </SelectItem>
-                                                                    ))
-                                                                )
-                                                            ) :
-                                                                null}
-
+                                                                ))
+                                                            )
+                                                        ) : null}
                                                     </SelectContent>
-
                                                 </Select>
                                                 {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </>
@@ -1012,7 +1011,7 @@ function StudentTransactionContent() {
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {skillNames.length === 0 ? (
-                                                            <SelectItem value="placeholder" disabled>
+                                                            <SelectItem value='placeholder' disabled>
                                                                 No skills available
                                                             </SelectItem>
                                                         ) : (
@@ -1055,7 +1054,7 @@ function StudentTransactionContent() {
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {activityNames.length === 0 ? (
-                                                            <SelectItem value="placeholder" disabled>
+                                                            <SelectItem value='placeholder' disabled>
                                                                 No activities available
                                                             </SelectItem>
                                                         ) : (
@@ -1098,7 +1097,7 @@ function StudentTransactionContent() {
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {skillAreas.length === 0 ? (
-                                                            <SelectItem value="placeholder" disabled>
+                                                            <SelectItem value='placeholder' disabled>
                                                                 No skill areas available
                                                             </SelectItem>
                                                         ) : (
@@ -1141,7 +1140,7 @@ function StudentTransactionContent() {
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {activityAreas.length === 0 ? (
-                                                            <SelectItem value="placeholder" disabled>
+                                                            <SelectItem value='placeholder' disabled>
                                                                 No activity areas available
                                                             </SelectItem>
                                                         ) : (

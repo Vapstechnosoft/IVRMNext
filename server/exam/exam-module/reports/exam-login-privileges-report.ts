@@ -56,29 +56,23 @@ export async function getEmployees(sectionId: any) {
 }
 
 export async function getReportDetails(data: any) {
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     // Mock response based on logic
     const mockData = [
-          {
+        {
             ASMCL_ClassName: 'I',
             ASMC_SectionName: 'A',
             Employeename: 'John Doe',
-            subjectlist: [
-                { ISMS_SubjectName: 'Mathematics' },
-                { ISMS_SubjectName: 'English' }
-            ]
-          },
-          {
+            subjectlist: [{ ISMS_SubjectName: 'Mathematics' }, { ISMS_SubjectName: 'English' }]
+        },
+        {
             ASMCL_ClassName: 'I',
             ASMC_SectionName: 'B',
             Employeename: 'Jane Smith',
-            subjectlist: [
-                { ISMS_SubjectName: 'Science' },
-                 { ISMS_SubjectName: 'Social' }
-            ]
-          }
-      ];
+            subjectlist: [{ ISMS_SubjectName: 'Science' }, { ISMS_SubjectName: 'Social' }]
+        }
+    ];
 
     return {
         datareport: mockData

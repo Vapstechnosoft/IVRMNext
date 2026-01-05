@@ -12,9 +12,8 @@ import type { IExamLoginPrivileges, ILoginPrivilegeDetails } from '@/types/exam/
 import { X } from 'lucide-react';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
-import { LoginPrivilegesDetailsColumns } from './yearly-category-subject-mapping-columns';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import ToggleLoginPrivilegeForm from './toggle-form';
+import { LoginPrivilegesDetailsColumns } from './yearly-category-subject-mapping-columns';
 
 interface LoginPrivilegesDetailsPageProps {
     rowData: IExamLoginPrivileges;
@@ -91,14 +90,14 @@ export default function LoginPrivilegesDetailsPage({ rowData, onClose }: LoginPr
 }
 
 function FormSections({ elpId, asmclId, asmsId }: { elpId: number; asmclId: number; asmsId: number }) {
-    const { isToggleFormOpen, selectedRow, closeToggleForm } =
-        useFormContext<ILoginPrivilegeDetails>();
+    const { isToggleFormOpen, selectedRow, closeToggleForm } = useFormContext<ILoginPrivilegeDetails>();
 
     return (
         <>
-
             {/* Toggle Form */}
-            {isToggleFormOpen && selectedRow && <ToggleLoginPrivilegeForm rowData={selectedRow} onClose={closeToggleForm} elpId={elpId} asmclId={asmclId} asmsId={asmsId} />}
+            {isToggleFormOpen && selectedRow && (
+                <ToggleLoginPrivilegeForm rowData={selectedRow} onClose={closeToggleForm} elpId={elpId} asmclId={asmclId} asmsId={asmsId} />
+            )}
         </>
     );
 }

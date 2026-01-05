@@ -73,12 +73,7 @@ function MappingCell({ rowData }: { rowData: IPromotionalGroupDetails }) {
     }, [openMappedview, rowData]);
 
     return (
-        <button
-            onClick={handleOpenView}
-            type='button'
-            className='rounded-md p-2 transition hover:bg-muted'
-            title='View Group Details'
-        >
+        <button onClick={handleOpenView} type='button' className='rounded-md p-2 transition hover:bg-muted' title='View Group Details'>
             <Eye className='h-4 w-4 text-blue-600' />
         </button>
     );
@@ -97,12 +92,7 @@ function ActionButtonsCell({ rowData }: { rowData: IPromotionalGroupDetails }) {
     return (
         <div className='flex justify-center gap-1'>
             <MappingCell rowData={rowData} />
-            <ActionButtons
-                rowData={rowData}
-                buttons={{ toggle: true }}
-                onToggle={handleToggle}
-                toggleConditionKey='emP_ActiveFlag'
-            />
+            <ActionButtons rowData={rowData} buttons={{ toggle: true }} onToggle={handleToggle} toggleConditionKey='emP_ActiveFlag' />
         </div>
     );
 }

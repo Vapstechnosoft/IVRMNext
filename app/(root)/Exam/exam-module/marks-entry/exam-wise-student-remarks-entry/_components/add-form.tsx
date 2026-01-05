@@ -124,10 +124,9 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
         setIsStudentsGridOpen(false);
 
         // Force re-render of selects
-        setClassKey(prev => prev + 1);
-        setSectionKey(prev => prev + 1);
-        setExamKey(prev => prev + 1);
-
+        setClassKey((prev) => prev + 1);
+        setSectionKey((prev) => prev + 1);
+        setExamKey((prev) => prev + 1);
     }, [rowData, orgId, reset]);
 
     // ---------- Load Classes ----------
@@ -135,7 +134,7 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
         if (!asmaY_Id || asmaY_Id === 0) {
             setClasses([]);
             setValue('asmcL_Id', 0);
-            setClassKey(prev => prev + 1);
+            setClassKey((prev) => prev + 1);
             return;
         }
 
@@ -154,12 +153,12 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                 setValue('emE_Id', 0);
 
                 // Force re-render
-                setSectionKey(prev => prev + 1);
-                setExamKey(prev => prev + 1);
+                setSectionKey((prev) => prev + 1);
+                setExamKey((prev) => prev + 1);
 
                 // If rowData exists and we have matching class, select it
                 if (rowData?.asmcL_Id) {
-                    const foundClass = classData.find(c => c.asmcL_Id === rowData.asmcL_Id);
+                    const foundClass = classData.find((c) => c.asmcL_Id === rowData.asmcL_Id);
                     if (foundClass) {
                         setValue('asmcL_Id', rowData.asmcL_Id);
                     }
@@ -186,7 +185,7 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
         if (!asmaY_Id || !asmcL_Id || asmcL_Id === 0) {
             setSections([]);
             setValue('asmS_Id', 0);
-            setSectionKey(prev => prev + 1);
+            setSectionKey((prev) => prev + 1);
             return;
         }
 
@@ -203,11 +202,11 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                 setValue('emE_Id', 0);
 
                 // Force re-render
-                setExamKey(prev => prev + 1);
+                setExamKey((prev) => prev + 1);
 
                 // If rowData exists and we have matching section, select it
                 if (rowData?.asmS_Id) {
-                    const foundSection = sectionData.find(s => s.asmS_Id === rowData.asmS_Id);
+                    const foundSection = sectionData.find((s) => s.asmS_Id === rowData.asmS_Id);
                     if (foundSection) {
                         setValue('asmS_Id', rowData.asmS_Id);
                     }
@@ -234,7 +233,7 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
         if (!asmaY_Id || !asmcL_Id || !asmS_Id || asmS_Id === 0) {
             setExams([]);
             setValue('emE_Id', 0);
-            setExamKey(prev => prev + 1);
+            setExamKey((prev) => prev + 1);
             return;
         }
 
@@ -250,7 +249,7 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
 
                 // If rowData exists and we have matching exam, select it
                 if (rowData?.emE_Id) {
-                    const foundExam = examData.find(e => e.emE_Id === rowData.emE_Id);
+                    const foundExam = examData.find((e) => e.emE_Id === rowData.emE_Id);
                     if (foundExam) {
                         setValue('emE_Id', rowData.emE_Id);
                     }
@@ -273,8 +272,7 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
     }, [asmaY_Id, asmcL_Id, asmS_Id, setValue, rowData]);
 
     async function handleSearch() {
-        if (!asmaY_Id || !asmcL_Id || !emE_Id || !asmS_Id ||
-            asmaY_Id === 0 || asmcL_Id === 0 || emE_Id === 0 || asmS_Id === 0) {
+        if (!asmaY_Id || !asmcL_Id || !emE_Id || !asmS_Id || asmaY_Id === 0 || asmcL_Id === 0 || emE_Id === 0 || asmS_Id === 0) {
             toast.error('Please select all required fields before search');
             return;
         }
@@ -395,9 +393,9 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
         setValidationErrors({});
 
         // Force re-render of selects
-        setClassKey(prev => prev + 1);
-        setSectionKey(prev => prev + 1);
-        setExamKey(prev => prev + 1);
+        setClassKey((prev) => prev + 1);
+        setSectionKey((prev) => prev + 1);
+        setExamKey((prev) => prev + 1);
     };
 
     const updateStudent = (id: number, remarks: string) => {
@@ -446,11 +444,7 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                                         disabled={academicYearLoading}>
                                         <SelectTrigger>
                                             <SelectValue
-                                                placeholder={
-                                                    academicYearLoading
-                                                        ? 'Loading Academic Year...'
-                                                        : 'Select Academic Year'
-                                                }
+                                                placeholder={academicYearLoading ? 'Loading Academic Year...' : 'Select Academic Year'}
                                             />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -502,10 +496,10 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                                                     loadingClasses
                                                         ? 'Loading classes...'
                                                         : !asmaY_Id || asmaY_Id === 0
-                                                            ? 'Select Academic Year first'
-                                                            : classes.length === 0
-                                                                ? 'No classes available'
-                                                                : 'Select Class'
+                                                          ? 'Select Academic Year first'
+                                                          : classes.length === 0
+                                                            ? 'No classes available'
+                                                            : 'Select Class'
                                                 }
                                             />
                                         </SelectTrigger>
@@ -554,10 +548,10 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                                                     loadingSections
                                                         ? 'Loading sections...'
                                                         : !asmcL_Id || asmcL_Id === 0
-                                                            ? 'Select Class first'
-                                                            : sections.length === 0
-                                                                ? 'No sections available'
-                                                                : 'Select Section'
+                                                          ? 'Select Class first'
+                                                          : sections.length === 0
+                                                            ? 'No sections available'
+                                                            : 'Select Section'
                                                 }
                                             />
                                         </SelectTrigger>
@@ -606,10 +600,10 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                                                     loadingExams
                                                         ? 'Loading exams...'
                                                         : !asmS_Id || asmS_Id === 0
-                                                            ? 'Select Section first'
-                                                            : exams.length === 0
-                                                                ? 'No exams available'
-                                                                : 'Select Exam'
+                                                          ? 'Select Section first'
+                                                          : exams.length === 0
+                                                            ? 'No exams available'
+                                                            : 'Select Exam'
                                                 }
                                             />
                                         </SelectTrigger>
@@ -644,9 +638,16 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                         <Button
                             type='button'
                             onClick={handleSearch}
-                            disabled={!asmaY_Id || !asmcL_Id || !emE_Id || !asmS_Id ||
-                                asmaY_Id === 0 || asmcL_Id === 0 || emE_Id === 0 || asmS_Id === 0}
-                        >
+                            disabled={
+                                !asmaY_Id ||
+                                !asmcL_Id ||
+                                !emE_Id ||
+                                !asmS_Id ||
+                                asmaY_Id === 0 ||
+                                asmcL_Id === 0 ||
+                                emE_Id === 0 ||
+                                asmS_Id === 0
+                            }>
                             Search Students
                         </Button>
                     </div>
