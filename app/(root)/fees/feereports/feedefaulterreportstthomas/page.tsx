@@ -13,6 +13,7 @@ import { useFeeClassListDefaulterreport, useFeeSectionListDefaulterreport } from
 import { cn } from '@/lib/utils';
 import { feeDefaulterreportStthomas } from '@/schemas/fees/reports';
 import { getFeesSectionListByClassId } from '@/server/fees/reports/fee_DefaulterReport';
+import type { IspecialFeeHeadDropdownList } from '@/types/fees/masters';
 import type { IFeeClassDropdownList, IFeeSectionDropdownList } from '@/types/fees/reports/reports';
 import { zodResolver } from '@hookform/resolvers/zod/dist/zod.js';
 import { CheckSquare, Square } from 'lucide-react';
@@ -21,6 +22,8 @@ import { Input } from 'react-aria-components';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
+import DataTablePrint from './_components/datatable_print';
+import { exportToExcel, printTabl } from './_components/export_and_excel';
 
 type FormFields = z.infer<typeof feeDefaulterreportStthomas>;
 
@@ -64,7 +67,7 @@ export default function FeeDefaulterReportstthomas() {
     const [reportLoading, setReportLoading] = useState(false);
     const [showReport, setShowReport] = useState(false);
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
-    const [reportData, setReportData] = useState<any[]>([]);
+    const [reportData, setReportData] = useState<FeeDefaulterRow[]>([]);
 
     const [classes, setClasses] = useState<IFeeClassDropdownList[]>([]);
     const [sections, setSections] = useState<IFeeSectionDropdownList[]>([]);
@@ -72,6 +75,7 @@ export default function FeeDefaulterReportstthomas() {
 
     const [termSearch, setTermSearch] = useState('');
     const [selectedHeadsItems, setSelectedHeadsItems] = useState<{ fmH_Id: string }[]>([]);
+    const [showPrint, setShowPrint] = useState(false);
 
     type FeeDefaulterRow = {
         id: number;
@@ -144,11 +148,18 @@ export default function FeeDefaulterReportstthomas() {
                 //setValue('sectionId', '0');
                 return;
             }
+            const classIdNum = Number(classId);
 
+            // Check if academicYearId exists AND classId is a valid positive number
+            if (!academicYearId || !classId || Number.isNaN(classIdNum) || classIdNum <= 0) {
+                setSections([]);
+                // setValue('sectionId', '0');
+                return;
+            }
             setSectionLoading(true);
 
             try {
-                const result = await getFeesSectionListByClassId(Number(academicYearId), Number(classId));
+                const result = await getFeesSectionListByClassId(Number(academicYearId), Number(classId ?? 0));
 
                 console.log('sectionsdata', result);
 
@@ -198,7 +209,61 @@ export default function FeeDefaulterReportstthomas() {
         setSelectedHeadsItems(updated.map((x) => ({ fmH_Id: x })));
     };
 
-    const filteredHeads = masterTerms?.data?.filter((h) => h.fmH_FeeName.toLowerCase().includes(termSearch.toLowerCase())) ?? [];
+    // const filteredHeads = masterTerms?.data?.filter((h) => h.fmH_FeeName.toLowerCase().includes(termSearch.toLowerCase())) ?? [];
+
+    const filteredHeads: IspecialFeeHeadDropdownList[] = [
+        {
+            fmH_Id: 11,
+            fmH_FeeName: 'April',
+            amount: 2500
+        },
+        {
+            fmH_Id: 12,
+            fmH_FeeName: 'May',
+            amount: 2800
+        },
+        {
+            fmH_Id: 13,
+            fmH_FeeName: 'June',
+            amount: 3200
+        },
+        {
+            fmH_Id: 14,
+            fmH_FeeName: 'July',
+            amount: 2700
+        },
+        {
+            fmH_Id: 15,
+            fmH_FeeName: 'August',
+            amount: 3500
+        },
+        {
+            fmH_Id: 16,
+            fmH_FeeName: 'September',
+            amount: 3000
+        },
+        {
+            fmH_Id: 17,
+            fmH_FeeName: 'Opening Balance',
+            amount: 12500
+        },
+        {
+            fmH_Id: 18,
+            fmH_FeeName: 'New Admission Fees',
+            amount: 5000
+        },
+        {
+            fmH_Id: 189,
+            fmH_FeeName: 'Counselling Fees',
+            amount: 2000
+        },
+        {
+            fmH_Id: 19,
+            fmH_FeeName: 'Outstanding Fee 2024-25',
+            amount: 8500
+        }
+    ];
+
     const toggleRow = (id: number) => {
         setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
     };
@@ -218,7 +283,7 @@ export default function FeeDefaulterReportstthomas() {
             toast.error('Please select at least one record');
             return;
         }
-        // exportToExcel(selectedRows, 'Fee-Defaulter-Report');
+        exportToExcel(selectedRows, filteredHeads, 'Fee-Defaulter-Report');
     };
 
     const handlePrint = () => {
@@ -227,35 +292,28 @@ export default function FeeDefaulterReportstthomas() {
             return;
         }
 
-        const columns = [
-            'Sl No',
-            'Student Name',
-            'Reg.No',
-            'Class',
-            'Section',
-            'Fee Term',
-            'Total Amount',
-            'Paid Amount',
-            'Balance Amount',
-            'Due Date',
-            'Status'
-        ];
+        const feeTermColumns = filteredHeads.map((head) => head.fmH_FeeName);
 
-        const rowsToPrint = selectedRows.map((row, index) => ({
-            'Sl No': index + 1,
-            'Student Name': row.studentName,
-            'Reg.No': row.regNo,
-            Class: row.class,
-            Section: row.section,
-            'Fee Term': row.feeTerm,
-            'Total Amount': row.totalAmount,
-            'Paid Amount': row.paidAmount,
-            'Balance Amount': row.balanceAmount,
-            'Due Date': row.dueDate,
-            Status: row.status
-        }));
+        const columns = ['Sl No', 'Student Name', 'Adm.No', 'Class', 'Section', ...feeTermColumns, 'Total Amount'];
 
-        // printTable(columns, rowsToPrint);
+        const printableRows = selectedRows.map((row, index) => {
+            const feeTermData: Record<string, number> = {};
+            filteredHeads.forEach((term) => {
+                feeTermData[term.fmH_FeeName] = term.amount;
+            });
+
+            return {
+                'Sl No': index + 1,
+                'Student Name': row.studentName,
+                'Adm.No': row.regNo,
+                Class: row.class,
+                Section: row.section,
+                ...feeTermData,
+                'Total Amount': row.totalAmount
+            };
+        });
+
+        printTabl(columns, printableRows);
     };
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
@@ -284,13 +342,182 @@ export default function FeeDefaulterReportstthomas() {
                     studentName: 'Jane Smith',
                     regNo: 'REG002',
                     class: 'LOWER NURSERY',
-                    section: 'B',
+                    section: 'A',
                     feeTerm: 'April',
                     totalAmount: 5000,
                     paidAmount: 0,
                     balanceAmount: 5000,
                     dueDate: '2024-04-15',
                     status: 'Overdue'
+                },
+                {
+                    id: 3,
+                    studentName: 'Robert Johnson',
+                    regNo: 'REG003',
+                    class: 'LOWER NURSERY',
+                    section: 'A',
+                    feeTerm: 'April',
+                    totalAmount: 5000,
+                    paidAmount: 5000,
+                    balanceAmount: 0,
+                    dueDate: '2024-04-15',
+                    status: 'Paid'
+                },
+                {
+                    id: 4,
+                    studentName: 'Emily Brown',
+                    regNo: 'REG004',
+                    class: 'LOWER NURSERY',
+                    section: 'A',
+                    feeTerm: 'April',
+                    totalAmount: 5000,
+                    paidAmount: 2500,
+                    balanceAmount: 2500,
+                    dueDate: '2024-04-15',
+                    status: 'Pending'
+                },
+                {
+                    id: 5,
+                    studentName: 'Michael Wilson',
+                    regNo: 'REG005',
+                    class: 'LOWER NURSERY',
+                    section: 'A',
+                    feeTerm: 'April',
+                    totalAmount: 5000,
+                    paidAmount: 4500,
+                    balanceAmount: 500,
+                    dueDate: '2024-04-15',
+                    status: 'Pending'
+                },
+                {
+                    id: 6,
+                    studentName: 'Sarah Davis',
+                    regNo: 'REG006',
+                    class: 'LOWER NURSERY',
+                    section: 'A',
+                    feeTerm: 'April',
+                    totalAmount: 5000,
+                    paidAmount: 0,
+                    balanceAmount: 5000,
+                    dueDate: '2024-04-15',
+                    status: 'Overdue'
+                },
+                {
+                    id: 7,
+                    studentName: 'David Miller',
+                    regNo: 'REG007',
+                    class: 'LOWER NURSERY',
+                    section: 'A',
+                    feeTerm: 'April',
+                    totalAmount: 5000,
+                    paidAmount: 3500,
+                    balanceAmount: 1500,
+                    dueDate: '2024-04-15',
+                    status: 'Pending'
+                },
+                {
+                    id: 8,
+                    studentName: 'Lisa Anderson',
+                    regNo: 'REG008',
+                    class: 'LOWER NURSERY',
+                    section: 'A',
+                    feeTerm: 'April',
+                    totalAmount: 5000,
+                    paidAmount: 5000,
+                    balanceAmount: 0,
+                    dueDate: '2024-04-15',
+                    status: 'Paid'
+                },
+                {
+                    id: 9,
+                    studentName: 'James Taylor',
+                    regNo: 'REG009',
+                    class: 'LOWER NURSERY',
+                    section: 'A',
+                    feeTerm: 'April',
+                    totalAmount: 5000,
+                    paidAmount: 1000,
+                    balanceAmount: 4000,
+                    dueDate: '2024-04-15',
+                    status: 'Overdue'
+                },
+                {
+                    id: 10,
+                    studentName: 'Olivia Thomas',
+                    regNo: 'REG010',
+                    class: 'LOWER NURSERY',
+                    section: 'A',
+                    feeTerm: 'April',
+                    totalAmount: 5000,
+                    paidAmount: 4800,
+                    balanceAmount: 200,
+                    dueDate: '2024-04-15',
+                    status: 'Pending'
+                },
+                {
+                    id: 11,
+                    studentName: 'William Jackson',
+                    regNo: 'REG011',
+                    class: 'LOWER NURSERY',
+                    section: 'A',
+                    feeTerm: 'April',
+                    totalAmount: 5000,
+                    paidAmount: 0,
+                    balanceAmount: 5000,
+                    dueDate: '2024-04-15',
+                    status: 'Overdue'
+                },
+                {
+                    id: 12,
+                    studentName: 'Sophia White',
+                    regNo: 'REG012',
+                    class: 'LOWER NURSERY',
+                    section: 'A',
+                    feeTerm: 'April',
+                    totalAmount: 5000,
+                    paidAmount: 5000,
+                    balanceAmount: 0,
+                    dueDate: '2024-04-15',
+                    status: 'Paid'
+                },
+                {
+                    id: 13,
+                    studentName: 'Benjamin Harris',
+                    regNo: 'REG013',
+                    class: 'LOWER NURSERY',
+                    section: 'A',
+                    feeTerm: 'April',
+                    totalAmount: 5000,
+                    paidAmount: 2000,
+                    balanceAmount: 3000,
+                    dueDate: '2024-04-15',
+                    status: 'Pending'
+                },
+                {
+                    id: 14,
+                    studentName: 'Ava Martin',
+                    regNo: 'REG014',
+                    class: 'LOWER NURSERY',
+                    section: 'A',
+                    feeTerm: 'April',
+                    totalAmount: 5000,
+                    paidAmount: 0,
+                    balanceAmount: 5000,
+                    dueDate: '2024-04-15',
+                    status: 'Overdue'
+                },
+                {
+                    id: 15,
+                    studentName: 'Daniel Thompson',
+                    regNo: 'REG015',
+                    class: 'LOWER NURSERY',
+                    section: 'A',
+                    feeTerm: 'April',
+                    totalAmount: 5000,
+                    paidAmount: 4200,
+                    balanceAmount: 800,
+                    dueDate: '2024-04-15',
+                    status: 'Pending'
                 }
             ];
 
@@ -363,7 +590,8 @@ export default function FeeDefaulterReportstthomas() {
                                                                 setFilters((prev) => ({ ...prev, academicYearId: value }));
                                                             }}
                                                             value={field.value?.toString() || ''}
-                                                            disabled={loadingAcademic}>
+                                                            // disabled={loadingAcademic}
+                                                        >
                                                             <SelectTrigger className='w-full'>
                                                                 <SelectValue
                                                                     placeholder={loadingAcademic ? 'Loading...' : 'Select Academic Year'}
@@ -625,7 +853,6 @@ export default function FeeDefaulterReportstthomas() {
                                 <div className='flex items-center justify-between border-b bg-primary/5 px-8 py-6'>
                                     <div className='text-center'>
                                         <h2 className='font-bold text-2xl text-primary'>Fee Defaulter Report</h2>
-                                        <div className='mt-1 text-gray-600 text-sm'>Academic Year: 2024-2025 | Class: LOWER NURSERY</div>
                                     </div>
                                     <div className='flex gap-3'>
                                         <Button
@@ -660,15 +887,19 @@ export default function FeeDefaulterReportstthomas() {
                                                 </th>
                                                 <th className='border px-4 py-3'>Sl No</th>
                                                 <th className='border px-4 py-3'>Student Name</th>
-                                                <th className='border px-4 py-3'>Reg.No</th>
+                                                <th className='border px-4 py-3'>Adm.No</th>
                                                 <th className='border px-4 py-3'>Class</th>
                                                 <th className='border px-4 py-3'>Section</th>
-                                                <th className='border px-4 py-3'>Fee Term</th>
+                                                {filteredHeads.map((f) => {
+                                                    return (
+                                                        <th key={f.fmH_Id} className='border px-4 py-3'>
+                                                            {f.fmH_FeeName}
+                                                        </th>
+                                                    );
+                                                })}
+
                                                 <th className='border px-4 py-3 text-right'>Total Amount</th>
-                                                <th className='border px-4 py-3 text-right'>Paid Amount</th>
-                                                <th className='border px-4 py-3 text-right'>Balance Amount</th>
-                                                <th className='border px-4 py-3'>Due Date</th>
-                                                <th className='border px-4 py-3'>Status</th>
+                                                <th className='border px-4 py-3 text-right'> </th>
                                             </tr>
                                         </thead>
 
@@ -695,33 +926,26 @@ export default function FeeDefaulterReportstthomas() {
                                                     <td className='border px-4 py-2 text-center'>{row.regNo}</td>
                                                     <td className='border px-4 py-2 text-center'>{row.class}</td>
                                                     <td className='border px-4 py-2 text-center'>{row.section}</td>
-                                                    <td className='border px-4 py-2 text-center'>{row.feeTerm}</td>
+                                                    {filteredHeads.map((f) => {
+                                                        return (
+                                                            <th key={f.fmH_Id} className='border px-4 py-3'>
+                                                                {f.amount}
+                                                            </th>
+                                                        );
+                                                    })}
                                                     <td className='border px-4 py-2 text-right font-semibold'>
                                                         ₹{row.totalAmount.toLocaleString()}
                                                     </td>
-                                                    <td className='border px-4 py-2 text-right text-green-600'>
-                                                        ₹{row.paidAmount.toLocaleString()}
-                                                    </td>
-                                                    <td className='border px-4 py-2 text-right font-semibold text-red-600'>
-                                                        ₹{row.balanceAmount.toLocaleString()}
-                                                    </td>
-                                                    <td className='border px-4 py-2 text-center'>{row.dueDate}</td>
-                                                    <td className='border px-4 py-2 text-center'>
-                                                        <span
-                                                            className={`rounded-full px-2 py-1 font-medium text-xs ${
-                                                                row.status === 'Paid'
-                                                                    ? 'bg-green-100 text-green-800'
-                                                                    : row.status === 'Pending'
-                                                                      ? 'bg-yellow-100 text-yellow-800'
-                                                                      : 'bg-red-100 text-red-800'
-                                                            }`}>
-                                                            {row.status}
-                                                        </span>
+                                                    <td className='border px-4 py-2 text-right font-semibold'>
+                                                        <Button type='button' className='px-4' onClick={() => setShowPrint(true)}>
+                                                            Print
+                                                        </Button>
                                                     </td>
                                                 </tr>
                                             ))}
                                         </tbody>
                                     </table>
+                                    {showPrint && <DataTablePrint onClose={() => setShowPrint(false)} />}
                                 </div>
                             </div>
                         </CollapsibleSection>

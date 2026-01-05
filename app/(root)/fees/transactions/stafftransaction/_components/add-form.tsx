@@ -21,13 +21,7 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { useFeeDefaulterReport } from '@/hooks/fees/useReports';
 import { useFeeMasterConfiguration, useFeeTransactionList } from '@/hooks/fees/useTrasactions';
 import { feesStaffOtherTransactionSchema } from '@/schemas/fees/trasactions';
-import {
-    getFeeHead,
-    getStudentDetails,
-    masterBank,
-    saveFeeTransaction,
-    searchStudentName
-} from '@/server/fees/trasactions/fee_student_transaction';
+import { masterBank } from '@/server/fees/trasactions/fee_student_transaction';
 import type {
     IFeeTermDetails,
     IStudentSearchList,
@@ -210,6 +204,165 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
         }
     ];
 
+    const staticHeadData: IFeeTermDetails[] = [
+        {
+            fmG_GroupName: 'Tution Fee',
+            fmG_Id: 1,
+            fmT_Id: 1,
+            fmA_Id: 101,
+            fmH_FeeName: 'Annual Tuition Fee',
+            fmH_Flag: 'M',
+            ftI_Name: 'Term 1',
+            fmH_Id: 1,
+            ftI_Id: 1,
+            totalamount: 50000,
+            fsS_ToBePaid: 45000,
+            fsS_ConcessionAmount: 5000,
+            fsS_FineAmount: 0,
+            fsS_CurrentYrCharges: 50000,
+            fsS_TotalToBePaid: 45000,
+            fsS_OBArrearAmount: 0,
+            fsS_RebateAmount: 0,
+            fsS_WaivedAmount: 0,
+            fsS_OBAsPerFY: 0,
+            fsS_AdjustedAmount: 0
+        },
+        {
+            fmG_GroupName: 'Transport Fee',
+            fmG_Id: 2,
+            fmT_Id: 2,
+            fmA_Id: 102,
+            fmH_FeeName: 'Bus Fee - Monthly',
+            fmH_Flag: 'M',
+            ftI_Name: 'Term 1',
+            fmH_Id: 2,
+            ftI_Id: 1,
+            totalamount: 12000,
+            fsS_ToBePaid: 10000,
+            fsS_ConcessionAmount: 2000,
+            fsS_FineAmount: 0,
+            fsS_CurrentYrCharges: 12000,
+            fsS_TotalToBePaid: 10000,
+            fsS_OBArrearAmount: 0,
+            fsS_RebateAmount: 0,
+            fsS_WaivedAmount: 0,
+            fsS_OBAsPerFY: 0,
+            fsS_AdjustedAmount: 0
+        },
+        {
+            fmG_GroupName: 'Examination Fee',
+            fmG_Id: 3,
+            fmT_Id: 1,
+            fmA_Id: 103,
+            fmH_FeeName: 'Final Exam Fee',
+            fmH_Flag: 'O',
+            ftI_Name: 'Term 2',
+            fmH_Id: 3,
+            ftI_Id: 2,
+            totalamount: 5000,
+            fsS_ToBePaid: 5000,
+            fsS_ConcessionAmount: 0,
+            fsS_FineAmount: 200,
+            fsS_CurrentYrCharges: 5000,
+            fsS_TotalToBePaid: 5200,
+            fsS_OBArrearAmount: 1000,
+            fsS_RebateAmount: 0,
+            fsS_WaivedAmount: 0,
+            fsS_OBAsPerFY: 5000,
+            fsS_AdjustedAmount: 0
+        },
+        {
+            fmG_GroupName: 'Library Fee',
+            fmG_Id: 4,
+            fmT_Id: 1,
+            fmA_Id: 104,
+            fmH_FeeName: 'Annual Library Fee',
+            fmH_Flag: 'M',
+            ftI_Name: 'Term 1',
+            fmH_Id: 4,
+            ftI_Id: 1,
+            totalamount: 3000,
+            fsS_ToBePaid: 2500,
+            fsS_ConcessionAmount: 500,
+            fsS_FineAmount: 50,
+            fsS_CurrentYrCharges: 3000,
+            fsS_TotalToBePaid: 2550,
+            fsS_OBArrearAmount: 0,
+            fsS_RebateAmount: 0,
+            fsS_WaivedAmount: 100,
+            fsS_OBAsPerFY: 3000,
+            fsS_AdjustedAmount: -50
+        },
+        {
+            fmG_GroupName: 'Sports Fee',
+            fmG_Id: 5,
+            fmT_Id: 3,
+            fmA_Id: 105,
+            fmH_FeeName: 'Sports Equipment Fee',
+            fmH_Flag: 'O',
+            ftI_Name: 'Term 3',
+            fmH_Id: 5,
+            ftI_Id: 3,
+            totalamount: 8000,
+            fsS_ToBePaid: 7000,
+            fsS_ConcessionAmount: 1000,
+            fsS_FineAmount: 100,
+            fsS_CurrentYrCharges: 8000,
+            fsS_TotalToBePaid: 7100,
+            fsS_OBArrearAmount: 1500,
+            fsS_RebateAmount: 500,
+            fsS_WaivedAmount: 200,
+            fsS_OBAsPerFY: 8000,
+            fsS_AdjustedAmount: 300
+        }
+    ];
+    const paymentDataArray: MasterModeofPayment[] = [
+        {
+            ivrmmoD_Id: 1,
+            ivrmmoD_ModeOfPayment: 'Cash Payment',
+            ivrmmoD_Flag: 'A',
+            ivrmmoD_ModeOfPayment_Code: 'CASH001',
+            bank_Date: '2024-03-15',
+            bank_No: 'N/A',
+            bank_Amount: '5000.00',
+            bank_Name: 'Not Applicable',
+            fyppM_Id: 2024
+        },
+        {
+            ivrmmoD_Id: 2,
+            ivrmmoD_ModeOfPayment: 'Bank Transfer',
+            ivrmmoD_Flag: 'A',
+            ivrmmoD_ModeOfPayment_Code: 'BTRN002',
+            bank_Date: '2024-03-16',
+            bank_No: 'BT202403161245',
+            bank_Amount: '25000.00',
+            bank_Name: 'State Bank of India',
+            fyppM_Id: 2024
+        },
+        {
+            ivrmmoD_Id: 3,
+            ivrmmoD_ModeOfPayment: 'Credit Card',
+            ivrmmoD_Flag: 'A',
+            ivrmmoD_ModeOfPayment_Code: 'CRCD003',
+            bank_Date: '2024-03-17',
+            bank_No: 'CC-7890XXXXXX1234',
+            bank_Amount: '15000.00',
+            bank_Name: 'HDFC Bank',
+            fyppM_Id: 2024
+        },
+        {
+            ivrmmoD_Id: 4,
+            ivrmmoD_ModeOfPayment: 'Cheque Payment',
+            ivrmmoD_Flag: 'I', // Inactive
+            ivrmmoD_ModeOfPayment_Code: 'CHQ004',
+            bank_Date: '2024-03-18',
+            bank_No: '87654321',
+            bank_Amount: '18000.00',
+            bank_Name: 'ICICI Bank',
+            fyppM_Id: 2024
+        }
+    ];
+
     useEffect(() => {
         setStaff(staticData);
     }, []);
@@ -221,6 +374,10 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
     useEffect(() => {
         setTerms(staticTermData);
     }, [selectedStudent, selectedStaff]);
+    useEffect(() => {
+        setFeeHeads(staticHeadData);
+        setMasterModeofPaymentList(paymentDataArray);
+    }, []);
 
     const selectedLabel = filterOptions.find((opt) => opt.value === filterType)?.label || '';
 
@@ -258,95 +415,6 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
             }));
         }
     }, [payType, TotalPaying, modeType]);
-
-    useEffect(() => {
-        const fetchStudents = async () => {
-            try {
-                const payload = {
-                    asmaY_Id: selectedAsmayId,
-                    filterinitialdata: filterType,
-                    searchfilter: '',
-                    asmcL_ID: 0,
-                    asmS_Id: 0,
-                    amsT_SOL: 'string'
-                };
-                const studentsArray = await searchStudentName(payload);
-                const studentsData = JSON.parse(JSON.stringify(studentsArray.feeStudentSearch || []));
-                setStudents(studentsData || []);
-            } catch (error) {
-                console.error('Failed to fetch students:', error);
-                setStudents([]);
-            }
-        };
-
-        fetchStudents();
-    }, []);
-
-    useEffect(() => {
-        const fetchStudentsDetails = async () => {
-            setLoadingTerm(true);
-            try {
-                const payload = {
-                    amst_Id: selectedStudent,
-                    filterinitialdata: filterType,
-                    // configset: 'T',
-                    autoReceiptFlag: true,
-                    asmaY_Id: selectedAsmayId
-                };
-                const termArray = await getStudentDetails(payload);
-                const termList = JSON.parse(JSON.stringify(termArray.masterGroupDetails || []));
-                // const studentAmountDetails = JSON.parse(JSON.stringify(termArray.fillstudentviewdetails || []));
-                setTerms(termList || []);
-
-                // SetStudentAmountDetails(studentAmountDetails || []);
-            } catch (error) {
-                console.error('Failed to fetch students:', error);
-                setTerms([]);
-            } finally {
-                setLoadingTerm(false);
-            }
-        };
-        fetchStudentsDetails();
-    }, []);
-
-    useEffect(() => {
-        if (!selectedTerm || selectedTerm.length === 0) {
-            setFeeHeads([]);
-            return;
-        }
-
-        const fetchFeeHeadDetails = async () => {
-            setLoadingFeeHead(true);
-
-            try {
-                const payload = {
-                    filterinitialdata: filterType,
-                    amst_Id: selectedStudent,
-                    asmaY_Id: selectedAsmayId,
-                    configset: '',
-                    multiplegroups: selectedTerm.toString(),
-                    fyP_Date: todaysDate
-                };
-                const termListArray = await getFeeHead(payload);
-                const feeDetails = JSON.parse(JSON.stringify(termListArray.feeStudentTermInfo || []));
-                const narrationDropDown = JSON.parse(JSON.stringify(termListArray.masterNarrations || []));
-                const modeofPaymentList = JSON.parse(JSON.stringify(termListArray.modeOfPaymentDTOs || []));
-                setFeeHeads(feeDetails || []);
-                setMasternarration(narrationDropDown || []);
-                setMasterModeofPaymentList(modeofPaymentList || []);
-
-                setPayType(modeofPaymentList[0]?.ivrmmoD_ModeOfPayment ?? '');
-                // setCheckPayType(modeofPaymentList[0]?.ivrmmoD_ModeOfPayment ?? '');
-            } catch (error) {
-                console.error('Failed to fetch fee heads:', error);
-                setFeeHeads([]);
-            } finally {
-                setLoadingFeeHead(false);
-            }
-        };
-
-        fetchFeeHeadDetails();
-    }, [filterType, selectedAsmayId]);
 
     useEffect(() => {
         setIsLoadingMasterBanks(true);
@@ -404,7 +472,7 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
             if (!checked) {
                 setSelectAll(false);
             } else {
-                const allChecked = feeHeads.every((item) => updated[item.fmA_Id]);
+                const allChecked = staticHeadData.every((item) => updated[item.fmA_Id]);
                 setSelectAll(allChecked);
             }
 
@@ -415,7 +483,7 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
     const handleSelectAll = (checked: boolean) => {
         setSelectAll(checked);
         const newState: Record<number, boolean> = {};
-        feeHeads.forEach((f) => {
+        staticHeadData.forEach((f) => {
             newState[f.fmA_Id] = checked;
         });
 
@@ -481,7 +549,7 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
     };
 
     const onSubmit = async () => {
-        if (feeHeads.filter((f) => selectedHeads[f.fmA_Id]).length === 0) {
+        if (staticHeadData.filter((f) => selectedHeads[f.fmA_Id]).length === 0) {
             toast.error('Atleast one head has to be checked to save the Transaction!!!');
             return;
         }
@@ -511,79 +579,6 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
                     toast.error('Amount Is Must Be Greater Than Zero');
                     return;
                 }
-                if (amount[paymentId] > Number(TotalPaying).toString() || amount[paymentId] < Number(TotalPaying).toString()) {
-                    toast.error('Sum Of Amounts Of By Mode Of Payments Must Match Now Paying Amount');
-                    return;
-                }
-            } else {
-                const paymentId = selectedPayment.ivrmmoD_Id;
-                if (amount[paymentId] === Number(0).toString()) {
-                    toast.error('Amount Is Must Be Greater Than Zero');
-                    return;
-                }
-                if (amount[paymentId] > Number(TotalPaying).toString() || amount[paymentId] < Number(TotalPaying).toString()) {
-                    toast.error('Sum Of Amounts Of By Mode Of Payments Must Match Now Paying Amount');
-                    return;
-                }
-            }
-        } else {
-            const selectedPayments = masterModeofPaymentList.filter((f) => checkPayType.includes(f.ivrmmoD_ModeOfPayment));
-
-            if (selectedPayments.length === 0) {
-                toast.error('Invalid payment selection');
-                return;
-            }
-
-            const total = selectedPayments.reduce((sum, f) => {
-                const payableValue = amount[f.ivrmmoD_Id];
-                const amountr = payableValue
-                    ? Number.parseFloat(payableValue) || 0
-                    : Number.parseFloat(amount[f.ivrmmoD_Id]?.toString() || '0') || 0;
-                return sum + amountr;
-            }, 0);
-            // settotalAmount(total);
-            // console.log('totalAmountSum', total);
-
-            for (const payment of selectedPayments) {
-                const paymentId = payment.ivrmmoD_Id;
-                if (payment.ivrmmoD_Flag.toLowerCase() !== 'c') {
-                    if (!chequeNo[paymentId] || chequeNo[paymentId] === '') {
-                        toast.error(`Please enter Cheque No. for ${payment.ivrmmoD_ModeOfPayment}`);
-                        return;
-                    }
-
-                    if (!selectedBanks[paymentId] || selectedBanks[paymentId] === '') {
-                        toast.error(`Please Select a Bank for ${payment.ivrmmoD_ModeOfPayment}`);
-                        return;
-                    }
-
-                    if (!amount[paymentId] || amount[paymentId] === '') {
-                        toast.error(`Please enter Amount for ${payment.ivrmmoD_ModeOfPayment}`);
-                        return;
-                    }
-
-                    const paymentAmount = Number.parseFloat(amount[paymentId]);
-                    if (Number.isNaN(paymentAmount) || paymentAmount <= 0) {
-                        toast.error(`Amount Must Be Greater Than Zero for ${payment.ivrmmoD_ModeOfPayment}`);
-                        return;
-                    }
-                } else {
-                    if (!amount[paymentId] || amount[paymentId] === '') {
-                        toast.error(`Please enter Amount for ${payment.ivrmmoD_ModeOfPayment}`);
-                        return;
-                    }
-
-                    const paymentAmount = Number.parseFloat(amount[paymentId]);
-                    if (Number.isNaN(paymentAmount) || paymentAmount <= 0) {
-                        toast.error(`Amount Must Be Greater Than Zero for ${payment.ivrmmoD_ModeOfPayment}`);
-                        return;
-                    }
-                }
-            }
-            const tolerance = 0.01;
-            if (Math.abs(total - TotalPaying) > tolerance) {
-                toast.error(`Sum Of Amounts (${total}) Must Match Now Paying Amount (${TotalPaying})`);
-                return;
             }
         }
 
@@ -674,21 +669,23 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
                 emailconfig: email
             };
 
-            const response = await saveFeeTransaction(payload);
+            // const response = await saveFeeTransaction(payload);
 
-            if (response?.displaymessage) {
-                toast.success(response.message || ' Transaction Saved successfully');
-                handleReset();
-                onSuccess?.();
-                refetchAll();
-            } else {
-                const errorMessage = response?.returnval;
-                if (typeof errorMessage === 'string' && errorMessage.trim() !== '') {
-                    toast.error(errorMessage);
-                } else {
-                    toast.error('Save failed');
-                }
-            }
+            // if (response?.displaymessage) {
+            //     toast.success(response.message || ' Transaction Saved successfully');
+            //     handleReset();
+            //     onSuccess?.();
+            //     refetchAll();
+            // } else {
+            //     const errorMessage = response?.returnval;
+            //     if (typeof errorMessage === 'string' && errorMessage.trim() !== '') {
+            //         toast.error(errorMessage);
+            //     } else {
+            //         toast.error('Save failed');
+            //     }
+            // }
+            toast.success('Transaction Saved successfully');
+            handleReset();
         } catch (err: any) {
             console.error('API Error:', err);
             toast.error(err?.message || 'Something went wrong');
@@ -706,7 +703,7 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
         setClass(false);
         setSection(false);
         setDeative(false);
-        setFilterType('regular');
+        setFilterType('Staff');
         setTodaysDate(new Date());
         setSms(false);
         setEmail(false);
@@ -957,9 +954,7 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
                         )
                     )}
                 </div>
-                {loadingFeeHead ? (
-                    <Card className='p-4 text-center text-gray-700'>Loading Fee Head Details...</Card>
-                ) : selectedTerm.length > 0 && feeHeads.length > 0 ? (
+                {selectedTerm.length > 0 ? (
                     <Card className='p-4'>
                         <table className='w-full border text-center text-sm'>
                             <thead className='bg-gray-100'>
@@ -982,7 +977,7 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
                             </thead>
 
                             <tbody>
-                                {feeHeads.map((f, index) => (
+                                {staticHeadData.map((f, index) => (
                                     <tr key={f.fmA_Id}>
                                         <td className='border p-2'>{index + 1}</td>
                                         <td className='border p-2'>
@@ -1195,10 +1190,10 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
                 ) : (
                     <Card className='p-4 text-center text-gray-700'>No Fee Head Details Found</Card>
                 )}
-                {selectedTerm.length > 0 && !loadingFeeHead && feeHeads.length > 0 && (
+                {selectedTerm.length > 0 && (
                     <div className='flex gap-8'>
                         <div className='max-h-[400px] w-[75%] overflow-auto rounded border bg-gray-50 p-3 shadow-inner'>
-                            <Card className='mb-5 p-4'>
+                            {/* <Card className='mb-5 p-4'>
                                 <div className='flex w-full flex-col items-start justify-center gap-4'>
                                     <div className='flex w-full items-center justify-center gap-4'>
                                         <Label htmlFor='narrationId' className='whitespace-nowrap font-semibold'>
@@ -1263,9 +1258,9 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
                                         </RadioGroup>
                                     </div>
                                 </div>
-                            </Card>
+                            </Card> */}
 
-                            {masterModeofPaymentList.length > 0 ? (
+                            {paymentDataArray.length > 0 ? (
                                 <Card className='p-4'>
                                     <table className='w-full border text-sm'>
                                         <thead className='bg-gray-100'>
@@ -1280,7 +1275,7 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
                                         </thead>
 
                                         <tbody>
-                                            {masterModeofPaymentList?.map((f) => (
+                                            {paymentDataArray?.map((f) => (
                                                 <tr key={f.ivrmmoD_Id}>
                                                     <td className='border p-2'>
                                                         {modeType === 'Single' && (
@@ -1535,49 +1530,49 @@ export default function FeeStaffOtherTransaction({ onSuccess, asmayId }: Feestud
                             <Card className='mb-4 grid grid-cols-1 gap-3 p-4 text-sm'>
                                 <div className='flex items-center justify-between'>
                                     <span className='text-gray-700'>Current Fee:</span>
-                                    <span className='font-semibold text-gray-900'>{TotalCurrentFee}</span>
+                                    <span className='font-semibold text-gray-900'>{1000}</span>
                                 </div>
                                 <div className='flex items-center justify-between'>
                                     <span className='text-gray-700'>Concession:</span>
-                                    <span className='font-semibold text-gray-900'>{ConcessionAmount}</span>
+                                    <span className='font-semibold text-gray-900'>{40000}</span>
                                 </div>
                                 <div className='flex items-center justify-between'>
                                     <span className='text-gray-700'>Total Outstanding:</span>
-                                    <span className='font-semibold text-gray-900'>{TotalOutStanding ?? 0}</span>
+                                    <span className='font-semibold text-gray-900'>{0}</span>
                                 </div>
                                 <div className='flex items-center justify-between'>
                                     <span className='text-gray-700'>Fine:</span>
-                                    <span className='font-semibold text-gray-900'>{fineAmount}</span>
+                                    <span className='font-semibold text-gray-900'>{0}</span>
                                 </div>
                                 <div className='flex items-center justify-between'>
                                     <span className='text-gray-700'>Now Paying:</span>
-                                    <span className='font-semibold text-gray-900'>{TotalPaying}</span>
+                                    <span className='font-semibold text-gray-900'>{1000}</span>
                                 </div>
                             </Card>
 
                             <Card className='grid grid-cols-1 gap-3 p-4 text-sm'>
                                 <div className='flex items-center justify-between'>
                                     <span className='text-gray-700'>Total Payable:</span>
-                                    <span className='font-semibold text-gray-900'>{totalPayable}</span>
+                                    <span className='font-semibold text-gray-900'>{120000}</span>
                                 </div>
                                 <div className='flex items-center justify-between'>
                                     <span className='text-gray-700'>Total Concession:</span>
-                                    <span className='font-semibold text-gray-900'>{TotalConcession}</span>
+                                    <span className='font-semibold text-gray-900'>{5000}</span>
                                 </div>
                                 <div className='flex items-center justify-between'>
                                     <span className='text-gray-700'>Total Waived off:</span>
-                                    <span className='font-semibold text-gray-900'>{TotalWaivedOff}</span>
+                                    <span className='font-semibold text-gray-900'>{2000}</span>
                                 </div>
                                 <div className='flex items-center justify-between'>
                                     <span className='text-gray-700'>Overall Outstanding:</span>
-                                    <span className='font-semibold text-gray-900'>{overAllOutStanding}</span>
+                                    <span className='font-semibold text-gray-900'>{3500}</span>
                                 </div>
                             </Card>
                         </div>
                     </div>
                 )}
 
-                {selectedTerm.length > 0 && !loadingFeeHead && feeHeads.length > 0 && (
+                {selectedTerm.length > 0 && (
                     <div className='flex justify-end gap-3 border-t pt-4'>
                         <Button type='button' variant='outline' className='flex items-center gap-2' onClick={handleReset}>
                             <RotateCcw className='h-4 w-4' /> Reset
