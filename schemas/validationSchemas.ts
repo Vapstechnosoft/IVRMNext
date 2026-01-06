@@ -72,6 +72,21 @@ export function createNumberOnlyStringSchemaRequired(field: string, min: number,
         .max(max, { message: `Maximum ${max} characters allowed for ${field}` });
 }
 
+export function createGenderSchema(field: string, allowedValues?: number[]) {
+    const base = z
+        .union([z.number(), z.string().regex(/^\d+$/, { message: `${field} must be a numeric id` })])
+        .transform((val) => (typeof val === 'string' ? Number(val) : val))
+        .refine((v) => Number.isInteger(v as number), { message: `${field} must be an integer` });
+
+    if (Array.isArray(allowedValues) && allowedValues.length > 0) {
+        return base.refine((v) => allowedValues.includes(v as number), {
+            message: `${field} must be one of: ${allowedValues.join(', ')}`
+        });
+    }
+
+    return base;
+}
+
 export function createOptionalStringSchemaNotAllowNumbersOnly(field: string, min: number, max: number) {
     return (
         z
@@ -362,4 +377,39 @@ export function createRequiredAlphaNumericWithSpaceSchema(field: string, min: nu
                 message: `${field} cannot contain only numbers`
             })
     );
+}
+
+export function createAllAllowedRequired(field: string, min: number, max: number) {
+    return z
+        .union([
+            z.number(), // ✅ allow number input
+
+            z
+                .string()
+                .min(min, { message: `${field} must have at least ${min} characters` })
+                .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
+
+                // ❌ no leading or trailing spaces
+                .refine((value) => value.trim() === value, { message: `${field} cannot have leading or trailing spaces` })
+        ])
+        .refine((value) => value !== '' && value !== null && value !== undefined, { message: `${field} is required` });
+}
+
+export function createAllAllowedOptional(field: string, min: number, max: number) {
+    return z
+        .union([
+            z.number(),
+
+            z
+                .string()
+                .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
+                .refine((value) => value.length === 0 || value.trim() === value, {
+                    message: `${field} cannot have leading or trailing spaces`
+                })
+                .refine((value) => value.length === 0 || value.length >= min, {
+                    message: `${field} must have at least ${min} characters or be empty`
+                })
+        ])
+        .optional()
+        .or(z.literal(''));
 }

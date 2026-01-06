@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useActivePreadmissionDetails, useStudentApplicationList } from '@/hooks/admission/preadmission/useTransactions';
+import { useActivePreadmissionDetails } from '@/hooks/admission/preadmission/useTransactions';
 import type { IPreadmissionStudentApplicationList } from '@/types/admission/preadmission/transactions';
+import type { ColumnDef } from '@tanstack/react-table';
 import { Plus, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { use, useEffect, useState } from 'react';
@@ -20,7 +21,7 @@ export default function StudentApplicationPage(props: {
 }) {
     const searchParams = use(props.searchParams);
     const { data: activePreadmission } = useActivePreadmissionDetails();
-    const { data: response, isLoading, error, refetch } = useStudentApplicationList(activePreadmission?.data?.asmaY_Id ?? 0, searchParams);
+    const { data: response, isLoading, error, refetch } = useGetAllAdmissionLists(activePreadmission?.data?.asmaY_Id ?? 0, searchParams);
     const { data: masterConfig } = useAcademicYearMasterConfiguration(activePreadmission?.data?.asmaY_Id ?? 0);
 
     return (
@@ -107,7 +108,7 @@ function StudentApplicationPageContent({
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<IPreadmissionStudentApplicationList>
                         {...tableProps}
-                        columns={studentApplicationColumns}
+                        columns={studentApplicationColumns as ColumnDef<IPreadmissionStudentApplicationList>[]}
                         isLoading={isLoading}
                         error={error}
                         showViewOptions={false}
@@ -123,8 +124,9 @@ function StudentApplicationPageContent({
     );
 }
 
+import { useGetAllAdmissionLists } from '@/hooks/admission/admissionForm';
 import { useAcademicYearMasterConfiguration } from '@/hooks/admission/preadmission/useConfigurations';
-import UpdateStudentApplicationForm from './_components/update-form';
+import UpdateStudentAdmissionForm from './_components/update-form';
 
 function FormSections({
     setSuccess,
@@ -187,7 +189,7 @@ function FormSections({
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateStudentApplicationForm
+                            <UpdateStudentAdmissionForm
                                 rowData={selectedRow}
                                 onSuccess={() => {
                                     closeEditForm();
