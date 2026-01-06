@@ -1117,6 +1117,8 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                         onClose={() => setOpenStudentDetails(false)}
                         data={openStudentDetails}
                         loading={false}
+                        amst_Id={selectedRow.amst_Id}
+                        asmay_Id={selectedRow.asmaY_ID}
                     />
                 )}
 
