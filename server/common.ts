@@ -2510,6 +2510,74 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
+                },
+                {
+                    id: 6,
+                    name: 'Time Table',
+                    icon: 'BadgeIndianRupee',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Time Table',
+                            icon: 'BadgeIndianRupee',
+                            sub_menu: [
+                                // {
+                                //     id: 4,
+                                //     name: 'Configuration',
+                                //     icon: 'BadgeIndianRupee',
+                                //     pages: [
+                                //         {
+                                //             id: 21,
+                                //             name: 'Fee configuration',
+                                //             icon: 'BadgeIndianRupee',
+                                //             url: '/fees/configuration/masterfeeconfig',
+                                //             title: 'Fee configuration',
+                                //             description: 'Fee configuration'
+                                //         }
+                                //     ]
+                                // },
+                                {
+                                    id: 1,
+                                    name: 'Masters',
+                                    icon: 'BadgeIndianRupee',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Day',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/timetable/masters/masterday',
+                                            title: 'Master Day',
+                                            description: 'Manage Master Day Details'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Master Building',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/timetable/masters/masterbuilding',
+                                            title: 'Master Building',
+                                            description: 'Manage Master Building Details'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Staff Abbreviation',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/timetable/masters/staffabbreviations',
+                                            title: 'Staff Abbreviation',
+                                            description: 'Manage Staff Abbreviation Details'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Subject Abbreviation',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/timetable/masters/subjectabbreviations',
+                                            title: 'Subject Abbreviation',
+                                            description: 'Manage Subject Abbreviation Details'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
                 }
             ]
         };
