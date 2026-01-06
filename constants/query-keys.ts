@@ -441,3 +441,7 @@ export const HRMS_QUERY_KEYS = {
     APPLY_LEAVE: 'leave_apply_leave',
     LEAVE_APPROVAL: 'leave_leave_approval'
 };
+
+export const LIBRARY_QUERY_KEYS = {
+    MASTER_LIBRARY_LIST_DATA: 'master_library_list_data'
+};

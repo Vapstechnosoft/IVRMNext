@@ -2350,6 +2350,60 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
+                },
+                {
+                    id: 6,
+                    name: 'Library',
+                    icon: 'BookOpen',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Library',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 3000,
+                                    name: 'masters',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 30001,
+                                            name: 'Master Library',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/masterlibrary',
+                                            title: 'Master Library',
+                                            description: 'Master Library  Details'
+                                        }
+                                        //  {
+                                        //     id: 30002,
+                                        //     name: 'Library Vendor',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/library/masters/libraryvendor',
+                                        //     title: 'Library Vendor',
+                                        //     description: 'Library Vendor Details'
+                                        // },
+                                        //  {
+                                        //     id: 30003,
+                                        //     name: 'Master Category',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/library/masters/category',
+                                        //     title: 'Library Category',
+                                        //     description: 'Library Category Details'
+                                        // }
+                                        // ,
+                                        //  {
+                                        //     id: 30004,
+                                        //     name: 'Library Publisher',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/library/masters/librarypublisher',
+                                        //     title: 'Library Publisher',
+                                        //     description: 'Library Master Publisher Details'
+                                        // }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
                 }
             ]
         };
