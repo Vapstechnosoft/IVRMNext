@@ -54,3 +54,7 @@ export async function updateFeeStudentTransactionDetails(payload: any) {
     const url = '/FeeStudentTransaction/fee-edit-transaction';
     return await api.post<any[]>('fees', url, payload);
 }
+export async function updateFeeStudentCurrentAcademicDetails(amst_Id: number, asmay_Id: number) {
+    const url = `/FeeStudentTransaction/fee-stud-Profile?AMST_Id=${amst_Id}&ASMAY_Id=${asmay_Id}`;
+    return await api.get<any[]>('fees', url);
+}
