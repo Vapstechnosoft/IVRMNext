@@ -53,11 +53,16 @@ export const ADMISSION_QUERY_KEYS = {
     ADMISSION_SECTION_DROPDOWN: 'admission_section_dropdown',
     ADMISSION_CLASS_DROPDOWN1: 'admission_class_dropdown1',
     CONCESSION_DROPDOWN_DATA: 'concession_dropdown_data',
+
+    ADMISSION_FORM_GET_ALL: 'admission_form_get_all',
+    STUDENT_ADMISSION_FORM: 'student_admission_form'
+
     CLASS_WISE_STUDENT_REPORT: 'class_wise_student_report',
     ATTENDANCE_ABSENT_REPORT: 'attendance_absent_report',
     ATTENDANCE_REPORT: 'attendance_report',
     STUDENT_ATTENDANCE_REPORT: 'student_attendance_report',
     DATE_OF_BIRTH_REPORT: 'date_of_birth_report'
+
 };
 
 export const PREADMISSION_QUERY_KEYS = {

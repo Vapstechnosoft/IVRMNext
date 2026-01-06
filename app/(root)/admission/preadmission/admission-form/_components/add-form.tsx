@@ -12,9 +12,10 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { calculateAge, dateToWords, formatAge } from '@/lib/utils';
+import { calculateAge, dateToWords } from '@/lib/utils';
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
 import { useAcademicYearDropdown, useConcessionDropdown, useMasterSectionHeld } from '@/hooks/admission/preadmission/useMasters';
 import {
     useActivePreadmissionDetails,
@@ -22,7 +23,6 @@ import {
     useCasteDropdown,
     useCountryDropdown,
     useGenderDropdown,
-    usePreadmissionDocumentsDropdown,
     useReferenceDropdown,
     useReligionDropdown,
     useSourceDropdown,
@@ -36,7 +36,9 @@ import {
     saveFinalTabApi,
     saveFirstTabApi,
     saveFourthTabApi,
+    saveGaurdianApi,
     saveSecondTabApi,
+    saveStudentPhotoApi,
     saveThirdTabApi
 } from '@/server/admission/admission-form/admission';
 import { deleteDocument, uploadDocument } from '@/server/document_upload';
@@ -113,16 +115,15 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         resolver: zodResolver(studentAdmissionFormSchema.add),
         mode: 'onChange',
         defaultValues: {
-            pasA_WillingToContributeFlg: 0,
             previousSchools: [],
             siblings: [],
             guardian: [],
             amsT_ECSFlag: 0,
             isEmisBpl: 0,
-            // final flags for hostel/transport
+            feeConcessionType: 0,
             hostelRequired: false,
             transportRequired: false
-        }
+        } as any
     });
 
     // previous school entries (allow multiple)
@@ -166,6 +167,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     const [selectedSourceItems, setSelectedSourceItems] = useState<{ pamS_Id: string; pamS_SourceName: string }[]>([]);
     const [_selectedReferenceItems, setSelectedReferenceItems] = useState<{ pamR_Id: string; pamR_ReferenceName: string }[]>([]);
 
+    // Keep selected activities separate from selected source items so they don't
+    // overwrite each other when both controls are used on the same tab.
+    const [selectedActivityItems, setSelectedActivityItems] = useState<string[]>([]);
+
     const [sameAsResidential, setSameAsResidential] = useState(false);
     const [phoneExpectedInfo, setPhoneExpectedInfo] = useState<Record<string, { expected?: number; name?: string; dial?: string }>>({});
     const [phoneValues, setPhoneValues] = useState<Record<string, string>>({});
@@ -178,16 +183,45 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             document_Path: string;
             documentName?: string;
             isUploading?: boolean;
+            file?: File;
         }>
     >([]);
+
+    // Persisted amsT_Id returned from server after saving Step 1
+    const [savedAmsTId, setSavedAmsTId] = useState<number | null>(null);
 
     const [studentPhoto, setStudentPhoto] = useState<{
         amsT_Photoname: string;
         isUploading?: boolean;
     } | null>(null);
+    const [studentPhotoFile, setStudentPhotoFile] = useState<File | null>(null);
     const [studentPhotoError, setStudentPhotoError] = useState<string | null>(null);
 
-    const [documentErrors, setDocumentErrors] = useState<Record<number, string>>({});
+    // Prevent multiple final submissions by showing submitting state
+    const [submittingFinal, setSubmittingFinal] = useState(false);
+
+    // Parent photos & signatures for Step 6 (similar to student photo)
+    const [fatherPhoto, setFatherPhoto] = useState<{ path?: string; isUploading?: boolean } | null>(null);
+    const [_fatherPhotoFile, setFatherPhotoFile] = useState<File | null>(null);
+    const [_fatherPhotoError, setFatherPhotoError] = useState<string | null>(null);
+
+    const [motherPhoto, setMotherPhoto] = useState<{ path?: string; isUploading?: boolean } | null>(null);
+    const [_motherPhotoFile, setMotherPhotoFile] = useState<File | null>(null);
+    const [_motherPhotoError, setMotherPhotoError] = useState<string | null>(null);
+
+    const [fatherSignature, setFatherSignature] = useState<{ path?: string; isUploading?: boolean } | null>(null);
+    const [_fatherSignatureFile, setFatherSignatureFile] = useState<File | null>(null);
+    const [_fatherSignatureError, setFatherSignatureError] = useState<string | null>(null);
+
+    const [motherSignature, setMotherSignature] = useState<{ path?: string; isUploading?: boolean } | null>(null);
+    const [_motherSignatureFile, setMotherSignatureFile] = useState<File | null>(null);
+    const [_motherSignatureError, setMotherSignatureError] = useState<string | null>(null);
+
+    // Guardian photo & signature per guardian index (supports multiple guardians)
+    const [guardianPhotos, setGuardianPhotos] = useState<Record<number, { path?: string; isUploading?: boolean }>>({});
+    const [guardianSignatures, setGuardianSignatures] = useState<Record<number, { path?: string; isUploading?: boolean }>>({});
+
+    const [_documentErrors, setDocumentErrors] = useState<Record<number, string>>({});
     const [_handledStep3, setHandledStep3] = useState(false);
 
     const { data: activePreadmission } = useActivePreadmissionDetails();
@@ -205,6 +239,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     // Watch all country fields
     const conConuntryId = watch('amsT_ConCountry');
     const perConuntryId = watch('amsT_PerCountry');
+
+    // Watch guardian fields to conditionally show uploads when guardian name is present
+    const watchedGuardians = watch('guardian');
 
     // Use the nationality fields used in the Step 3 UI so state dropdowns refetch correctly
     const fatherPresentCountryId = watch('fatherNationality');
@@ -283,11 +320,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
     const { data: source, isLoading: sourceLoading, refetchAll: refetchSource } = useSourceDropdown();
     const { data: reference, isLoading: referenceLoading, refetchAll: refetchReference } = useReferenceDropdown();
-    const {
-        data: preadmissionDocuments,
-        isLoading: preadmissionDocumentsLoading,
-        refetchAll: refetchPreadmissionDocuments
-    } = usePreadmissionDocumentsDropdown();
+    // Preadmission documents API removed - using local uploads instead
     const { data: concession, isLoading: concessionLoading, refetchAll: refetchConcession } = useConcessionDropdown();
     const { data: academicYears, isLoading: academicLoading, refetchAll: refetchAcademic } = useAcademicYearDropdown();
 
@@ -310,7 +343,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         refetchMotherPresentState();
 
         refetchBirthState();
-        refetchPreadmissionDocuments();
+        // refetchPreadmissionDocuments removed
     };
 
     // Component for a single previous-school row's country/state selects.
@@ -411,7 +444,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
             // EMIS conditional
             if (Number(formData.isEmisBpl ?? formData.isEmisBpl) === 1) {
-                const emis = String(formData.amsT_EmisBplNo ?? getValues('amsT_EmisBplNo') ?? '').trim();
+                const emis = String(formData.amsT_EMIS_BPL_STS_No ?? getValues('amsT_EMIS_BPL_STS_No') ?? '').trim();
                 if (!emis) {
                     toast.error('EMIS / BPL / STS No. is required');
                     throw new Error('Validation failed: missing EMIS');
@@ -437,92 +470,125 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 }
             }
             // Build payload expected by server for first tab
-            const payload: any = {
-                amsT_Id: Number(formData.amsT_Id ?? 0) || 0,
-                mI_Id: Number(formData.mI_Id ?? 30) || 0,
+            const toNullableNumber = (v: any) => {
+                if (v === undefined || v === null || v === '') return null;
+                const n = Number(v);
+                return Number.isNaN(n) ? null : n;
+            };
 
-                asmaY_Id: Number(formData.asmaY_Id ?? formData.asmaY_Year ?? 0) || 0,
-                asmcL_Id: Number(formData.asmcL_Id ?? 0) || 0,
-                asmS_Id: Number(formData.asmS_Id ?? 0) || 0,
-                amsT_RegistrationNo: formData.amsT_RegistrationNo || '',
-                amsT_AdmNo: formData.amsT_AdmNo || '',
+            const payload = {
+                amsT_Id: Number(formData.amsT_Id ?? 0),
+                mI_Id: toNullableNumber(formData.mI_Id ?? 30),
+                asmaY_Id: toNullableNumber(formData.asmaY_Id ?? formData.asmaY_Year),
+                asmcL_Id: toNullableNumber(formData.asmcL_Id),
+                asmS_Id: toNullableNumber(formData.asmS_Id),
                 amsT_Date: formData.amsT_Date ? new Date(formData.amsT_Date).toISOString() : new Date().toISOString(),
-                amsT_Tpin: formData.amsT_Tpin || '',
-                amsT_FirstName: formData.amsT_FirstName || '',
-                amsT_MiddleName: formData.amsT_MiddleName || '',
-                amsT_LastName: formData.amsT_LastName || '',
-                amsT_Sex: formData.amsT_Sex || '',
-                pasR_Age: Number(formData.pasR_Age ?? 0) || 0,
+                amsT_RegistrationNo: String(formData.amsT_RegistrationNo ?? ''),
+                amsT_AdmissionNo: String(formData.amsT_AdmissionNo ?? ''),
+                amsT_DateOfAdmission: formData.amsT_Date ? new Date(formData.amsT_Date).toISOString() : new Date().toISOString(),
+                amsT_FirstName: formData.amsT_FirstName ?? '',
+                amsT_MiddleName: formData.amsT_MiddleName ?? '',
+                amsT_LastName: formData.amsT_LastName ?? '',
+                amsT_Sex: (() => {
+                    try {
+                        const sel = formData.amsT_Sex ?? getValues('amsT_Sex');
+                        const found = gender?.data?.find((g: any) => String(g.ivrmmG_Id) === String(sel));
+                        return found?.ivrmmG_GenderName ?? String(sel ?? '');
+                    } catch (_e) {
+                        return String(formData.amsT_Sex ?? '');
+                    }
+                })(),
                 amsT_DOB: formData.amsT_DOB ? new Date(formData.amsT_DOB).toISOString() : undefined,
-                amsT_DOB_Words: formData.amsT_DOB_Words || dateToWords(formData.amsT_DOB) || '',
-                amsT_BirthPlace: formData.amsT_BirthPlace || '',
-                amsT_BirthCertNO: formData.amsT_BirthCertNO || '',
-                amsT_AadharNo: Number(formData.amsT_AadharNo ?? 0) || 0,
-                // support alternate form keys for caste/religion (some UIs use different names)
-                imcC_Id: Number(formData.imcC_Id ?? formData.imC_Id ?? formData.amsT_CasteCategoryId ?? 0) || 0,
-                ivrmmR_Id: Number(formData.ivrmmR_Id ?? formData.amsT_ReligionId ?? 0) || 0,
-                imC_Id: Number(formData.imC_Id ?? formData.imcC_Id ?? formData.amsT_CasteCategoryId ?? 0) || 0,
-                amsT_SubCasteIMC_Id: Number(formData.amsT_SubCasteIMC_Id ?? 0) || 0,
-                amsT_Nationality: Number(formData.amsT_Nationality ?? 0) || 0,
-                amsT_BloodGroup: formData.amsT_BloodGroup || '',
-                studentCategoryId: Number(formData.studentCategoryId ?? 0) || 0,
+                amsT_DOB_Words: formData.amsT_DOB_Words ?? dateToWords(formData.amsT_DOB) ?? '',
+                pasR_Age: toNullableNumber(formData.pasR_Age),
+                amsT_MotherTongue: formData.amsT_MotherTongue ?? '',
+                amsT_LanguageSpoken: formData.amsT_LanguageSpoken ?? '',
+                amsT_StudentCategory_Id: toNullableNumber(formData.studentCategoryId),
+                amsT_BloodGroup: formData.amsT_BloodGroup ?? '',
+                ivrmmR_Id: toNullableNumber(formData.ivrmmR_Id ?? formData.amsT_ReligionId),
+                imcC_Id: toNullableNumber(formData.imcC_Id ?? 1),
+                amsT_SubCasteIMC_Id: toNullableNumber(formData.amsT_SubCasteIMC_Id ?? formData.amsT_CasteCategoryId ?? 1),
+                amsT_CasteCertiNo: formData.amsT_CasteCertiNo ?? '',
+                amsT_SubCaste: formData.amsT_SubCaste ?? '',
+
+                amsT_BirthPlace: formData.amsT_BirthPlace ?? '',
+                amsT_BirthCertNO: formData.amsT_BirthCertNO ?? '',
+                amsT_AadharNo: formData.amsT_AadharNo ? String(formData.amsT_AadharNo) : '0',
+
+                amsT_BiometricId: formData.amsT_BiometricId ?? '',
+                amsT_RFCardNo: formData.amsT_RFCardNo ?? '',
+                amsT_EMIS_BPL_STS_No: formData.amsT_EMIS_BPL_STS_No ?? '',
                 isEmisBpl: !!formData.isEmisBpl,
-                amsT_ECSFlag: Number(formData.amsT_ECSFlag ?? 0) || 0,
-                // Accept ECS values either nested under `adm_M_Student_ECS` or as flat fields (form registers flat names)
-                adm_M_Student_ECS: {
-                    asecS_AccountHolderName: formData.adm_M_Student_ECS?.asecS_AccountHolderName ?? formData.asecS_AccountHolderName ?? '',
-                    asecS_AccountNo: formData.adm_M_Student_ECS?.asecS_AccountNo ?? formData.asecS_AccountNo ?? '',
-                    asecS_AccountType: formData.adm_M_Student_ECS?.asecS_AccountType ?? formData.asecS_AccountType ?? '',
-                    asecS_BankName: formData.adm_M_Student_ECS?.asecS_BankName ?? formData.asecS_BankName ?? '',
-                    asecS_Branch: formData.adm_M_Student_ECS?.asecS_Branch ?? formData.asecS_Branch ?? '',
-                    asecS_MICRNo: formData.adm_M_Student_ECS?.asecS_MICRNo ?? formData.asecS_MICRNo ?? '',
-                    asecS_IFSCCode: formData.adm_M_Student_ECS?.asecS_IFSCCode ?? formData.asecS_IFSCCode ?? ''
-                },
-                // store primary mobile as string (may be empty)
-                amsT_MobileNo: String(formData.amsT_MobileNo ?? '') || '',
-                amsT_emailId: formData.amsT_emailId || '',
-                // build mobileNos from FieldArray, allow up to 5 entries
-                mobileNos: Array.isArray(getValues('mobileNos'))
-                    ? (getValues('mobileNos') as any[]).slice(0, 5).map((m: any) => ({
-                          amsT_MobileNo: String(m?.amsT_MobileNo ?? m?.mobileNo ?? m ?? ''),
-                          amstsmS_CountryCode: m?.amstsmS_CountryCode ?? m?.countryCode ?? ''
-                      }))
-                    : Array.isArray(formData.mobileNos)
-                      ? formData.mobileNos.slice(0, 5).map((m: any) => ({
-                            amsT_MobileNo: String(m?.amsT_MobileNo ?? m),
-                            amstsmS_CountryCode: m?.amstsmS_CountryCode ?? ''
-                        }))
-                      : formData.mobileNos
-                        ? [{ amsT_MobileNo: String(formData.mobileNos), amstsmS_CountryCode: '' }]
-                        : [],
-                emailIds: Array.isArray(formData.adm_M_Student_EmailIdDTO)
-                    ? formData.adm_M_Student_EmailIdDTO.map((e: any) => ({ amsT_emailId: String(e.amsT_emailId ?? e.emailId ?? e) }))
-                    : formData.adm_M_Student_EmailIdDTO
-                      ? [{ amsT_emailId: String(formData.adm_M_Student_EmailIdDTO) }]
-                      : [],
-                amsT_PerStreet: formData.amsT_PerStreet || '',
-                amsT_PerArea: formData.amsT_PerArea || '',
-                amsT_PerCity: formData.amsT_PerCity || '',
-                amsT_PerState: Number(formData.amsT_PerState ?? 0) || 0,
-                amsT_PerDistrict: Number(formData.amsT_PerDistrict ?? 0) || 0,
-                amsT_PerCountry: Number(formData.amsT_PerCountry ?? 0) || 0,
-                amsT_PerPincode: Number(formData.amsT_PerPincode ?? 0) || 0,
-                amsT_LanguageSpoken: formData.amsT_LanguageSpoken || '',
-                amsT_MotherTongue: formData.amsT_MotherTongue || '',
-                amsT_RFCardNo: formData.amsT_RFCardNo || '',
-                amsT_BiometricId: formData.amsT_BiometricId || '',
-                amsT_Photoname: formData.amsT_Photoname || formData.amsT_Photoname || '',
-                amsT_MOInstruction: formData.amsT_MOInstruction || '',
-                feeConcessionType: formData.feeConcessionType || '',
-                userId: Number(formData.userId ?? 0) || 0,
+                amsT_BPLCardNo: formData.amsT_BPLCardNo ?? null,
+                mobileNos: (() => {
+                    const src = Array.isArray(getValues('mobileNos'))
+                        ? (getValues('mobileNos') as any[])
+                        : Array.isArray(formData.mobileNos)
+                          ? formData.mobileNos
+                          : [];
+                    const arr = (src || []).slice(0, 5).map((m: any) => ({
+                        amstsmS_MobileNo: [String(m?.amsT_MobileNo ?? m?.mobileNo ?? m ?? '')],
+                        amstsmS_CountryCode: m?.amstsmS_CountryCode ?? m?.countryCode ?? ''
+                    }));
+                    return arr.length ? arr : null;
+                })(),
+                emailIds: (() => {
+                    const src = Array.isArray(formData.adm_M_Student_EmailIdDTO)
+                        ? formData.adm_M_Student_EmailIdDTO
+                        : formData.adm_M_Student_EmailIdDTO
+                          ? [formData.adm_M_Student_EmailIdDTO]
+                          : [];
+                    const arr = (src || []).map((e: any) => ({
+                        amstE_EmailId: [String(e.amsT_emailId ?? e.emailId ?? e ?? '')]
+                    }));
+                    return arr.length ? arr : null;
+                })(),
+                amsT_PerState: toNullableNumber(formData.amsT_PerState),
+                amsT_PerDistrict: toNullableNumber(formData.amsT_PerDistrict),
+                amsT_PerCountry: toNullableNumber(formData.amsT_PerCountry),
+                amsT_PerPincode: toNullableNumber(formData.amsT_PerPincode),
+                amsT_BankName: formData.amsT_BankName ?? '',
+                amsT_BankBranch: formData.amsT_BankBranch ?? '',
+                amsT_BankAccountNo: formData.amsT_BankAccountNo ?? '',
+                amsT_BankIFSCCode: formData.amsT_BankIFSCCode ?? '',
+                amsT_ECSFlag: !!(formData.amsT_ECSFlag ?? false),
+                adm_M_Student_ECS: formData.amsT_ECSFlag
+                    ? {
+                          asecS_AccountNo: formData.adm_M_Student_ECS?.asecS_AccountNo ?? formData.asecS_AccountNo ?? '',
+                          asecS_AccountHolderName:
+                              formData.adm_M_Student_ECS?.asecS_AccountHolderName ?? formData.asecS_AccountHolderName ?? '',
+                          asecS_BankName: formData.adm_M_Student_ECS?.asecS_BankName ?? formData.asecS_BankName ?? '',
+                          asecS_AccountType: formData.adm_M_Student_ECS?.asecS_AccountType ?? formData.asecS_AccountType ?? '',
+                          asecS_MICRNo: formData.adm_M_Student_ECS?.asecS_MICRNo ?? formData.asecS_MICRNo ?? '',
+                          asecS_BranchName: formData.adm_M_Student_ECS?.asecS_Branch ?? formData.asecS_Branch ?? ''
+                      }
+                    : null,
+                feeConcessionType: toNullableNumber(formData.feeConcessionType),
+                amsT_Tpin: formData.amsT_Tpin ?? '',
+                amsT_GPSTrackingId: formData.amsT_GPSTrackingId ?? '',
+                amsT_MediumOfInstruction: formData.amsT_MediumOfInstruction ?? '',
+                userId: toNullableNumber(formData.userId) ?? 1,
                 editFlag: !!formData.editFlag,
-                returnVal: true,
-                message: formData.message || ''
+                returnVal: true
             };
 
             console.debug('[Admission] saveFirstTab payload:', payload);
+
+            // Send JSON payload directly
             const res = await saveFirstTabApi(payload);
             console.debug('[Admission] saveFirstTab response:', res);
+            // If server returned an id on successful save, persist it into react-hook-form state
+            if (res?.success && res?.data && (res.data.amsT_Id || res.data.amsT_Id === 0)) {
+                try {
+                    const returnedId = Number(res.data.amsT_Id ?? res.data?.amsT_Id ?? 0) || 0;
+                    if (returnedId) {
+                        setValue('amsT_Id' as any, returnedId);
+                        setSavedAmsTId(returnedId);
+                    }
+                } catch (e) {
+                    console.warn('Failed to set amsT_Id from response', e);
+                }
+            }
             if (!res?.success) {
                 throw new Error(res?.message || 'Failed to save step 1');
             }
@@ -546,31 +612,39 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             const formData = getValues();
 
             const payload = {
-                amsT_Id: 0,
-                userId: 0,
+                amsT_Id: Number(getValues('amsT_Id' as any) ?? 0) || 15353,
+                userId: 21602,
+                miId: 30,
+                amsT_FatherPassingYear: Number(formData.amsT_FatherPassingYear ?? 0) || 0,
 
                 // Father
                 fatherAliveFlag: !!(formData.fatherAliveFlag ?? false),
                 fatherName: formData.fatherName || '',
                 fatherSurname: formData.fatherSurname || '',
                 fatherAadharNo: formData.fatherAadharNo || '',
-                fatherMaritalStatus: formData.fatherMaritalStatus ?? null,
+                fatherMaritalStatus: formData.fatherMaritalStatus ?? '',
                 fatherMonthlyIncome: 0,
                 fatherMobileNumbers: Array.isArray(formData.fatherMobileNumbers)
-                    ? formData.fatherMobileNumbers.map((m: any) => ({ mobileNo: String(m.mobileNo ?? m.amsT_MobileNo ?? m) }))
+                    ? formData.fatherMobileNumbers.map((m: any) => ({
+                          mobileNo: String(m.mobileNo ?? m.amsT_MobileNo ?? m)
+                      }))
                     : formData.fatherMobileNumbers
                       ? [{ mobileNo: String(formData.fatherMobileNumbers) }]
                       : [],
                 fatherEmailIds: Array.isArray(formData.fatherEmailIds)
-                    ? formData.fatherEmailIds.map((e: any) => ({ emailId: String(e.emailId ?? e.amsT_emailId ?? e) }))
+                    ? formData.fatherEmailIds.map((e: any) => ({
+                          emailId: String(e.emailId ?? e.amsT_emailId ?? e)
+                      }))
                     : formData.fatherEmailIds
                       ? [{ emailId: String(formData.fatherEmailIds) }]
                       : [],
                 fatherHomePhone: formData.fatherHomePhone || formData.fatherHomePhone || '',
                 fatherNationality: Number(formData.fatherNationality ?? 0) || 0,
-                fatherQualification: formData.FatherEducation || '',
+                fatherEducation: formData.FatherEducation || '',
                 fatherPresentAddress: {
                     address: formData.fatherPresentAddress?.address || '',
+                    //   country: "India",
+                    country: formData.fatherPresentAddress?.country || '',
                     city: formData.fatherPresentAddress?.city || '',
                     state: Number(formData.fatherPresentAddress?.state ?? 0) || 0,
                     po: formData.fatherPresentAddress?.po || '',
@@ -579,6 +653,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 },
                 fatherPermanentAddress: {
                     address: formData.fatherPermanentAddress?.address || '',
+                    //   country: "India",
+                    country: formData.fatherPermanentAddress?.country || '',
                     city: formData.fatherPermanentAddress?.city || '',
                     state: Number(formData.fatherPermanentAddress?.state ?? 0) || 0,
                     po: formData.fatherPermanentAddress?.po || '',
@@ -589,8 +665,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 fatherOfficePhone: formData.fatherOfficePhone || '',
                 fatherOccupation: formData.fatherOccupation || '',
                 fatherDesignation: formData.fatherDesignation || '',
-                fatherReligion: Number(formData.fatherReligionId ?? 0) || 0,
-                fatherCaste: Number(formData.fatherCasteId ?? 0) || 0,
+                fatherReligionId: Number(formData.fatherReligionId ?? 0) || 0,
+                fatherCasteId: Number(formData.fatherCasteId ?? 0) || 0,
                 fatherSubCaste: formData.fatherSubCaste || '',
 
                 fatherAnnualIncome: Number(formData.fatherAnnualIncome ?? 0) || 0,
@@ -603,23 +679,29 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 motherName: formData.motherName || '',
                 motherSurname: formData.motherSurname || '',
                 motherAadharNo: formData.motherAadharNo || '',
-                motherMaritalStatus: formData.motherMaritalStatus ?? null,
+                motherMaritalStatus: formData.motherMaritalStatus ?? '',
                 motherMobileNumbers: Array.isArray(formData.motherMobileNumbers)
-                    ? formData.motherMobileNumbers.map((m: any) => ({ mobileNo: String(m.mobileNo ?? m.amsT_MobileNo ?? m) }))
+                    ? formData.motherMobileNumbers.map((m: any) => ({
+                          mobileNo: String(m.mobileNo ?? m.amsT_MobileNo ?? m)
+                      }))
                     : formData.motherMobileNumbers
                       ? [{ mobileNo: String(formData.motherMobileNumbers) }]
                       : [],
                 motherEmailIds: Array.isArray(formData.motherEmailIds)
-                    ? formData.motherEmailIds.map((e: any) => ({ emailId: String(e.emailId ?? e.amsT_emailId ?? e) }))
+                    ? formData.motherEmailIds.map((e: any) => ({
+                          emailId: String(e.emailId ?? e.amsT_emailId ?? e)
+                      }))
                     : formData.motherEmailIds
                       ? [{ emailId: String(formData.motherEmailIds) }]
                       : [],
                 motherHomePhone: formData.motherHomePhone || '',
                 motherNationality: Number(formData.motherNationality ?? 0) || 0,
                 motherQualification: formData.motherQualification || '',
-                motherPassingYear: formData.motherPassingYear || '',
+                motherPassingYear: Number(formData.motherPassingYear ?? 0) || 0,
                 motherPresentAddress: {
                     address: formData.motherPresentAddress?.address || '',
+                    //   country: "India",
+                    country: formData.motherPresentAddress?.country || '',
                     city: formData.motherPresentAddress?.city || '',
                     state: Number(formData.motherPresentAddress?.state ?? 0) || 0,
                     po: formData.motherPresentAddress?.po || '',
@@ -628,6 +710,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 },
                 motherPermanentAddress: {
                     address: formData.motherPermanentAddress?.address || '',
+                    //   country: "India",
+                    country: formData.motherPermanentAddress?.country || '',
                     city: formData.motherPermanentAddress?.city || '',
                     state: Number(formData.motherPermanentAddress?.state ?? 0) || 0,
                     po: formData.motherPermanentAddress?.po || '',
@@ -638,13 +722,14 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 motherOfficePhone: formData.motherOfficePhone || '',
                 motherOccupation: formData.motherOccupation || '',
                 motherDesignation: formData.motherDesignation || '',
-                motherReligion: Number(formData.motherReligionId ?? 0) || 0,
-                motherCaste: Number(formData.motherCasteId ?? 0) || 0,
+                motherReligionId: Number(formData.motherReligionId ?? 0) || 0,
+                motherCasteId: Number(formData.motherCasteId ?? 0) || 0,
                 motherSubCaste: formData.motherSubCaste || '',
                 motherMonthlyIncome: 0,
                 motherAnnualIncome: Number(formData.motherAnnualIncome ?? 0) || 0,
                 motherCasteCertificateNo: formData.motherCasteCertificateNo || '',
                 motherPAN: formData.motherPAN || '',
+                motherEducation: '',
                 motherSelfEmployedFlg: !!formData.motherSelfEmployedFlg
             };
 
@@ -678,13 +763,12 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     'amsT_MiddleName',
                     'amsT_LastName',
                     'amsT_RegistrationNo',
-                    'amsT_AdmNo',
+                    'amsT_AdmissionNo',
                     'asmcL_Id',
                     'amsT_Date',
                     'amsT_DOB',
                     'amsT_ReligionId',
                     'amsT_CasteCategoryId',
-                    'imC_Id',
                     'amsT_Sex',
                     'amsT_PerCountry',
                     'amsT_MobileNo',
@@ -693,7 +777,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 ];
                 // If EMIS checkbox is set, ensure the EMIS field is validated
                 if (Number(getValues('isEmisBpl') ?? 0) === 1) {
-                    fieldsToValidate.push('amsT_EmisBplNo');
+                    fieldsToValidate.push('amsT_EMIS_BPL_STS_No');
                 }
 
                 // If ECS flag is set, ensure ECS bank detail fields are validated
@@ -801,33 +885,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 const selectedReligionId = watch('motherReligionId');
                 const selectedReligion = religion?.data?.find((r) => r.ivrmmR_Id === selectedReligionId);
                 const _isRomanCatholic = selectedReligion?.ivrmmR_Name === 'Roman Catholic';
-
-                // Validate document uploads with conditional logic for Baptism Certificate
             }
 
-            // console.log('[Admission] fieldsToValidate (count):', fieldsToValidate.length);
-            // console.log('[Admission] calling trigger with above fields');
-            // const isValid = await trigger(fieldsToValidate as any);
-            // console.log('[Admission] trigger result:', isValid);
-            // console.log('[Admission] post-validation currentStep:', currentStep);
-            // console.log('[Admission] post-validation numeric currentStep:', Number(currentStep));
-            // console.log('[Admission] branch checks:', {
-            //     isValid,
-            //     step1: Number(currentStep) === 1,
-            //     step2: Number(currentStep) === 2,
-            //     step3: Number(currentStep) === 3,
-            //     step4: Number(currentStep) === 4,
-            //     step5: Number(currentStep) === 5
-            // });
-
-            // console.log('[Admission] evaluating step handlers');
-
-            // Immediate handler for Step 3: call saveThirdTab early so we reliably trigger the API
             if (isValid && Number(currentStep) === 3) {
-                // console.log('[Admission] immediate Step3 handler (pre): about to call saveThirdTab');
                 try {
                     const res = await saveThirdTab();
-                    // console.log('[Admission] immediate saveThirdTab response:', res);
                     if (!res?.success) {
                         toast.error(res?.message || 'Failed to save step 3 (immediate)');
                         return;
@@ -838,43 +900,19 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     return;
                 }
 
-                // Also attempt minimal auto-save for step 4 when entering it
-                try {
-                    const minimalPayloadForFourth: any = {
-                        amsT_Id: 0,
-                        mI_Id: 0,
-                        userId: 0,
-                        message: '',
-                        returnVal: true
-                    };
-                    console.debug('[Admission] immediate auto saveFourthTab payload:', minimalPayloadForFourth);
-                    const autoRes = await saveFourthTabApi(minimalPayloadForFourth);
-                    console.debug('[Admission] immediate auto saveFourthTab response:', autoRes);
-                    if (!autoRes?.success) {
-                        toast.error(autoRes?.message || 'Failed to save step 4');
-                        return;
-                    }
-                } catch (err) {
-                    console.error('[Admission] immediate auto saveFourthTab error:', err);
-                    toast.error('Failed to save step 4');
-                    return;
-                }
-
                 setHandledStep3(true);
                 setCurrentStep((prev) => Math.min(prev + 1, steps.length));
                 return;
             }
 
-            // If validation passed for Step 5, persist Step 5 to server
             if (isValid && Number(currentStep) === 5) {
-                // console.log('[Admission] saving step 5 (valid branch)');
                 try {
                     const formData = getValues();
 
                     const payload = {
-                        amsT_Id: 0,
+                        amsT_Id: Number(getValues('amsT_Id' as any) ?? 0) || 15353,
                         mI_Id: 30,
-                        userId: 21602,
+                        userId: 0,
                         amsT_Studentillness: formData.amsT_Studentillness || '',
                         amsT_MedicalComplaints: formData.amsT_MedicalComplaints || '',
                         amsT_AdmissionReason: formData.amsT_AdmissionReason || '',
@@ -894,9 +932,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                         amsT_Tcflag: !!formData.amsT_Tcflag
                     };
 
-                    // console.log('[Admission] saveFifthTab payload (auto):', payload);
                     const res = await saveFifthTabApi(payload);
-                    // console.log('[Admission] saveFifthTab response (auto):', res);
                     if (!res?.success) {
                         console.error('Failed saving step 5 response (auto):', res);
                         toast.error(res?.message || 'Failed to save step 5');
@@ -911,25 +947,32 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     return;
                 }
             }
-            // Early handler for Step 4: run save now if we're on step 4 and validation passed.
             if (isValid && Number(currentStep) === 4) {
-                // console.log('[Admission] early Step4 handler triggered');
                 try {
                     const formData = getValues();
 
-                    const activities = Array.isArray(formData.activities)
-                        ? formData.activities.map((a: any) => ({ activityId: Number(a) || 0, isSelected: true }))
-                        : [];
+                    const activities =
+                        selectedActivityItems && selectedActivityItems.length > 0
+                            ? selectedActivityItems.map((id) => ({ activityId: Number(id) || 0, isSelected: true }))
+                            : Array.isArray(formData.activities)
+                              ? formData.activities.map((a: any) => ({ activityId: Number(a) || 0, isSelected: true }))
+                              : [];
 
                     const sourceDetails =
                         selectedSourceItems && selectedSourceItems.length > 0
-                            ? selectedSourceItems.map((s) => ({ sourceId: Number(s.pamS_Id) || 0, isSelected: true }))
+                            ? selectedSourceItems.map((s) => ({
+                                  sourceId: Number(s.pamS_Id) || 0,
+                                  isSelected: true
+                              }))
                             : Array.isArray(formData.sourceDetails)
-                              ? formData.sourceDetails.map((s: any) => ({ sourceId: Number(s) || 0, isSelected: true }))
+                              ? formData.sourceDetails.map((s: any) => ({
+                                    sourceId: Number(s) || 0,
+                                    isSelected: true
+                                }))
                               : [];
 
                     const guardiansSource = formData.guardian || [];
-                    const guardians = (Array.isArray(guardiansSource) ? guardiansSource : []).map((g: any) => ({
+                    const _guardians = (Array.isArray(guardiansSource) ? guardiansSource : []).map((g: any) => ({
                         guardianName: g.guardianName || g.name || '',
                         guardianAddress: g.guardianAddress || g.address || '',
                         guardianEmail: g.guardianEmail || g.email || '',
@@ -957,18 +1000,22 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                         leftReason: school.pasrpS_LeftReason || school.leftReason || '',
                         medium: school.medium || '',
                         tcNumber: school.pasrpS_TcNo || school.tcNumber || '',
-                        tcDate: school.pasrpS_TcDate || school.tcDate || ''
+                        tcDate: (() => {
+                            const d = school.pasrpS_TcDate ?? school.tcDate;
+                            if (!d) return '';
+                            const parsed = d instanceof Date ? d : new Date(d);
+                            return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString();
+                        })()
                     }));
 
                     const payload: any = {
-                        amsT_Id: 0,
-                        mI_Id: 0,
-                        userId: 0,
+                        amsT_Id: Number(getValues('amsT_Id' as any) ?? 0) || 15353,
+                        mI_Id: 30,
+                        userId: 21602,
 
                         activities: activities,
                         achievements: formData.achievements || '',
                         sourceDetails: sourceDetails,
-                        guardian: guardians,
                         siblings: siblingsList,
                         previousSchools: previousSchools,
 
@@ -995,15 +1042,15 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     const res = await saveFourthTabApi(payload);
                     // console.log('[Admission] early saveFourthTab response:', res);
                     if (!res?.success) {
-                        toast.error(res?.message || 'Failed to save step 4 (early)');
+                        toast.error(res?.message || 'Failed to save step 4 ');
                         return;
                     }
-                    toast.success('Step 4 saved (early)');
+                    toast.success('Step 4 saved ');
                     // console.log('[Admission] early handler incrementing step');
                     setCurrentStep((prev) => Math.min(prev + 1, steps.length));
                     return;
                 } catch (err) {
-                    console.error('[Admission] early Step4 handler error:', err);
+                    console.error('[Admission] Step4 handler error:', err);
                     toast.error('Failed to save step 4');
                     return;
                 }
@@ -1019,7 +1066,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
                 // If EMIS/BPL checkbox is checked, require the EMIS/BPL/STS number
                 if (Number(getValues('isEmisBpl') ?? 0) === 1) {
-                    const emis = String(getValues('amsT_EmisBplNo') ?? '').trim();
+                    const emis = String(getValues('amsT_EMIS_BPL_STS_No') ?? '').trim();
                     if (!emis) {
                         toast.error('EMIS / BPL / STS No. is required');
                         return;
@@ -1045,15 +1092,60 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
                 try {
                     const formData = getValues();
-                    const res = await saveFirstTab({ ...formData, amsT_Photoname: studentPhoto?.amsT_Photoname });
+                    const res = await saveFirstTab({
+                        ...formData,
+                        amsT_Photoname: studentPhoto?.amsT_Photoname
+                    });
                     console.debug('[Admission] saveFirstTab response (auto):', res);
                     if (!res?.success) {
                         toast.error(res?.message || 'Failed to save step 1');
                         return;
                     }
-                    toast.success('Step 1 saved');
-                    setCurrentStep((prev) => Math.min(prev + 1, steps.length));
-                    return;
+
+                    // Extract returned student id from response and persist into form state
+                    const returnedId =
+                        Number(
+                            res?.data?.amsT_Id ??
+                                res?.data?.AMST_Id ??
+                                res?.data?.amst_Id ??
+                                res?.data?.amstId ??
+                                getValues('amsT_Id' as any) ??
+                                0
+                        ) || 0;
+                    if (returnedId > 0) {
+                        setValue('amsT_Id' as any, returnedId);
+                        setSavedAmsTId(returnedId);
+                    }
+
+                    // After successful first-tab save, ensure student photo is persisted server-side
+                    try {
+                        const amsIdToUse = returnedId || Number(getValues('amsT_Id' as any) ?? 0);
+                        if (!amsIdToUse) {
+                            throw new Error('Missing student id for photo upload');
+                        }
+
+                        const photoPayload = new FormData();
+                        photoPayload.append('AmstId', String(amsIdToUse));
+                        if (studentPhotoFile) {
+                            photoPayload.append('StudentPhoto', studentPhotoFile);
+                        } else {
+                            photoPayload.append('StudentPhoto', String(studentPhoto?.amsT_Photoname ?? ''));
+                        }
+
+                        const photoRes = await saveStudentPhotoApi(photoPayload);
+                        console.debug('[Admission] saveStudentPhotoApi response:', photoRes);
+                        if (!photoRes?.success) {
+                            toast.error(photoRes?.message || 'Failed to save student photo');
+                            return;
+                        }
+                        toast.success('Step 1 saved');
+                        setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+                        return;
+                    } catch (photoErr) {
+                        console.error('Failed uploading student photo after save:', photoErr);
+                        toast.error('Failed to upload student photo');
+                        return;
+                    }
                 } catch (err) {
                     console.error('[Admission] saveFirstTab error:', err);
                     toast.error('Failed to save step 1');
@@ -1096,9 +1188,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     };
 
                     const payload: any = {
-                        userid: 0,
-                        amsT_Id: 0,
-                        mI_Id: 0,
+                        userid: 21602,
+                        amsT_Id: Number(getValues('amsT_Id' as any) ?? 0) || 15353,
+                        mI_Id: 30,
 
                         // Permanent address
                         amsT_PerStreet: pick(['amsT_PerStreet']) || '',
@@ -1130,6 +1222,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                         return;
                     }
                     toast.success('Step 2 saved');
+                    setCurrentStep((prev) => Math.min(prev + 1, steps.length));
                 } catch (error) {
                     console.error('Failed saving step 2', error);
                     toast.error('Failed to save step 2');
@@ -1175,9 +1268,24 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                     email,
                                     photo
                                 });
-                                const saveRes = await saveFirstTab({ ...formData, amsT_Photoname: photo });
+                                const saveRes = await saveFirstTab({
+                                    ...formData,
+                                    amsT_Photoname: photo
+                                });
                                 console.debug('[Admission] saveFirstTab result (forced):', saveRes);
                                 if (saveRes?.success) {
+                                    const returnedId =
+                                        Number(
+                                            saveRes?.data?.amsT_Id ??
+                                                saveRes?.data?.AMST_Id ??
+                                                saveRes?.data?.amst_Id ??
+                                                saveRes?.data?.amstId ??
+                                                0
+                                        ) || 0;
+                                    if (returnedId > 0) {
+                                        setValue('amsT_Id' as any, returnedId);
+                                        setSavedAmsTId(returnedId);
+                                    }
                                     setCurrentStep((prev) => Math.min(prev + 1, steps.length));
                                     return;
                                 }
@@ -1227,9 +1335,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                         };
 
                         const payload: any = {
-                            userid: 0,
-                            amsT_Id: 0,
-                            mI_Id: 0,
+                            userid: 21602,
+                            amsT_Id: Number(getValues('amsT_Id' as any) ?? 0) || 15353,
+                            mI_Id: 30,
 
                             // Permanent address
                             amsT_PerStreet: pick(['amsT_PerStreet']) || '',
@@ -1261,6 +1369,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                             return;
                         }
                         toast.success('Step 2 saved');
+                        setCurrentStep((prev) => Math.min(prev + 1, steps.length));
                     } catch (error) {
                         console.error('Failed saving step 2', error);
                         toast.error('Failed to save step 2');
@@ -1281,7 +1390,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     // Also initiate/save fourth tab when moving into Step 4
                     try {
                         const minimalPayloadForFourth: any = {
-                            amsT_Id: 0,
+                            amsT_Id: Number(getValues('amsT_Id' as any) ?? 0) || 0,
                             mI_Id: 0,
                             userId: 0,
                             message: '',
@@ -1301,27 +1410,30 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     }
                 }
 
-                // console.log('[Admission] currentStep typeof:', typeof currentStep);
-
-                // console.log('[Admission] checking step-4 branch (before)');
                 if (Number(currentStep) === 4) {
-                    // console.log('[Admission] inside step-4 branch (entered)');
                     try {
                         const formData = getValues();
 
-                        const activities = Array.isArray(formData.activities)
-                            ? formData.activities.map((a: any) => ({ activityId: Number(a) || 0, isSelected: true }))
-                            : [];
-
-                        // Use selectedSourceItems state if present, otherwise fallback to form values
-                        const sourceDetails =
-                            selectedSourceItems && selectedSourceItems.length > 0
-                                ? selectedSourceItems.map((s) => ({ sourceId: Number(s.pamS_Id) || 0, isSelected: true }))
-                                : Array.isArray(formData.sourceDetails)
-                                  ? formData.sourceDetails.map((s: any) => ({ sourceId: Number(s) || 0, isSelected: true }))
+                        const activities =
+                            selectedActivityItems && selectedActivityItems.length > 0
+                                ? selectedActivityItems.map((id) => ({ activityId: Number(id) || 0, isSelected: true }))
+                                : Array.isArray(formData.activities)
+                                  ? formData.activities.map((a: any) => ({ activityId: Number(a) || 0, isSelected: true }))
                                   : [];
 
-                        // Support multiple possible form field names (legacy vs current)
+                        const sourceDetails =
+                            selectedSourceItems && selectedSourceItems.length > 0
+                                ? selectedSourceItems.map((s) => ({
+                                      sourceId: Number(s.pamS_Id) || 0,
+                                      isSelected: true
+                                  }))
+                                : Array.isArray(formData.sourceDetails)
+                                  ? formData.sourceDetails.map((s: any) => ({
+                                        sourceId: Number(s) || 0,
+                                        isSelected: true
+                                    }))
+                                  : [];
+
                         const guardiansSource = formData.guardian || [];
                         const guardians = (Array.isArray(guardiansSource) ? guardiansSource : []).map((g: any) => ({
                             guardianName: g.guardianName || g.name || '',
@@ -1351,12 +1463,16 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                             leftReason: school.pasrpS_LeftReason || school.leftReason || '',
                             medium: school.medium || '',
                             tcNumber: school.pasrpS_TcNo || school.tcNumber || '',
-                            tcDate: school.pasrpS_TcDate || school.tcDate || ''
+                            tcDate: (() => {
+                                const d = school.pasrpS_TcDate ?? school.tcDate;
+                                if (!d) return '';
+                                const parsed = d instanceof Date ? d : new Date(d);
+                                return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString();
+                            })()
                         }));
 
                         const payload: any = {
-                            // Hardcode these to zero per request
-                            amsT_Id: 0,
+                            amsT_Id: Number(getValues('amsT_Id' as any) ?? 0) || 0,
                             mI_Id: 0,
                             userId: 0,
 
@@ -1386,10 +1502,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                             returnVal: true
                         };
 
-                        // console.log('[Admission] saveFourthTab payload:', payload);
-                        // console.log('[Admission] calling saveFourthTabApi');
                         const res = await saveFourthTabApi(payload);
-                        // console.log('[Admission] saveFourthTabApi returned:', res);
                         if (!res?.success) {
                             toast.error(res?.message || 'Failed to save step 4');
                             return;
@@ -1401,29 +1514,23 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                         return;
                     }
                 }
-                // console.log('[Admission] about to increment currentStep');
                 setCurrentStep((prev) => Math.min(prev + 1, steps.length));
-                // console.log('[Admission] incremented currentStep request sent');
             }
         } catch (err) {
             console.error('[Admission] nextStep top-level error:', err);
-            // rethrow so any callers can handle; keep logs visible
             throw err;
         }
     };
 
     const handleDOBChange = (date: Date | undefined) => {
         if (date) {
-            // Convert date to words
             const dobInWords = dateToWords(date);
             setValue('amsT_DOB_Words', dobInWords);
 
-            // Calculate and set age
             const age = calculateAge(date);
-            const ageFormatted = formatAge(age);
-            setValue('pasR_Age', ageFormatted);
 
-            // Trigger validation if needed
+            setValue('pasR_Age', age.ageInYears);
+
             trigger(['amsT_DOB_Words', 'pasR_Age']);
         }
     };
@@ -1435,8 +1542,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     const goToStep = async (targetStep: number) => {
         if (targetStep < 1 || targetStep > steps.length) return;
 
-        // If moving backwards, allow immediately
-        // if (targetStep < currentStep) {
         setCurrentStep(targetStep);
         return;
     };
@@ -1461,6 +1566,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         setSelectedSourceItems(selectedSources);
     };
 
+    const handleActivitySelection = (selectedValues: string[]) => {
+        setSelectedActivityItems(selectedValues.map((v) => v.toString()));
+    };
+
     const handleReferenceSelection = (selectedValues: string[]) => {
         const selectedReferences = selectedValues.map((value) => {
             return { pamR_Id: value.toString(), pamR_ReferenceName: '' };
@@ -1470,11 +1579,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
     __markUsed(handleReferenceSelection);
 
-    // Copy residential address fields intso permanent address fields when checked
     const handleSameAsResidential = (checked: boolean) => {
         setSameAsResidential(!!checked);
         if (checked) {
-            // Read residential values and copy to permanent fields
             const street = getValues('amsT_ConStreet') ?? '';
             const area = getValues('amsT_ConArea') ?? '';
             const country = getValues('amsT_ConCountry') ?? '';
@@ -1489,10 +1596,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             setValue('amsT_PerCity', city);
             setValue('amsT_PerPincode', pincode ?? undefined);
 
-            // Trigger validation for permanent address fields so errors (if any) display
             trigger(['amsT_PerStreet', 'amsT_PerArea', 'amsT_PerCountry', 'amsT_PerState', 'amsT_PerCity', 'amsT_PerPincode']);
         } else {
-            // Clear permanent address fields when unchecked
             setValue('amsT_PerStreet', '');
             setValue('amsT_PerArea', '');
             setValue('amsT_PerCountry', '');
@@ -1500,7 +1605,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             setValue('amsT_PerCity', '');
             setValue('amsT_PerPincode', '');
 
-            // Clear any validation errors on permanent fields
             clearErrors(['amsT_PerStreet', 'amsT_PerArea', 'amsT_PerCountry', 'amsT_PerState', 'amsT_PerCity', 'amsT_PerPincode']);
         }
     };
@@ -1522,7 +1626,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         return fallback[dial] ?? undefined;
     };
     const handlePhoneChange = (phone: string, countryData: any, fieldName: string) => {
-        // If empty or equal to dial code only, clear
         if (!phone || phone === countryData?.dialCode) {
             setPhoneValues((prev) => ({ ...prev, [fieldName]: '' }));
             setValue(fieldName as any, '');
@@ -1538,8 +1641,20 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         }
         const formattedPhone = `+${countryCode} ${numberPart}`;
         setPhoneValues((prev) => ({ ...prev, [fieldName]: formattedPhone }));
-        // Store only digits as a number in form state
         setValue(fieldName as any, formattedPhone);
+        if (fieldName === 'amsT_MobileNo') {
+            try {
+                const mobileArray = getValues('mobileNos') || [];
+                if (Array.isArray(mobileArray) && mobileArray.length > 0) {
+                    setValue('mobileNos.0.amsT_MobileNo' as any, formattedPhone);
+                    setValue('mobileNos.0.amstsmS_CountryCode' as any, String(countryCode));
+                } else {
+                    setValue('mobileNos' as any, [{ amsT_MobileNo: formattedPhone, amstsmS_CountryCode: String(countryCode) }]);
+                }
+            } catch (e) {
+                console.warn('Failed to sync primary mobile into mobileNos array', e);
+            }
+        }
         const expected = getExpectedPhoneLength(countryData);
         setPhoneExpectedInfo((prev) => ({
             ...prev,
@@ -1572,7 +1687,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         if (mobileFields.length === 0) {
             const initial = String(watch('amsT_MobileNo') ?? '') || '';
             appendMobile({ amsT_MobileNo: initial, amstsmS_CountryCode: '' });
-            // ensure amsT_MobileNo reflects the first array entry
             if (initial) setValue('amsT_MobileNo', initial);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1595,7 +1709,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             tcDate: new Date()
         });
     };
-    // --- Guardian FieldArray ---
+    // Guardian FieldArray
     const {
         fields: guardianFields,
         append: appendGuardian,
@@ -1605,7 +1719,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         name: 'guardian'
     });
 
-    // --- Sibling FieldArray ---
+    // Sibling FieldArray
     const {
         fields: siblingFields,
         append: appendSibling,
@@ -1645,13 +1759,38 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         removeGuardianField(index);
     };
 
-    // ALWAYS KEEP ONE ENTRY OPEN
+    // Save single guardian using saveGaurdianApi
+    const handleSaveGuardian = async (index: number) => {
+        try {
+            const guardianValues = getValues(`guardian.${index}` as any) as any;
+
+            const formData = new FormData();
+            // Use numeric index+1 as the Guardian_Id value (avoid string concatenation)
+            formData.append('Guardian_Id', String((index ?? 0) + 1));
+            formData.append('AMST_Id', String(guardianValues?.AMST_Id ?? '15533'));
+            formData.append('MI_Id', String(guardianValues?.MI_Id ?? '30'));
+            formData.append('GuardianName', guardianValues?.guardianName || '');
+            formData.append('GuardianPhone', guardianValues?.guardianPhone || '');
+            formData.append('GuardianEmail', guardianValues?.guardianEmail || '');
+            formData.append('GuardianAddress', guardianValues?.guardianAddress || '');
+            formData.append('GuardianPhoto', guardianPhotos?.[index]?.path || '');
+            formData.append('GuardianSign', guardianSignatures?.[index]?.path || '');
+            formData.append('GuardianPhotoUrl', '');
+            formData.append('GuardianSignUrl', '');
+
+            await saveGaurdianApi(formData);
+            toast.success('Guardian saved successfully');
+        } catch (error) {
+            console.error('save guardian error', error);
+            toast.error('Failed to save guardian');
+        }
+    };
+
     useEffect(() => {
         if (guardianFields.length === 0) addGuardian();
         if (siblingFields.length === 0) addSibling();
     }, []);
 
-    // Ensure there's always at least one Previous School entry and keep section open
     useEffect(() => {
         if (previousSchoolFields.length === 0) {
             appendPreviousSchool({
@@ -1676,108 +1815,69 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     //     setPreviousSchool({ ...previousSchool, [field]: value });
     // };
 
-    const handleDocumentUpload = async (amsmD_Id: number, file: File, documentName: string) => {
-        try {
-            // Restrict file size to 5MB
-            if (file.size > 5 * 1024 * 1024) {
-                toast.error('File size should not exceed 5MB');
-                return;
-            }
-            // Block DOC and XLSX files
-            const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
-            if (!allowedTypes.includes(file.type)) {
-                toast.error(' Only Pdf, PNG, JPG, and JPEG formats are allowed');
-                return;
-            }
-            // Set uploading state - ADD document if it doesn't exist
-            setUploadedDocuments((prev) => {
-                const existingIndex = prev.findIndex((doc) => doc.amsmD_Id === amsmD_Id);
-
-                if (existingIndex >= 0) {
-                    const updated = [...prev];
-                    updated[existingIndex] = {
-                        ...updated[existingIndex],
-                        isUploading: true
-                    };
-                    return updated;
-                }
-                return [
-                    ...prev,
-                    {
-                        pasrD_Id: 0,
-                        pasR_Id: 0,
-                        amsmD_Id,
-                        document_Path: '',
-                        documentName,
-                        isUploading: true
-                    }
-                ];
-            });
-
-            setDocumentErrors((prev) => {
-                const newErrors = { ...prev };
-                delete newErrors[amsmD_Id];
-                return newErrors;
-            });
-
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('SubContainerName', 'preadmission_document');
-
-            const response = await uploadDocument(formData);
-
-            if (response.success && response.data) {
-                setUploadedDocuments((prev) => {
-                    const existingIndex = prev.findIndex((doc) => doc.amsmD_Id === amsmD_Id);
-                    const newDoc = {
-                        pasrD_Id: 0,
-                        pasR_Id: 0,
-                        amsmD_Id,
-                        document_Path: response.data as string,
-                        documentName,
-                        isUploading: false
-                    };
-
-                    if (existingIndex >= 0) {
-                        const updated = [...prev];
-                        updated[existingIndex] = newDoc;
-                        return updated;
-                    }
-                    return [...prev, newDoc];
-                });
-
-                toast.success(`${documentName} uploaded successfully`);
-            } else {
-                toast.error(`Failed to upload ${documentName}`);
-            }
-        } catch (error: any) {
-            console.error('Upload error:', error);
-            const errorMessage = error?.response?.data?.message || error?.message || 'Upload failed';
-
-            setDocumentErrors((prev) => ({
-                ...prev,
-                [amsmD_Id]: errorMessage
-            }));
-
-            setUploadedDocuments((prev) => prev.filter((doc) => doc.amsmD_Id !== amsmD_Id));
-
-            toast.error(`Failed to upload ${documentName}: ${errorMessage}`);
+    // Store selected document files locally until final submit (no immediate API calls)
+    const _handleDocumentUpload = async (amsmD_Id: number, file: File, documentName: string) => {
+        // Restrict file size and types
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error('File size should not exceed 5MB');
+            return;
         }
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+        if (!allowedTypes.includes(file.type)) {
+            toast.error('Only PDF, PNG, JPG, and JPEG formats are allowed');
+            return;
+        }
+
+        // Create a local preview URL for the file
+        const localUrl = URL.createObjectURL(file);
+
+        setUploadedDocuments((prev) => {
+            const existingIndex = prev.findIndex((doc) => doc.amsmD_Id === amsmD_Id);
+            const newDoc = {
+                pasrD_Id: 0,
+                pasR_Id: 0,
+                amsmD_Id,
+                document_Path: localUrl,
+                documentName,
+                isUploading: false,
+                file
+            } as any;
+
+            if (existingIndex >= 0) {
+                const updated = [...prev];
+                updated[existingIndex] = newDoc;
+                return updated;
+            }
+            return [...prev, newDoc];
+        });
+
+        setDocumentErrors((prev) => {
+            const copy = { ...prev };
+            delete copy[amsmD_Id];
+            return copy;
+        });
+
+        toast.success(`${documentName} added (will be submitted with final form)`);
     };
 
-    const handleDocumentDelete = async (amsmD_Id: number, blobUrl: string, documentName: string) => {
-        try {
-            const response = await deleteDocument(blobUrl);
-
-            if (response.success) {
-                setUploadedDocuments((prev) => prev.filter((doc) => doc.amsmD_Id !== amsmD_Id));
-                toast.success(`${documentName} deleted successfully`);
-            } else {
-                throw new Error(response.message || 'Delete failed');
+    const handleDocumentDelete = (amsmD_Id: number, _blobUrl: string, documentName: string) => {
+        // Remove local document entry (no server call)
+        setUploadedDocuments((prev) => {
+            const target = prev.find((d) => d.amsmD_Id === amsmD_Id);
+            if (target?.file && target.document_Path) {
+                try {
+                    URL.revokeObjectURL(target.document_Path);
+                } catch (_) {}
             }
-        } catch (_error: any) {
-            toast.error(`Failed to delete ${documentName}`);
-        }
+            return prev.filter((doc) => doc.amsmD_Id !== amsmD_Id);
+        });
+        // Clear any errors
+        setDocumentErrors((prev) => {
+            const copy = { ...prev };
+            delete copy[amsmD_Id];
+            return copy;
+        });
+        toast.success(`${documentName} removed`);
     };
 
     const handleStudentPhotoUpload = async (file: File) => {
@@ -1794,6 +1894,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 return;
             }
 
+            // Keep original File so we can send binary to backend later
+            setStudentPhotoFile(file);
             setStudentPhoto({ amsT_Photoname: '', isUploading: true });
             setStudentPhotoError(null);
 
@@ -1837,12 +1939,350 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         }
     };
 
-    const isDocumentUploaded = (amsmD_Id: number) => {
-        return uploadedDocuments.some((doc) => doc.amsmD_Id === amsmD_Id);
+    // Guardian photo upload (per guardian index)
+    const handleGuardianPhotoUpload = async (idx: number, file: File) => {
+        try {
+            const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (!allowedFormats.includes(file.type)) {
+                toast.error('Only PNG, JPG, and JPEG formats are allowed');
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('Photo size should not exceed 5MB');
+                return;
+            }
+
+            setGuardianPhotos((prev) => ({
+                ...(prev || {}),
+                [idx]: { path: '', isUploading: true }
+            }));
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('SubContainerName', 'preadmission_guardian_photo');
+
+            const response = await uploadDocument(formData);
+
+            if (response.success && response.data) {
+                setGuardianPhotos((prev) => ({
+                    ...(prev || {}),
+                    [idx]: { path: response.data as string, isUploading: false }
+                }));
+                toast.success('Guardian photo uploaded successfully');
+            } else {
+                throw new Error(response.message || 'Upload failed');
+            }
+        } catch (error: any) {
+            console.error('Guardian photo upload error:', error);
+            setGuardianPhotos((prev) => ({
+                ...(prev || {}),
+                [idx]: { path: '', isUploading: false }
+            }));
+            const errorMessage = error?.response?.data?.message || error?.message || 'Upload failed';
+            toast.error(`Failed to upload guardian photo: ${errorMessage}`);
+        }
     };
 
-    const getUploadedDocument = (amsmD_Id: number) => {
-        return uploadedDocuments.find((doc) => doc.amsmD_Id === amsmD_Id);
+    const handleGuardianPhotoDelete = async (idx: number) => {
+        const path = guardianPhotos?.[idx]?.path;
+        if (!path) return;
+
+        try {
+            const response = await deleteDocument(path);
+            if (response.success) {
+                setGuardianPhotos((prev) => {
+                    const copy = { ...(prev || {}) };
+                    delete copy[idx];
+                    return copy;
+                });
+                toast.success('Guardian photo deleted successfully');
+            } else {
+                throw new Error(response.message || 'Delete failed');
+            }
+        } catch (_error: any) {
+            toast.error('Failed to delete guardian photo');
+        }
+    };
+
+    // Guardian signature upload (per guardian index)
+    const handleGuardianSignatureUpload = async (idx: number, file: File) => {
+        try {
+            const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (!allowedFormats.includes(file.type)) {
+                toast.error('Only PNG, JPG, and JPEG formats are allowed');
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('Signature size should not exceed 5MB');
+                return;
+            }
+
+            setGuardianSignatures((prev) => ({
+                ...(prev || {}),
+                [idx]: { path: '', isUploading: true }
+            }));
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('SubContainerName', 'preadmission_guardian_signature');
+
+            const response = await uploadDocument(formData);
+
+            if (response.success && response.data) {
+                setGuardianSignatures((prev) => ({
+                    ...(prev || {}),
+                    [idx]: { path: response.data as string, isUploading: false }
+                }));
+                toast.success('Guardian signature uploaded successfully');
+            } else {
+                throw new Error(response.message || 'Upload failed');
+            }
+        } catch (error: any) {
+            console.error('Guardian signature upload error:', error);
+            setGuardianSignatures((prev) => ({
+                ...(prev || {}),
+                [idx]: { path: '', isUploading: false }
+            }));
+            const errorMessage = error?.response?.data?.message || error?.message || 'Upload failed';
+            toast.error(`Failed to upload guardian signature: ${errorMessage}`);
+        }
+    };
+
+    const handleGuardianSignatureDelete = async (idx: number) => {
+        const path = guardianSignatures?.[idx]?.path;
+        if (!path) return;
+
+        try {
+            const response = await deleteDocument(path);
+            if (response.success) {
+                setGuardianSignatures((prev) => {
+                    const copy = { ...(prev || {}) };
+                    delete copy[idx];
+                    return copy;
+                });
+                toast.success('Guardian signature deleted successfully');
+            } else {
+                throw new Error(response.message || 'Delete failed');
+            }
+        } catch (_error: any) {
+            toast.error('Failed to delete guardian signature');
+        }
+    };
+
+    // Father photo upload (Step 6)
+    const handleFatherPhotoUpload = async (file: File) => {
+        try {
+            const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (!allowedFormats.includes(file.type)) {
+                toast.error('Only PNG, JPG, and JPEG formats are allowed');
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('Photo size should not exceed 5MB');
+                return;
+            }
+
+            setFatherPhotoFile(file);
+            setFatherPhoto({ path: '', isUploading: true });
+            setFatherPhotoError(null);
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('SubContainerName', 'preadmission_father_photo');
+
+            const response = await uploadDocument(formData);
+
+            if (response.success && response.data) {
+                setFatherPhoto({ path: response.data as string, isUploading: false });
+                toast.success('Father photo uploaded successfully');
+            } else {
+                throw new Error(response.message || 'Upload failed');
+            }
+        } catch (error: any) {
+            console.error('Father photo upload error:', error);
+            setFatherPhoto({ path: '', isUploading: false });
+            const errorMessage = error?.response?.data?.message || error?.message || 'Upload failed';
+            setFatherPhotoError(errorMessage);
+            toast.error(`Failed to upload father photo: ${errorMessage}`);
+        }
+    };
+
+    const handleFatherPhotoDelete = async () => {
+        const path = fatherPhoto?.path;
+        if (!path) return;
+        try {
+            const response = await deleteDocument(path);
+            if (response.success) {
+                setFatherPhoto(null);
+                toast.success('Father photo deleted successfully');
+            } else {
+                throw new Error(response.message || 'Delete failed');
+            }
+        } catch (_error: any) {
+            toast.error('Failed to delete father photo');
+        }
+    };
+
+    // Mother photo upload (Step 6)
+    const handleMotherPhotoUpload = async (file: File) => {
+        try {
+            const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (!allowedFormats.includes(file.type)) {
+                toast.error('Only PNG, JPG, and JPEG formats are allowed');
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('Photo size should not exceed 5MB');
+                return;
+            }
+
+            setMotherPhotoFile(file);
+            setMotherPhoto({ path: '', isUploading: true });
+            setMotherPhotoError(null);
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('SubContainerName', 'preadmission_mother_photo');
+
+            const response = await uploadDocument(formData);
+
+            if (response.success && response.data) {
+                setMotherPhoto({ path: response.data as string, isUploading: false });
+                toast.success('Mother photo uploaded successfully');
+            } else {
+                throw new Error(response.message || 'Upload failed');
+            }
+        } catch (error: any) {
+            console.error('Mother photo upload error:', error);
+            setMotherPhoto({ path: '', isUploading: false });
+            const errorMessage = error?.response?.data?.message || error?.message || 'Upload failed';
+            setMotherPhotoError(errorMessage);
+            toast.error(`Failed to upload mother photo: ${errorMessage}`);
+        }
+    };
+
+    const handleMotherPhotoDelete = async () => {
+        const path = motherPhoto?.path;
+        if (!path) return;
+        try {
+            const response = await deleteDocument(path);
+            if (response.success) {
+                setMotherPhoto(null);
+                toast.success('Mother photo deleted successfully');
+            } else {
+                throw new Error(response.message || 'Delete failed');
+            }
+        } catch (_error: any) {
+            toast.error('Failed to delete mother photo');
+        }
+    };
+
+    // Father signature upload (Step 6)
+    const handleFatherSignatureUpload = async (file: File) => {
+        try {
+            const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (!allowedFormats.includes(file.type)) {
+                toast.error('Only PNG, JPG, and JPEG formats are allowed');
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('Signature size should not exceed 5MB');
+                return;
+            }
+
+            setFatherSignatureFile(file);
+            setFatherSignature({ path: '', isUploading: true });
+            setFatherSignatureError(null);
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('SubContainerName', 'preadmission_father_signature');
+
+            const response = await uploadDocument(formData);
+
+            if (response.success && response.data) {
+                setFatherSignature({ path: response.data as string, isUploading: false });
+                toast.success('Father signature uploaded successfully');
+            } else {
+                throw new Error(response.message || 'Upload failed');
+            }
+        } catch (error: any) {
+            console.error('Father signature upload error:', error);
+            setFatherSignature({ path: '', isUploading: false });
+            const errorMessage = error?.response?.data?.message || error?.message || 'Upload failed';
+            setFatherSignatureError(errorMessage);
+            toast.error(`Failed to upload father signature: ${errorMessage}`);
+        }
+    };
+
+    const handleFatherSignatureDelete = async () => {
+        const path = fatherSignature?.path;
+        if (!path) return;
+        try {
+            const response = await deleteDocument(path);
+            if (response.success) {
+                setFatherSignature(null);
+                toast.success('Father signature deleted successfully');
+            } else {
+                throw new Error(response.message || 'Delete failed');
+            }
+        } catch (_error: any) {
+            toast.error('Failed to delete father signature');
+        }
+    };
+
+    // Mother signature upload (Step 6)
+    const handleMotherSignatureUpload = async (file: File) => {
+        try {
+            const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (!allowedFormats.includes(file.type)) {
+                toast.error('Only PNG, JPG, and JPEG formats are allowed');
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('Signature size should not exceed 5MB');
+                return;
+            }
+
+            setMotherSignatureFile(file);
+            setMotherSignature({ path: '', isUploading: true });
+            setMotherSignatureError(null);
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('SubContainerName', 'preadmission_mother_signature');
+
+            const response = await uploadDocument(formData);
+
+            if (response.success && response.data) {
+                setMotherSignature({ path: response.data as string, isUploading: false });
+                toast.success('Mother signature uploaded successfully');
+            } else {
+                throw new Error(response.message || 'Upload failed');
+            }
+        } catch (error: any) {
+            console.error('Mother signature upload error:', error);
+            setMotherSignature({ path: '', isUploading: false });
+            const errorMessage = error?.response?.data?.message || error?.message || 'Upload failed';
+            setMotherSignatureError(errorMessage);
+            toast.error(`Failed to upload mother signature: ${errorMessage}`);
+        }
+    };
+
+    const handleMotherSignatureDelete = async () => {
+        const path = motherSignature?.path;
+        if (!path) return;
+        try {
+            const response = await deleteDocument(path);
+            if (response.success) {
+                setMotherSignature(null);
+                toast.success('Mother signature deleted successfully');
+            } else {
+                throw new Error(response.message || 'Delete failed');
+            }
+        } catch (_error: any) {
+            toast.error('Failed to delete mother signature');
+        }
     };
 
     // derive zip/pincode length allowed from selected country (useMemo to wait for data)
@@ -1891,32 +2331,57 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     const onSubmit = async (_formData: FormFields) => {
         try {
             // Ensure mandatory documents are uploaded
-            if (preadmissionDocuments?.data && preadmissionDocuments.data.length > 0) {
-                const mandatory = preadmissionDocuments.data.filter((d: any) => d.amsmD_FLAG);
-                const missing = mandatory.filter((d: any) => !isDocumentUploaded(d.amsmD_Id));
-                if (missing.length > 0) {
-                    toast.error('Please upload all mandatory documents before submitting');
-                    setCurrentStep(6);
-                    return;
-                }
-            }
+            // Document checklist removed; user-uploaded documents are submitted with final form
 
             const values = getValues();
 
-            const payload: any = {
-                amsT_Id: 0,
-                mI_Id: 0,
-                userId: 0,
-                hostelRequired: Boolean(values.hostelRequired),
-                transportRequired: Boolean(values.transportRequired),
-                documents: uploadedDocuments.map((d) => ({
-                    documentId: d.amsmD_Id,
-                    documentName: d.documentName,
-                    filePath: d.document_Path
-                }))
+            // Helper: try to resolve uploaded document path by name (case-insensitive substring match)
+            const findUploadedPath = (needle: string) => {
+                const found = uploadedDocuments.find((d) => (d.documentName || '').toLowerCase().includes(needle.toLowerCase()));
+                return found ? found.document_Path || '' : '';
             };
 
-            const response = await saveFinalTabApi(payload);
+            // Resolve parent photo/signature URLs from state or uploaded documents
+            const fatherPhotoUrl = fatherPhoto?.path || findUploadedPath('fatherphoto') || '';
+            const motherPhotoUrl = motherPhoto?.path || findUploadedPath('motherphoto') || '';
+            const fatherSignatureUrl = fatherSignature?.path || findUploadedPath('fathersignature') || '';
+            const motherSignatureUrl = motherSignature?.path || findUploadedPath('mothersignature') || '';
+
+            // Build FormData payload (server expects multipart/form-data)
+            const fd = new FormData();
+            const amsTIdToUse = savedAmsTId ?? (Number(getValues('amsT_Id' as any) ?? 0) || 25533);
+            fd.append('amsT_Id', String(amsTIdToUse));
+            fd.append('mI_Id', String(30));
+            fd.append('userId', String(21602));
+            fd.append('hostelRequired', String(Boolean(values.hostelRequired)));
+            fd.append('transportRequired', String(Boolean(values.transportRequired)));
+
+            // Add resolved parent photo/signature URLs
+            fd.append('FatherPhoto', fatherPhotoUrl || '');
+            fd.append('MotherPhoto', motherPhotoUrl || '');
+            fd.append('FatherSign', fatherSignatureUrl || '');
+            fd.append('MotherSign', motherSignatureUrl || '');
+            fd.append('FatherPhotoUrl', '');
+            fd.append('MotherPhotoUrl', '');
+            fd.append('FatherSignatureUrl', '');
+            fd.append('MotherSignatureUrl', '');
+
+            // Attach documents metadata and files
+            const docs = uploadedDocuments.map((d) => ({
+                documentId: d.amsmD_Id,
+                documentName: d.documentName,
+                filePath: d.document_Path || ''
+            }));
+            fd.append('documents', JSON.stringify(docs));
+            // Append actual files (if any) so backend can receive binary content
+            uploadedDocuments.forEach((d, idx) => {
+                if ((d as any).file) {
+                    fd.append('documentFiles', (d as any).file as File, d.documentName || `document_${idx}`);
+                }
+            });
+
+            // Call API with FormData
+            const response = await saveFinalTabApi(fd as any);
             if (response?.success) {
                 toast.success('Application submitted successfully');
                 reset();
@@ -1934,10 +2399,14 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
     // Submit final step without running react-hook-form validation
     const submitWithoutValidation = async () => {
+        if (submittingFinal) return;
+        setSubmittingFinal(true);
         try {
             await onSubmit(getValues() as FormFields);
         } catch (err) {
             console.error('Submit without validation error:', err);
+        } finally {
+            setSubmittingFinal(false);
         }
     };
 
@@ -2243,10 +2712,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             <InputText
                                                 label='Admission No'
                                                 required
-                                                id='amsT_AdmNo'
+                                                id='amsT_AdmissionNo'
                                                 placeholder='Enter admission number'
-                                                {...register('amsT_AdmNo')}
-                                                error={errors.amsT_AdmNo?.message}
+                                                {...register('amsT_AdmissionNo')}
+                                                error={errors.amsT_AdmissionNo?.message}
                                             />
                                             <div className='flex flex-col gap-1.5'>
                                                 <Label htmlFor='asmcL_Id'>
@@ -2300,7 +2769,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             </div>
 
                                             <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='asmS_Id'>Section</Label>
+                                                <Label htmlFor='asmS_Id'>
+                                                    Section <span className='ml-1 text-red-500'>*</span>
+                                                </Label>
                                                 <Controller
                                                     name='asmS_Id'
                                                     control={control}
@@ -2461,7 +2932,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                 label='Age'
                                                 id='pasR_Age'
                                                 placeholder='Age'
-                                                {...register('pasR_Age')}
+                                                type='number'
+                                                {...register('pasR_Age', { valueAsNumber: true })}
                                                 error={errors.pasR_Age?.message}
                                                 disabled
                                             />
@@ -2513,11 +2985,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             </div>
 
                                             <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='amsT_CasteCategoryId'>
+                                                <Label htmlFor='amsT_SubCasteIMC_Id'>
                                                     Caste Category <span className='ml-1 text-red-500'>*</span>
                                                 </Label>
                                                 <Controller
-                                                    name='amsT_CasteCategoryId'
+                                                    name='amsT_SubCasteIMC_Id'
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
@@ -2547,24 +3019,22 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         </Select>
                                                     )}
                                                 />
-                                                {errors.amsT_CasteCategoryId && (
-                                                    <FormError>{errors.amsT_CasteCategoryId.message}</FormError>
-                                                )}
+                                                {errors.amsT_SubCasteIMC_Id && <FormError>{errors.amsT_SubCasteIMC_Id.message}</FormError>}
                                             </div>
-                                            <InputText
+                                            {/* <InputText
                                                 label='Caste '
                                                 required
                                                 id='imC_Id'
                                                 placeholder='Enter caste category'
                                                 {...register('imC_Id')}
                                                 error={errors.imC_Id?.message}
-                                            />
+                                            /> */}
                                             <InputText
                                                 label='Sub Caste'
-                                                id='amsT_SubCasteIMC'
+                                                id='amsT_SubCaste'
                                                 placeholder='Enter sub caste'
-                                                {...register('amsT_SubCasteIMC')}
-                                                error={errors.amsT_SubCasteIMC?.message}
+                                                {...register('amsT_SubCaste')}
+                                                error={errors.amsT_SubCaste?.message}
                                             />
 
                                             <InputText
@@ -2576,10 +3046,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             />
                                             <InputText
                                                 label='Caste Certificate No'
-                                                id='amsT_StuCasteCertiNo'
+                                                id='amsT_CasteCertiNo'
                                                 placeholder='Enter caste certificate number'
-                                                {...register('amsT_StuCasteCertiNo')}
-                                                error={errors.amsT_StuCasteCertiNo?.message}
+                                                {...register('amsT_CasteCertiNo')}
+                                                error={errors.amsT_CasteCertiNo?.message}
                                             />
                                             <InputText
                                                 label='Biometric Id'
@@ -2622,7 +3092,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     </SelectItem>
                                                                 ) : (
                                                                     gender?.data?.map((item) => (
-                                                                        <SelectItem key={item.ivrmmG_Id} value={item.ivrmmG_GenderName}>
+                                                                        <SelectItem key={item.ivrmmG_Id} value={String(item.ivrmmG_Id)}>
                                                                             {item.ivrmmG_GenderName}
                                                                         </SelectItem>
                                                                     ))
@@ -2730,7 +3200,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     control={control}
                                                     render={({ field }) => (
                                                         <div>
-                                                            <Label htmlFor='amsT_MobileNo'>Mobile No.</Label>
+                                                            <Label htmlFor='amsT_MobileNo'>
+                                                                Mobile No. <span className='text-red-500'>*</span>
+                                                            </Label>
                                                             <PhoneInput
                                                                 country='in'
                                                                 value={
@@ -2786,13 +3258,17 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         ?.message;
                                                     const fieldName = `adm_M_Student_EmailIdDTO.${idx}.amsT_emailId` as const;
                                                     return (
-                                                        <div key={field.id} className='flex w-1/3 min-w-[240px] flex-col gap-1'>
+                                                        <div key={field.id} className='flex w-full flex-col gap-1'>
                                                             <div className='flex items-center gap-2'>
                                                                 <div className='flex-1'>
+                                                                    {idx === 0 && (
+                                                                        <Label htmlFor={String(field.id)}>
+                                                                            Email <span className='text-red-500'>*</span>
+                                                                        </Label>
+                                                                    )}
                                                                     <InputText
                                                                         {...register(fieldName)}
                                                                         id={String(field.id)}
-                                                                        label={idx === 0 ? 'Email' : undefined}
                                                                         placeholder='Enter email'
                                                                         error={itemError}
                                                                     />
@@ -2919,8 +3395,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 <SelectValue placeholder='Select option' />
                                                             </SelectTrigger>
                                                             <SelectContent>
-                                                                <SelectItem value='1'>Yes</SelectItem>
-                                                                <SelectItem value='0'>No</SelectItem>
+                                                                <SelectItem value='0'>Pre-Primary School</SelectItem>
+                                                                <SelectItem value='1'>Primary School</SelectItem>
+                                                                <SelectItem value='2'>High School</SelectItem>
                                                             </SelectContent>
                                                         </Select>
                                                     )}
@@ -2965,10 +3442,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         <InputText
                                                             label='EMIS / BPL / STS No.'
                                                             required
-                                                            id='amsT_EmisBplNo'
+                                                            id='amsT_EMIS_BPL_STS_No'
                                                             placeholder='Enter card or STS no.'
-                                                            {...register('amsT_EmisBplNo')}
-                                                            error={errors.amsT_EmisBplNo?.message}
+                                                            {...register('amsT_EMIS_BPL_STS_No')}
+                                                            error={errors.amsT_EMIS_BPL_STS_No?.message}
                                                         />
                                                     </div>
                                                 )}
@@ -3143,9 +3620,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             {/* Medium Of Instruction */}
                                             <InputText
                                                 label='Medium Of Instruction'
-                                                id='amsT_MOInstruction'
+                                                id='amsT_MediumOfInstruction'
                                                 placeholder='Enter medium of instruction'
-                                                {...register('amsT_MOInstruction')}
+                                                {...register('amsT_MediumOfInstruction')}
                                                 error={errors.amsT_MediumOfInstruction?.message}
                                             />
                                         </div>
@@ -3600,20 +4077,19 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 <div className='flex flex-col space-y-2'>
                                                                     <Select
                                                                         value={field.value?.toString() || ''}
-                                                                        onValueChange={(value) => field.onChange(Number(value))} // convert to number
-                                                                    >
+                                                                        onValueChange={(value) => field.onChange(value)}>
                                                                         <SelectTrigger className={cn('w-full', error && 'border-red-500')}>
                                                                             <SelectValue placeholder='Select' />
                                                                         </SelectTrigger>
 
                                                                         <SelectContent>
-                                                                            <SelectItem value='0'>Married</SelectItem>
-                                                                            <SelectItem value='1'>Single father</SelectItem>
-                                                                            <SelectItem value='2'>Single mother</SelectItem>
-                                                                            <SelectItem value='3'>Divorced father</SelectItem>
-                                                                            <SelectItem value='4'>Divorced mother</SelectItem>
-                                                                            <SelectItem value='5'>Widow</SelectItem>
-                                                                            <SelectItem value='6'>Widower</SelectItem>
+                                                                            <SelectItem value='Married'>Married</SelectItem>
+                                                                            <SelectItem value='Single father'>Single father</SelectItem>
+                                                                            <SelectItem value='Single mother'>Single mother</SelectItem>
+                                                                            <SelectItem value='Divorced father'>Divorced father</SelectItem>
+                                                                            <SelectItem value='Divorced mother'>Divorced mother</SelectItem>
+                                                                            <SelectItem value='Widow'>Widow</SelectItem>
+                                                                            <SelectItem value='Widower'>Widower</SelectItem>
                                                                         </SelectContent>
                                                                     </Select>
                                                                 </div>
@@ -3696,6 +4172,13 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         {...register('fatherHomePhone')}
                                                         error={errors.fatherHomePhone?.message}
                                                     />
+                                                    <InputText
+                                                        label='Passing Year'
+                                                        id='amsT_FatherPassingYear'
+                                                        placeholder='Enter Passing Year'
+                                                        {...register('amsT_FatherPassingYear')}
+                                                        error={errors.amsT_FatherPassingYear?.message}
+                                                    />
 
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Label htmlFor='fatherNationality'>
@@ -3704,7 +4187,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         <Controller
                                                             name='fatherNationality'
                                                             control={control}
-                                                            rules={{ required: fatherAlive ? 'Country is required' : false }}
+                                                            rules={{
+                                                                required: fatherAlive ? 'Country is required' : false
+                                                            }}
                                                             render={({ field }) => (
                                                                 <Select
                                                                     key={field.value || 'empty'}
@@ -3758,7 +4243,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
                                                     {/* Present Address Details */}
                                                     <div className='col-span-full space-y-4 md:col-span-2 lg:col-span-3'>
-                                                        <h3 className='font-semibold text-gray-800 text-lg'>Present Address Details</h3>
+                                                        <h3 className='font-semibold text-gray-800 text-lg'>
+                                                            Father Present Address Details
+                                                        </h3>
 
                                                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                             {/* Address */}
@@ -3769,6 +4256,49 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 {...register('fatherPresentAddress.address')}
                                                                 error={errors.fatherPresentAddress?.address?.message}
                                                             />
+                                                            {/* <div className='flex flex-col gap-1.5'>
+                                                                <Label htmlFor='fatherPresentAddress.country'>
+                                                                    Country <span className='ml-1 text-red-500'>*</span>
+                                                                </Label>
+
+                                                                <Controller
+                                                                    name='fatherPresentAddress.country'
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <Select
+                                                                            key={field.value || 'empty'}
+                                                                            onValueChange={(value) => field.onChange(value)}
+                                                                            value={field.value?.toString() || ''}>
+                                                                            <SelectTrigger>
+                                                                                <SelectValue placeholder='Select country' />
+                                                                            </SelectTrigger>
+                                                                            <SelectContent>
+                                                                                {countryLoading ? (
+                                                                                    <SelectItem value='loading' disabled>
+                                                                                        Loading...
+                                                                                    </SelectItem>
+                                                                                ) : countryError ? (
+                                                                                    <SelectItem value='error' disabled>
+                                                                                        Error loading
+                                                                                    </SelectItem>
+                                                                                ) : (
+                                                                                    country?.data?.map((item) => (
+                                                                                        <SelectItem
+                                                                                            key={item.ivrmmC_CountryName}
+                                                                                            value={item.ivrmmC_CountryName.toString()}>
+                                                                                            {item.ivrmmC_CountryName}
+                                                                                        </SelectItem>
+                                                                                    ))
+                                                                                )}
+                                                                            </SelectContent>
+                                                                        </Select>
+                                                                    )}
+                                                                />
+
+                                                                {errors.fatherPresentAddress?.country && (
+                                                                    <FormError>{errors.fatherPresentAddress.country.message}</FormError>
+                                                                )}
+                                                            </div> */}
 
                                                             {/* State */}
                                                             <div className='flex flex-col gap-1.5'>
@@ -3905,7 +4435,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
                                                     {/* Permanent Address Details */}
                                                     <div className='col-span-full space-y-4 md:col-span-2 lg:col-span-3'>
-                                                        <h3 className='font-semibold text-gray-800 text-lg'>Permanent Address Details</h3>
+                                                        <h3 className='font-semibold text-gray-800 text-lg'>
+                                                            Father Permanent Address Details
+                                                        </h3>
 
                                                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                             {/* Permanent Address */}
@@ -3916,6 +4448,49 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 {...register('fatherPermanentAddress.address')}
                                                                 error={errors.fatherPermanentAddress?.address?.message}
                                                             />
+                                                            {/* <div className='flex flex-col gap-1.5'>
+                                                                <Label htmlFor='fatherPermanentAddress.country'>
+                                                                    Country <span className='ml-1 text-red-500'>*</span>
+                                                                </Label>
+
+                                                                <Controller
+                                                                    name='fatherPermanentAddress.country'
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <Select
+                                                                            key={field.value || 'empty'}
+                                                                            onValueChange={(value) => field.onChange(value)}
+                                                                            value={field.value?.toString() || ''}>
+                                                                            <SelectTrigger>
+                                                                                <SelectValue placeholder='Select country' />
+                                                                            </SelectTrigger>
+                                                                            <SelectContent>
+                                                                                {countryLoading ? (
+                                                                                    <SelectItem value='loading' disabled>
+                                                                                        Loading...
+                                                                                    </SelectItem>
+                                                                                ) : countryError ? (
+                                                                                    <SelectItem value='error' disabled>
+                                                                                        Error loading
+                                                                                    </SelectItem>
+                                                                                ) : (
+                                                                                    country?.data?.map((item) => (
+                                                                                        <SelectItem
+                                                                                            key={item.ivrmmC_CountryName}
+                                                                                            value={item.ivrmmC_CountryName.toString()}>
+                                                                                            {item.ivrmmC_CountryName}
+                                                                                        </SelectItem>
+                                                                                    ))
+                                                                                )}
+                                                                            </SelectContent>
+                                                                        </Select>
+                                                                    )}
+                                                                />
+
+                                                                {errors.fatherPermanentAddress?.country && (
+                                                                    <FormError>{errors.fatherPermanentAddress.country.message}</FormError>
+                                                                )}
+                                                            </div> */}
 
                                                             {/* Permanent State */}
                                                             <div className='flex flex-col gap-1.5'>
@@ -4381,20 +4956,19 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 <div className='flex flex-col space-y-2'>
                                                                     <Select
                                                                         value={field.value?.toString() || ''}
-                                                                        onValueChange={(value) => field.onChange(Number(value))} // convert to number
-                                                                    >
+                                                                        onValueChange={(value) => field.onChange(value)}>
                                                                         <SelectTrigger className={cn('w-full', error && 'border-red-500')}>
                                                                             <SelectValue placeholder='Select' />
                                                                         </SelectTrigger>
 
                                                                         <SelectContent>
-                                                                            <SelectItem value='0'>Married</SelectItem>
-                                                                            <SelectItem value='1'>Single father</SelectItem>
-                                                                            <SelectItem value='2'>Single mother</SelectItem>
-                                                                            <SelectItem value='3'>Divorced father</SelectItem>
-                                                                            <SelectItem value='4'>Divorced mother</SelectItem>
-                                                                            <SelectItem value='5'>Widow</SelectItem>
-                                                                            <SelectItem value='6'>Widower</SelectItem>
+                                                                            <SelectItem value='Married'>Married</SelectItem>
+                                                                            <SelectItem value='Single father'>Single father</SelectItem>
+                                                                            <SelectItem value='Single mother'>Single mother</SelectItem>
+                                                                            <SelectItem value='Divorced father'>Divorced father</SelectItem>
+                                                                            <SelectItem value='Divorced mother'>Divorced mother</SelectItem>
+                                                                            <SelectItem value='Widow'>Widow</SelectItem>
+                                                                            <SelectItem value='Widower'>Widower</SelectItem>
                                                                         </SelectContent>
                                                                     </Select>
                                                                 </div>
@@ -4484,7 +5058,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         <Controller
                                                             name='motherNationality'
                                                             control={control}
-                                                            rules={{ required: motherAlive ? 'Country is required' : false }}
+                                                            rules={{
+                                                                required: motherAlive ? 'Country is required' : false
+                                                            }}
                                                             render={({ field }) => (
                                                                 <Select
                                                                     key={field.value || 'empty'}
@@ -4561,6 +5137,49 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 {...register('motherPresentAddress.address')}
                                                                 error={errors.motherPresentAddress?.address?.message}
                                                             />
+                                                            {/* <div className='flex flex-col gap-1.5'>
+                                                                <Label htmlFor='motherPresentAddress.country'>
+                                                                    Country <span className='ml-1 text-red-500'>*</span>
+                                                                </Label>
+
+                                                                <Controller
+                                                                    name='motherPresentAddress.country'
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <Select
+                                                                            key={field.value || 'empty'}
+                                                                            onValueChange={(value) => field.onChange(value)}
+                                                                            value={field.value?.toString() || ''}>
+                                                                            <SelectTrigger>
+                                                                                <SelectValue placeholder='Select country' />
+                                                                            </SelectTrigger>
+                                                                            <SelectContent>
+                                                                                {countryLoading ? (
+                                                                                    <SelectItem value='loading' disabled>
+                                                                                        Loading...
+                                                                                    </SelectItem>
+                                                                                ) : countryError ? (
+                                                                                    <SelectItem value='error' disabled>
+                                                                                        Error loading
+                                                                                    </SelectItem>
+                                                                                ) : (
+                                                                                    country?.data?.map((item) => (
+                                                                                        <SelectItem
+                                                                                            key={item.ivrmmC_CountryName}
+                                                                                            value={item.ivrmmC_CountryName.toString()}>
+                                                                                            {item.ivrmmC_CountryName}
+                                                                                        </SelectItem>
+                                                                                    ))
+                                                                                )}
+                                                                            </SelectContent>
+                                                                        </Select>
+                                                                    )}
+                                                                />
+
+                                                                {errors.motherPresentAddress?.country && (
+                                                                    <FormError>{errors.motherPresentAddress.country.message}</FormError>
+                                                                )}
+                                                            </div> */}
 
                                                             {/* State */}
                                                             <div className='flex flex-col gap-1.5'>
@@ -4709,7 +5328,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
                                                     {/* Mother Permanent Address Details */}
                                                     <div className='col-span-full space-y-4 md:col-span-2 lg:col-span-3'>
-                                                        <h3 className='font-semibold text-gray-800 text-lg'>Permanent Address Details</h3>
+                                                        <h3 className='font-semibold text-gray-800 text-lg'>
+                                                            Mother Permanent Address Details
+                                                        </h3>
 
                                                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                             {/* Permanent Address */}
@@ -4720,6 +5341,49 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 {...register('motherPermanentAddress.address')}
                                                                 error={errors.motherPermanentAddress?.address?.message}
                                                             />
+                                                            {/* <div className='flex flex-col gap-1.5'>
+                                                                <Label htmlFor='motherPermanentAddress.country'>
+                                                                    Country <span className='ml-1 text-red-500'>*</span>
+                                                                </Label>
+
+                                                                <Controller
+                                                                    name='motherPermanentAddress.country'
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <Select
+                                                                            key={field.value || 'empty'}
+                                                                            onValueChange={(value) => field.onChange(value)}
+                                                                            value={field.value?.toString() || ''}>
+                                                                            <SelectTrigger>
+                                                                                <SelectValue placeholder='Select country' />
+                                                                            </SelectTrigger>
+                                                                            <SelectContent>
+                                                                                {countryLoading ? (
+                                                                                    <SelectItem value='loading' disabled>
+                                                                                        Loading...
+                                                                                    </SelectItem>
+                                                                                ) : countryError ? (
+                                                                                    <SelectItem value='error' disabled>
+                                                                                        Error loading
+                                                                                    </SelectItem>
+                                                                                ) : (
+                                                                                    country?.data?.map((item) => (
+                                                                                        <SelectItem
+                                                                                            key={item.ivrmmC_CountryName}
+                                                                                            value={item.ivrmmC_CountryName.toString()}>
+                                                                                            {item.ivrmmC_CountryName}
+                                                                                        </SelectItem>
+                                                                                    ))
+                                                                                )}
+                                                                            </SelectContent>
+                                                                        </Select>
+                                                                    )}
+                                                                />
+
+                                                                {errors.motherPermanentAddress?.country && (
+                                                                    <FormError>{errors.motherPermanentAddress.country.message}</FormError>
+                                                                )}
+                                                            </div> */}
 
                                                             {/* Permanent State */}
                                                             <div className='flex flex-col gap-1.5'>
@@ -5124,18 +5788,13 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     control={control}
                                                     render={({ field }) => (
                                                         <MultiSelect
-                                                            options={
-                                                                source?.data?.map((data) => ({
-                                                                    label: data.pamS_SourceName,
-                                                                    value: data.pamS_Id.toString()
-                                                                })) || []
-                                                            }
+                                                            options={[{ label: 'Sports', value: '1' }]}
                                                             onValueChange={(selectedValues) => {
                                                                 field.onChange(selectedValues);
-                                                                handleSourceSelection(selectedValues);
+                                                                handleActivitySelection(selectedValues);
                                                             }}
-                                                            defaultValue={selectedSourceItems.map((data) => data.pamS_Id)}
-                                                            value={selectedSourceItems.map((data) => data.pamS_Id)}
+                                                            defaultValue={selectedActivityItems}
+                                                            value={selectedActivityItems}
                                                             placeholder='Select Activities'
                                                             variant='inverted'
                                                             disabled={sourceLoading}
@@ -5235,16 +5894,23 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 {/* School Type */}
                                                                 <div className='flex flex-col gap-1.5'>
                                                                     <Label>School Type</Label>
+
                                                                     <Controller
                                                                         name={`previousSchools.${idx}.schoolTypeId`}
                                                                         control={control}
                                                                         render={({ field }) => (
                                                                             <Select
                                                                                 value={field.value?.toString() || ''}
-                                                                                onValueChange={(val) => field.onChange(String(val))}>
+                                                                                onValueChange={(val) => field.onChange(val)}>
                                                                                 <SelectTrigger>
                                                                                     <SelectValue placeholder='Select school type' />
                                                                                 </SelectTrigger>
+
+                                                                                <SelectContent>
+                                                                                    <SelectItem value='0'>Pre-Primary School</SelectItem>
+                                                                                    <SelectItem value='1'>Primary School</SelectItem>
+                                                                                    <SelectItem value='2'>High School</SelectItem>
+                                                                                </SelectContent>
                                                                             </Select>
                                                                         )}
                                                                     />
@@ -5457,15 +6123,31 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         <div key={g.id} className='rounded-lg border border-gray-200 bg-gray-50 p-4'>
                                                             <div className='flex items-center justify-between'>
                                                                 <h4 className='font-medium text-gray-700 text-sm'>Guardian {idx + 1}</h4>
-                                                                <Button
-                                                                    type='button'
-                                                                    variant='ghost'
-                                                                    size='sm'
-                                                                    onClick={() => removeGuardian(idx)}
-                                                                    disabled={isSubmitting || idx === 0}
-                                                                    className={`h-8 w-fit ${idx === 0 ? 'cursor-not-allowed opacity-50' : ''}`}>
-                                                                    Remove
-                                                                </Button>
+                                                                <div className='flex items-center gap-2'>
+                                                                    <Button
+                                                                        type='button'
+                                                                        variant='ghost'
+                                                                        size='sm'
+                                                                        onClick={() => removeGuardian(idx)}
+                                                                        disabled={isSubmitting || idx === 0}
+                                                                        className={`h-8 w-fit ${idx === 0 ? 'cursor-not-allowed opacity-50' : ''}`}>
+                                                                        Remove
+                                                                    </Button>
+                                                                    <Button
+                                                                        type='button'
+                                                                        variant='outline'
+                                                                        size='sm'
+                                                                        onClick={() => handleSaveGuardian(idx)}
+                                                                        disabled={
+                                                                            isSubmitting ||
+                                                                            guardianPhotos?.[idx]?.isUploading ||
+                                                                            guardianSignatures?.[idx]?.isUploading
+                                                                        }
+                                                                        className='h-8 w-fit'>
+                                                                        <Save className='mr-2 h-4 w-4' />
+                                                                        Save
+                                                                    </Button>
+                                                                </div>
                                                             </div>
 
                                                             <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
@@ -5561,6 +6243,305 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     {...register(`guardian.${idx}.guardianAddress`)}
                                                                     error={errors.guardian?.[idx]?.guardianAddress?.message}
                                                                 />
+
+                                                                {watchedGuardians?.[idx]?.guardianName ? (
+                                                                    <>
+                                                                        <div className='col-span-full flex w-full items-stretch gap-4'>
+                                                                            {/* Photo column */}
+                                                                            <div className='min-w-0 flex-1'>
+                                                                                <div className='flex h-full flex-col justify-between overflow-hidden rounded-lg border-2 border-blue-200 bg-blue-50 p-2'>
+                                                                                    <div>
+                                                                                        <div className='mb-1'>
+                                                                                            <Label>Guardian Photo</Label>
+                                                                                        </div>
+
+                                                                                        {!guardianPhotos?.[idx]?.path ? (
+                                                                                            <label
+                                                                                                className={cn(
+                                                                                                    'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-2 py-3 text-center transition-all hover:border-primary hover:bg-white',
+                                                                                                    guardianPhotos?.[idx]?.isUploading
+                                                                                                        ? 'border-blue-400 bg-blue-100'
+                                                                                                        : 'border-gray-300 bg-white'
+                                                                                                )}>
+                                                                                                {guardianPhotos?.[idx]?.isUploading ? (
+                                                                                                    <div className='flex flex-col items-center gap-2'>
+                                                                                                        <svg
+                                                                                                            className='h-8 w-8 animate-spin text-primary'
+                                                                                                            fill='none'
+                                                                                                            stroke='currentColor'
+                                                                                                            viewBox='0 0 24 24'>
+                                                                                                            <circle
+                                                                                                                className='opacity-25'
+                                                                                                                cx='12'
+                                                                                                                cy='12'
+                                                                                                                r='10'
+                                                                                                                strokeWidth='4'
+                                                                                                                stroke='currentColor'
+                                                                                                            />
+                                                                                                            <path
+                                                                                                                className='opacity-75'
+                                                                                                                fill='currentColor'
+                                                                                                                d='M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z'
+                                                                                                            />
+                                                                                                        </svg>
+                                                                                                        <span className='font-medium text-primary text-sm'>
+                                                                                                            Uploading photo...
+                                                                                                        </span>
+                                                                                                    </div>
+                                                                                                ) : (
+                                                                                                    <>
+                                                                                                        <svg
+                                                                                                            className='h-12 w-12 text-primary'
+                                                                                                            fill='none'
+                                                                                                            stroke='currentColor'
+                                                                                                            viewBox='0 0 24 24'>
+                                                                                                            <path
+                                                                                                                strokeLinecap='round'
+                                                                                                                strokeLinejoin='round'
+                                                                                                                strokeWidth={2}
+                                                                                                                d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
+                                                                                                            />
+                                                                                                        </svg>
+                                                                                                        <span className='font-medium text-gray-700 text-sm'>
+                                                                                                            Click to upload
+                                                                                                        </span>
+                                                                                                        <span className='mt-1 max-w-[250px] text-gray-600 text-sm'>
+                                                                                                            Upload guardian photo (Max size:
+                                                                                                            5MB, JPG/PNG)
+                                                                                                        </span>
+                                                                                                    </>
+                                                                                                )}
+
+                                                                                                <input
+                                                                                                    type='file'
+                                                                                                    className='hidden'
+                                                                                                    accept='image/jpeg,image/jpg,image/png'
+                                                                                                    disabled={
+                                                                                                        guardianPhotos?.[idx]
+                                                                                                            ?.isUploading || isSubmitting
+                                                                                                    }
+                                                                                                    onChange={(e) => {
+                                                                                                        const file = e.target.files?.[0];
+                                                                                                        if (file) {
+                                                                                                            if (
+                                                                                                                file.size >
+                                                                                                                5 * 1024 * 1024
+                                                                                                            ) {
+                                                                                                                toast.error(
+                                                                                                                    'File size must be less than 5MB'
+                                                                                                                );
+                                                                                                                e.target.value = '';
+                                                                                                                return;
+                                                                                                            }
+                                                                                                            handleGuardianPhotoUpload(
+                                                                                                                idx,
+                                                                                                                file
+                                                                                                            );
+                                                                                                            e.target.value = '';
+                                                                                                        }
+                                                                                                    }}
+                                                                                                />
+                                                                                            </label>
+                                                                                        ) : (
+                                                                                            <div className='flex h-full w-full flex-col items-start justify-start gap-2 overflow-hidden rounded-lg border border-green-200 bg-green-50 p-4'>
+                                                                                                <div className='flex items-center gap-4'>
+                                                                                                    <img
+                                                                                                        src={guardianPhotos[idx].path}
+                                                                                                        alt={`Guardian ${idx + 1}`}
+                                                                                                        className='h-24 w-24 rounded-lg border-2 border-green-300 object-cover'
+                                                                                                    />
+                                                                                                    <div>
+                                                                                                        <div className='flex items-center gap-2 font-medium text-green-700'>
+                                                                                                            <Check className='h-5 w-5' />
+                                                                                                            Uploaded Successfully
+                                                                                                        </div>
+                                                                                                        <p className='mt-1 text-green-600 text-sm'>
+                                                                                                            Guardian photo is ready
+                                                                                                        </p>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                                <div className='flex items-center gap-2'>
+                                                                                                    <Button
+                                                                                                        type='button'
+                                                                                                        variant='outline'
+                                                                                                        size='sm'
+                                                                                                        className='flex h-9 w-9 items-center justify-center p-0'
+                                                                                                        onClick={() =>
+                                                                                                            window.open(
+                                                                                                                guardianPhotos[idx].path,
+                                                                                                                '_blank'
+                                                                                                            )
+                                                                                                        }>
+                                                                                                        <Eye className='h-4 w-4' />
+                                                                                                    </Button>
+                                                                                                    <Button
+                                                                                                        type='button'
+                                                                                                        variant='destructive'
+                                                                                                        size='sm'
+                                                                                                        className='flex h-9 w-9 items-center justify-center p-0'
+                                                                                                        disabled={isSubmitting}
+                                                                                                        onClick={() =>
+                                                                                                            handleGuardianPhotoDelete(idx)
+                                                                                                        }>
+                                                                                                        <Trash className='h-4 w-4' />
+                                                                                                    </Button>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        )}
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+
+                                                                            {/* Signature column */}
+                                                                            <div className='min-w-0 flex-1'>
+                                                                                <div className='flex h-full flex-col justify-between overflow-hidden rounded-lg border-2 border-blue-200 bg-blue-50 p-2'>
+                                                                                    <div>
+                                                                                        <div className='mb-1'>
+                                                                                            <Label>Guardian Signature</Label>
+                                                                                        </div>
+
+                                                                                        {!guardianSignatures?.[idx]?.path ? (
+                                                                                            <label
+                                                                                                className={cn(
+                                                                                                    'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-2 py-3 text-center transition-all hover:border-primary hover:bg-white',
+                                                                                                    guardianSignatures?.[idx]?.isUploading
+                                                                                                        ? 'border-blue-400 bg-blue-100'
+                                                                                                        : 'border-gray-300 bg-white'
+                                                                                                )}>
+                                                                                                {guardianSignatures?.[idx]?.isUploading ? (
+                                                                                                    <div className='flex flex-col items-center gap-2'>
+                                                                                                        <svg
+                                                                                                            className='h-8 w-8 animate-spin text-primary'
+                                                                                                            fill='none'
+                                                                                                            stroke='currentColor'
+                                                                                                            viewBox='0 0 24 24'>
+                                                                                                            <circle
+                                                                                                                className='opacity-25'
+                                                                                                                cx='12'
+                                                                                                                cy='12'
+                                                                                                                r='10'
+                                                                                                                strokeWidth='4'
+                                                                                                                stroke='currentColor'
+                                                                                                            />
+                                                                                                            <path
+                                                                                                                className='opacity-75'
+                                                                                                                fill='currentColor'
+                                                                                                                d='M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z'
+                                                                                                            />
+                                                                                                        </svg>
+                                                                                                        <span className='font-medium text-primary text-sm'>
+                                                                                                            Uploading signature...
+                                                                                                        </span>
+                                                                                                    </div>
+                                                                                                ) : (
+                                                                                                    <>
+                                                                                                        <svg
+                                                                                                            className='h-12 w-12 text-primary'
+                                                                                                            fill='none'
+                                                                                                            stroke='currentColor'
+                                                                                                            viewBox='0 0 24 24'>
+                                                                                                            <path
+                                                                                                                strokeLinecap='round'
+                                                                                                                strokeLinejoin='round'
+                                                                                                                strokeWidth={2}
+                                                                                                                d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
+                                                                                                            />
+                                                                                                        </svg>
+                                                                                                        <span className='font-medium text-gray-700 text-sm'>
+                                                                                                            Click to upload
+                                                                                                        </span>
+                                                                                                        <span className='mt-1 max-w-[250px] text-gray-600 text-sm'>
+                                                                                                            Upload guardian signature (Max
+                                                                                                            size: 5MB, JPG/PNG)
+                                                                                                        </span>
+                                                                                                    </>
+                                                                                                )}
+
+                                                                                                <input
+                                                                                                    type='file'
+                                                                                                    className='hidden'
+                                                                                                    accept='image/jpeg,image/jpg,image/png'
+                                                                                                    disabled={
+                                                                                                        guardianSignatures?.[idx]
+                                                                                                            ?.isUploading || isSubmitting
+                                                                                                    }
+                                                                                                    onChange={(e) => {
+                                                                                                        const file = e.target.files?.[0];
+                                                                                                        if (file) {
+                                                                                                            if (
+                                                                                                                file.size >
+                                                                                                                5 * 1024 * 1024
+                                                                                                            ) {
+                                                                                                                toast.error(
+                                                                                                                    'File size must be less than 5MB'
+                                                                                                                );
+                                                                                                                e.target.value = '';
+                                                                                                                return;
+                                                                                                            }
+                                                                                                            handleGuardianSignatureUpload(
+                                                                                                                idx,
+                                                                                                                file
+                                                                                                            );
+                                                                                                            e.target.value = '';
+                                                                                                        }
+                                                                                                    }}
+                                                                                                />
+                                                                                            </label>
+                                                                                        ) : (
+                                                                                            <div className='flex h-full w-full flex-col items-start justify-start gap-2 overflow-hidden rounded-lg border border-green-200 bg-green-50 p-4'>
+                                                                                                <div className='flex items-center gap-4'>
+                                                                                                    <img
+                                                                                                        src={guardianSignatures[idx].path}
+                                                                                                        alt={`Guardian signature ${idx + 1}`}
+                                                                                                        className='h-24 w-40 rounded-lg border-2 border-green-300 object-contain'
+                                                                                                    />
+                                                                                                    <div>
+                                                                                                        <div className='flex items-center gap-2 font-medium text-green-700'>
+                                                                                                            <Check className='h-5 w-5' />
+                                                                                                            Uploaded Successfully
+                                                                                                        </div>
+                                                                                                        <p className='mt-1 text-green-600 text-sm'>
+                                                                                                            Guardian signature is ready
+                                                                                                        </p>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                                <div className='flex items-center gap-2'>
+                                                                                                    <Button
+                                                                                                        type='button'
+                                                                                                        variant='outline'
+                                                                                                        size='sm'
+                                                                                                        className='flex h-9 w-9 items-center justify-center p-0'
+                                                                                                        onClick={() =>
+                                                                                                            window.open(
+                                                                                                                guardianSignatures[idx]
+                                                                                                                    .path,
+                                                                                                                '_blank'
+                                                                                                            )
+                                                                                                        }>
+                                                                                                        <Eye className='h-4 w-4' />
+                                                                                                    </Button>
+                                                                                                    <Button
+                                                                                                        type='button'
+                                                                                                        variant='destructive'
+                                                                                                        size='sm'
+                                                                                                        className='flex h-9 w-9 items-center justify-center p-0'
+                                                                                                        disabled={isSubmitting}
+                                                                                                        onClick={() =>
+                                                                                                            handleGuardianSignatureDelete(
+                                                                                                                idx
+                                                                                                            )
+                                                                                                        }>
+                                                                                                        <Trash className='h-4 w-4' />
+                                                                                                    </Button>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        )}
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </>
+                                                                ) : null}
                                                             </div>
                                                         </div>
                                                     ))}
@@ -6077,254 +7058,422 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             </p>
                                         </div>
 
-                                        {preadmissionDocumentsLoading ? (
-                                            <div className='flex items-center justify-center py-12'>
-                                                <div className='text-center'>
-                                                    <div className='mx-auto h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent' />
-                                                    <p className='mt-4 text-gray-600 text-sm'>Loading documents...</p>
-                                                </div>
+                                        {/* Document uploads: users can add files which will be submitted with final form */}
+                                        <div>
+                                            <div className='mb-2 text-gray-600 text-sm'>
+                                                Add documents required by you. Files are stored locally and sent on final submit.
                                             </div>
-                                        ) : preadmissionDocuments?.data && preadmissionDocuments.data.length > 0 ? (
-                                            <div className='overflow-x-auto rounded-lg border border-gray-200'>
-                                                <table className='min-w-full divide-y divide-gray-200'>
-                                                    <thead className='bg-gray-50'>
-                                                        <tr>
-                                                            <th
-                                                                scope='col'
-                                                                className='px-6 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wider'>
-                                                                Document Name
-                                                            </th>
-                                                            <th
-                                                                scope='col'
-                                                                className='px-6 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wider'>
-                                                                Status
-                                                            </th>
-                                                            <th
-                                                                scope='col'
-                                                                className='px-6 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wider'>
-                                                                Upload
-                                                            </th>
-                                                            <th
-                                                                scope='col'
-                                                                className='px-6 py-3 text-center font-medium text-gray-500 text-xs uppercase tracking-wider'>
-                                                                Actions
-                                                            </th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody className='divide-y divide-gray-200 bg-white'>
-                                                        {preadmissionDocuments.data.map((document) => {
-                                                            const uploadedDoc = getUploadedDocument(document.amsmD_Id);
-                                                            const isUploading = uploadedDoc?.isUploading;
-                                                            const error = documentErrors[document.amsmD_Id];
-
-                                                            return (
-                                                                <tr
-                                                                    key={document.amsmD_Id}
-                                                                    className={(() => {
-                                                                        // Get selected religion details
-                                                                        const selectedReligionId = watch('motherReligionId');
-                                                                        const selectedReligion = religion?.data?.find(
-                                                                            (r) => r.ivrmmR_Id === selectedReligionId
-                                                                        );
-                                                                        const isRomanCatholic =
-                                                                            selectedReligion?.ivrmmR_Name === 'Roman Catholic';
-
-                                                                        // Check if this document is conditionally mandatory
-                                                                        const isConditionallyMandatory =
-                                                                            document.amsmD_DocumentName === 'Baptism Certificate' &&
-                                                                            isRomanCatholic;
-
-                                                                        const isMandatory = document.amsmD_FLAG || isConditionallyMandatory;
-
-                                                                        if (uploadedDoc && !isUploading) return 'bg-green-50';
-                                                                        if (isMandatory) return 'bg-orange-50';
-                                                                        return '';
-                                                                    })()}>
-                                                                    <td className='whitespace-nowrap px-6 py-4'>
-                                                                        {(() => {
-                                                                            // Get selected religion details
-                                                                            const selectedReligionId = watch('motherReligionId');
-                                                                            const selectedReligion = religion?.data?.find(
-                                                                                (r) => r.ivrmmR_Id === selectedReligionId
-                                                                            );
-                                                                            const isRomanCatholic =
-                                                                                selectedReligion?.ivrmmR_Name === 'Roman Catholic';
-
-                                                                            // Check if this document is conditionally mandatory
-                                                                            const isConditionallyMandatory =
-                                                                                document.amsmD_DocumentName === 'Baptism Certificate' &&
-                                                                                isRomanCatholic;
-
-                                                                            const isMandatory =
-                                                                                document.amsmD_FLAG || isConditionallyMandatory;
-
-                                                                            return (
-                                                                                <>
-                                                                                    <div className='flex items-center gap-2'>
-                                                                                        <span className='font-semibold text-gray-900 text-sm'>
-                                                                                            {document.amsmD_DocumentName}
-                                                                                        </span>
-                                                                                        {isMandatory && (
-                                                                                            <span className='text-red-500'>*</span>
-                                                                                        )}
-                                                                                    </div>
-                                                                                    <p className='mt-0.5 text-gray-500 text-xs'>
-                                                                                        {isMandatory ? 'Required' : 'Optional'}
-                                                                                        {isConditionallyMandatory && (
-                                                                                            <span className='ml-1 text-orange-600'>
-                                                                                                (for Roman Catholic)
-                                                                                            </span>
-                                                                                        )}
-                                                                                    </p>
-                                                                                </>
-                                                                            );
-                                                                        })()}
-                                                                    </td>
-
-                                                                    <td className='whitespace-nowrap px-6 py-4'>
-                                                                        {uploadedDoc && !isUploading ? (
-                                                                            <div className='flex items-center gap-2 font-medium text-green-600 text-sm'>
-                                                                                <Check className='h-5 w-5' />
-                                                                                Uploaded
-                                                                            </div>
-                                                                        ) : isUploading ? (
-                                                                            <div className='flex animate-pulse items-center gap-2 font-medium text-blue-600 text-sm'>
-                                                                                <svg
-                                                                                    className='h-5 w-5 animate-spin'
-                                                                                    fill='none'
-                                                                                    stroke='currentColor'
-                                                                                    viewBox='0 0 24 24'>
-                                                                                    <circle
-                                                                                        className='opacity-25'
-                                                                                        cx='12'
-                                                                                        cy='12'
-                                                                                        r='10'
-                                                                                        strokeWidth='4'
-                                                                                        stroke='currentColor'
-                                                                                    />
-                                                                                    <path
-                                                                                        className='opacity-75'
-                                                                                        fill='currentColor'
-                                                                                        d='M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z'
-                                                                                    />
-                                                                                </svg>
-                                                                                Uploading...
-                                                                            </div>
-                                                                        ) : (
-                                                                            <span className='text-gray-500 text-sm'>Not Uploaded</span>
-                                                                        )}
-                                                                        {error && (
-                                                                            <p className='mt-1 flex items-center gap-1 font-medium text-red-600 text-xs'>
-                                                                                <span>⚠</span> {error}
-                                                                            </p>
-                                                                        )}
-                                                                    </td>
-
-                                                                    <td className='whitespace-nowrap px-6 py-4'>
-                                                                        {(!uploadedDoc || isUploading) && (
-                                                                            <label
-                                                                                htmlFor={`document-${document.amsmD_Id}`}
-                                                                                className={cn(
-                                                                                    'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-3 text-center transition-all hover:border-primary hover:bg-gray-50',
-                                                                                    isUploading
-                                                                                        ? 'border-blue-300 bg-blue-50'
-                                                                                        : 'border-gray-300 bg-white'
-                                                                                )}>
-                                                                                <svg
-                                                                                    className='mb-1 h-6 w-6 text-primary'
-                                                                                    fill='none'
-                                                                                    stroke='currentColor'
-                                                                                    viewBox='0 0 24 24'>
-                                                                                    <path
-                                                                                        strokeLinecap='round'
-                                                                                        strokeLinejoin='round'
-                                                                                        strokeWidth={2}
-                                                                                        d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12'
-                                                                                    />
-                                                                                </svg>
-                                                                                <span className='text-gray-600 text-xs'>
-                                                                                    Click to upload
-                                                                                </span>
-                                                                                <input
-                                                                                    id={`document-${document.amsmD_Id}`}
-                                                                                    type='file'
-                                                                                    className='hidden'
-                                                                                    accept='.pdf,.jpg,.jpeg,.png'
-                                                                                    disabled={isUploading || isSubmitting}
-                                                                                    onChange={(e) => {
-                                                                                        const file = e.target.files?.[0];
-                                                                                        if (file) {
-                                                                                            if (file.size > 5 * 1024 * 1024) {
-                                                                                                toast.error(
-                                                                                                    'File size must be less than 5MB'
-                                                                                                );
-                                                                                                e.target.value = ''; // Reset input
-                                                                                                return;
-                                                                                            }
-                                                                                            handleDocumentUpload(
-                                                                                                document.amsmD_Id,
-                                                                                                file,
-                                                                                                document.amsmD_DocumentName
-                                                                                            );
-                                                                                            e.target.value = ''; // Reset input after starting upload
-                                                                                        }
-                                                                                    }}
-                                                                                />
-                                                                            </label>
-                                                                        )}
-                                                                    </td>
-
-                                                                    <td className='space-x-2 whitespace-nowrap px-6 py-4 text-center'>
-                                                                        {uploadedDoc && !isUploading && (
-                                                                            <>
-                                                                                <Button
-                                                                                    type='button'
-                                                                                    className='w-fit'
-                                                                                    onClick={() =>
-                                                                                        window.open(uploadedDoc.document_Path, '_blank')
-                                                                                    }>
-                                                                                    <Eye className='h-4 w-4' />
-                                                                                </Button>
-                                                                                <Button
-                                                                                    type='button'
-                                                                                    className='w-fit'
-                                                                                    variant='destructive'
-                                                                                    disabled={isSubmitting}
-                                                                                    onClick={() =>
-                                                                                        handleDocumentDelete(
-                                                                                            document.amsmD_Id,
-                                                                                            uploadedDoc.document_Path,
-                                                                                            document.amsmD_DocumentName
-                                                                                        )
-                                                                                    }>
-                                                                                    <Trash className='h-4 w-4' />
-                                                                                </Button>
-                                                                            </>
-                                                                        )}
-                                                                    </td>
-                                                                </tr>
-                                                            );
-                                                        })}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        ) : (
-                                            <div className='rounded-lg border-2 border-gray-300 border-dashed bg-gray-50 p-12 text-center'>
-                                                <svg
-                                                    className='mx-auto h-12 w-12 text-gray-400'
-                                                    fill='none'
-                                                    stroke='currentColor'
-                                                    viewBox='0 0 24 24'>
+                                            {/* <label className='inline-flex cursor-pointer items-center gap-2 rounded-md border-2 border-dashed px-4 py-2 text-sm hover:border-primary'>
+                                                <svg className='h-4 w-4 text-primary' viewBox='0 0 24 24' fill='none' stroke='currentColor'>
                                                     <path
                                                         strokeLinecap='round'
                                                         strokeLinejoin='round'
                                                         strokeWidth={2}
-                                                        d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
+                                                        d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9'
                                                     />
                                                 </svg>
-                                                <p className='mt-4 text-gray-600 text-sm'>No documents required at this time</p>
-                                            </div>
-                                        )}
+                                                <span>Select documents</span>
+                                                <input
+                                                    type='file'
+                                                    accept='.pdf,.jpg,.jpeg,.png'
+                                                    className='hidden'
+                                                    multiple
+                                                    disabled={isSubmitting}
+                                                    onChange={(e) => {
+                                                        const files = Array.from(e.target.files || []);
+                                                        files.forEach((file) => {
+                                                            // Use a generated id for ad-hoc documents
+                                                            const generatedId = Number(
+                                                                String(Date.now()) + Math.floor(Math.random() * 1000)
+                                                            );
+                                                            handleDocumentUpload(generatedId, file, file.name);
+                                                        });
+                                                        e.target.value = '';
+                                                    }}
+                                                />
+                                            </label> */}
+
+                                            {uploadedDocuments.length > 0 && (
+                                                <div className='mt-4 space-y-2'>
+                                                    {uploadedDocuments.map((d) => (
+                                                        <div
+                                                            key={d.amsmD_Id}
+                                                            className='flex items-center justify-between rounded-lg border p-3'>
+                                                            <div>
+                                                                <div className='font-medium text-sm'>{d.documentName}</div>
+                                                                <div className='text-gray-500 text-xs'>
+                                                                    {d.file ? `${(d.file.size / 1024 / 1024).toFixed(2)} MB` : ''}
+                                                                </div>
+                                                            </div>
+                                                            <div className='flex gap-2'>
+                                                                {d.document_Path && (
+                                                                    <Button
+                                                                        type='button'
+                                                                        size='sm'
+                                                                        variant='ghost'
+                                                                        onClick={() => window.open(d.document_Path, '_blank')}
+                                                                        aria-label={`View ${d.documentName}`}>
+                                                                        <Eye className='h-4 w-4' />
+                                                                    </Button>
+                                                                )}
+                                                                <Button
+                                                                    type='button'
+                                                                    size='sm'
+                                                                    variant='destructive'
+                                                                    onClick={() =>
+                                                                        handleDocumentDelete(
+                                                                            d.amsmD_Id,
+                                                                            d.document_Path,
+                                                                            d.documentName || 'Document'
+                                                                        )
+                                                                    }
+                                                                    aria-label={`Delete ${d.documentName}`}>
+                                                                    <Trash className='h-4 w-4' />
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Parent photos & signatures (Step 6) - table style upload rows */}
+                                        <div className='overflow-hidden rounded-lg border'>
+                                            <table className='w-full table-fixed'>
+                                                <thead>
+                                                    <tr className='bg-gray-50'>
+                                                        <th className='px-4 py-3 text-left text-gray-600 text-sm'>Document Name</th>
+                                                        <th className='px-4 py-3 text-left text-gray-600 text-sm'>Status</th>
+                                                        <th className='px-4 py-3 text-left text-gray-600 text-sm'>Upload</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {/* Father Photo */}
+                                                    <tr className='border-t'>
+                                                        <td className='px-4 py-4'>Father Photo</td>
+                                                        <td className='px-4 py-4'>
+                                                            {fatherPhoto?.isUploading ? (
+                                                                <span className='flex items-center gap-2 text-gray-600 text-sm'>
+                                                                    <Spinner size='sm' />
+                                                                    Uploading...
+                                                                </span>
+                                                            ) : fatherPhoto?.path ? (
+                                                                <span className='text-green-700 text-sm'>Uploaded</span>
+                                                            ) : (
+                                                                <span className='text-gray-500 text-sm'>Not Uploaded</span>
+                                                            )}
+                                                        </td>
+                                                        <td className='px-4 py-4'>
+                                                            {!fatherPhoto || fatherPhoto.isUploading ? (
+                                                                <label className='inline-flex cursor-pointer items-center gap-2 rounded-md border-2 border-dashed px-4 py-3 text-sm hover:border-primary'>
+                                                                    <svg
+                                                                        className='h-4 w-4 text-primary'
+                                                                        viewBox='0 0 24 24'
+                                                                        fill='none'
+                                                                        stroke='currentColor'>
+                                                                        <path
+                                                                            strokeLinecap='round'
+                                                                            strokeLinejoin='round'
+                                                                            strokeWidth={2}
+                                                                            d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9'
+                                                                        />
+                                                                    </svg>
+                                                                    <span>Click to upload</span>
+                                                                    <input
+                                                                        id='father_photo'
+                                                                        type='file'
+                                                                        className='hidden'
+                                                                        accept='image/jpeg,image/jpg,image/png'
+                                                                        disabled={fatherPhoto?.isUploading || isSubmitting}
+                                                                        onChange={(e) => {
+                                                                            const file = e.target.files?.[0];
+                                                                            if (file) {
+                                                                                if (file.size > 5 * 1024 * 1024) {
+                                                                                    toast.error('File size must be less than 5MB');
+                                                                                    e.target.value = '';
+                                                                                    return;
+                                                                                }
+                                                                                handleFatherPhotoUpload(file);
+                                                                                e.target.value = '';
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                </label>
+                                                            ) : (
+                                                                <div className='flex items-center gap-2'>
+                                                                    <img
+                                                                        src={fatherPhoto.path}
+                                                                        alt='Father'
+                                                                        className='h-12 w-12 rounded border object-cover'
+                                                                    />
+                                                                    <div className='flex gap-2'>
+                                                                        <Button
+                                                                            type='button'
+                                                                            size='sm'
+                                                                            variant='ghost'
+                                                                            onClick={() => window.open(fatherPhoto.path, '_blank')}
+                                                                            aria-label='View father photo'>
+                                                                            <Eye className='h-4 w-4' />
+                                                                        </Button>
+                                                                        <Button
+                                                                            type='button'
+                                                                            size='sm'
+                                                                            variant='destructive'
+                                                                            onClick={handleFatherPhotoDelete}
+                                                                            aria-label='Delete father photo'>
+                                                                            <Trash className='h-4 w-4' />
+                                                                        </Button>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+
+                                                    {/* Father Signature */}
+                                                    <tr className='border-t'>
+                                                        <td className='px-4 py-4'>Father Signature</td>
+                                                        <td className='px-4 py-4'>
+                                                            {fatherSignature?.isUploading ? (
+                                                                <span className='flex items-center gap-2 text-gray-600 text-sm'>
+                                                                    <Spinner size='sm' />
+                                                                    Uploading...
+                                                                </span>
+                                                            ) : fatherSignature?.path ? (
+                                                                <span className='text-green-700 text-sm'>Uploaded</span>
+                                                            ) : (
+                                                                <span className='text-gray-500 text-sm'>Not Uploaded</span>
+                                                            )}
+                                                        </td>
+                                                        <td className='px-4 py-4'>
+                                                            {!fatherSignature || fatherSignature.isUploading ? (
+                                                                <label className='inline-flex cursor-pointer items-center gap-2 rounded-md border-2 border-dashed px-4 py-3 text-sm hover:border-primary'>
+                                                                    <svg
+                                                                        className='h-4 w-4 text-primary'
+                                                                        viewBox='0 0 24 24'
+                                                                        fill='none'
+                                                                        stroke='currentColor'>
+                                                                        <path
+                                                                            strokeLinecap='round'
+                                                                            strokeLinejoin='round'
+                                                                            strokeWidth={2}
+                                                                            d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9'
+                                                                        />
+                                                                    </svg>
+                                                                    <span>Click to upload</span>
+                                                                    <input
+                                                                        id='father_signature'
+                                                                        type='file'
+                                                                        className='hidden'
+                                                                        accept='image/jpeg,image/jpg,image/png'
+                                                                        disabled={fatherSignature?.isUploading || isSubmitting}
+                                                                        onChange={(e) => {
+                                                                            const file = e.target.files?.[0];
+                                                                            if (file) {
+                                                                                if (file.size > 5 * 1024 * 1024) {
+                                                                                    toast.error('File size must be less than 5MB');
+                                                                                    e.target.value = '';
+                                                                                    return;
+                                                                                }
+                                                                                handleFatherSignatureUpload(file);
+                                                                                e.target.value = '';
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                </label>
+                                                            ) : (
+                                                                <div className='flex items-center gap-2'>
+                                                                    <img
+                                                                        src={fatherSignature.path}
+                                                                        alt='Father signature'
+                                                                        className='h-12 w-28 rounded border object-contain'
+                                                                    />
+                                                                    <div className='flex gap-2'>
+                                                                        <Button
+                                                                            type='button'
+                                                                            size='sm'
+                                                                            variant='ghost'
+                                                                            onClick={() => window.open(fatherSignature.path, '_blank')}
+                                                                            aria-label='View father signature'>
+                                                                            <Eye className='h-4 w-4' />
+                                                                        </Button>
+                                                                        <Button
+                                                                            type='button'
+                                                                            size='sm'
+                                                                            variant='destructive'
+                                                                            onClick={handleFatherSignatureDelete}
+                                                                            aria-label='Delete father signature'>
+                                                                            <Trash className='h-4 w-4' />
+                                                                        </Button>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+
+                                                    {/* Mother Photo */}
+                                                    <tr className='border-t'>
+                                                        <td className='px-4 py-4'>Mother Photo</td>
+                                                        <td className='px-4 py-4'>
+                                                            {motherPhoto?.isUploading ? (
+                                                                <span className='flex items-center gap-2 text-gray-600 text-sm'>
+                                                                    <Spinner size='sm' />
+                                                                    Uploading...
+                                                                </span>
+                                                            ) : motherPhoto?.path ? (
+                                                                <span className='text-green-700 text-sm'>Uploaded</span>
+                                                            ) : (
+                                                                <span className='text-gray-500 text-sm'>Not Uploaded</span>
+                                                            )}
+                                                        </td>
+                                                        <td className='px-4 py-4'>
+                                                            {!motherPhoto || motherPhoto.isUploading ? (
+                                                                <label className='inline-flex cursor-pointer items-center gap-2 rounded-md border-2 border-dashed px-4 py-3 text-sm hover:border-primary'>
+                                                                    <svg
+                                                                        className='h-4 w-4 text-primary'
+                                                                        viewBox='0 0 24 24'
+                                                                        fill='none'
+                                                                        stroke='currentColor'>
+                                                                        <path
+                                                                            strokeLinecap='round'
+                                                                            strokeLinejoin='round'
+                                                                            strokeWidth={2}
+                                                                            d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
+                                                                        />
+                                                                    </svg>
+                                                                    <span>Click to upload</span>
+                                                                    <input
+                                                                        id='mother_photo'
+                                                                        type='file'
+                                                                        className='hidden'
+                                                                        accept='image/jpeg,image/jpg,image/png'
+                                                                        disabled={motherPhoto?.isUploading || isSubmitting}
+                                                                        onChange={(e) => {
+                                                                            const file = e.target.files?.[0];
+                                                                            if (file) {
+                                                                                if (file.size > 5 * 1024 * 1024) {
+                                                                                    toast.error('File size must be less than 5MB');
+                                                                                    e.target.value = '';
+                                                                                    return;
+                                                                                }
+                                                                                handleMotherPhotoUpload(file);
+                                                                                e.target.value = '';
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                </label>
+                                                            ) : (
+                                                                <div className='flex items-center gap-2'>
+                                                                    <img
+                                                                        src={motherPhoto.path}
+                                                                        alt='Mother'
+                                                                        className='h-12 w-12 rounded border object-cover'
+                                                                    />
+                                                                    <div className='flex gap-2'>
+                                                                        <Button
+                                                                            type='button'
+                                                                            size='sm'
+                                                                            variant='ghost'
+                                                                            onClick={() => window.open(motherPhoto.path, '_blank')}
+                                                                            aria-label='View mother photo'>
+                                                                            <Eye className='h-4 w-4' />
+                                                                        </Button>
+                                                                        <Button
+                                                                            type='button'
+                                                                            size='sm'
+                                                                            variant='destructive'
+                                                                            onClick={handleMotherPhotoDelete}
+                                                                            aria-label='Delete mother photo'>
+                                                                            <Trash className='h-4 w-4' />
+                                                                        </Button>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+
+                                                    {/* Mother Signature */}
+                                                    <tr className='border-t'>
+                                                        <td className='px-4 py-4'>Mother Signature</td>
+                                                        <td className='px-4 py-4'>
+                                                            {motherSignature?.isUploading ? (
+                                                                <span className='flex items-center gap-2 text-gray-600 text-sm'>
+                                                                    <Spinner size='sm' />
+                                                                    Uploading...
+                                                                </span>
+                                                            ) : motherSignature?.path ? (
+                                                                <span className='text-green-700 text-sm'>Uploaded</span>
+                                                            ) : (
+                                                                <span className='text-gray-500 text-sm'>Not Uploaded</span>
+                                                            )}
+                                                        </td>
+                                                        <td className='px-4 py-4'>
+                                                            {!motherSignature || motherSignature.isUploading ? (
+                                                                <label className='inline-flex cursor-pointer items-center gap-2 rounded-md border-2 border-dashed px-4 py-3 text-sm hover:border-primary'>
+                                                                    <svg
+                                                                        className='h-4 w-4 text-primary'
+                                                                        viewBox='0 0 24 24'
+                                                                        fill='none'
+                                                                        stroke='currentColor'>
+                                                                        <path
+                                                                            strokeLinecap='round'
+                                                                            strokeLinejoin='round'
+                                                                            strokeWidth={2}
+                                                                            d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9'
+                                                                        />
+                                                                    </svg>
+                                                                    <span>Click to upload</span>
+                                                                    <input
+                                                                        id='mother_signature'
+                                                                        type='file'
+                                                                        className='hidden'
+                                                                        accept='image/jpeg,image/jpg,image/png'
+                                                                        disabled={motherSignature?.isUploading || isSubmitting}
+                                                                        onChange={(e) => {
+                                                                            const file = e.target.files?.[0];
+                                                                            if (file) {
+                                                                                if (file.size > 5 * 1024 * 1024) {
+                                                                                    toast.error('File size must be less than 5MB');
+                                                                                    e.target.value = '';
+                                                                                    return;
+                                                                                }
+                                                                                handleMotherSignatureUpload(file);
+                                                                                e.target.value = '';
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                </label>
+                                                            ) : (
+                                                                <div className='flex items-center gap-2'>
+                                                                    <img
+                                                                        src={motherSignature.path}
+                                                                        alt='Mother signature'
+                                                                        className='h-12 w-28 rounded border object-contain'
+                                                                    />
+                                                                    <div className='flex gap-2'>
+                                                                        <Button
+                                                                            type='button'
+                                                                            size='sm'
+                                                                            variant='ghost'
+                                                                            onClick={() => window.open(motherSignature.path, '_blank')}
+                                                                            aria-label='View mother signature'>
+                                                                            <Eye className='h-4 w-4' />
+                                                                        </Button>
+                                                                        <Button
+                                                                            type='button'
+                                                                            size='sm'
+                                                                            variant='destructive'
+                                                                            onClick={handleMotherSignatureDelete}
+                                                                            aria-label='Delete mother signature'>
+                                                                            <Trash className='h-4 w-4' />
+                                                                        </Button>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
 
                                         {/* Hostel / Transport checkboxes for final submission */}
                                         <div className='mt-4 flex flex-col gap-3'>
@@ -6365,8 +7514,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             </div>
                                         </div>
 
-                                        {/* Upload Summary */}
-                                        {preadmissionDocuments?.data && preadmissionDocuments.data.length > 0 && (
+                                        {/* Upload Summary: show number of selected documents */}
+                                        {uploadedDocuments.length > 0 && (
                                             <div className='rounded-lg border border-blue-200 bg-blue-50 p-4'>
                                                 <div className='flex items-start gap-3'>
                                                     <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-100'>
@@ -6384,23 +7533,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         </svg>
                                                     </div>
                                                     <div className='flex-1'>
-                                                        <p className='font-medium text-blue-900 text-sm'>Upload Progress</p>
+                                                        <p className='font-medium text-blue-900 text-sm'>Upload Summary</p>
                                                         <p className='mt-1 text-blue-700 text-sm'>
-                                                            {uploadedDocuments.length} of {preadmissionDocuments.data.length} documents
-                                                            uploaded
-                                                            {preadmissionDocuments.data.filter((d) => d.amsmD_FLAG).length > 0 && (
-                                                                <>
-                                                                    {' '}
-                                                                    (
-                                                                    {
-                                                                        preadmissionDocuments.data.filter(
-                                                                            (d) => d.amsmD_FLAG && isDocumentUploaded(d.amsmD_Id)
-                                                                        ).length
-                                                                    }{' '}
-                                                                    of {preadmissionDocuments.data.filter((d) => d.amsmD_FLAG).length}{' '}
-                                                                    mandatory)
-                                                                </>
-                                                            )}
+                                                            {uploadedDocuments.length} document(s) selected and will be submitted with the
+                                                            form
                                                         </p>
                                                     </div>
                                                 </div>
@@ -6438,10 +7574,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                         <Button
                                             type='button'
                                             onClick={submitWithoutValidation}
-                                            disabled={isSubmitting}
+                                            disabled={isSubmitting || submittingFinal}
                                             className='min-w-[160px] transition-all duration-200 hover:scale-105'>
-                                            {isSubmitting ? (
-                                                <span>Saving...</span>
+                                            {isSubmitting || submittingFinal ? (
+                                                <span>Submitting...</span>
                                             ) : (
                                                 <>
                                                     <Save className='mr-2 h-4 w-4' />

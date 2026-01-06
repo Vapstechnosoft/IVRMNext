@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import {
+    createAllAllowedOptional,
+    createAllAllowedRequired,
     createAlphanumericSchema,
     createAlphanumericSchemaPanCard,
     createEmailSchema,
@@ -8,10 +10,8 @@ import {
     createOptionalNumberOnlyStringSchema,
     createOptionalStringSchema,
     createOptionalStringWithLettersSchema,
-    createRequiredAlphaNumericWithSpaceSchema,
     createStringOnlyOptionalSchema,
     createStringOnlySchema,
-    createStringSchema,
     deleteIdSchema
 } from '../validationSchemas';
 
@@ -46,7 +46,10 @@ const HealthMedicalDetailsSchema = z
             }
             return true;
         },
-        { message: 'Allergies must be provided when "isAllergic" is true', path: ['allergies'] }
+        {
+            message: 'Allergies must be provided when "isAllergic" is true',
+            path: ['allergies']
+        }
     );
 
 export const studentAdmissionFormSchema = {
@@ -57,20 +60,20 @@ export const studentAdmissionFormSchema = {
             amsT_FirstName: createStringOnlySchema('First Name', 1, 100),
             amsT_MiddleName: createStringOnlySchema('Middle Name', 1, 100),
             amsT_LastName: createStringOnlySchema('Last Name', 1, 100),
-            amsT_RegistrationNo: createNumberOnlyStringSchema('Registration No', 1, 50),
+            amsT_RegistrationNo: createAllAllowedRequired('Registration No', 1, 50),
             asmcL_Id: z.number().int({ message: 'Class is required' }),
-            amsT_AdmNo: createNumberOnlyStringSchema('Admission No', 1, 50),
+            amsT_AdmissionNo: createAllAllowedRequired('Admission No', 1, 50),
             caste_Id: z.coerce.number().int({ message: 'Caste is required' }),
             pasR_Student_Pic_Path: createOptionalStringSchema('Student Photo Path', 1, 500).optional(),
             pasR_Section_Id: z.number().int({ message: 'Section is required' }),
             amsT_DOB_Words: createStringOnlyOptionalSchema('Date Of Birth In Words', 1, 1000).optional(),
-            pasR_Age: createRequiredAlphaNumericWithSpaceSchema('Age', 1, 10),
+            pasR_Age: z.number().int({ message: 'Age is required' }),
             imC_Id: createStringOnlySchema('Caste', 1, 100),
-            amsT_SubCasteIMC: createStringOnlyOptionalSchema('Sub Caste', 1, 100),
+            amsT_SubCaste: createStringOnlyOptionalSchema('Sub Caste', 1, 100),
             amsT_BirthCertNO: createOptionalAlphaNumericSchema('Birth Certificate No', 1, 50),
-            amsT_StuCasteCertiNo: createOptionalAlphaNumericSchema('Caste Certificate No', 1, 50),
+            amsT_CasteCertiNo: createOptionalAlphaNumericSchema('Caste Certificate No', 1, 50),
             amsT_BiometricId: createOptionalAlphaNumericSchema('Biometric Id', 1, 50),
-            amsT_RFCardNo: createOptionalAlphaNumericSchema('RF Card No', 1, 50),
+            amsT_RFCardNo: createAllAllowedOptional('RF Card No', 1, 50),
             amsT_BloodGroup: createOptionalStringSchema('Blood Group', 1, 50),
             studentCategoryId: z.number().int({ message: 'Student Category is required' }),
             amsT_DOB: z.date({ message: 'Date Of Birth is required' }),
@@ -96,10 +99,10 @@ export const studentAdmissionFormSchema = {
             // EMIS flag
 
             isEmisBpl: z.number().int(),
-            amsT_EmisBplNo: createOptionalAlphaNumericSchema('EMIS Card No', 1, 50).optional(),
+            amsT_EMIS_BPL_STS_No: createOptionalAlphaNumericSchema('EMIS Card No', 1, 50).optional(),
 
             amsT_Tpin: createOptionalAlphaNumericSchema('Student TPIN', 1, 50),
-            amsT_GPSTracingId: createOptionalAlphaNumericSchema('GPS Tracing Id', 1, 50),
+            amsT_GPSTracingId: createAllAllowedOptional('GPS Tracing Id', 1, 50),
             amsT_MOInstruction: createStringOnlyOptionalSchema('Medium Of Instruction', 1, 50),
 
             // NATIONALITY - STRING
@@ -112,19 +115,23 @@ export const studentAdmissionFormSchema = {
             amsT_BirthPlace: createStringOnlyOptionalSchema('Student Birth Place', 1, 100),
             asmS_Id: z.coerce.number().int({ message: 'State is required' }),
             religion_Id: z.number().int({ message: 'Religion is required' }),
-            amsT_CasteCategoryId: z.coerce.number().int({ message: 'Caste is required' }),
+            amsT_SubCasteIMC_Id: z.coerce.number().int({ message: 'Caste is required' }),
             amsT_ReligionId: z.coerce.number().int({ message: 'Student Category is required' }),
-            amsT_Sex: createStringSchema('Gender', 1, 50),
             amsT_Date: z.date({ message: 'Date Of Admission is required' }),
+            amsT_Sex: z.coerce.number().int({ message: 'Gender is required ' }),
 
             pasR_DOB: z.date({ message: 'Date Of Birth is required' }).refine(() => true),
 
-            feeConcessionType: createStringOnlySchema('Caste', 1, 100),
+            feeConcessionType: z.coerce.number().int().optional(),
             // Student email (optional). Allow empty string so overall email is optional when cleared.
             amsT_emailId: z.union([createEmailSchema('Student Email', 1, 50), z.literal('')]).optional(),
             // Support multiple student emails (array). Each item may be empty or a valid email.
             adm_M_Student_EmailIdDTO: z
-                .array(z.object({ amsT_emailId: z.union([createEmailSchema('Student Email', 1, 50), z.literal('')]) }))
+                .array(
+                    z.object({
+                        amsT_emailId: z.union([createEmailSchema('Student Email', 1, 50), z.literal('')])
+                    })
+                )
                 .optional(),
             // Support multiple student mobile numbers stored by the UI
             mobileNos: z
@@ -200,7 +207,7 @@ export const studentAdmissionFormSchema = {
                     message: 'Mobile number cannot start with 0'
                 })
                 .optional(),
-            fatherMaritalStatus: z.number().int().optional(),
+            fatherMaritalStatus: z.string().optional(),
 
             fatherEmailIds: createEmailSchema('Student Email', 1, 50).optional(),
             fatherHomePhone: createOptionalNumberOnlyStringSchema('Father Home Phone No', 1, 15),
@@ -221,7 +228,7 @@ export const studentAdmissionFormSchema = {
 
                 po: createOptionalStringSchema('PO', 1, 100),
 
-                country: z.number().int().optional(),
+                country: z.string().optional(),
 
                 ps: createOptionalStringSchema('PS', 1, 100).optional()
             }),
@@ -242,12 +249,13 @@ export const studentAdmissionFormSchema = {
 
                 ps: createOptionalStringSchema('Permanent PS', 1, 100),
 
-                country: z.number().int().optional()
+                country: z.string().optional()
             }),
             fatherOfficeAddress: createOptionalStringSchema('Father Office Address', 1, 100),
 
             fatherCasteCertificateNo: createOptionalAlphaNumericSchema('Father Caste Certificate No', 1, 100),
             fatherOccupation: createStringOnlyOptionalSchema('Father Occupation', 1, 100),
+            amsT_FatherPassingYear: z.number().optional(),
             fatherAnnualIncome: z.number().optional(),
             fatherReligionId: z.number().int().optional(),
             fatherCasteId: z.number().int().optional(),
@@ -265,7 +273,7 @@ export const studentAdmissionFormSchema = {
                 .refine((val) => val === undefined || val === '' || /^[0-9]{12}$/.test(val), {
                     message: 'Aadhar No must be exactly 12 digits'
                 }),
-            motherMaritalStatus: z.number().int().optional(),
+            motherMaritalStatus: z.string().optional(),
 
             motherMobileNumbers: z
                 .string()
@@ -278,10 +286,11 @@ export const studentAdmissionFormSchema = {
             motherNationality: z.string().optional(),
 
             motherQualification: createStringOnlyOptionalSchema('Mother Qualification', 1, 100).optional(),
-            motherPassingYear: createOptionalNumberOnlyStringSchema('Mother Passing Year', 1, 4).optional(),
+            motherPassingYear: z.coerce.number().int({ message: 'Mother Passing Year must be a valid year' }).optional(),
             motherPresentAddress: z
                 .object({
                     address: createOptionalStringSchema('Address', 1, 200),
+                    country: z.string().optional(),
                     city: createOptionalAlphaNumericSchema('City', 1, 100),
                     state: z.number().int().optional(),
                     po: createOptionalStringSchema('PO', 1, 100),
@@ -295,6 +304,7 @@ export const studentAdmissionFormSchema = {
             motherPermanentAddress: z
                 .object({
                     address: createOptionalStringSchema('Address', 1, 200),
+                    country: z.string().optional(),
                     city: createOptionalAlphaNumericSchema('City', 1, 100),
                     state: z.number().int().optional(),
                     po: createOptionalStringSchema('PO', 1, 100),
@@ -440,14 +450,14 @@ export const studentAdmissionFormSchema = {
         .refine(
             (data) => {
                 if (data.isEmisBpl === 1) {
-                    const val = data.amsT_EmisBplNo;
+                    const val = data.amsT_EMIS_BPL_STS_No;
                     return typeof val === 'string' && val.trim() !== '';
                 }
                 return true;
             },
             {
                 message: 'EMIS / BPL / STS No. is required when EMIS is selected',
-                path: ['amsT_EmisBplNo']
+                path: ['amsT_EMIS_BPL_STS_No']
             }
         )
         .refine(
