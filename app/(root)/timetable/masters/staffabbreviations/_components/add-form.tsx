@@ -1,13 +1,16 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { FormError } from '@/components/ui/extension/field';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-import { useMasterBuilding } from '@/hooks/timetable/useMasters';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useStaffAbbreviation, useStaffDropDown } from '@/hooks/timetable/useMasters';
 import { staffabbreviationsSchema } from '@/schemas/timetable/masters';
+import { addOrUpdateStaffAbbreviation } from '@/server/timetable/masters/staffabbreviation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { type SubmitHandler, useForm } from 'react-hook-form';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof staffabbreviationsSchema.addOrUpdate>;
@@ -18,12 +21,15 @@ interface AddMasterDayProps {
 }
 
 export default function AddStaffAbbreviationForm({ onSuccess, buildingname = '' }: AddMasterDayProps) {
-    const { refetchAll } = useMasterBuilding();
+    const { refetchAll } = useStaffAbbreviation();
+
+    const { data: staffdata, isLoading: staffisLoading, error: stafferror, refetchAll: staffrefetchAll } = useStaffDropDown();
 
     const {
         register,
         handleSubmit,
         reset,
+        control,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(staffabbreviationsSchema.addOrUpdate),
@@ -32,26 +38,26 @@ export default function AddStaffAbbreviationForm({ onSuccess, buildingname = '' 
     });
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
-        // try {
-        //     const { ttmB_BuildingName } = data;
-        //     const payload = {
-        //         ttmD_Id: 0,
-        //         mi_id: 30,
-        //         ttmB_BuildingName: ttmB_BuildingName,
-        //     };
-        //     console.log(payload);
-        //     const response = await addOrUpdateMasterDay(payload);
-        //     if (response.success) {
-        //         toast.success(response.message);
-        //         reset();
-        //         refetchAll();
-        //         onSuccess?.();
-        //     } else {
-        //         toast.error(response.message);
-        //     }
-        // } catch (error: any) {
-        //     toast.error(error.message);
-        // }
+        try {
+            //const { ttmB_BuildingName } = data;
+            const payload = {
+                ttmD_Id: 0,
+                mi_id: 30
+                //ttmB_BuildingName: ttmB_BuildingName,
+            };
+            console.log(payload);
+            const response = await addOrUpdateStaffAbbreviation(payload);
+            if (response.success) {
+                toast.success(response.message);
+                reset();
+                refetchAll();
+                onSuccess?.();
+            } else {
+                toast.error(response.message);
+            }
+        } catch (error: any) {
+            toast.error(error.message);
+        }
     };
 
     const handleReset = () => {
@@ -66,14 +72,53 @@ export default function AddStaffAbbreviationForm({ onSuccess, buildingname = '' 
                         {/* Row 1 */}
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                             <div className='w-full'>
-                                <InputText
+                                {/* <InputText
                                     label='Staff Name'
                                     required
                                     id='HRME_Id'
                                     {...register('HRME_Id')}
                                     error={errors.HRME_Id?.message}
                                     className='w-full transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
+                                /> */}
+                                <div className='group flex flex-col gap-1.5'>
+                                    <Label aria-label='Term' htmlFor='fmT_Id'>
+                                        Staff Name <span className='ml-1 text-red-500'>*</span>
+                                    </Label>
+                                    <Controller
+                                        name='HRME_Id'
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select
+                                                key={field.value || 'empty'}
+                                                onValueChange={(value) => {
+                                                    field.onChange(Number(value) || '');
+                                                }}
+                                                value={field.value?.toString() || undefined}>
+                                                <SelectTrigger className='w-full'>
+                                                    <SelectValue placeholder='Select Staff' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {staffisLoading ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading StaffData...
+                                                        </SelectItem>
+                                                    ) : stafferror ? (
+                                                        <SelectItem value='error' disabled>
+                                                            Error loading StaffData
+                                                        </SelectItem>
+                                                    ) : (
+                                                        staffdata?.data?.map((item) => (
+                                                            <SelectItem key={item.hrmE_Id} value={item.hrmE_Id.toString()}>
+                                                                {item.staffName}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                        )}
+                                    />
+                                    {errors.HRME_Id && <FormError>{errors.HRME_Id.message}</FormError>}
+                                </div>
                             </div>
                             <div className='w-full'>
                                 <InputText
@@ -123,7 +168,6 @@ export default function AddStaffAbbreviationForm({ onSuccess, buildingname = '' 
                             <div className='w-full'>
                                 <InputText
                                     label='Max. Yearly Deputation'
-                                    required
                                     id='TTMSAB_PerYearMaxDeputation'
                                     {...register('TTMSAB_PerYearMaxDeputation')}
                                     error={errors.TTMSAB_PerYearMaxDeputation?.message}

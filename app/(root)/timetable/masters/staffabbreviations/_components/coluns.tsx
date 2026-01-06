@@ -8,7 +8,7 @@ import { useCallback } from 'react';
 
 export const staffAbbreviationsColumns: ColumnDef<IStaffAbbreviationList>[] = [
     {
-        accessorKey: 'ttmB_Id',
+        accessorKey: 'ttmsaB_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
@@ -20,13 +20,19 @@ export const staffAbbreviationsColumns: ColumnDef<IStaffAbbreviationList>[] = [
         enableHiding: false
     },
     {
-        accessorKey: 'ttmB_BuildingName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Building Name' />,
-        cell: ({ row }) => <div>{row.getValue('ttmB_BuildingName')}</div>,
+        accessorKey: 'firstName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Staff Name' />,
+        cell: ({ row }) => <div>{row.getValue('firstName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
-
+    {
+        accessorKey: 'ttmsaB_Abbreviation',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Staff Abbreviation' />,
+        cell: ({ row }) => <div>{row.getValue('ttmsaB_Abbreviation')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
     {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,

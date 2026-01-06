@@ -3,9 +3,9 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { useMasterDay } from '@/hooks/timetable/useMasters';
+import { useStaffAbbreviation } from '@/hooks/timetable/useMasters';
 import { staffabbreviationsSchema } from '@/schemas/timetable/masters';
-import { ToggleMasterDay } from '@/server/timetable/masters/masterday';
+import { ToggleStaffAbbreviation } from '@/server/timetable/masters/staffabbreviation';
 import type { IStaffAbbreviationList } from '@/types/timetable/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
@@ -20,7 +20,7 @@ interface ToggleStaffAbbreviationFormProps {
 }
 
 export default function ToggleStaffAbbreviationForm({ rowData, onClose }: ToggleStaffAbbreviationFormProps) {
-    const { refetchAll } = useMasterDay();
+    const { refetchAll } = useStaffAbbreviation();
     const isActive = rowData.ttmsaB_ActiveFlag;
 
     const {
@@ -40,7 +40,7 @@ export default function ToggleStaffAbbreviationForm({ rowData, onClose }: Toggle
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await ToggleMasterDay(Number(rowData.ttmsaB_Id));
+            const response = await ToggleStaffAbbreviation(Number(rowData.ttmsaB_Id));
 
             if (response.success) {
                 toast.success(response.message);

@@ -1,11 +1,11 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { FormError } from '@/components/ui/extension/field';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterBuilding } from '@/hooks/timetable/useMasters';
 import { masterBuildingSchema } from '@/schemas/timetable/masters';
-import { addOrUpdateMasterBuilding } from '@/server/timetable/masterbuilding';
+import { addOrUpdateMasterBuilding } from '@/server/timetable/masters/masterbuilding';
 import type { IMasterBuildingList } from '@/types/timetable/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
@@ -49,9 +49,7 @@ export default function UpdateMasterBuildingForm({ onSuccess, masterbuilding = '
         try {
             const { ttmB_BuildingName, ttmB_Id } = data;
             const payload = {
-                mi_id: 30,
                 ttmB_BuildingName: ttmB_BuildingName,
-
                 ttmB_Id: ttmB_Id
             };
             const response = await addOrUpdateMasterBuilding(payload);
@@ -79,22 +77,25 @@ export default function UpdateMasterBuildingForm({ onSuccess, masterbuilding = '
                 <div className='space-y-4'>
                     <div className='space-y-4'>
                         <div className='flex flex-col items-center justify-center gap-4 md:flex-row'>
-                            <div className='w-full md:w-auto'>
-                                <InputText
-                                    label='Building Name'
-                                    required
-                                    id='ttmB_BuildingName'
-                                    {...register('ttmB_BuildingName')}
-                                    error={errors.ttmB_BuildingName?.message}
-                                    className='w-full transition-colors focus:ring-2 focus:ring-primary/20 md:w-[250px]'
-                                />
+                            <div className='flex w-full items-center gap-3 md:w-auto'>
+                                <Label htmlFor='ttmB_BuildingName' className='whitespace-nowrap font-medium text-gray-700 text-sm'>
+                                    Building Name
+                                    <span className='ml-1 text-red-500'>*</span>
+                                </Label>
+                                <div className='w-full md:w-[250px]'>
+                                    <InputText
+                                        id='ttmB_BuildingName'
+                                        {...register('ttmB_BuildingName')}
+                                        error={errors.ttmB_BuildingName?.message}
+                                        className='w-full transition-colors focus:ring-2 focus:ring-primary/20'
+                                        // Remove the label prop if InputText component has one
+                                    />
+                                </div>
                             </div>
                         </div>
 
                         {errors.root && <FormError className='text-center'>{errors.root.message}</FormError>}
                     </div>
-
-                    {/* {errors.root && <FormError>{errors.root.message}</FormError>} */}
                 </div>
 
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>

@@ -1,10 +1,5 @@
-import { z } from 'zod';
-import {
-    createNumberOnlyStringSchemaRequired,
-    createOptionalNumberOnlyStringSchema,
-    createStringOnlySchema,
-    deleteIdSchema
-} from '../validationSchemas';
+import { number, z } from 'zod';
+import { createOptionalNumberOnlyStringSchema, createStringOnlySchema, deleteIdSchema } from '../validationSchemas';
 
 export const masterDaySchema = {
     addOrUpdate: z.object({
@@ -30,7 +25,7 @@ export const masterBuildingSchema = {
 export const staffabbreviationsSchema = {
     addOrUpdate: z.object({
         TTMSAB_Id: z.number().optional(),
-        HRME_Id: createNumberOnlyStringSchemaRequired('Staff', 1, 100),
+        HRME_Id: number().min(1, 'Please select an Staff'),
         // ttmB_BuildingName: createStringOnlySchema('Building Name', 1, 100),
         TTMSAB_Abbreviation: createStringOnlySchema('Abbreviation', 1, 100),
         TTMSAB_PerDayMaxDeputation: createOptionalNumberOnlyStringSchema('Per Day Max Deputation', 1, 100),
@@ -40,5 +35,21 @@ export const staffabbreviationsSchema = {
     }),
     delete: z.object({
         TTMSAB_Id: deleteIdSchema('TTMSAB_Id')
+    })
+};
+
+export const subjectabbreviationsSchema = {
+    addOrUpdate: z.object({
+        // TTMSAB_Id: z.number().optional(),
+        // HRME_Id: createNumberOnlyStringSchemaRequired('Staff', 1, 100),
+        // // ttmB_BuildingName: createStringOnlySchema('Building Name', 1, 100),
+        // TTMSAB_Abbreviation: createStringOnlySchema('Abbreviation', 1, 100),
+        // TTMSAB_PerDayMaxDeputation: createOptionalNumberOnlyStringSchema('Per Day Max Deputation', 1, 100),
+        // TTMSAB_PerWeekMaxDeputation: createOptionalNumberOnlyStringSchema('Per Week Max Deputation', 1, 100),
+        // TTMSAB_PerMonthMaxDeputation: createOptionalNumberOnlyStringSchema('Per Month Max Deputation', 1, 100),
+        // TTMSAB_PerYearMaxDeputation: createOptionalNumberOnlyStringSchema('Per Month Max Deputation', 1, 100)
+    }),
+    delete: z.object({
+        ttmsuaB_Id: deleteIdSchema('ttmsuaB_Id')
     })
 };

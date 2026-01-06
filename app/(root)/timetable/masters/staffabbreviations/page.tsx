@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useMasterDay } from '@/hooks/timetable/useMasters';
+import { useStaffAbbreviation } from '@/hooks/timetable/useMasters';
 import type { IStaffAbbreviationList } from '@/types/timetable/masters/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
@@ -21,7 +21,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function StaffAbbreviationPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error, refetchAll } = useMasterDay(searchParams);
+    const { data: response, isLoading, error, refetchAll } = useStaffAbbreviation(searchParams);
 
     console.log('response', response);
 

@@ -6,9 +6,10 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 
-import { useMasterDay } from '@/hooks/timetable/useMasters';
+import { useSSubjectAbbreviation } from '@/hooks/timetable/useMasters';
 import type { ISubjectAbbreviationList } from '@/types/timetable/masters/masters';
 import { subjectAbbreviationsColumns } from './_components/columns';
+import ToggleSubjectAbbreviationForm from './_components/toggleform';
 
 // import AddMasterModeOfPaymentForm from './_components/add-form';
 // import { modeOfPaymentColumns } from './_components/columns';
@@ -19,7 +20,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function SubjectAbbreviationPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error, refetchAll } = useMasterDay(searchParams);
+    const { data: response, isLoading, error, refetchAll } = useSSubjectAbbreviation(searchParams);
 
     console.log('response', response);
 
@@ -145,7 +146,7 @@ function FormSections() {
                 </div>
             )}
 
-            {/* {isToggleFormOpen && selectedRow && <ToggleSubjectAbbreviationForm rowData={selectedRow} onClose={closeToggleForm} />} */}
+            {isToggleFormOpen && selectedRow && <ToggleSubjectAbbreviationForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

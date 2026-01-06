@@ -17,6 +17,6 @@ export async function addOrUpdateMasterBuilding(data: any) {
 }
 
 export async function ToggleMasterBuilding(ttmd_id: number) {
-    const url = `/MasterDayFacade/MasterDaydayActivateDeactivate/30/${ttmd_id}`;
+    const url = `/MasterBuildingFacade/MasterBuildingActivateDeactivate//${ttmd_id}`;
     return await api.put<any>('timetable', url);
 }
