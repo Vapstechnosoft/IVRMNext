@@ -106,7 +106,7 @@ export default function StudentSearchPage(props: {
 
     const tableProps = useDataTableProps({
         ...response,
-        data: response?.data?.searchResult || []
+        data: (response?.data as any)?.searchResult || []
     });
 
     const addCriteria = () => {
@@ -335,7 +335,11 @@ export default function StudentSearchPage(props: {
                             <Button
                                 type='button'
                                 variant='outline'
-                                disabled={!showReport || !response?.data?.searchResult || response.data.searchResult.length === 0}
+                                disabled={
+                                    !showReport ||
+                                    !(response?.data as any)?.searchResult ||
+                                    (response?.data as any)?.searchResult.length === 0
+                                }
                                 className='w-full sm:w-fit'>
                                 <FileSpreadsheet className='mr-2 h-4 w-4' />
                                 Export to Excel
@@ -343,7 +347,11 @@ export default function StudentSearchPage(props: {
                             <Button
                                 type='button'
                                 variant='outline'
-                                disabled={!showReport || !response?.data?.searchResult || response.data.searchResult.length === 0}
+                                disabled={
+                                    !showReport ||
+                                    !(response?.data as any)?.searchResult ||
+                                    (response?.data as any)?.searchResult.length === 0
+                                }
                                 className='w-full sm:w-fit'>
                                 <Printer className='mr-2 h-4 w-4' />
                                 Print
@@ -352,10 +360,10 @@ export default function StudentSearchPage(props: {
                     </CollapsibleSection>
                 </form>
 
-                {showReport && response?.data?.searchResult && response.data.searchResult.length > 0 && (
+                {showReport && (response?.data as any)?.searchResult && (response?.data as any)?.searchResult.length > 0 && (
                     <CollapsibleSection
                         title='Search Results'
-                        description={`${response.data.searchResult.length} students found`}
+                        description={`${(response?.data as any)?.searchResult.length} students found`}
                         defaultOpen={true}
                         variant='default'
                         size='lg'

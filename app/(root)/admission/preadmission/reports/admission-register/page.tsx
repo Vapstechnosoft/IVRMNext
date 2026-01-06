@@ -173,7 +173,12 @@ export default function AdmissionReportPage(props: {
 
         return {
             ...response,
-            data: response.data?.searchstudentDetails || [],
+            data:
+                typeof response.data === 'object' && response.data !== null && 'searchstudentDetails' in response.data
+                    ? response.data.searchstudentDetails
+                    : Array.isArray(response.data)
+                      ? response.data
+                      : [],
             total: response.total,
             page: response.page,
             page_size: response.page_size
@@ -278,7 +283,8 @@ export default function AdmissionReportPage(props: {
     };
 
     const handleExportExcel = () => {
-        if (!response?.data?.searchstudentDetails || response.data.searchstudentDetails.length === 0) {
+        const data = Array.isArray(response?.data) ? response.data : (response?.data as any)?.searchstudentDetails;
+        if (!data || data.length === 0) {
             toast.error('No data available to export');
             return;
         }
@@ -292,7 +298,8 @@ export default function AdmissionReportPage(props: {
     };
 
     const handlePrint = () => {
-        if (!response?.data?.searchstudentDetails || response.data.searchstudentDetails.length === 0) {
+        const data = Array.isArray(response?.data) ? response.data : (response?.data as any)?.searchstudentDetails;
+        if (!data || data.length === 0) {
             toast.error('No data available to print');
             return;
         }
@@ -561,26 +568,28 @@ export default function AdmissionReportPage(props: {
                                     Cancel
                                 </Button>
 
-                                {showReport && response?.data?.searchstudentDetails && response.data.searchstudentDetails.length > 0 && (
-                                    <>
-                                        <Button
-                                            variant='outline'
-                                            className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'
-                                            onClick={handleExportExcel}
-                                            disabled={selectedStudents.length === 0}>
-                                            <FileSpreadsheet className='mr-2 h-4 w-4' />
-                                            Export to Excel
-                                        </Button>
-                                        <Button
-                                            variant='outline'
-                                            className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'
-                                            onClick={handlePrint}
-                                            disabled={selectedStudents.length === 0}>
-                                            <Printer className='mr-2 h-4 w-4' />
-                                            Print
-                                        </Button>
-                                    </>
-                                )}
+                                {showReport &&
+                                    (response?.data as any).searchstudentDetails &&
+                                    (response?.data as any).searchstudentDetails.length > 0 && (
+                                        <>
+                                            <Button
+                                                variant='outline'
+                                                className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'
+                                                onClick={handleExportExcel}
+                                                disabled={selectedStudents.length === 0}>
+                                                <FileSpreadsheet className='mr-2 h-4 w-4' />
+                                                Export to Excel
+                                            </Button>
+                                            <Button
+                                                variant='outline'
+                                                className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'
+                                                onClick={handlePrint}
+                                                disabled={selectedStudents.length === 0}>
+                                                <Printer className='mr-2 h-4 w-4' />
+                                                Print
+                                            </Button>
+                                        </>
+                                    )}
                             </div>
                         </div>
                     </CollapsibleSection>

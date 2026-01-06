@@ -14,12 +14,13 @@ import {
 } from '@/hooks/admission/preadmission/useTransactions';
 
 import type { IStudentYearlyAttendenceReportList } from '@/types/admission/preadmission/reports';
-import { FileSpreadsheet, FileText, Printer, X } from 'lucide-react';
+import { FileText, Printer, X } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { use, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useStudentYearlyAttendance } from '@/hooks/admission/preadmission/useReports';
+import { getExcelStudentYearlyReport } from '@/server/admission/preadmission/reports/month_end_report';
 import { createStudentsYearlyAttendenceReportColumns } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -195,18 +196,44 @@ export default function StudentsYearlyAttendenceReport(props: {
         toast.info('Report cancelled');
     };
 
-    const handleExportExcel = () => {
-        if (!transformedData || transformedData.length === 0) {
-            toast.error('No data available to export');
-            return;
-        }
+    const downloadExcel = async () => {
+        try {
+            if (!academicYearId || !classId || !sectionId || !searchParams) {
+                toast.error('Please fill all required fields!');
+                return;
+            }
 
-        if (selectedStudents.length === 0) {
-            toast.error('Please select at least one student to export');
-            return;
-        }
+            const response = await getExcelStudentYearlyReport(academicYearId, classId, sectionId, searchParams);
 
-        toast.info('Excel export feature coming soon');
+            // Ensure we have a Blob
+            const blob =
+                response instanceof Blob
+                    ? response
+                    : new Blob([new Uint8Array(response)], {
+                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                      });
+
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'StudentYearlyAttendanceReport.xlsx';
+            document.body.appendChild(link);
+            link.click();
+
+            // Cleanup
+            setTimeout(() => {
+                link.remove();
+                window.URL.revokeObjectURL(url);
+            }, 100);
+
+            setShowReport(false);
+
+            toast.success('Excel downloaded successfully');
+        } catch (error) {
+            console.error('Download error:', error);
+            toast.error('Failed to download Excel');
+        }
     };
 
     const handlePrint = () => {
@@ -390,12 +417,7 @@ export default function StudentsYearlyAttendenceReport(props: {
                             </Button>
                             {showReport && transformedData && transformedData.length > 0 && (
                                 <>
-                                    <Button
-                                        variant='outline'
-                                        className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'
-                                        onClick={handleExportExcel}
-                                        disabled={selectedStudents.length === 0}>
-                                        <FileSpreadsheet className='mr-2 h-4 w-4' />
+                                    <Button onClick={downloadExcel} className='w-fit'>
                                         Export to Excel
                                     </Button>
                                     <Button

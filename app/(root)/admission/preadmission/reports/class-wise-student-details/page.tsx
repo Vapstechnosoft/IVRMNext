@@ -32,6 +32,7 @@ import { classwiseStudentDetailsSchema } from '@/schemas/admission/preadmission/
 
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
+import { getExcelClassWiseStudentReport } from '@/server/admission/preadmission/reports/month_end_report';
 /* ---------------- Columns ---------------- */
 import { getMasterAdmissionReportColumns } from './_components/columns';
 import { ColumnValue } from './_components/columnvalue';
@@ -81,6 +82,14 @@ export default function AdmissionReportPage(props: {
     const watchedAsmaY_Id = watch('asmaY_Id');
     const [selectedClassItems, setSelectedClassItems] = useState<{ asmcL_Id: string; asmcL_ClassName: string }[]>([]);
     const [selectedSectionItems, setSelectedSectionItems] = useState<{ asmS_Id: string; asmcL_SectionName: string }[]>([]);
+    const scopeMap: Record<'newad' | 'totstd' | 'prom' | 'yrloss' | 'deact', number> = {
+        newad: 1,
+        totstd: 2,
+        prom: 3,
+        yrloss: 4,
+        deact: 5
+    };
+
     const [studentScope, setStudentScope] = useState<'newad' | 'totstd' | 'prom' | 'yrloss' | 'deact'>('newad');
 
     const [studentStatus, setStudentStatus] = useState<'Tformate' | 'Kformate'>('Tformate');
@@ -110,14 +119,22 @@ export default function AdmissionReportPage(props: {
     /* ---------------- Build Payload ---------------- */
     const handleClassSelection = (selectedValues: string[]) => {
         const selectedClasses = selectedValues.map((value) => {
-            return { asmcL_Id: value.toString(), asmcL_ClassName: '' };
+            const cls = (masterClass?.data as any)?.find((c: any) => String(c.asmcL_Id) === String(value));
+            return {
+                asmcL_Id: value.toString(),
+                asmcL_ClassName: cls?.asmcL_ClassName ?? ''
+            };
         });
 
         setSelectedClassItems(selectedClasses);
     };
     const handleSectionSelection = (selectedValues: string[]) => {
         const selectedSections = selectedValues.map((value) => {
-            return { asmS_Id: value.toString(), asmcL_SectionName: '' };
+            const section = (masterSection?.data as any)?.find((s: any) => String(s.asmS_Id) === String(value));
+            return {
+                asmS_Id: value.toString(),
+                asmcL_SectionName: section?.asmC_SectionName ?? ''
+            };
         });
 
         setSelectedSectionItems(selectedSections);
@@ -140,13 +157,7 @@ export default function AdmissionReportPage(props: {
         isFetching,
         error,
         refetch
-    } = ClasswiseStudentDetails(
-        watchedYear,
-        // studentScope,
-        watchedStudentCategory ?? 0,
-        requestPayload,
-        resolvedSearchParams
-    );
+    } = ClasswiseStudentDetails(watchedYear, scopeMap[studentScope], watchedStudentCategory ?? 0, requestPayload, resolvedSearchParams);
 
     /* ---------------- Table ---------------- */
 
@@ -156,7 +167,7 @@ export default function AdmissionReportPage(props: {
         if (!response) return response;
         return {
             ...response,
-            data: response.data?.printdatatable ?? []
+            data: (response.data as any)?.printdatatable ?? []
         };
     }, [response]);
 
@@ -185,12 +196,20 @@ export default function AdmissionReportPage(props: {
             }
             const fromData = watch();
             const payload = {
-                classdetailsdata: fromData.classes.map((id: any) => ({
-                    ASMCL_Id: Number(id)
-                })),
-                sectionsdetailsdata: fromData.class_section.map((id: any) => ({
-                    ASMS_Id: Number(id)
-                })),
+                classdetailsdata: fromData.classes.map((id: any) => {
+                    const cls = (masterClass?.data as any)?.find((c: any) => String(c.asmcL_Id) === String(id));
+                    return {
+                        asmcL_Id: id.toString(),
+                        asmcL_ClassName: cls?.asmcL_ClassName ?? ''
+                    };
+                }),
+                sectionsdetailsdata: fromData.class_section.map((id: any) => {
+                    const section = (masterSection?.data as any)?.find((s: any) => String(s.asmS_Id) === String(id));
+                    return {
+                        asmS_Id: id.toString(),
+                        asmcL_SectionName: section?.asmC_SectionName ?? ''
+                    };
+                }),
                 tempararyArrayheadList: fromData.selectedFields.map((id: string) => {
                     const field = ColumnValue.find((f) => f.columnID === id);
                     return {
@@ -231,6 +250,47 @@ export default function AdmissionReportPage(props: {
         setShowReport(false);
         tableRef.current?.resetSelection();
         toast.info('Report cancelled');
+    };
+
+    const downloadExcel = async () => {
+        try {
+            const response = await getExcelClassWiseStudentReport(
+                watchedYear,
+                scopeMap[studentScope],
+                watchedStudentCategory ?? 0,
+                requestPayload,
+                resolvedSearchParams
+            );
+
+            // Ensure we have a Blob
+            const blob =
+                response instanceof Blob
+                    ? response
+                    : new Blob([new Uint8Array(response)], {
+                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                      });
+
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'ClassWiseStudentReport.xlsx';
+            document.body.appendChild(link);
+            link.click();
+
+            // Cleanup
+            setTimeout(() => {
+                link.remove();
+                window.URL.revokeObjectURL(url);
+            }, 100);
+
+            setShowReport(false);
+
+            toast.success('Excel downloaded successfully');
+        } catch (error) {
+            console.error('Download error:', error);
+            toast.error('Failed to download Excel');
+        }
     };
 
     /* -------------------------------------------------------------------------- */
@@ -431,6 +491,9 @@ export default function AdmissionReportPage(props: {
                     <Button variant='outline' onClick={handleReset}>
                         <RotateCcw className='mr-2 h-4 w-4' />
                         Reset
+                    </Button>
+                    <Button onClick={downloadExcel} className='w-fit'>
+                        Export to Excel
                     </Button>
                     <Button variant='outline' onClick={handleCancel}>
                         <X className='mr-2 h-4 w-4' />
