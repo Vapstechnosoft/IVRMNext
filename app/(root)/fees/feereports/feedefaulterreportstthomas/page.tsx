@@ -676,7 +676,7 @@ export default function FeeDefaulterReportstthomas() {
                                         {/* Conditional: Name/RegNo options when Individual is selected */}
                                         {filters.reportType === 'Individual' && (
                                             <>
-                                                {/* Name/RegNo Radio Buttons */}
+                                                {/*                                                 
                                                 <div className='flex items-center gap-4'>
                                                     <Card className='w-full border bg-gray-50 p-5 shadow-sm'>
                                                         <div className='flex justify-center gap-6'>
@@ -702,7 +702,7 @@ export default function FeeDefaulterReportstthomas() {
                                                     </Card>
                                                 </div>
 
-                                                {/* Student Name */}
+                                                
                                                 <div className='flex items-center gap-4'>
                                                     <Label className='w-48 text-right font-medium'>
                                                         Student Name: <span className='text-red-500'>*</span>
@@ -728,7 +728,94 @@ export default function FeeDefaulterReportstthomas() {
                                                         />
                                                         {errors.studentId && <FormError>{errors.studentId.message}</FormError>}
                                                     </div>
-                                                </div>
+                                                </div> */}
+
+                                                <>
+                                                    {/* Name/RegNo Radio Buttons */}
+                                                    <div className='flex items-center gap-4'>
+                                                        <Card className='w-full border bg-gray-50 p-5 shadow-sm'>
+                                                            <div className='flex justify-center gap-6'>
+                                                                {[
+                                                                    { value: 'NameRegNo', label: 'Name:Reg.No' },
+                                                                    { value: 'RegNoName', label: 'Reg.No:Name' }
+                                                                ].map((option) => (
+                                                                    <Label
+                                                                        key={option.value}
+                                                                        className='flex cursor-pointer items-center gap-3'>
+                                                                        <Input
+                                                                            type='radio'
+                                                                            name='filterdata'
+                                                                            checked={filters.filterdata === option.value}
+                                                                            onChange={() => {
+                                                                                setFilters((prev) => ({
+                                                                                    ...prev,
+                                                                                    filterdata: option.value
+                                                                                }));
+                                                                                setValue(
+                                                                                    'filterdata',
+                                                                                    option.value as 'NameRegNo' | 'RegNoName'
+                                                                                );
+                                                                                setShowReport(false);
+                                                                                setReportData([]);
+                                                                                setSelectedIds([]);
+                                                                            }}
+                                                                            className='h-5 w-5 text-primary'
+                                                                        />
+                                                                        <span className='font-medium'>{option.label}</span>
+                                                                    </Label>
+                                                                ))}
+                                                            </div>
+                                                        </Card>
+                                                    </div>
+
+                                                    {/* Student Name */}
+                                                    <div className='flex items-center gap-4'>
+                                                        <Label className='w-48 text-right font-medium'>
+                                                            Student Name: <span className='text-red-500'>*</span>
+                                                        </Label>
+                                                        <div className='flex-1'>
+                                                            <Controller
+                                                                name='studentId'
+                                                                control={control}
+                                                                render={({ field }) => {
+                                                                    // Mock student data - replace with your actual data
+                                                                    const students = [
+                                                                        { id: '1', name: 'John Doe', regNo: 'REG001' },
+                                                                        { id: '2', name: 'Jane Smith', regNo: 'REG002' },
+                                                                        { id: '3', name: 'Bob Johnson', regNo: 'REG003' }
+                                                                    ];
+
+                                                                    return (
+                                                                        <Select
+                                                                            onValueChange={field.onChange}
+                                                                            value={field.value?.toString() || ''}>
+                                                                            <SelectTrigger className='w-full'>
+                                                                                <SelectValue placeholder='Select Student' />
+                                                                            </SelectTrigger>
+                                                                            <SelectContent>
+                                                                                <SelectItem value='0'>Please Select Student</SelectItem>
+                                                                                {students.map((student) => {
+                                                                                    // Determine display format based on selected radio button
+                                                                                    const displayText =
+                                                                                        filters.filterdata === 'NameRegNo'
+                                                                                            ? `${student.name} (${student.regNo})`
+                                                                                            : `${student.regNo} - ${student.name}`;
+
+                                                                                    return (
+                                                                                        <SelectItem key={student.id} value={student.id}>
+                                                                                            {displayText}
+                                                                                        </SelectItem>
+                                                                                    );
+                                                                                })}
+                                                                            </SelectContent>
+                                                                        </Select>
+                                                                    );
+                                                                }}
+                                                            />
+                                                            {errors.studentId && <FormError>{errors.studentId.message}</FormError>}
+                                                        </div>
+                                                    </div>
+                                                </>
                                             </>
                                         )}
 
