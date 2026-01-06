@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import type { ExamDetail } from '@/types/exam/exam-module/exam-mapping';
 import { AlertTriangle, Check, Edit2, Eye, Plus, Trash2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -47,12 +48,14 @@ interface LeftExamRow {
 
 export function ViewGroupsModal({
     subject,
+    exams,
     onClose,
     onAddGroup,
     groups,
     onOpenExams
 }: {
     subject: SubjectRow;
+    exams: any[];
     onClose: () => void;
     onAddGroup: (g: GroupItem) => void;
     groups: GroupItem[];
@@ -78,12 +81,21 @@ export function ViewGroupsModal({
 
     // Initialize left exams
     useEffect(() => {
-        setLeftExams([
-            { id: 101, name: 'Formative Assessment -04', isSelected: false, convertedMarks: '', conversionRequired: false },
-            { id: 102, name: 'Summative Assessment-02', isSelected: false, convertedMarks: '', conversionRequired: false },
-            { id: 103, name: 'Unit Test 1', isSelected: false, convertedMarks: '', conversionRequired: false }
-        ]);
-    }, []);
+        if (!Array.isArray(exams)) {
+            setLeftExams([]);
+            return;
+        }
+
+        const mappedExams = exams.map((exam: ExamDetail) => ({
+            id: exam.emE_Id,
+            name: exam.emE_ExamName,
+            isSelected: false,
+            convertedMarks: '',
+            conversionRequired: false
+        }));
+
+        setLeftExams(mappedExams);
+    }, [exams]);
 
     // Validate form
     const validateForm = (): boolean => {

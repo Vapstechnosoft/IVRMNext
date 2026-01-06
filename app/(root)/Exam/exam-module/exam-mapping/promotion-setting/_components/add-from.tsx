@@ -115,6 +115,7 @@ export default function AddPromotionalSettingForm() {
 
     // table and selection state
     const [subjects, setSubjects] = useState<SubjectRow[]>([]);
+    const [exams, setExams] = useState<any[]>([]);
     const [selectedSubjects, setSelectedSubjects] = useState<Record<number, boolean>>({});
 
     // header-level "apply to all" controls
@@ -162,35 +163,47 @@ export default function AddPromotionalSettingForm() {
     useEffect(() => {
         if (!selectedCategory) {
             setSubjects([]);
+            setExams([]);
             setSelectedSubjects({});
             return;
         }
 
         const loadSubjects = async () => {
             try {
-                const examSubjects = await getExamSubjectsByCategoryId(selectedCategory);
-                console.log('API Response subjects:', examSubjects);
+                const response = await getExamSubjectsByCategoryId(selectedCategory);
 
-                const safeSubjects: SubjectRow[] = Array.isArray(examSubjects)
-                    ? examSubjects.map((subject: ExamSubject) => ({
-                          ismS_Id: subject.ismS_Id,
-                          ismS_SubjectName: subject.ismS_SubjectName,
-                          ismS_SubjectCode: subject.ismS_SubjectCode || null,
-                          ismS_Max_Marks: subject.ismS_Max_Marks || subject.emaP_MaxMarks || null,
-                          ismS_Min_Marks: subject.ismS_Min_Marks || subject.emaP_MinMarks || null,
-                          ismS_OrderFlag: subject.ismS_OrderFlag || null,
-                          convertFor: subject.emaP_ConvertFor || null,
-                          applyToResult: subject.emaP_ApplyToResult || false,
-                          grade: subject.emaP_Grade || null
-                      }))
-                    : [];
+                const payload = response.data as {
+                    subjectlist?: ExamSubject[];
+                    examlist?: any[];
+                };
+                console.log('Loaded subjects:', payload);
 
-                console.log('Processed subjects:', safeSubjects);
+                const subjectsData = Array.isArray(payload.subjectlist) ? payload.subjectlist : [];
+
+                const examsData = Array.isArray(payload.examlist) ? payload.examlist : [];
+
+                const safeSubjects: SubjectRow[] = subjectsData.map((subject) => ({
+                    ismS_Id: subject.ismS_Id,
+                    ismS_SubjectName: subject.ismS_SubjectName,
+                    ismS_SubjectCode: subject.ismS_SubjectCode ?? null,
+                    ismS_Max_Marks: subject.ismS_Max_Marks ?? subject.emaP_MaxMarks ?? null,
+                    ismS_Min_Marks: subject.ismS_Min_Marks ?? subject.emaP_MinMarks ?? null,
+                    ismS_OrderFlag: subject.ismS_OrderFlag ?? null,
+                    convertFor: subject.emaP_ConvertFor ?? null,
+                    applyToResult: subject.emaP_ApplyToResult ?? false,
+                    grade: subject.emaP_Grade ?? null
+                }));
+                if (safeSubjects.length === 0) {
+                    toast.info('No subjects found for selected category');
+                }
+
                 setSubjects(safeSubjects);
+                setExams(examsData);
                 setSelectedSubjects({});
             } catch (error) {
                 console.error('Error loading subjects:', error);
                 setSubjects([]);
+                setExams([]);
             }
         };
 
@@ -249,7 +262,9 @@ export default function AddPromotionalSettingForm() {
     // add group
     const addGroupToSubject = (group: GroupItem) => {
         setGroups((prev) => [...prev, group]);
+        console.log('Added group:', group);
         toast.success('Group added');
+        console.log('Groups:', groups);
     };
 
     const openExamsModal = (group: GroupItem) => {
@@ -708,6 +723,7 @@ export default function AddPromotionalSettingForm() {
             {isGroupsOpen && activeSubject && (
                 <ViewGroupsModal
                     subject={activeSubject}
+                    exams={exams}
                     onClose={() => {
                         setIsGroupsOpen(false);
                         setActiveSubject(null);
