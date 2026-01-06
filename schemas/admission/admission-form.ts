@@ -119,6 +119,8 @@ export const studentAdmissionFormSchema = {
             amsT_ReligionId: z.coerce.number().int({ message: 'Student Category is required' }),
             amsT_Date: z.date({ message: 'Date Of Admission is required' }),
             amsT_Sex: z.coerce.number().int({ message: 'Gender is required ' }),
+            amsT_StudentCountry: z.string().optional(),
+            amsT_StudentState: z.coerce.number().int().optional(),
 
             pasR_DOB: z.date({ message: 'Date Of Birth is required' }).refine(() => true),
 

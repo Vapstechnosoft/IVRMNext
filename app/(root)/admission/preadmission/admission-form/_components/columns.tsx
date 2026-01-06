@@ -86,13 +86,13 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
         enableSorting: false,
         enableHiding: true
     },
-    {
-        accessorKey: 'isActive',
-        header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='Status.' />,
-        cell: ({ row }) => <div>{row.getValue('isActive')}</div>,
-        enableSorting: false,
-        enableHiding: true
-    },
+    // {
+    //     accessorKey: 'isActive',
+    //     header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='Status.' />,
+    //     cell: ({ row }) => <div>{row.getValue('isActive')}</div>,
+    //     enableSorting: false,
+    //     enableHiding: true
+    // },
     {
         accessorKey: 'photoUrl',
         header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='Photo' />,

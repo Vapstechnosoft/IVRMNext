@@ -55,6 +55,10 @@ type FormFields = z.infer<typeof studentAdmissionFormSchema.add>;
 interface AddStudentApplicationFormProps {
     onSuccess?: () => void;
     className?: string;
+    // When editing, FormProvider will pass the selected row as `rowData`
+    rowData?: any;
+    // Optional close callback passed by the parent
+    onClose?: () => void;
 }
 
 const steps = [
@@ -96,7 +100,7 @@ const steps = [
     }
 ];
 
-export default function UpdateStudentAdmissionForm({ onSuccess, className = '' }: AddStudentApplicationFormProps) {
+export default function UpdateStudentAdmissionForm({ onSuccess, className = '', rowData, onClose }: AddStudentApplicationFormProps) {
     const [currentStep, setCurrentStep] = useState(1);
     const [openPopover, setOpenPopover] = useState<string | null>(null);
     const [showStep3Errors, setShowStep3Errors] = useState(false);
@@ -190,6 +194,71 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '' }
     // Persisted amsT_Id returned from server after saving Step 1
     const [savedAmsTId, setSavedAmsTId] = useState<number | null>(null);
 
+    // Helper to consistently resolve which amsT id to send to server
+    const getAmsTIdToUse = () => savedAmsTId ?? (Number(getValues('amsT_Id' as any) ?? 0) || 0);
+
+    // If this component is opened for editing, `rowData` will be provided by the FormProvider's
+    // `selectedRow`. Normalise the payload and `reset()` the react-hook-form state so fields autofill.
+    useEffect(() => {
+        if (!rowData) return;
+
+        const payload = { ...rowData } as any;
+
+        payload.mobileNos = Array.isArray(payload.mobileNos) ? payload.mobileNos : payload.mobileNos || [];
+        payload.adm_M_Student_EmailIdDTO = Array.isArray(payload.adm_M_Student_EmailIdDTO)
+            ? payload.adm_M_Student_EmailIdDTO
+            : Array.isArray(payload.emailIds)
+              ? payload.emailIds.map((e: any) => ({ amsT_emailId: e }))
+              : payload.adm_M_Student_EmailIdDTO || [];
+        payload.previousSchools = Array.isArray(payload.previousSchools) ? payload.previousSchools : payload.previousSchools || [];
+        payload.siblings = Array.isArray(payload.siblings) ? payload.siblings : payload.siblings || [];
+        payload.guardian = Array.isArray(payload.guardian) ? payload.guardian : payload.guardian || [];
+
+        // Support alternative keys
+        payload.selectedSourceDetails = payload.selectedSourceDetails || payload.selectedSource || payload.student_sources || [];
+        payload.selectedRefrenceDetails = payload.selectedRefrenceDetails || payload.selectedReference || payload.student_refrences || [];
+        payload.selectedDocuments = payload.selectedDocuments || payload.student_documents || [];
+
+        try {
+            reset(payload as any);
+        } catch (e) {
+            console.error('Error resetting form with rowData', e);
+        }
+
+        // Populate local auxiliary state used by the UI
+        try {
+            setSelectedSourceItems(
+                (payload.selectedSourceDetails || []).map((s: any) => ({
+                    pamS_Id: String(s.pamS_Id),
+                    pamS_SourceName: s.pamS_SourceName || ''
+                }))
+            );
+            setSelectedReferenceItems(
+                (payload.selectedRefrenceDetails || []).map((r: any) => ({
+                    pamR_Id: String(r.pamR_Id),
+                    pamR_ReferenceName: r.pamR_ReferenceName || ''
+                }))
+            );
+            setUploadedDocuments(payload.selectedDocuments || []);
+            setStudentPhoto(
+                payload.studentPhotoUrl
+                    ? { amsT_Photoname: payload.studentPhotoUrl }
+                    : payload.studentPhoto
+                      ? { amsT_Photoname: payload.amsT_Photoname || payload.studentPhoto }
+                      : null
+            );
+
+            setFatherPhoto(payload.fatherPhotoUrl ? { path: payload.fatherPhotoUrl } : null);
+            setMotherPhoto(payload.motherPhotoUrl ? { path: payload.motherPhotoUrl } : null);
+            setFatherSignature(payload.fatherSignatureUrl ? { path: payload.fatherSignatureUrl } : null);
+            setMotherSignature(payload.motherSignatureUrl ? { path: payload.motherSignatureUrl } : null);
+
+            setSavedAmsTId(Number(payload.amsT_Id ?? payload.amsTId ?? null));
+        } catch (e) {
+            console.error('Error applying rowData to local state', e);
+        }
+    }, [rowData, reset]);
+
     const [studentPhoto, setStudentPhoto] = useState<{
         amsT_Photoname: string;
         isUploading?: boolean;
@@ -242,6 +311,58 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '' }
 
     // Watch guardian fields to conditionally show uploads when guardian name is present
     const watchedGuardians = watch('guardian');
+
+    // Keep a snapshot of saved guardian values so we can detect unsaved edits
+    const [savedGuardianSnapshot, setSavedGuardianSnapshot] = useState<Record<number, any>>({});
+
+    // helper: check if any of the common guardian fields has content
+    const guardianHasContent = (g: any) => {
+        if (!g) return false;
+        const keys = ['guardianName', 'guardianPhone', 'guardianEmail', 'guardianAddress'];
+        return keys.some((k) => !!String(g[k] ?? '').trim());
+    };
+
+    // helper: shallow compare saved snapshot to current guardian values
+    const shallowEqualGuardians = (a: any, b: any) => {
+        if (!a || !b) return false;
+        return (
+            String(a.guardianName ?? '') === String(b.guardianName ?? '') &&
+            String(a.guardianPhone ?? '') === String(b.guardianPhone ?? '') &&
+            String(a.guardianEmail ?? '') === String(b.guardianEmail ?? '') &&
+            String(a.guardianAddress ?? '') === String(b.guardianAddress ?? '')
+        );
+    };
+
+    // Invalidate saved snapshots if user edits guardian fields after save
+    useEffect(() => {
+        if (!watchedGuardians || Object.keys(savedGuardianSnapshot || {}).length === 0) return;
+        const next: Record<number, any> = { ...savedGuardianSnapshot };
+        (watchedGuardians || []).forEach((g: any, idx: number) => {
+            if (next[idx] && !shallowEqualGuardians(next[idx], g)) {
+                delete next[idx];
+            }
+        });
+        // remove snapshots for indices that no longer exist
+        Object.keys(next).forEach((k) => {
+            const i = Number(k);
+            if (!watchedGuardians[i]) delete next[i];
+        });
+        setSavedGuardianSnapshot(next);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [watchedGuardians]);
+
+    // Whether there is any guardian with content that is not saved yet
+    const hasUnsavedGuardian = useMemo(() => {
+        if (currentStep !== 3) return false;
+        const arr = Array.isArray(watchedGuardians) ? watchedGuardians : [];
+        for (let i = 0; i < arr.length; i++) {
+            const g = arr[i];
+            if (guardianHasContent(g) && !shallowEqualGuardians(savedGuardianSnapshot[i], g)) {
+                return true;
+            }
+        }
+        return false;
+    }, [watchedGuardians, savedGuardianSnapshot, currentStep]);
 
     // Use the nationality fields used in the Step 3 UI so state dropdowns refetch correctly
     const fatherPresentCountryId = watch('fatherNationality');
@@ -612,7 +733,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '' }
             const formData = getValues();
 
             const payload = {
-                amsT_Id: Number(getValues('amsT_Id' as any) ?? 0) || 15353,
+                amsT_Id: getAmsTIdToUse(),
                 userId: 21602,
                 miId: 30,
                 amsT_FatherPassingYear: Number(formData.amsT_FatherPassingYear ?? 0) || 0,
@@ -910,7 +1031,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '' }
                     const formData = getValues();
 
                     const payload = {
-                        amsT_Id: Number(getValues('amsT_Id' as any) ?? 0) || 15353,
+                        amsT_Id: getAmsTIdToUse(),
                         mI_Id: 30,
                         userId: 0,
                         amsT_Studentillness: formData.amsT_Studentillness || '',
@@ -1009,7 +1130,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '' }
                     }));
 
                     const payload: any = {
-                        amsT_Id: Number(getValues('amsT_Id' as any) ?? 0) || 15353,
+                        amsT_Id: getAmsTIdToUse(),
                         mI_Id: 30,
                         userId: 21602,
 
@@ -1189,7 +1310,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '' }
 
                     const payload: any = {
                         userid: 21602,
-                        amsT_Id: Number(getValues('amsT_Id' as any) ?? 0) || 15353,
+                        amsT_Id: getAmsTIdToUse(),
                         mI_Id: 30,
 
                         // Permanent address
@@ -1336,7 +1457,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '' }
 
                         const payload: any = {
                             userid: 21602,
-                            amsT_Id: Number(getValues('amsT_Id' as any) ?? 0) || 15353,
+                            amsT_Id: getAmsTIdToUse(),
                             mI_Id: 30,
 
                             // Permanent address
@@ -1390,7 +1511,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '' }
                     // Also initiate/save fourth tab when moving into Step 4
                     try {
                         const minimalPayloadForFourth: any = {
-                            amsT_Id: Number(getValues('amsT_Id' as any) ?? 0) || 0,
+                            amsT_Id: getAmsTIdToUse(),
                             mI_Id: 0,
                             userId: 0,
                             message: '',
@@ -1472,7 +1593,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '' }
                         }));
 
                         const payload: any = {
-                            amsT_Id: Number(getValues('amsT_Id' as any) ?? 0) || 0,
+                            amsT_Id: getAmsTIdToUse(),
                             mI_Id: 0,
                             userId: 0,
 
@@ -1780,6 +1901,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '' }
 
             await saveGaurdianApi(formData);
             toast.success('Guardian saved successfully');
+            // store snapshot to mark this guardian as saved and unchanged
+            setSavedGuardianSnapshot((prev) => ({ ...prev, [index]: guardianValues }));
         } catch (error) {
             console.error('save guardian error', error);
             toast.error('Failed to save guardian');
@@ -7099,10 +7222,41 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '' }
                                                         <div
                                                             key={d.amsmD_Id}
                                                             className='flex items-center justify-between rounded-lg border p-3'>
-                                                            <div>
-                                                                <div className='font-medium text-sm'>{d.documentName}</div>
-                                                                <div className='text-gray-500 text-xs'>
-                                                                    {d.file ? `${(d.file.size / 1024 / 1024).toFixed(2)} MB` : ''}
+                                                            <div className='flex items-center gap-3'>
+                                                                {/(?:jpe?g|png|)$/i.test(String(d.document_Path || '')) ? (
+                                                                    <img
+                                                                        src={d.document_Path}
+                                                                        alt={d.documentName}
+                                                                        className='h-12 w-12 rounded object-cover'
+                                                                    />
+                                                                ) : (
+                                                                    <div className='flex h-12 w-12 items-center justify-center rounded bg-gray-100 text-gray-600'>
+                                                                        <svg
+                                                                            className='h-5 w-5'
+                                                                            viewBox='0 0 24 24'
+                                                                            fill='none'
+                                                                            stroke='currentColor'>
+                                                                            <path
+                                                                                d='M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z'
+                                                                                strokeWidth='1.5'
+                                                                                strokeLinecap='round'
+                                                                                strokeLinejoin='round'
+                                                                            />
+                                                                            <path
+                                                                                d='M14 2v6h6'
+                                                                                strokeWidth='1.5'
+                                                                                strokeLinecap='round'
+                                                                                strokeLinejoin='round'
+                                                                            />
+                                                                        </svg>
+                                                                    </div>
+                                                                )}
+
+                                                                <div>
+                                                                    <div className='font-medium text-sm'>{d.documentName}</div>
+                                                                    <div className='text-gray-500 text-xs'>
+                                                                        {d.file ? `${(d.file.size / 1024 / 1024).toFixed(2)} MB` : ''}
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                             <div className='flex gap-2'>
@@ -7566,10 +7720,20 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '' }
                                     )}
 
                                     {currentStep < steps.length ? (
-                                        <Button type='button' onClick={nextStep} disabled={isSubmitting}>
-                                            Next
-                                            <ChevronRight className='ml-2 h-4 w-4' />
-                                        </Button>
+                                        hasUnsavedGuardian ? (
+                                            <Button
+                                                type='button'
+                                                onClick={() => toast.error('Please save guardian details before proceeding.')}
+                                                className='cursor-not-allowed opacity-60'>
+                                                Next
+                                                <ChevronRight className='ml-2 h-4 w-4' />
+                                            </Button>
+                                        ) : (
+                                            <Button type='button' onClick={nextStep} disabled={isSubmitting}>
+                                                Next
+                                                <ChevronRight className='ml-2 h-4 w-4' />
+                                            </Button>
+                                        )
                                     ) : (
                                         <Button
                                             type='button'

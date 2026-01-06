@@ -143,8 +143,8 @@ function FormSections({
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Preadmission Application'
-                        description='Fill in the details below to create a new preadmission application'
+                        title='Admission Application'
+                        description='Fill in the details below to create a new admission application'
                         defaultOpen={true}
                         variant='outline'
                         size='md'

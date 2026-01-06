@@ -221,6 +221,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     const [guardianPhotos, setGuardianPhotos] = useState<Record<number, { path?: string; isUploading?: boolean }>>({});
     const [guardianSignatures, setGuardianSignatures] = useState<Record<number, { path?: string; isUploading?: boolean }>>({});
 
+    // Keep a snapshot of saved guardian values so we can detect unsaved edits
+    const [savedGuardianSnapshot, setSavedGuardianSnapshot] = useState<Record<number, any>>({});
+    // Explicit saved-flag per guardian index (true after successful Save)
+    const [savedGuardianSaved, setSavedGuardianSaved] = useState<Record<number, boolean>>({});
+
     const [_documentErrors, setDocumentErrors] = useState<Record<number, string>>({});
     const [_handledStep3, setHandledStep3] = useState(false);
 
@@ -242,6 +247,67 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
     // Watch guardian fields to conditionally show uploads when guardian name is present
     const watchedGuardians = watch('guardian');
+
+    // helper: check if any of the common guardian fields has content
+    const guardianHasContent = (g: any) => {
+        if (!g) return false;
+        const keys = ['guardianName', 'guardianPhone', 'guardianEmail', 'guardianAddress'];
+        return keys.some((k) => !!String(g[k] ?? '').trim());
+    };
+
+    // helper: shallow compare saved snapshot to current guardian values
+    const shallowEqualGuardians = (a: any, b: any) => {
+        if (!a || !b) return false;
+        return (
+            String(a.guardianName ?? '') === String(b.guardianName ?? '') &&
+            String(a.guardianPhone ?? '') === String(b.guardianPhone ?? '') &&
+            String(a.guardianEmail ?? '') === String(b.guardianEmail ?? '') &&
+            String(a.guardianAddress ?? '') === String(b.guardianAddress ?? '')
+        );
+    };
+
+    // Invalidate saved snapshots if user edits guardian fields after save
+    useEffect(() => {
+        if (!watchedGuardians) return;
+        const nextSnapshot: Record<number, any> = { ...savedGuardianSnapshot };
+        const nextSavedFlags: Record<number, boolean> = { ...savedGuardianSaved };
+        (watchedGuardians || []).forEach((g: any, idx: number) => {
+            if (nextSnapshot[idx] && !shallowEqualGuardians(nextSnapshot[idx], g)) {
+                // User edited a previously-saved guardian -> mark as unsaved
+                delete nextSnapshot[idx];
+                nextSavedFlags[idx] = false;
+            }
+            // if there's content and no snapshot, ensure saved flag is false
+            if (guardianHasContent(g) && !nextSnapshot[idx]) {
+                nextSavedFlags[idx] = false;
+            }
+        });
+        // remove snapshots and flags for indices that no longer exist
+        Object.keys(nextSnapshot).forEach((k) => {
+            const i = Number(k);
+            if (!watchedGuardians[i]) delete nextSnapshot[i];
+        });
+        Object.keys(nextSavedFlags).forEach((k) => {
+            const i = Number(k);
+            if (!watchedGuardians[i]) delete nextSavedFlags[i];
+        });
+        setSavedGuardianSnapshot(nextSnapshot);
+        setSavedGuardianSaved(nextSavedFlags);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [watchedGuardians]);
+
+    // Whether there is any guardian with content that is not saved yet
+    const hasUnsavedGuardian = useMemo(() => {
+        if (currentStep !== 3) return false;
+        const arr = Array.isArray(watchedGuardians) ? watchedGuardians : [];
+        for (let i = 0; i < arr.length; i++) {
+            const g = arr[i];
+            if (guardianHasContent(g) && !savedGuardianSaved[i]) {
+                return true;
+            }
+        }
+        return false;
+    }, [watchedGuardians, savedGuardianSaved, currentStep]);
 
     // Use the nationality fields used in the Step 3 UI so state dropdowns refetch correctly
     const fatherPresentCountryId = watch('fatherNationality');
@@ -293,6 +359,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         error: perStateError,
         refetchAll: refetchPerState
     } = useStateDropdown(Number(perConuntryId));
+
+    // Student country -> states (Step 1 student country/state)
+    const studentCountryId = watch('amsT_StudentCountry');
+    const { data: studentState, isLoading: studentStateLoading, error: studentStateError } = useStateDropdown(Number(studentCountryId));
 
     // Father address states
     const {
@@ -543,9 +613,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     }));
                     return arr.length ? arr : null;
                 })(),
-                amsT_PerState: toNullableNumber(formData.amsT_PerState),
+                amsT_PerState: toNullableNumber(formData.amsT_StudentState),
                 amsT_PerDistrict: toNullableNumber(formData.amsT_PerDistrict),
-                amsT_PerCountry: toNullableNumber(formData.amsT_PerCountry),
+                amsT_PerCountry: toNullableNumber(formData.amsT_StudentCountry),
                 amsT_PerPincode: toNullableNumber(formData.amsT_PerPincode),
                 amsT_BankName: formData.amsT_BankName ?? '',
                 amsT_BankBranch: formData.amsT_BankBranch ?? '',
@@ -748,7 +818,25 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     };
 
     const nextStep = async () => {
+        // Block progression if there are unsaved guardian edits on Step 3
         try {
+            // Immediate check using current form values to avoid stale memo
+            if (currentStep === 3) {
+                const currentGuardians = (getValues('guardian') || []) as any[];
+                for (let i = 0; i < currentGuardians.length; i++) {
+                    const g = currentGuardians[i] || {};
+                    const hasContent = Boolean(
+                        String(g.guardianName || '').trim() ||
+                            String(g.guardianPhone || '').trim() ||
+                            String(g.guardianEmail || '').trim() ||
+                            String(g.guardianAddress || '').trim()
+                    );
+                    if (hasContent && !savedGuardianSaved[i]) {
+                        toast.error('Please save guardian details before proceeding.');
+                        return;
+                    }
+                }
+            }
             console.debug('[Admission] nextStep invoked, currentStep=', currentStep);
         } catch (e) {
             console.error('nextStep logging failed', e);
@@ -1780,6 +1868,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
             await saveGaurdianApi(formData);
             toast.success('Guardian saved successfully');
+            // store snapshot to mark this guardian as saved and unchanged
+            setSavedGuardianSnapshot((prev) => ({ ...prev, [index]: guardianValues }));
+            // mark this index as saved
+            setSavedGuardianSaved((prev) => ({ ...prev, [index]: true }));
         } catch (error) {
             console.error('save guardian error', error);
             toast.error('Failed to save guardian');
@@ -3120,12 +3212,12 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             />
 
                                             <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='amsT_PerCountry'>
+                                                <Label htmlFor='amsT_StudentCountry'>
                                                     Country <span className='ml-1 text-red-500'>*</span>
                                                 </Label>
 
                                                 <Controller
-                                                    name='amsT_PerCountry'
+                                                    name='amsT_StudentCountry'
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
@@ -3155,13 +3247,13 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         </Select>
                                                     )}
                                                 />
-                                                {errors.amsT_PerCountry && <FormError>{errors.amsT_PerCountry.message}</FormError>}
+                                                {errors.amsT_StudentCountry && <FormError>{errors.amsT_StudentCountry.message}</FormError>}
                                             </div>
 
                                             <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='amsT_PerState'>State</Label>
+                                                <Label htmlFor='amsT_StudentState'>State</Label>
                                                 <Controller
-                                                    name='amsT_PerState'
+                                                    name='amsT_StudentState'
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
@@ -3172,16 +3264,16 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 <SelectValue placeholder='Select state' />
                                                             </SelectTrigger>
                                                             <SelectContent>
-                                                                {perStateLoading ? (
+                                                                {studentStateLoading ? (
                                                                     <SelectItem value='loading' disabled>
                                                                         Loading...
                                                                     </SelectItem>
-                                                                ) : perStateError ? (
+                                                                ) : studentStateError ? (
                                                                     <SelectItem value='error' disabled>
                                                                         Error loading
                                                                     </SelectItem>
                                                                 ) : (
-                                                                    perState?.data?.map((item) => (
+                                                                    studentState?.data?.map((item) => (
                                                                         <SelectItem key={item.ivrmmS_Id} value={item.ivrmmS_Id.toString()}>
                                                                             {item.ivrmmS_Name}
                                                                         </SelectItem>
@@ -3191,7 +3283,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         </Select>
                                                     )}
                                                 />
-                                                {errors.amsT_PerState && <FormError>{errors.amsT_PerState.message}</FormError>}
+                                                {errors.amsT_StudentState && <FormError>{errors.amsT_StudentState.message}</FormError>}
                                             </div>
 
                                             <div className='flex flex-col gap-1.5 '>
@@ -7566,7 +7658,17 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                     )}
 
                                     {currentStep < steps.length ? (
-                                        <Button type='button' onClick={nextStep} disabled={isSubmitting}>
+                                        <Button
+                                            type='button'
+                                            onClick={() => {
+                                                if (hasUnsavedGuardian) {
+                                                    toast.error('Please save guardian details before proceeding.');
+                                                    return;
+                                                }
+                                                nextStep();
+                                            }}
+                                            disabled={isSubmitting}
+                                            className={hasUnsavedGuardian ? 'opacity-60' : ''}>
                                             Next
                                             <ChevronRight className='ml-2 h-4 w-4' />
                                         </Button>

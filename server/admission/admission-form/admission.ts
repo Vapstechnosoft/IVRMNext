@@ -97,3 +97,8 @@ export async function getStudentAdmissionFormById(id: number) {
     const url = `/StudentAdmissionFacade/get-all-tabs-by-amst-id/${id}`;
     return await api.get<any>('admission', url);
 }
+
+export async function deleteAdmissionForm(id: number) {
+    const url = `/StudentAdmissionFacade/deleteguardian/${id}`;
+    return await api.delete('admission', url);
+}
