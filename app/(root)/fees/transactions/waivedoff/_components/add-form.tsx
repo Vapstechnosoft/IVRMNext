@@ -51,7 +51,6 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
         resolver: zodResolver(feeTransactionWaivedOffSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            academicYear: 0,
             remarks: ''
         }
     });
