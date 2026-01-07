@@ -44,6 +44,7 @@ import { getFeeRefundableDetails } from '@/server/fees/trasactions/fee_refundabl
 import {
     getFeeStudentTransactionDetails,
     masterconfiguration,
+    updateFeeStudentCurrentAcademicDetails,
     updateFeeStudentTransactionDetails
 } from '@/server/fees/trasactions/fee_student_transaction';
 import {
