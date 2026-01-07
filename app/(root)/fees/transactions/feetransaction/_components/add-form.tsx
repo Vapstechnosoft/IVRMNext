@@ -156,12 +156,12 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
         { value: 'regular', label: 'Regular' },
         { value: 'Chal_no', label: 'Challan No.' },
         { value: 'regno', label: 'Reg No' },
-        { value: 'admno', label: 'Adm No' },
-        { value: 'nameadmno', label: 'Name:Adm.No.' },
-        { value: 'nameregno', label: 'Name:Reg.No.' },
-        { value: 'father', label: 'Father Name' },
-        { value: 'mother', label: 'Mother Name' },
-        { value: 'mobile', label: 'Mobile No' }
+        { value: 'AdmNo', label: 'Adm No' },
+        { value: 'NameAdmno', label: 'Name:Adm.No.' },
+        { value: 'NameRegNo', label: 'Name:Reg.No.' },
+        { value: 'Fathername', label: 'Father Name' },
+        { value: 'Mothername', label: 'Mother Name' },
+        { value: 'MobileNo', label: 'Mobile No' }
     ];
     const searchByLetters = [
         { value: '2', label: '2' },
@@ -247,7 +247,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                     searchfilter: studentSearch,
                     asmcL_ID: selectedclassId ?? 0,
                     asmS_Id: selectedSectionId ?? 0,
-                    amsT_SOL: 'string'
+                    amsT_SOL: left === false ? 'S' : 'L'
                 };
                 const studentsArray = await searchStudentName(payload);
                 const studentsData = JSON.parse(JSON.stringify(studentsArray.feeStudentSearch || []));
@@ -495,10 +495,10 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
         setTerms(updated);
     };
 
-    const handleCheckboxChange = (checked: boolean, type: 'left' | 'deactive' | 'class' | 'section') => {
+    const handleCheckboxChange = (checked: boolean, type: 'left' | 'inactive' | 'class' | 'section') => {
         if (type === 'left') {
             setLeft(checked);
-        } else if (type === 'deactive') {
+        } else if (type === 'inactive') {
             setDeative(checked);
         } else if (type === 'class') {
             setClass(checked);
@@ -801,11 +801,11 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
 
                             <div className='flex items-center space-x-2'>
                                 <Checkbox
-                                    id='deactive'
+                                    id='inactive'
                                     checked={deactive}
-                                    onCheckedChange={(c) => handleCheckboxChange(c as boolean, 'deactive')}
+                                    onCheckedChange={(c) => handleCheckboxChange(c as boolean, 'inactive')}
                                 />
-                                <Label htmlFor='deactive' className='cursor-pointer text-sm'>
+                                <Label htmlFor='inactive' className='cursor-pointer text-sm'>
                                     Deactive
                                 </Label>
                             </div>
