@@ -817,7 +817,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                     onCheckedChange={(c) => handleCheckboxChange(c as boolean, 'class')}
                                 />
                                 <Label htmlFor='class' className='cursor-pointer text-sm'>
-                                    Class
+                                    Class Wise
                                 </Label>
                             </div>
 
@@ -828,7 +828,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                     onCheckedChange={(c) => handleCheckboxChange(c as boolean, 'section')}
                                 />
                                 <Label htmlFor='section' className='cursor-pointer text-sm'>
-                                    Section
+                                    Section Wise
                                 </Label>
                             </div>
                         </div>
@@ -1172,8 +1172,8 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                             <div>STUDENT NAME</div>
                                             <div className='text-gray-700'>
                                                 {studentDetails?.[0]?.amsT_FirstName || 'N/A'}
-                                                {studentDetails?.[0]?.amsT_MiddleName}
-                                                {studentDetails?.[0]?.amsT_LastName}
+                                                {studentDetails?.[0]?.amsT_MiddleName && ` ${studentDetails[0].amsT_MiddleName}`}
+                                                {studentDetails?.[0]?.amsT_LastName && ` ${studentDetails[0].amsT_LastName}`}
                                             </div>
 
                                             <div>CLASS / SECTION</div>

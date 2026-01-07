@@ -466,9 +466,7 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
                     <>
                         {/* Bank Name */}
                         <div className='flex items-center gap-4'>
-                            <Label className='min-w-[150px] text-right'>
-                                Bank Name <span className='text-red-500'>*</span>
-                            </Label>
+                            <Label className='min-w-[150px] text-right'>Bank Name</Label>
 
                             <Controller
                                 name='bankId'

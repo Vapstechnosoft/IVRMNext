@@ -143,6 +143,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
     const [payType, setPayType] = useState<string>('');
 
     const [checkPayType, setCheckPayType] = useState<string[]>(['']);
+    const [searchByLet, setSearchByLetters] = useState('2');
     const [selectedBanks, setSelectedBanks] = useState<Record<number, string>>({});
     const [left, setLeft] = useState(false);
     const [deactive, setDeative] = useState(false);
@@ -171,6 +172,13 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
         { value: 'father', label: 'Father Name' },
         { value: 'mother', label: 'Mother Name' },
         { value: 'mobile', label: 'Mobile No' }
+    ];
+
+    const searchByLetters = [
+        { value: '2', label: '2' },
+        { value: '3', label: '3' },
+        { value: '4', label: '4' },
+        { value: '5', label: '5' }
     ];
 
     const selectedLabel = filterOptions.find((opt) => opt.value === filterType)?.label || '';
@@ -720,6 +728,23 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                                 ))}
                             </div>
                         </RadioGroup>
+                        {filterType === 'regular' && (
+                            <Card className='mt-5 w-full p-3 shadow'>
+                                Search by (No. of letters) :
+                                <RadioGroup value={searchByLet} onValueChange={setSearchByLetters}>
+                                    <div className='grid grid-cols-5 gap-3'>
+                                        {searchByLetters.map((item) => (
+                                            <div key={item.value} className='flex items-center space-x-2'>
+                                                <RadioGroupItem value={item.value} id={item.value} />
+                                                <Label htmlFor={item.value} className='cursor-pointer text-sm'>
+                                                    {item.label}
+                                                </Label>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </RadioGroup>
+                            </Card>
+                        )}
                         <div className='grid grid-cols-2 gap-3 pt-4 '>
                             <div className='flex items-center space-x-2'>
                                 <Checkbox id='left' checked={left} onCheckedChange={(c) => handleCheckboxChange(c as boolean, 'left')} />
@@ -746,7 +771,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                                     onCheckedChange={(c) => handleCheckboxChange(c as boolean, 'class')}
                                 />
                                 <Label htmlFor='class' className='cursor-pointer text-sm'>
-                                    Class
+                                    Class Wise
                                 </Label>
                             </div>
 
@@ -757,7 +782,7 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                                     onCheckedChange={(c) => handleCheckboxChange(c as boolean, 'section')}
                                 />
                                 <Label htmlFor='section' className='cursor-pointer text-sm'>
-                                    Section
+                                    Section Wise
                                 </Label>
                             </div>
                         </div>
@@ -1082,8 +1107,8 @@ export default function UpdateStudentFeeTransaction({ onSuccess, asmayId, select
                                             <div>STUDENT NAME</div>
                                             <div className='text-gray-700'>
                                                 {studentDetails?.[0]?.amsT_FirstName || 'N/A'}
-                                                {studentDetails?.[0]?.amsT_MiddleName}
-                                                {studentDetails?.[0]?.amsT_LastName}
+                                                {studentDetails?.[0]?.amsT_MiddleName && ` ${studentDetails[0].amsT_MiddleName}`}
+                                                {studentDetails?.[0]?.amsT_LastName && ` ${studentDetails[0].amsT_LastName}`}
                                             </div>
 
                                             <div>CLASS / SECTION</div>
