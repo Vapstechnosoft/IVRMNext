@@ -11,6 +11,7 @@ import {
     createOptionalStringSchema,
     createOptionalStringWithLettersSchema,
     createStringOnlyOptionalSchema,
+    createStringOnlyOptionalallowComma,
     createStringOnlySchema,
     deleteIdSchema
 } from '../validationSchemas';
@@ -113,20 +114,35 @@ export const studentAdmissionFormSchema = {
             }),
 
             amsT_BirthPlace: createStringOnlyOptionalSchema('Student Birth Place', 1, 100),
-            asmS_Id: z.coerce.number().int({ message: 'State is required' }),
-            religion_Id: z.number().int({ message: 'Religion is required' }),
-            amsT_SubCasteIMC_Id: z.coerce.number().int({ message: 'Caste is required' }),
-            amsT_ReligionId: z.coerce.number().int({ message: 'Student Category is required' }),
+            asmS_Id: z.preprocess(
+                (val) => (val === undefined || val === null || val === '' ? 0 : Number(val)),
+                z.number().int().min(1, { message: 'Section is required' })
+            ),
+            religion_Id: z.preprocess(
+                (val) => (val === undefined || val === null || val === '' ? 0 : Number(val)),
+                z.number().int().min(1, { message: 'Religion is required' })
+            ),
+            amsT_SubCasteIMC_Id: z.preprocess(
+                (val) => (val === undefined || val === null || val === '' ? 0 : Number(val)),
+                z.number().int().min(1, { message: 'Caste is required' })
+            ),
+            amsT_ReligionId: z.preprocess(
+                (val) => (val === undefined || val === null || val === '' ? 0 : Number(val)),
+                z.number().int().min(1, { message: 'Student Category is required' })
+            ),
             amsT_Date: z.date({ message: 'Date Of Admission is required' }),
-            amsT_Sex: z.coerce.number().int({ message: 'Gender is required ' }),
-            amsT_StudentCountry: z.string().optional(),
+            amsT_Sex: z.preprocess(
+                (val) => (val === undefined || val === null || val === '' ? 0 : Number(val)),
+                z.number().int().min(1, { message: 'Gender is required' })
+            ),
+            amsT_StudentCountry: z.string().min(1, { message: 'Country is required' }),
             amsT_StudentState: z.coerce.number().int().optional(),
 
             pasR_DOB: z.date({ message: 'Date Of Birth is required' }).refine(() => true),
 
-            feeConcessionType: z.coerce.number().int().optional(),
-            // Student email (optional). Allow empty string so overall email is optional when cleared.
-            amsT_emailId: z.union([createEmailSchema('Student Email', 1, 50), z.literal('')]).optional(),
+            feeConcessionType: z.coerce.number().int().min(1, { message: 'Fee Concession Type is required' }),
+            // Student email (required)
+            amsT_emailId: createEmailSchema('Student Email', 1, 50),
             // Support multiple student emails (array). Each item may be empty or a valid email.
             adm_M_Student_EmailIdDTO: z
                 .array(
@@ -153,7 +169,7 @@ export const studentAdmissionFormSchema = {
                     message: 'Aadhar No must be exactly 12 digits'
                 })
                 .optional(),
-            amsT_LanguageSpoken: createStringOnlyOptionalSchema('Student Language Speaking At Home', 1, 100),
+            amsT_LanguageSpoken: createStringOnlyOptionalallowComma('Student Language Speaking At Home', 1, 100),
 
             reference_ids: z.array(z.string()).optional(),
 
@@ -257,7 +273,10 @@ export const studentAdmissionFormSchema = {
 
             fatherCasteCertificateNo: createOptionalAlphaNumericSchema('Father Caste Certificate No', 1, 100),
             fatherOccupation: createStringOnlyOptionalSchema('Father Occupation', 1, 100),
-            amsT_FatherPassingYear: z.number().optional(),
+            amsT_FatherPassingYear: z.preprocess(
+                (val) => (val === undefined || val === null || val === '' ? undefined : Number(val)),
+                z.number().int({ message: 'Father Passing Year must be a valid year' }).optional()
+            ),
             fatherAnnualIncome: z.number().optional(),
             fatherReligionId: z.number().int().optional(),
             fatherCasteId: z.number().int().optional(),
@@ -288,7 +307,10 @@ export const studentAdmissionFormSchema = {
             motherNationality: z.string().optional(),
 
             motherQualification: createStringOnlyOptionalSchema('Mother Qualification', 1, 100).optional(),
-            motherPassingYear: z.coerce.number().int({ message: 'Mother Passing Year must be a valid year' }).optional(),
+            motherPassingYear: z.preprocess(
+                (val) => (val === undefined || val === null || val === '' ? undefined : Number(val)),
+                z.number().int({ message: 'Mother Passing Year must be a valid year' }).optional()
+            ),
             motherPresentAddress: z
                 .object({
                     address: createOptionalStringSchema('Address', 1, 200),

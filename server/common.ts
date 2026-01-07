@@ -389,8 +389,8 @@ export async function getUserAccessibleModules() {
                                             name: 'Admission Form',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/admission-form',
-                                            title: 'Master Class',
-                                            description: 'Manage Master Class Details'
+                                            title: 'Admission Form',
+                                            description: 'Apply For Admission'
                                         }
                                     ]
                                 },

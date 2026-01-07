@@ -160,6 +160,20 @@ export function createStringOnlyOptionalSchema(field: string, min: number, max: 
         .optional()
         .or(z.literal(''));
 }
+//allow comma
+
+export function createStringOnlyOptionalallowComma(field: string, min: number, max: number) {
+    return z
+        .string()
+        .trim()
+        .regex(/^[A-Za-z,\s]+$/, {
+            message: `${field} must contain only letters, commas, and spaces`
+        })
+        .min(min, { message: `Minimum ${min} characters required for ${field}` })
+        .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
+        .optional()
+        .or(z.literal(''));
+}
 
 export function createAlphanumericSchema(field: string, min: number, max: number, optional = false) {
     const baseSchema = z

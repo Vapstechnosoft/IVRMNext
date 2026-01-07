@@ -100,7 +100,9 @@ const steps = [
     }
 ];
 
-export default function UpdateStudentAdmissionForm({ onSuccess, className = '', rowData, onClose }: AddStudentApplicationFormProps) {
+export default function UpdateStudentAdmissionForm({ onSuccess, className = '', rowData }: AddStudentApplicationFormProps) {
+    // Reusable upload box size for photo and signature previews/placeholders
+    const UPLOAD_BOX = 'h-20 w-32'; // same for photo & signature
     const [currentStep, setCurrentStep] = useState(1);
     const [openPopover, setOpenPopover] = useState<string | null>(null);
     const [showStep3Errors, setShowStep3Errors] = useState(false);
@@ -147,19 +149,25 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     });
 
     // student email addresses (allow multiple up to 5)
-    const { fields: emailFields, append: appendEmail } = useFieldArray({
+    const {
+        fields: emailFields,
+        append: appendEmail,
+        replace: replaceEmail
+    } = useFieldArray({
         control,
         name: 'adm_M_Student_EmailIdDTO'
     });
 
-    // Ensure there's at least one email field (prefill from legacy amsT_emailId)
+    // Ensure there's at least one email field (prefill from legacy amsT_emailId).
+    // Run when emailFields length changes so resets & rowData apply correctly.
     useEffect(() => {
         if (emailFields.length === 0) {
             const initial = (getValues('adm_M_Student_EmailIdDTO') || [])[0]?.amsT_emailId ?? getValues('amsT_emailId') ?? '';
+            // eslint-disable-next-line no-console
+            console.debug('[UpdateAdmission] appending initial email:', initial);
             appendEmail({ amsT_emailId: initial });
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [emailFields.length]);
 
     // Keep legacy amsT_emailId in sync with first email field
     const watchedEmails = watch('adm_M_Student_EmailIdDTO');
@@ -205,11 +213,28 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         const payload = { ...rowData } as any;
 
         payload.mobileNos = Array.isArray(payload.mobileNos) ? payload.mobileNos : payload.mobileNos || [];
-        payload.adm_M_Student_EmailIdDTO = Array.isArray(payload.adm_M_Student_EmailIdDTO)
-            ? payload.adm_M_Student_EmailIdDTO
-            : Array.isArray(payload.emailIds)
-              ? payload.emailIds.map((e: any) => ({ amsT_emailId: e }))
-              : payload.adm_M_Student_EmailIdDTO || [];
+        // Normalize email sources into an array of objects: { amsT_emailId: string }
+        const emailSource =
+            Array.isArray(payload.adm_M_Student_EmailIdDTO) && payload.adm_M_Student_EmailIdDTO.length > 0
+                ? payload.adm_M_Student_EmailIdDTO
+                : Array.isArray(payload.emailIds) && payload.emailIds.length > 0
+                  ? payload.emailIds
+                  : payload.adm_M_Student_EmailIdDTO || [];
+
+        payload.adm_M_Student_EmailIdDTO = Array.isArray(emailSource)
+            ? emailSource.map((e: any) => {
+                  if (!e && e !== '') return { amsT_emailId: '' };
+                  if (typeof e === 'string') return { amsT_emailId: e };
+                  if (typeof e === 'object') {
+                      if (typeof e.amsT_emailId === 'string') return { amsT_emailId: e.amsT_emailId };
+                      if (typeof e.emailId === 'string') return { amsT_emailId: e.emailId };
+                      // handle nested or legacy shapes
+                      const possible = e?.email || e?.emailAddress || e?.Email || '';
+                      return { amsT_emailId: String(possible ?? '') };
+                  }
+                  return { amsT_emailId: String(e ?? '') };
+              })
+            : [];
         payload.previousSchools = Array.isArray(payload.previousSchools) ? payload.previousSchools : payload.previousSchools || [];
         payload.siblings = Array.isArray(payload.siblings) ? payload.siblings : payload.siblings || [];
         payload.guardian = Array.isArray(payload.guardian) ? payload.guardian : payload.guardian || [];
@@ -221,6 +246,22 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
         try {
             reset(payload as any);
+
+            // Explicitly replace the field array for emails so useFieldArray renders items reliably
+            try {
+                const normalized =
+                    Array.isArray(payload.adm_M_Student_EmailIdDTO) && payload.adm_M_Student_EmailIdDTO.length > 0
+                        ? payload.adm_M_Student_EmailIdDTO.map((e: any) => ({
+                              amsT_emailId: String(e?.amsT_emailId ?? e?.emailId ?? e ?? '')
+                          }))
+                        : [{ amsT_emailId: '' }];
+                replaceEmail(normalized as any);
+                // sync legacy primary email
+                setValue('amsT_emailId' as any, normalized[0]?.amsT_emailId ?? '');
+            } catch (inner) {
+                // eslint-disable-next-line no-console
+                console.warn('Failed to replace email field array after reset', inner);
+            }
         } catch (e) {
             console.error('Error resetting form with rowData', e);
         }
@@ -254,6 +295,11 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             setMotherSignature(payload.motherSignatureUrl ? { path: payload.motherSignatureUrl } : null);
 
             setSavedAmsTId(Number(payload.amsT_Id ?? payload.amsTId ?? null));
+            // Debug: log what email data we received and what RHF has after reset
+            // eslint-disable-next-line no-console
+            console.debug('[UpdateAdmission] payload.adm_M_Student_EmailIdDTO:', payload.adm_M_Student_EmailIdDTO);
+            // eslint-disable-next-line no-console
+            console.debug('[UpdateAdmission] getValues email array after reset:', getValues('adm_M_Student_EmailIdDTO'));
         } catch (e) {
             console.error('Error applying rowData to local state', e);
         }
@@ -894,7 +940,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     'amsT_PerCountry',
                     'amsT_MobileNo',
                     'studentCategoryId',
-                    'feeConcessionType'
+                    'feeConcessionType',
+                    'asmS_Id'
                 ];
                 // If EMIS checkbox is set, ensure the EMIS field is validated
                 if (Number(getValues('isEmisBpl') ?? 0) === 1) {
@@ -1114,7 +1161,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         classId: Number(school.pasrpS_PreviousClass || school.classId) || 0,
                         percentage: school.pasrpS_PreviousPer || school.percentage || '',
                         grade: school.pasrpS_PreviousGrade || school.grade || '',
-                        passedYear: Number(school.pasrpS_LeftYear || school.passedYear) || 0,
+                        passedYear: (school.pasrpS_LeftYear ?? school.passedYear) ? Number(school.pasrpS_LeftYear ?? school.passedYear) : 0,
                         countryId: Number(school.countryId) || 0,
                         stateId: Number(school.stateId) || 0,
                         address: school.pasrpS_Address || school.address || '',
@@ -1577,7 +1624,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                             classId: Number(school.pasrpS_PreviousClass || school.classId) || 0,
                             percentage: school.pasrpS_PreviousPer || school.percentage || '',
                             grade: school.pasrpS_PreviousGrade || school.grade || '',
-                            passedYear: Number(school.pasrpS_LeftYear || school.passedYear) || 0,
+                            passedYear:
+                                (school.pasrpS_LeftYear ?? school.passedYear) ? Number(school.pasrpS_LeftYear ?? school.passedYear) : 0,
                             countryId: Number(school.countryId) || 0,
                             stateId: Number(school.stateId) || 0,
                             address: school.pasrpS_Address || school.address || '',
@@ -4134,7 +4182,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                         onCheckedChange={(checked) => {
                                                                             field.onChange(checked);
                                                                             if (!checked) {
-                                                                                setValue('fatherName', '');
+                                                                                setValue('fatherName', undefined as any);
+                                                                                clearErrors('fatherName');
                                                                                 setValue('fatherNationality', undefined);
                                                                                 setValue('motherNationality', undefined);
                                                                             }
@@ -4433,8 +4482,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                         <Select
                                                                             key={field.value || 'empty'}
                                                                             onValueChange={(value) => field.onChange(Number(value))}
-                                                                            value={field.value?.toString() || ''}
-                                                                            disabled={sameAsResidential}>
+                                                                            value={field.value?.toString() || ''}>
                                                                             <SelectTrigger>
                                                                                 <SelectValue placeholder='Select state' />
                                                                             </SelectTrigger>
@@ -4473,7 +4521,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                 placeholder='Enter city'
                                                                 {...register('fatherPresentAddress.city')}
                                                                 error={errors.fatherPresentAddress?.city?.message}
-                                                                disabled={sameAsResidential}
                                                             />
 
                                                             {/* Pincode */}
@@ -4529,7 +4576,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                 maxLength={fatherZipLength}
                                                                                 type='number'
                                                                                 showSpinner={false}
-                                                                                disabled={sameAsResidential}
                                                                             />
 
                                                                             {fatherCountryObj && fatherZipLength && (
@@ -5014,7 +5060,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                         onCheckedChange={(checked) => {
                                                                             field.onChange(checked);
                                                                             if (!checked) {
-                                                                                setValue('motherName', '');
+                                                                                setValue('motherName', undefined as any);
+                                                                                clearErrors('motherName');
                                                                                 setValue('motherNationality', undefined);
                                                                             }
                                                                         }}
@@ -6103,8 +6150,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                         control={control}
                                                                         render={({ field }) => (
                                                                             <Select
-                                                                                value={field.value?.toString() || ''}
-                                                                                onValueChange={(val) => field.onChange(Number(val))}>
+                                                                                value={field.value != null ? String(field.value) : ''}
+                                                                                onValueChange={(val) => field.onChange(val)}>
                                                                                 <SelectTrigger>
                                                                                     <SelectValue placeholder='Select passed year' />
                                                                                 </SelectTrigger>
@@ -6118,7 +6165,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                         academicYears.data.map((y: any) => (
                                                                                             <SelectItem
                                                                                                 key={String(y.asmaY_Id)}
-                                                                                                value={String(y.asmaY_Year)}>
+                                                                                                value={String(y.asmaY_Id)}>
                                                                                                 {y.asmaY_Year}
                                                                                             </SelectItem>
                                                                                         ))
@@ -7186,35 +7233,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                             <div className='mb-2 text-gray-600 text-sm'>
                                                 Add documents required by you. Files are stored locally and sent on final submit.
                                             </div>
-                                            {/* <label className='inline-flex cursor-pointer items-center gap-2 rounded-md border-2 border-dashed px-4 py-2 text-sm hover:border-primary'>
-                                                <svg className='h-4 w-4 text-primary' viewBox='0 0 24 24' fill='none' stroke='currentColor'>
-                                                    <path
-                                                        strokeLinecap='round'
-                                                        strokeLinejoin='round'
-                                                        strokeWidth={2}
-                                                        d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9'
-                                                    />
-                                                </svg>
-                                                <span>Select documents</span>
-                                                <input
-                                                    type='file'
-                                                    accept='.pdf,.jpg,.jpeg,.png'
-                                                    className='hidden'
-                                                    multiple
-                                                    disabled={isSubmitting}
-                                                    onChange={(e) => {
-                                                        const files = Array.from(e.target.files || []);
-                                                        files.forEach((file) => {
-                                                            // Use a generated id for ad-hoc documents
-                                                            const generatedId = Number(
-                                                                String(Date.now()) + Math.floor(Math.random() * 1000)
-                                                            );
-                                                            handleDocumentUpload(generatedId, file, file.name);
-                                                        });
-                                                        e.target.value = '';
-                                                    }}
-                                                />
-                                            </label> */}
 
                                             {uploadedDocuments.length > 0 && (
                                                 <div className='mt-4 space-y-2'>
@@ -7298,13 +7316,18 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                     <tr className='bg-gray-50'>
                                                         <th className='px-4 py-3 text-left text-gray-600 text-sm'>Document Name</th>
                                                         <th className='px-4 py-3 text-left text-gray-600 text-sm'>Status</th>
-                                                        <th className='px-4 py-3 text-left text-gray-600 text-sm'>Upload</th>
+                                                        <th className='w-40 px-4 py-3 text-left text-gray-600 text-sm'>Upload</th>
+                                                        <th className='px-4 py-3 text-left text-gray-600 text-sm'>Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {/* Father Photo */}
-                                                    <tr className='border-t'>
-                                                        <td className='px-4 py-4'>Father Photo</td>
+                                                    <tr className={`border-t ${fatherPhoto?.path ? 'bg-green-50' : 'bg-amber-50'}`}>
+                                                        <td className='px-4 py-4'>
+                                                            <div className='flex flex-col'>
+                                                                <span className='font-medium'>Father Photo</span>
+                                                            </div>
+                                                        </td>
                                                         <td className='px-4 py-4'>
                                                             {fatherPhoto?.isUploading ? (
                                                                 <span className='flex items-center gap-2 text-gray-600 text-sm'>
@@ -7312,27 +7335,50 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                     Uploading...
                                                                 </span>
                                                             ) : fatherPhoto?.path ? (
-                                                                <span className='text-green-700 text-sm'>Uploaded</span>
-                                                            ) : (
-                                                                <span className='text-gray-500 text-sm'>Not Uploaded</span>
-                                                            )}
-                                                        </td>
-                                                        <td className='px-4 py-4'>
-                                                            {!fatherPhoto || fatherPhoto.isUploading ? (
-                                                                <label className='inline-flex cursor-pointer items-center gap-2 rounded-md border-2 border-dashed px-4 py-3 text-sm hover:border-primary'>
+                                                                <span className='inline-flex items-center gap-2 text-green-700 text-sm'>
                                                                     <svg
-                                                                        className='h-4 w-4 text-primary'
+                                                                        className='h-4 w-4 text-green-700'
                                                                         viewBox='0 0 24 24'
                                                                         fill='none'
                                                                         stroke='currentColor'>
                                                                         <path
+                                                                            d='M20 6L9 17l-5-5'
+                                                                            strokeWidth='2'
                                                                             strokeLinecap='round'
                                                                             strokeLinejoin='round'
-                                                                            strokeWidth={2}
-                                                                            d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9'
                                                                         />
                                                                     </svg>
-                                                                    <span>Click to upload</span>
+                                                                    Uploaded
+                                                                </span>
+                                                            ) : (
+                                                                <span className='text-gray-500 text-sm'>Not Uploaded</span>
+                                                            )}
+                                                        </td>
+                                                        <td className='w-40 px-4 py-4'>
+                                                            {!fatherPhoto || fatherPhoto.isUploading ? (
+                                                                <label
+                                                                    className={`flex ${UPLOAD_BOX} cursor-pointer flex-col items-center justify-center rounded-md border-2 border-gray-300 border-dashed bg-white hover:border-primary`}>
+                                                                    <div className='flex flex-col items-center justify-center gap-1'>
+                                                                        <svg
+                                                                            className='h-6 w-6 text-purple-600'
+                                                                            viewBox='0 0 24 24'
+                                                                            fill='none'
+                                                                            stroke='currentColor'>
+                                                                            <path
+                                                                                strokeLinecap='round'
+                                                                                strokeLinejoin='round'
+                                                                                strokeWidth={2}
+                                                                                d='M12 3v12m0 0l3-3m-3 3l-3-3'
+                                                                            />
+                                                                            <path
+                                                                                strokeLinecap='round'
+                                                                                strokeLinejoin='round'
+                                                                                strokeWidth={2}
+                                                                                d='M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3'
+                                                                            />
+                                                                        </svg>
+                                                                        <span className='mt-1 text-gray-600 text-xs'>Click to upload</span>
+                                                                    </div>
                                                                     <input
                                                                         id='father_photo'
                                                                         type='file'
@@ -7355,37 +7401,50 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                 </label>
                                                             ) : (
                                                                 <div className='flex items-center gap-2'>
-                                                                    <img
-                                                                        src={fatherPhoto.path}
-                                                                        alt='Father'
-                                                                        className='h-12 w-12 rounded border object-cover'
-                                                                    />
-                                                                    <div className='flex gap-2'>
-                                                                        <Button
-                                                                            type='button'
-                                                                            size='sm'
-                                                                            variant='ghost'
-                                                                            onClick={() => window.open(fatherPhoto.path, '_blank')}
-                                                                            aria-label='View father photo'>
-                                                                            <Eye className='h-4 w-4' />
-                                                                        </Button>
-                                                                        <Button
-                                                                            type='button'
-                                                                            size='sm'
-                                                                            variant='destructive'
-                                                                            onClick={handleFatherPhotoDelete}
-                                                                            aria-label='Delete father photo'>
-                                                                            <Trash className='h-4 w-4' />
-                                                                        </Button>
+                                                                    <div
+                                                                        className={`flex ${UPLOAD_BOX} items-center justify-center rounded-md border bg-white`}>
+                                                                        <img
+                                                                            src={fatherPhoto.path}
+                                                                            alt='Father'
+                                                                            className='max-h-full max-w-full object-contain'
+                                                                        />
                                                                     </div>
                                                                 </div>
                                                             )}
                                                         </td>
+                                                        <td className='px-4 py-4'>
+                                                            <div className='flex gap-2'>
+                                                                {fatherPhoto?.path && (
+                                                                    <Button
+                                                                        type='button'
+                                                                        size='sm'
+                                                                        variant='ghost'
+                                                                        onClick={() => window.open(fatherPhoto.path, '_blank')}
+                                                                        aria-label='View father photo'>
+                                                                        <Eye className='h-4 w-4' />
+                                                                    </Button>
+                                                                )}
+                                                                {fatherPhoto?.path && (
+                                                                    <Button
+                                                                        type='button'
+                                                                        size='sm'
+                                                                        variant='destructive'
+                                                                        onClick={handleFatherPhotoDelete}
+                                                                        aria-label='Delete father photo'>
+                                                                        <Trash className='h-4 w-4' />
+                                                                    </Button>
+                                                                )}
+                                                            </div>
+                                                        </td>
                                                     </tr>
 
                                                     {/* Father Signature */}
-                                                    <tr className='border-t'>
-                                                        <td className='px-4 py-4'>Father Signature</td>
+                                                    <tr className={`border-t ${fatherSignature?.path ? 'bg-green-50' : 'bg-amber-50'}`}>
+                                                        <td className='px-4 py-4'>
+                                                            <div className='flex flex-col'>
+                                                                <span className='font-medium'>Father Signature</span>
+                                                            </div>
+                                                        </td>
                                                         <td className='px-4 py-4'>
                                                             {fatherSignature?.isUploading ? (
                                                                 <span className='flex items-center gap-2 text-gray-600 text-sm'>
@@ -7393,27 +7452,50 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                     Uploading...
                                                                 </span>
                                                             ) : fatherSignature?.path ? (
-                                                                <span className='text-green-700 text-sm'>Uploaded</span>
-                                                            ) : (
-                                                                <span className='text-gray-500 text-sm'>Not Uploaded</span>
-                                                            )}
-                                                        </td>
-                                                        <td className='px-4 py-4'>
-                                                            {!fatherSignature || fatherSignature.isUploading ? (
-                                                                <label className='inline-flex cursor-pointer items-center gap-2 rounded-md border-2 border-dashed px-4 py-3 text-sm hover:border-primary'>
+                                                                <span className='inline-flex items-center gap-2 text-green-700 text-sm'>
                                                                     <svg
-                                                                        className='h-4 w-4 text-primary'
+                                                                        className='h-4 w-4 text-green-700'
                                                                         viewBox='0 0 24 24'
                                                                         fill='none'
                                                                         stroke='currentColor'>
                                                                         <path
+                                                                            d='M20 6L9 17l-5-5'
+                                                                            strokeWidth='2'
                                                                             strokeLinecap='round'
                                                                             strokeLinejoin='round'
-                                                                            strokeWidth={2}
-                                                                            d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9'
                                                                         />
                                                                     </svg>
-                                                                    <span>Click to upload</span>
+                                                                    Uploaded
+                                                                </span>
+                                                            ) : (
+                                                                <span className='text-gray-500 text-sm'>Not Uploaded</span>
+                                                            )}
+                                                        </td>
+                                                        <td className='w-40 px-4 py-4'>
+                                                            {!fatherSignature || fatherSignature.isUploading ? (
+                                                                <label
+                                                                    className={`flex ${UPLOAD_BOX} cursor-pointer flex-col items-center justify-center rounded-md border-2 border-gray-300 border-dashed bg-white hover:border-primary`}>
+                                                                    <div className='flex flex-col items-center justify-center gap-1'>
+                                                                        <svg
+                                                                            className='h-6 w-6 text-purple-600'
+                                                                            viewBox='0 0 24 24'
+                                                                            fill='none'
+                                                                            stroke='currentColor'>
+                                                                            <path
+                                                                                strokeLinecap='round'
+                                                                                strokeLinejoin='round'
+                                                                                strokeWidth={2}
+                                                                                d='M12 3v12m0 0l3-3m-3 3l-3-3'
+                                                                            />
+                                                                            <path
+                                                                                strokeLinecap='round'
+                                                                                strokeLinejoin='round'
+                                                                                strokeWidth={2}
+                                                                                d='M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3'
+                                                                            />
+                                                                        </svg>
+                                                                        <span className='mt-1 text-gray-600 text-xs'>Click to upload</span>
+                                                                    </div>
                                                                     <input
                                                                         id='father_signature'
                                                                         type='file'
@@ -7436,37 +7518,50 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                 </label>
                                                             ) : (
                                                                 <div className='flex items-center gap-2'>
-                                                                    <img
-                                                                        src={fatherSignature.path}
-                                                                        alt='Father signature'
-                                                                        className='h-12 w-28 rounded border object-contain'
-                                                                    />
-                                                                    <div className='flex gap-2'>
-                                                                        <Button
-                                                                            type='button'
-                                                                            size='sm'
-                                                                            variant='ghost'
-                                                                            onClick={() => window.open(fatherSignature.path, '_blank')}
-                                                                            aria-label='View father signature'>
-                                                                            <Eye className='h-4 w-4' />
-                                                                        </Button>
-                                                                        <Button
-                                                                            type='button'
-                                                                            size='sm'
-                                                                            variant='destructive'
-                                                                            onClick={handleFatherSignatureDelete}
-                                                                            aria-label='Delete father signature'>
-                                                                            <Trash className='h-4 w-4' />
-                                                                        </Button>
+                                                                    <div
+                                                                        className={`flex ${UPLOAD_BOX} items-center justify-center rounded-md border bg-white`}>
+                                                                        <img
+                                                                            src={fatherSignature.path}
+                                                                            alt='Father signature'
+                                                                            className='max-h-full max-w-full object-contain'
+                                                                        />
                                                                     </div>
                                                                 </div>
                                                             )}
                                                         </td>
+                                                        <td className='px-4 py-4'>
+                                                            <div className='flex gap-2'>
+                                                                {fatherSignature?.path && (
+                                                                    <Button
+                                                                        type='button'
+                                                                        size='sm'
+                                                                        variant='ghost'
+                                                                        onClick={() => window.open(fatherSignature.path, '_blank')}
+                                                                        aria-label='View father signature'>
+                                                                        <Eye className='h-4 w-4' />
+                                                                    </Button>
+                                                                )}
+                                                                {fatherSignature?.path && (
+                                                                    <Button
+                                                                        type='button'
+                                                                        size='sm'
+                                                                        variant='destructive'
+                                                                        onClick={handleFatherSignatureDelete}
+                                                                        aria-label='Delete father signature'>
+                                                                        <Trash className='h-4 w-4' />
+                                                                    </Button>
+                                                                )}
+                                                            </div>
+                                                        </td>
                                                     </tr>
 
                                                     {/* Mother Photo */}
-                                                    <tr className='border-t'>
-                                                        <td className='px-4 py-4'>Mother Photo</td>
+                                                    <tr className={`border-t ${motherPhoto?.path ? 'bg-green-50' : 'bg-amber-50'}`}>
+                                                        <td className='px-4 py-4'>
+                                                            <div className='flex flex-col'>
+                                                                <span className='font-medium'>Mother Photo</span>
+                                                            </div>
+                                                        </td>
                                                         <td className='px-4 py-4'>
                                                             {motherPhoto?.isUploading ? (
                                                                 <span className='flex items-center gap-2 text-gray-600 text-sm'>
@@ -7474,27 +7569,50 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                     Uploading...
                                                                 </span>
                                                             ) : motherPhoto?.path ? (
-                                                                <span className='text-green-700 text-sm'>Uploaded</span>
-                                                            ) : (
-                                                                <span className='text-gray-500 text-sm'>Not Uploaded</span>
-                                                            )}
-                                                        </td>
-                                                        <td className='px-4 py-4'>
-                                                            {!motherPhoto || motherPhoto.isUploading ? (
-                                                                <label className='inline-flex cursor-pointer items-center gap-2 rounded-md border-2 border-dashed px-4 py-3 text-sm hover:border-primary'>
+                                                                <span className='inline-flex items-center gap-2 text-green-700 text-sm'>
                                                                     <svg
-                                                                        className='h-4 w-4 text-primary'
+                                                                        className='h-4 w-4 text-green-700'
                                                                         viewBox='0 0 24 24'
                                                                         fill='none'
                                                                         stroke='currentColor'>
                                                                         <path
+                                                                            d='M20 6L9 17l-5-5'
+                                                                            strokeWidth='2'
                                                                             strokeLinecap='round'
                                                                             strokeLinejoin='round'
-                                                                            strokeWidth={2}
-                                                                            d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
                                                                         />
                                                                     </svg>
-                                                                    <span>Click to upload</span>
+                                                                    Uploaded
+                                                                </span>
+                                                            ) : (
+                                                                <span className='text-gray-500 text-sm'>Not Uploaded</span>
+                                                            )}
+                                                        </td>
+                                                        <td className='w-40 px-4 py-4'>
+                                                            {!motherPhoto || motherPhoto.isUploading ? (
+                                                                <label
+                                                                    className={`flex ${UPLOAD_BOX} cursor-pointer flex-col items-center justify-center rounded-md border-2 border-gray-300 border-dashed bg-white hover:border-primary`}>
+                                                                    <div className='flex flex-col items-center justify-center gap-1'>
+                                                                        <svg
+                                                                            className='h-6 w-6 text-purple-600'
+                                                                            viewBox='0 0 24 24'
+                                                                            fill='none'
+                                                                            stroke='currentColor'>
+                                                                            <path
+                                                                                strokeLinecap='round'
+                                                                                strokeLinejoin='round'
+                                                                                strokeWidth={2}
+                                                                                d='M12 3v12m0 0l3-3m-3 3l-3-3'
+                                                                            />
+                                                                            <path
+                                                                                strokeLinecap='round'
+                                                                                strokeLinejoin='round'
+                                                                                strokeWidth={2}
+                                                                                d='M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3'
+                                                                            />
+                                                                        </svg>
+                                                                        <span className='mt-1 text-gray-600 text-xs'>Click to upload</span>
+                                                                    </div>
                                                                     <input
                                                                         id='mother_photo'
                                                                         type='file'
@@ -7517,37 +7635,50 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                 </label>
                                                             ) : (
                                                                 <div className='flex items-center gap-2'>
-                                                                    <img
-                                                                        src={motherPhoto.path}
-                                                                        alt='Mother'
-                                                                        className='h-12 w-12 rounded border object-cover'
-                                                                    />
-                                                                    <div className='flex gap-2'>
-                                                                        <Button
-                                                                            type='button'
-                                                                            size='sm'
-                                                                            variant='ghost'
-                                                                            onClick={() => window.open(motherPhoto.path, '_blank')}
-                                                                            aria-label='View mother photo'>
-                                                                            <Eye className='h-4 w-4' />
-                                                                        </Button>
-                                                                        <Button
-                                                                            type='button'
-                                                                            size='sm'
-                                                                            variant='destructive'
-                                                                            onClick={handleMotherPhotoDelete}
-                                                                            aria-label='Delete mother photo'>
-                                                                            <Trash className='h-4 w-4' />
-                                                                        </Button>
+                                                                    <div
+                                                                        className={`flex ${UPLOAD_BOX} items-center justify-center rounded-md border bg-white`}>
+                                                                        <img
+                                                                            src={motherPhoto.path}
+                                                                            alt='Mother'
+                                                                            className='max-h-full max-w-full object-contain'
+                                                                        />
                                                                     </div>
                                                                 </div>
                                                             )}
                                                         </td>
+                                                        <td className='px-4 py-4'>
+                                                            <div className='flex gap-2'>
+                                                                {motherPhoto?.path && (
+                                                                    <Button
+                                                                        type='button'
+                                                                        size='sm'
+                                                                        variant='ghost'
+                                                                        onClick={() => window.open(motherPhoto.path, '_blank')}
+                                                                        aria-label='View mother photo'>
+                                                                        <Eye className='h-4 w-4' />
+                                                                    </Button>
+                                                                )}
+                                                                {motherPhoto?.path && (
+                                                                    <Button
+                                                                        type='button'
+                                                                        size='sm'
+                                                                        variant='destructive'
+                                                                        onClick={handleMotherPhotoDelete}
+                                                                        aria-label='Delete mother photo'>
+                                                                        <Trash className='h-4 w-4' />
+                                                                    </Button>
+                                                                )}
+                                                            </div>
+                                                        </td>
                                                     </tr>
 
                                                     {/* Mother Signature */}
-                                                    <tr className='border-t'>
-                                                        <td className='px-4 py-4'>Mother Signature</td>
+                                                    <tr className={`border-t ${motherSignature?.path ? 'bg-green-50' : 'bg-amber-50'}`}>
+                                                        <td className='px-4 py-4'>
+                                                            <div className='flex flex-col'>
+                                                                <span className='font-medium'>Mother Signature</span>
+                                                            </div>
+                                                        </td>
                                                         <td className='px-4 py-4'>
                                                             {motherSignature?.isUploading ? (
                                                                 <span className='flex items-center gap-2 text-gray-600 text-sm'>
@@ -7555,27 +7686,50 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                     Uploading...
                                                                 </span>
                                                             ) : motherSignature?.path ? (
-                                                                <span className='text-green-700 text-sm'>Uploaded</span>
-                                                            ) : (
-                                                                <span className='text-gray-500 text-sm'>Not Uploaded</span>
-                                                            )}
-                                                        </td>
-                                                        <td className='px-4 py-4'>
-                                                            {!motherSignature || motherSignature.isUploading ? (
-                                                                <label className='inline-flex cursor-pointer items-center gap-2 rounded-md border-2 border-dashed px-4 py-3 text-sm hover:border-primary'>
+                                                                <span className='inline-flex items-center gap-2 text-green-700 text-sm'>
                                                                     <svg
-                                                                        className='h-4 w-4 text-primary'
+                                                                        className='h-4 w-4 text-green-700'
                                                                         viewBox='0 0 24 24'
                                                                         fill='none'
                                                                         stroke='currentColor'>
                                                                         <path
+                                                                            d='M20 6L9 17l-5-5'
+                                                                            strokeWidth='2'
                                                                             strokeLinecap='round'
                                                                             strokeLinejoin='round'
-                                                                            strokeWidth={2}
-                                                                            d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9'
                                                                         />
                                                                     </svg>
-                                                                    <span>Click to upload</span>
+                                                                    Uploaded
+                                                                </span>
+                                                            ) : (
+                                                                <span className='text-gray-500 text-sm'>Not Uploaded</span>
+                                                            )}
+                                                        </td>
+                                                        <td className='w-40 px-4 py-4'>
+                                                            {!motherSignature || motherSignature.isUploading ? (
+                                                                <label
+                                                                    className={`flex ${UPLOAD_BOX} cursor-pointer flex-col items-center justify-center rounded-md border-2 border-gray-300 border-dashed bg-white hover:border-primary`}>
+                                                                    <div className='flex flex-col items-center justify-center gap-1'>
+                                                                        <svg
+                                                                            className='h-6 w-6 text-purple-600'
+                                                                            viewBox='0 0 24 24'
+                                                                            fill='none'
+                                                                            stroke='currentColor'>
+                                                                            <path
+                                                                                strokeLinecap='round'
+                                                                                strokeLinejoin='round'
+                                                                                strokeWidth={2}
+                                                                                d='M12 3v12m0 0l3-3m-3 3l-3-3'
+                                                                            />
+                                                                            <path
+                                                                                strokeLinecap='round'
+                                                                                strokeLinejoin='round'
+                                                                                strokeWidth={2}
+                                                                                d='M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3'
+                                                                            />
+                                                                        </svg>
+                                                                        <span className='mt-1 text-gray-600 text-xs'>Click to upload</span>
+                                                                    </div>
                                                                     <input
                                                                         id='mother_signature'
                                                                         type='file'
@@ -7598,31 +7752,40 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                 </label>
                                                             ) : (
                                                                 <div className='flex items-center gap-2'>
-                                                                    <img
-                                                                        src={motherSignature.path}
-                                                                        alt='Mother signature'
-                                                                        className='h-12 w-28 rounded border object-contain'
-                                                                    />
-                                                                    <div className='flex gap-2'>
-                                                                        <Button
-                                                                            type='button'
-                                                                            size='sm'
-                                                                            variant='ghost'
-                                                                            onClick={() => window.open(motherSignature.path, '_blank')}
-                                                                            aria-label='View mother signature'>
-                                                                            <Eye className='h-4 w-4' />
-                                                                        </Button>
-                                                                        <Button
-                                                                            type='button'
-                                                                            size='sm'
-                                                                            variant='destructive'
-                                                                            onClick={handleMotherSignatureDelete}
-                                                                            aria-label='Delete mother signature'>
-                                                                            <Trash className='h-4 w-4' />
-                                                                        </Button>
+                                                                    <div
+                                                                        className={`flex ${UPLOAD_BOX} items-center justify-center rounded-md border bg-white`}>
+                                                                        <img
+                                                                            src={motherSignature.path}
+                                                                            alt='Mother signature'
+                                                                            className='max-h-full max-w-full object-contain'
+                                                                        />
                                                                     </div>
                                                                 </div>
                                                             )}
+                                                        </td>
+                                                        <td className='px-4 py-4'>
+                                                            <div className='flex gap-2'>
+                                                                {motherSignature?.path && (
+                                                                    <Button
+                                                                        type='button'
+                                                                        size='sm'
+                                                                        variant='ghost'
+                                                                        onClick={() => window.open(motherSignature.path, '_blank')}
+                                                                        aria-label='View mother signature'>
+                                                                        <Eye className='h-4 w-4' />
+                                                                    </Button>
+                                                                )}
+                                                                {motherSignature?.path && (
+                                                                    <Button
+                                                                        type='button'
+                                                                        size='sm'
+                                                                        variant='destructive'
+                                                                        onClick={handleMotherSignatureDelete}
+                                                                        aria-label='Delete mother signature'>
+                                                                        <Trash className='h-4 w-4' />
+                                                                    </Button>
+                                                                )}
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 </tbody>
