@@ -5,7 +5,7 @@ import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/ex
 import { FormError } from '@/components/ui/extension/field';
 import { useMasterLibrary } from '@/hooks/library/useMasters';
 import { masterLibrarySchema } from '@/schemas/library/masters';
-import { deleteMasterLibrary } from '@/server/library/masters/librarycategory';
+import { deleteMasterLibrary } from '@/server/library/masters/master_library';
 import type { IMasterLibraryList } from '@/types/library/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';

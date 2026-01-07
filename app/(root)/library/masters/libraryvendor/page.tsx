@@ -4,25 +4,21 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useMasterYearlyCategory } from '@/hooks/fees/useMasters';
-import type { IMasterClassYearlyList } from '@/types/fees/masters/masters';
+import { useMasterVendor } from '@/hooks/library/useMasters';
+import type { IMasterVendorList } from '@/types/library/masters/masters';
 import { Plus, X } from 'lucide-react';
 import { use, useEffect } from 'react';
-import AddMasterClassForm from './_components/add-form';
-import { masterClassYearlyCategoryColumns } from './_components/columns';
-import DeleteMasterClassForm from './_components/toggle-form';
+import AddMasterVendorForm from './_components/add-form';
+import { masterVendorColumns } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterClassPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error, refetch } = useMasterYearlyCategory(searchParams);
-
-    // biome-ignore lint/suspicious/noEmptyBlockStatements: <explanation>
-    useEffect(() => {}, [response]);
+    const { data: response, isLoading, error, refetch } = useMasterVendor(searchParams);
 
     return (
-        <FormProvider<IMasterClassYearlyList>>
+        <FormProvider<IMasterVendorList>>
             <MasterClassPageContent response={response} isLoading={isLoading} error={error} refetch={refetch} />
         </FormProvider>
     );
@@ -39,9 +35,12 @@ function MasterClassPageContent({
     error: any;
     refetch: () => void;
 }) {
-    const { openAddForm } = useFormContext<IMasterClassYearlyList>();
+    const { openAddForm } = useFormContext<IMasterVendorList>();
     const tableProps = useDataTableProps(response);
 
+    //  const handleSuccess = () => {
+    //     refetch();
+    // };
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -54,7 +53,7 @@ function MasterClassPageContent({
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
-                        Add Yearly Category
+                        Add Master Library
                     </Button>
                 </div>
 
@@ -64,15 +63,15 @@ function MasterClassPageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IMasterClassYearlyList>
+                    <GenericDataTable<IMasterVendorList>
                         {...tableProps}
-                        columns={masterClassYearlyCategoryColumns}
+                        columns={masterVendorColumns}
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading yearly class categories...'
+                        loadingMessage='Loading Master Vendor...'
                         noDataTitle='No Records Found'
-                        noDataDescription='Start by adding a new  Yearly Category'
+                        noDataDescription='Start by adding a new Master Vendor'
                         errorTitle='Error Loading Data'
                     />
                 </CollapsibleSection>
@@ -88,14 +87,14 @@ function FormSections({ refetch }: { refetch: () => void }) {
     const {
         isAddFormOpen,
         isEditFormOpen,
-        isDeleteFormOpen,
+        //isDeleteFormOpen,
         selectedRow,
         closeAddForm,
-        closeDeleteForm,
-        closeEditForm,
-        addFormRef,
-        editFormRef
-    } = useFormContext<IMasterClassYearlyList>();
+        //closeDeleteForm,
+        // closeEditForm,
+        addFormRef
+        // editFormRef
+    } = useFormContext<IMasterVendorList>();
 
     useEffect(() => {
         if (isEditFormOpen && !selectedRow) {
@@ -114,7 +113,7 @@ function FormSections({ refetch }: { refetch: () => void }) {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add New Yearly Class Category'
+                        title='Add New Master Vendor'
                         description='Fill in the details below to create a new mapping'
                         defaultOpen
                         variant='outline'
@@ -129,7 +128,7 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddMasterClassForm
+                            <AddMasterVendorForm
                                 onSuccess={() => {
                                     handleSuccess();
                                     closeAddForm();
@@ -141,16 +140,16 @@ function FormSections({ refetch }: { refetch: () => void }) {
             )}
 
             {/* Delete Form */}
-            {isDeleteFormOpen && selectedRow && (
-                <DeleteMasterClassForm
+            {/* {isDeleteFormOpen && selectedRow && (
+                <DeleteMasterVendorForm
                     rowData={selectedRow}
                     onClose={closeDeleteForm}
-                    onSuccess={() => {
-                        handleSuccess();
-                        closeDeleteForm();
-                    }}
+                     onSuccess={() => {
+                         handleSuccess();
+                         closeDeleteForm();
+                     }}
                 />
-            )}
+            )} */}
 
             {/* Edit Form */}
             {/* {isEditFormOpen && selectedRow && (

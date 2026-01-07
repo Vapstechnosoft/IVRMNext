@@ -2,14 +2,14 @@
 
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
-import { useFormContext } from '@/components/ui/form/form-provider';
-import type { IMasterClassYearlyList } from '@/types/fees/masters/masters';
+//import { useFormContext } from '@/components/ui/form/form-provider';
+import type { IMasterPublisherList } from '@/types/library/masters/masters';
 import type { ColumnDef } from '@tanstack/react-table';
-import { useCallback } from 'react';
+//import { useCallback } from 'react';
 
-export const masterClassYearlyCategoryColumns: ColumnDef<IMasterClassYearlyList>[] = [
+export const masterPublisherColumns: ColumnDef<IMasterPublisherList>[] = [
     {
-        accessorKey: 'fyccC_Id',
+        accessorKey: 'lmaL_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No' className='w-full pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
@@ -21,29 +21,24 @@ export const masterClassYearlyCategoryColumns: ColumnDef<IMasterClassYearlyList>
         enableHiding: false
     },
     {
-        accessorKey: 'asmaY_Year',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Category Name' />,
-        cell: ({ row }) => <div>{row.getValue('asmaY_Year')}</div>
+        accessorKey: 'lmP_PublisherName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Publisher Name' />,
+        cell: ({ row }) => <div>{row.getValue('lmP_PublisherName')}</div>
     },
     {
-        accessorKey: 'fmcC_ClassCategoryName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Category Code' />,
-        cell: ({ row }) => <div>{row.getValue('fmcC_ClassCategoryName')}</div>
+        accessorKey: 'lmP_EMailId',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Email' />,
+        cell: ({ row }) => <div>{row.getValue('lmP_EMailId')}</div>
     },
     {
-        accessorKey: 'asmcL_ClassName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Name' />,
-        cell: ({ row }) => {
-            const classNames = row.getValue('asmcL_ClassName');
-            try {
-                const parsed = typeof classNames === 'string' ? JSON.parse(classNames) : classNames;
-                const classArray = Array.isArray(parsed) ? parsed : [parsed];
-                const displayText = classArray.join(', ');
-                return <div>{displayText}</div>;
-            } catch {
-                return <div>{String(classNames)}</div>;
-            }
-        }
+        accessorKey: 'lmP_MobileNo',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Mobile No' />,
+        cell: ({ row }) => <div>{row.getValue('lmP_MobileNo')}</div>
+    },
+    {
+        accessorKey: 'lmP_Address',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Address' />,
+        cell: ({ row }) => <div>{row.getValue('lmP_Address')}</div>
     },
     {
         id: 'actions',
@@ -53,17 +48,16 @@ export const masterClassYearlyCategoryColumns: ColumnDef<IMasterClassYearlyList>
     }
 ];
 
-function ActionButtonsCell({ rowData }: { rowData: IMasterClassYearlyList }) {
-    const { openDeleteForm, openEditForm } = useFormContext<IMasterClassYearlyList>();
+function ActionButtonsCell({ rowData }: { rowData: IMasterPublisherList }) {
+    // const { openDeleteForm, openEditForm } = useFormContext<IMasterPublisherList>();
 
-    const handleDelete = useCallback((data: IMasterClassYearlyList) => openDeleteForm(data), [openDeleteForm]);
-    const handleEdit = useCallback((data: IMasterClassYearlyList) => openEditForm(data), [openEditForm]);
-
+    // const handleDelete = useCallback((data: IMasterPublisherList) => openDeleteForm(data), [openDeleteForm]);
+    // const handleEdit = useCallback((data: IMasterPublisherList) => openEditForm(data), [openEditForm]);
     return (
         <ActionButtons
             rowData={rowData}
             buttons={{ edit: false, toggle: false, delete: true }}
-            onDelete={handleDelete}
+            //onDelete={handleDelete}
             //  onEdit={handleEdit}
         />
     );

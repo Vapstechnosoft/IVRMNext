@@ -1,7 +1,39 @@
-//used category
+//used master category
 export interface IMasterLibraryList {
     lmaL_Id: number;
     mI_Id: string;
     lmaL_LibraryName: string;
     lmaL_ActiveFlag: boolean;
+}
+
+export interface IMasterVendorList {
+    lmV_Id: number;
+    mI_Id: number;
+    lmV_MobileNo: number;
+    lmV_VendorName: string;
+    lmV_Address: string;
+    lmV_EMailId: string;
+    lmV_PhoneNo: string;
+    lmV_ActiveFlg: boolean;
+    lmV_CreatedBy: number;
+    lmV_UpdatedBy: number;
+}
+
+export interface IMasterCategoryList {
+    lmC_Id: number;
+    lmC_CategoryName: string;
+    lmC_BNBFlg: string;
+    lmC_ActiveFlag: boolean;
+    lmC_CategoryCode: string;
+}
+
+export interface IMasterPublisherList {
+    lmP_Id: number;
+    mI_Id: number;
+    lmP_PublisherName: string;
+    lmP_MobileNo: string;
+    lmP_Address: string;
+    lmP_EMailId: string;
+    lmP_PhoneNo: string;
+    lmP_ActiveFlg: boolean;
 }

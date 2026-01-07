@@ -443,5 +443,11 @@ export const HRMS_QUERY_KEYS = {
 };
 
 export const LIBRARY_QUERY_KEYS = {
-    MASTER_LIBRARY_LIST_DATA: 'master_library_list_data'
+    MASTER_LIBRARY_LIST_DATA: 'master_library_list_data',
+    MASTER_VENDOR_LIST_DATA: 'master_vendor_list_data',
+    MASTER_PUBLISHER_LIST_DATA: 'master_publisher_list_data',
+    MASTER_CATEGORY_LIST_DATA: 'master_category_list_data',
+
+    MASTER_AUTHOR_LIST_DATA: 'master_author_list_data',
+    MASTER_BOOK_LIST_DATA: 'master_book_list_data'
 };

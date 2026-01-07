@@ -2353,7 +2353,7 @@ export async function getUserAccessibleModules() {
                 },
                 {
                     id: 6,
-                    name: 'Library',
+                    name: 'Library Management',
                     icon: 'BookOpen',
                     menu: [
                         {
@@ -2373,32 +2373,32 @@ export async function getUserAccessibleModules() {
                                             url: '/library/masters/masterlibrary',
                                             title: 'Master Library',
                                             description: 'Master Library  Details'
+                                        },
+                                        {
+                                            id: 30002,
+                                            name: 'Master Vendor',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/libraryvendor',
+                                            title: 'Library Vendor',
+                                            description: 'Library Vendor Details'
+                                        },
+                                        {
+                                            id: 30003,
+                                            name: 'Master Category',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/mastercategory',
+                                            title: 'Library Category',
+                                            description: 'Library Category Details'
+                                        },
+
+                                        {
+                                            id: 30004,
+                                            name: 'Master Publisher',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/librarypublisher',
+                                            title: 'Library Publisher',
+                                            description: 'Library Master Publisher Details'
                                         }
-                                        //  {
-                                        //     id: 30002,
-                                        //     name: 'Library Vendor',
-                                        //     icon: 'BookOpen',
-                                        //     url: '/library/masters/libraryvendor',
-                                        //     title: 'Library Vendor',
-                                        //     description: 'Library Vendor Details'
-                                        // },
-                                        //  {
-                                        //     id: 30003,
-                                        //     name: 'Master Category',
-                                        //     icon: 'BookOpen',
-                                        //     url: '/library/masters/category',
-                                        //     title: 'Library Category',
-                                        //     description: 'Library Category Details'
-                                        // }
-                                        // ,
-                                        //  {
-                                        //     id: 30004,
-                                        //     name: 'Library Publisher',
-                                        //     icon: 'BookOpen',
-                                        //     url: '/library/masters/librarypublisher',
-                                        //     title: 'Library Publisher',
-                                        //     description: 'Library Master Publisher Details'
-                                        // }
                                     ]
                                 }
                             ]
