@@ -1010,3 +1010,19 @@ export const useUpdateFeeTransactionList = (payload: any) => {
             })
     };
 };
+
+export const useFeeStudentCurrentAcademicDetails = (amst_Id: number, asmay_Id: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_CURRENT_ACADEMIC_DETAILS],
+            queryFn: async () => updateFeeStudentCurrentAcademicDetails(amst_Id, asmay_Id)
+        }),
+
+        refetchAll: () =>
+            queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_CURRENT_ACADEMIC_DETAILS]
+            })
+    };
+};
