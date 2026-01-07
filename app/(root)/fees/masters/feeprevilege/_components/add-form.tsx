@@ -369,7 +369,7 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
                                         disabled={!academicYear || !group}
                                     />
 
-                                    {headOptions.length > 0 && (
+                                    {headOptions.length > 0 && filteredHeadOptions.length > 0 && (
                                         <div
                                             onClick={selectAllHeads}
                                             className={cn(

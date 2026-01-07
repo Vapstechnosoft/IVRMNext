@@ -812,3 +812,9 @@ export interface IinstitutionDetails {
     mI_Logo: string;
     mI_Name: string;
 }
+
+export interface IMasterGroupsOnYear {
+    fmG_Id: number;
+    fyG_Id: string;
+    fmG_GroupName: string;
+}

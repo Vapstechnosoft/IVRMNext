@@ -30,8 +30,13 @@ export const masterFeeheadSchema = {
 export const masterModeOfPaymentSchema = {
     addOrUpdate: z.object({
         ivrmmoD_Id: z.number().int({ message: 'ivrmmoD_Id is required' }).optional(),
-        ivrmmoD_ModeOfPayment: createStringSchema('Mode of Payment', 1, 100),
-        ivrmmoD_ModeOfPayment_Code: createStringSchema('Mode of Payment Code', 1, 100)
+        ivrmmoD_ModeOfPayment: createStringOnlySchema('Mode of Payment', 1, 100),
+        //ivrmmoD_ModeOfPayment_Code: createStringSchema('Mode of Payment Code', 1, 100)
+        ivrmmoD_ModeOfPayment_Code: z
+            .string()
+            .min(1, 'Mode of Payment Code is required')
+            .max(1, 'Mode of Payment Code must be exactly 1 character')
+            .refine((value) => ['C', 'B', 'R', 'S', 'U'].includes(value.toUpperCase()), { message: 'Allowed values: C, B, R, S, U only' })
     }),
     delete: z.object({
         ivrmmoD_Id: deleteIdSchema('ivrmmoD_Id')
