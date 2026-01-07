@@ -118,9 +118,8 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                 console.log(rowData.elP_Id, rowData.asmcL_Id, rowData.asmS_Id);
                 // Call API to get edit details
                 const editData = await getExamLoginPrivilegesEditDetails(rowData.elP_Id, rowData.asmcL_Id, rowData.asmS_Id);
-
-                if (editData?.success && editData.data?.length > 0) {
-                    const editList = editData.data;
+                if (editData?.success && Array.isArray(editData.data) && editData.data.length > 0) {
+                    const editList = Array.isArray(editData.data) ? editData.data : [editData.data];
                     console.log(editList);
                     const isClassTeacher = editList?.[0]?.elP_Flg === 'st' || editList?.[0]?.elP_Flg === 'others';
 

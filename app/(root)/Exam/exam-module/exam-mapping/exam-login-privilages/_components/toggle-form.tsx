@@ -3,24 +3,27 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { useMasterCategoryClassMapping } from '@/hooks/exam/exammodule/usemasters';
-import { toggleMasterExamCategoryClassSection } from '@/server/exam/exam-module/masters/category-class-mapping';
-import type { ICategoryMapping } from '@/types/exam/exam-module/masters';
+import { useExamLoginPrivilegesDetails } from '@/hooks/exam/exammodule/exam-mapping';
+import { toggleExamLoginPrivilege } from '@/server/exam/exam-module/exam-mapping/exam-login-privilages';
+import type { ILoginPrivilegeDetails } from '@/types/exam/exam-module/exam-mapping';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 interface FormFields {
-    ecaC_Id: number;
+    lpD_Id: number;
 }
 
-interface ToggleCategoryClassMappingFormProps {
-    rowData: ICategoryMapping;
+interface ToggleLoginPrivilegeFormProps {
+    rowData: ILoginPrivilegeDetails;
+    elpId: number;
+    asmclId: number;
+    asmsId: number;
     onClose: () => void;
 }
 
-export default function ToggleCategoryClassMappingForm({ rowData, onClose }: ToggleCategoryClassMappingFormProps) {
-    const { refetchAll } = useMasterCategoryClassMapping();
-    const isActive = rowData.emcA_ActiveFlag;
+export default function ToggleLoginPrivilegeForm({ rowData, elpId, asmclId, asmsId, onClose }: ToggleLoginPrivilegeFormProps) {
+    const { refetchAll } = useExamLoginPrivilegesDetails(elpId, asmclId, asmsId);
+    const isActive = rowData.activeFlg;
 
     const {
         register,
@@ -28,7 +31,7 @@ export default function ToggleCategoryClassMappingForm({ rowData, onClose }: Tog
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        defaultValues: { ecaC_Id: rowData.ecaC_Id }
+        defaultValues: { lpD_Id: rowData.elP_Id }
     });
 
     function closeDialog() {
@@ -38,7 +41,7 @@ export default function ToggleCategoryClassMappingForm({ rowData, onClose }: Tog
 
     const onSubmit: SubmitHandler<FormFields> = async () => {
         try {
-            const response = await toggleMasterExamCategoryClassSection(Number(rowData.ecaC_Id));
+            const response = await toggleExamLoginPrivilege(Number(rowData.asmS_Id));
             if (response.success) {
                 toast.success(response.message);
                 refetchAll();
@@ -47,23 +50,27 @@ export default function ToggleCategoryClassMappingForm({ rowData, onClose }: Tog
                 toast.error(response.message);
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error.message || 'Failed to toggle privilege status');
         }
     };
 
     return (
-        <AdaptiveDialog title='Toggle Category-Class Mapping Status' isOpen={true} onClose={closeDialog}>
+        <AdaptiveDialog title='Toggle Login Privilege Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('ecaC_Id')} defaultValue={rowData.ecaC_Id} />
+                    <input type='hidden' {...register('lpD_Id')} defaultValue={rowData.asmS_Id} />
                     <p>
-                        Are you sure you want to <strong>{isActive ? 'deactivate' : 'activate'}</strong> the mapping for{' '}
+                        Are you sure you want to <strong>{isActive ? 'deactivate' : 'activate'}</strong> the login privilege for{' '}
                         <strong>
-                            {rowData.emcA_CategoryName} - {rowData.asmcL_ClassName}
+                            {rowData.ismS_SubjectName} - {rowData.emsS_SubSubjectName}
                         </strong>
                         ?
                     </p>
-                    <FormError>{errors.ecaC_Id?.message}</FormError>
+                    <p className='text-muted-foreground text-sm'>
+                        Category: <strong>{rowData.asmcL_ClassName}</strong> | Class: <strong>{rowData.asmcL_ClassName}</strong> | Subject:{' '}
+                        <strong>{rowData.ismS_SubjectName}</strong>
+                    </p>
+                    <FormError>{errors.lpD_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>
                 </AdaptiveBody>
                 <AdaptiveFooter>

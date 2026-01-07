@@ -6,25 +6,31 @@ export const studentMarksPublishSchema = {
     search: z
         .object({
             // Radio type (Exam or Promotion)
-            radiotype: z.enum(['EXAM', 'PROMOTION'], {
+            radiotype: z.enum(['Exam', 'Promotion'], {
                 required_error: 'Please select Exam or Promotion type',
                 invalid_type_error: 'Type must be either EXAM or PROMOTION'
             }),
 
             // Academic Year (always required)
-            asmaY_Id: z.number({
-                required_error: 'Academic Year is required'
-            }).min(1, { message: 'Please select Academic Year' }),
+            asmaY_Id: z
+                .number({
+                    required_error: 'Academic Year is required'
+                })
+                .min(1, { message: 'Please select Academic Year' }),
 
             // Class (always required)
-            asmcL_Id: z.number({
-                required_error: 'Class is required'
-            }).min(1, { message: 'Please select Class' }),
+            asmcL_Id: z
+                .number({
+                    required_error: 'Class is required'
+                })
+                .min(1, { message: 'Please select Class' }),
 
             // Section (always required)
-            asmS_Id: z.number({
-                required_error: 'Section is required'
-            }).min(1, { message: 'Please select Section' }),
+            asmS_Id: z
+                .number({
+                    required_error: 'Section is required'
+                })
+                .min(1, { message: 'Please select Section' }),
 
             // Exam (required only when radiotype is EXAM)
             emE_Id: z.number().optional(),
@@ -45,7 +51,7 @@ export const studentMarksPublishSchema = {
         })
         .superRefine((data, ctx) => {
             // Validation 1: Exam Name is required only when radiotype is EXAM
-            if (data.radiotype === 'EXAM' && (!data.emE_Id || data.emE_Id <= 0)) {
+            if (data.radiotype === 'Exam' && (!data.emE_Id || data.emE_Id <= 0)) {
                 ctx.addIssue({
                     path: ['emE_Id'],
                     code: z.ZodIssueCode.custom,
@@ -81,14 +87,16 @@ export const studentMarksPublishSchema = {
     // Update status validation
     update: z.object({
         // Selected students array (must have at least one)
-        selectedstudents: z.array(
-            z.object({
-                AMST_Id: z.number({ required_error: 'Student ID is required' }),
-                ESTMP_Id: z.number().optional(),
-                AMST_FirstName: z.string({ required_error: 'Student name is required' }),
-                ESTMP_PublishToStudentFlg: z.boolean().default(false)
-            })
-        ).min(1, { message: 'Select at least one student' }),
+        selectedstudents: z
+            .array(
+                z.object({
+                    AMST_Id: z.number({ required_error: 'Student ID is required' }),
+                    ESTMP_Id: z.number().optional(),
+                    AMST_FirstName: z.string({ required_error: 'Student name is required' }),
+                    ESTMP_PublishToStudentFlg: z.boolean().default(false)
+                })
+            )
+            .min(1, { message: 'Select at least one student' }),
 
         // Communication flags
         SMSFLAG: z.boolean(),
@@ -118,7 +126,7 @@ export const studentMarksPublishSchema = {
         percentage: z.number().default(0),
         estmP_PublishToStudentFlg: z.union([
             z.boolean(),
-            z.number().refine(val => val === 0 || val === 1, {
+            z.number().refine((val) => val === 0 || val === 1, {
                 message: 'Publish flag must be 0 or 1'
             })
         ]),
@@ -144,7 +152,7 @@ export const studentMarksPublishValidators = {
         if (!data.asmS_Id || data.asmS_Id <= 0) errors.push('Section is required');
 
         // Check exam requirement for EXAM type
-        if (data.radiotype === 'EXAM' && (!data.emE_Id || data.emE_Id <= 0)) {
+        if (data.radiotype === 'Exam' && (!data.emE_Id || data.emE_Id <= 0)) {
             errors.push('Exam Name is required for Exam Wise');
         }
 
@@ -194,7 +202,7 @@ export const studentMarksPublishValidators = {
 
     // Validate student selection for update
     validateStudentSelection: (students: StudentMarksPublishStudent[]): { valid: boolean; selectedCount: number } => {
-        const selectedStudents = students.filter(s => s.checkedvalue);
+        const selectedStudents = students.filter((s) => s.checkedvalue);
         return {
             valid: selectedStudents.length > 0,
             selectedCount: selectedStudents.length

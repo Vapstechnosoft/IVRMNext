@@ -7,6 +7,11 @@ import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import {
+    getExamSubjectsByCategoryId,
+    getPromotionCategoryByAcademicYear
+} from '@/server/exam/exam-module/exam-mapping/promotional-setting';
 import { Eye } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -15,11 +20,63 @@ import { ViewExamsModal } from './group-mapped-exam-model';
 import { ViewGroupsModal } from './group-mapping-model';
 
 /**
- * In-file modal components so this file is self contained.
- * These are simple UI implementations using the same Button/Input/Select components.
- * Replace with your own modal implementations if available.
+ * Types used in the file
  */
+export type GroupItem = {
+    id: number;
+    groupName: string;
+    displayName: string;
+    percentage: number;
+    marks: number;
+    maxOff: number;
+    bestOff: number;
+    order: number;
+    roundOffFlag: boolean;
+    exams: { id: number; name: string; marks: number; conversionRequired: boolean }[];
+};
 
+export type SubjectRow = {
+    ismS_Id: number;
+    ismS_SubjectName: string;
+    ismS_SubjectCode?: string | null;
+    ismS_Max_Marks?: number | null;
+    ismS_Min_Marks?: number | null;
+    ismS_OrderFlag?: number | null;
+    // Additional fields for form handling
+    convertFor?: number | null;
+    applyToResult?: boolean;
+    grade?: string | null;
+};
+
+type ExamSubject = {
+    ismS_Id: number;
+    ismS_SubjectName: string;
+    ismS_SubjectCode?: string | null;
+    ismS_Max_Marks?: number | null;
+    ismS_Min_Marks?: number | null;
+    ismS_OrderFlag?: number | null;
+    emaP_PromotionId?: number;
+    emaP_MaxMarks?: number | null;
+    emaP_MinMarks?: number | null;
+    emaP_ConvertFor?: number | null;
+    emaP_ApplyToResult?: boolean;
+    emaP_Grade?: string | null;
+};
+
+type PromotionCategory = {
+    eyC_Id: number;
+    emcA_CategoryName: string;
+};
+
+type PromotionCategoryResponse = {
+    data: PromotionCategory[];
+    status: boolean;
+    message: string;
+};
+
+/**
+ * Modal component
+ */
 type ModalProps = {
     open: boolean;
     title?: string;
@@ -44,72 +101,6 @@ function SimpleModal({ open, title, onClose, children }: ModalProps) {
     );
 }
 
-/**
- * Types used in the file
- */
-export type GroupItem = {
-    id: number;
-    groupName: string;
-    displayName: string;
-    percentage: number;
-    marks: number;
-    maxOff: number;
-    bestOff: number;
-    order: number;
-    roundOffFlag: boolean;
-    exams: { id: number; name: string; marks: number; conversionRequired: boolean }[];
-};
-
-export type SubjectRow = {
-    id: number;
-    name: string;
-    code?: string;
-    maxMarks?: number | null;
-    minMarks?: number | null;
-    convertFor?: number | null;
-    applyToResult?: boolean;
-    grade?: string | null;
-};
-
-/**
- * Hardcoded data (source of demo truth)
- */
-const ACADEMIC_YEARS = [
-    { id: 2024, label: '2024-2025' },
-    { id: 2023, label: '2023-2024' },
-    { id: 2022, label: '2022-2023' }
-];
-
-const CATEGORIES_BY_YEAR: Record<number, { id: number; name: string }[]> = {
-    2024: [
-        { id: 1, name: 'Middle School' },
-        { id: 2, name: 'Primary School' }
-    ],
-    2023: [{ id: 3, name: 'Senior School' }]
-};
-
-const SUBJECTS_BY_CATEGORY: Record<number, SubjectRow[]> = {
-    1: [
-        { id: 1, name: 'Mathematics', code: 'MATH', maxMarks: 100, minMarks: 25, convertFor: 50, applyToResult: true, grade: null },
-        { id: 2, name: 'Science', code: 'SCI', maxMarks: 100, minMarks: 25, convertFor: 100, applyToResult: true, grade: '50 Grade' },
-        { id: 3, name: 'Social Science', code: 'SS', maxMarks: null, minMarks: null, convertFor: null, applyToResult: true, grade: null },
-        { id: 4, name: 'English II', code: 'ENG2', maxMarks: null, minMarks: null, convertFor: null, applyToResult: true, grade: null }
-    ],
-    2: [
-        {
-            id: 10,
-            name: 'General Knowledge',
-            code: 'GK',
-            maxMarks: null,
-            minMarks: null,
-            convertFor: null,
-            applyToResult: true,
-            grade: null
-        }
-    ],
-    3: [{ id: 20, name: 'Physics', code: 'PHY', maxMarks: null, minMarks: null, convertFor: null, applyToResult: true, grade: null }]
-};
-
 const INITIAL_GROUPS: GroupItem[] = [];
 
 /**
@@ -117,8 +108,8 @@ const INITIAL_GROUPS: GroupItem[] = [];
  */
 export default function AddPromotionalSettingForm() {
     // top-level form state
-    const [selectedYear, setSelectedYear] = useState<number>(ACADEMIC_YEARS[0].id);
-    const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
+    const [selectedYear, setSelectedYear] = useState<number>(0);
+    const [categories, setCategories] = useState<PromotionCategory[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
     const [grade, setGrade] = useState<string | null>(null);
 
@@ -139,17 +130,32 @@ export default function AddPromotionalSettingForm() {
     const [isGroupsOpen, setIsGroupsOpen] = useState(false);
     const [isExamsOpen, setIsExamsOpen] = useState(false);
     const [activeGroup, setActiveGroup] = useState<GroupItem | null>(null);
+    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
 
     // display mode: marks | percentage | total | final
     const [displayMode, setDisplayMode] = useState<'marks' | 'percentage' | 'total' | 'final'>('marks');
 
     // load categories when year changes
     useEffect(() => {
-        const cats = CATEGORIES_BY_YEAR[selectedYear] ?? [];
-        setCategories(cats);
-        setSelectedCategory(null);
-        setSubjects([]);
-        setSelectedSubjects({});
+        if (!selectedYear) return;
+
+        const loadCategories = async () => {
+            try {
+                const response = await getPromotionCategoryByAcademicYear(selectedYear, 0, 0);
+
+                const safeCats = Array.isArray(response?.data) ? response.data : [];
+                console.log('Loaded categories:', safeCats);
+                setCategories(safeCats);
+                setSelectedCategory(null);
+                setSubjects([]);
+                setSelectedSubjects({});
+            } catch (error) {
+                console.error('Error loading categories:', error);
+                setCategories([]);
+            }
+        };
+
+        loadCategories();
     }, [selectedYear]);
 
     // load subjects when category changes
@@ -159,10 +165,36 @@ export default function AddPromotionalSettingForm() {
             setSelectedSubjects({});
             return;
         }
-        const subj = SUBJECTS_BY_CATEGORY[selectedCategory] ?? [];
-        // ensure we clone so header bulk changes don't mutate constants
-        setSubjects(subj.map((s) => ({ ...s })));
-        setSelectedSubjects({});
+
+        const loadSubjects = async () => {
+            try {
+                const examSubjects = await getExamSubjectsByCategoryId(selectedCategory);
+                console.log('API Response subjects:', examSubjects);
+
+                const safeSubjects: SubjectRow[] = Array.isArray(examSubjects)
+                    ? examSubjects.map((subject: ExamSubject) => ({
+                          ismS_Id: subject.ismS_Id,
+                          ismS_SubjectName: subject.ismS_SubjectName,
+                          ismS_SubjectCode: subject.ismS_SubjectCode || null,
+                          ismS_Max_Marks: subject.ismS_Max_Marks || subject.emaP_MaxMarks || null,
+                          ismS_Min_Marks: subject.ismS_Min_Marks || subject.emaP_MinMarks || null,
+                          ismS_OrderFlag: subject.ismS_OrderFlag || null,
+                          convertFor: subject.emaP_ConvertFor || null,
+                          applyToResult: subject.emaP_ApplyToResult || false,
+                          grade: subject.emaP_Grade || null
+                      }))
+                    : [];
+
+                console.log('Processed subjects:', safeSubjects);
+                setSubjects(safeSubjects);
+                setSelectedSubjects({});
+            } catch (error) {
+                console.error('Error loading subjects:', error);
+                setSubjects([]);
+            }
+        };
+
+        loadSubjects();
     }, [selectedCategory]);
 
     // apply header values to all rows when header controls change
@@ -172,8 +204,8 @@ export default function AddPromotionalSettingForm() {
         setSubjects((prev) =>
             prev.map((s) => ({
                 ...s,
-                maxMarks: headerMaxMarks === '' ? s.maxMarks : Number(headerMaxMarks),
-                minMarks: headerMinMarks === '' ? s.minMarks : Number(headerMinMarks),
+                ismS_Max_Marks: headerMaxMarks === '' ? s.ismS_Max_Marks : Number(headerMaxMarks),
+                ismS_Min_Marks: headerMinMarks === '' ? s.ismS_Min_Marks : Number(headerMinMarks),
                 convertFor: headerConvertFor === '' ? s.convertFor : Number(headerConvertFor),
                 applyToResult: headerApplyToResult,
                 grade: headerGrade === '' ? s.grade : headerGrade
@@ -193,7 +225,7 @@ export default function AddPromotionalSettingForm() {
     }, []);
 
     const toggleSelectAll = useCallback(() => {
-        const allSelected = subjects.length > 0 && subjects.every((s) => !!selectedSubjects[s.id]);
+        const allSelected = subjects.length > 0 && subjects.every((s) => !!selectedSubjects[s.ismS_Id]);
         if (allSelected) {
             // clear all
             setSelectedSubjects({});
@@ -203,7 +235,7 @@ export default function AddPromotionalSettingForm() {
         // build map in a simple for..of (avoid assignment-in-expression lint)
         const obj: Record<number, boolean> = {};
         for (const s of subjects) {
-            obj[s.id] = true;
+            obj[s.ismS_Id] = true;
         }
         setSelectedSubjects(obj);
     }, [subjects, selectedSubjects]);
@@ -226,7 +258,7 @@ export default function AddPromotionalSettingForm() {
     };
 
     const handleSave = () => {
-        const selected = subjects.filter((s) => selectedSubjects[s.id]);
+        const selected = subjects.filter((s) => selectedSubjects[s.ismS_Id]);
         const payload = {
             year: selectedYear,
             category: selectedCategory,
@@ -239,6 +271,7 @@ export default function AddPromotionalSettingForm() {
     };
 
     const handleReset = () => {
+        setSelectedYear(0);
         setSelectedCategory(null);
         setSubjects([]);
         setSelectedSubjects({});
@@ -284,11 +317,21 @@ export default function AddPromotionalSettingForm() {
                                     <SelectValue placeholder='Select Academic Year' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {ACADEMIC_YEARS.map((y) => (
-                                        <SelectItem key={y.id} value={safeValue(y.id)}>
-                                            {y.label}
+                                    {academicYearLoading ? (
+                                        <SelectItem value='loading' disabled>
+                                            Loading Academic Year...
                                         </SelectItem>
-                                    ))}
+                                    ) : academicYearError ? (
+                                        <SelectItem value='error' disabled>
+                                            Error loading Academic Year
+                                        </SelectItem>
+                                    ) : (
+                                        academicYear?.data?.map((item: any) => (
+                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                {item.asmaY_Year}
+                                            </SelectItem>
+                                        ))
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -309,8 +352,8 @@ export default function AddPromotionalSettingForm() {
                                         </SelectItem>
                                     ) : (
                                         categories.map((c) => (
-                                            <SelectItem key={c.id} value={safeValue(c.id)}>
-                                                {c.name}
+                                            <SelectItem key={c.eyC_Id} value={safeValue(c.eyC_Id)}>
+                                                {c.emcA_CategoryName}
                                             </SelectItem>
                                         ))
                                     )}
@@ -415,63 +458,6 @@ export default function AddPromotionalSettingForm() {
                     </div>
                 </div>
 
-                {/* Header-level "apply to all" inputs (shows only when table would be visible) */}
-                {/* <div className="mb-3 rounded border p-3 bg-white">
-                    <div className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
-                        <div>
-                            <Label>Header Max.Marks</Label>
-                            <Input id="headerMax" type="number" value={headerMaxMarks === '' ? '' : String(headerMaxMarks)} onChange={(e) => onHeaderMaxMarksChange(e.target.value)} placeholder="All rows" className="text-sm" />
-                        </div>
-
-                        <div>
-                            <Label>Header Min.Marks</Label>
-                            <Input id="headerMin" type="number" value={headerMinMarks === '' ? '' : String(headerMinMarks)} onChange={(e) => onHeaderMinMarksChange(e.target.value)} placeholder="All rows" className="text-sm" />
-                        </div>
-
-                        <div>
-                            <Label>Header Convert For</Label>
-                            <Input id="headerConvertFor" type="number" value={headerConvertFor === '' ? '' : String(headerConvertFor)} onChange={(e) => onHeaderConvertForChange(e.target.value)} placeholder="All rows" className="text-sm" />
-                        </div>
-
-                        <div>
-                            <Label>Apply to Result (Header)</Label>
-                            <div className="flex items-center gap-2">
-                                <Checkbox id="headerApplyToResult" checked={headerApplyToResult} onCheckedChange={(c) => setHeaderApplyToResult(!!c)} />
-                                <label htmlFor="headerApplyToResult" className="text-sm cursor-pointer">Apply to Result</label>
-                            </div>
-                        </div>
-
-                        <div>
-                            <Label>Header Grade</Label>
-                            <Select value={headerGrade ?? '__keep'} onValueChange={(v) => setHeaderGrade(v && v !== '__keep' ? v : '')}>
-                                <SelectTrigger className="h-8 text-sm">
-                                    <SelectValue placeholder="All rows" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="__keep">— Keep existing —</SelectItem>
-                                    <SelectItem value="50 Grade">50 Grade</SelectItem>
-                                    <SelectItem value="Pass/Fail">Pass / Fail</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                            <Button variant="outline" onClick={() => {
-                                setHeaderMaxMarks('');
-                                setHeaderMinMarks('');
-                                setHeaderConvertFor('');
-                                setHeaderApplyToResult(true);
-                                setHeaderGrade('');
-                                // Also reset per-row defaults if desired
-                                setSubjects(prev => prev.map(s => ({ ...s })));
-                                toast.info('Header cleared');
-                            }}>
-                                <X className="h-4 w-4" /> Clear Header
-                            </Button>
-                        </div>
-                    </div>
-                </div> */}
-
                 {/* subjects table */}
                 {!isTableVisible ? (
                     <div className='py-10 text-center text-gray-500'>
@@ -491,7 +477,7 @@ export default function AddPromotionalSettingForm() {
                                             <span>Select</span>
                                             <Checkbox
                                                 id='selectAll'
-                                                checked={subjects.length > 0 && subjects.every((s) => !!selectedSubjects[s.id])}
+                                                checked={subjects.length > 0 && subjects.every((s) => !!selectedSubjects[s.ismS_Id])}
                                                 onCheckedChange={() => toggleSelectAll()}
                                             />
                                         </div>
@@ -584,7 +570,7 @@ export default function AddPromotionalSettingForm() {
                             <tbody>
                                 {subjects.map((s, idx) => (
                                     <tr
-                                        key={s.id}
+                                        key={s.ismS_Id}
                                         className={`text-sm transition-colors duration-150 ${idx % 2 ? 'bg-gray-50' : 'bg-white'} hover:bg-accent/90`}>
                                         {/* SL No */}
                                         <td className='px-3 py-2 text-center align-middle'>{idx + 1}</td>
@@ -593,28 +579,30 @@ export default function AddPromotionalSettingForm() {
                                         <td className='px-3 py-2 text-center align-middle'>
                                             <div className='flex items-center justify-center'>
                                                 <Checkbox
-                                                    id={`subSelect_${s.id}`}
-                                                    checked={!!selectedSubjects[s.id]}
-                                                    onCheckedChange={() => toggleSubject(s.id)}
+                                                    id={`subSelect_${s.ismS_Id}`}
+                                                    checked={!!selectedSubjects[s.ismS_Id]}
+                                                    onCheckedChange={() => toggleSubject(s.ismS_Id)}
                                                 />
                                             </div>
                                         </td>
 
                                         {/* Subject Name */}
                                         <td className='px-3 py-2 align-middle font-medium'>
-                                            {s.name}
-                                            {s.code && <span className='text-gray-500 text-xs'> ({s.code})</span>}
+                                            {s.ismS_SubjectName}
+                                            {s.ismS_SubjectCode && <span className='text-gray-500 text-xs'> ({s.ismS_SubjectCode})</span>}
                                         </td>
 
                                         {/* Max Marks - editable per row */}
                                         <td className='px-3 py-1 align-middle'>
                                             <Input
-                                                id={`maxMarks_${s.id}`}
+                                                id={`maxMarks_${s.ismS_Id}`}
                                                 type='number'
-                                                value={s.maxMarks ?? ''}
+                                                value={s.ismS_Max_Marks ?? ''}
                                                 onChange={(e) => {
                                                     const val = e.target.value === '' ? null : Number(e.target.value);
-                                                    setSubjects((prev) => prev.map((x) => (x.id === s.id ? { ...x, maxMarks: val } : x)));
+                                                    setSubjects((prev) =>
+                                                        prev.map((x) => (x.ismS_Id === s.ismS_Id ? { ...x, ismS_Max_Marks: val } : x))
+                                                    );
                                                 }}
                                                 placeholder='Enter...'
                                                 className='text-sm'
@@ -624,12 +612,14 @@ export default function AddPromotionalSettingForm() {
                                         {/* Min Marks */}
                                         <td className='px-3 py-1 align-middle'>
                                             <Input
-                                                id={`minMarks_${s.id}`}
+                                                id={`minMarks_${s.ismS_Id}`}
                                                 type='number'
-                                                value={s.minMarks ?? ''}
+                                                value={s.ismS_Min_Marks ?? ''}
                                                 onChange={(e) => {
                                                     const val = e.target.value === '' ? null : Number(e.target.value);
-                                                    setSubjects((prev) => prev.map((x) => (x.id === s.id ? { ...x, minMarks: val } : x)));
+                                                    setSubjects((prev) =>
+                                                        prev.map((x) => (x.ismS_Id === s.ismS_Id ? { ...x, ismS_Min_Marks: val } : x))
+                                                    );
                                                 }}
                                                 placeholder='Enter...'
                                                 className='text-sm'
@@ -639,12 +629,14 @@ export default function AddPromotionalSettingForm() {
                                         {/* Convert For */}
                                         <td className='px-3 py-1 align-middle'>
                                             <Input
-                                                id={`convFor_${s.id}`}
+                                                id={`convFor_${s.ismS_Id}`}
                                                 type='number'
                                                 value={s.convertFor ?? ''}
                                                 onChange={(e) => {
                                                     const val = e.target.value === '' ? null : Number(e.target.value);
-                                                    setSubjects((prev) => prev.map((x) => (x.id === s.id ? { ...x, convertFor: val } : x)));
+                                                    setSubjects((prev) =>
+                                                        prev.map((x) => (x.ismS_Id === s.ismS_Id ? { ...x, convertFor: val } : x))
+                                                    );
                                                 }}
                                                 placeholder='Enter...'
                                                 className='text-sm'
@@ -655,11 +647,11 @@ export default function AddPromotionalSettingForm() {
                                         <td className='px-3 py-2 text-center align-middle'>
                                             <div className='flex items-center justify-center'>
                                                 <Checkbox
-                                                    id={`applyRes_${s.id}`}
+                                                    id={`applyRes_${s.ismS_Id}`}
                                                     checked={!!s.applyToResult}
                                                     onCheckedChange={(c) => {
                                                         setSubjects((prev) =>
-                                                            prev.map((x) => (x.id === s.id ? { ...x, applyToResult: !!c } : x))
+                                                            prev.map((x) => (x.ismS_Id === s.ismS_Id ? { ...x, applyToResult: !!c } : x))
                                                         );
                                                     }}
                                                 />
@@ -673,7 +665,7 @@ export default function AddPromotionalSettingForm() {
                                                 onValueChange={(v) =>
                                                     setSubjects((prev) =>
                                                         prev.map((x) =>
-                                                            x.id === s.id ? { ...x, grade: v && v !== '__keep' ? v : null } : x
+                                                            x.ismS_Id === s.ismS_Id ? { ...x, grade: v && v !== '__keep' ? v : null } : x
                                                         )
                                                     )
                                                 }>

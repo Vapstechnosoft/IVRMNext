@@ -1,87 +1,43 @@
-// app/exam/student-transaction/page.tsx
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import { type StudentTransactionFormData, StudentTransactionSchema } from '@/schemas/exam/exam-module/exam-mapping';
+import { StudentTransactionSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import {
-    getCoScholasticAreasBasedOnCoScholasticActivity,
-    getLifeSkillAreasBasedOnLifeSkill,
-    getStudentTransactionCCEDetails
+    getStudentList,
+    onchangeActivities,
+    onchangeSkills,
+    saveCCEStudentMarks
 } from '@/server/exam/exam-module/exam-mapping/student-transaction-cce';
+import { getCoScholasticActivities } from '@/server/exam/exam-module/masters/co-scholastic-activity';
 import { getMasterLifeSkills } from '@/server/exam/exam-module/masters/life-skills';
 import {
     getClassDropDownByAcademicYearlist,
     getExamsDropDownByAcademicYearandClassandSectionlist,
     getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/cumulative-report';
-import type { GetStudentDetailsParams, ICoScholasticActivityAreaMapping, IStudentTransaction, IStudentTransactionGrid } from '@/types/exam/exam-module/exam-mapping';
-import type { ICoScholasticActivity, ILifeSkill, ILifeSkillArea } from '@/types/exam/exam-module/masters';
+import type {
+    IActivityArea,
+    IActivityName,
+    IClass,
+    IExamMaster,
+    ISavedScore,
+    ISection,
+    ISkillArea,
+    ISkillName,
+    IStudentTransaction
+} from '@/types/exam/exam-module/exam-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import { RotateCcw, Search } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 import { StudentTransactionColumns } from './_components/columns';
-import { getCoScholasticActivities } from '@/server/exam/exam-module/masters/co-scholastic-activity';
-const mockGetStudentList = async (
-    academicYearId: number,
-    classId: number,
-    sectionId: number,
-    examTermId: number,
-    nameId: number,
-    areaId: number,
-    type: 'Skills' | 'Activities' | undefined
-) => {
-    return {
-        data: [
-            {
-                slNo: 1,
-                studentId: 101,
-                studentName: 'Bhuvan N S',
-                regNo: 'RRPSRN36',
-                rollNo: 1,
-                score: 5
-            },
-            {
-                slNo: 2,
-                studentId: 102,
-                studentName: 'Chamamallikarjun B P',
-                regNo: 'RRPSRN37',
-                rollNo: 2,
-                score: 5
-            },
-            {
-                slNo: 3,
-                studentId: 103,
-                studentName: 'Eliyana',
-                regNo: 'RRPSRN38',
-                rollNo: 3,
-                score: 5
-            },
-            {
-                slNo: 4,
-                studentId: 104,
-                studentName: 'Tanu H B',
-                regNo: 'RRPSRN39',
-                rollNo: 4,
-                score: 4
-            }
-        ],
-        total: 4
-    };
-};
-
-// Mock save API function (replace with actual implementation)
-const mockSaveStudentScores = async (payload: any) => {
-    console.log('Saving scores with payload:', payload);
-    // Simulate API call
-    return { success: true, message: 'Scores saved successfully' };
-};
 
 type FormFields = z.infer<typeof StudentTransactionSchema.search>;
 
@@ -99,9 +55,11 @@ function StudentTransactionContent() {
             classId: 0,
             sectionId: 0,
             examTermId: 0,
+            emE_Id: 0,
             skillActivityType: undefined,
             nameId: 0,
-            areaId: 0
+            areaId: 0,
+            exam_termwise_flag: 'TermWise'
         }
     });
 
@@ -113,59 +71,88 @@ function StudentTransactionContent() {
     const watchClass = watch('classId');
     const watchSection = watch('sectionId');
     const watchExamTerm = watch('examTermId');
+    const watchEmEId = watch('emE_Id');
     const watchSkillActivity = watch('skillActivityType');
     const watchName = watch('nameId');
     const watchArea = watch('areaId');
+    const watchExamType = watch('exam_termwise_flag');
 
     // Dropdown data states
     const { data: academicYearsData, isLoading: loadingAcademicYears } = useAcademicYearDropdown();
     const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
-    const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
-    const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
-    const [examTerms, setExamTerms] = useState<{ ect_Id: number; ect_TermName: string }[]>([]);
-    const [skillNames, setSkillNames] = useState<ILifeSkill[]>([]);
-    const [activityNames, setActivityNames] = useState<ICoScholasticActivity[]>([]);
-    const [skillAreas, setSkillAreas] = useState<ILifeSkillArea[]>([]);
-    const [activityAreas, setActivityAreas] = useState<ICoScholasticActivityAreaMapping[]>([]);
+    const [classes, setClasses] = useState<IClass[]>([]);
+    const [sections, setSections] = useState<ISection[]>([]);
+    const [examTerms, setExamTerms] = useState<IExamMaster[]>([]);
+    const [exams, setExams] = useState<IExamMaster[]>([]);
+    const [skillNames, setSkillNames] = useState<ISkillName[]>([]);
+    const [activityNames, setActivityNames] = useState<IActivityName[]>([]);
+    const [skillAreas, setSkillAreas] = useState<ISkillArea[]>([]);
+    const [activityAreas, setActivityAreas] = useState<IActivityArea[]>([]);
     const [students, setStudents] = useState<IStudentTransaction[]>([]);
-    const [tableProps, setTableProps] = useState<ReturnType<typeof useDataTableProps> | null>(null);
+    const [savedScores, setSavedScores] = useState<ISavedScore[]>([]);
     const [selectedStudentIds, setSelectedStudentIds] = useState<number[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [showTable, setShowTable] = useState(false);
+    const [hideSaveButton, setHideSaveButton] = useState(false);
+    const [isSelectAll, setIsSelectAll] = useState(false);
 
     // Loading states
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
-    const [loadingExamTerms, setLoadingExamTerms] = useState(false);
+    const [loadingExamData, setLoadingExamData] = useState(false);
     const [loadingNames, setLoadingNames] = useState(false);
     const [loadingAreas, setLoadingAreas] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
 
     // Initialize academic years
     useEffect(() => {
         if (academicYearsData?.data) {
             const years = academicYearsData.data.map((y: any) => ({
                 asmaY_Id: y.asmaY_Id,
-                asmaY_Year: y.asmaY_Year
+                asmaY_Year: y.asmaY_Year,
+                Selected: y.Selected || false
             }));
             setAcademicYears(years);
-            if (years.length > 0 && !watchAcademicYear) {
-                setValue('academicYearId', years[0].asmaY_Id);
-                trigger('academicYearId');
-            }
         }
-    }, [academicYearsData, watchAcademicYear, setValue]);
+    }, [academicYearsData]);
+
+    // Clear all dependent fields
+    const clearDependentFields = () => {
+        setValue('sectionId', 0);
+        setValue('examTermId', 0);
+        setValue('emE_Id', 0);
+        setValue('skillActivityType', undefined);
+        setValue('nameId', 0);
+        setValue('areaId', 0);
+
+        setSections([]);
+        setExamTerms([]);
+        setExams([]);
+        setSkillNames([]);
+        setActivityNames([]);
+        setSkillAreas([]);
+        setActivityAreas([]);
+        setStudents([]);
+        setSavedScores([]);
+        setShowTable(false);
+        setSelectedStudentIds([]);
+        setHideSaveButton(false);
+        setIsSelectAll(false);
+    };
+
+    const tableProps = useDataTableProps({
+        data: students,
+        total: students.length,
+        pageIndex: 0,
+        pageSize: 10
+    });
 
     // Load classes when academic year changes
     useEffect(() => {
         if (!watchAcademicYear || watchAcademicYear === 0) {
+            clearDependentFields();
             setClasses([]);
-            setValue('classId', 0);
-            setValue('sectionId', 0);
-            setValue('examTermId', 0);
-            setValue('skillActivityType', undefined);
-            setValue('nameId', 0);
-            setValue('areaId', 0);
             return;
         }
 
@@ -174,109 +161,120 @@ function StudentTransactionContent() {
             try {
                 const { data } = await getClassDropDownByAcademicYearlist(watchAcademicYear);
                 setClasses(Array.isArray(data) ? data : []);
-                setSections([]);
-                setExamTerms([]);
-                setSkillNames([]);
-                setActivityNames([]);
-                setSkillAreas([]);
-                setActivityAreas([]);
-                setShowTable(false);
+                console.log('classes', data);
+                clearDependentFields();
             } catch (err) {
+                console.error('Error loading classes:', err);
                 toast.error('Failed to load classes');
+                setClasses([]);
             } finally {
                 setLoadingClasses(false);
             }
         };
 
         fetchClasses();
-    }, [watchAcademicYear, setValue]);
+    }, [watchAcademicYear, watchExamType]);
 
     // Load sections when class changes
     useEffect(() => {
         if (!watchAcademicYear || !watchClass || watchClass === 0) {
+            clearDependentFields();
             setSections([]);
-            setValue('sectionId', 0);
-            setValue('examTermId', 0);
-            setValue('skillActivityType', undefined);
-            setValue('nameId', 0);
-            setValue('areaId', 0);
             return;
         }
 
         const fetchSections = async () => {
             setLoadingSections(true);
             try {
-                const { data } = await getSectionsDropDownByAcademicYearandClasslist(watchAcademicYear, watchClass);
-                setSections(Array.isArray(data) ? data : []);
+                const response = await getSectionsDropDownByAcademicYearandClasslist(watchAcademicYear, watchClass);
+
+                if (response.data) {
+                    const sectionList = Array.isArray(response.data) ? response.data : [];
+                    setSections(sectionList);
+                    console.log('sections', sectionList);
+                } else {
+                    setSections([]);
+                }
+
+                // Clear further dependent fields
+                setValue('sectionId', 0);
+                setValue('examTermId', 0);
+                setValue('emE_Id', 0);
+                setValue('skillActivityType', undefined);
+                setValue('nameId', 0);
+                setValue('areaId', 0);
+
                 setExamTerms([]);
+                setExams([]);
                 setSkillNames([]);
                 setActivityNames([]);
                 setSkillAreas([]);
                 setActivityAreas([]);
+                setStudents([]);
                 setShowTable(false);
             } catch (err) {
+                console.error('Error loading sections:', err);
                 toast.error('Failed to load sections');
+                setSections([]);
             } finally {
                 setLoadingSections(false);
             }
         };
 
         fetchSections();
-    }, [watchAcademicYear, watchClass, setValue]);
+    }, [watchAcademicYear, watchClass, watchExamType]);
 
-    // Load exam terms when section changes
+    // Load exam terms/exams when section changes
     useEffect(() => {
         if (!watchAcademicYear || !watchClass || !watchSection || watchSection === 0) {
             setExamTerms([]);
-            setLoadingExamTerms(false);
+            setExams([]);
+            setValue('examTermId', 0);
+            setValue('emE_Id', 0);
             return;
         }
 
-        let mounted = true;
-
-        const fetchExamTerms = async () => {
-            setLoadingExamTerms(true);
+        const fetchExamData = async () => {
+            setLoadingExamData(true);
             try {
-                // Replace with your actual API call
-                const { data } = await getExamsDropDownByAcademicYearandClassandSectionlist(watchAcademicYear, watchClass, watchSection);
+                const response = await getExamsDropDownByAcademicYearandClassandSectionlist(watchAcademicYear, watchClass, watchSection);
 
-                if (!mounted) return;
-
-                const safeTerms = Array.isArray(data) ? data : [];
-                setExamTerms(
-                    safeTerms.map((term: any) => ({
-                        ect_Id: term.emE_Id || term.ect_Id || 0,
-                        ect_TermName: term.emE_ExamName || term.ect_TermName || ''
-                    }))
-                );
-
-                if (safeTerms.length === 0) {
-                    toast.info('No exam terms are mapped for your selections');
+                if (response.data) {
+                    if (watchExamType === 'TermWise') {
+                        const termData = Array.isArray(response.data) ? response.data : [];
+                        console.log('termData', termData);
+                        setExamTerms(termData);
+                        setExams([]);
+                    } else {
+                        const examData = Array.isArray(response.data) ? response.data : [];
+                        console.log('examData', examData);
+                        setExams(examData);
+                        setExamTerms([]);
+                    }
                 }
             } catch (err) {
-                console.error('load exam terms error', err);
-                toast.error('Failed to load exam terms');
-
-                if (!mounted) return;
+                console.error('Error loading exam data:', err);
+                toast.error('Failed to load exam data');
                 setExamTerms([]);
+                setExams([]);
             } finally {
-                if (mounted) setLoadingExamTerms(false);
+                setLoadingExamData(false);
             }
         };
-        fetchExamTerms();
 
-        return () => {
-            mounted = false;
-        };
-    }, [watchAcademicYear, watchClass, watchSection, setValue]);
+        fetchExamData();
+    }, [watchAcademicYear, watchClass, watchSection, watchExamType]);
 
     // Load Skills/Activities names when type is selected
     useEffect(() => {
-        if (!watchSkillActivity) {
+        if (!watchSkillActivity || !watchAcademicYear || !watchClass || !watchSection) {
             setSkillNames([]);
             setActivityNames([]);
             setValue('nameId', 0);
             setValue('areaId', 0);
+            setSkillAreas([]);
+            setActivityAreas([]);
+            setShowTable(false);
             return;
         }
 
@@ -284,94 +282,138 @@ function StudentTransactionContent() {
             setLoadingNames(true);
             try {
                 if (watchSkillActivity === 'Skills') {
-                    const { data: names } = await getMasterLifeSkills(30);
-                    const safeNames = Array.isArray(names) ? names : [];
-                    setSkillNames(safeNames);
+                    const response = await getMasterLifeSkills(30);
+                    const skillsList = Array.isArray(response.data) ? response.data : [];
+                    setSkillNames(skillsList);
+                    console.log('skillsList', skillsList);
                     setActivityNames([]);
                     setSkillAreas([]);
                     setActivityAreas([]);
-                    if (safeNames.length > 0) {
-                        setValue('nameId', safeNames[0].ecsA_Id);
-                        trigger('nameId');
-                    }
                 } else {
-                    const { data: names } = await getCoScholasticActivities();
-                    const safeNames = Array.isArray(names) ? names : [];
-                    setActivityNames(safeNames);
+                    const CcActivities_response = await getCoScholasticActivities();
+                    const activitiesList = Array.isArray(CcActivities_response.data) ? CcActivities_response.data : [];
+                    setActivityNames(activitiesList);
+                    console.log('activitiesList', activitiesList);
                     setSkillNames([]);
                     setSkillAreas([]);
                     setActivityAreas([]);
-                    if (safeNames.length > 0) {
-                        setValue('nameId', safeNames[0].id);
-                        trigger('nameId');
-                    }
                 }
             } catch (err) {
+                console.error(`Error loading ${watchSkillActivity} names:`, err);
                 toast.error(`Failed to load ${watchSkillActivity} names`);
+                setSkillNames([]);
+                setActivityNames([]);
             } finally {
                 setLoadingNames(false);
             }
         };
 
         fetchNames();
-    }, [watchSkillActivity, setValue]);
+    }, [watchSkillActivity, watchAcademicYear, watchClass, watchSection, watchExamType, watchEmEId, watchExamTerm]);
 
     // Load areas when name is selected
     useEffect(() => {
-        if (!watchName || watchName === 0 || !watchSkillActivity) {
+        if (!watchName || watchName === 0 || !watchSkillActivity || !watchAcademicYear || !watchClass || !watchSection) {
             setSkillAreas([]);
             setActivityAreas([]);
             setValue('areaId', 0);
+            setShowTable(false);
             return;
         }
 
         const fetchAreas = async () => {
             setLoadingAreas(true);
             try {
+                const params: any = {
+                    ASMAY_Id: watchAcademicYear,
+                    ECS_Id: 0,
+                    ECACT_Id: 0
+                };
+
+                // Add exam id based on type
+                if (watchExamType === 'ExamWise' && watchEmEId) {
+                    params.EME_Id = watchEmEId;
+                } else if (watchExamType === 'TermWise' && watchExamTerm) {
+                    params.ECT_Id = watchExamTerm;
+                }
+
+                type ApiResponse<T> = {
+                    data?: T;
+                };
+
+                let response: ApiResponse<any[]> | null = null;
+
                 if (watchSkillActivity === 'Skills') {
-                    console.log(watchAcademicYear, watchName);
-                    const { data: areas } = await getLifeSkillAreasBasedOnLifeSkill(watchAcademicYear, watchName);
-                    const safeAreas = Array.isArray(areas) ? areas : [];
-                    setSkillAreas(safeAreas);
+                    params.ECS_Id = watchName;
+                    response = await onchangeSkills(params);
+                } else {
+                    params.ECACT_Id = watchName;
+                    response = await onchangeActivities(params);
+                }
+
+                const areasList = Array.isArray(response?.data) ? response.data : [];
+                console.log('areasList', areasList);
+
+                if (watchSkillActivity === 'Skills') {
+                    setSkillAreas(areasList);
                     setActivityAreas([]);
                 } else {
-                    console.log(watchAcademicYear, watchName);
-                    const { data: areas } = await getCoScholasticAreasBasedOnCoScholasticActivity(watchAcademicYear, watchName);
-                    console.log(areas);
-                    const safeAreas = Array.isArray(areas) ? areas : [];
-                    setActivityAreas(safeAreas);
+                    setActivityAreas(areasList);
                     setSkillAreas([]);
                 }
             } catch (err) {
+                console.error(`Error loading ${watchSkillActivity} areas:`, err);
                 toast.error(`Failed to load ${watchSkillActivity} areas`);
+                setSkillAreas([]);
+                setActivityAreas([]);
             } finally {
                 setLoadingAreas(false);
             }
         };
 
         fetchAreas();
-    }, [watchName, watchSkillActivity, setValue]);
+    }, [watchName, watchSkillActivity, watchAcademicYear, watchClass, watchSection, watchExamType, watchEmEId, watchExamTerm]);
 
-    const handleScoreChange = (studentId: number, score: number) => {
+    // Handle score change
+    const handleScoreChange = useCallback((studentId: number, score: string) => {
         setStudents((prev) => {
-            const updated = prev.map((s) => (s.amsT_Id === studentId ? { ...s, score } : s));
-
-            // Update table props - use the existing tp and just update data
-            if (tableProps) {
-                setTableProps({
-                    ...tableProps,
-                    data: updated
-                });
-            }
-
-            return updated;
+            return prev.map((s) => (s.amsT_Id === studentId ? { ...s, ecsactT_Score: score } : s));
         });
-    };
+    }, []);
+
+    // Handle checkbox change for individual student
+    const handleCheckboxChange = useCallback((studentId: number, isChecked: boolean) => {
+        setSelectedStudentIds((prev) => {
+            if (isChecked) {
+                return [...prev, studentId];
+            } else {
+                return prev.filter((id) => id !== studentId);
+            }
+        });
+    }, []);
+
+    // Handle toggle all checkboxes
+    const handleToggleAll = useCallback(() => {
+        if (isSelectAll) {
+            setSelectedStudentIds([]);
+        } else {
+            const allIds = students.map((s) => s.amsT_Id);
+            setSelectedStudentIds(allIds);
+        }
+        setIsSelectAll(!isSelectAll);
+    }, [isSelectAll, students]);
+
+    // Update isSelectAll when selectedStudentIds changes
+    useEffect(() => {
+        setIsSelectAll(selectedStudentIds.length === students.length && students.length > 0);
+    }, [selectedStudentIds, students]);
 
     // Handle search
-    const handleSearch = async (data: StudentTransactionFormData) => {
+    const handleSearch = async (data: FormFields) => {
+        setSubmitted(true);
+
         if (!isValid) {
-            await trigger(); // show validation errors
+            await trigger();
             toast.error('Please fix validation errors');
             return;
         }
@@ -386,82 +428,106 @@ function StudentTransactionContent() {
         }
 
         setIsLoading(true);
+        setShowTable(false);
 
         try {
-            console.log(data.academicYearId, data.classId, data.sectionId, data.examTermId, data.skillActivityType, data.nameId, data.areaId);
-            const params: GetStudentDetailsParams = {
-                MI_Id: 30,
-                ASMAY_Id: 231,
-                ASMCL_Id: 414,
-                ASMS_Id: 163,
-                Skills: 'Skills',
-                exam_termwise_flag: 'ExamWise',
-                ECACT_Id: 2,
-                ECACTA_Id: 14,
-                ECS_Id: 1,
-                ECSA_Id: 2
+            const params: any = {
+                asmaY_Id: data.academicYearId,
+                asmcL_Id: data.classId,
+                asmS_Id: data.sectionId,
+                skills: data.skillActivityType,
+                exam_termwise_flag: data.exam_termwise_flag,
+                ecacT_Id: data.skillActivityType === 'Activities' ? data.nameId : 0,
+                ecactA_Id: data.skillActivityType === 'Activities' ? data.areaId : 0,
+                ecS_Id: data.skillActivityType === 'Skills' ? data.nameId : 0,
+                ecsA_Id: data.skillActivityType === 'Skills' ? data.areaId : 0
             };
 
-            const { data: resp } = await getStudentTransactionCCEDetails(params);
-            console.log(resp);
-            const students = Array.isArray(resp?.students) ? resp.students : [];
-            setStudents(students);
-            setSelectedStudentIds([]);
-            setShowTable(true);
+            // Add exam id based on type
+            if (data.exam_termwise_flag === 'ExamWise' && data.emE_Id) {
+                params.emE_Id = data.emE_Id;
+                params.ecT_Id = 0;
+            } else if (data.exam_termwise_flag === 'TermWise' && data.examTermId) {
+                params.ecT_Id = data.examTermId;
+                params.emE_Id = 0;
+            }
+            console.log('params', params);
+            const response = await getStudentList(params);
 
-            setTableProps(
-                useDataTableProps({
-                    data: students,
-                    total: students.length ?? students.length,
-                    pageIndex: 0,
-                    pageSize: 10
-                })
-            );
+            if (response.data) {
+                const students = Array.isArray(response.data.students) ? response.data.students : [];
+                const savedData = Array.isArray(response.data.savedData) ? response.data.savedData : [];
+
+                const studentsWithScores = students.map((student: any) => {
+                    const savedScore = savedData.find((s: any) => s.amsT_Id === student.amsT_Id);
+                    return {
+                        ...student,
+                        ecsactT_Score: savedScore?.ecsT_Score || savedScore?.ecsactT_Score || '',
+                        ecsT_Id: savedScore?.ecsT_Id || 0,
+                        ecsactT_Id: savedScore?.ecsactT_Id || 0,
+                        isChecked: !!savedScore // Check if student has saved data
+                    };
+                });
+
+                setStudents(studentsWithScores);
+                setSavedScores(savedData);
+
+                // Automatically select students who already have saved scores
+                const savedStudentIds = savedData.map((s: any) => s.amsT_Id);
+                setSelectedStudentIds(savedStudentIds);
+                setIsSelectAll(savedStudentIds.length === studentsWithScores.length && studentsWithScores.length > 0);
+                setShowTable(true);
+
+                toast.success(`${studentsWithScores.length} students found`);
+            } else {
+                toast.error('No students found');
+            }
         } catch (err: any) {
-            console.error(err);
+            console.error('Search error:', err);
             toast.error(err?.message || 'Failed to load student data');
             setStudents([]);
             setShowTable(false);
-            setTableProps(null);
         } finally {
             setIsLoading(false);
         }
     };
 
-
     // Handle reset
     const handleReset = () => {
-        // Reset form
-        formReset({
-            academicYearId: 0,
-            classId: 0,
-            sectionId: 0,
-            examTermId: 0,
-            skillActivityType: undefined,
-            nameId: 0,
-            areaId: 0
-        });
-
+        methods.reset();
         // Reset all states
-        setStudents([]);
-        setSelectedStudentIds([]);
-        setTableProps(null);
-        setShowTable(false);
-
-        // Reset dropdown data
+        setAcademicYears([]);
         setClasses([]);
         setSections([]);
         setExamTerms([]);
+        setExams([]);
         setSkillNames([]);
         setActivityNames([]);
         setSkillAreas([]);
         setActivityAreas([]);
+        setStudents([]);
+        setSavedScores([]);
+        setShowTable(false);
+        setSelectedStudentIds([]);
+        setHideSaveButton(false);
+        setIsSelectAll(false);
+        setSubmitted(false);
+
+        // Reload academic years
+        if (academicYearsData?.data) {
+            const years = academicYearsData.data.map((y: any) => ({
+                asmaY_Id: y.asmaY_Id,
+                asmaY_Year: y.asmaY_Year,
+                Selected: y.Selected || false
+            }));
+            setAcademicYears(years);
+        }
 
         toast.info('Form reset successfully');
     };
 
     // Handle save scores
-    const handleSaveScores = async () => {
+    const handleSaveScores = async (verifyFlag = false) => {
         if (selectedStudentIds.length === 0) {
             toast.error('Please select at least one student to save');
             return;
@@ -471,44 +537,72 @@ function StudentTransactionContent() {
         const selectedStudents = students.filter((student) => selectedStudentIds.includes(student.amsT_Id));
 
         // Validate that all selected students have scores
-        const studentsWithoutScores = selectedStudents.filter((student) => student.score === undefined || student.score === null);
+        const studentsWithoutScores = selectedStudents.filter((student) => !student.ecsactT_Score || student.ecsactT_Score.trim() === '');
 
         if (studentsWithoutScores.length > 0) {
             toast.error('Please enter scores for all selected students');
             return;
         }
 
+        if (verifyFlag) {
+            const confirmVerify = window.confirm(
+                'Once verified, the marks will be frozen and cannot be updated. Do you want to proceed with verification?'
+            );
+            if (!confirmVerify) return;
+        }
+
         setIsSaving(true);
         try {
-            // Prepare payload
+            const selectedStudentScore = selectedStudents.map((student) => {
+                const baseFields = {
+                    amsT_Id: student.amsT_Id,
+                    ecsactT_Score: student.ecsactT_Score || '',
+                    areaName: String(watchArea),
+                    emgR_Id: student.emgR_Id || 0
+                };
+
+                if (watchSkillActivity === 'Skills') {
+                    return {
+                        ...baseFields,
+                        ecsT_Id: student.ecsT_Id || 0,
+                        ecsactT_Id: 0
+                    };
+                }
+                return {
+                    ...baseFields,
+                    ecsT_Id: 0,
+                    ecsactT_Id: student.ecsactT_Id || 0
+                };
+            });
+
             const payload = {
-                academicYearId: watchAcademicYear,
-                classId: watchClass,
-                sectionId: watchSection,
-                examTermId: watchExamTerm,
-                skillActivityType: watchSkillActivity,
-                nameId: watchName,
-                areaId: watchArea,
-                selectedStudents: selectedStudents.map((student) => ({
-                    studentId: student.amsT_Id,
-                    studentName: student.studentName,
-                    regNo: student.regNumber,
-                    rollNo: student.regNumber,
-                    score: student.score
-                }))
+                skills: watchSkillActivity,
+                selectedStudentScore,
+                asmcL_Id: watchClass,
+                asmS_Id: watchSection,
+                ecS_Id: watchSkillActivity === 'Skills' ? watchName : 0,
+                ecsA_Id: watchSkillActivity === 'Skills' ? watchArea : 0,
+                exam_termwise_flag: watchExamType,
+                emE_Id: watchExamType === 'ExamWise' ? watchEmEId : 0,
+                ecT_Id: watchExamType === 'TermWise' ? watchExamTerm : 0,
+                asmaY_Id: watchAcademicYear,
+                ecacT_Id: watchSkillActivity === 'Activities' ? watchName : 0,
+                ecactA_Id: watchSkillActivity === 'Activities' ? watchArea : 0,
+                admno: verifyFlag ? 'V' : 'S'
             };
 
             console.log('Save payload:', payload);
 
-            // Call API to save scores
-            const result = await mockSaveStudentScores(payload);
+            const result = await saveCCEStudentMarks(payload);
 
-            if (result.success) {
-                toast.success(result.message || 'Scores saved successfully');
-                // Clear selections after successful save
-                setSelectedStudentIds([]);
+            if (result.success || result.returnVal === 'saved') {
+                toast.success(verifyFlag ? 'Record verified successfully' : 'Record saved successfully');
+                // Refresh the data
+                handleSearch(methods.getValues());
+            } else if (result.returnVal === 'savingFailed') {
+                toast.error('Failed to save record');
             } else {
-                toast.error(result.message || 'Failed to save scores');
+                toast.error('Sorry...something went wrong');
             }
         } catch (err) {
             console.error('Save error:', err);
@@ -518,17 +612,45 @@ function StudentTransactionContent() {
         }
     };
 
-    // Handle row selection change
-    const handleRowSelectionChange = (selectedRows: IStudentTransactionGrid[]) => {
-        const selectedIds = selectedRows.map((row) => row.amsT_Id);
-        setSelectedStudentIds(selectedIds);
-    };
+    // Handle row selection change (for table component if it supports it)
+    const handleRowSelectionChange = useCallback(
+        (selectedRows: any[]) => {
+            const selectedIds = selectedRows.map((row) => row.amsT_Id);
+            setSelectedStudentIds(selectedIds);
+            setIsSelectAll(selectedIds.length === students.length && students.length > 0);
+        },
+        [students]
+    );
 
-    const columns = StudentTransactionColumns(handleScoreChange);
+    // Update columns with proper callbacks
+    const columns = useMemo(
+        () =>
+            StudentTransactionColumns({
+                onScoreChange: handleScoreChange,
+                onCheckboxChange: handleCheckboxChange,
+                onToggleAll: handleToggleAll,
+                hideSaveButton,
+                isSelectAll,
+                selectedStudentIds
+            }),
+        [handleScoreChange, handleCheckboxChange, handleToggleAll, hideSaveButton, isSelectAll, selectedStudentIds]
+    );
 
-    // Check if all required fields are filled
+    // Check if all required fields are filled for search
     const allFieldsFilled =
-        watchAcademicYear && watchClass && watchSection && watchExamTerm && watchSkillActivity && watchName && watchArea;
+        watchAcademicYear &&
+        watchAcademicYear !== 0 &&
+        watchClass &&
+        watchClass !== 0 &&
+        watchSection &&
+        watchSection !== 0 &&
+        ((watchExamType === 'TermWise' && watchExamTerm && watchExamTerm !== 0) ||
+            (watchExamType === 'ExamWise' && watchEmEId && watchEmEId !== 0)) &&
+        watchSkillActivity &&
+        watchName &&
+        watchName !== 0 &&
+        watchArea &&
+        watchArea !== 0;
 
     return (
         <FormProvider {...methods}>
@@ -536,6 +658,50 @@ function StudentTransactionContent() {
                 <div className='container mx-auto space-y-6'>
                     {/* Filters Section */}
                     <div className='rounded-lg border bg-white p-6 shadow-sm'>
+                        {/* Radio Buttons */}
+                        <div className='mb-6 flex justify-center'>
+                            <div className='inline-flex rounded-lg border p-1'>
+                                <Controller
+                                    control={control}
+                                    name='exam_termwise_flag'
+                                    render={({ field }) => (
+                                        <>
+                                            <button
+                                                type='button'
+                                                className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${
+                                                    field.value === 'TermWise'
+                                                        ? 'bg-purple-600 text-white'
+                                                        : 'bg-transparent text-gray-600 hover:bg-gray-100'
+                                                }`}
+                                                onClick={() => {
+                                                    field.onChange('TermWise');
+                                                    setValue('emE_Id', 0);
+                                                    setValue('examTermId', 0);
+                                                    setShowTable(false);
+                                                }}>
+                                                Term Wise
+                                            </button>
+                                            <button
+                                                type='button'
+                                                className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${
+                                                    field.value === 'ExamWise'
+                                                        ? 'bg-purple-600 text-white'
+                                                        : 'bg-transparent text-gray-600 hover:bg-gray-100'
+                                                }`}
+                                                onClick={() => {
+                                                    field.onChange('ExamWise');
+                                                    setValue('examTermId', 0);
+                                                    setValue('emE_Id', 0);
+                                                    setShowTable(false);
+                                                }}>
+                                                Exam Wise
+                                            </button>
+                                        </>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
                         <div className='grid grid-cols-1 gap-6 md:grid-cols-4'>
                             {/* Academic Year */}
                             <div>
@@ -548,13 +714,17 @@ function StudentTransactionContent() {
                                     render={({ field, fieldState }) => (
                                         <>
                                             <Select
-                                                value={field.value && field.value !== 0 ? String(field.value) : ''}
+                                                value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                                 onValueChange={(v) => {
                                                     field.onChange(v ? Number(v) : 0);
                                                     trigger('academicYearId');
-                                                }}>
+                                                    setShowTable(false);
+                                                }}
+                                                disabled={loadingAcademicYears}>
                                                 <SelectTrigger id='academic-year'>
-                                                    <SelectValue placeholder='Select Academic Year' />
+                                                    <SelectValue
+                                                        placeholder={loadingAcademicYears ? 'Loading...' : 'Select Academic Year'}
+                                                    />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {academicYears.map((year) => (
@@ -564,7 +734,7 @@ function StudentTransactionContent() {
                                                     ))}
                                                 </SelectContent>
                                             </Select>
-                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                            {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </>
                                     )}
                                 />
@@ -581,32 +751,32 @@ function StudentTransactionContent() {
                                     render={({ field, fieldState }) => (
                                         <>
                                             <Select
-                                                value={field.value && field.value !== 0 ? String(field.value) : ''}
+                                                value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                                 onValueChange={(v) => {
-                                                    field.onChange(v ? Number(v) : 0);
+                                                    const numValue = Number(v);
+                                                    field.onChange(numValue !== 0 ? numValue : 0);
                                                     trigger('classId');
+                                                    setShowTable(false);
                                                 }}
                                                 disabled={!watchAcademicYear || loadingClasses}>
                                                 <SelectTrigger id='class'>
-                                                    <SelectValue
-                                                        placeholder={
-                                                            !watchAcademicYear
-                                                                ? 'Select Year first'
-                                                                : loadingClasses
-                                                                    ? 'Loading...'
-                                                                    : 'Select Class'
-                                                        }
-                                                    />
+                                                    <SelectValue placeholder={loadingClasses ? 'Loading...' : 'Select Class'} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {classes.map((cls) => (
-                                                        <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>
-                                                            {cls.asmcL_ClassName}
+                                                    {classes.length === 0 ? (
+                                                        <SelectItem value='placeholder' disabled>
+                                                            No classes available
                                                         </SelectItem>
-                                                    ))}
+                                                    ) : (
+                                                        classes.map((cls) => (
+                                                            <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>
+                                                                {cls.asmcL_ClassName}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
                                                 </SelectContent>
                                             </Select>
-                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                            {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </>
                                     )}
                                 />
@@ -623,10 +793,11 @@ function StudentTransactionContent() {
                                     render={({ field, fieldState }) => (
                                         <>
                                             <Select
-                                                value={field.value && field.value !== 0 ? String(field.value) : ''}
+                                                value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                                 onValueChange={(v) => {
                                                     field.onChange(v ? Number(v) : 0);
                                                     trigger('sectionId');
+                                                    setShowTable(false);
                                                 }}
                                                 disabled={!watchClass || loadingSections}>
                                                 <SelectTrigger id='section'>
@@ -635,69 +806,146 @@ function StudentTransactionContent() {
                                                             !watchClass
                                                                 ? 'Select Class first'
                                                                 : loadingSections
-                                                                    ? 'Loading...'
-                                                                    : 'Select Section'
+                                                                  ? 'Loading...'
+                                                                  : 'Select Section'
                                                         }
                                                     />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {sections.map((section) => (
-                                                        <SelectItem key={section.asmS_Id} value={section.asmS_Id.toString()}>
-                                                            {section.asmC_SectionName}
+                                                    {sections.length === 0 ? (
+                                                        <SelectItem value='placeholder' disabled>
+                                                            No sections available
                                                         </SelectItem>
-                                                    ))}
+                                                    ) : (
+                                                        sections.map((section) => (
+                                                            <SelectItem key={section.asmS_Id} value={section.asmS_Id.toString()}>
+                                                                {section.asmC_SectionName}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
                                                 </SelectContent>
                                             </Select>
-                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                            {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </>
                                     )}
                                 />
                             </div>
 
-                            {/* Exam Term */}
-                            <div>
-                                <Label htmlFor='exam-term'>
-                                    Exam Term: <span className='text-red-500'>*</span>
-                                </Label>
-                                <Controller
-                                    control={control}
-                                    name='examTermId'
-                                    render={({ field, fieldState }) => (
-                                        <>
-                                            <Select
-                                                // Use field.value as key - this forces re-render when value changes
-                                                key={`exam-term-${field.value || 'empty'}`}
-                                                value={field.value && field.value !== 0 ? String(field.value) : ''}
-                                                onValueChange={(v) => {
-                                                    field.onChange(v ? Number(v) : 0);
-                                                }}
-                                                disabled={!watchSection || loadingExamTerms || examTerms.length === 0}>
-                                                <SelectTrigger id='exam-term'>
-                                                    <SelectValue
-                                                        placeholder={
-                                                            !watchSection
-                                                                ? 'Select Section first'
-                                                                : loadingExamTerms
-                                                                    ? 'Loading...'
-                                                                    : examTerms.length === 0
-                                                                        ? 'No terms available'
-                                                                        : 'Select Exam Term'
-                                                        }
-                                                    />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {examTerms.map((term) => (
-                                                        <SelectItem key={term.ect_Id} value={term.ect_Id.toString()}>
-                                                            {term.ect_TermName}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                        </>
-                                    )}
-                                />
-                            </div>
+                            {/* Exam Term (only for Term Wise) */}
+                            {watchExamType === 'TermWise' && (
+                                <div>
+                                    <Label htmlFor='exam-term'>
+                                        Exam Term: <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <Controller
+                                        control={control}
+                                        name='examTermId'
+                                        render={({ field, fieldState }) => (
+                                            <>
+                                                <Select
+                                                    value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                                    onValueChange={(v) => {
+                                                        const numValue = Number(v);
+                                                        field.onChange(numValue !== 0 ? numValue : 0);
+                                                        setShowTable(false);
+                                                    }}
+                                                    disabled={!watchSection || loadingExamData}>
+                                                    <SelectTrigger id='exam-term'>
+                                                        <SelectValue
+                                                            placeholder={
+                                                                !watchSection
+                                                                    ? 'Select Section first'
+                                                                    : loadingExamData
+                                                                      ? 'Loading...'
+                                                                      : 'Select Exam Term'
+                                                            }
+                                                        />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {examTerms.length === 0 ? (
+                                                            <SelectItem value='placeholder' disabled>
+                                                                No exam terms available
+                                                            </SelectItem>
+                                                        ) : (
+                                                            examTerms.map((term) => (
+                                                                <SelectItem key={term.emE_Id} value={term.emE_Id.toString()}>
+                                                                    {term.emE_ExamName}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
+                                                    </SelectContent>
+                                                </Select>
+                                                {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                            </>
+                                        )}
+                                    />
+                                </div>
+                            )}
+
+                            {/* Exam (only for Exam Wise) */}
+                            {watchExamType === 'ExamWise' && (
+                                <div>
+                                    <Label htmlFor='exam'>
+                                        Exam: <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <Controller
+                                        control={control}
+                                        name='emE_Id'
+                                        render={({ field, fieldState }) => (
+                                            <>
+                                                <Select
+                                                    value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                                    onValueChange={(v) => {
+                                                        const numValue = Number(v);
+                                                        field.onChange(numValue !== 0 ? numValue : 0);
+                                                        setShowTable(false);
+                                                    }}
+                                                    disabled={!watchSection || loadingExamData}>
+                                                    <SelectTrigger id='exam'>
+                                                        <SelectValue
+                                                            placeholder={
+                                                                !watchSection
+                                                                    ? 'Select Section first'
+                                                                    : loadingExamData
+                                                                      ? 'Loading...'
+                                                                      : 'Select Exam'
+                                                            }
+                                                        />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {watchExamType === 'ExamWise' ? (
+                                                            exams.length === 0 ? (
+                                                                <SelectItem value='placeholder' disabled>
+                                                                    No exams available
+                                                                </SelectItem>
+                                                            ) : (
+                                                                exams.map((exam) => (
+                                                                    <SelectItem key={exam.emE_Id} value={exam.emE_Id.toString()}>
+                                                                        {exam.emE_ExamName}
+                                                                    </SelectItem>
+                                                                ))
+                                                            )
+                                                        ) : watchExamType === 'TermWise' ? (
+                                                            examTerms.length === 0 ? (
+                                                                <SelectItem value='placeholder' disabled>
+                                                                    No exams available
+                                                                </SelectItem>
+                                                            ) : (
+                                                                examTerms.map((exam) => (
+                                                                    <SelectItem key={exam.emE_Id} value={exam.emE_Id.toString()}>
+                                                                        {exam.emE_ExamName}
+                                                                    </SelectItem>
+                                                                ))
+                                                            )
+                                                        ) : null}
+                                                    </SelectContent>
+                                                </Select>
+                                                {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                            </>
+                                        )}
+                                    />
+                                </div>
+                            )}
                         </div>
 
                         {/* Skill/Activities Section */}
@@ -718,23 +966,22 @@ function StudentTransactionContent() {
                                                     field.onChange(v);
                                                     setValue('nameId', 0);
                                                     setValue('areaId', 0);
-                                                    setActivityNames([]);
-                                                    setActivityAreas([]);
+                                                    setShowTable(false);
                                                 }}
-                                                disabled={!watchExamTerm || watchExamTerm === 0}>
+                                                disabled={
+                                                    !watchExamType ||
+                                                    (watchExamType === 'TermWise' && (!watchExamTerm || watchExamTerm === 0)) ||
+                                                    (watchExamType === 'ExamWise' && (!watchEmEId || watchEmEId === 0))
+                                                }>
                                                 <SelectTrigger id='Skills-Activities-type'>
-                                                    <SelectValue
-                                                        placeholder={
-                                                            !watchExamTerm || watchExamTerm === 0 ? 'Select Exam Term first' : 'Select Type'
-                                                        }
-                                                    />
+                                                    <SelectValue placeholder='Select Type' />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value='Skills'>Skills</SelectItem>
                                                     <SelectItem value='Activities'>Activities</SelectItem>
                                                 </SelectContent>
                                             </Select>
-                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                            {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </>
                                     )}
                                 />
@@ -744,7 +991,7 @@ function StudentTransactionContent() {
                             {watchSkillActivity === 'Skills' && (
                                 <div>
                                     <Label htmlFor='Skills-name'>
-                                        Skill Name: <span className='text-red-500'>*</span>
+                                        Skills Name: <span className='text-red-500'>*</span>
                                     </Label>
                                     <Controller
                                         control={control}
@@ -752,24 +999,31 @@ function StudentTransactionContent() {
                                         render={({ field, fieldState }) => (
                                             <>
                                                 <Select
-                                                    key={`Skills-name-${skillNames.length}`} // Force re-render when names change
-                                                    value={field.value && field.value !== 0 ? String(field.value) : ''}
+                                                    value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                                     onValueChange={(v) => {
-                                                        field.onChange(v ? Number(v) : 0);
+                                                        const numValue = Number(v);
+                                                        field.onChange(numValue !== 0 ? numValue : 0);
+                                                        setShowTable(false);
                                                     }}
-                                                    disabled={loadingNames}>
+                                                    disabled={!watchSkillActivity || loadingNames}>
                                                     <SelectTrigger id='Skills-name'>
-                                                        <SelectValue placeholder={loadingNames ? 'Loading...' : 'Select Skill Name'} />
+                                                        <SelectValue placeholder={loadingNames ? 'Loading...' : 'Select Skills Name'} />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {skillNames.map((item) => (
-                                                            <SelectItem key={item.ecS_Id} value={item.ecS_Id.toString()}>
-                                                                {item.ecS_SkillName}
+                                                        {skillNames.length === 0 ? (
+                                                            <SelectItem value='placeholder' disabled>
+                                                                No skills available
                                                             </SelectItem>
-                                                        ))}
+                                                        ) : (
+                                                            skillNames.map((item) => (
+                                                                <SelectItem key={item.ecS_Id} value={item.ecS_Id.toString()}>
+                                                                    {item.ecS_SkillName}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
-                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                                {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </>
                                         )}
                                     />
@@ -788,24 +1042,31 @@ function StudentTransactionContent() {
                                         render={({ field, fieldState }) => (
                                             <>
                                                 <Select
-                                                    key={`Activities-name-${activityNames.length}`} // Force re-render when names change
-                                                    value={field.value && field.value !== 0 ? String(field.value) : ''}
+                                                    value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                                     onValueChange={(v) => {
-                                                        field.onChange(v ? Number(v) : 0);
+                                                        const numValue = Number(v);
+                                                        field.onChange(numValue !== 0 ? numValue : 0);
+                                                        setShowTable(false);
                                                     }}
-                                                    disabled={loadingNames}>
+                                                    disabled={!watchSkillActivity || loadingNames}>
                                                     <SelectTrigger id='Activities-name'>
                                                         <SelectValue placeholder={loadingNames ? 'Loading...' : 'Select Activities Name'} />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {activityNames.map((item) => (
-                                                            <SelectItem key={item.ecacT_Id} value={item.ecacT_Id.toString()}>
-                                                                {item.ecacT_SkillName}
+                                                        {activityNames.length === 0 ? (
+                                                            <SelectItem value='placeholder' disabled>
+                                                                No activities available
                                                             </SelectItem>
-                                                        ))}
+                                                        ) : (
+                                                            activityNames.map((item) => (
+                                                                <SelectItem key={item.ecacT_Id} value={item.ecacT_Id.toString()}>
+                                                                    {item.ecacT_SkillName}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
-                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                                {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </>
                                         )}
                                     />
@@ -813,7 +1074,7 @@ function StudentTransactionContent() {
                             )}
 
                             {/* Skill Area - Only shows when "Skills" is selected AND Skills name is chosen */}
-                            {watchSkillActivity === 'Skills' && (
+                            {watchSkillActivity === 'Skills' && watchName && watchName !== 0 && (
                                 <div>
                                     <Label htmlFor='Skills-area'>
                                         Skill Area: <span className='text-red-500'>*</span>
@@ -824,24 +1085,31 @@ function StudentTransactionContent() {
                                         render={({ field, fieldState }) => (
                                             <>
                                                 <Select
-                                                    key={`Skills-area-${skillAreas.length}`} // Force re-render when areas change
-                                                    value={field.value && field.value !== 0 ? String(field.value) : ''}
+                                                    value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                                     onValueChange={(v) => {
-                                                        field.onChange(v ? Number(v) : 0);
+                                                        const numValue = Number(v);
+                                                        field.onChange(numValue !== 0 ? numValue : 0);
+                                                        setShowTable(false);
                                                     }}
                                                     disabled={loadingAreas}>
                                                     <SelectTrigger id='Skills-area'>
                                                         <SelectValue placeholder={loadingAreas ? 'Loading...' : 'Select Skill Area'} />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {skillAreas.map((area) => (
-                                                            <SelectItem key={area.ecsA_Id} value={area.ecsA_Id.toString()}>
-                                                                {area.ecsA_SkillArea}
+                                                        {skillAreas.length === 0 ? (
+                                                            <SelectItem value='placeholder' disabled>
+                                                                No skill areas available
                                                             </SelectItem>
-                                                        ))}
+                                                        ) : (
+                                                            skillAreas.map((area) => (
+                                                                <SelectItem key={area.ecsA_Id} value={area.ecsA_Id.toString()}>
+                                                                    {area.areaName}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
-                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                                {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </>
                                         )}
                                     />
@@ -849,7 +1117,7 @@ function StudentTransactionContent() {
                             )}
 
                             {/* Activity Area - Only shows when "Activities" is selected AND Activities name is chosen */}
-                            {watchSkillActivity === 'Activities' && (
+                            {watchSkillActivity === 'Activities' && watchName && watchName !== 0 && (
                                 <div>
                                     <Label htmlFor='Activities-area'>
                                         Activities Area: <span className='text-red-500'>*</span>
@@ -860,24 +1128,31 @@ function StudentTransactionContent() {
                                         render={({ field, fieldState }) => (
                                             <>
                                                 <Select
-                                                    key={`Activities-area-${activityAreas.length}`} // Force re-render when areas change
-                                                    value={field.value && field.value !== 0 ? String(field.value) : ''}
+                                                    value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                                     onValueChange={(v) => {
-                                                        field.onChange(v ? Number(v) : 0);
+                                                        const numValue = Number(v);
+                                                        field.onChange(numValue !== 0 ? numValue : 0);
+                                                        setShowTable(false);
                                                     }}
                                                     disabled={loadingAreas}>
                                                     <SelectTrigger id='Activities-area'>
                                                         <SelectValue placeholder={loadingAreas ? 'Loading...' : 'Select Activities Area'} />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {activityAreas.map((area) => (
-                                                            <SelectItem key={area.ecactA_Id} value={String(area.ecactA_Id)}>
-                                                                {area.ecactA_SkillArea}
+                                                        {activityAreas.length === 0 ? (
+                                                            <SelectItem value='placeholder' disabled>
+                                                                No activity areas available
                                                             </SelectItem>
-                                                        ))}
+                                                        ) : (
+                                                            activityAreas.map((area) => (
+                                                                <SelectItem key={area.ecactA_Id} value={String(area.ecactA_Id)}>
+                                                                    {area.ecactA_SkillArea}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
-                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                                {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </>
                                         )}
                                     />
@@ -886,12 +1161,27 @@ function StudentTransactionContent() {
                         </div>
 
                         {/* Search Button */}
-                        <div className='mx-auto mt-8 flex w-fit justify-center'>
+                        <div className='mx-auto mt-8 flex w-fit justify-center gap-4'>
                             <Button
                                 type='submit'
                                 disabled={!allFieldsFilled || isLoading || !isValid}
-                                className='py- px-8 font-medium text-white shadow'>
-                                {isLoading ? 'LOADING...' : 'SEARCH'}
+                                className='px-8 py-2 font-medium text-white shadow'>
+                                {isLoading ? (
+                                    <span className='flex items-center gap-2'>
+                                        <Search className='h-4 w-4' />
+                                        SEARCHING...
+                                    </span>
+                                ) : (
+                                    <span className='flex items-center gap-2'>
+                                        <Search className='h-4 w-4' />
+                                        STUDENT LIST
+                                    </span>
+                                )}
+                            </Button>
+
+                            <Button type='button' variant='outline' onClick={handleReset} disabled={isLoading}>
+                                <RotateCcw className='mr-2 h-4 w-4' />
+                                CANCEL
                             </Button>
                         </div>
                     </div>
@@ -900,35 +1190,47 @@ function StudentTransactionContent() {
                     {showTable && tableProps && (
                         <div className='mt-4'>
                             <CollapsibleSection defaultOpen variant='default' size='lg' className='shadow-lg'>
-                                <div className='mb-4'>
-                                    <h3 className='font-semibold text-lg'>STUDENT LIST</h3>
-                                    <p className='text-gray-600 text-sm'>
-                                        Selected: {selectedStudentIds.length} of {students.length} students
-                                    </p>
+                                <div className='mb-4 flex items-center justify-between'>
+                                    <div>
+                                        <h3 className='font-semibold text-lg'>STUDENT LIST</h3>
+                                        <p className='text-gray-600 text-sm'>
+                                            Total Grid Records: <span className='badge'>{students.length}</span>
+                                        </p>
+                                        <p className='text-gray-600 text-sm'>
+                                            Selected Students: <span className='badge'>{selectedStudentIds.length}</span>
+                                        </p>
+                                    </div>
                                 </div>
 
-                                <GenericDataTable<IStudentTransactionGrid>
+                                <GenericDataTable
                                     {...tableProps}
                                     columns={columns}
                                     isLoading={isLoading}
                                     columnPinning={{ right: [] }}
                                     loadingMessage='Loading student data...'
                                     noDataTitle='No Students Found'
-                                    noDataDescription='Click SEARCH to view students'
+                                    noDataDescription='Click STUDENT LIST to view students'
                                     errorTitle='Error Loading Students'
                                     onRowSelectionChange={handleRowSelectionChange}
-                                //defaultSelectedRowIds={[]}
                                 />
+
                                 <div className='mx-auto mt-8 flex w-fit justify-center gap-4'>
-                                    <Button type='button' onClick={handleReset} variant='outline' className='px-8 py-3 font-medium shadow'>
+                                    <Button type='button' onClick={handleReset} variant='outline' className='px-8 py-2 font-medium shadow'>
                                         RESET
                                     </Button>
                                     <Button
                                         type='button'
-                                        onClick={handleSaveScores}
-                                        disabled={selectedStudentIds.length === 0 || isSaving}
-                                        className='px-8 py-3 font-medium text-white shadow hover:bg-green-700'>
+                                        onClick={() => handleSaveScores(false)}
+                                        disabled={selectedStudentIds.length === 0 || isSaving || hideSaveButton}
+                                        className='px-8 py-2 font-medium text-white shadow hover:bg-green-700'>
                                         {isSaving ? 'SAVING...' : `SAVE (${selectedStudentIds.length} selected)`}
+                                    </Button>
+                                    <Button
+                                        type='button'
+                                        onClick={() => handleSaveScores(true)}
+                                        disabled={selectedStudentIds.length === 0 || isSaving || hideSaveButton}
+                                        className='px-8 py-2 font-medium text-white shadow hover:bg-red-700'>
+                                        {isSaving ? 'VERIFYING...' : `VERIFY (${selectedStudentIds.length} selected)`}
                                     </Button>
                                 </div>
                             </CollapsibleSection>

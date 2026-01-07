@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { togglePromotionalGroupMappedExam } from '@/server/exam/exam-module/exam-mapping/promotional-setting';
+import { togglePromotionSubjectGroupExams } from '@/server/exam/exam-module/exam-mapping/promotional-setting';
 import type { IPromotionalGroupMappedExamDetails } from '@/types/exam/exam-module/exam-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -44,7 +44,7 @@ export default function TogglePromotionalGroupMappedExamForm({ rowData, onClose 
 
     const onSubmit = async (values: ToggleFormFields) => {
         try {
-            const response = await togglePromotionalGroupMappedExam(values.slNo);
+            const response = await togglePromotionSubjectGroupExams(values.slNo);
 
             if (response.success) {
                 toast.success(response.message || 'Exam status updated successfully');

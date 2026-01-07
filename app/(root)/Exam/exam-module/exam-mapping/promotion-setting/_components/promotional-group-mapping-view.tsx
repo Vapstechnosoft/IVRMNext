@@ -26,10 +26,11 @@ export default function PromotionalGroupMappingsDetailsPage({
 }
 
 function GroupMappingContent({ rowData, onClose }: { rowData: IPromotionalSubjectDetails; onClose: () => void }) {
-    const { data: response, isLoading, refetchAll } = usePromotionalGroupMappings(rowData?.slNo);
+    const { data: response, isLoading, refetchAll } = usePromotionalGroupMappings(rowData?.emP_Id);
 
     const tableProps = useDataTableProps(response);
     useEffect(() => {
+        console.log(response);
         refetchAll();
     }, [rowData]);
 
@@ -39,7 +40,7 @@ function GroupMappingContent({ rowData, onClose }: { rowData: IPromotionalSubjec
                 <div className='mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                     <div className='space-y-1'>
                         <Heading
-                            title={`Group Mappings - ${rowData?.subjectName}`}
+                            title={`Group Mappings - ${rowData?.ismS_SubjectName}`}
                             description='List of groups mapped under this subject'
                         />
                     </div>
