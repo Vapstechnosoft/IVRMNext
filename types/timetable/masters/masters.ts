@@ -93,19 +93,4 @@ export interface ITimeTableMasterCategory {
     ttmC_Id: number;
     ttmC_CategoryName: string;
     ttmC_ActiveFlag: boolean;
-
-    mI_Id: number;
-    asmaY_Id: number;
-
-    academiclist: any | null;
-    asmayYear: string | null;
-
-    categorylist: any | null;
-    categorylistedit: any | null;
-
-    returnduplicatestatus: any | null;
-    returnval: boolean;
-
-    createdDate: string;
-    updatedDate: string;
 }

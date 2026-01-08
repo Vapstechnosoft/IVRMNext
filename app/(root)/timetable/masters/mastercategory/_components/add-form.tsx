@@ -5,7 +5,8 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useTimeTableMasterCategory } from '@/hooks/timetable/useMasters';
 import { masterTimeTableCategorySchema } from '@/schemas/timetable/masters';
-import { addOrUpdateMasterBuilding } from '@/server/timetable/masters/masterbuilding';
+
+import { addOrUpdateTimetableMasterCategory } from '@/server/timetable/masters/masterCategory';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
@@ -42,7 +43,7 @@ export default function AddMasterCategoryForm({ onSuccess, CategoryName = '' }: 
 
             console.log(payload);
 
-            const response = await addOrUpdateMasterBuilding(payload);
+            const response = await addOrUpdateTimetableMasterCategory(payload);
             if (response.success) {
                 toast.success(response.message);
                 reset();

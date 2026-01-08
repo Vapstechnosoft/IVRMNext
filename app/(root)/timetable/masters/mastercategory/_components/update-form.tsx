@@ -5,7 +5,7 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useTimeTableMasterCategory } from '@/hooks/timetable/useMasters';
 import { masterTimeTableCategorySchema } from '@/schemas/timetable/masters';
-import { addOrUpdateMasterBuilding } from '@/server/timetable/masters/masterbuilding';
+import { addOrUpdateTimetableMasterCategory } from '@/server/timetable/masters/masterCategory';
 import type { ITimeTableMasterCategory } from '@/types/timetable/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
@@ -16,13 +16,13 @@ import type { z } from 'zod';
 
 type FormFields = z.infer<typeof masterTimeTableCategorySchema.addOrUpdate>;
 
-interface UpdateMasterBuildingFormProps {
+interface UpdateMasterCategoryFormProps {
     onSuccess?: () => void;
     masterbuilding?: string;
     selectedRow: ITimeTableMasterCategory;
 }
 
-export default function UpdateMasterCategoryForm({ onSuccess, masterbuilding = '', selectedRow: row }: UpdateMasterBuildingFormProps) {
+export default function UpdateMasterCategoryForm({ onSuccess, masterbuilding = '', selectedRow: row }: UpdateMasterCategoryFormProps) {
     const { refetchAll } = useTimeTableMasterCategory();
 
     const {
@@ -52,7 +52,7 @@ export default function UpdateMasterCategoryForm({ onSuccess, masterbuilding = '
                 ttmC_CategoryName: ttmC_CategoryName,
                 ttmC_Id: ttmC_Id
             };
-            const response = await addOrUpdateMasterBuilding(payload);
+            const response = await addOrUpdateTimetableMasterCategory(payload);
 
             if (response.success) {
                 toast.success(response.message);

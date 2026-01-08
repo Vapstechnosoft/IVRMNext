@@ -59,7 +59,7 @@ function ActionButtonsCell({ rowData }: { rowData: ITimeTableMasterCategory }) {
             buttons={{ edit: true, toggle: true, delete: false }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            toggleConditionKey='ttmB_ActiveFlag'
+            toggleConditionKey='ttmC_ActiveFlag'
         />
     );
 }

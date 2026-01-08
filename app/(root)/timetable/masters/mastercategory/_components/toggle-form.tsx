@@ -5,7 +5,7 @@ import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/ex
 import { FormError } from '@/components/ui/extension/field';
 import { useTimeTableMasterCategory } from '@/hooks/timetable/useMasters';
 import { masterTimeTableCategorySchema } from '@/schemas/timetable/masters';
-import { ToggleMasterBuilding } from '@/server/timetable/masters/masterbuilding';
+import { ToggleMasterCategory } from '@/server/timetable/masters/masterCategory';
 import type { ITimeTableMasterCategory } from '@/types/timetable/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
@@ -40,7 +40,7 @@ export default function ToggleMasterCategoryForm({ rowData, onClose }: ToggleMas
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await ToggleMasterBuilding(Number(rowData.ttmC_Id));
+            const response = await ToggleMasterCategory(Number(rowData.ttmC_Id));
             if (response.success) {
                 toast.success(response.message);
                 refetchAll();
