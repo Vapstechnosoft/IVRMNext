@@ -2,10 +2,10 @@
 
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
-//import { useFormContext } from '@/components/ui/form/form-provider';
+import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IMasterLibraryList } from '@/types/library/masters/masters';
 import type { ColumnDef } from '@tanstack/react-table';
-//import { useCallback } from 'react';
+import { useCallback } from 'react';
 
 export const masterLibraryColumns: ColumnDef<IMasterLibraryList>[] = [
     {
@@ -29,23 +29,31 @@ export const masterLibraryColumns: ColumnDef<IMasterLibraryList>[] = [
     {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
-        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
-        enableSorting: false
+        accessorFn: (row: any) => row,
+        enableSorting: false,
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterLibraryList }) {
-    // const { openDeleteForm, openEditForm } = useFormContext<IMasterLibraryList>();
+    const { openToggleForm, openEditForm } = useFormContext<IMasterLibraryList>();
 
-    // const handleDelete = useCallback((data: IMasterLibraryList) => openDeleteForm(data), [openDeleteForm]);
-    // const handleEdit = useCallback((data: IMasterLibraryList) => openEditForm(data), [openEditForm]);
+    const handleToggle = useCallback(
+        (data: IMasterLibraryList) => {
+            openToggleForm(data);
+        },
+        [openToggleForm]
+    );
+
+    const handleEdit = useCallback((data: IMasterLibraryList) => openEditForm(data), [openEditForm]);
 
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: false, toggle: false, delete: true }}
-            //onDelete={handleDelete}
-            //  onEdit={handleEdit}
+            buttons={{ edit: false, toggle: true, delete: false }}
+            onToggle={handleToggle}
+            onEdit={handleEdit}
+            toggleConditionKey='lmaL_ActiveFlag'
         />
     );
 }

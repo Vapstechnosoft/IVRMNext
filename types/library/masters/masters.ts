@@ -37,3 +37,23 @@ export interface IMasterPublisherList {
     lmP_PhoneNo: string;
     lmP_ActiveFlg: boolean;
 }
+
+export interface IMasterAuthorList {
+    lmaU_Id: number;
+    mI_Id: number;
+    lmaU_AuthorFirstName: string;
+    lmaU_AuthorMiddleName: string;
+    lmaU_AuthorLastName: string;
+    lmaU_MobileNo: string;
+    lmaU_PhoneNo: string;
+    lmaU_EmailId: string;
+    lmaU_Address: string;
+    lmaU_ActiveFlg: boolean;
+}
+
+export interface IMasterLanguageList {
+    lmL_Id: number;
+    mI_Id: number;
+    lmL_LanguageName: string;
+    lmL_ActiveFlg: boolean;
+}

@@ -449,5 +449,5 @@ export const LIBRARY_QUERY_KEYS = {
     MASTER_CATEGORY_LIST_DATA: 'master_category_list_data',
 
     MASTER_AUTHOR_LIST_DATA: 'master_author_list_data',
-    MASTER_BOOK_LIST_DATA: 'master_book_list_data'
+    MASTER_LANGUAGE_LIST_DATA: 'master_language_list_data'
 };

@@ -5,23 +5,24 @@ import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/ex
 import { FormError } from '@/components/ui/extension/field';
 import { useMasterLibrary } from '@/hooks/library/useMasters';
 import { masterLibrarySchema } from '@/schemas/library/masters';
-import { deleteMasterLibrary } from '@/server/library/masters/master_library';
+import { toggleMasterLibrary } from '@/server/library/masters/master_library';
 import type { IMasterLibraryList } from '@/types/library/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import type { z } from 'zod';
 
-type FormFields = z.infer<typeof masterLibrarySchema.delete>;
+type FormFields = {
+    lmaL_Id?: number | string;
+};
 
-interface DeleteMasterLibraryFormProps {
+interface ToggleMasterLibraryFormProps {
     rowData: IMasterLibraryList;
     onClose: () => void;
-    onSuccess?: () => void;
 }
 
-export default function DeleteMasterLibraryForm({ rowData, onClose }: DeleteMasterLibraryFormProps) {
+export default function ToggleMasterLibraryForm({ rowData, onClose }: ToggleMasterLibraryFormProps) {
     const { refetchAll } = useMasterLibrary();
+    const isActive = rowData.lmaL_ActiveFlag;
 
     const {
         register,
@@ -38,29 +39,32 @@ export default function DeleteMasterLibraryForm({ rowData, onClose }: DeleteMast
         reset();
     }
 
-    const onSubmit: SubmitHandler<FormFields | any> = async () => {
+    const onSubmit: SubmitHandler<FormFields> = async () => {
         try {
-            const response = await deleteMasterLibrary(Number(rowData.lmaL_Id));
+            const response = await toggleMasterLibrary(rowData.lmaL_Id);
 
             if (response.success) {
-                toast.success(response.message);
+                toast.success(response.message || 'Status updated successfully');
                 refetchAll();
                 closeDialog();
             } else {
-                toast.error(response.message);
+                toast.error(response.message || 'Failed to update status');
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error?.message || 'Something went wrong');
         }
     };
 
     return (
-        <AdaptiveDialog title='Delete Master Library' isOpen={true} onClose={closeDialog}>
+        <AdaptiveDialog title='Toggle Master Library Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('lmaL_Id')} defaultValue={rowData.lmaL_Id} />
+                    {/* Register as number so zod validation receives a number (not a string) */}
+                    {/* <input type='hidden' {...register('lmaL_Id', { valueAsNumber: true })} value={rowData.lmaL_Id as any} /> */}
+                    <input type='hidden' {...register('lmaL_Id')} />
+
                     <p>
-                        Are you sure you want to delete <strong>{rowData.lmaL_LibraryName}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.lmaL_LibraryName}</strong>?
                     </p>
                     <FormError>{errors.lmaL_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>
@@ -69,8 +73,8 @@ export default function DeleteMasterLibraryForm({ rowData, onClose }: DeleteMast
                     <Button variant='secondary' onClick={closeDialog} type='button'>
                         Cancel
                     </Button>
-                    <Button type='submit' isLoading={isSubmitting} variant={'destructive'}>
-                        Delete
+                    <Button type='submit' isLoading={isSubmitting} variant={isActive ? 'destructive' : 'default'}>
+                        {isActive ? 'Deactivate' : 'Activate'}
                     </Button>
                 </AdaptiveFooter>
             </form>

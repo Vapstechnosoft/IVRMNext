@@ -55,3 +55,28 @@ export const masterPublisherSchema = {
         lmP_Id: deleteIdSchema('lmP_Id')
     })
 };
+
+export const masterAuthorSchema = {
+    addOrUpdate: z.object({
+        lmA_Id: z.number().nonnegative().optional(), // optional when creating new record
+        lmA_AuthorName: z.string({ message: 'Author Name is required' }).min(2).max(100),
+        lmA_MobileNo: z.string({ message: 'Mobile No is required' }).min(10).max(15),
+        lmA_Address: z.string({ message: 'Address is required' }).min(2).max(200),
+        lmA_EMailId: z.string({ message: 'Email is required' }).email(),
+        lmA_PhoneNo: z.string({ message: 'Phone No is required' }).min(10).max(15)
+    }),
+    delete: z.object({
+        lmA_Id: deleteIdSchema('lmA_Id')
+    })
+};
+
+export const masterLanguageSchema = {
+    addOrUpdate: z.object({
+        lmL_Id: z.number().nonnegative().optional(), // optional when creating new record
+        lmL_LanguageName: z.string({ message: 'Language Name is required' }).min(2).max(100),
+        lmL_LanguageCode: z.string({ message: 'Language Code is required' }).min(2).max(100)
+    }),
+    delete: z.object({
+        lmL_Id: deleteIdSchema('lmL_Id')
+    })
+};

@@ -10,6 +10,8 @@ import { Plus, X } from 'lucide-react';
 import { use, useEffect } from 'react';
 import AddMasterLibraryForm from './_components/add-form';
 import { masterLibraryColumns } from './_components/columns';
+//import UpdateMasterLibraryForm from './_components/update-form';
+import ToggleMasterLibraryForm from './_components/toggle-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -87,10 +89,12 @@ function FormSections({ refetch }: { refetch: () => void }) {
     const {
         isAddFormOpen,
         isEditFormOpen,
-        isDeleteFormOpen,
+        isToggleFormOpen,
+        //isDeleteFormOpen,
         selectedRow,
         closeAddForm,
-        closeDeleteForm,
+        closeToggleForm,
+
         // closeEditForm,
         addFormRef
         // editFormRef
@@ -139,8 +143,8 @@ function FormSections({ refetch }: { refetch: () => void }) {
                 </div>
             )}
 
-            {/* Delete Form */}
-            {/* {isDeleteFormOpen && selectedRow && (
+            {/* Delete Form
+            {isDeleteFormOpen && selectedRow && (
                 <DeleteMasterLibraryForm
                     rowData={selectedRow}
                     onClose={closeDeleteForm}
@@ -151,9 +155,12 @@ function FormSections({ refetch }: { refetch: () => void }) {
                 />
             )} */}
 
+            {/* Toggle Form */}
+            {isToggleFormOpen && selectedRow && <ToggleMasterLibraryForm rowData={selectedRow} onClose={closeToggleForm} />}
+
             {/* Edit Form */}
             {/* {isEditFormOpen && selectedRow && (
-                <UpdateMasterClassForm
+                <UpdateMasterLibraryForm
                     rowData={selectedRow}
                     onClose={closeDeleteForm}
                     onSuccess={() => {

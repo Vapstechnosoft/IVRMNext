@@ -22,7 +22,7 @@ interface UpdateMasterClassFormProps {
     selectedRow: IMasterLibraryList;
 }
 
-export default function UpdateMasterClassForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterClassFormProps) {
+export default function UpdateMasterLibraryForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterClassFormProps) {
     const { refetchAll } = useMasterLibrary();
 
     const {

@@ -2398,6 +2398,54 @@ export async function getUserAccessibleModules() {
                                             url: '/library/masters/librarypublisher',
                                             title: 'Library Publisher',
                                             description: 'Library Master Publisher Details'
+                                        },
+                                        {
+                                            id: 30004,
+                                            name: 'Master Author',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/masterauthor',
+                                            title: 'Library Author',
+                                            description: 'Library Master Author Details'
+                                        },
+                                        {
+                                            id: 30004,
+                                            name: 'Master Language',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/masterlanguage',
+                                            title: 'Library Language',
+                                            description: 'Library Master Language Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Transactions',
+                                    icon: 'BookOpen',
+
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'testing',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/masterlibrary',
+                                            title: 'testing',
+                                            description: 'testing'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Reports',
+                                    icon: 'BookOpen',
+
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'testing',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/masterlibrary',
+                                            title: 'testing',
+                                            description: 'testing'
                                         }
                                     ]
                                 }
