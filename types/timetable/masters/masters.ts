@@ -63,3 +63,49 @@ export interface IStaffDropdownList {
     createdDate: string;
     updatedDate: string;
 }
+
+export interface ICategoryClassMapping {
+    academicName: string;
+    acdlist: any | null;
+    asmaY_Id: number;
+    asmcL_Id: number;
+    binddetails: any | null;
+    categoryName: string;
+    categorylist: any | null;
+    className: string;
+    classlist: any | null;
+    clssids: any | null;
+    createdDate: string | null;
+    updatedDate: string | null;
+    detailslist: any | null;
+    mI_Id: number;
+    message: string | null;
+    returnMsg: string | null;
+    returnval: boolean;
+    roleId: number;
+    userId: number;
+    ttcC_Id: number;
+    ttcC_ActiveFlag: boolean;
+    ttmC_Id: number;
+}
+
+export interface ITimeTableMasterCategory {
+    ttmC_Id: number;
+    ttmC_CategoryName: string;
+    ttmC_ActiveFlag: boolean;
+
+    mI_Id: number;
+    asmaY_Id: number;
+
+    academiclist: any | null;
+    asmayYear: string | null;
+
+    categorylist: any | null;
+    categorylistedit: any | null;
+
+    returnduplicatestatus: any | null;
+    returnval: boolean;
+
+    createdDate: string;
+    updatedDate: string;
+}

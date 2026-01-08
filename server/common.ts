@@ -2572,6 +2572,22 @@ export async function getUserAccessibleModules() {
                                             url: '/timetable/masters/subjectabbreviations',
                                             title: 'Subject Abbreviation',
                                             description: 'Manage Subject Abbreviation Details'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Category Class Mapping',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/timetable/masters/categoryclassmapping',
+                                            title: 'Category Class Mapping',
+                                            description: 'Manage Category Class Mapping Details'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Master Category',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/timetable/masters/mastercategory',
+                                            title: 'Master Category',
+                                            description: 'Manage Master Category Details'
                                         }
                                     ]
                                 }

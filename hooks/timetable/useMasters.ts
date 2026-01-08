@@ -1,4 +1,5 @@
 import { TIMETABLE_QUERY_KEYS } from '@/constants/Timetable-query-keys';
+import { getMasterCategoryDetails } from '@/server/timetable/masters/masterCategory';
 import { getMasterBuildingDetails } from '@/server/timetable/masters/masterbuilding';
 import { getMasterDayDetails } from '@/server/timetable/masters/masterday';
 import { getStaffAbbreviationDetails, getStaffDropDown } from '@/server/timetable/masters/staffabbreviation';
@@ -91,6 +92,24 @@ export const useStaffDropDown = (searchParams?: ApiSearchparams) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [TIMETABLE_QUERY_KEYS.MASTER_STAFF_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useTimeTableMasterCategory = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_TIMETABLE_CATEGORY, searchParams ?? {}],
+            queryFn: async () => getMasterCategoryDetails(searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_TIMETABLE_CATEGORY]
             });
         }
     };

@@ -7,7 +7,7 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 
 import { useMasterBuilding } from '@/hooks/timetable/useMasters';
-import type { IMasterBuildingList, IMasterDayList } from '@/types/timetable/masters/masters';
+import type { IMasterBuildingList } from '@/types/timetable/masters/masters';
 import AddMasterBuildingForm from './_components/add-form';
 import { masterBuildingsColumns } from './_components/columns';
 import ToggleMasterBuildingtForm from './_components/toggle-form';
@@ -43,7 +43,7 @@ function MasterBuildingPageContent({
     error: any;
     refetchAll: any;
 }) {
-    const { openAddForm } = useFormContext<IMasterDayList>();
+    const { openAddForm } = useFormContext<IMasterBuildingList>();
     const tableProps = useDataTableProps(response);
 
     return (

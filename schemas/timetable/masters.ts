@@ -53,3 +53,13 @@ export const subjectabbreviationsSchema = {
         ttmsuaB_Id: deleteIdSchema('ttmsuaB_Id')
     })
 };
+
+export const masterTimeTableCategorySchema = {
+    addOrUpdate: z.object({
+        ttmC_Id: z.number().optional(),
+        ttmC_CategoryName: createStringOnlySchema('Category Name', 1, 100)
+    }),
+    delete: z.object({
+        ttmC_Id: deleteIdSchema('ttmC_Id')
+    })
+};
