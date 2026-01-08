@@ -20,7 +20,14 @@ export async function saveThirdTabApi(data: any) {
 }
 export async function saveFourthTabApi(data: any) {
     const url = '/StudentAdmissionFacade/savefourthtab';
-    return await api.post<any>('admission', url, data);
+    try {
+        return await api.post<any>('admission', url, data);
+    } catch (err: any) {
+        console.error('[Server] saveFourthTabApi error:', err);
+        // Extract a user-friendly message when possible
+        const message = err?.response?.data?.message || err?.message || 'Failed to save step 4';
+        return { success: false, message } as any;
+    }
 }
 
 export async function saveFifthTabApi(data: any) {

@@ -61,7 +61,7 @@ export const studentAdmissionFormSchema = {
             amsT_FirstName: createStringOnlySchema('First Name', 1, 100),
             amsT_MiddleName: createStringOnlySchema('Middle Name', 1, 100),
             amsT_LastName: createStringOnlySchema('Last Name', 1, 100),
-            amsT_RegistrationNo: createAllAllowedRequired('Registration No', 1, 50),
+            amsT_RegistrationNo: createAllAllowedRequired('Registration Number', 1, 50),
             asmcL_Id: z.number().int({ message: 'Class is required' }),
             amsT_AdmissionNo: createAllAllowedRequired('Admission No', 1, 50),
             caste_Id: z.coerce.number().int({ message: 'Caste is required' }),
@@ -71,10 +71,10 @@ export const studentAdmissionFormSchema = {
             pasR_Age: z.number().int({ message: 'Age is required' }),
             imC_Id: createStringOnlySchema('Caste', 1, 100),
             amsT_SubCaste: createStringOnlyOptionalSchema('Sub Caste', 1, 100),
-            amsT_BirthCertNO: createOptionalAlphaNumericSchema('Birth Certificate No', 1, 50),
-            amsT_CasteCertiNo: createOptionalAlphaNumericSchema('Caste Certificate No', 1, 50),
+            amsT_BirthCertNO: createOptionalAlphaNumericSchema('Birth Certificate Number', 1, 50),
+            amsT_CasteCertiNo: createOptionalAlphaNumericSchema('Caste Certificate Number', 1, 50),
             amsT_BiometricId: createOptionalAlphaNumericSchema('Biometric Id', 1, 50),
-            amsT_RFCardNo: createAllAllowedOptional('RF Card No', 1, 50),
+            amsT_RFCardNo: createOptionalAlphaNumericSchema('RF Card Number', 1, 50),
             amsT_BloodGroup: createOptionalStringSchema('Blood Group', 1, 50),
             studentCategoryId: z.number().int({ message: 'Student Category is required' }),
             amsT_DOB: z.date({ message: 'Date Of Birth is required' }),
@@ -82,14 +82,14 @@ export const studentAdmissionFormSchema = {
             //ecs flag
             amsT_ECSFlag: z.number().int({ message: 'ECS Flag is required' }),
 
-            asecS_AccountNo: createNumberOnlyStringSchema('Bank Account No', 1, 50).optional(),
+            asecS_AccountNo: createNumberOnlyStringSchema('Bank Account Number', 1, 50).optional(),
             asecS_BankName: createStringOnlySchema('Bank Name', 1, 100).optional(),
             asecS_AccountHolderName: createStringOnlySchema('Account Holder Name', 1, 100).optional(),
             asecS_AccountType: createStringOnlySchema('Account Type', 1, 50).optional(),
             asecS_MICRNo: createNumberOnlyStringSchema('MICR Code', 1, 20).optional(),
 
             //normal bank details
-            amsT_BankAccountNo: createOptionalNumberOnlyStringSchema('Bank Account No', 1, 50).optional(),
+            amsT_BankAccountNo: createOptionalNumberOnlyStringSchema('Bank Account Number', 1, 50).optional(),
             amsT_BankName: createStringOnlySchema('Bank Name', 1, 100).optional(),
             amsT_BankIFSCCode: createAlphanumericSchema('IFSC Code', 1, 20).optional(),
             amsT_BankBranch: createStringOnlySchema('Branch Name', 1, 100).optional(),
@@ -387,7 +387,7 @@ export const studentAdmissionFormSchema = {
                             .refine((v) => !v || (v.length >= 7 && v.length <= 20), 'Invalid phone number')
                             .refine((v) => !v || /^[0-9+\- ]+$/.test(v), 'Invalid phone format'),
 
-                        guardianEmail: createEmailSchema('Guardian Email', 1, 150).optional(),
+                        guardianEmail: createEmailSchema('Guardian Email', 1, 150, true),
                         guardianAddress: createOptionalStringWithLettersSchema('Guardian Address', 1, 200)
                     })
                 )
@@ -427,18 +427,18 @@ export const studentAdmissionFormSchema = {
             amsT_Town: createStringOnlyOptionalSchema('Town', 1, 100).optional(),
             amsT_Village: createStringOnlyOptionalSchema('Village', 1, 100).optional(),
 
-            //Siblings details
-            amsT_NoOfSiblings: z.coerce.number().optional(),
-            amsT_NoOfSiblingsSchool: z.coerce.number().optional(),
-            amsT_NoOfSiblingsOtherSchool: z.coerce.number().optional(),
+            // Siblings count fields validated as numeric-only strings (optional)
+            amsT_NoOfSiblings: createOptionalNumberOnlyStringSchema('No of Siblings', 1, 2),
+            amsT_NoOfSiblingsSchool: createOptionalNumberOnlyStringSchema('No of Siblings in School', 1, 2),
+            amsT_NoOfSiblingsOtherSchool: createOptionalNumberOnlyStringSchema('No of Siblings in Other School', 1, 2),
 
-            amsT_Noofbrothers: z.coerce.number().optional(),
-            amsT_NoOfElderBrothers: z.coerce.number().optional(),
-            amsT_NoOfYoungerBrothers: z.coerce.number().optional(),
+            amsT_Noofbrothers: createOptionalNumberOnlyStringSchema('No of Brothers', 1, 2),
+            amsT_NoOfElderBrothers: createOptionalNumberOnlyStringSchema('No of Elder Brothers', 1, 2),
+            amsT_NoOfYoungerBrothers: createOptionalNumberOnlyStringSchema('No of Younger Brothers', 1, 2),
 
-            amsT_Noofsisters: z.coerce.number().optional(),
-            amsT_NoOfElderSisters: z.coerce.number().optional(),
-            amsT_NoOfYoungerSisters: z.coerce.number().optional(),
+            amsT_Noofsisters: createOptionalNumberOnlyStringSchema('No of Sisters', 1, 2),
+            amsT_NoOfElderSisters: createOptionalNumberOnlyStringSchema('No of Elder Sisters', 1, 2),
+            amsT_NoOfYoungerSisters: createOptionalNumberOnlyStringSchema('No of Younger Sisters', 1, 2),
 
             //Other Details
             pasA_AdmittingReason: createOptionalStringSchema('Admitting Reason', 1, 250),

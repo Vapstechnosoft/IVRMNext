@@ -21,7 +21,7 @@ export default function StudentApplicationPage(props: {
 }) {
     const searchParams = use(props.searchParams);
     const { data: activePreadmission } = useActivePreadmissionDetails();
-    const { data: response, isLoading, error, refetch } = useGetAllAdmissionLists(activePreadmission?.data?.asmaY_Id ?? 0, searchParams);
+    const { data: response, isLoading, error, refetch } = useGetAllAdmissionLists(searchParams);
     const { data: masterConfig } = useAcademicYearMasterConfiguration(activePreadmission?.data?.asmaY_Id ?? 0);
 
     return (
@@ -61,6 +61,13 @@ function StudentApplicationPageContent({
             window.location.reload();
         }
     }, [session?.data?.role]);
+
+    // Listen for global admission changes and refetch the table when they occur
+    useEffect(() => {
+        const handler = () => refetch();
+        window.addEventListener('admission:changed', handler as EventListener);
+        return () => window.removeEventListener('admission:changed', handler as EventListener);
+    }, [refetch]);
 
     const onCloseSuccessDialog = () => {
         setSuccessOpen(false);

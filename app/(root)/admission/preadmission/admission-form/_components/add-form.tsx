@@ -291,9 +291,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [watchedGuardians]);
 
-    // Whether there is any guardian with content that is not saved yet
+    // Whether there is any guardian with content that is not saved yet (only on Step 4)
     const hasUnsavedGuardian = useMemo(() => {
-        if (currentStep !== 3) return false;
+        if (currentStep !== 4) return false;
         const arr = Array.isArray(watchedGuardians) ? watchedGuardians : [];
         for (let i = 0; i < arr.length; i++) {
             const g = arr[i];
@@ -814,10 +814,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     };
 
     const nextStep = async () => {
-        // Block progression if there are unsaved guardian edits on Step 3
+        // Block progression if there are unsaved guardian edits on Step 4
         try {
             // Immediate check using current form values to avoid stale memo
-            if (currentStep === 3) {
+            if (currentStep === 4) {
                 const currentGuardians = (getValues('guardian') || []) as any[];
                 for (let i = 0; i < currentGuardians.length; i++) {
                     const g = currentGuardians[i] || {};

@@ -199,18 +199,57 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         }>
     >([]);
 
-    // Persisted amsT_Id returned from server after saving Step 1
     const [savedAmsTId, setSavedAmsTId] = useState<number | null>(null);
 
-    // Helper to consistently resolve which amsT id to send to server
     const getAmsTIdToUse = () => savedAmsTId ?? (Number(getValues('amsT_Id' as any) ?? 0) || 0);
 
-    // If this component is opened for editing, `rowData` will be provided by the FormProvider's
-    // `selectedRow`. Normalise the payload and `reset()` the react-hook-form state so fields autofill.
     useEffect(() => {
         if (!rowData) return;
 
-        const payload = { ...rowData } as any;
+        let payload = { ...rowData } as any;
+
+        const hasTabbed = Boolean(
+            (rowData && (rowData.firstTab || rowData.secondTab || rowData.thirdTab)) ||
+                (rowData?.data && (rowData.data.firstTab || rowData.data.secondTab || rowData.data.thirdTab))
+        );
+
+        if (hasTabbed) {
+            const src = rowData.firstTab ? rowData : rowData.data ? rowData.data : rowData;
+            const combined = {
+                ...(src.firstTab || {}),
+                ...(src.secondTab || {}),
+                ...(src.thirdTab || {}),
+                ...(src.fourthTab || {}),
+                ...(src.fifthTab || {}),
+                ...(src.lastTab || {})
+            };
+
+            payload = {
+                ...combined,
+                // normalize arrays and legacy shapes
+                adm_M_Student_EmailIdDTO: src.firstTab?.emailIds || src.emailIds || src.adm_M_Student_EmailIdDTO || [],
+                mobileNos: src.firstTab?.mobileNos || src.mobileNos || [],
+                previousSchools: src.previousSchools || src.previous_schools || combined.previousSchools || [],
+                siblings: src.siblings || src.student_siblings || combined.siblings || [],
+                guardian: src.guardians || src.guardian || combined.guardian || [],
+                selectedSourceDetails: (src.selectedSourceDetails || src.selectedSource || src.student_sources || []).map((s: any) => ({
+                    pamS_Id: String(s.pamS_Id),
+                    pamS_SourceName: s.pamS_SourceName || s.name || ''
+                })),
+                selectedRefrenceDetails: (src.selectedRefrenceDetails || src.selectedReference || src.student_refrences || []).map(
+                    (r: any) => ({
+                        pamR_Id: String(r.pamR_Id),
+                        pamR_ReferenceName: r.pamR_ReferenceName || r.name || ''
+                    })
+                ),
+                selectedDocuments: (src.student_documents || src.selectedDocuments || []).map((d: any) => ({
+                    pasrD_Id: d.pasrD_Id,
+                    pasR_Id: d.pasR_Id,
+                    amsmD_Id: d.amsmD_Id,
+                    document_Path: d.document_Path
+                }))
+            };
+        }
 
         payload.mobileNos = Array.isArray(payload.mobileNos) ? payload.mobileNos : payload.mobileNos || [];
         // Normalize email sources into an array of objects: { amsT_emailId: string }
@@ -295,10 +334,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             setMotherSignature(payload.motherSignatureUrl ? { path: payload.motherSignatureUrl } : null);
 
             setSavedAmsTId(Number(payload.amsT_Id ?? payload.amsTId ?? null));
-            // Debug: log what email data we received and what RHF has after reset
-            // eslint-disable-next-line no-console
+
             console.debug('[UpdateAdmission] payload.adm_M_Student_EmailIdDTO:', payload.adm_M_Student_EmailIdDTO);
-            // eslint-disable-next-line no-console
             console.debug('[UpdateAdmission] getValues email array after reset:', getValues('adm_M_Student_EmailIdDTO'));
         } catch (e) {
             console.error('Error applying rowData to local state', e);
@@ -397,9 +434,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [watchedGuardians]);
 
-    // Whether there is any guardian with content that is not saved yet
     const hasUnsavedGuardian = useMemo(() => {
-        if (currentStep !== 3) return false;
+        if (currentStep !== 4) return false;
         const arr = Array.isArray(watchedGuardians) ? watchedGuardians : [];
         for (let i = 0; i < arr.length; i++) {
             const g = arr[i];
@@ -510,10 +546,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         refetchMotherPresentState();
 
         refetchBirthState();
-        // refetchPreadmissionDocuments removed
     };
 
-    // Component for a single previous-school row's country/state selects.
     const PreviousSchoolRow = ({ idx }: { idx: number }) => {
         const countryId = watch(`previousSchools.${idx}.countryId` as const) as any;
         const { data: prevStates, isLoading: prevStatesLoading } = useStateDropdown(Number(countryId));
@@ -587,11 +621,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
     const saveFirstTab = async (formData: any) => {
         try {
-            // Guard: ensure minimal required fields are present before calling API
-            // This prevents any code path (including forced/auto-save) from calling server with incomplete data.
             const requiredFields = ['amsT_FirstName', 'amsT_LastName', 'asmcL_Id', 'amsT_Date', 'amsT_DOB'];
 
-            // If any required field is missing in formData, abort
             const missingRequired = requiredFields.filter((k) => {
                 const v = formData?.[k];
                 return v === undefined || v === null || (typeof v === 'string' && v.trim() === '');

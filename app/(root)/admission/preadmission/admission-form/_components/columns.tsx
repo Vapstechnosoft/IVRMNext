@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Edit } from 'lucide-react';
+import { Download, Edit } from 'lucide-react';
 
 import { ROLES } from '@/constants';
 
@@ -96,7 +96,55 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
     {
         accessorKey: 'photoUrl',
         header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='Photo' />,
-        cell: ({ row }) => <div>{row.getValue('photoUrl')}</div>,
+        cell: ({ row }) => {
+            const photo = row.getValue('photoUrl') as string | null;
+
+            const handleDownload = async () => {
+                if (!photo) {
+                    toast.error('No photo available to download');
+                    return;
+                }
+
+                try {
+                    const res = await fetch(photo);
+                    if (!res.ok) throw new Error('Network response was not ok');
+                    const blob = await res.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    const filename = photo.split('/').pop()?.split('?')[0] || 'photo.jpg';
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    URL.revokeObjectURL(url);
+                } catch (err) {
+                    // eslint-disable-next-line no-console
+                    console.error('Download failed', err);
+                    toast.error('Unable to download photo');
+                }
+            };
+
+            return (
+                <div className='flex items-center gap-2'>
+                    {photo ? (
+                        <img
+                            src={String(photo)}
+                            alt='Student profile'
+                            className='h-8 w-8 cursor-pointer rounded object-cover'
+                            onClick={handleDownload}
+                        />
+                    ) : (
+                        <div className='flex h-8 w-8 items-center justify-center rounded bg-gray-100 text-xs'>N/A</div>
+                    )}
+                    <div>
+                        <Button type='button' variant='ghost' size='sm' onClick={handleDownload} className='p-1'>
+                            <Download className='h-4 w-4' />
+                        </Button>
+                    </div>
+                </div>
+            );
+        },
         enableSorting: false,
         enableHiding: true
     },
