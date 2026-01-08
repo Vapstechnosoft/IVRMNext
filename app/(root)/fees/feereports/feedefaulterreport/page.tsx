@@ -1505,7 +1505,9 @@ export default function FeeDefaulterReport() {
 
                                     {/* Bus Route */}
                                     <div className='space-y-3'>
-                                        <Label className='font-semibold text-lg'>Bus Route</Label>
+                                        <Label className='font-semibold text-lg'>
+                                            Bus Route<span className='text-red-500'>*</span>
+                                        </Label>
                                         <Card className='border bg-gray-50 p-4'>
                                             {/* <div className='max-h-64 space-y-3 overflow-y-auto'>
                                              
@@ -2390,6 +2392,7 @@ export default function FeeDefaulterReport() {
                                                                         </tr> */}
                                                                     </tbody>
                                                                 </table>
+                                                                <div>Total Records : {studentreportData.length}</div>
                                                             </div>
                                                         )}
                                                     </div>

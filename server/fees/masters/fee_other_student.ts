@@ -5,7 +5,10 @@ import type { ApiSearchparams } from '@/types';
 import type { MasterFeeOtherStudentType } from '@/types/fees/masters/masters';
 
 export async function getFeeOtherStudent(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'fmosT_StudentName,fmosT_StudentId,fmosT_StudentEmailId,fmosT_StudentMobileNo'
+    );
     const url = `/FeeMasterOtherStudent/master-other-students-list?${urlParams}`;
     return await api.get<MasterFeeOtherStudentType[]>('fees', url);
 }

@@ -18,8 +18,17 @@ import type {
     StudentFeeGroupSummaryById
 } from '@/types/fees/masters/masters';
 
+// export async function getStudentFeeGroupMapping(searchParams?: ApiSearchparams) {
+//     const urlParams = getSearchParamsUrl(searchParams ?? {});
+//     const url = `/StudentFeeGroupMappingFacade/getalldetails?${urlParams}`;
+//     return await api.get<IMasterStudentFeeGroupMappingList[]>('fees', url);
+// }
+
 export async function getStudentFeeGroupMapping(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'amsT_FirstName,amsT_MiddleName,amsT_LastName,asmcL_ClassName,asmC_SectionName,amsT_Mobile,fmG_GroupName'
+    );
     const url = `/StudentFeeGroupMappingFacade/getalldetails?${urlParams}`;
     return await api.get<IMasterStudentFeeGroupMappingList[]>('fees', url);
 }

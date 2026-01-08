@@ -141,11 +141,11 @@ export default function UpdateFeePrivilegeForm({ onSuccess, selectedRow, classNa
 
             try {
                 // Set basic values from selected row
-                //const academicYearId = selectedRow.asmaY_Id?.toString() ?? '';
+                const academicYearId = selectedRow.asmaY_Id?.toString() ?? '';
                 const groupId = selectedRow.fmG_Id?.toString() ?? '';
                 const roleId = selectedRow.ivrmR_Id?.toString() ?? '';
 
-                const academicYearId = '231';
+                //  const academicYearId = '231';
 
                 // Set form values
                 setValue('academicYear', academicYearId);
