@@ -63,3 +63,15 @@ export const masterTimeTableCategorySchema = {
         ttmC_Id: deleteIdSchema('ttmC_Id')
     })
 };
+
+export const categoryClassMappingSchema = {
+    addOrUpdate: z.object({
+        asmay_id: z.number().int({ message: 'Academic Year is required' }),
+        ttmC_Id: z.number().int({ message: 'Category is required' }),
+        calssids: z.array(z.string()).nonempty('Please select at least one Class')
+    })
+    // ,
+    // delete: z.object({
+    //     ttmB_Id: deleteIdSchema('ttmB_Id')
+    // })
+};

@@ -6,7 +6,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 
-import { useMasterBuilding } from '@/hooks/timetable/useMasters';
+import { useTimeTableCategoryClassMapping } from '@/hooks/timetable/useMasters';
 import type { ICategoryClassMapping } from '@/types/timetable/masters/masters';
 import AddCategoryClassMappingForm from './_components/add-form';
 import { categoryClassMappingColumns } from './_components/columns';
@@ -20,7 +20,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterCategoryClassMappingPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error, refetchAll } = useMasterBuilding(searchParams);
+    const { data: response, isLoading, error, refetchAll } = useTimeTableCategoryClassMapping(searchParams);
 
     console.log('response', response);
 

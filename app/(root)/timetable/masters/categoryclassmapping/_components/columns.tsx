@@ -39,15 +39,16 @@ export const categoryClassMappingColumns: ColumnDef<ICategoryClassMapping>[] = [
         cell: ({ row }) => <div>{row.getValue('className')}</div>,
         enableSorting: true,
         enableHiding: true
-    },
-
-    {
-        id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
-        accessorFn: (row: any) => row,
-        enableSorting: false,
-        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
+    //,
+
+    // {
+    //     id: 'actions',
+    //     header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
+    //     accessorFn: (row: any) => row,
+    //     enableSorting: false,
+    //     cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
+    // }
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: ICategoryClassMapping }) {

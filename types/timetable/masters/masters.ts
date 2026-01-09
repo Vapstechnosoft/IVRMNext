@@ -66,31 +66,66 @@ export interface IStaffDropdownList {
 
 export interface ICategoryClassMapping {
     academicName: string;
-    acdlist: any | null;
-    asmaY_Id: number;
-    asmcL_Id: number;
-    binddetails: any | null;
-    categoryName: string;
-    categorylist: any | null;
     className: string;
-    classlist: any | null;
-    clssids: any | null;
-    createdDate: string | null;
-    updatedDate: string | null;
-    detailslist: any | null;
-    mI_Id: number;
-    message: string | null;
-    returnMsg: string | null;
-    returnval: boolean;
-    roleId: number;
-    userId: number;
+    categoryName: string;
+    updatedDate: string;
     ttcC_Id: number;
-    ttcC_ActiveFlag: boolean;
-    ttmC_Id: number;
 }
 
 export interface ITimeTableMasterCategory {
     ttmC_Id: number;
     ttmC_CategoryName: string;
     ttmC_ActiveFlag: boolean;
+}
+
+export interface ITimeTableMasterAcademicYear {
+    asmaY_Id: number;
+    mI_Id: number;
+    asmaY_Year: string;
+    asmaY_From_Date: string;
+    asmaY_To_Date: string;
+    asmaY_PreAdm_F_Date: string;
+    asmaY_PreAdm_T_Date: string;
+    asmaY_Order: number;
+    asmaY_ActiveFlag: number;
+    asmaY_Pre_ActiveFlag: number;
+    is_Active: boolean;
+    asmaY_ReggularFlg: boolean;
+    asmaY_NewFlg: boolean;
+    asmaY_NewAdmissionFlg: boolean;
+    asmaY_Cut_Of_Date: string;
+    asmaY_CreatedBy: number;
+    asmaY_UpdatedBy: number;
+    asmaY_AcademicYearCode: string;
+    asmaY_RegularFeeFDate: string;
+    asmaY_RegularFeeTDate: string;
+    createdDate: string;
+    updatedDate: string;
+}
+export interface ITimeTableCategoryDropDownData {
+    ttmC_Id: number;
+    mI_Id: number;
+    ttmC_CategoryName: string;
+    createdDate: string;
+    updatedDate: string;
+    ttmC_ActiveFlag: boolean;
+}
+
+export interface ITimeTableClassDropDownData {
+    asmcL_Id: number;
+    mI_Id: number;
+    asmcL_ClassName: string;
+    asmcL_ClassCode: string;
+    asmcL_MinAgeYear: number;
+    asmcL_MinAgeMonth: number;
+    asmcL_MinAgeDays: number;
+    asmcL_MaxAgeYear: number;
+    asmcL_MaxAgeMonth: number;
+    asmcL_MaxAgeDays: number;
+    asmcL_Order: number;
+    asmcL_MaxCapacity: number;
+    asmcL_ActiveFlag: boolean;
+    asmcL_PreadmFlag: number;
+    createdDate: string;
+    updatedDate: string;
 }
