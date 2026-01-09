@@ -562,10 +562,22 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                                                     <SelectItem value='nodata' disabled>
                                                         No Results
                                                     </SelectItem>
+                                                ) : // studentDetails?.map((item: any) => (
+                                                //     <SelectItem key={item.amsT_Id} value={item.amsT_Id.toString()}>
+                                                //         {item.studentName} :{item.amsT_RegistrationNo}
+                                                //     </SelectItem>
+                                                // ))
+
+                                                nameType === 'NameReg.No' ? (
+                                                    studentDetails?.map((item: any) => (
+                                                        <SelectItem key={item.amsT_Id} value={item.amsT_Id.toString()}>
+                                                            {item.studentName} :{item.amsT_RegistrationNo}
+                                                        </SelectItem>
+                                                    ))
                                                 ) : (
                                                     studentDetails?.map((item: any) => (
                                                         <SelectItem key={item.amsT_Id} value={item.amsT_Id.toString()}>
-                                                            {item.studentName}
+                                                            {item.amsT_RegistrationNo} :{item.studentName}
                                                         </SelectItem>
                                                     ))
                                                 )}
