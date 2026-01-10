@@ -37,7 +37,7 @@ export default function AddMasterModeOfPaymentForm({ onSuccess, className = '' }
         try {
             const { ivrmmoD_ModeOfPayment, ivrmmoD_ModeOfPayment_Code } = data;
             const payload = {
-                mi_id: 30,
+                // mi_id: 30,
                 IVRMMOD_ModeOfPayment: ivrmmoD_ModeOfPayment,
                 IVRMMOD_ModeOfPayment_Code: ivrmmoD_ModeOfPayment_Code
             };

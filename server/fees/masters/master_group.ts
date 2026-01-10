@@ -6,7 +6,7 @@ import type { IMasterGroupList } from '@/types/fees/masters/masters';
 
 export async function getMasterGroup(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/fee_group/30?${urlParams}`;
+    const url = `/fee_group?${urlParams}`;
     return await api.get<IMasterGroupList[]>('fees', url);
 }
 
@@ -16,6 +16,6 @@ export async function addOrUpdateMasterGroup(data: any) {
 }
 
 export async function toggleMasterGroup(id: number) {
-    const url = `/fee_group/toggle_master_feegroup/30/${id}`;
+    const url = `/fee_group/toggle_master_feegroup/${id}`;
     return await api.put('fees', url);
 }

@@ -85,7 +85,7 @@ export default function UpdateMasterFeeGroupGroupingForm({
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload: SaveGroupGroupingPayload = {
-                mI_Id: 30,
+                // mI_Id: 30,
                 fmgG_Id: selectedRow.fmgG_Id,
                 fmgG_GroupName: data.fmgG_GroupName?.trim() || '',
                 fmgG_GroupCode: data.fmgG_GroupCode?.trim() || '',

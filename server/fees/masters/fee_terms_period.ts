@@ -13,13 +13,13 @@ import type {
 
 export async function getMasterTermsPeriod(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'fmtToMonth,fmtP_Year,fromMonth,yearname,termname');
-    const url = `FeeMasterTerms/GetMasterTermsPeriodList/21602?${urlParams}`;
+    const url = `FeeMasterTerms/GetMasterTermsPeriodList?${urlParams}`;
 
     return await api.get<IMasterTermsPeriodList[]>('fees', url);
 }
 
 export async function getFeeTermHeadDueDateGridList(asmay_id: number, fmt_id: number, fmh_id: number) {
-    const url = `/FeeMasterTerms/GetDueDates/30/${fmt_id}/${fmh_id}`;
+    const url = `/FeeMasterTerms/GetDueDates/${fmt_id}/${fmh_id}`;
     return await api.get<IFeeTermFeeHeadDueDateGridList[]>('fees', url);
 }
 
@@ -36,19 +36,19 @@ export async function deleteMasterTermPeriod(id: number) {
 
 export async function getheadsdropdown(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/FeeMasterTerms/fee_head_Dropdown/30?${urlParams}`;
+    const url = `/FeeMasterTerms/fee_head_Dropdown?${urlParams}`;
     return await api.get<IMasterHeadDropdownList[]>('fees', url);
 }
 
 export async function getinstallmentsdropdown(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/FeeMasterTerms/fee_installment_Dropdown/30?${urlParams}`;
+    const url = `/FeeMasterTerms/fee_installment_Dropdown?${urlParams}`;
     return await api.get<IMasterInstallmentsDropdownList[]>('fees', url);
 }
 
 export async function gettermsdropdown(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/FeeMasterTerms/fee_term_Dropdown/30?${urlParams}`;
+    const url = `/FeeMasterTerms/fee_term_Dropdown?${urlParams}`;
     return await api.get<IMasterTermDropdownList[]>('fees', url);
 }
 

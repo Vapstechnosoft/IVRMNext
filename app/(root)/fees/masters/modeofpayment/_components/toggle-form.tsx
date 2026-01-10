@@ -41,7 +41,7 @@ export default function ToggleMasterModeOfPaymentForm({ rowData, onClose }: Togg
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleModeOfPayment(30, Number(rowData.ivrmmoD_Id));
+            const response = await toggleModeOfPayment(Number(rowData.ivrmmoD_Id));
 
             if (response.success) {
                 toast.success(response.message);
