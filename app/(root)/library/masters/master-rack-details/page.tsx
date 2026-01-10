@@ -6,7 +6,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMasterRackDetails } from '@/hooks/library/useMasters';
 import type { IMasterRackDetails } from '@/types/library/masters/rack-details';
-import { Plus, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterRackForm from './_components/add-form';
 import { MasterRackDetailsColumns } from './_components/columns';
@@ -48,7 +48,9 @@ function MasterRackDetailsPageContent({
                 {/* Entry Form Section */}
                 <CollapsibleSection
                     title={isEditFormOpen ? 'EDIT RACK DETAILS' : 'RACK DETAILS ENTRY'}
-                    description={isEditFormOpen ? 'Update the details of the selected rack' : 'Fill in the details below to create a new rack entry'}
+                    description={
+                        isEditFormOpen ? 'Update the details of the selected rack' : 'Fill in the details below to create a new rack entry'
+                    }
                     defaultOpen={true}
                     variant='outline'
                     size='md'
@@ -101,11 +103,7 @@ function MasterRackDetailsPageContent({
 }
 
 function FormSections() {
-    const {
-        isToggleFormOpen,
-        selectedRow,
-        closeToggleForm
-    } = useFormContext<IMasterRackDetails>();
+    const { isToggleFormOpen, selectedRow, closeToggleForm } = useFormContext<IMasterRackDetails>();
 
     return (
         <>
