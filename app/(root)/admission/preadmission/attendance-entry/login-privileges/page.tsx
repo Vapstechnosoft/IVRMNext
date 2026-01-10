@@ -9,17 +9,16 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useLoginPrivileges } from '@/hooks/admission/preadmission/useLoginPrivilege';
+import { useGetLoginPrivilegeEmployees, useLoginPrivileges } from '@/hooks/admission/preadmission/useLoginPrivilege';
 import {
     useAcademicYearDropdown,
-    useClassTeacherEmployee,
     useMasterClassDropdown,
     useMasterSectionDropdown,
     useMasterSubjectDropdown
 } from '@/hooks/admission/preadmission/useMasters';
 import type { ILoginPrivilege, ILoginPrivilegeDTO } from '@/types/admission/preadmission/login_privilege';
 import { Loader2, X } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { loginPrivilegeColumns } from './_components/columns';
 
@@ -32,10 +31,18 @@ export default function LoginPrivilegePage() {
 }
 
 function LoginPrivilegePageContent() {
-    const { data: privileges, isLoading, refetch, createPrivilege, fetchDataByType, isSearching } = useLoginPrivileges();
+    const { data: initialData, isLoading, refetch, createPrivilege, fetchDataByType, isSearching } = useLoginPrivileges();
 
-    // Safety check for data array
-    const tableData = Array.isArray(privileges) ? privileges : (privileges as any)?.data || [];
+    // State for Table Data
+    const [tableData, setTableData] = useState<any[]>([]);
+
+    // Sync initial data
+    useEffect(() => {
+        if (initialData) {
+            const data = Array.isArray(initialData) ? initialData : (initialData as any)?.data || [];
+            setTableData(data);
+        }
+    }, [initialData]);
 
     const tableProps = {
         data: tableData,
@@ -53,6 +60,7 @@ function LoginPrivilegePageContent() {
                     refetch={refetch}
                     fetchDataByType={fetchDataByType}
                     isSearching={isSearching}
+                    onSearchSuccess={(data) => setTableData(data)}
                 />
 
                 <CollapsibleSection
@@ -82,14 +90,14 @@ interface PrivilegeFormProps {
     refetch: () => void;
     fetchDataByType: (data: any) => Promise<any>;
     isSearching: boolean;
+    onSearchSuccess: (data: any[]) => void;
 }
 
-function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching }: PrivilegeFormProps) {
+function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching, onSearchSuccess }: PrivilegeFormProps) {
     const { selectedRow, closeEditForm } = useFormContext<ILoginPrivilege>();
 
-    // Form State
-    const [role, setRole] = useState<string>('class_teacher'); // Default to class teacher as per image? Or subject teacher.
-    // Image 1 shows "Class Teacher" selected
+    // ... existing state ...
+    const [role, setRole] = useState<string>('class_teacher');
     const [selectedYearId, setSelectedYearId] = useState<string>('');
     const [selectedStaffId, setSelectedStaffId] = useState<string>('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -101,10 +109,12 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching 
     const [selectedClassSections, setSelectedClassSections] = useState<string[]>([]);
     const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
 
+    // ... hooks ...
+
     // Data Hooks
     const { data: yearData } = useAcademicYearDropdown();
     const MI_ID = 30; // Hardcoded MI_ID
-    const { data: staffData } = useClassTeacherEmployee(Number(selectedYearId));
+    const { data: staffData } = useGetLoginPrivilegeEmployees();
     const { data: classData } = useMasterClassDropdown();
     const { data: sectionData } = useMasterSectionDropdown();
     const { data: subjectData } = useMasterSubjectDropdown(MI_ID);
@@ -113,40 +123,22 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching 
     // Derived Lists with Safe Array Checks
     const academicYears = Array.isArray((yearData as any)?.data) ? (yearData as any)?.data : Array.isArray(yearData) ? yearData : [];
 
-    const staffList = Array.isArray((staffData as any)?.data) ? (staffData as any)?.data : Array.isArray(staffData) ? staffData : [];
+    const staffList = Array.isArray((staffData as any)?.employeeList)
+        ? (staffData as any)?.employeeList
+        : Array.isArray((staffData as any)?.data?.employeeList)
+          ? (staffData as any)?.data?.employeeList
+          : [];
 
-    const classes = Array.isArray((classData as any)?.data) ? (classData as any)?.data : Array.isArray(classData) ? classData : [];
+    // Removed unused classes/sections derivations if strictly relying on search results
 
-    const sections = Array.isArray((sectionData as any)?.data) ? (sectionData as any)?.data : Array.isArray(sectionData) ? sectionData : [];
-
-    const subjects = Array.isArray((subjectData as any)?.data) ? (subjectData as any)?.data : Array.isArray(subjectData) ? subjectData : [];
-
-    // Synthesize Class-Section List
-    const classSectionList = useMemo(() => {
-        if (!Array.isArray(classes) || !Array.isArray(sections)) return [];
-        const list: { id: string; label: string; classId: number; sectionId: number }[] = [];
-        classes.forEach((c: any) => {
-            sections.forEach((s: any) => {
-                list.push({
-                    id: `${c.asmcL_Id}-${s.asmS_Id}`,
-                    label: `${c.asmcL_ClassName} : ${s.asmC_SectionName}`,
-                    classId: c.asmcL_Id,
-                    sectionId: s.asmS_Id
-                });
-            });
-        });
-        return list;
-    }, [classes, sections]);
+    // State for Mapping Lists (populated from Search)
+    const [classSectionList, setMappingClassSections] = useState<any[]>([]);
+    const [subjects, setMappingSubjects] = useState<any[]>([]);
 
     // Handle Edit Mode Population
     useEffect(() => {
         if (selectedRow) {
             // Populate form when editing
-            // Note: In a real app we would map properly.
-            // For now, let's just simulate opening the form
-            // We would need to set year, staff, role from the selectedRow data
-            // Since DTO might differ from View Model, simplified here:
-            // Assuming selectedRow has the IDs needed or we can infer them
             if (selectedRow.asmaY_Id) setSelectedYearId(String(selectedRow.asmaY_Id));
             if (selectedRow.hrmE_Id) setSelectedStaffId(String(selectedRow.hrmE_Id));
             if (selectedRow.lp_role) {
@@ -166,72 +158,128 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching 
     const handleSubjectToggle = (id: string) => {
         setSelectedSubjects((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
     };
+
     const handleSearch = async () => {
-        if (!selectedYearId || !selectedStaffId) {
-            toast.error('Please select Academic Year and Staff');
+        if (!selectedYearId) {
+            toast.error('Please select Academic Year');
             return;
         }
 
         try {
-            // Explicitly passing Role as per user question
+            // Map Role to ASALU_EntryTypeFlag
+            let entryTypeFlag = 0;
+            // Subject Teacher = 0, Class Teacher = 1, Others = 2
+            if (role === 'subject_teacher') entryTypeFlag = 0;
+            else if (role === 'class_teacher') entryTypeFlag = 1;
+            else if (role === 'others') entryTypeFlag = 2;
+
             const searchPayload = {
-                asmaY_Id: Number(selectedYearId),
-                hrmE_Id: Number(selectedStaffId),
-                role: role
+                ASMAY_Id: Number(selectedYearId),
+                ASALU_EntryTypeFlag: entryTypeFlag
             };
 
-            console.log('Search Payload:', searchPayload); // For debugging
-            const result = await fetchDataByType(searchPayload);
+            console.log('Searching with payload:', searchPayload);
 
-            // Auto-populate logic if data exists
-            if (result && Array.isArray(result) && result.length > 0) {
-                if (role === 'subject_teacher') {
-                    // Map backend data to tempList structure if possible
-                    // Assuming result matches DTO details: { asmcL_Id, asmS_Id, ismS_Id }
-                    // We need to match these IDs back to labels.
-                    const mappedTemp = result
-                        .map((r: any, idx: number) => {
-                            const csObj = classSectionList.find((x) => x.classId === r.asmcL_Id && x.sectionId === r.asmS_Id);
-                            const subObj = subjects.find((s: any) => s.ismS_Id === r.ismS_Id);
-                            if (csObj && subObj) {
-                                return {
-                                    id: `loaded-${idx}`,
-                                    classSectionId: csObj.id,
-                                    classSectionLabel: csObj.label,
-                                    subjectId: String(r.ismS_Id),
-                                    subjectLabel: subObj.ismS_SubjectName,
-                                    asmcL_Id: r.asmcL_Id,
-                                    asmS_Id: r.asmS_Id,
-                                    ismS_Id: r.ismS_Id
-                                };
-                            }
-                            return null;
-                        })
-                        .filter(Boolean);
-                    // @ts-ignore
-                    setTempList(mappedTemp);
-                } else {
-                    // Class Teacher / Others
-                    const mappedSelection = result
-                        .map((r: any) => {
-                            const csObj = classSectionList.find((x) => x.classId === r.asmcL_Id && x.sectionId === r.asmS_Id);
-                            return csObj ? csObj.id : null;
-                        })
-                        .filter(Boolean);
-                    // @ts-ignore
-                    setSelectedClassSections(mappedSelection);
-                }
-                toast.success(`Loaded ${result.length} existing privileges`);
+            const result = await fetchDataByType(searchPayload);
+            console.log('Search Response Raw:', result);
+
+            // Handle various response structures
+            // Ensure we extract the inner 'data' object correctly
+            // If result has 'classSectionList' directly, use result.
+            // If result.data has it, use result.data.
+            // If result.data.data has it, use result.data.data.
+
+            let data: any = null;
+            if (result && Array.isArray(result.classSectionList)) {
+                data = result;
+            } else if (result?.data && Array.isArray(result.data.classSectionList)) {
+                data = result.data;
+            } else if (result?.data?.data && Array.isArray(result.data.data.classSectionList)) {
+                data = result.data.data;
             } else {
-                // No data, just show empty form
-                toast.info('No existing privileges found. Please add new.');
+                // Fallback to previous logic if array check fails (maybe it's null but exists?)
+                data = (result as any)?.data?.data || (result as any)?.data || result;
             }
 
-            setShowMapping(true);
+            console.log('Extracted Data Object:', data);
+
+            if (data) {
+                // 1. Populate Available Class-Sections
+                let csList: any[] = [];
+                console.log('Raw classSectionList:', data.classSectionList);
+
+                if (Array.isArray(data.classSectionList)) {
+                    const seenIds = new Set();
+                    csList = data.classSectionList.reduce((acc: any[], item: any) => {
+                        const uniqueId = `${item.asmcL_Id}-${item.asmC_Id}`;
+                        if (!seenIds.has(uniqueId)) {
+                            seenIds.add(uniqueId);
+                            acc.push({
+                                id: uniqueId, // Unique ID
+                                label: item.name || `${item.asmcL_ClassName || ''} : ${item.asmC_SectionName || ''}`,
+                                classId: item.asmcL_Id,
+                                sectionId: item.asmC_Id,
+                                nameRaw: item.name // Store for matching
+                            });
+                        }
+                        return acc;
+                    }, []);
+                    setMappingClassSections(csList);
+                    console.log('Mapped csList (Unique):', csList);
+                } else {
+                    console.warn('classSectionList is NOT an array');
+                    setMappingClassSections([]);
+                }
+
+                // 2. Populate Available Subjects
+                if (Array.isArray(data.subjectList)) {
+                    setMappingSubjects(data.subjectList);
+                } else {
+                    setMappingSubjects([]);
+                }
+
+                // 3. Populate Grid Table with Existing Privileges
+                let existingPrivileges: any[] = [];
+                if (Array.isArray(data.loginPrivileges)) {
+                    existingPrivileges = data.loginPrivileges;
+                    onSearchSuccess(existingPrivileges);
+                } else {
+                    onSearchSuccess([]);
+                }
+
+                // 4. Pre-select Checkboxes ("Remember all fields")
+                // User requested NO pre-selection: "nothing should be selected bydeafult"
+                setSelectedClassSections([]);
+
+                // const preSelectedIds: string[] = [];
+
+                // if (existingPrivileges.length > 0 && csList.length > 0) {
+                //     existingPrivileges.forEach((priv: any) => {
+                //         // Construct the name signature to match 'name' in classSectionList
+                //         const constructName = `${priv.asmcL_ClassName} - ${priv.asmC_SectionName}`;
+
+                //         // Find matching item in csList
+                //         const match = csList.find(c => c.nameRaw === constructName || c.nameRaw === constructName.trim());
+                //         if (match) {
+                //             preSelectedIds.push(match.id);
+                //         }
+                //     });
+                // }
+
+                // Set the selected IDs
+                // setSelectedClassSections(preSelectedIds);
+                // console.log('Pre-selected IDs:', preSelectedIds);
+
+                // If finding matches for Subject mapping (tempList)
+                // If Role is Subject Teacher, we might need to populate tempList differently
+                // But for now, user focus seems to be Class Teacher/Others class mapping
+
+                toast.success('Data fetched successfully');
+                setShowMapping(true);
+            }
         } catch (e) {
-            console.error(e);
-            // Even if fail, show mapping to allow adding new
-            setShowMapping(true);
+            console.error('Search Error:', e);
+            toast.error('Failed to fetch data');
         }
     };
 
@@ -312,48 +360,78 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching 
 
         setIsSubmitting(true);
         try {
-            let details: { asmcL_Id: number; asmS_Id: number; ismS_Id: number }[] = [];
+            const classSectionsPayload: { asmcL_Id: number; asmC_Id: number }[] = [];
+            const classSectionSubjectsPayload: { asmcL_Id: number; asmC_Id: number; subjectIds: number[] }[] = [];
 
-            if (role === 'subject_teacher') {
+            // Determine EntryTypeFlag
+            let entryTypeFlag = 0;
+            if (role === 'subject_teacher') entryTypeFlag = 0;
+            else if (role === 'class_teacher') entryTypeFlag = 1;
+            else if (role === 'others') entryTypeFlag = 2;
+
+            if (role === 'subject_teacher' || role === 'others') {
                 if (tempList.length === 0) {
                     toast.error('Please Add at least one mapping (Class-Section + Subject) before saving.');
                     setIsSubmitting(false);
                     return;
                 }
-                details = tempList.map((item) => ({
-                    asmcL_Id: item.asmcL_Id,
-                    asmS_Id: item.asmS_Id,
-                    ismS_Id: item.ismS_Id
-                }));
+
+                // Populate classSectionSubjects
+                const grouped = tempList.reduce(
+                    (acc, curr) => {
+                        const key = `${curr.asmcL_Id}-${curr.asmS_Id}`;
+                        if (!acc[key]) {
+                            acc[key] = {
+                                asmcL_Id: curr.asmcL_Id,
+                                asmC_Id: curr.asmS_Id,
+                                subjectIds: []
+                            };
+                        }
+                        acc[key].subjectIds.push(curr.ismS_Id);
+                        return acc;
+                    },
+                    {} as Record<string, { asmcL_Id: number; asmC_Id: number; subjectIds: number[] }>
+                );
+
+                Object.values(grouped).forEach((item) => {
+                    classSectionSubjectsPayload.push(item);
+                });
             } else {
-                // Class Teacher / Others
+                // Class Teacher (Only Class-Sections)
                 if (selectedClassSections.length === 0) {
                     toast.error('Please select at least one Class-Section');
                     setIsSubmitting(false);
                     return;
                 }
-                details = selectedClassSections.map((csId) => {
+
+                selectedClassSections.forEach((csId) => {
                     const [cId, sId] = csId.split('-').map(Number);
-                    return {
+                    classSectionsPayload.push({
                         asmcL_Id: cId,
-                        asmS_Id: sId,
-                        ismS_Id: 0 // No subject
-                    };
+                        asmC_Id: sId
+                    });
                 });
             }
 
             const payload: ILoginPrivilegeDTO = {
-                lp_role: role,
+                asalU_Id: 0, // 0 for Create
+                asalU_EntryTypeFlag: entryTypeFlag,
                 asmaY_Id: Number(selectedYearId),
                 hrmE_Id: Number(selectedStaffId),
-                details: details
+                mI_Id: MI_ID, // Use valid MI_ID
+                classSections: classSectionsPayload,
+                classSectionSubjects: classSectionSubjectsPayload
             };
 
+            console.log('Saving Payload:', JSON.stringify(payload, null, 2)); // Debug log
+
             await createPrivilege(payload);
-            handleClear();
-            refreshGrid(); // Refetch Data
+            handleClear(); // Clear form on success
+            // Note: success toast is handled by hook
+            refreshGrid();
         } catch (error) {
-            toast.error('Failed to save');
+            console.error(error);
+            // Error toast handled by hook
         } finally {
             setIsSubmitting(false);
         }
@@ -388,100 +466,101 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching 
                 size='md'
                 className='border-t-4 border-t-primary shadow-lg'>
                 <div className='p-6'>
-                    {/* Role Radio Group */}
-                    <div className='mb-2 text-center font-bold text-red-600'>Please Select Radio Button to Proceed</div>
-                    <div className='mb-6 flex justify-center'>
-                        <div className='flex items-center gap-6 rounded-md border bg-white p-3 shadow-sm'>
-                            <RadioGroup
-                                value={role}
-                                onValueChange={(val) => {
-                                    setRole(val);
-                                    setShowMapping(false); // Reset mapping if role changes
-                                    setTempList([]);
-                                    setSelectedClassSections([]);
-                                    setSelectedSubjects([]);
-                                }}
-                                className='flex items-center gap-6'>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='subject_teacher' id='r_sub' />
-                                    <Label htmlFor='r_sub'>Subject Teacher</Label>
-                                </div>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='class_teacher' id='r_class' />
-                                    <Label htmlFor='r_class'>Class Teacher</Label>
-                                </div>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='others' id='r_others' />
-                                    <Label htmlFor='r_others'>Others</Label>
-                                </div>
-                            </RadioGroup>
-                        </div>
+                    {/* Role Selection - Compact */}
+                    <div className='mb-6'>
+                        <Label className='mb-3 block font-medium text-muted-foreground text-sm'>
+                            Select Entry Type <span className='text-destructive'>*</span>
+                        </Label>
+                        <RadioGroup
+                            value={role}
+                            onValueChange={(val) => {
+                                setRole(val);
+                                setShowMapping(false);
+                                setTempList([]);
+                                setSelectedClassSections([]);
+                                setSelectedSubjects([]);
+                                setMappingClassSections([]);
+                                setMappingSubjects([]);
+                            }}
+                            className='flex flex-wrap items-center gap-6'>
+                            <div className='flex items-center space-x-2'>
+                                <RadioGroupItem value='subject_teacher' id='r_sub' />
+                                <Label htmlFor='r_sub' className='cursor-pointer font-normal'>
+                                    Subject Teacher
+                                </Label>
+                            </div>
+                            <div className='flex items-center space-x-2'>
+                                <RadioGroupItem value='class_teacher' id='r_class' />
+                                <Label htmlFor='r_class' className='cursor-pointer font-normal'>
+                                    Class Teacher
+                                </Label>
+                            </div>
+                            <div className='flex items-center space-x-2'>
+                                <RadioGroupItem value='others' id='r_others' />
+                                <Label htmlFor='r_others' className='cursor-pointer font-normal'>
+                                    Others
+                                </Label>
+                            </div>
+                        </RadioGroup>
                     </div>
 
-                    <div className='grid grid-cols-1 gap-6 md:grid-cols-12'>
-                        <div className='space-y-4 md:col-span-6 md:col-start-4'>
-                            {/* Academic Year */}
-                            <div className='grid grid-cols-4 items-center gap-4'>
-                                <Label className='col-span-1 text-right font-medium'>
-                                    Academic Year:<span className='text-destructive'>*</span>
-                                </Label>
-                                <div className='col-span-3'>
-                                    <Select
-                                        value={selectedYearId}
-                                        onValueChange={(val) => {
-                                            setSelectedYearId(val);
-                                            setSelectedStaffId(''); // Reset staff on year change
-                                        }}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder='2023-2024' /> {/* Placeholder from image */}
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {academicYears.map((y: any) => (
-                                                <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                    {y.asmaY_Year}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
+                    <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-2 lg:grid-cols-3'>
+                        {/* Academic Year */}
+                        <div className='space-y-2'>
+                            <Label className='font-medium text-sm'>
+                                Academic Year <span className='text-destructive'>*</span>
+                            </Label>
+                            <Select
+                                value={selectedYearId}
+                                onValueChange={(val) => {
+                                    setSelectedYearId(val);
+                                    setSelectedStaffId('');
+                                    setShowMapping(false);
+                                    setMappingClassSections([]);
+                                    setMappingSubjects([]);
+                                }}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Year' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {academicYears.map((y: any) => (
+                                        <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                            {y.asmaY_Year}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
 
-                            {/* User/Staff */}
-                            <div className='grid grid-cols-4 items-center gap-4'>
-                                <Label className='col-span-1 text-right font-medium'>
-                                    User/ Staff:<span className='text-destructive'>*</span>
-                                </Label>
-                                <div className='col-span-3'>
-                                    <Select
-                                        value={selectedStaffId}
-                                        onValueChange={(val) => {
-                                            setSelectedStaffId(val);
-                                        }}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder='Select Staff' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {staffList.map((s: any) => (
-                                                <SelectItem key={s.employee_code || s.hrmE_Id} value={String(s.hrmE_Id)}>
-                                                    {s.employee_name || s.hrmE_EmployeeName} : {s.employee_code || s.hrmE_EmployeeCode}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
+                        {/* User/Staff */}
+                        <div className='space-y-2'>
+                            <Label className='font-medium text-sm'>
+                                User / Staff <span className='text-destructive'>*</span>
+                            </Label>
+                            <Select value={selectedStaffId} onValueChange={(val) => setSelectedStaffId(val)}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Staff' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {staffList.map((s: any) => (
+                                        <SelectItem key={s.id || s.hrmE_Id} value={String(s.id)}>
+                                            {s.userName || s.hrmE_EmployeeName}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
 
-                            {/* Search Button (Implicitly requested via "Search") */}
-                            <div className='flex justify-center pt-2'>
-                                <Button
-                                    type='button'
-                                    className='w-32 bg-[#3b82f6] text-white hover:bg-[#2563eb]'
-                                    onClick={handleSearch}
-                                    disabled={isSearching}>
-                                    {isSearching ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
-                                    Search
-                                </Button>
-                            </div>
+                        {/* Search Button */}
+                        <div className='pt-2'>
+                            <Button
+                                type='button'
+                                className='w-full bg-[#f97316] text-white hover:bg-[#ea580c]'
+                                onClick={handleSearch}
+                                disabled={isSearching}>
+                                {isSearching ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
+                                Search
+                            </Button>
                         </div>
                     </div>
                 </div>
@@ -490,14 +569,14 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching 
             {/* Mapping Section */}
             {showMapping && (
                 <CollapsibleSection
-                    title={role === 'subject_teacher' ? 'CLASS-SECTION & SUBJECT MAPPING' : 'CLASS-SECTION MAPPING'}
+                    title='CLASS-SECTION & SUBJECT MAPPING'
                     defaultOpen={true}
                     variant='outline'
                     size='md'
                     className='fade-in slide-in-from-top-4 animate-in border-t-4 border-t-primary shadow-lg duration-500'>
                     <div className='p-6'>
-                        {/* Subject Teacher View */}
-                        {role === 'subject_teacher' && (
+                        {/* Checkbox Mapping View (Subject Teacher & Others) */}
+                        {(role === 'subject_teacher' || role === 'others') && (
                             <div className='flex flex-col gap-6'>
                                 <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
                                     {/* Class-Section Box */}
@@ -604,8 +683,8 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching 
                             </div>
                         )}
 
-                        {/* Class Teacher / Others View (Transfer List Style) */}
-                        {role !== 'subject_teacher' && (
+                        {/* Class Teacher View (Transfer List Style) */}
+                        {role === 'class_teacher' && (
                             <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
                                 {/* Available Box */}
                                 <div className='overflow-hidden rounded-md border border-border shadow-sm'>
@@ -659,7 +738,7 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching 
                         {/* Bottom Actions */}
                         <div className='mt-8 flex justify-center gap-4 border-t pt-6'>
                             <Button
-                                className='w-32 bg-[#1e40af] text-white hover:bg-[#1e3a8a]'
+                                className='w-32 bg-[#f97316] text-white hover:bg-[#ea580c]'
                                 onClick={handleSave}
                                 disabled={isSubmitting}>
                                 {isSubmitting ? (
@@ -669,12 +748,8 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching 
                                 )}
                                 SAVE
                             </Button>
-                            <Button
-                                variant='destructive'
-                                className='w-32 bg-[#ea580c] text-white hover:bg-[#c2410c]'
-                                onClick={handleClear}
-                                disabled={isSubmitting}>
-                                <X className='mr-1 h-4 w-4' /> CANCEL
+                            <Button variant='destructive' className='w-32' onClick={handleClear} disabled={isSubmitting}>
+                                <X className='mr-1 h-4 w-4' /> CLEAR
                             </Button>
                         </div>
                     </div>

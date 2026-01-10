@@ -12,12 +12,19 @@ export interface ILoginPrivilege {
 }
 
 export interface ILoginPrivilegeDTO {
-    lp_role: string;
+    asalU_Id: number;
+    asalU_EntryTypeFlag: number;
     asmaY_Id: number;
     hrmE_Id: number;
-    details: {
+    mI_Id: number;
+    classSections: {
         asmcL_Id: number;
-        asmS_Id: number;
-        ismS_Id?: number; // Optional subject
+        asmC_Id: number;
     }[];
+    classSectionSubjects: {
+        asmcL_Id: number;
+        asmC_Id: number;
+        subjectIds: number[];
+    }[];
+    // Keep internal logic properties if needed or just use these
 }

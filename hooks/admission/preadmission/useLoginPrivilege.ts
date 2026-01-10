@@ -1,6 +1,7 @@
 import {
     deleteLoginPrivilege,
     getDataByTypeSelected,
+    getEmployeeData,
     getLoginPrivileges,
     saveLoginPrivilege
 } from '@/server/admission/preadmission/attendance-entry/login_privilege';
@@ -26,7 +27,7 @@ export const useLoginPrivileges = () => {
                 toast.success(res.message);
                 queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
             } else {
-                toast.error('Failed to save privilege');
+                toast.error(res.message || 'Failed to save privilege');
             }
         },
         onError: () => toast.error('An error occurred while saving')
@@ -57,4 +58,15 @@ export const useLoginPrivileges = () => {
         isDeleting: deleteMutation.isPending,
         isSearching: searchMutation.isPending
     };
+};
+
+export const useGetLoginPrivilegeEmployees = () => {
+    return useQuery({
+        queryKey: [QUERY_KEY, 'employees'],
+        queryFn: async () => {
+            const res = await getEmployeeData({});
+            return (res as any)?.data || res || [];
+        },
+        staleTime: 0
+    });
 };

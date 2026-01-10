@@ -58,7 +58,8 @@ export async function getEditData(id: number) {
 
 export async function getDataByTypeSelected(data: any) {
     try {
-        return await api.post('admission', `/${CONTROLLER}/GetDataByTypeSelected`, data);
+        const queryParams = new URLSearchParams(data).toString();
+        return await api.post('admission', `/${CONTROLLER}/GetDataByTypeSelected?${queryParams}`, {});
     } catch (error) {
         console.error('Error fetching data by type:', error);
         return [];
