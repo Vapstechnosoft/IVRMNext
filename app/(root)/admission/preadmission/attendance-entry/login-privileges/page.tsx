@@ -33,6 +33,7 @@ export default function LoginPrivilegePage() {
 
 function LoginPrivilegePageContent() {
     const { data: privileges, isLoading, refetch, createPrivilege, fetchDataByType, isSearching } = useLoginPrivileges();
+    const [showList, setShowList] = useState(false);
 
     // Safety check for data array
     const tableData = Array.isArray(privileges) ? privileges : (privileges as any)?.data || [];
@@ -53,25 +54,28 @@ function LoginPrivilegePageContent() {
                     refetch={refetch}
                     fetchDataByType={fetchDataByType}
                     isSearching={isSearching}
+                    onSaveSuccess={() => setShowList(true)}
                 />
 
-                <CollapsibleSection
-                    defaultOpen={true}
-                    title='ATTENDANCE LOGIN PRIVILEGES LIST'
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<ILoginPrivilege>
-                        {...tableProps}
-                        columns={loginPrivilegeColumns}
-                        isLoading={isLoading}
-                        showViewOptions={false}
-                        columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading privileges...'
-                        noDataTitle='No Privileges Found'
-                        noDataDescription='Assign first privilege'
-                    />
-                </CollapsibleSection>
+                {showList && (
+                    <CollapsibleSection
+                        defaultOpen={true}
+                        title='ATTENDANCE LOGIN PRIVILEGES LIST'
+                        variant='default'
+                        size='lg'
+                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                        <GenericDataTable<ILoginPrivilege>
+                            {...tableProps}
+                            columns={loginPrivilegeColumns}
+                            isLoading={isLoading}
+                            showViewOptions={false}
+                            columnPinning={{ right: ['actions'] }}
+                            loadingMessage='Loading privileges...'
+                            noDataTitle='No Privileges Found'
+                            noDataDescription='Assign first privilege'
+                        />
+                    </CollapsibleSection>
+                )}
             </div>
         </div>
     );
@@ -82,9 +86,10 @@ interface PrivilegeFormProps {
     refetch: () => void;
     fetchDataByType: (data: any) => Promise<any>;
     isSearching: boolean;
+    onSaveSuccess: () => void;
 }
 
-function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching }: PrivilegeFormProps) {
+function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching, onSaveSuccess }: PrivilegeFormProps) {
     const { selectedRow, closeEditForm } = useFormContext<ILoginPrivilege>();
 
     // Form State
@@ -119,10 +124,19 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching 
 
     const sections = Array.isArray((sectionData as any)?.data) ? (sectionData as any)?.data : Array.isArray(sectionData) ? sectionData : [];
 
-    const subjects = Array.isArray((subjectData as any)?.data) ? (subjectData as any)?.data : Array.isArray(subjectData) ? subjectData : [];
+    // Filter content based on Config Selection
+    const subjects =
+        !selectedYearId || !selectedStaffId
+            ? []
+            : Array.isArray((subjectData as any)?.data)
+              ? (subjectData as any)?.data
+              : Array.isArray(subjectData)
+                ? subjectData
+                : [];
 
     // Synthesize Class-Section List
     const classSectionList = useMemo(() => {
+        if (!selectedYearId || !selectedStaffId) return [];
         if (!Array.isArray(classes) || !Array.isArray(sections)) return [];
         const list: { id: string; label: string; classId: number; sectionId: number }[] = [];
         classes.forEach((c: any) => {
@@ -136,7 +150,7 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching 
             });
         });
         return list;
-    }, [classes, sections]);
+    }, [classes, sections, selectedYearId, selectedStaffId]);
 
     // Handle Edit Mode Population
     useEffect(() => {
@@ -166,9 +180,23 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching 
     const handleSubjectToggle = (id: string) => {
         setSelectedSubjects((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
     };
-    const handleSearch = async () => {
+    // Automated Search Effect
+    useEffect(() => {
+        setShowMapping(true); // Always show structure based on role
+
+        if (selectedYearId && selectedStaffId) {
+            handleSearch(true);
+        } else {
+            // Clear content if config invalid
+            setTempList([]);
+            setSelectedClassSections([]);
+            setSelectedSubjects([]);
+        }
+    }, [role, selectedYearId, selectedStaffId]);
+
+    const handleSearch = async (isAuto = false) => {
         if (!selectedYearId || !selectedStaffId) {
-            toast.error('Please select Academic Year and Staff');
+            if (!isAuto) toast.error('Please select Academic Year and Staff');
             return;
         }
 
@@ -180,15 +208,12 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching 
                 role: role
             };
 
-            console.log('Search Payload:', searchPayload); // For debugging
+            if (!isAuto) console.log('Search Payload:', searchPayload); // For debugging
             const result = await fetchDataByType(searchPayload);
 
             // Auto-populate logic if data exists
             if (result && Array.isArray(result) && result.length > 0) {
                 if (role === 'subject_teacher') {
-                    // Map backend data to tempList structure if possible
-                    // Assuming result matches DTO details: { asmcL_Id, asmS_Id, ismS_Id }
-                    // We need to match these IDs back to labels.
                     const mappedTemp = result
                         .map((r: any, idx: number) => {
                             const csObj = classSectionList.find((x) => x.classId === r.asmcL_Id && x.sectionId === r.asmS_Id);
@@ -210,6 +235,8 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching 
                         .filter(Boolean);
                     // @ts-ignore
                     setTempList(mappedTemp);
+                    setSelectedClassSections([]); // Clear inputs
+                    setSelectedSubjects([]);
                 } else {
                     // Class Teacher / Others
                     const mappedSelection = result
@@ -221,16 +248,18 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching 
                     // @ts-ignore
                     setSelectedClassSections(mappedSelection);
                 }
-                toast.success(`Loaded ${result.length} existing privileges`);
+                if (!isAuto) toast.success(`Loaded ${result.length} existing privileges`);
             } else {
-                // No data, just show empty form
-                toast.info('No existing privileges found. Please add new.');
+                // No data - Clear potential residues from previous role
+                setTempList([]);
+                setSelectedClassSections([]);
+                setSelectedSubjects([]);
+                if (!isAuto) toast.info('No existing privileges found. Please add new.');
             }
 
             setShowMapping(true);
         } catch (e) {
             console.error(e);
-            // Even if fail, show mapping to allow adding new
             setShowMapping(true);
         }
     };
@@ -350,6 +379,7 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching 
             };
 
             await createPrivilege(payload);
+            onSaveSuccess();
             handleClear();
             refreshGrid(); // Refetch Data
         } catch (error) {
@@ -396,10 +426,6 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching 
                                 value={role}
                                 onValueChange={(val) => {
                                     setRole(val);
-                                    setShowMapping(false); // Reset mapping if role changes
-                                    setTempList([]);
-                                    setSelectedClassSections([]);
-                                    setSelectedSubjects([]);
                                 }}
                                 className='flex items-center gap-6'>
                                 <div className='flex items-center space-x-2'>
@@ -469,18 +495,6 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching 
                                         </SelectContent>
                                     </Select>
                                 </div>
-                            </div>
-
-                            {/* Search Button (Implicitly requested via "Search") */}
-                            <div className='flex justify-center pt-2'>
-                                <Button
-                                    type='button'
-                                    className='w-32 bg-[#3b82f6] text-white hover:bg-[#2563eb]'
-                                    onClick={handleSearch}
-                                    disabled={isSearching}>
-                                    {isSearching ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
-                                    Search
-                                </Button>
                             </div>
                         </div>
                     </div>
