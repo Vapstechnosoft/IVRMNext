@@ -26,6 +26,15 @@ const nextConfig: NextConfig = {
                 pathname: '**' // ✅ allow all paths
             }
         ]
+    },
+    async rewrites() {
+        return [
+            {
+                source: '/api/admission/:path*',
+                destination: 'https://ivrm-dev-admission-api.azurewebsites.net/api/:path*'
+            }
+            // Add other services if needed
+        ];
     }
 };
 
