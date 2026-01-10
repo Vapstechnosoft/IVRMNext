@@ -2430,6 +2430,22 @@ export async function getUserAccessibleModules() {
                                             url: '/library/transactions/lostbook',
                                             title: 'LOST BOOK',
                                             description: 'LOST BOOK Details'
+                                        },
+                                        {
+                                            id: 31001,
+                                            name: 'Book Return Transaction',
+                                            icon: 'BookOpen',
+                                            url: '/library/transactions/book-return',
+                                            title: 'Book Return',
+                                            description: 'Book Return Transaction Details'
+                                        },
+                                        {
+                                            id: 31002,
+                                            name: 'Lib Book Transaction',
+                                            icon: 'BookOpen',
+                                            url: '/library/transactions/lib-book-transaction',
+                                            title: 'Lib Book Transaction',
+                                            description: 'Lib Book Transaction Details'
                                         }
                                     ]
                                 },
@@ -2440,12 +2456,84 @@ export async function getUserAccessibleModules() {
 
                                     pages: [
                                         {
-                                            id: 30021,
-                                            name: 'testing',
-                                            icon: 'BookOpen',
-                                            url: '/library/masters/masterlibrary',
-                                            title: 'testing',
-                                            description: 'testing'
+                                            id: 32001,
+                                            name: 'Available Books Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/available-books-report',
+                                            title: 'Available Books Report',
+                                            description: 'View Available Books Report'
+                                        },
+                                        {
+                                            id: 32002,
+                                            name: 'Book Arrival Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/book-arrival-report',
+                                            title: 'Book Arrival Report',
+                                            description: 'View Book Arrival Report'
+                                        },
+                                        {
+                                            id: 32003,
+                                            name: 'Rack Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/rack-report',
+                                            title: 'Rack Report',
+                                            description: 'View Rack Report'
+                                        },
+                                        {
+                                            id: 32004,
+                                            name: 'Book Circulation Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/book-circulation-report',
+                                            title: 'Book Circulation Report',
+                                            description: 'View Book Circulation Report'
+                                        },
+                                        {
+                                            id: 32005,
+                                            name: 'Purchase Donate Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/purchase-donate-report',
+                                            title: 'Purchase Donate Report',
+                                            description: 'View Purchase Donate Report'
+                                        },
+                                        {
+                                            id: 32006,
+                                            name: 'Lib Transaction Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/lib-transaction-report',
+                                            title: 'Lib Transaction Report',
+                                            description: 'View Lib Transaction Report'
+                                        },
+                                        {
+                                            id: 32007,
+                                            name: 'Lost Book Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/lib-lost-book-report',
+                                            title: 'Lost Book Report',
+                                            description: 'View Lost Book Report'
+                                        },
+                                        {
+                                            id: 32008,
+                                            name: 'Student Transaction Count Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/clg-transaction-count-report',
+                                            title: 'Student Transaction Count Report',
+                                            description: 'View Student Transaction Count Report'
+                                        },
+                                        {
+                                            id: 32009,
+                                            name: 'Book Register Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/book-register-report',
+                                            title: 'Book Register Report',
+                                            description: 'View Book Register Report'
+                                        },
+                                        {
+                                            id: 32010,
+                                            name: 'Library Month End Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/library-month-end-report',
+                                            title: 'Library Month End Report',
+                                            description: 'View Library Month End Report'
                                         }
                                     ]
                                 }

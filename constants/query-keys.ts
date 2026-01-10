@@ -449,5 +449,18 @@ export const LIBRARY_QUERY_KEYS = {
     MASTER_CATEGORY_LIST_DATA: 'master_category_list_data',
 
     MASTER_AUTHOR_LIST_DATA: 'master_author_list_data',
-    MASTER_LANGUAGE_LIST_DATA: 'master_language_list_data'
+    MASTER_LANGUAGE_LIST_DATA: 'master_language_list_data',
+
+    MASTER_ACCESSORIES: 'master_accessories',
+    // Book Transaction
+    BOOK_TRANSACTION: 'book_transaction',
+    STUDENT_DETAILS: 'student_details',
+    STAFF_DETAILS: 'staff_details',
+    BOOK_DETAILS: 'book_details',
+    SEARCH_BOOKS: 'search_books',
+    STUDENTS_BY_CLASS: 'students_by_class',
+    STAFF_BY_DEPARTMENT: 'staff_by_department',
+    DESIGNATIONS_BY_DEPARTMENT: 'designations_by_department',
+    SHOW_FINE: 'show_fine',
+    BOOK_AVAILABILITY: 'book_availability'
 };
