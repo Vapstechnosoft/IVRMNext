@@ -98,7 +98,7 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
                 try {
                     const loadingToast = toast.loading('Fetching fee amount details...');
 
-                    const response = await getAmountentrydetails(30, selectedAcademicYear, selectedCategoryId, selectedFeeGroup);
+                    const response = await getAmountentrydetails(selectedAcademicYear, selectedCategoryId, selectedFeeGroup);
 
                     if (response?.data) {
                         const details = Array.isArray(response.data) ? response.data : [response.data];
@@ -144,13 +144,13 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
 
         try {
             const payload = {
-                mI_Id: 30,
+                // mI_Id: 30,
                 asmaY_Id: data.asmaY_Id,
                 fmcC_Id: data.categoryId,
                 fmG_Id: data.feeGroupId,
                 savetmpdata: feeGridData.map((item) => ({
                     fmA_Id: item.fmA_Id,
-                    mI_Id: 30,
+                    // mI_Id: 30,
                     fmG_Id: item.fmG_Id,
                     asmaY_Id: data.asmaY_Id,
                     fmcC_Id: data.categoryId,

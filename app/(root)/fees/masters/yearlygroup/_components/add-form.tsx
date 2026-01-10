@@ -98,9 +98,9 @@ export default function AddMasterYearlyGroup({ onSuccess }: AddMasterYearlyGroup
         }
 
         const payload: Payload = {
-            mI_Id: 30,
+            // mI_Id: 30,
             fyG_Id: 0,
-            user_id: 21602,
+            // user_id: 21602,
             asmaY_Id,
             grouplist: data.feeGroupIds || [],
             fyG_RebateTypeFlg: data.rebateApplicable && data.rebateType ? data.rebateType : '',
