@@ -3,6 +3,9 @@
 import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAcademicYearDropdown, useMasterClassDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { Search } from 'lucide-react';
 import { useState } from 'react';
 import { type IStudentAttendance, studentAttendanceColumns } from './_components/columns';
@@ -11,8 +14,16 @@ export default function StudentAttendancePage() {
     const [data, setData] = useState<IStudentAttendance[]>([]);
     const [searched, setSearched] = useState(false);
 
+    // State for selections
+    const [selectedYear, setSelectedYear] = useState<string>('');
+    const [selectedClass, setSelectedClass] = useState<string>('');
+
+    // Fetch Masters
+    const { data: academicYears } = useAcademicYearDropdown();
+    const { data: classes } = useMasterClassDropdown();
+
     const handleSearch = () => {
-        // Mock fetching data
+        // Mock fetching data based on selection
         setData([
             { id: 1, studentName: 'John Doe', rollNo: '101', admNo: 'A001', status: 'Present' },
             { id: 2, studentName: 'Jane Smith', rollNo: '102', admNo: 'A002', status: 'Absent' },
@@ -32,42 +43,53 @@ export default function StudentAttendancePage() {
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                <CollapsibleSection
-                    title='Student Attendance Entry'
-                    description='Select criteria to mark attendance'
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg'>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                        <div className='space-y-2'>
-                            <label htmlFor='sa-class' className='font-medium text-sm'>
-                                Class
-                            </label>
-                            <select id='sa-class' className='flex h-10 w-full rounded-md border bg-background px-3'>
-                                <option>Select Class</option>
-                                <option>I</option>
-                            </select>
-                        </div>
-                        <div className='space-y-2'>
-                            <label htmlFor='sa-section' className='font-medium text-sm'>
-                                Section
-                            </label>
-                            <select id='sa-section' className='flex h-10 w-full rounded-md border bg-background px-3'>
-                                <option>Select Section</option>
-                                <option>A</option>
-                            </select>
-                        </div>
-                        <div className='space-y-2'>
-                            <label htmlFor='sa-date' className='font-medium text-sm'>
-                                Date
-                            </label>
-                            <input id='sa-date' type='date' className='flex h-10 w-full rounded-md border bg-background px-3' />
-                        </div>
-                        <div className='flex justify-end md:col-span-3'>
-                            <Button onClick={handleSearch}>
-                                <Search className='mr-2 h-4 w-4' /> Search
-                            </Button>
+                <CollapsibleSection title='ATTENDANCE ENTRY' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
+                    <div className='grid grid-cols-1 gap-6'>
+                        {/* Left Column for Inputs */}
+                        <div className='space-y-4'>
+                            {/* Academic Year */}
+                            <div className='grid grid-cols-1 items-center gap-2 md:grid-cols-[150px_1fr] md:gap-4'>
+                                <Label htmlFor='academic-year' className='text-left font-medium text-sm md:text-right'>
+                                    Academic Year: <span className='text-red-500'>*</span>
+                                </Label>
+                                <Select value={selectedYear} onValueChange={setSelectedYear}>
+                                    <SelectTrigger id='academic-year' className='border-purple-500'>
+                                        <SelectValue placeholder='Select Academic Year' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {academicYears?.data?.map((year) => (
+                                            <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
+                                                {year.asmaY_Year}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            {/* Class */}
+                            <div className='grid grid-cols-1 items-center gap-2 md:grid-cols-[150px_1fr] md:gap-4'>
+                                <Label htmlFor='class-select' className='text-left font-medium text-sm md:text-right'>
+                                    Class: <span className='text-red-500'>*</span>
+                                </Label>
+                                <Select value={selectedClass} onValueChange={setSelectedClass}>
+                                    <SelectTrigger id='class-select' className='border-blue-400'>
+                                        <SelectValue placeholder='Select Class' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {classes?.data?.map((cls) => (
+                                            <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>
+                                                {cls.asmcL_ClassName}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className='flex justify-end pt-2'>
+                                <Button onClick={handleSearch} className='bg-orange-600 text-white hover:bg-orange-700'>
+                                    <Search className='mr-2 h-4 w-4' /> Search
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </CollapsibleSection>
