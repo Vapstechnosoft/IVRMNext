@@ -2383,15 +2383,6 @@ export async function getUserAccessibleModules() {
                                             description: 'Library Vendor Details'
                                         },
                                         {
-                                            id: 30003,
-                                            name: 'Master Category',
-                                            icon: 'BookOpen',
-                                            url: '/library/masters/mastercategory',
-                                            title: 'Master Class Category',
-                                            description: 'Library Category Details'
-                                        },
-
-                                        {
                                             id: 30004,
                                             name: 'Master Publisher',
                                             icon: 'BookOpen',
@@ -2407,6 +2398,16 @@ export async function getUserAccessibleModules() {
                                             title: 'Master Author',
                                             description: 'Library Master Author Details'
                                         },
+
+                                        {
+                                            id: 30003,
+                                            name: 'Master Subject',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/mastercategory',
+                                            title: 'Need to Add Master Subject',
+                                            description: 'Need to Add Master Subject'
+                                        },
+
                                         {
                                             id: 30006,
                                             name: 'Master Language',
@@ -2414,7 +2415,72 @@ export async function getUserAccessibleModules() {
                                             url: '/library/masters/masterlanguage',
                                             title: 'Master Language',
                                             description: 'Library Master Language Details'
+                                        },
+
+                                        {
+                                            id: 30008,
+                                            name: 'Master Accessories',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/accessories-master',
+                                            title: 'Master Accessories',
+                                            description: 'Master Accessories Details'
+                                        },
+                                        {
+                                            id: 30011,
+                                            name: 'Master Class Category',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/master-class-category',
+                                            title: 'Master Class Category',
+                                            description: 'Master Class Category Entry'
+                                        },
+
+
+                                        {
+                                            id: 30003,
+                                            name: 'Master Book Category',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/mastercategory',
+                                            title: 'Master Class Category',
+                                            description: 'Library Category Details'
+                                        },
+
+ 
+                                        {
+                                            id: 30007,
+                                            name: 'Master Department',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/department-master',
+                                            title: 'Master Department',
+                                            description: 'Master Department Details'
+                                        },
+
+                                        {
+                                            id: 30011,
+                                            name: 'Master Rack Details',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/master-rack-details',
+                                            title: 'Master Rack Details',
+                                            description: 'Master Rack Details Entry'
+                                        },
+                                        {
+                                            id: 30009,
+                                            name: 'Master Time Slab',
+                                            icon: 'Clock',
+                                            url: '/library/masters/master-time-slab',
+                                            title: 'Master Time Slab',
+                                            description: 'Master Time Slab Details'
+                                        },
+                                       
+                                        {
+                                            id: 30010,
+                                            name: 'Master Category',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/category',
+                                            title: 'Library Category',
+                                            description: 'Library Category Details'
                                         }
+                                       
+                                       
                                     ]
                                 },
                                 {

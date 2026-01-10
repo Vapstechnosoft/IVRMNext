@@ -115,3 +115,90 @@ export const masterLanguageSchema = {
         lmL_Id: deleteIdSchema('lmL_Id')
     })
 };
+
+
+export const masterDepartmentSchema = {
+    addOrUpdate: z.object({
+        lmD_Id: z.number().optional(),
+        mI_Id: z.number().optional(),
+        lmD_DepartmentName: z.string().min(1, 'Department Name is required'),
+        lmD_DepartmentCode: z.string().min(1, 'Department Code is required'),
+        lmD_ActiveFlg: z.boolean().optional()
+    }),
+    delete: z.object({
+        lmD_Id: z.number()
+    })
+};
+
+export const masterAccessoriesSchema = {
+    addOrUpdate: z.object({
+        lmaC_Id: z.number().optional(),
+        mI_Id: z.number().optional(),
+        lmaC_AccessoriesName: z.string().min(1, 'Accessories Name is required'),
+        lmaC_AccessoriesDesc: z.string().min(1, 'Accessories Description is required'),
+        lmaC_ActiveFlg: z.boolean().optional()
+    }),
+    delete: z.object({
+        lmaC_Id: z.number()
+    })
+};
+
+export const masterTimeSlabSchema = {
+    addOrUpdate: z
+        .object({
+            lfsE_Id: z.number().optional(),
+            mI_Id: z.number().optional(),
+            lfsE_UserType: z.string().min(1, 'User Type is required'),
+            lfsE_SlabTypeFlg: z.string().min(1, 'Slab Type is required'),
+            lfsE_PerDayFlg: z.number().optional().default(0),
+            lfsE_FromDay: z.coerce.number().min(0, 'From Day must be at least 0'),
+            lfsE_ToDay: z.coerce.number().optional(),
+            lfsE_Amount: z.coerce.number().min(0, 'Amount must be at least 0'),
+            lfsE_ActiveFlg: z.boolean().optional()
+        })
+        .refine(
+            (data) => {
+                if (data.lfsE_SlabTypeFlg === 'BETWEEN') {
+                    return data.lfsE_ToDay !== undefined && data.lfsE_ToDay > data.lfsE_FromDay;
+                }
+                return true;
+            },
+            {
+                message: 'To Day must be greater than From Day',
+                path: ['lfsE_ToDay']
+            }
+        ),
+    delete: z.object({
+        lfsE_Id: z.number()
+    })
+};
+
+export const masterRackDetailsSchema = {
+    addOrUpdate: z.object({
+        lmrA_Id: z.number().optional(),
+        lmraS_Id: z.number().optional(),
+        mI_Id: z.number().optional(),
+        lmrA_BuildingName: z.string().min(1, 'Building Name is required'),
+        lmrA_RackName: z.string().min(1, 'Rack Name is required'),
+        lmS_Id: z.coerce.number().min(1, 'Subject Name is required'),
+        lmrA_FloorName: z.string().min(1, 'Floor Name is required'),
+        lmrA_DisplayColour: z.string().optional(),
+        lmrA_Location: z.string().min(1, 'Location is required'),
+        lmrA_ActiveFlag: z.boolean().optional()
+    }),
+    delete: z.object({
+        lmrA_Id: z.number()
+    })
+};
+
+export const masterClassCategorySchema = {
+    addOrUpdate: z.object({
+        lmcC_Id: z.number().optional(),
+        ivrmuL_Id: z.coerce.number().min(1, 'Staff Name is required'),
+        lmcC_CategoryName: z.string().min(1, 'Class Category Name is required').max(50, 'Class Category Name cannot exceed 50 characters'),
+        lmcC_ActiveFlag: z.boolean().optional()
+    }),
+    delete: z.object({
+        lmcC_Id: z.number()
+    })
+};
