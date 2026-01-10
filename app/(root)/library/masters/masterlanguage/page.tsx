@@ -8,9 +8,10 @@ import { useMasterLanguage } from '@/hooks/library/useMasters';
 import type { IMasterLanguageList } from '@/types/library/masters/masters';
 import { Plus, X } from 'lucide-react';
 import { use, useEffect } from 'react';
+import AddMasterLanguageForm from './_components/add-form';
 import { MasterLanguageColumns } from './_components/columns';
-//import UpdateMasterLanguageForm from './_components/update-form';
 import ToggleMasterLanguageForm from './_components/toggle-form';
+import UpdateMasterLanguageForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -70,9 +71,9 @@ function MasterClassPageContent({
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading Master Library...'
+                        loadingMessage='Loading Master Language...'
                         noDataTitle='No Records Found'
-                        noDataDescription='Start by adding a new Master Library'
+                        noDataDescription='Start by adding a new Master Language'
                         errorTitle='Error Loading Data'
                     />
                 </CollapsibleSection>
@@ -94,9 +95,9 @@ function FormSections({ refetch }: { refetch: () => void }) {
         closeAddForm,
         closeToggleForm,
 
-        // closeEditForm,
-        addFormRef
-        // editFormRef
+        closeEditForm,
+        addFormRef,
+        editFormRef
     } = useFormContext<IMasterLanguageList>();
 
     useEffect(() => {
@@ -131,12 +132,14 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            {/* <AddMasterLanguageForm
-                                onSuccess={() => {
-                                    handleSuccess();
-                                    closeAddForm();
-                                }}
-                            /> */}
+                            {
+                                <AddMasterLanguageForm
+                                    onSuccess={() => {
+                                        handleSuccess();
+                                        closeAddForm();
+                                    }}
+                                />
+                            }
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -158,21 +161,12 @@ function FormSections({ refetch }: { refetch: () => void }) {
             {isToggleFormOpen && selectedRow && <ToggleMasterLanguageForm rowData={selectedRow} onClose={closeToggleForm} />}
 
             {/* Edit Form */}
-            {/* {isEditFormOpen && selectedRow && (
-                <UpdateMasterLanguageForm
-                    rowData={selectedRow}
-                    onClose={closeDeleteForm}
-                    onSuccess={() => {
-                        handleSuccess();
-                        closeDeleteForm();
-                    }}
-                />
-            )} */}
 
-            {/* {isEditFormOpen && selectedRow && (
+            {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Yearly Class Category'
+                        title='Edit Master Library'
+                        description='Update the Master Library details below'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -186,11 +180,11 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateMasterClassForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <UpdateMasterLanguageForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
-            )} */}
+            )}
         </>
     );
 }

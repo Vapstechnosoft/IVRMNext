@@ -2,10 +2,10 @@
 
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
-//import { useFormContext } from '@/components/ui/form/form-provider';
+import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IMasterVendorList } from '@/types/library/masters/masters';
 import type { ColumnDef } from '@tanstack/react-table';
-//import { useCallback } from 'react';
+import { useCallback } from 'react';
 
 export const masterVendorColumns: ColumnDef<IMasterVendorList>[] = [
     {
@@ -53,16 +53,16 @@ export const masterVendorColumns: ColumnDef<IMasterVendorList>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterVendorList }) {
-    // const { openDeleteForm, openEditForm } = useFormContext<IMasterLibraryList>();
+    const { openDeleteForm, openEditForm } = useFormContext<IMasterVendorList>();
 
-    // const handleDelete = useCallback((data: IMasterLibraryList) => openDeleteForm(data), [openDeleteForm]);
-    // const handleEdit = useCallback((data: IMasterLibraryList) => openEditForm(data), [openEditForm]);
+    //const handleDelete = useCallback((data: IMasterVendorList) => openDeleteForm(data), [openDeleteForm]);
+    const handleEdit = useCallback((data: IMasterVendorList) => openEditForm(data), [openEditForm]);
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: false, toggle: false, delete: true }}
+            buttons={{ edit: true, toggle: true, delete: false }}
             //onDelete={handleDelete}
-            //  onEdit={handleEdit}
+            onEdit={handleEdit}
         />
     );
 }

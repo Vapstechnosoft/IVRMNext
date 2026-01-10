@@ -74,65 +74,40 @@ export default function AddMasterVendorForm({ onSuccess, className = '' }: AddMa
     return (
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-                <div className='space-y-4'>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <InputText
-                            label='Vendor Name'
-                            required
-                            id='lmV_VendorName'
-                            {...register('lmV_VendorName')}
-                            error={errors.lmV_VendorName?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
+                {/* Row 1 */}
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                    <InputText
+                        label='Vendor Name'
+                        required
+                        id='lmV_VendorName'
+                        {...register('lmV_VendorName')}
+                        error={errors.lmV_VendorName?.message}
+                    />
 
-                        <InputText
-                            label='Email Id'
-                            id='lmV_EMailId'
-                            {...register('lmV_EMailId')}
-                            error={errors.lmV_EMailId?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                    </div>
-
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
+                    <InputText label='Email Id' id='lmV_EMailId' {...register('lmV_EMailId')} error={errors.lmV_EMailId?.message} />
                 </div>
 
-                <div className='space-y-4'>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <InputText
-                            label='Mobile No'
-                            id='lmV_VendorName'
-                            {...register('lmV_VendorName')}
-                            error={errors.lmV_VendorName?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
+                {/* Row 2 */}
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                    <InputText
+                        label='Mobile No'
+                        required
+                        id='lmV_MobileNo'
+                        {...register('lmV_MobileNo')}
+                        error={errors.lmV_MobileNo?.message}
+                    />
 
-                        <InputText
-                            label='Vendor Address'
-                            id='lmV_Address'
-                            {...register('lmV_Address')}
-                            error={errors.lmV_Address?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                    </div>
-
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
+                    <InputText label='Vendor Address' id='lmV_Address' {...register('lmV_Address')} error={errors.lmV_Address?.message} />
                 </div>
 
-                <div className='space-y-4'>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <InputText
-                            label='Phone No'
-                            id='lmV_VendorName'
-                            {...register('lmV_VendorName')}
-                            error={errors.lmV_VendorName?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                    </div>
-
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
+                {/* Row 3 */}
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                    <InputText label='Phone No' id='lmV_PhoneNo' {...register('lmV_PhoneNo')} error={errors.lmV_PhoneNo?.message} />
                 </div>
 
+                {errors.root && <FormError>{errors.root.message}</FormError>}
+
+                {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'
@@ -150,7 +125,7 @@ export default function AddMasterVendorForm({ onSuccess, className = '' }: AddMa
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save
+                            Save Master Library
                         </div>
                     </Button>
                 </div>

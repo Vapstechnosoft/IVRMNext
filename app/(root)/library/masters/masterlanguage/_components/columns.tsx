@@ -50,7 +50,7 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterLanguageList }) {
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: false, toggle: true, delete: false }}
+            buttons={{ edit: true, toggle: true, delete: false }}
             onToggle={handleToggle}
             onEdit={handleEdit}
             toggleConditionKey='lmL_ActiveFlg'

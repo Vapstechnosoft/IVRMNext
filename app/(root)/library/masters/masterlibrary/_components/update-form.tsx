@@ -16,13 +16,13 @@ import type { z } from 'zod';
 
 type FormFields = z.infer<typeof masterLibrarySchema.addOrUpdate>;
 
-interface UpdateMasterClassFormProps {
+interface UpdateMasterLibraryFormProps {
     onSuccess?: () => void;
     className?: string;
     selectedRow: IMasterLibraryList;
 }
 
-export default function UpdateMasterLibraryForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterClassFormProps) {
+export default function UpdateMasterLibraryForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterLibraryFormProps) {
     const { refetchAll } = useMasterLibrary();
 
     const {
@@ -75,27 +75,10 @@ export default function UpdateMasterLibraryForm({ onSuccess, className = '', sel
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        {/* <InputText
-                            label='Class Category Code'
-                            required
-                            id='fmcC_ClassCategoryCode'
-                            {...register('fmcC_ClassCategoryCode')}
-                            error={errors.fmcC_ClassCategoryCode?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
                         <InputText
-                            label='Class Category Name'
+                            label='Library Name'
                             required
-                            id='fmcC_ClassCategoryName'
-                            {...register('fmcC_ClassCategoryName')}
-                            error={errors.fmcC_ClassCategoryName?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        /> */}
-
-                        <InputText
-                            label='Class Category Name'
-                            required
-                            id='fmcC_ClassCategoryName'
+                            id='lmaL_LibraryName'
                             onKeyDown={(e) => {
                                 const allowed = /^[A-Za-z]$/;
 
@@ -137,7 +120,7 @@ export default function UpdateMasterLibraryForm({ onSuccess, className = '', sel
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Update Class Category
+                            Update Master Library
                         </div>
                     </Button>
                 </div>

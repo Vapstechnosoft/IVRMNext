@@ -9,7 +9,7 @@ export interface IMasterLibraryList {
 export interface IMasterVendorList {
     lmV_Id: number;
     mI_Id: number;
-    lmV_MobileNo: number;
+    lmV_MobileNo: string;
     lmV_VendorName: string;
     lmV_Address: string;
     lmV_EMailId: string;

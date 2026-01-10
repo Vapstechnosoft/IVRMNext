@@ -10,8 +10,8 @@ import { Plus, X } from 'lucide-react';
 import { use, useEffect } from 'react';
 import AddMasterLibraryForm from './_components/add-form';
 import { masterLibraryColumns } from './_components/columns';
-//import UpdateMasterLibraryForm from './_components/update-form';
 import ToggleMasterLibraryForm from './_components/toggle-form';
+import UpdateMasterLibraryForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -40,9 +40,9 @@ function MasterClassPageContent({
     const { openAddForm } = useFormContext<IMasterLibraryList>();
     const tableProps = useDataTableProps(response);
 
-    //  const handleSuccess = () => {
-    //     refetch();
-    // };
+    const handleSuccess = () => {
+        refetch();
+    };
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -90,14 +90,13 @@ function FormSections({ refetch }: { refetch: () => void }) {
         isAddFormOpen,
         isEditFormOpen,
         isToggleFormOpen,
-        //isDeleteFormOpen,
         selectedRow,
         closeAddForm,
         closeToggleForm,
 
-        // closeEditForm,
-        addFormRef
-        // editFormRef
+        closeEditForm,
+        addFormRef,
+        editFormRef
     } = useFormContext<IMasterLibraryList>();
 
     useEffect(() => {
@@ -143,8 +142,8 @@ function FormSections({ refetch }: { refetch: () => void }) {
                 </div>
             )}
 
-            {/* Delete Form
-            {isDeleteFormOpen && selectedRow && (
+            {/* Delete Form */}
+            {/* {isDeleteFormOpen && selectedRow && (
                 <DeleteMasterLibraryForm
                     rowData={selectedRow}
                     onClose={closeDeleteForm}
@@ -159,21 +158,12 @@ function FormSections({ refetch }: { refetch: () => void }) {
             {isToggleFormOpen && selectedRow && <ToggleMasterLibraryForm rowData={selectedRow} onClose={closeToggleForm} />}
 
             {/* Edit Form */}
-            {/* {isEditFormOpen && selectedRow && (
-                <UpdateMasterLibraryForm
-                    rowData={selectedRow}
-                    onClose={closeDeleteForm}
-                    onSuccess={() => {
-                        handleSuccess();
-                        closeDeleteForm();
-                    }}
-                />
-            )} */}
 
-            {/* {isEditFormOpen && selectedRow && (
+            {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Yearly Class Category'
+                        title='Edit Master Library'
+                        description='Update the Master Library details below'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -187,11 +177,11 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateMasterClassForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <UpdateMasterLibraryForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
-            )} */}
+            )}
         </>
     );
 }

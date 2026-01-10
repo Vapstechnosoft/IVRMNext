@@ -4,9 +4,9 @@ import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterLanguage } from '@/hooks/library/useMasters';
-import { masterLibrarySchema } from '@/schemas/library/masters';
-import { addOrUpdateMasterLibrary } from '@/server/library/masters/master_library';
-import type { IMasterLibraryList } from '@/types/library/masters/masters';
+import { masterLanguageSchema } from '@/schemas/library/masters';
+import { addOrUpdateMasterLanguage } from '@/server/library/masters/master_language';
+import type { IMasterLanguageList } from '@/types/library/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
@@ -14,15 +14,15 @@ import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-type FormFields = z.infer<typeof masterLibrarySchema.addOrUpdate>;
+type FormFields = z.infer<typeof masterLanguageSchema.addOrUpdate>;
 
-interface UpdateMasterClassFormProps {
+interface UpdateMasterLanguageFormProps {
     onSuccess?: () => void;
     className?: string;
-    selectedRow: IMasterLibraryList;
+    selectedRow: IMasterLanguageList;
 }
 
-export default function UpdateMasterLibraryForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterClassFormProps) {
+export default function UpdateMasterLanguageForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterLanguageFormProps) {
     const { refetchAll } = useMasterLanguage();
 
     const {
@@ -31,37 +31,36 @@ export default function UpdateMasterLibraryForm({ onSuccess, className = '', sel
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(masterLibrarySchema.addOrUpdate),
+        resolver: zodResolver(masterLanguageSchema.addOrUpdate),
         mode: 'onChange'
     });
 
     useEffect(() => {
         if (row) {
             reset({
-                lmaL_Id: row.lmaL_Id,
-                lmaL_LibraryName: row.lmaL_LibraryName
+                lmL_Id: row.lmL_Id,
+                lmL_LanguageName: row.lmL_LanguageName
             });
         }
     }, [row, reset]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const { lmaL_LibraryName } = data;
+            const { lmL_LanguageName } = data;
 
             const payload = {
-                mI_Id: 30,
-                lmaL_Id: row.lmaL_Id,
-                lmaL_LibraryName: lmaL_LibraryName
+                lmL_Id: row.lmL_Id,
+                lmL_LanguageName: lmL_LanguageName
             };
 
-            const response = await addOrUpdateMasterLibrary(payload);
+            const response = await addOrUpdateMasterLanguage(payload);
 
             if (response.success) {
-                toast.success(response.message || 'Master Library updated successfully');
+                toast.success(response.message || 'Master Language updated successfully');
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response.message || 'Failed to update Master Library');
+                toast.error(response.message || 'Failed to update Master Language');
             }
         } catch (error: any) {
             toast.error(error?.message || 'Something went wrong');
@@ -75,27 +74,10 @@ export default function UpdateMasterLibraryForm({ onSuccess, className = '', sel
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        {/* <InputText
-                            label='Class Category Code'
-                            required
-                            id='fmcC_ClassCategoryCode'
-                            {...register('fmcC_ClassCategoryCode')}
-                            error={errors.fmcC_ClassCategoryCode?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
                         <InputText
-                            label='Class Category Name'
+                            label='Language Name'
                             required
-                            id='fmcC_ClassCategoryName'
-                            {...register('fmcC_ClassCategoryName')}
-                            error={errors.fmcC_ClassCategoryName?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        /> */}
-
-                        <InputText
-                            label='Class Category Name'
-                            required
-                            id='fmcC_ClassCategoryName'
+                            id='lmL_LanguageName'
                             onKeyDown={(e) => {
                                 const allowed = /^[A-Za-z]$/;
 
@@ -103,14 +85,14 @@ export default function UpdateMasterLibraryForm({ onSuccess, className = '', sel
                                     e.preventDefault();
                                 }
                             }}
-                            {...register('lmaL_LibraryName', {
-                                required: 'Library Name is required',
+                            {...register('lmL_LanguageName', {
+                                required: 'Language Name is required',
                                 pattern: {
                                     value: /^[A-Za-z]+$/,
                                     message: 'Only letters allowed'
                                 }
                             })}
-                            error={errors.lmaL_LibraryName?.message}
+                            error={errors.lmL_LanguageName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>
@@ -137,7 +119,7 @@ export default function UpdateMasterLibraryForm({ onSuccess, className = '', sel
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Update Class Category
+                            Update Master Language
                         </div>
                     </Button>
                 </div>

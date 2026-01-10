@@ -16,15 +16,51 @@ export const masterLibrarySchema = {
     })
 };
 
+// export const masterVendorSchema = {
+//     addOrUpdate: z.object({
+//         lmV_Id: z.number().nonnegative().optional(), // optional when creating new record
+//         lmV_VendorName: z.string({ message: 'Vendor Name is required' }).min(2).max(100),
+//         lmV_MobileNo: z.string({ message: 'Mobile No is required' }).min(10).max(15),
+//         lmV_Address: z.string({ message: 'Address is required' }).min(2).max(200),
+//         lmV_EMailId: z.string({ message: 'Email is required' }).email(),
+//         lmV_PhoneNo: z.string({ message: 'Phone No is required' }).min(10).max(15)
+//     }),
+//     delete: z.object({
+//         lmaL_Id: deleteIdSchema('lmV_Id')
+//     })
+// };
+
 export const masterVendorSchema = {
     addOrUpdate: z.object({
-        lmV_Id: z.number().nonnegative().optional(), // optional when creating new record
-        lmV_VendorName: z.string({ message: 'Vendor Name is required' }).min(2).max(100),
-        lmV_MobileNo: z.string({ message: 'Mobile No is required' }).min(10).max(15),
-        lmV_Address: z.string({ message: 'Address is required' }).min(2).max(200),
-        lmV_EMailId: z.string({ message: 'Email is required' }).email(),
-        lmV_PhoneNo: z.string({ message: 'Phone No is required' }).min(10).max(15)
+        lmV_Id: z.number().nonnegative().optional(),
+
+        lmV_VendorName: z
+            .string({ required_error: 'Vendor Name is required' })
+            .trim()
+            .min(2, 'Vendor Name must be at least 2 characters')
+            .max(100, 'Vendor Name cannot exceed 100 characters')
+            .regex(/^[A-Za-z\s.&]+$/, 'Only letters, spaces, . and & allowed'),
+
+        lmV_MobileNo: z
+            .string({ required_error: 'Mobile Number is required' })
+            .trim()
+            .regex(/^[6-9]\d{9}$/, 'Invalid Indian mobile number'),
+
+        lmV_Address: z
+            .string({ required_error: 'Address is required' })
+            .trim()
+            .min(5, 'Address must be at least 5 characters')
+            .max(200, 'Address cannot exceed 200 characters')
+            .regex(/^[A-Za-z0-9\s#]+$/, 'Address can contain letters, numbers, spaces and # only'),
+
+        lmV_EMailId: z.string({ required_error: 'Email is required' }).trim().email('Invalid email address'),
+
+        lmV_PhoneNo: z
+            .string({ required_error: 'Phone Number is required' })
+            .trim()
+            .regex(/^\d{10,15}$/, 'Phone Number must contain 10–15 digits')
     }),
+
     delete: z.object({
         lmaL_Id: deleteIdSchema('lmV_Id')
     })
@@ -73,8 +109,7 @@ export const masterAuthorSchema = {
 export const masterLanguageSchema = {
     addOrUpdate: z.object({
         lmL_Id: z.number().nonnegative().optional(), // optional when creating new record
-        lmL_LanguageName: z.string({ message: 'Language Name is required' }).min(2).max(100),
-        lmL_LanguageCode: z.string({ message: 'Language Code is required' }).min(2).max(100)
+        lmL_LanguageName: z.string({ message: 'Language Name is required' }).min(2).max(100)
     }),
     delete: z.object({
         lmL_Id: deleteIdSchema('lmL_Id')

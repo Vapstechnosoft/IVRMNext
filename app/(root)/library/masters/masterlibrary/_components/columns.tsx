@@ -50,7 +50,7 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterLibraryList }) {
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: false, toggle: true, delete: false }}
+            buttons={{ edit: true, toggle: true, delete: false }}
             onToggle={handleToggle}
             onEdit={handleEdit}
             toggleConditionKey='lmaL_ActiveFlag'

@@ -2379,7 +2379,7 @@ export async function getUserAccessibleModules() {
                                             name: 'Master Vendor',
                                             icon: 'BookOpen',
                                             url: '/library/masters/libraryvendor',
-                                            title: 'Library Vendor',
+                                            title: 'Master Library Vendor',
                                             description: 'Library Vendor Details'
                                         },
                                         {
@@ -2387,7 +2387,7 @@ export async function getUserAccessibleModules() {
                                             name: 'Master Category',
                                             icon: 'BookOpen',
                                             url: '/library/masters/mastercategory',
-                                            title: 'Library Category',
+                                            title: 'Master Class Category',
                                             description: 'Library Category Details'
                                         },
 
@@ -2396,23 +2396,23 @@ export async function getUserAccessibleModules() {
                                             name: 'Master Publisher',
                                             icon: 'BookOpen',
                                             url: '/library/masters/librarypublisher',
-                                            title: 'Library Publisher',
+                                            title: 'Master Library Publisher',
                                             description: 'Library Master Publisher Details'
                                         },
                                         {
-                                            id: 30004,
+                                            id: 30005,
                                             name: 'Master Author',
                                             icon: 'BookOpen',
                                             url: '/library/masters/masterauthor',
-                                            title: 'Library Author',
+                                            title: 'Master Author',
                                             description: 'Library Master Author Details'
                                         },
                                         {
-                                            id: 30004,
+                                            id: 30006,
                                             name: 'Master Language',
                                             icon: 'BookOpen',
                                             url: '/library/masters/masterlanguage',
-                                            title: 'Library Language',
+                                            title: 'Master Language',
                                             description: 'Library Master Language Details'
                                         }
                                     ]
@@ -2424,12 +2424,12 @@ export async function getUserAccessibleModules() {
 
                                     pages: [
                                         {
-                                            id: 1,
-                                            name: 'testing',
+                                            id: 30011,
+                                            name: 'LOST BOOK',
                                             icon: 'BookOpen',
-                                            url: '/library/masters/masterlibrary',
-                                            title: 'testing',
-                                            description: 'testing'
+                                            url: '/library/transactions/lostbook',
+                                            title: 'LOST BOOK',
+                                            description: 'LOST BOOK Details'
                                         }
                                     ]
                                 },
@@ -2440,7 +2440,7 @@ export async function getUserAccessibleModules() {
 
                                     pages: [
                                         {
-                                            id: 1,
+                                            id: 30021,
                                             name: 'testing',
                                             icon: 'BookOpen',
                                             url: '/library/masters/masterlibrary',

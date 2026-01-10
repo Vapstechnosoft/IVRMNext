@@ -5,7 +5,7 @@ import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterLanguage } from '@/hooks/library/useMasters';
 
-import { masterLibrarySchema } from '@/schemas/library/masters';
+import { masterLanguageSchema } from '@/schemas/library/masters';
 import { addOrUpdateMasterLanguage } from '@/server/library/masters/master_language';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
@@ -13,16 +13,14 @@ import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-type FormFields = z.infer<typeof masterLibrarySchema.addOrUpdate>;
+type FormFields = z.infer<typeof masterLanguageSchema.addOrUpdate>;
 
-interface AddMasterLibraryFormProps {
+interface AddMasterLanguageFormProps {
     onSuccess?: () => void;
     className?: string;
 }
 
-export default function AddMasterLibraryForm({ onSuccess, className = '' }: AddMasterLibraryFormProps) {
-    //const { refetchAll: refetchMasterCasteCategoryCode } = useMasterLibrary();
-
+export default function AddMasterLanguageForm({ onSuccess, className = '' }: AddMasterLanguageFormProps) {
     const { refetchAll } = useMasterLanguage();
 
     const {
@@ -31,16 +29,16 @@ export default function AddMasterLibraryForm({ onSuccess, className = '' }: AddM
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(masterLibrarySchema.addOrUpdate),
+        resolver: zodResolver(masterLanguageSchema.addOrUpdate),
         mode: 'onChange'
     });
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
-            const { lmaL_LibraryName } = data;
+            const { lmL_LanguageName } = data;
             const payload = {
-                IMCC_ID: 0,
-                LMAL_LibraryName: lmaL_LibraryName
+                lmL_Id: 0,
+                lmL_LanguageName: lmL_LanguageName
             };
 
             const response = await addOrUpdateMasterLanguage(payload);
@@ -69,12 +67,12 @@ export default function AddMasterLibraryForm({ onSuccess, className = '' }: AddM
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         <InputText
-                            label='Library Name'
+                            label='Language Name'
                             required
-                            id='lmaL_Id'
-                            placeholder='Enter library name'
-                            {...register('lmaL_LibraryName')}
-                            error={errors.lmaL_LibraryName?.message}
+                            id='lmL_Id'
+                            placeholder='Enter language name'
+                            {...register('lmL_LanguageName')}
+                            error={errors.lmL_LanguageName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>
@@ -101,7 +99,7 @@ export default function AddMasterLibraryForm({ onSuccess, className = '' }: AddM
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Master Library
+                            Save Master Language
                         </div>
                     </Button>
                 </div>
