@@ -2,16 +2,9 @@
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import type { ILoginPrivilege } from '@/types/admission/preadmission/login_privilege';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
-
-export interface ILoginPrivilege {
-    id: number;
-    role: string;
-    class: string;
-    section: string;
-    activeFlag: boolean;
-}
 
 export const loginPrivilegeColumns: ColumnDef<ILoginPrivilege>[] = [
     {
@@ -23,33 +16,40 @@ export const loginPrivilegeColumns: ColumnDef<ILoginPrivilege>[] = [
             const continuousIndex = pageIndex * pageSize + row.index + 1;
             return <div className='w-full pl-6'>{continuousIndex}</div>;
         },
-        enableSorting: true,
+        enableSorting: false,
         enableHiding: false
     },
     {
-        accessorKey: 'role',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Role' />,
-        cell: ({ row }) => <div>{row.getValue('role')}</div>,
+        accessorKey: 'lp_year',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Year' />,
+        cell: ({ row }) => <div>{row.getValue('lp_year')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'class',
+        accessorKey: 'lp_staff_name',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Staff Name' />,
+        cell: ({ row }) => <div className='font-medium'>{row.getValue('lp_staff_name')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'lp_classes',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />,
-        cell: ({ row }) => <div>{row.getValue('class')}</div>,
+        cell: ({ row }) => <div>{row.getValue('lp_classes')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'section',
+        accessorKey: 'lp_sections',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Section' />,
-        cell: ({ row }) => <div>{row.getValue('section')}</div>,
+        cell: ({ row }) => <div>{row.getValue('lp_sections')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Action' className='text-center' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
@@ -61,7 +61,7 @@ function ActionButtonsCell({ rowData }: { rowData: ILoginPrivilege }) {
 
     const handleEdit = useCallback(
         (data: ILoginPrivilege) => {
-            openEditForm(data);
+            openEditForm(data); // This populates selectedRow in context
         },
         [openEditForm]
     );
@@ -76,10 +76,10 @@ function ActionButtonsCell({ rowData }: { rowData: ILoginPrivilege }) {
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: true, toggle: true, delete: false }}
+            buttons={{ edit: true, toggle: false, delete: true }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            toggleConditionKey='activeFlag'
+            // Using delete as the image shows a trash icon
         />
     );
 }
