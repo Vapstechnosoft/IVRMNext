@@ -129,3 +129,56 @@ export interface ITimeTableClassDropDownData {
     createdDate: string;
     updatedDate: string;
 }
+
+export interface IBreakTimeSettingsList {
+    ttmB_Id: number;
+    mI_Id: number;
+    asmayYear: string;
+    className: string;
+    dayName: string;
+    ttmB_BreakName: string;
+    ttmB_BreakStartTime: string;
+    ttmB_BreakEndTime: string;
+    ttmB_AfterPeriod: number;
+    ttmB_ActiveFlag: boolean;
+    createdDate: string;
+    updatedDate: string;
+}
+
+export interface IBreakTimeSettingsDTO {
+    TTMB_Id: number;
+    ASMAY_Id: number;
+    TTMC_Id: number;
+    ArrayClassList: { asmcL_Id: number }[];
+    ArrayDayList: { ttmD_Id: number }[];
+    TTMB_AfterPeriod: number;
+    TTMB_BreakName: string;
+    TTMB_BreakStartTime: string;
+    TTMB_BreakEndTime: string;
+    ArraybeforeperiodsList: any[];
+    ArrayafterperiodsList: any[];
+    TTMB_ActiveFlag: boolean;
+}
+
+export interface IMasterPeriodList {
+    ttmP_Id: number;
+    mI_Id: number;
+    ttmP_PeriodName: string;
+    ttmP_ActiveFlag: boolean;
+    createdDate: string;
+    updatedDate: string;
+}
+
+export interface IMasterPeriodClassList {
+    ttmpC_Id: number;
+    mI_Id: number;
+    asmaY_Id: number;
+    asmcL_Id: number;
+    ttmP_Id: number;
+    ttmP_PeriodName: string;
+    asmcL_ClassName: string;
+    asmaY_Year: string;
+    ttmpC_ActiveFlag: boolean;
+    createdDate: string;
+    updatedDate: string;
+}

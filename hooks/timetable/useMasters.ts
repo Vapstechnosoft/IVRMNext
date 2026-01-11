@@ -1,4 +1,5 @@
 import { TIMETABLE_QUERY_KEYS } from '@/constants/Timetable-query-keys';
+import { getBreakTimeSettingsDetails } from '@/server/timetable/masters/breaktimesettings';
 import {
     getCategoryClassMappingDetails,
     getTimeTableAcademicYearDetails,
@@ -8,6 +9,7 @@ import {
 import { getMasterCategoryDetails } from '@/server/timetable/masters/masterCategory';
 import { getMasterBuildingDetails } from '@/server/timetable/masters/masterbuilding';
 import { getMasterDayDetails } from '@/server/timetable/masters/masterday';
+import { getAllPeriodDetails } from '@/server/timetable/masters/periodallocation';
 import { getStaffAbbreviationDetails, getStaffDropDown } from '@/server/timetable/masters/staffabbreviation';
 import { getSubjectAbbreviationDetails } from '@/server/timetable/masters/subjectabbreviation';
 import type { ApiSearchparams } from '@/types';
@@ -188,6 +190,42 @@ export const useTimeTableClassDropdownData = (searchParams?: ApiSearchparams) =>
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [TIMETABLE_QUERY_KEYS.MASTER_TT_CLASSDROPDOWN]
+            });
+        }
+    };
+};
+
+export const usePeriodAllocation = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_PERIOD_ALLOCATION, searchParams ?? {}],
+            queryFn: async () => getAllPeriodDetails(searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_PERIOD_ALLOCATION]
+            });
+        }
+    };
+};
+
+export const useBreakTimeSettings = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_BREAK_TIME_SETTINGS, searchParams ?? {}],
+            queryFn: async () => getBreakTimeSettingsDetails(searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_BREAK_TIME_SETTINGS]
             });
         }
     };

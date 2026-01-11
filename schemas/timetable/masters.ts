@@ -75,3 +75,66 @@ export const categoryClassMappingSchema = {
     //     ttmB_Id: deleteIdSchema('ttmB_Id')
     // })
 };
+
+export const breakTimeSettingsSchema = {
+    addOrUpdate: z.object({
+        asmaY_Id: z.number().min(1, 'Academic Year is required'),
+        ttmC_Id: z.number().min(1, 'Category is required'),
+        classIds: z
+            .array(
+                z.object({
+                    asmcL_Id: z.number(),
+                    asmcL_ClassName: z.string()
+                })
+            )
+            .min(1, 'Select at least one class'),
+        dayIds: z
+            .array(
+                z.object({
+                    ttmD_Id: z.number(),
+                    ttmD_DayName: z.string()
+                })
+            )
+            .min(1, 'Select at least one day'),
+        ttmB_BreakName: z.string().min(3, 'Break Name must be at least 3 characters'),
+        ttmB_BreakStartTime: z.date({ required_error: 'Start Time is required' }),
+        ttmB_BreakEndTime: z.date({ required_error: 'End Time is required' }),
+        ttmB_AfterPeriod: z.coerce.number().min(1, 'After Period is required')
+    })
+};
+
+export const masterPeriodSchema = {
+    save: z.object({
+        noOfPeriods: z.coerce.number().min(1, 'Enter at least 1 period').max(20, 'Max 20 periods allowed')
+    })
+};
+
+export const masterPeriodClassSchema = {
+    save: z.object({
+        asmaY_Id: z.number().min(1, 'Academic Year is required'),
+        ttmC_Id: z.number().min(1, 'Category is required'),
+        classIds: z
+            .array(
+                z.object({
+                    asmcL_Id: z.number(),
+                    asmcL_ClassName: z.string()
+                })
+            )
+            .min(1, 'Select at least one Class'),
+        noOfPeriods: z.coerce.number().min(1, 'Enter at least 1 period')
+    })
+};
+
+export const periodDistributionSchema = {
+    save: z.object({
+        asmaY_Id: z.number().min(1, 'Academic Year is required'),
+        nop1: z.coerce.number().min(1, 'Enter No. Of Periods'),
+        ttfpD_StaffConsecutive: z.coerce.number().min(1, 'Enter Staff Consecutive'),
+        hrmE_Id: z.number().min(1, 'Staff Name is required'),
+        ttmC_Id: z.number().min(1, 'Category is required').optional().or(z.literal(0)),
+        asmcL_Id: z.number().min(1, 'Class is required').optional().or(z.literal(0)),
+        asmS_Id: z.number().min(1, 'Section is required').optional().or(z.literal(0)),
+        ismS_Id: z.number().min(1, 'Subject is required').optional().or(z.literal(0)),
+        nop2: z.coerce.number().optional().or(z.literal(0))
+    })
+};

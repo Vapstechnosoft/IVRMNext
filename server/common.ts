@@ -2588,6 +2588,77 @@ export async function getUserAccessibleModules() {
                                             url: '/timetable/masters/mastercategory',
                                             title: 'Master Category',
                                             description: 'Manage Master Category Details'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Master Break Time Settings',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/timetable/masters/breaktimesettings',
+                                            title: 'Master Break Time Settings',
+                                            description: 'Manage Master Break Time Settings Details'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Master Period',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/timetable/masters/masterperiod',
+                                            title: 'Master Period',
+                                            description: 'Manage Master Period Details'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'Master Period Class',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/timetable/masters/masterperiodclass',
+                                            title: 'Master Period Class',
+                                            description: 'Manage Master Period Class Details'
+                                        },
+                                        {
+                                            id: 10,
+                                            name: 'Period Distribution',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/timetable/masters/perioddistribution',
+                                            title: 'Period Distribution',
+                                            description: 'Manage Period Distribution Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Reports',
+                                    icon: 'BadgeIndianRupee',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Consolidated Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/timetable/reports/consolidated',
+                                            title: 'Consolidated Report',
+                                            description: 'TimeTable Consolidated Report'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Class Wise TimeTable',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/timetable/reports/classwisett',
+                                            title: 'Class Wise TimeTable',
+                                            description: 'Class Wise TimeTable Report'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Subject Wise TimeTable',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/timetable/reports/subjectwisett',
+                                            title: 'Subject Wise TimeTable',
+                                            description: 'Subject Wise TimeTable Report'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Staff Wise TimeTable',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/timetable/reports/staffwisett',
+                                            title: 'Staff Wise TimeTable',
+                                            description: 'Staff Wise TimeTable Report'
                                         }
                                     ]
                                 }
