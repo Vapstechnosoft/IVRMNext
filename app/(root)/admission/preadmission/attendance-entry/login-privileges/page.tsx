@@ -32,6 +32,7 @@ export default function LoginPrivilegePage() {
 
 function LoginPrivilegePageContent() {
     const { data: initialData, isLoading, refetch, createPrivilege, fetchDataByType, isSearching } = useLoginPrivileges();
+    const [showList, setShowList] = useState(false);
 
     // State for Table Data
     const [tableData, setTableData] = useState<any[]>([]);
@@ -41,6 +42,7 @@ function LoginPrivilegePageContent() {
         if (initialData) {
             const data = Array.isArray(initialData) ? initialData : (initialData as any)?.data || [];
             setTableData(data);
+            setShowList(true);
         }
     }, [initialData]);
 
@@ -60,26 +62,31 @@ function LoginPrivilegePageContent() {
                     refetch={refetch}
                     fetchDataByType={fetchDataByType}
                     isSearching={isSearching}
-                    onSearchSuccess={(data) => setTableData(data)}
+                    onSearchSuccess={(data) => {
+                        setTableData(data);
+                        setShowList(true);
+                    }}
                 />
 
-                <CollapsibleSection
-                    defaultOpen={true}
-                    title='ATTENDANCE LOGIN PRIVILEGES LIST'
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<ILoginPrivilege>
-                        {...tableProps}
-                        columns={loginPrivilegeColumns}
-                        isLoading={isLoading}
-                        showViewOptions={false}
-                        columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading privileges...'
-                        noDataTitle='No Privileges Found'
-                        noDataDescription='Assign first privilege'
-                    />
-                </CollapsibleSection>
+                {showList && (
+                    <CollapsibleSection
+                        defaultOpen={true}
+                        title='ATTENDANCE LOGIN PRIVILEGES LIST'
+                        variant='default'
+                        size='lg'
+                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                        <GenericDataTable<ILoginPrivilege>
+                            {...tableProps}
+                            columns={loginPrivilegeColumns}
+                            isLoading={isLoading}
+                            showViewOptions={false}
+                            columnPinning={{ right: ['actions'] }}
+                            loadingMessage='Loading privileges...'
+                            noDataTitle='No Privileges Found'
+                            noDataDescription='Assign first privilege'
+                        />
+                    </CollapsibleSection>
+                )}
             </div>
         </div>
     );
@@ -158,7 +165,6 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching,
     const handleSubjectToggle = (id: string) => {
         setSelectedSubjects((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
     };
-
     const handleSearch = async () => {
         if (!selectedYearId) {
             toast.error('Please select Academic Year');
