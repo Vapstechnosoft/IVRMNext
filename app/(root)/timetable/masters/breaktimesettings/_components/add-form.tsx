@@ -8,7 +8,6 @@ import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TimePicker } from '@/components/ui/time-picker/time-picker';
-import { useBreakTimeSettings } from '@/hooks/timetable/useMasters';
 import { breakTimeSettingsSchema } from '@/schemas/timetable/masters';
 import { getClassByCategory, getMaximumPeriodsCount, saveBreakTimeSettings } from '@/server/timetable/masters/breaktimesettings';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,6 +17,7 @@ import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
+import { useBreakTimeSettingDetails } from '@/hooks/timetable/useMasters';
 import type { IMasterDayList } from '@/types/timetable/masters/masters';
 
 type FormFields = z.infer<typeof breakTimeSettingsSchema.addOrUpdate>;
@@ -28,7 +28,7 @@ interface AddBreakTimeSettingsFormProps {
 }
 
 export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: AddBreakTimeSettingsFormProps) {
-    const { data: response, refetchAll } = useBreakTimeSettings();
+    const { data: response, refetchAll } = useBreakTimeSettingDetails();
     const [classList, setClassList] = useState<any[]>([]);
     const [periodsBefore, setPeriodsBefore] = useState<any[]>([]);
     const [periodsAfter, setPeriodsAfter] = useState<any[]>([]);

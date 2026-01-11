@@ -30,7 +30,7 @@ export default function StaffWiseReportPage() {
                     setError('No data received from server.');
                 }
             } catch (error: any) {
-                console.error('Error fetching initial details', error);
+                //console.error('Error fetching initial details', error);
                 setError(error.message || 'Failed to fetch report details.');
             }
         };
@@ -45,7 +45,7 @@ export default function StaffWiseReportPage() {
             const response = await getStaffWiseReport(payload);
             processReportData(response, payload.staffarray, payload.rpttyp);
         } catch (error: any) {
-            console.error('Error generating report', error);
+            //console.error('Error generating report', error);
             setError(error.message || 'Failed to generate report.');
             setReportData([]);
         } finally {
@@ -192,11 +192,11 @@ export default function StaffWiseReportPage() {
         <div className='space-y-4 p-1'>
             <CollapsibleSection title='Staff Wise TimeTable Report' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                 <StaffWiseForm initialData={initialData} onSubmit={handleFormSubmit} onCancel={handleCancel} />
-                {error && (
+                {/* {error && (
                     <div className='p-4 text-center text-red-500 text-sm'>
                         <p>{error}</p>
                     </div>
-                )}
+                )} */}
             </CollapsibleSection>
 
             {reportData.length > 0 && (

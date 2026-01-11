@@ -5,7 +5,7 @@ import type { ApiSearchparams } from '@/types';
 
 export async function getPeriodDistributionDetails(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'staffName');
-    const url = `/ClassMaster/getalldetails?${urlParams}`;
+    const url = `/ClassMasterFacade/getPeriodDistributionData?${urlParams}`;
     return await api.get<any>('timetable', url);
 }
 

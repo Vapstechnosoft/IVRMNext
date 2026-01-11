@@ -2,11 +2,11 @@
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import type { IBreakTimeSettingsList } from '@/types/timetable/masters/masters';
+import type { BreakTimeSettingsGridData } from '@/types/timetable/masters/masters';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
-export const breakTimeSettingsColumns: ColumnDef<IBreakTimeSettingsList>[] = [
+export const breakTimeSettingsColumns: ColumnDef<BreakTimeSettingsGridData>[] = [
     {
         accessorKey: 'ttmB_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
@@ -28,14 +28,14 @@ export const breakTimeSettingsColumns: ColumnDef<IBreakTimeSettingsList>[] = [
     },
     {
         accessorKey: 'className',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Name' />,
         cell: ({ row }) => <div>{row.getValue('className')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'dayName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Day' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Day Name' />,
         cell: ({ row }) => <div>{row.getValue('dayName')}</div>,
         enableSorting: true,
         enableHiding: true
@@ -49,14 +49,14 @@ export const breakTimeSettingsColumns: ColumnDef<IBreakTimeSettingsList>[] = [
     },
     {
         accessorKey: 'ttmB_BreakStartTime',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Start Time' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Break Start Time' />,
         cell: ({ row }) => <div>{row.getValue('ttmB_BreakStartTime')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'ttmB_BreakEndTime',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='End Time' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Break End Time' />,
         cell: ({ row }) => <div>{row.getValue('ttmB_BreakEndTime')}</div>,
         enableSorting: true,
         enableHiding: true
@@ -77,25 +77,25 @@ export const breakTimeSettingsColumns: ColumnDef<IBreakTimeSettingsList>[] = [
     }
 ];
 
-function ActionButtonsCell({ rowData }: { rowData: IBreakTimeSettingsList }) {
-    const { openEditForm, openToggleForm, openDeleteForm } = useFormContext<IBreakTimeSettingsList>();
+function ActionButtonsCell({ rowData }: { rowData: BreakTimeSettingsGridData }) {
+    const { openEditForm, openToggleForm, openDeleteForm } = useFormContext<BreakTimeSettingsGridData>();
 
     const handleEdit = useCallback(
-        (data: IBreakTimeSettingsList) => {
+        (data: BreakTimeSettingsGridData) => {
             openEditForm(data);
         },
         [openEditForm]
     );
 
     const handleToggle = useCallback(
-        (data: IBreakTimeSettingsList) => {
+        (data: BreakTimeSettingsGridData) => {
             openToggleForm(data);
         },
         [openToggleForm]
     );
 
     const handleDelete = useCallback(
-        (data: IBreakTimeSettingsList) => {
+        (data: BreakTimeSettingsGridData) => {
             // Assuming no delete functionality in MasterDay, but user asked for it in general or the standard
             // User code has deletedata function.
             if (openDeleteForm) openDeleteForm(data);

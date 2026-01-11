@@ -3,13 +3,13 @@
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import type { IMasterPeriodList } from '@/types/timetable/masters/masters';
+import type { IMasterPeriodDetailsList } from '@/types/timetable/masters/masters';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
-export const masterPeriodColumns: ColumnDef<IMasterPeriodList>[] = [
+export const masterPeriodColumns: ColumnDef<IMasterPeriodDetailsList>[] = [
     {
-        accessorKey: 'ttmP_Id',
+        accessorKey: 'impcM_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
@@ -21,9 +21,30 @@ export const masterPeriodColumns: ColumnDef<IMasterPeriodList>[] = [
         enableHiding: false
     },
     {
-        accessorKey: 'ttmP_PeriodName',
+        accessorKey: 'categoryName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Category Name' />,
+        cell: ({ row }) => <div>{row.getValue('categoryName')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'imP_PeriodName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Period Name' />,
-        cell: ({ row }) => <div>{row.getValue('ttmP_PeriodName')}</div>,
+        cell: ({ row }) => <div>{row.getValue('imP_PeriodName')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'imP_PeriodOrder',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Period Order' />,
+        cell: ({ row }) => <div>{row.getValue('imP_PeriodOrder')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'half',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Type' />,
+        cell: ({ row }) => <div>{row.getValue('half')}</div>,
         enableSorting: true,
         enableHiding: true
     },
@@ -34,11 +55,11 @@ export const masterPeriodColumns: ColumnDef<IMasterPeriodList>[] = [
     }
 ];
 
-function ActionButtonsCell({ rowData }: { rowData: IMasterPeriodList }) {
-    const { openToggleForm } = useFormContext<IMasterPeriodList>();
+function ActionButtonsCell({ rowData }: { rowData: IMasterPeriodDetailsList }) {
+    const { openToggleForm } = useFormContext<IMasterPeriodDetailsList>();
 
     const handleToggle = useCallback(
-        (data: IMasterPeriodList) => {
+        (data: IMasterPeriodDetailsList) => {
             openToggleForm(data);
         },
         [openToggleForm]

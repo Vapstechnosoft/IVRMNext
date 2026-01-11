@@ -2605,14 +2605,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Master Period',
                                             description: 'Manage Master Period Details'
                                         },
-                                        {
-                                            id: 9,
-                                            name: 'Master Period Class',
-                                            icon: 'BadgeIndianRupee',
-                                            url: '/timetable/masters/masterperiodclass',
-                                            title: 'Master Period Class',
-                                            description: 'Manage Master Period Class Details'
-                                        },
+                                        // {
+                                        //     id: 9,
+                                        //     name: 'Master Period Class',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/timetable/masters/masterperiodclass',
+                                        //     title: 'Master Period Class',
+                                        //     description: 'Manage Master Period Class Details'
+                                        // },
                                         {
                                             id: 10,
                                             name: 'Period Distribution',

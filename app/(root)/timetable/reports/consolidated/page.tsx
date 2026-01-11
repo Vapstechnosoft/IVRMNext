@@ -26,8 +26,8 @@ export default function ConsolidatedReportPage() {
                     setError('No data received from server.');
                 }
             } catch (error: any) {
-                console.error('Error fetching initial details', error);
-                setError(error.message || 'Failed to fetch report details.');
+                // console.error('Error fetching initial details', error);
+                // setError(error.message || 'Failed to fetch report details.');
                 // Even on error, we keep potentially empty initialData to show the form
             }
         };
@@ -41,7 +41,7 @@ export default function ConsolidatedReportPage() {
             const response = await getConsolidatedReport(payload);
             processReportData(payload.TYPE, response);
         } catch (error) {
-            console.error('Error generating report', error);
+            //console.error('Error generating report', error);
             setReportData([]);
         } finally {
             setLoading(false);
@@ -232,11 +232,11 @@ export default function ConsolidatedReportPage() {
         <div className='space-y-4 p-1'>
             <CollapsibleSection title='Consolidated Report' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                 <ConsolidatedForm initialData={initialData} onSubmit={handleFormSubmit} />
-                {error && (
+                {/* {error && (
                     <div className='p-4 text-center text-red-500 text-sm'>
                         <p>Note: Unable to fetch initial data. Error: {error}</p>
                     </div>
-                )}
+                )} */}
             </CollapsibleSection>
 
             {reportData.length > 0 && (

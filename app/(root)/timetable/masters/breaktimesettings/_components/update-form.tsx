@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TimePicker } from '@/components/ui/time-picker/time-picker';
-import { useBreakTimeSettings } from '@/hooks/timetable/useMasters';
+import { useBreakTimeSettingDetails } from '@/hooks/timetable/useMasters';
+
 import { breakTimeSettingsSchema } from '@/schemas/timetable/masters';
 import {
     getBreakTimeSettingsById,
@@ -31,7 +32,7 @@ interface UpdateBreakTimeSettingsFormProps {
 }
 
 export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: UpdateBreakTimeSettingsFormProps) {
-    const { data: response, refetchAll } = useBreakTimeSettings();
+    const { data: response, refetchAll } = useBreakTimeSettingDetails();
     const [classList, setClassList] = useState<any[]>([]);
     const [periodsBefore, setPeriodsBefore] = useState<any[]>([]);
     const [periodsAfter, setPeriodsAfter] = useState<any[]>([]);

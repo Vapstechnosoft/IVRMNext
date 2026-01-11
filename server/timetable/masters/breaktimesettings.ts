@@ -2,13 +2,16 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { IBreakTimeSettingsDTO } from '@/types/timetable/masters/masters';
+import type { BreakTimeSettingsGridData, IBreakTimeSettingsDTO } from '@/types/timetable/masters/masters';
 
 export async function getBreakTimeSettingsDetails(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'ttmB_BreakName');
-    const url = `/BreakTimeSettings/getalldetails?${urlParams}`;
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'ttmB_Id,asmayYear,dayName,className,ttmB_BreakName,ttmB_BreakStartTime,ttmB_BreakEndTime,ttmB_AfterPeriod,ttmB_ActiveFlag'
+    );
+    const url = `/BreaktimesettingsFacade/BreakTimeSettingsGridData?${urlParams}`;
     console.info('BreakTimeSettings', url);
-    return await api.get<any>('timetable', url);
+    return await api.get<BreakTimeSettingsGridData[]>('timetable', url);
 }
 
 export async function saveBreakTimeSettings(data: IBreakTimeSettingsDTO) {

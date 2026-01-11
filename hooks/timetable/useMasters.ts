@@ -9,7 +9,9 @@ import {
 import { getMasterCategoryDetails } from '@/server/timetable/masters/masterCategory';
 import { getMasterBuildingDetails } from '@/server/timetable/masters/masterbuilding';
 import { getMasterDayDetails } from '@/server/timetable/masters/masterday';
+import { getMasterPeriodDetails } from '@/server/timetable/masters/masterperiod';
 import { getAllPeriodDetails } from '@/server/timetable/masters/periodallocation';
+import { getPeriodDistributionDetails } from '@/server/timetable/masters/perioddistribution';
 import { getStaffAbbreviationDetails, getStaffDropDown } from '@/server/timetable/masters/staffabbreviation';
 import { getSubjectAbbreviationDetails } from '@/server/timetable/masters/subjectabbreviation';
 import type { ApiSearchparams } from '@/types';
@@ -213,19 +215,73 @@ export const usePeriodAllocation = (searchParams?: ApiSearchparams) => {
     };
 };
 
-export const useBreakTimeSettings = (searchParams?: ApiSearchparams) => {
+// export const useBreakTimeSettings = (searchParams?: ApiSearchparams) => {
+//     const queryClient = useQueryClient();
+
+//     return {
+//         ...useQuery({
+//             queryKey: [TIMETABLE_QUERY_KEYS.MASTER_BREAK_TIME_SETTINGS, searchParams ?? {}],
+//             queryFn: async () => getBreakTimeSettingsDetails(searchParams),
+//             staleTime: 0
+//         }),
+
+//         refetchAll: () => {
+//             return queryClient.invalidateQueries({
+//                 queryKey: [TIMETABLE_QUERY_KEYS.MASTER_BREAK_TIME_SETTINGS]
+//             });
+//         }
+//     };
+// };
+
+export const useMasterPeriodDetails = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_BREAK_TIME_SETTINGS, searchParams ?? {}],
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_PERIOD_DETAILSDATA, searchParams ?? {}],
+            queryFn: async () => getMasterPeriodDetails(searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_PERIOD_DETAILSDATA]
+            });
+        }
+    };
+};
+
+export const useBreakTimeSettingDetails = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.TT_BREAKTIME_STTINGS, searchParams ?? {}],
             queryFn: async () => getBreakTimeSettingsDetails(searchParams),
             staleTime: 0
         }),
 
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_BREAK_TIME_SETTINGS]
+                queryKey: [TIMETABLE_QUERY_KEYS.TT_BREAKTIME_STTINGS]
+            });
+        }
+    };
+};
+
+export const usePeriodDistributionDetails = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.TT_PERIOD_DISTRIBUTIONDETAILS, searchParams ?? {}],
+            queryFn: async () => getPeriodDistributionDetails(searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.TT_PERIOD_DISTRIBUTIONDETAILS]
             });
         }
     };

@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
-import { useBreakTimeSettings } from '@/hooks/timetable/useMasters';
+import { useBreakTimeSettingDetails } from '@/hooks/timetable/useMasters';
 import { deactivateBreakTimeSettings } from '@/server/timetable/masters/breaktimesettings';
 import type { IBreakTimeSettingsList } from '@/types/timetable/masters/masters';
 import { useForm } from 'react-hook-form';
@@ -14,7 +14,7 @@ interface ToggleBreakTimeSettingsFormProps {
 }
 
 export default function ToggleBreakTimeSettingsForm({ rowData, onClose }: ToggleBreakTimeSettingsFormProps) {
-    const { refetchAll } = useBreakTimeSettings();
+    const { refetchAll } = useBreakTimeSettingDetails();
     const isActive = rowData.ttmB_ActiveFlag;
 
     const {

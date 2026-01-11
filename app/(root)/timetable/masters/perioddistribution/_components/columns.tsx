@@ -1,18 +1,9 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import type { PeriodDistributionColumn } from '@/types/timetable/masters/masters';
 import type { ColumnDef } from '@tanstack/react-table';
 import { ArrowUpDown, Eye, Pencil } from 'lucide-react';
-
-export type PeriodDistributionColumn = {
-    id: string; // Composite key or unique id
-    asmaY_Year: string;
-    staffName: string;
-    ttfpD_TotWeekPeriods: number;
-    ttfpD_ActiveFlag: boolean;
-    ttfpD_Id: number;
-    // ... other fields from API
-};
 
 interface PeriodDistributionColumnsProps {
     onEdit: (data: PeriodDistributionColumn) => void;

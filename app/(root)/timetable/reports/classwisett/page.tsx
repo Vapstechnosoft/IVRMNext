@@ -26,8 +26,8 @@ export default function ClassWiseReportPage() {
                     setError('No data received from server.');
                 }
             } catch (error: any) {
-                console.error('Error fetching initial details', error);
-                setError(error.message || 'Failed to fetch report details.');
+                ////console.error('Error fetching initial details', error);
+                //setError(error.message || 'Failed to fetch report details.');
             }
         };
         fetchDetails();
@@ -40,7 +40,7 @@ export default function ClassWiseReportPage() {
             const response = await getClassWiseReport(payload);
             processReportData(response, payload.classarray, payload.sectionarray);
         } catch (error: any) {
-            console.error('Error generating report', error);
+            //console.error('Error generating report', error);
             setError(error.message || 'Failed to generate report.');
             setReportData([]);
         } finally {
@@ -237,11 +237,11 @@ export default function ClassWiseReportPage() {
         <div className='space-y-4 p-1'>
             <CollapsibleSection title='Class Wise TimeTable Report' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                 <ClassWiseForm initialData={initialData} onSubmit={handleFormSubmit} onCancel={handleCancel} />
-                {error && (
+                {/* {error && (
                     <div className='p-4 text-center text-red-500 text-sm'>
                         <p>{error}</p>
                     </div>
-                )}
+                )} */}
             </CollapsibleSection>
 
             {reportData.length > 0 && (

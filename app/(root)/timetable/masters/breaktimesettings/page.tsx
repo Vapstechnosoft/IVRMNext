@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useBreakTimeSettings } from '@/hooks/timetable/useMasters';
-import type { IBreakTimeSettingsList } from '@/types/timetable/masters/masters';
+import { useBreakTimeSettingDetails } from '@/hooks/timetable/useMasters';
+import type { BreakTimeSettingsGridData, IBreakTimeSettingsList } from '@/types/timetable/masters/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddBreakTimeSettingsForm from './_components/add-form';
@@ -16,7 +16,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function BreakTimeSettingsPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error, refetchAll } = useBreakTimeSettings(searchParams);
+    const { data: response, isLoading, error, refetchAll } = useBreakTimeSettingDetails(searchParams);
 
     return (
         <FormProvider<IBreakTimeSettingsList>>
@@ -36,7 +36,7 @@ function BreakTimeSettingsPageContent({
     error: any;
     refetchAll: any;
 }) {
-    const { openAddForm } = useFormContext<IBreakTimeSettingsList>();
+    const { openAddForm } = useFormContext<BreakTimeSettingsGridData>();
     const tableProps = useDataTableProps(response?.breaktimelist ? { ...response, data: response.breaktimelist } : response);
 
     const dataList = response?.breaktimelist || [];
@@ -59,9 +59,8 @@ function BreakTimeSettingsPageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IBreakTimeSettingsList>
+                    <GenericDataTable<BreakTimeSettingsGridData>
                         {...tableProps}
-                        data={dataList} // Override data if necessary
                         columns={breakTimeSettingsColumns}
                         isLoading={isLoading}
                         error={error}

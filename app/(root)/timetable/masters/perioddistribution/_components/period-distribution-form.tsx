@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useBreakTimeSettings } from '@/hooks/timetable/useMasters';
+import { usePeriodDistributionDetails } from '@/hooks/timetable/useMasters';
 import { periodDistributionSchema } from '@/schemas/timetable/masters';
 import { getClassByCategory } from '@/server/timetable/masters/perioddistribution';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -22,7 +22,7 @@ interface PeriodDistributionFormProps {
 }
 
 export default function PeriodDistributionForm({ onSuccess, initialData }: PeriodDistributionFormProps) {
-    const { data: response } = useBreakTimeSettings();
+    const { data: response } = usePeriodDistributionDetails();
     const [tempList, setTempList] = useState<any[]>([]);
     const [classList, setClassList] = useState<any[]>([]);
     const [availablePeriods, setAvailablePeriods] = useState<number>(1);
@@ -470,10 +470,18 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
                     <Save className='mr-2 h-4 w-4' />
                     Save
                 </Button>
-                <Button type='button' variant='destructive' onClick={handleClear}>
+                <Button type='button' onClick={handleClear}>
                     <X className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>
+                {/* <Button
+                        type='button'
+                        variant='outline'
+                        onClick={handleClear}
+                        disabled={isSubmitting}
+                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                        Reset
+                    </Button> */}
             </div>
         </form>
     );

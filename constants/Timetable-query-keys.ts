@@ -10,5 +10,8 @@ export const TIMETABLE_QUERY_KEYS = {
     MASTER_CATEGORY_DROPDOWNDATA_TT: 'master_category_dropdowndata_timetable',
     MASTER_TT_CLASSDROPDOWN: 'master_timetable_classdropdown',
     MASTER_PERIOD_ALLOCATION: 'master_period_allocation',
-    MASTER_BREAK_TIME_SETTINGS: 'master_break_time_settings'
+    MASTER_BREAK_TIME_SETTINGS: 'master_break_time_settings',
+    MASTER_PERIOD_DETAILSDATA: 'master_period_detailsdata',
+    TT_BREAKTIME_STTINGS: 'tt_breaktime_settings',
+    TT_PERIOD_DISTRIBUTIONDETAILS: 'tt_period_distributiondetails'
 };

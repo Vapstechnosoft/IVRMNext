@@ -6,7 +6,7 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useBreakTimeSettings } from '@/hooks/timetable/useMasters';
+import { usePeriodAllocation } from '@/hooks/timetable/useMasters';
 import { masterPeriodClassSchema } from '@/schemas/timetable/masters';
 import { getClassByCategory, getPeriodClass, savePeriodClass } from '@/server/timetable/masters/periodallocation';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -23,7 +23,7 @@ interface MasterPeriodClassFormProps {
 }
 
 export default function MasterPeriodClassForm({ onSuccess }: MasterPeriodClassFormProps) {
-    const { data: response } = useBreakTimeSettings();
+    const { data: response } = usePeriodAllocation();
     const [classList, setClassList] = useState<any[]>([]);
     const [periods, setPeriods] = useState<any[]>([]);
 

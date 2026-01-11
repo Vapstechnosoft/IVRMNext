@@ -182,3 +182,66 @@ export interface IMasterPeriodClassList {
     createdDate: string;
     updatedDate: string;
 }
+
+export interface IMasterPeriodDetailsList {
+    impcM_Id: number;
+    imP_Id: number;
+    categoryName: string;
+    imP_PeriodName: number;
+    imP_PeriodOrder: number;
+}
+
+export interface BreakTimeSettingsGridData {
+    ttmB_Id: number;
+    asmayYear: string;
+    dayName: string;
+    className: string;
+    ttmB_BreakName: string;
+    ttmB_BreakStartTime: string;
+    ttmB_BreakEndTime: string;
+    ttmB_AfterPeriod: number;
+    ttmB_ActiveFlag: boolean;
+}
+
+export interface PeriodDistributionData {
+    ttmB_Id: number;
+    asmayYear: string;
+    dayName: string;
+    className: string;
+    ttmB_BreakName: string;
+    ttmB_BreakStartTime: string;
+    ttmB_BreakEndTime: string;
+    ttmB_AfterPeriod: number;
+    ttmB_ActiveFlag: boolean;
+}
+
+export type PeriodDistributionColumn = {
+    // asmaY_Year: string;
+    // staffName: string;
+    // ttfpD_TotWeekPeriods: number;
+    // ttfpD_ActiveFlag: boolean;
+    // ttfpD_Id: number;
+
+    returnval: boolean;
+    ttfpD_Id: number;
+    mI_Id: number;
+    asmaY_Id: number;
+    hrmE_Id: number;
+    ttfpD_TotWeekPeriods: number;
+    ttfpD_ActiveFlag: boolean;
+    ttfpdD_Id: number;
+    ttfpD_StaffConsecutive: number;
+    ttmC_Id: number;
+    asmcL_Id: number;
+    asmS_Id: number;
+    ismS_Id: number;
+    ttfpD_TotalPeriods: number;
+    ttfpD_AllotedPeriods: number;
+    ttfpD_AvailablePeriods: number;
+    ttfpdD_ActiveFlag: boolean;
+    createdDate: string; // ISO date string
+    updatedDate: string; // ISO date string
+    nop: number;
+    asmaY_Year: string;
+    edit_count: number;
+};

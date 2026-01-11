@@ -2,17 +2,18 @@
 
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { useBreakTimeSettings } from '@/hooks/timetable/useMasters';
+import { usePeriodDistributionDetails } from '@/hooks/timetable/useMasters';
 import { deactivatePeriodDistribution, savePeriodDistribution } from '@/server/timetable/masters/perioddistribution';
+import type { PeriodDistributionColumn } from '@/types/timetable/masters/masters';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { type PeriodDistributionColumn, createPeriodDistributionColumns } from './_components/columns';
+import { createPeriodDistributionColumns } from './_components/columns';
 import PeriodDistributionForm from './_components/period-distribution-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function PeriodDistributionPage() {
-    const { data: response, isLoading, error, refetch } = useBreakTimeSettings();
+    const { data: response, isLoading, error, refetch } = usePeriodDistributionDetails();
     const [data, setData] = useState<PeriodDistributionColumn[]>([]);
 
     // The API returns all_period_distri_list for grid in the response object
@@ -90,7 +91,7 @@ export default function PeriodDistributionPage() {
                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                 <GenericDataTable<PeriodDistributionColumn>
                     {...tableProps}
-                    data={data}
+                    //data={data}
                     columns={columns}
                     isLoading={isLoading}
                     error={error}
