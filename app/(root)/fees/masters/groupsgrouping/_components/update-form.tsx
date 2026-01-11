@@ -21,7 +21,7 @@ interface FeeGroup {
 }
 
 interface SaveGroupGroupingPayload {
-    mI_Id: number;
+    mI_Id?: number;
     fmgG_Id: number;
     fmgG_GroupName: string;
     fmgG_GroupCode: string;
