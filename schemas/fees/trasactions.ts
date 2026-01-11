@@ -166,6 +166,29 @@ export const feeOpeningBalanceSchema = {
 //     })
 // };
 
+// export const feeTransactionWaivedOffSchema = {
+//     addOrUpdate: z.object({
+//         academicYear: z.number({ message: 'Academic year is required' }),
+//         class: z.number({ message: 'Class is required.' }),
+//         section: z.number({ message: 'Section is required.' }),
+//         student: z.number({ message: 'Student Name is required.' }),
+//         remarks: z.string().min(1, 'Remarks are required.'),
+//         date: z.date({ required_error: 'Date is required' }),
+//         uploadedPhotoPath: z.string().optional(),
+//         feeGroupIds: z
+//             .array(
+//                 z.object({
+//                     ismS_Id: z.number({ required_error: 'Group is required' })
+//                 })
+//             )
+//             .min(1, { message: 'At least one Group must be selected' })
+//     }),
+
+//     delete: z.object({
+//         fmC_Id: deleteIdSchema('fmC_Id')
+//     })
+// };
+
 export const feeTransactionWaivedOffSchema = {
     addOrUpdate: z.object({
         academicYear: z.number({ message: 'Academic year is required' }),
@@ -175,13 +198,7 @@ export const feeTransactionWaivedOffSchema = {
         remarks: z.string().min(1, 'Remarks are required.'),
         date: z.date({ required_error: 'Date is required' }),
         uploadedPhotoPath: z.string().optional(),
-        feeGroupIds: z
-            .array(
-                z.object({
-                    ismS_Id: z.number({ required_error: 'Group is required' })
-                })
-            )
-            .min(1, { message: 'At least one Group must be selected' })
+        feeGroupIds: z.array(z.number()).min(1, { message: 'At least one Group must be selected' })
     }),
 
     delete: z.object({

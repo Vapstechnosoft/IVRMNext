@@ -56,7 +56,7 @@ export default function TogglepaymentgatewaydetailsForm({ rowData, onClose }: To
     };
 
     return (
-        <AdaptiveDialog title='Toggle Master Fee Head Status' isOpen={true} onClose={closeDialog}>
+        <AdaptiveDialog title='Toggle Payment Gateway' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <input type='hidden' {...register('FPGD_Id')} defaultValue={rowData.fpgD_Id} />

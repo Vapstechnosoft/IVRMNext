@@ -5,6 +5,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFeeRefundableList, useopeningacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
+import { saveBankCopyData } from '@/server/fees/trasactions/fee_bankpaymentimport';
 import type { IFeeReceiptImportDelate } from '@/types/fees/transactions/transactions';
 import { Search, Upload, X } from 'lucide-react';
 import { use, useEffect, useRef, useState } from 'react';
@@ -50,6 +51,44 @@ export default function BankFeesReceiptImport(props: { searchParams: SearchParam
     }, [loadingYears, academicYearData, selectedAsmayId]);
 
     // Process Excel data using Angular logic
+    // const processExcelData = (data: any[], headers: string[]) => {
+    //     const datanew: ProcessedData = [];
+
+    //     for (let i = 0; i < data.length; i++) {
+    //         // Check if NARRATION exists and contains "#"
+    //         if (data[i].NARRATION?.includes('#')) {
+    //             const split = data[i].NARRATION.split('#');
+
+    //             // Check if split has more than 2 elements (Angular logic)
+    //             if (split.length > 2) {
+    //                 // Extract data according to Angular logic
+    //                 const admissionNumber = split[1].slice(2); // Remove first 2 characters
+    //                 const studentName = split[2];
+
+    //                 // Process DEPOSIT amount - remove commas and convert to number
+    //                 let depositAmount = 0;
+    //                 if (data[i].DEPOSIT) {
+    //                     const depositStr = String(data[i].DEPOSIT).split(',').join('');
+    //                     depositAmount = Number(depositStr) || 0;
+    //                 }
+
+    //                 datanew.push({
+    //                     FYP_Date: data[i].undefined || data[i].Date || data[i].DATE || '',
+    //                     AMST_AdmNo: admissionNumber,
+    //                     Student_Name: studentName,
+    //                     FYP_Tot_Amount: depositAmount,
+    //                     FYP_Bank_Or_Cash: 'C' // Hardcoded as "C" per Angular logic
+    //                 });
+    //             }
+    //         }
+    //     }
+
+    //     // Sort by FYP_Tot_Amount in descending order (Angular logic)
+    //     datanew.sort((a, b) => b.FYP_Tot_Amount - a.FYP_Tot_Amount);
+
+    //     return datanew;
+    // };
+    // Process Excel data using Angular logic
     const processExcelData = (data: any[], headers: string[]) => {
         const datanew: ProcessedData = [];
 
@@ -71,8 +110,32 @@ export default function BankFeesReceiptImport(props: { searchParams: SearchParam
                         depositAmount = Number(depositStr) || 0;
                     }
 
+                    // Get the date - try multiple possible column names
+                    let dateValue = '';
+
+                    // First, try to find date in the row object
+                    if (data[i].__EMPTY || data[i].__EMPTY_1 || data[i]['']) {
+                        // For Excel files without proper headers, dates might be in __EMPTY columns
+                        dateValue = data[i].__EMPTY || data[i].__EMPTY_1 || data[i][''] || '';
+                    } else if (data[i].Date || data[i].DATE) {
+                        // Try common date column names
+                        dateValue = data[i].Date || data[i].DATE || '';
+                    } else if (headers[0] && data[i][headers[0]]) {
+                        // Try the first column header
+                        dateValue = data[i][headers[0]] || '';
+                    } else {
+                        // Check all properties in the row for a date-like value
+                        for (const key in data[i]) {
+                            const value = data[i][key];
+                            if (typeof value === 'string' && value.match(/\d{1,2}\/\d{1,2}\/\d{4}/)) {
+                                dateValue = value;
+                                break;
+                            }
+                        }
+                    }
+
                     datanew.push({
-                        FYP_Date: data[i].undefined || data[i].Date || data[i].DATE || '',
+                        FYP_Date: dateValue,
                         AMST_AdmNo: admissionNumber,
                         Student_Name: studentName,
                         FYP_Tot_Amount: depositAmount,
@@ -87,7 +150,6 @@ export default function BankFeesReceiptImport(props: { searchParams: SearchParam
 
         return datanew;
     };
-
     // Handle Excel file upload
     const selectFileForUpload = (input: HTMLInputElement) => {
         if (!input.files || !input.files[0]) {
@@ -243,34 +305,82 @@ export default function BankFeesReceiptImport(props: { searchParams: SearchParam
             return;
         }
 
+        const formatDateForAPI = (dateString: string) => {
+            if (!dateString) return '';
+
+            try {
+                // If date is already in YYYY/MM/DD format, return as is
+                if (dateString.match(/^\d{4}\/\d{2}\/\d{2}$/)) {
+                    return dateString;
+                }
+
+                // If date is in DD/MM/YYYY format, convert it
+                if (dateString.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
+                    const parts = dateString.split('/');
+                    if (parts.length === 3) {
+                        const day = parts[0].padStart(2, '0');
+                        const month = parts[1].padStart(2, '0');
+                        const year = parts[2];
+                        return `${year}/${month}/${day}`;
+                    }
+                }
+
+                // Try to parse as Date object
+                const date = new Date(dateString);
+                if (!Number.isNaN(date.getTime())) {
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    return `${year}/${month}/${day}`;
+                }
+
+                return dateString; // Return original if we can't parse it
+            } catch (error) {
+                console.error('Error formatting date:', error);
+                return dateString;
+            }
+        };
+
         try {
-            // Prepare data for API call (similar to Angular logic)
-            const data1 = {
-                newlstget1: processedData
+            // Prepare data in the required format
+            const feeReceiptimport = processedData.map((item) => ({
+                amsT_AdmNo: item.AMST_AdmNo,
+                fyP_Date: formatDateForAPI(item.FYP_Date), // Need to format date properly
+                fyP_Tot_Amount: item.FYP_Tot_Amount,
+                fyP_Bank_Or_Cash: item.FYP_Bank_Or_Cash
+            }));
+
+            // Create the final payload
+            const payload = {
+                asmaY_Id: selectedAsmayId,
+                feeReceiptimport: feeReceiptimport
             };
+            const js = JSON.stringify(payload);
+            console.log('Payload to be sent:', js); // For debugging
 
-            // Uncomment and implement your API service call
-            // const response = await apiService.create("FeeReceiptImportStthomas/checkvalidation", data1);
-            // if (response.stuStatus && response.stuStatus !== "") {
-            //     toast.error(response.stuStatus);
-            //     clearImportedData();
-            // } else {
-            //     setIsReportGenerated(true);
-            //     toast.success('Data validated successfully');
-            // }
+            const response = await saveBankCopyData(payload);
 
-            // For now, just show success
-            setIsReportGenerated(true);
-            toast.success(`${processedData.length} records Saved successfully`);
+            if (response.success) {
+                toast.success(response.message);
+                //  reset();
+                //  setSelectedClasses([]);
+                //  setSearchTerm('');
+                //  refetchAll();
+                //  onSuccess?.();
+            } else {
+                toast.error(response.message || 'Failed to save master class');
+            }
 
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000);
+            // setTimeout(() => {
+            //     window.location.reload();
+            // }, 1000);
         } catch (error) {
             toast.error('Error processing data');
             console.error('Processing error:', error);
         }
     };
+
+    // Helper function to format date from DD/MM/YYYY to YYYY/MM/DD
 
     const handleResetClick = () => {
         setIsReportGenerated(false);
