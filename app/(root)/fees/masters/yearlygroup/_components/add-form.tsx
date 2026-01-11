@@ -28,9 +28,9 @@ interface FeeGroup {
 }
 
 interface Payload {
-    mI_Id: number;
+    //mI_Id: number;
     fyG_Id: number;
-    user_id: number;
+    // user_id: number;
     asmaY_Id: number;
     grouplist: number[];
     fyG_RebateTypeFlg: string;
