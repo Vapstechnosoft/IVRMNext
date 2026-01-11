@@ -5,9 +5,8 @@
  * Run with: node scripts/check-hydration.js
  */
 
-const fs = require('fs');
-const path = require('path');
-const { execSync } = require('child_process');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const HRMS_PATH = path.join(__dirname, '../app/(root)/hrms');
 
@@ -48,7 +47,7 @@ const PROBLEMATIC_PATTERNS = [
 function findFiles(dir, fileList = []) {
     const files = fs.readdirSync(dir);
 
-    files.forEach(file => {
+    files.forEach((file) => {
         const filePath = path.join(dir, file);
         const stat = fs.statSync(filePath);
 
@@ -70,8 +69,8 @@ function checkFile(filePath) {
         const matches = content.match(pattern);
         if (matches) {
             const lines = content.split('\n');
-            matches.forEach(match => {
-                const lineNumber = lines.findIndex(line => line.includes(match)) + 1;
+            matches.forEach((match) => {
+                const lineNumber = lines.findIndex((line) => line.includes(match)) + 1;
                 issues.push({
                     file: path.relative(process.cwd(), filePath),
                     line: lineNumber,
@@ -87,7 +86,7 @@ function checkFile(filePath) {
 }
 
 function main() {
-    console.log('🔍 Checking HRMS module for hydration issues...\n');
+    console.info('🔍 Checking HRMS module for hydration issues...\n');
 
     if (!fs.existsSync(HRMS_PATH)) {
         console.error('❌ HRMS path not found:', HRMS_PATH);
@@ -97,42 +96,41 @@ function main() {
     const files = findFiles(HRMS_PATH);
     const allIssues = [];
 
-    files.forEach(file => {
+    files.forEach((file) => {
         const issues = checkFile(file);
         allIssues.push(...issues);
     });
 
     // Group by severity
-    const errors = allIssues.filter(i => i.severity === 'error');
-    const warnings = allIssues.filter(i => i.severity === 'warning');
+    const errors = allIssues.filter((i) => i.severity === 'error');
+    const warnings = allIssues.filter((i) => i.severity === 'warning');
 
     // Print results
     if (errors.length > 0) {
-        console.log('❌ ERRORS (must fix):\n');
-        errors.forEach(issue => {
-            console.log(`  ${issue.file}:${issue.line}`);
-            console.log(`    ${issue.message}`);
-            console.log(`    Found: ${issue.match}\n`);
+        console.info('❌ ERRORS (must fix):\n');
+        errors.forEach((issue) => {
+            console.info(`  ${issue.file}:${issue.line}`);
+            console.info(`    ${issue.message}`);
+            console.info(`    Found: ${issue.match}\n`);
         });
     }
 
     if (warnings.length > 0) {
-        console.log('⚠️  WARNINGS (should review):\n');
-        warnings.forEach(issue => {
-            console.log(`  ${issue.file}:${issue.line}`);
-            console.log(`    ${issue.message}`);
-            console.log(`    Found: ${issue.match}\n`);
+        console.info('⚠️  WARNINGS (should review):\n');
+        warnings.forEach((issue) => {
+            console.info(`  ${issue.file}:${issue.line}`);
+            console.info(`    ${issue.message}`);
+            console.info(`    Found: ${issue.match}\n`);
         });
     }
 
     if (allIssues.length === 0) {
-        console.log('✅ No hydration issues detected!');
+        console.info('✅ No hydration issues detected!');
         process.exit(0);
     } else {
-        console.log(`\n📊 Summary: ${errors.length} errors, ${warnings.length} warnings`);
+        console.info(`\n📊 Summary: ${errors.length} errors, ${warnings.length} warnings`);
         process.exit(errors.length > 0 ? 1 : 0);
     }
 }
 
 main();
-
