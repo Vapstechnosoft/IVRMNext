@@ -266,7 +266,7 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
             const payload = {
                 asmaY_Id: Number(selectedAcademicYear.value),
                 fmG_ID: Number(selectedGroup.value),
-                mI_Id: 30,
+                // mI_Id: 30,
                 UserId: Number(selectedRole.value),
                 grouphead: data.heads.map((h) => ({ FMH_Id: Number(h) })),
                 username: data.users.map((u) => ({ UserId: Number(u) }))

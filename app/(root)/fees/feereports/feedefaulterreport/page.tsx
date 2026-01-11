@@ -1052,7 +1052,7 @@ export default function FeeDefaulterReport() {
                 <div className='mx-auto max-w-7xl'>
                     <Card className='border-0 shadow-xl'>
                         <div className='p-8'>
-                            <h1 className='mb-8 font-bold text-3xl text-gray-900'>Fee Defaulter Report</h1>
+                            <h1 className='mb-8 font-bold text-3xl text-gray-900'>Yearly Fee Defaulter Report</h1>
 
                             <div className='space-y-8'>
                                 {/* User Type Card */}

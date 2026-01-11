@@ -78,7 +78,7 @@ export default function AddMasterInstallmentForm({ onSuccess }: { onSuccess?: ()
 
             const payload = {
                 fmI_Id: (data as any).fmI_Id ?? 0,
-                mI_Id: (data as any).mI_Id ?? 30,
+                // mI_Id: (data as any).mI_Id ?? 30,
                 fmI_Name: data.fmI_Name,
                 fmI_No_Of_Installments: noOfInstallments,
                 fmI_Installment_Type: data.fmI_Installment_Type,

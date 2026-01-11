@@ -888,11 +888,11 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 10011,
-                                            name: 'Fee Defaulter report',
+                                            name: 'Yearly Fee Defaulter report',
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/feereports/feedefaulterreport',
-                                            title: 'Fee Defaulter Report',
-                                            description: 'Fee Defaulter Report'
+                                            title: 'Yearly Fee Defaulter Report',
+                                            description: 'Yearly Fee Defaulter Report'
                                         },
                                         {
                                             id: 10012,

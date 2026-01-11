@@ -55,7 +55,11 @@ export const paymentgatewaydetailsSchema = {
                 message: 'Image URL must start with http:// or https:// and be a valid image (.jpg/.png/.gif/.webp)'
             }),
         // fpgD_URL: z.string().min(1, 'URL is required'),
-        fpgD_URL: z.string().min(1, { message: 'URL is required' }).url({ message: 'Must be a valid URL (http:// or https://)' }),
+        fpgD_URL: z
+            .string()
+            .min(1, { message: 'URL is required' })
+            .max(80, 'URL must be at most 80 characters')
+            .url({ message: 'Must be a valid URL (http:// or https://)' }),
         fpgD_AccNo: z.string().min(1, 'Account Number is required'),
         fpgD_MerchantKey: z.string().min(1, 'Merchant Key is required'),
         impG_Id: z.preprocess((val) => {

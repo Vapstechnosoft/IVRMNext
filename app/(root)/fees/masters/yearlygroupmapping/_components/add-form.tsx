@@ -402,10 +402,10 @@ export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingF
 
     const saveRows: SubmitHandler<FormFields> = async (data) => {
         const payload = {
-            mI_Id: 30,
+            // mI_Id: 30,
             asmaY_Id: Number(data.academicYear),
             fmG_Id: Number(data.classCategory),
-            userId: 21602,
+            // userId: 21602,
             feeHeads: data.headInstallments.map((h) => ({
                 fmH_Id: Number(h.fmH_Id),
                 fmI_Id: Number(h.fmI_Id),
