@@ -5,8 +5,8 @@ import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/ex
 import { FormError } from '@/components/ui/extension/field';
 import { useMasterFacility } from '@/hooks/hostel/useMasterFacility';
 import { masterFacilityDeleteSchema } from '@/schemas/hostel/masters';
+import type { IMasterFacility } from '@/schemas/hostel/masters';
 import { deleteMasterFacility } from '@/server/hostel/master-facility/masters/server-action';
-import { IMasterFacility } from '@/schemas/hostel/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';

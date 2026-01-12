@@ -1,10 +1,10 @@
 'use client';
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ColumnDef } from '@tanstack/react-table';
-import { IFacility, IRoomDisplay } from '@/server/hostel/master-room/server-action';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
+import type { IFacility, IRoomDisplay } from '@/server/hostel/master-room/server-action';
+import type { ColumnDef } from '@tanstack/react-table';
 
 interface ViewFacilitiesModalProps {
     isOpen: boolean;
@@ -20,17 +20,17 @@ export function ViewFacilitiesModal({ isOpen, onClose, room }: ViewFacilitiesMod
         {
             accessorKey: 'hlmftY_FacilityName',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Facility Name' />,
-            cell: ({ row }) => <div>{row.getValue('hlmftY_FacilityName')}</div>,
+            cell: ({ row }) => <div>{row.getValue('hlmftY_FacilityName')}</div>
         }
     ];
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogContent className='max-h-[80vh] max-w-2xl overflow-y-auto'>
                 <DialogHeader>
                     <DialogTitle>Facilities: {room?.hrmrM_RoomNo}</DialogTitle>
                 </DialogHeader>
-                <div className="mt-4">
+                <div className='mt-4'>
                     <GenericDataTable
                         {...tableProps}
                         data={data}

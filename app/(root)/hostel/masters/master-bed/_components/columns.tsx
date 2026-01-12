@@ -3,8 +3,8 @@
 import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { IBedDisplay } from '@/server/hostel/master-bed/server-action';
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
+import type { IBedDisplay } from '@/server/hostel/master-bed/server-action';
+import { type ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
 import { useState } from 'react';
 import { ViewFacilitiesModal } from './view-modals';
@@ -47,19 +47,12 @@ function ViewFacilitiesCell({ rowData }: { rowData: IBedDisplay }) {
     return (
         <>
             <button
-                type="button"
-                className="flex items-center gap-1 text-primary hover:underline hover:text-blue-600"
-                onClick={() => setIsOpen(true)}
-            >
-                <Eye className="h-4 w-4" /> View Facility
+                type='button'
+                className='flex items-center gap-1 text-primary hover:text-blue-600 hover:underline'
+                onClick={() => setIsOpen(true)}>
+                <Eye className='h-4 w-4' /> View Facility
             </button>
-            {isOpen && (
-                <ViewFacilitiesModal
-                    isOpen={isOpen}
-                    onClose={() => setIsOpen(false)}
-                    bed={rowData}
-                />
-            )}
+            {isOpen && <ViewFacilitiesModal isOpen={isOpen} onClose={() => setIsOpen(false)} bed={rowData} />}
         </>
     );
 }

@@ -13,8 +13,6 @@ import { ExamTermAndExamMappingSchema } from '@/schemas/exam/exam-module/exam-ma
 import { getExamGroupsByCategory } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
 import { addOrUpdateExamTermAndExamMapping } from '@/server/exam/exam-module/exam-mapping/examTerm-and-exam-mappiong';
 import { getCategoryDropDownByAcademicYearlist } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
-import { getMasterGrade } from '@/server/exam/exam-module/masters/grade';
-import type { IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AlertTriangle, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';

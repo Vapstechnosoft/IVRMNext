@@ -1,11 +1,11 @@
 'use client';
 
 import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
-import { Check, X } from 'lucide-react';
-import type { IMasterMessCategoryMappingDisplay } from '@/schemas/hostel/mess-category-mapping.schema';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import type { IMasterMessCategoryMappingDisplay } from '@/schemas/hostel/mess-category-mapping.schema';
+import { type ColumnDef, createColumnHelper } from '@tanstack/react-table';
+import { Check, X } from 'lucide-react';
 import { useCallback } from 'react';
 
 const columnHelper = createColumnHelper<IMasterMessCategoryMappingDisplay>();
@@ -30,11 +30,11 @@ export const messCategoryMappingColumns: ColumnDef<IMasterMessCategoryMappingDis
         meta: { title: 'Status' },
         cell: (info) =>
             info.getValue() ? (
-                <span className='flex items-center text-green-600 font-medium'>
+                <span className='flex items-center font-medium text-green-600'>
                     <Check className='mr-1 h-4 w-4' /> Active
                 </span>
             ) : (
-                <span className='flex items-center text-red-600 font-medium'>
+                <span className='flex items-center font-medium text-red-600'>
                     <X className='mr-1 h-4 w-4' /> Inactive
                 </span>
             )
@@ -57,11 +57,11 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterMessCategoryMappingDis
     );
 
     // Editing this specific mapping typically means just toggling/deleting, or maybe opening a form pre-filled.
-    // Given the complexity of "edit" (which usually means editing the whole group for a mess), 
+    // Given the complexity of "edit" (which usually means editing the whole group for a mess),
     // and the AngularJS code showing "EditData" selecting a single category checkbox,
     // let's assume we can support edit if we want, but for now toggle is key.
     // The previous implementation used openEditForm. Let's wire it up, but note that our add form is bulk.
-    // We might need a slightly different logic for "Edit" if it implies checking just one box? 
+    // We might need a slightly different logic for "Edit" if it implies checking just one box?
     // Actually, usually "Edit" loads the state for that Mess ID.
 
     const handleEdit = useCallback(

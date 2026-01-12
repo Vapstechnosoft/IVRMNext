@@ -6,7 +6,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
 import { useMasterBed } from '@/hooks/hostel/useMasterBed';
-import { deleteBed, IBedDisplay, IHostel } from '@/server/hostel/master-bed/server-action';
+import { type IBedDisplay, type IHostel, deleteBed } from '@/server/hostel/master-bed/server-action';
 import { Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
 import AddMasterBedForm from './_components/add-form';
@@ -18,12 +18,7 @@ export default function MasterBedPage() {
 
     return (
         <FormProvider<IBedDisplay>>
-            <PageContent
-                bedList={bedList}
-                hostels={hostels}
-                isLoading={loading}
-                refetch={refetch}
-            />
+            <PageContent bedList={bedList} hostels={hostels} isLoading={loading} refetch={refetch} />
         </FormProvider>
     );
 }
@@ -74,10 +69,7 @@ function PageContent({
                 </CollapsibleSection>
 
                 {/* Forms */}
-                <FormSections
-                    onSuccess={refetch}
-                    hostels={hostels}
-                />
+                <FormSections onSuccess={refetch} hostels={hostels} />
             </div>
         </div>
     );
@@ -124,7 +116,10 @@ function FormSections({
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                             <AddMasterBedForm
-                                onSuccess={() => { closeAddForm(); onSuccess(); }}
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    onSuccess();
+                                }}
                                 hostels={hostels}
                             />
                         </div>
@@ -153,7 +148,10 @@ function FormSections({
                             </Button>
                             <UpdateMasterBedForm
                                 rowData={selectedRow}
-                                onSuccess={() => { closeEditForm(); onSuccess(); }}
+                                onSuccess={() => {
+                                    closeEditForm();
+                                    onSuccess();
+                                }}
                                 hostels={hostels}
                             />
                         </div>
@@ -163,17 +161,13 @@ function FormSections({
 
             {/* Toggle Form */}
             {isToggleFormOpen && selectedRow && (
-                <ToggleMasterBedForm
-                    rowData={selectedRow}
-                    onClose={closeToggleForm}
-                    onSuccess={onSuccess}
-                />
+                <ToggleMasterBedForm rowData={selectedRow} onClose={closeToggleForm} onSuccess={onSuccess} />
             )}
         </>
     );
 }
 
-function ToggleMasterBedForm({ rowData, onClose, onSuccess }: { rowData: IBedDisplay, onClose: () => void, onSuccess: () => void }) {
+function ToggleMasterBedForm({ rowData, onClose, onSuccess }: { rowData: IBedDisplay; onClose: () => void; onSuccess: () => void }) {
     const onConfirm = async () => {
         try {
             const result = await deleteBed(rowData.hlmB_Id);

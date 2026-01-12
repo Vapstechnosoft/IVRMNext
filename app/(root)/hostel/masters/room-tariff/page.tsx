@@ -5,13 +5,13 @@ import { GenericDataTable } from '@/components/ui/data-table/generic-data-table'
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useRoomTariff } from '@/hooks/hostel/useRoomTariff';
+import type { IRoomTariff } from '@/server/hostel/room-tariff/server-action';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddRoomTariffForm from './_components/add-form';
 import { roomTariffColumns } from './_components/columns';
-import { IRoomTariff } from '@/server/hostel/room-tariff/server-action';
-import UpdateRoomTariffForm from './_components/update-form';
 import ToggleRoomTariff from './_components/toggle-form';
+import UpdateRoomTariffForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -24,11 +24,7 @@ export default function RoomTariffPage(props: { searchParams: SearchParams }) {
 
     return (
         <FormProvider<IRoomTariff>>
-            <PageContent
-                response={response}
-                isLoading={isLoading}
-                refetchAll={refetchAll}
-            />
+            <PageContent response={response} isLoading={isLoading} refetchAll={refetchAll} />
         </FormProvider>
     );
 }
@@ -89,11 +85,7 @@ function PageContent({
                 </CollapsibleSection>
 
                 {/* Forms */}
-                <FormSections
-                    onSuccess={refetchAll}
-                    yearList={yearList}
-                    roomList={roomList}
-                />
+                <FormSections onSuccess={refetchAll} yearList={yearList} roomList={roomList} />
             </div>
         </div>
     );
@@ -145,7 +137,10 @@ function FormSections({
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                             <AddRoomTariffForm
-                                onSuccess={() => { closeAddForm(); onSuccess(); }}
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    onSuccess();
+                                }}
                                 onCancel={closeAddForm}
                                 yearList={yearList}
                                 roomList={roomList}
@@ -176,7 +171,10 @@ function FormSections({
                             </Button>
                             <UpdateRoomTariffForm
                                 initialData={selectedRow}
-                                onSuccess={() => { closeEditForm(); onSuccess(); }}
+                                onSuccess={() => {
+                                    closeEditForm();
+                                    onSuccess();
+                                }}
                                 onCancel={closeEditForm}
                                 yearList={yearList}
                                 roomList={roomList}
@@ -191,7 +189,10 @@ function FormSections({
                 <ToggleRoomTariff
                     data={selectedRow}
                     onCancel={closeToggleForm}
-                    onSuccess={() => { closeToggleForm(); onSuccess(); }}
+                    onSuccess={() => {
+                        closeToggleForm();
+                        onSuccess();
+                    }}
                 />
             )}
         </>

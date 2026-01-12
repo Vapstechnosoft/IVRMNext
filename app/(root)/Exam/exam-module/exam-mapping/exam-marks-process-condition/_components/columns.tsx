@@ -1,6 +1,4 @@
 'use client';
-
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { IExamMarksProcessCondition } from '@/types/exam/exam-module/exam-mapping';
 import type { ColumnDef } from '@tanstack/react-table';

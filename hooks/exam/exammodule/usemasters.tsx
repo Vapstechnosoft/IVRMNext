@@ -148,7 +148,6 @@ export const useMasterSubExamDropdownList = () => {
     };
 };
 
-
 export const useMasterSubSubject = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 

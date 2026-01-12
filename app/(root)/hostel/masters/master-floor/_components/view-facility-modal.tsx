@@ -1,12 +1,12 @@
 'use client';
 
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useMappedFacilities } from '@/hooks/hostel/useMasterFloor';
-import { IFloorDisplay } from '@/server/hostel/master-floor/server-action';
-import { ColumnDef } from '@tanstack/react-table';
-import { IFacility } from '@/server/hostel/master-floor/server-action';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import type { IFloorDisplay } from '@/server/hostel/master-floor/server-action';
+import type { IFacility } from '@/server/hostel/master-floor/server-action';
+import type { ColumnDef } from '@tanstack/react-table';
 
 interface ViewFacilityModalProps {
     isOpen: boolean;
@@ -28,23 +28,25 @@ export default function ViewFacilityModal({ isOpen, onClose, floor }: ViewFacili
                 const index = row.index + 1;
                 return <div className='w-full pl-6'>{index}</div>;
             },
-            enableSorting: false,
+            enableSorting: false
         },
         {
             accessorKey: 'hlmftY_FacilityName',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Facility Name' />,
             cell: ({ row }) => <div>{row.getValue('hlmftY_FacilityName')}</div>,
-            enableSorting: true,
+            enableSorting: true
         }
     ];
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogContent className='max-h-[80vh] max-w-2xl overflow-y-auto'>
                 <DialogHeader>
-                    <DialogTitle>Facilities for {floor?.hrmF_FloorName} ({floor?.hlmH_Name})</DialogTitle>
+                    <DialogTitle>
+                        Facilities for {floor?.hrmF_FloorName} ({floor?.hlmH_Name})
+                    </DialogTitle>
                 </DialogHeader>
-                <div className="mt-4">
+                <div className='mt-4'>
                     <GenericDataTable
                         {...tableProps}
                         data={mappedData}

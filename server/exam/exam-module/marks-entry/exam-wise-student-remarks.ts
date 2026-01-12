@@ -12,7 +12,7 @@ export async function getExamWiseRemarksDataGrid(searchParams?: ApiSearchparams)
     const url = `exam_master_remark/student_exam_remarks_grid?${urlParams}`;
     return await api.get<IExamWiseRemarksGrid>('exam', url);
 }
-    
+
 // -------------------------------
 // 2) GET – Search Student Details
 // -------------------------------

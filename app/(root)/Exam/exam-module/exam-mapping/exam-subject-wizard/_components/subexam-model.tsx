@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { MasterViewDetails } from '@/components/ui/set-order/generic-set-order';
 import type { IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { GitCompareArrows, List } from 'lucide-react';
+import { GitCompareArrows } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -83,9 +83,7 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
         const rawList = subject.list ?? [];
         console.log('rawList **', rawList);
 
-        const shouldSort = rawList.some(
-            (l: any) => Number(l.emsE_SubExamOrder) > 0
-        );
+        const shouldSort = rawList.some((l: any) => Number(l.emsE_SubExamOrder) > 0);
         const list = (subject.list ?? []).map((l: any) => ({
             ...l,
             emsE_SubExamName: l.emsE_SubExamName,
@@ -104,13 +102,7 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
             emsE_SubExamOrder: l.emsE_SubExamOrder
         }));
 
-        const finalList = shouldSort
-            ? [...list].sort(
-                (a, b) =>
-                    Number(a.emsE_SubExamOrder) -
-                    Number(b.emsE_SubExamOrder)
-            )
-            : list;
+        const finalList = shouldSort ? [...list].sort((a, b) => Number(a.emsE_SubExamOrder) - Number(b.emsE_SubExamOrder)) : list;
 
         replace(finalList);
     }, [subject, reset, replace]);

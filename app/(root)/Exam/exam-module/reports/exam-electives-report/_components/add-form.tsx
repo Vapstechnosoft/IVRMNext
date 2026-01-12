@@ -1,6 +1,6 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -38,11 +38,7 @@ interface Props {
 }
 
 export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
-    const {
-        data: academicYear,
-        isLoading: academicYearLoading,
-        error: academicYearError,
-    } = useAcademicYearDropdown();
+    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
     const {
         control,
         handleSubmit,
@@ -80,7 +76,6 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
     const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
 
-
     // Reset dependent fields when Type changes
     useEffect(() => {
         setValue('emcA_Id', 0);
@@ -106,7 +101,7 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                 const res = await getCategoryDropDownByYearList(asmaY_Id);
                 setCategories(Array.isArray(res) ? res : []);
                 if (Array.isArray(res) && res.length === 0) {
-                    toast.info("No Categories are mapped")
+                    toast.info('No Categories are mapped');
                 }
             } catch (err: any) {
                 toast.error(err.message || 'Failed to load categories');
@@ -211,7 +206,6 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
             toast.error(err.message || 'Failed to generate report');
         }
     };
-
 
     const handleClear = () => {
         reset();
@@ -334,14 +328,22 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                             </Label>
                                             <Select
                                                 key={field.value}
-                                                value={field.value === 'All' ? 'All' : field.value && field.value !== 0 ? String(field.value) : undefined}
+                                                value={
+                                                    field.value === 'All'
+                                                        ? 'All'
+                                                        : field.value && field.value !== 0
+                                                          ? String(field.value)
+                                                          : undefined
+                                                }
                                                 onValueChange={(v) => field.onChange(v === 'All' ? 'All' : Number(v))}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Category' />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {type === 'subj' && <SelectItem value='All'>All Categories</SelectItem>}
-                                                    {asmaY_Id !== 0 && categories.length === 0 && <SelectItem value='All'>First Select Academic Year</SelectItem>}
+                                                    {asmaY_Id !== 0 && categories.length === 0 && (
+                                                        <SelectItem value='All'>First Select Academic Year</SelectItem>
+                                                    )}
                                                     {categories.map((c) => (
                                                         <SelectItem key={c.emcA_Id} value={String(c.emcA_Id)}>
                                                             {c.emcA_CategoryName}
@@ -486,6 +488,6 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                     </div>
                 </form>
             </CardContent>
-        </Card >
+        </Card>
     );
 }

@@ -20,11 +20,11 @@ export interface ApiArrayResponse<T> extends Partial<PaginationData> {
     } | null;
     [key: string]: unknown;
 }
+// biome-ignore lint/style/useNodejsImportProtocol: <explanation>
+import https from 'https'; // Add this import
 import { auth, signOut } from '@/lib/auth';
 import type { ApiSearchparams } from '@/types';
 import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios';
-// biome-ignore lint/style/useNodejsImportProtocol: <explanation>
-import https from 'https'; // Add this import
 
 // Define available API base URLs
 export type ApiBaseUrlKey = 'default' | 'preadmission' | 'admission' | 'fees' | 'exam' | 'hrms' | 'hrmsfrontoffice' | 'hmslms';

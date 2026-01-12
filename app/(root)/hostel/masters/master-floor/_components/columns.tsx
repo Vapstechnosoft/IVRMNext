@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { IFloorDisplay } from '@/server/hostel/master-floor/server-action';
-import { ColumnDef } from '@tanstack/react-table';
+import type { IFloorDisplay } from '@/server/hostel/master-floor/server-action';
+import type { ColumnDef } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import ViewFacilityModal from './view-facility-modal';
@@ -27,37 +27,37 @@ export const masterFloorColumns: ColumnDef<IFloorDisplay>[] = [
         accessorKey: 'hlmH_Name',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Hostel Name' />,
         cell: ({ row }) => <div>{row.getValue('hlmH_Name')}</div>,
-        enableSorting: true,
+        enableSorting: true
     },
     {
         accessorKey: 'hrmF_FloorName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Floor Name' />,
         cell: ({ row }) => <div>{row.getValue('hrmF_FloorName')}</div>,
-        enableSorting: true,
+        enableSorting: true
     },
     {
         accessorKey: 'hrmF_TotalRooms',
         header: ({ column }) => <DataTableColumnHeader column={column} title='No Of Room' />,
         cell: ({ row }) => <div>{row.getValue('hrmF_TotalRooms')}</div>,
-        enableSorting: true,
+        enableSorting: true
     },
     {
         accessorKey: 'hrmF_FloorDesc',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Description' />,
         cell: ({ row }) => <div>{row.getValue('hrmF_FloorDesc')}</div>,
-        enableSorting: true,
+        enableSorting: true
     },
     {
         id: 'facilities',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Facility List' />,
         cell: ({ row }) => <ViewFacilityCell rowData={row.original} />,
-        enableSorting: false,
+        enableSorting: false
     },
     {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Action' className='text-center' />,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
-        enableSorting: false,
+        enableSorting: false
     }
 ];
 
@@ -67,20 +67,13 @@ function ViewFacilityCell({ rowData }: { rowData: IFloorDisplay }) {
     return (
         <>
             <Button
-                variant="ghost"
-                size="sm"
-                className="text-primary hover:text-primary/80 p-0 h-auto font-normal"
-                onClick={() => setIsViewModalOpen(true)}
-            >
-                <Eye className="h-4 w-4 mr-1" /> View Facility
+                variant='ghost'
+                size='sm'
+                className='h-auto p-0 font-normal text-primary hover:text-primary/80'
+                onClick={() => setIsViewModalOpen(true)}>
+                <Eye className='mr-1 h-4 w-4' /> View Facility
             </Button>
-            {isViewModalOpen && (
-                <ViewFacilityModal
-                    isOpen={isViewModalOpen}
-                    onClose={() => setIsViewModalOpen(false)}
-                    floor={rowData}
-                />
-            )}
+            {isViewModalOpen && <ViewFacilityModal isOpen={isViewModalOpen} onClose={() => setIsViewModalOpen(false)} floor={rowData} />}
         </>
     );
 }

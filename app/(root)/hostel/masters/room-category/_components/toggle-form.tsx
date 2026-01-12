@@ -1,8 +1,8 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
 import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
-import { deleteRoomCategory, IRoomCategory } from '@/server/hostel/room-category/server-action';
+import { type IRoomCategory, deleteRoomCategory } from '@/server/hostel/room-category/server-action';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 interface ToggleRoomCategoryProps {
@@ -13,7 +13,9 @@ interface ToggleRoomCategoryProps {
 
 export default function ToggleRoomCategory({ data, onSuccess, onCancel }: ToggleRoomCategoryProps) {
     const form = useForm();
-    const { formState: { isSubmitting } } = form;
+    const {
+        formState: { isSubmitting }
+    } = form;
 
     const onSubmit = async () => {
         const result = await deleteRoomCategory(data);

@@ -1,16 +1,16 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/extension/field';
 import { Form } from '@/components/ui/form';
-import { FormError, Label } from '@/components/ui/extension/field';
+import { FormControl, FormItem, FormMessage } from '@/components/ui/form';
 import { FormInput } from '@/components/ui/form/form-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Controller, useForm } from 'react-hook-form';
+import { RoomTariffSchema, type RoomTariffSchemaType } from '@/schemas/hostel/room-tariff.schema';
+import { type IAcademicYear, type IRoom, getBedCount, saveRoomTariff } from '@/server/hostel/room-tariff/server-action';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { RoomTariffSchema, RoomTariffSchemaType } from '@/schemas/hostel/room-tariff.schema';
-import { IAcademicYear, IRoom, getBedCount, saveRoomTariff } from '@/server/hostel/room-tariff/server-action';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { FormItem, FormMessage, FormControl } from '@/components/ui/form';
 
 interface AddRoomTariffFormProps {
     onSuccess: () => void;
@@ -28,11 +28,17 @@ export default function AddRoomTariffForm({ onSuccess, onCancel, yearList, roomL
             HRMRM_Id: 0,
             HLMRTF_SORate: 0,
             HLMRTF_RoomRate: 0,
-            HLMRTF_ActiveFlag: true,
-        },
+            HLMRTF_ActiveFlag: true
+        }
     });
 
-    const { control, handleSubmit, watch, setValue, formState: { isSubmitting } } = form;
+    const {
+        control,
+        handleSubmit,
+        watch,
+        setValue,
+        formState: { isSubmitting }
+    } = form;
 
     const roomId = watch('HRMRM_Id');
     const singleRate = watch('HLMRTF_SORate');
@@ -62,21 +68,21 @@ export default function AddRoomTariffForm({ onSuccess, onCancel, yearList, roomL
     };
 
     return (
-        <div className="p-4 bg-background rounded-lg border">
+        <div className='rounded-lg border bg-background p-4'>
             <Form {...form}>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-4">
+                <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
+                    <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+                        <div className='space-y-4'>
                             <Controller
                                 control={control}
-                                name="ASMAY_Id"
+                                name='ASMAY_Id'
                                 render={({ field, fieldState: { error } }) => (
                                     <FormItem>
                                         <Label required>Academic Year</Label>
                                         <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                             <FormControl>
-                                                <SelectTrigger className={error ? "border-red-500" : ""}>
-                                                    <SelectValue placeholder="--Select--" />
+                                                <SelectTrigger className={error ? 'border-red-500' : ''}>
+                                                    <SelectValue placeholder='--Select--' />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
@@ -94,14 +100,14 @@ export default function AddRoomTariffForm({ onSuccess, onCancel, yearList, roomL
 
                             <Controller
                                 control={control}
-                                name="HRMRM_Id"
+                                name='HRMRM_Id'
                                 render={({ field, fieldState: { error } }) => (
                                     <FormItem>
                                         <Label required>Room</Label>
                                         <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                             <FormControl>
-                                                <SelectTrigger className={error ? "border-red-500" : ""}>
-                                                    <SelectValue placeholder="--Select--" />
+                                                <SelectTrigger className={error ? 'border-red-500' : ''}>
+                                                    <SelectValue placeholder='--Select--' />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
@@ -118,13 +124,13 @@ export default function AddRoomTariffForm({ onSuccess, onCancel, yearList, roomL
                             />
                         </div>
 
-                        <div className="space-y-4">
+                        <div className='space-y-4'>
                             <FormInput
                                 control={control}
-                                name="HLMRTF_SORate"
-                                label="Single Bed Rate"
-                                placeholder="Enter Rate"
-                                type="number"
+                                name='HLMRTF_SORate'
+                                label='Single Bed Rate'
+                                placeholder='Enter Rate'
+                                type='number'
                                 required
                                 disabled={!roomId}
                                 onBlur={handleSingleRateBlur}
@@ -132,21 +138,21 @@ export default function AddRoomTariffForm({ onSuccess, onCancel, yearList, roomL
 
                             <FormInput
                                 control={control}
-                                name="HLMRTF_RoomRate"
-                                label="Entire Room Rate"
-                                placeholder="Auto Calculated"
-                                type="number"
+                                name='HLMRTF_RoomRate'
+                                label='Entire Room Rate'
+                                placeholder='Auto Calculated'
+                                type='number'
                                 disabled={true}
                                 required
                             />
                         </div>
                     </div>
 
-                    <div className="flex justify-center gap-4 pt-4 border-t mt-4">
-                        <Button type="submit" disabled={isSubmitting} className="w-32">
+                    <div className='mt-4 flex justify-center gap-4 border-t pt-4'>
+                        <Button type='submit' disabled={isSubmitting} className='w-32'>
                             {isSubmitting ? 'Saving...' : 'Save'}
                         </Button>
-                        <Button type="button" variant="destructive" onClick={onCancel} className="w-32">
+                        <Button type='button' variant='destructive' onClick={onCancel} className='w-32'>
                             Cancel
                         </Button>
                     </div>

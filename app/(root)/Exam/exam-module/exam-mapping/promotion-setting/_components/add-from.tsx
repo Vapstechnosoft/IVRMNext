@@ -13,11 +13,10 @@ import {
     getPromotionCategoryByAcademicYear
 } from '@/server/exam/exam-module/exam-mapping/promotional-setting';
 import { Eye } from 'lucide-react';
-import type React from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { ViewGroupsModal } from './group-mapping-model';
 import { ViewExamsModal } from './group-mapped-exam-model';
+import { ViewGroupsModal } from './group-mapping-model';
 
 /**
  * Types
@@ -123,7 +122,7 @@ export default function AddPromotionalSettingForm() {
         { emgR_Id: '2', emgR_GradeName: 'Grade 2' },
         { emgR_Id: '3', emgR_GradeName: 'Grade 3' },
         { emgR_Id: '4', emgR_GradeName: 'Grade 4' },
-        { emgR_Id: '5', emgR_GradeName: 'Grade 5' },
+        { emgR_Id: '5', emgR_GradeName: 'Grade 5' }
     ]);
     const [subjects, setSubjects] = useState<SubjectRow[]>([]);
     const [exams, setExams] = useState<ExamItem[]>([]);
@@ -175,30 +174,34 @@ export default function AddPromotionalSettingForm() {
             };
 
             const subjectsData = Array.isArray(payload.subjectlist)
-                ? payload.subjectlist.map((subject: any): SubjectRow => ({
-                    ismS_Id: subject.ismS_Id,
-                    ismS_SubjectName: subject.ismS_SubjectName,
-                    ismS_SubjectCode: subject.ismS_SubjectCode || null,
-                    EMPS_MaxMarks: subject.empS_MaxMarks || subject.ismS_Max_Marks || null,
-                    EMPS_MinMarks: subject.empS_MinMarks || subject.ismS_Min_Marks || null,
-                    EMPS_ConvertForMarks: subject.empS_ConvertForMarks || null,
-                    EMPS_AppToResultFlg: subject.empS_AppToResultFlg ?? true,
-                    EMGR_Id: subject.emgR_Id || null,
-                    EMPS_Id: subject.empS_Id,
-                    checkedvalue: false,
-                }))
+                ? payload.subjectlist.map(
+                      (subject: any): SubjectRow => ({
+                          ismS_Id: subject.ismS_Id,
+                          ismS_SubjectName: subject.ismS_SubjectName,
+                          ismS_SubjectCode: subject.ismS_SubjectCode || null,
+                          EMPS_MaxMarks: subject.empS_MaxMarks || subject.ismS_Max_Marks || null,
+                          EMPS_MinMarks: subject.empS_MinMarks || subject.ismS_Min_Marks || null,
+                          EMPS_ConvertForMarks: subject.empS_ConvertForMarks || null,
+                          EMPS_AppToResultFlg: subject.empS_AppToResultFlg ?? true,
+                          EMGR_Id: subject.emgR_Id || null,
+                          EMPS_Id: subject.empS_Id,
+                          checkedvalue: false
+                      })
+                  )
                 : [];
 
             const examsData = Array.isArray(payload.examlist)
-                ? payload.examlist.map((exam: any): ExamItem => ({
-                    emE_Id: exam.emE_Id,
-                    emE_ExamName: exam.emE_ExamName,
-                    emE_ExamCode: exam.emE_ExamCode,
-                    checked: false,
-                    ForMaxMarkrs: 0,
-                    ForMaxMarkrs_Temp: 0,
-                    ConvertionReqOrNot: false,
-                }))
+                ? payload.examlist.map(
+                      (exam: any): ExamItem => ({
+                          emE_Id: exam.emE_Id,
+                          emE_ExamName: exam.emE_ExamName,
+                          emE_ExamCode: exam.emE_ExamCode,
+                          checked: false,
+                          ForMaxMarkrs: 0,
+                          ForMaxMarkrs_Temp: 0,
+                          ConvertionReqOrNot: false
+                      })
+                  )
                 : [];
 
             setSubjects(subjectsData);
@@ -209,7 +212,6 @@ export default function AddPromotionalSettingForm() {
             setHeaderMinMarks('');
             setHeaderConvertMarks('');
             setHeaderGrade('__none');
-
         } catch (error) {
             console.error('Error loading subjects:', error);
             toast.error('Failed to load subjects and exams');
@@ -227,67 +229,67 @@ export default function AddPromotionalSettingForm() {
         const newSelectAll = !selectAll;
         setSelectAll(newSelectAll);
 
-        setSubjects(prev => prev.map(subject => ({
-            ...subject,
-            checkedvalue: newSelectAll
-        })));
+        setSubjects((prev) =>
+            prev.map((subject) => ({
+                ...subject,
+                checkedvalue: newSelectAll
+            }))
+        );
     };
 
     // Toggle individual subject
     const toggleSubject = (subjectId: number) => {
-        setSubjects(prev => prev.map(subject =>
-            subject.ismS_Id === subjectId
-                ? { ...subject, checkedvalue: !subject.checkedvalue }
-                : subject
-        ));
-
-        // Update selectAll based on new state
-        const updatedSubjects = subjects.map(subject =>
-            subject.ismS_Id === subjectId
-                ? { ...subject, checkedvalue: !subject.checkedvalue }
-                : subject
+        setSubjects((prev) =>
+            prev.map((subject) => (subject.ismS_Id === subjectId ? { ...subject, checkedvalue: !subject.checkedvalue } : subject))
         );
 
-        const allSelected = updatedSubjects.every(s => s.checkedvalue);
+        // Update selectAll based on new state
+        const updatedSubjects = subjects.map((subject) =>
+            subject.ismS_Id === subjectId ? { ...subject, checkedvalue: !subject.checkedvalue } : subject
+        );
+
+        const allSelected = updatedSubjects.every((s) => s.checkedvalue);
         setSelectAll(allSelected);
     };
 
     // Apply header values to selected subjects
     const applyHeaderValues = () => {
-        setSubjects(prev => prev.map(subject => {
-            if (!subject.checkedvalue) return subject;
+        setSubjects((prev) =>
+            prev.map((subject) => {
+                if (!subject.checkedvalue) return subject;
 
-            const updatedSubject = { ...subject };
+                const updatedSubject = { ...subject };
 
-            if (headerMaxMarks !== '') {
-                const maxMarks = Number.parseFloat(headerMaxMarks);
-                if (!Number.isNaN(maxMarks)) {
-                    updatedSubject.EMPS_MaxMarks = maxMarks;
+                if (headerMaxMarks !== '') {
+                    const maxMarks = Number.parseFloat(headerMaxMarks);
+                    if (!Number.isNaN(maxMarks)) {
+                        updatedSubject.EMPS_MaxMarks = maxMarks;
+                    }
                 }
-            }
 
-            if (headerMinMarks !== '') {
-                const minMarks = Number.parseFloat(headerMinMarks);
-                if (!Number.isNaN(minMarks)) {
-                    updatedSubject.EMPS_MinMarks = minMarks;
+                if (headerMinMarks !== '') {
+                    const minMarks = Number.parseFloat(headerMinMarks);
+                    if (!Number.isNaN(minMarks)) {
+                        updatedSubject.EMPS_MinMarks = minMarks;
+                    }
                 }
-            }
 
-            if (headerConvertMarks !== '') {
-                const convertMarks = Number.parseFloat(headerConvertMarks);
-                if (!Number.isNaN(convertMarks)) {
-                    updatedSubject.EMPS_ConvertForMarks = convertMarks;
+                if (headerConvertMarks !== '') {
+                    const convertMarks = Number.parseFloat(headerConvertMarks);
+                    if (!Number.isNaN(convertMarks)) {
+                        updatedSubject.EMPS_ConvertForMarks = convertMarks;
+                    }
                 }
-            }
 
-            if (headerGrade !== '__none') {
-                updatedSubject.EMGR_Id = headerGrade === '__keep' ? subject.EMGR_Id : headerGrade;
-            }
+                if (headerGrade !== '__none') {
+                    updatedSubject.EMGR_Id = headerGrade === '__keep' ? subject.EMGR_Id : headerGrade;
+                }
 
-            updatedSubject.EMPS_AppToResultFlg = headerApplyToResult;
+                updatedSubject.EMPS_AppToResultFlg = headerApplyToResult;
 
-            return updatedSubject;
-        }));
+                return updatedSubject;
+            })
+        );
 
         toast.info('Applied header values to selected subjects');
     };
@@ -310,14 +312,12 @@ export default function AddPromotionalSettingForm() {
 
         console.log('Updating groups for subject:', activeSubject.ismS_SubjectName, groups);
 
-        setSubjects(prev => prev.map(subject =>
-            subject.ismS_Id === activeSubject.ismS_Id
-                ? { ...subject, pro_exams_group_list: groups }
-                : subject
-        ));
+        setSubjects((prev) =>
+            prev.map((subject) => (subject.ismS_Id === activeSubject.ismS_Id ? { ...subject, pro_exams_group_list: groups } : subject))
+        );
 
         // Also update activeSubject to reflect changes
-        setActiveSubject(prev => prev ? { ...prev, pro_exams_group_list: groups } : null);
+        setActiveSubject((prev) => (prev ? { ...prev, pro_exams_group_list: groups } : null));
 
         toast.success(`Groups updated for ${activeSubject.ismS_SubjectName}`);
     };
@@ -331,14 +331,14 @@ export default function AddPromotionalSettingForm() {
 
         console.log('Adding group to subject:', activeSubject.ismS_SubjectName, group);
 
-        setSubjects(prev => prev.map(subject =>
-            subject.ismS_Id === activeSubject.ismS_Id
-                ? { ...subject, pro_exams_group_list: updatedGroups }
-                : subject
-        ));
+        setSubjects((prev) =>
+            prev.map((subject) =>
+                subject.ismS_Id === activeSubject.ismS_Id ? { ...subject, pro_exams_group_list: updatedGroups } : subject
+            )
+        );
 
         // Update activeSubject to reflect changes
-        setActiveSubject(prev => prev ? { ...prev, pro_exams_group_list: updatedGroups } : null);
+        setActiveSubject((prev) => (prev ? { ...prev, pro_exams_group_list: updatedGroups } : null));
 
         toast.success(`Group "${group.EMPSG_GroupName}" added to ${activeSubject.ismS_SubjectName}`);
     };
@@ -352,8 +352,8 @@ export default function AddPromotionalSettingForm() {
     // Build payload for save
     const buildPayload = (): PromotionPayload => {
         const selectedSubjects = subjects
-            .filter(subject => subject.checkedvalue)
-            .map(subject => ({
+            .filter((subject) => subject.checkedvalue)
+            .map((subject) => ({
                 ismS_Id: subject.ismS_Id,
                 EMPS_MaxMarks: subject.EMPS_MaxMarks || 0,
                 EMPS_MinMarks: subject.EMPS_MinMarks || 0,
@@ -402,14 +402,14 @@ export default function AddPromotionalSettingForm() {
         }
 
         // Check if any subject is selected
-        const selectedSubjects = subjects.filter(s => s.checkedvalue);
+        const selectedSubjects = subjects.filter((s) => s.checkedvalue);
         if (selectedSubjects.length === 0) {
             toast.error('Please select at least one subject');
             return;
         }
 
         // Validate selected subjects
-        const invalidSubjects = selectedSubjects.filter(subject => {
+        const invalidSubjects = selectedSubjects.filter((subject) => {
             if (promotionType !== 'F') {
                 return !subject.EMPS_MaxMarks || !subject.EMPS_MinMarks || !subject.EMPS_ConvertForMarks;
             }
@@ -423,12 +423,12 @@ export default function AddPromotionalSettingForm() {
 
         // Check groups for Marks/Percentage mode
         if (promotionType === 'M' || promotionType === 'P') {
-            const subjectsWithoutGroups = selectedSubjects.filter(subject =>
-                !subject.pro_exams_group_list || subject.pro_exams_group_list.length === 0
+            const subjectsWithoutGroups = selectedSubjects.filter(
+                (subject) => !subject.pro_exams_group_list || subject.pro_exams_group_list.length === 0
             );
 
             if (subjectsWithoutGroups.length > 0) {
-                const subjectNames = subjectsWithoutGroups.map(s => s.ismS_SubjectName).join(', ');
+                const subjectNames = subjectsWithoutGroups.map((s) => s.ismS_SubjectName).join(', ');
                 toast.error(`Please add groups for subjects: ${subjectNames}`);
                 return;
             }
@@ -439,11 +439,9 @@ export default function AddPromotionalSettingForm() {
         const response = await addOrUpdatePromotionSettings(payload);
         if (response.success) {
             toast.success(response.message || 'Promotion Setting saved successfully');
-        }
-        else {
+        } else {
             toast.error(response.message || 'Failed to save Promotion Setting');
         }
-
     };
 
     // Handle reset
@@ -467,30 +465,28 @@ export default function AddPromotionalSettingForm() {
     // Calculate total percentage for all groups in a subject (for validation)
     const getSubjectTotalPercentage = useCallback((subject: SubjectRow) => {
         if (!subject.pro_exams_group_list) return 0;
-        return subject.pro_exams_group_list.reduce((total, group) =>
-            total + group.EMPSG_PercentValue, 0);
+        return subject.pro_exams_group_list.reduce((total, group) => total + group.EMPSG_PercentValue, 0);
     }, []);
 
     return (
         <div>
             <CollapsibleSection defaultOpen>
                 {/* TOP SECTION - 2 columns */}
-                <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div className='mb-6 grid grid-cols-1 gap-6 md:grid-cols-2'>
                     {/* LEFT SIDE - Dropdowns */}
-                    <div className="space-y-4">
+                    <div className='space-y-4'>
                         {/* Academic Year */}
                         <div>
                             <Label>Academic Year *</Label>
-                            <Select
-                                value={String(selectedYear)}
-                                onValueChange={(v) => setSelectedYear(Number(v))}
-                            >
+                            <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(Number(v))}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select Academic Year" />
+                                    <SelectValue placeholder='Select Academic Year' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {academicYearLoading ? (
-                                        <SelectItem value="__loading" disabled>Loading Academic Year...</SelectItem>
+                                        <SelectItem value='__loading' disabled>
+                                            Loading Academic Year...
+                                        </SelectItem>
                                     ) : (
                                         academicYear?.data?.map((item: any) => (
                                             <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
@@ -507,13 +503,14 @@ export default function AddPromotionalSettingForm() {
                             <Label>Category *</Label>
                             <Select
                                 value={selectedCategory ? String(selectedCategory) : '__none'}
-                                onValueChange={(v) => setSelectedCategory(v && v !== '__none' ? Number(v) : null)}
-                            >
+                                onValueChange={(v) => setSelectedCategory(v && v !== '__none' ? Number(v) : null)}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select Category" />
+                                    <SelectValue placeholder='Select Category' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="__none" disabled>--Select--</SelectItem>
+                                    <SelectItem value='__none' disabled>
+                                        --Select--
+                                    </SelectItem>
                                     {categories.map((c) => (
                                         <SelectItem key={c.eyC_Id} value={c.eyC_Id.toString()}>
                                             {c.emcA_CategoryName}
@@ -528,13 +525,14 @@ export default function AddPromotionalSettingForm() {
                             <Label>Grade *</Label>
                             <Select
                                 value={selectedGrade || '__none'}
-                                onValueChange={(v) => setSelectedGrade(v && v !== '__none' ? v : null)}
-                            >
+                                onValueChange={(v) => setSelectedGrade(v && v !== '__none' ? v : null)}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select Grade" />
+                                    <SelectValue placeholder='Select Grade' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="__none" disabled>--Select--</SelectItem>
+                                    <SelectItem value='__none' disabled>
+                                        --Select--
+                                    </SelectItem>
                                     {grades.map((grade) => (
                                         <SelectItem key={grade.emgR_Id} value={grade.emgR_Id}>
                                             {grade.emgR_GradeName}
@@ -546,105 +544,107 @@ export default function AddPromotionalSettingForm() {
                     </div>
 
                     {/* RIGHT SIDE - Radio buttons and checkboxes */}
-                    <div className="space-y-6">
+                    <div className='space-y-6'>
                         {/* Radio buttons for promotion type */}
-                        <div className="rounded-lg border p-4">
-                            <div className="mb-2 text-sm font-medium">Promotion Type *</div>
-                            <div className="flex flex-wrap gap-4">
-                                <label className="flex items-center space-x-2">
+                        <div className='rounded-lg border p-4'>
+                            <div className='mb-2 font-medium text-sm'>Promotion Type *</div>
+                            <div className='flex flex-wrap gap-4'>
+                                <label className='flex items-center space-x-2'>
                                     <input
-                                        type="radio"
+                                        type='radio'
                                         checked={promotionType === 'M'}
                                         onChange={() => {
                                             setPromotionType('M');
                                             toast.info('Marks mode selected. Please configure groups for selected subjects.');
                                         }}
-                                        className="h-4 w-4"
+                                        className='h-4 w-4'
                                     />
-                                    <span className="text-sm">Marks</span>
+                                    <span className='text-sm'>Marks</span>
                                 </label>
-                                <label className="flex items-center space-x-2">
+                                <label className='flex items-center space-x-2'>
                                     <input
-                                        type="radio"
+                                        type='radio'
                                         checked={promotionType === 'P'}
                                         onChange={() => {
                                             setPromotionType('P');
                                             toast.info('Percentage mode selected. Please configure groups for selected subjects.');
                                         }}
-                                        className="h-4 w-4"
+                                        className='h-4 w-4'
                                     />
-                                    <span className="text-sm">Percentage</span>
+                                    <span className='text-sm'>Percentage</span>
                                 </label>
-                                <label className="flex items-center space-x-2">
+                                <label className='flex items-center space-x-2'>
                                     <input
-                                        type="radio"
+                                        type='radio'
                                         checked={promotionType === 'T'}
                                         onChange={() => {
                                             setPromotionType('T');
                                             toast.info('Total mode selected. Groups not required.');
                                         }}
-                                        className="h-4 w-4"
+                                        className='h-4 w-4'
                                     />
-                                    <span className="text-sm">Total</span>
+                                    <span className='text-sm'>Total</span>
                                 </label>
-                                <label className="flex items-center space-x-2">
+                                <label className='flex items-center space-x-2'>
                                     <input
-                                        type="radio"
+                                        type='radio'
                                         checked={promotionType === 'F'}
                                         onChange={() => {
                                             setPromotionType('F');
                                             toast.info('Final Exam mode selected. No subject configuration needed.');
                                         }}
-                                        className="h-4 w-4"
+                                        className='h-4 w-4'
                                     />
-                                    <span className="text-sm">Final Exam</span>
+                                    <span className='text-sm'>Final Exam</span>
                                 </label>
                             </div>
                         </div>
 
                         {/* Checkboxes */}
-                        <div className="rounded-lg border p-4">
-                            <div className="mb-2 text-sm font-medium">Options</div>
-                            <div className="space-y-3">
-                                <div className="flex items-center space-x-2">
+                        <div className='rounded-lg border p-4'>
+                            <div className='mb-2 font-medium text-sm'>Options</div>
+                            <div className='space-y-3'>
+                                <div className='flex items-center space-x-2'>
                                     <Checkbox
-                                        id="passIndividual"
+                                        id='passIndividual'
                                         checked={passToIndividual}
                                         onCheckedChange={(checked) => setPassToIndividual(checked as boolean)}
                                     />
-                                    <label htmlFor="passIndividual" className="text-sm">
+                                    <label htmlFor='passIndividual' className='text-sm'>
                                         Pass to Individual Subjects
                                     </label>
                                 </div>
-                                <div className="flex items-center space-x-2">
+                                <div className='flex items-center space-x-2'>
                                     <Checkbox
-                                        id="passOverall"
+                                        id='passOverall'
                                         checked={passToOverall}
                                         onCheckedChange={(checked) => setPassToOverall(checked as boolean)}
                                     />
-                                    <label htmlFor="passOverall" className="text-sm">
+                                    <label htmlFor='passOverall' className='text-sm'>
                                         Pass to Overall Subjects
                                     </label>
                                 </div>
-                                <div className="flex items-center space-x-2">
+                                <div className='flex items-center space-x-2'>
                                     <Checkbox
-                                        id="bestApplicable"
+                                        id='bestApplicable'
                                         checked={bestApplicable}
                                         onCheckedChange={(checked) => {
                                             setBestApplicable(checked as boolean);
                                             if (!checked) setBestOff(null);
                                         }}
                                     />
-                                    <label htmlFor="bestApplicable" className="text-sm">
+                                    <label htmlFor='bestApplicable' className='text-sm'>
                                         Best Applicable
                                     </label>
                                 </div>
                                 {bestApplicable && (
-                                    <div className="ml-6 flex items-center space-x-2">
-                                        <Label htmlFor="bestOff" className="w-20">Best Off:</Label>
+                                    <div className='ml-6 flex items-center space-x-2'>
+                                        <Label htmlFor='bestOff' className='w-20'>
+                                            Best Off:
+                                        </Label>
                                         <Input
-                                            id="bestOff"
-                                            type="number"
+                                            id='bestOff'
+                                            type='number'
                                             value={bestOff || ''}
                                             onChange={(e) => {
                                                 const value = e.target.value ? Number.parseInt(e.target.value) : null;
@@ -654,9 +654,9 @@ export default function AddPromotionalSettingForm() {
                                                 }
                                                 setBestOff(value);
                                             }}
-                                            className="w-32"
-                                            min="1"
-                                            max="99"
+                                            className='w-32'
+                                            min='1'
+                                            max='99'
                                         />
                                     </div>
                                 )}
@@ -667,32 +667,29 @@ export default function AddPromotionalSettingForm() {
 
                 {/* SUBJECTS TABLE */}
                 {isTableVisible ? (
-                    <div className="mb-6 overflow-x-auto rounded-lg border">
-                        <table className="w-full">
-                            <thead className="bg-gray-50">
+                    <div className='mb-6 overflow-x-auto rounded-lg border'>
+                        <table className='w-full'>
+                            <thead className='bg-gray-50'>
                                 <tr>
-                                    <th className="w-12 p-3 text-center">
-                                        <div className="flex flex-col items-center">
-                                            <span className="text-xs">SLNO</span>
+                                    <th className='w-12 p-3 text-center'>
+                                        <div className='flex flex-col items-center'>
+                                            <span className='text-xs'>SLNO</span>
                                         </div>
                                     </th>
-                                    <th className="w-12 p-3 text-center">
-                                        <div className="flex flex-col items-center">
-                                            <span className="text-xs">Select</span>
-                                            <Checkbox
-                                                checked={selectAll}
-                                                onCheckedChange={toggleAllSubjects}
-                                            />
+                                    <th className='w-12 p-3 text-center'>
+                                        <div className='flex flex-col items-center'>
+                                            <span className='text-xs'>Select</span>
+                                            <Checkbox checked={selectAll} onCheckedChange={toggleAllSubjects} />
                                         </div>
                                     </th>
-                                    <th className="p-3">
-                                        <div className="text-xs">Subject Name (Code)</div>
+                                    <th className='p-3'>
+                                        <div className='text-xs'>Subject Name (Code)</div>
                                     </th>
-                                    <th className="w-40 p-3">
-                                        <div className="flex flex-col items-center">
-                                            <span className="text-xs">Max Marks</span>
+                                    <th className='w-40 p-3'>
+                                        <div className='flex flex-col items-center'>
+                                            <span className='text-xs'>Max Marks</span>
                                             <Input
-                                                type="number"
+                                                type='number'
                                                 value={headerMaxMarks}
                                                 onChange={(e) => {
                                                     const value = e.target.value;
@@ -702,58 +699,55 @@ export default function AddPromotionalSettingForm() {
                                                     }
                                                     setHeaderMaxMarks(value);
                                                 }}
-                                                placeholder="All"
-                                                className="h-8 text-sm"
+                                                placeholder='All'
+                                                className='h-8 text-sm'
                                             />
                                         </div>
                                     </th>
-                                    <th className="w-40 p-3">
-                                        <div className="flex flex-col items-center">
-                                            <span className="text-xs">Min Marks</span>
+                                    <th className='w-40 p-3'>
+                                        <div className='flex flex-col items-center'>
+                                            <span className='text-xs'>Min Marks</span>
                                             <Input
-                                                type="number"
+                                                type='number'
                                                 value={headerMinMarks}
                                                 onChange={(e) => setHeaderMinMarks(e.target.value)}
-                                                placeholder="All"
-                                                className="h-8 text-sm"
+                                                placeholder='All'
+                                                className='h-8 text-sm'
                                                 disabled={!headerMaxMarks}
                                             />
                                         </div>
                                     </th>
-                                    <th className="w-40 p-3">
-                                        <div className="flex flex-col items-center">
-                                            <span className="text-xs">Convert Marks For</span>
+                                    <th className='w-40 p-3'>
+                                        <div className='flex flex-col items-center'>
+                                            <span className='text-xs'>Convert Marks For</span>
                                             <Input
-                                                type="number"
+                                                type='number'
                                                 value={headerConvertMarks}
                                                 onChange={(e) => setHeaderConvertMarks(e.target.value)}
-                                                placeholder="All"
-                                                className="h-8 text-sm"
+                                                placeholder='All'
+                                                className='h-8 text-sm'
                                                 disabled={!headerMaxMarks}
                                             />
                                         </div>
                                     </th>
-                                    <th className="w-32 p-3">
-                                        <div className="flex flex-col items-center">
-                                            <span className="text-xs">Apply to Result</span>
+                                    <th className='w-32 p-3'>
+                                        <div className='flex flex-col items-center'>
+                                            <span className='text-xs'>Apply to Result</span>
                                             <Checkbox
                                                 checked={headerApplyToResult}
                                                 onCheckedChange={(checked) => setHeaderApplyToResult(checked as boolean)}
                                             />
                                         </div>
                                     </th>
-                                    <th className="w-40 p-3">
-                                        <div className="flex flex-col items-center">
-                                            <span className="text-xs">Grade</span>
-                                            <Select
-                                                value={headerGrade}
-                                                onValueChange={setHeaderGrade}
-                                            >
-                                                <SelectTrigger className="h-8 text-sm">
-                                                    <SelectValue placeholder="All" />
+                                    <th className='w-40 p-3'>
+                                        <div className='flex flex-col items-center'>
+                                            <span className='text-xs'>Grade</span>
+                                            <Select value={headerGrade} onValueChange={setHeaderGrade}>
+                                                <SelectTrigger className='h-8 text-sm'>
+                                                    <SelectValue placeholder='All' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="__keep">— Keep existing —</SelectItem>
+                                                    <SelectItem value='__keep'>— Keep existing —</SelectItem>
                                                     {grades.map((grade) => (
                                                         <SelectItem key={grade.emgR_Id} value={grade.emgR_Id}>
                                                             {grade.emgR_GradeName}
@@ -764,8 +758,8 @@ export default function AddPromotionalSettingForm() {
                                         </div>
                                     </th>
                                     {(promotionType === 'M' || promotionType === 'P') && (
-                                        <th className="w-20 p-3 text-center">
-                                            <div className="text-xs">Action</div>
+                                        <th className='w-20 p-3 text-center'>
+                                            <div className='text-xs'>Action</div>
                                         </th>
                                     )}
                                 </tr>
@@ -777,32 +771,30 @@ export default function AddPromotionalSettingForm() {
 
                                     return (
                                         <tr key={subject.ismS_Id} className={`border-t hover:bg-gray-50 ${hasGroups ? 'bg-green-50' : ''}`}>
-                                            <td className="p-3 text-center">{index + 1}</td>
-                                            <td className="p-3 text-center">
+                                            <td className='p-3 text-center'>{index + 1}</td>
+                                            <td className='p-3 text-center'>
                                                 <Checkbox
                                                     checked={!!subject.checkedvalue}
                                                     onCheckedChange={() => toggleSubject(subject.ismS_Id)}
                                                 />
                                             </td>
-                                            <td className="p-3">
-                                                <div className="flex items-center gap-2">
+                                            <td className='p-3'>
+                                                <div className='flex items-center gap-2'>
                                                     <span>{subject.ismS_SubjectName}</span>
                                                     {subject.ismS_SubjectCode && (
-                                                        <span className="text-gray-500 text-sm">
-                                                            ({subject.ismS_SubjectCode})
-                                                        </span>
+                                                        <span className='text-gray-500 text-sm'>({subject.ismS_SubjectCode})</span>
                                                     )}
                                                     {hasGroups && (
-                                                        <span className="ml-2 rounded-full bg-green-100 px-2 py-1 text-green-800 text-xs">
+                                                        <span className='ml-2 rounded-full bg-green-100 px-2 py-1 text-green-800 text-xs'>
                                                             {subject.pro_exams_group_list?.length || 0} groups
                                                             {promotionType === 'P' && ` (${totalPercentage}%)`}
                                                         </span>
                                                     )}
                                                 </div>
                                             </td>
-                                            <td className="p-3">
+                                            <td className='p-3'>
                                                 <Input
-                                                    type="number"
+                                                    type='number'
                                                     value={subject.EMPS_MaxMarks || ''}
                                                     onChange={(e) => {
                                                         const value = e.target.value ? Number.parseFloat(e.target.value) : null;
@@ -810,18 +802,18 @@ export default function AddPromotionalSettingForm() {
                                                             toast.error('Max Marks cannot exceed 1000');
                                                             return;
                                                         }
-                                                        setSubjects(prev => prev.map(s =>
-                                                            s.ismS_Id === subject.ismS_Id
-                                                                ? { ...s, EMPS_MaxMarks: value }
-                                                                : s
-                                                        ));
+                                                        setSubjects((prev) =>
+                                                            prev.map((s) =>
+                                                                s.ismS_Id === subject.ismS_Id ? { ...s, EMPS_MaxMarks: value } : s
+                                                            )
+                                                        );
                                                     }}
-                                                    className="h-8 text-sm"
+                                                    className='h-8 text-sm'
                                                 />
                                             </td>
-                                            <td className="p-3">
+                                            <td className='p-3'>
                                                 <Input
-                                                    type="number"
+                                                    type='number'
                                                     value={subject.EMPS_MinMarks || ''}
                                                     onChange={(e) => {
                                                         const value = e.target.value ? Number.parseFloat(e.target.value) : null;
@@ -829,19 +821,19 @@ export default function AddPromotionalSettingForm() {
                                                             toast.error('Min Marks cannot exceed Max Marks');
                                                             return;
                                                         }
-                                                        setSubjects(prev => prev.map(s =>
-                                                            s.ismS_Id === subject.ismS_Id
-                                                                ? { ...s, EMPS_MinMarks: value }
-                                                                : s
-                                                        ));
+                                                        setSubjects((prev) =>
+                                                            prev.map((s) =>
+                                                                s.ismS_Id === subject.ismS_Id ? { ...s, EMPS_MinMarks: value } : s
+                                                            )
+                                                        );
                                                     }}
-                                                    className="h-8 text-sm"
+                                                    className='h-8 text-sm'
                                                     disabled={!subject.EMPS_MaxMarks}
                                                 />
                                             </td>
-                                            <td className="p-3">
+                                            <td className='p-3'>
                                                 <Input
-                                                    type="number"
+                                                    type='number'
                                                     value={subject.EMPS_ConvertForMarks || ''}
                                                     onChange={(e) => {
                                                         const value = e.target.value ? Number.parseFloat(e.target.value) : null;
@@ -853,44 +845,47 @@ export default function AddPromotionalSettingForm() {
                                                             toast.error('Converted Marks cannot be less than Min Marks');
                                                             return;
                                                         }
-                                                        setSubjects(prev => prev.map(s =>
-                                                            s.ismS_Id === subject.ismS_Id
-                                                                ? { ...s, EMPS_ConvertForMarks: value }
-                                                                : s
-                                                        ));
+                                                        setSubjects((prev) =>
+                                                            prev.map((s) =>
+                                                                s.ismS_Id === subject.ismS_Id ? { ...s, EMPS_ConvertForMarks: value } : s
+                                                            )
+                                                        );
                                                     }}
-                                                    className="h-8 text-sm"
+                                                    className='h-8 text-sm'
                                                     disabled={!subject.EMPS_MaxMarks}
                                                 />
                                             </td>
-                                            <td className="p-3 text-center">
+                                            <td className='p-3 text-center'>
                                                 <Checkbox
                                                     checked={subject.EMPS_AppToResultFlg}
                                                     onCheckedChange={(checked) => {
-                                                        setSubjects(prev => prev.map(s =>
-                                                            s.ismS_Id === subject.ismS_Id
-                                                                ? { ...s, EMPS_AppToResultFlg: checked as boolean }
-                                                                : s
-                                                        ));
+                                                        setSubjects((prev) =>
+                                                            prev.map((s) =>
+                                                                s.ismS_Id === subject.ismS_Id
+                                                                    ? { ...s, EMPS_AppToResultFlg: checked as boolean }
+                                                                    : s
+                                                            )
+                                                        );
                                                     }}
                                                 />
                                             </td>
-                                            <td className="p-3">
+                                            <td className='p-3'>
                                                 <Select
                                                     value={subject.EMGR_Id || '__none'}
                                                     onValueChange={(value) => {
-                                                        setSubjects(prev => prev.map(s =>
-                                                            s.ismS_Id === subject.ismS_Id
-                                                                ? { ...s, EMGR_Id: value === '__none' ? null : value }
-                                                                : s
-                                                        ));
-                                                    }}
-                                                >
-                                                    <SelectTrigger className="h-8 text-sm">
-                                                        <SelectValue placeholder="--Select--" />
+                                                        setSubjects((prev) =>
+                                                            prev.map((s) =>
+                                                                s.ismS_Id === subject.ismS_Id
+                                                                    ? { ...s, EMGR_Id: value === '__none' ? null : value }
+                                                                    : s
+                                                            )
+                                                        );
+                                                    }}>
+                                                    <SelectTrigger className='h-8 text-sm'>
+                                                        <SelectValue placeholder='--Select--' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem value="__none">--Select--</SelectItem>
+                                                        <SelectItem value='__none'>--Select--</SelectItem>
                                                         {grades.map((grade) => (
                                                             <SelectItem key={grade.emgR_Id} value={grade.emgR_Id}>
                                                                 {grade.emgR_GradeName}
@@ -900,15 +895,14 @@ export default function AddPromotionalSettingForm() {
                                                 </Select>
                                             </td>
                                             {(promotionType === 'M' || promotionType === 'P') && (
-                                                <td className="p-3 text-center">
+                                                <td className='p-3 text-center'>
                                                     <Button
-                                                        variant="ghost"
-                                                        size="sm"
+                                                        variant='ghost'
+                                                        size='sm'
                                                         onClick={() => openGroupModal(subject)}
-                                                        title="View/Edit Groups"
-                                                        className={hasGroups ? 'text-green-600 hover:text-green-800' : ''}
-                                                    >
-                                                        <Eye className="h-4 w-4" />
+                                                        title='View/Edit Groups'
+                                                        className={hasGroups ? 'text-green-600 hover:text-green-800' : ''}>
+                                                        <Eye className='h-4 w-4' />
                                                     </Button>
                                                 </td>
                                             )}
@@ -919,29 +913,28 @@ export default function AddPromotionalSettingForm() {
                         </table>
 
                         {/* Apply Header Values Button */}
-                        <div className="border-t p-3">
+                        <div className='border-t p-3'>
                             <Button
                                 onClick={applyHeaderValues}
-                                variant="outline"
-                                size="sm"
-                                disabled={subjects.filter(s => s.checkedvalue).length === 0}
-                            >
+                                variant='outline'
+                                size='sm'
+                                disabled={subjects.filter((s) => s.checkedvalue).length === 0}>
                                 Apply Header Values to Selected Rows
                             </Button>
                         </div>
                     </div>
                 ) : (
-                    <div className="mb-6 rounded-lg border p-8 text-center text-gray-500">
-                        {promotionType === 'F'
-                            ? 'Table hidden for Final Exam mode'
-                            : 'Select Category to display subjects'}
+                    <div className='mb-6 rounded-lg border p-8 text-center text-gray-500'>
+                        {promotionType === 'F' ? 'Table hidden for Final Exam mode' : 'Select Category to display subjects'}
                     </div>
                 )}
 
                 {/* ACTION BUTTONS */}
-                <div className="flex justify-center space-x-4">
+                <div className='flex justify-center space-x-4'>
                     <Button onClick={handleSave}>Save</Button>
-                    <Button onClick={handleReset} variant="outline">Cancel</Button>
+                    <Button onClick={handleReset} variant='outline'>
+                        Cancel
+                    </Button>
                 </div>
             </CollapsibleSection>
 
@@ -957,7 +950,7 @@ export default function AddPromotionalSettingForm() {
                     }}
                     onSave={updateSubjectGroups}
                     onAddGroup={addGroupToSubject}
-                    onOpenExams={openExamsModal}                //promotionType={promotionType}
+                    onOpenExams={openExamsModal} //promotionType={promotionType}
                 />
             )}
 

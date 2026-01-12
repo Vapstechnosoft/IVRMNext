@@ -34,11 +34,7 @@ export default function UpdateLifeSkillAreaMapping({ rowData, onSuccess }: Updat
     const [lifeSkillAreas, setLifeSkillAreas] = useState<ILifeSkillArea[]>([]);
     const [grades, setGrades] = useState<IMasterGrade[]>([]);
 
-    const {
-        data: academicYear,
-        isLoading: academicYearLoading,
-        error: academicYearError,
-    } = useAcademicYearDropdown();
+    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
     const academicYears = academicYear?.data ? academicYear.data : [];
     const { data: lifeSkillData, error: lifeSkillError } = useMasterLifeSkills();
     const { data: lifeSkillAreaData, error: areaError } = useMasterLifeSkillArea();
@@ -74,15 +70,7 @@ export default function UpdateLifeSkillAreaMapping({ rowData, onSuccess }: Updat
             setGrades(gradeList);
         }
         if (masterGradeError) toast.error('Failed to load Grades');
-    }, [
-        lifeSkillData,
-        lifeSkillAreaData,
-        masterGradeData,
-        academicYearError,
-        lifeSkillError,
-        areaError,
-        masterGradeError
-    ]);
+    }, [lifeSkillData, lifeSkillAreaData, masterGradeData, academicYearError, lifeSkillError, areaError, masterGradeError]);
 
     // Reset only after dropdowns loaded
     const dropdownsReady = useMemo(

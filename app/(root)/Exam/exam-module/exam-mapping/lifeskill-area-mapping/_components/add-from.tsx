@@ -68,7 +68,6 @@ export default function AddLifeSkillAreaMapping({ onSuccess }: { onSuccess?: () 
     const mappingArray = useFieldArray({ control, name: 'mappingDTO' });
 
     useEffect(() => {
-
         // Life Skills
         if (lifeSkillData?.data) {
             const skills = Array.isArray(lifeSkillData.data) ? lifeSkillData.data : [lifeSkillData.data];
@@ -89,15 +88,7 @@ export default function AddLifeSkillAreaMapping({ onSuccess }: { onSuccess?: () 
             setGrades(gradeList);
         }
         if (masterGradeError) toast.error('Failed to load Grades');
-    }, [
-        lifeSkillData,
-        lifeSkillAreaData,
-        masterGradeData,
-        academicYearError,
-        lifeSkillError,
-        areaError,
-        masterGradeError
-    ]);
+    }, [lifeSkillData, lifeSkillAreaData, masterGradeData, academicYearError, lifeSkillError, areaError, masterGradeError]);
 
     // 🔹 Submit
     const onSubmit = async (data: FormFields) => {

@@ -1,17 +1,17 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { FormError, Label } from '@/components/ui/extension/field';
 import { Checkbox } from '@/components/ui/checkbox';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMasterMessCategory } from '@/hooks/hostel/useMasterMessCategory';
 import { masterMessCategoryMappingSchema } from '@/schemas/hostel/mess-category-mapping.schema';
-import { IMess, IMessCategory, saveMessCategoryMapping } from '@/server/hostel/master-mess-category/server-action';
+import { type IMess, type IMessCategory, saveMessCategoryMapping } from '@/server/hostel/master-mess-category/server-action';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, Controller, FormProvider } from 'react-hook-form';
-import { toast } from 'sonner';
-import { z } from 'zod';
 import { useEffect, useState } from 'react';
+import { Controller, FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import type { z } from 'zod';
 
 interface AddMasterMessCategoryFormProps {
     onSuccess: () => void;
@@ -50,7 +50,10 @@ export default function AddMasterMessCategoryForm({ onSuccess, masterMessList, m
     const handleSelectAll = (checked: boolean) => {
         setSelectAll(checked);
         if (checked) {
-            setValue('messCategories', messCategoryList.map(c => c.hlmmC_Id));
+            setValue(
+                'messCategories',
+                messCategoryList.map((c) => c.hlmmC_Id)
+            );
         } else {
             setValue('messCategories', []);
         }
@@ -102,10 +105,7 @@ export default function AddMasterMessCategoryForm({ onSuccess, masterMessList, m
                                         <Label>
                                             Mess Name <span className='text-red-500'>*</span>
                                         </Label>
-                                        <Select
-                                            value={field.value?.toString()}
-                                            onValueChange={field.onChange}
-                                        >
+                                        <Select value={field.value?.toString()} onValueChange={field.onChange}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Mess' />
                                             </SelectTrigger>
@@ -125,16 +125,12 @@ export default function AddMasterMessCategoryForm({ onSuccess, masterMessList, m
 
                         {/* Category Selection (Checkboxes) */}
                         <div className='col-span-1 space-y-2 rounded-md border p-4'>
-                            <div className='flex items-center justify-between pb-2 border-b'>
-                                <Label className='text-base font-semibold'>
+                            <div className='flex items-center justify-between border-b pb-2'>
+                                <Label className='font-semibold text-base'>
                                     Mess Category <span className='text-red-500'>*</span>
                                 </Label>
                                 <div className='flex items-center space-x-2'>
-                                    <Checkbox
-                                        id='select-all'
-                                        checked={selectAll}
-                                        onCheckedChange={handleSelectAll}
-                                    />
+                                    <Checkbox id='select-all' checked={selectAll} onCheckedChange={handleSelectAll} />
                                     <Label htmlFor='select-all'>Select All</Label>
                                 </div>
                             </div>
@@ -159,7 +155,7 @@ export default function AddMasterMessCategoryForm({ onSuccess, masterMessList, m
                                             )}
                                         />
                                         <Label
-                                            className='font-normal cursor-pointer'
+                                            className='cursor-pointer font-normal'
                                             onClick={() => {
                                                 const current = methods.getValues('messCategories') || [];
                                                 const isChecked = current.includes(category.hlmmC_Id);
@@ -167,8 +163,7 @@ export default function AddMasterMessCategoryForm({ onSuccess, masterMessList, m
                                                     ? [...current, category.hlmmC_Id]
                                                     : current.filter((id) => id !== category.hlmmC_Id);
                                                 methods.setValue('messCategories', updated);
-                                            }}
-                                        >
+                                            }}>
                                             {category.hlmmC_Name}
                                         </Label>
                                     </div>
@@ -188,8 +183,7 @@ export default function AddMasterMessCategoryForm({ onSuccess, masterMessList, m
                             onClick={() => {
                                 reset();
                                 onSuccess();
-                            }}
-                        >
+                            }}>
                             Cancel
                         </Button>
                     </div>

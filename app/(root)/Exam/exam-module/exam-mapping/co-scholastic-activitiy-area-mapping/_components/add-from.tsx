@@ -4,7 +4,11 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCoScholasticActivityAreaMapping } from '@/hooks/exam/exammodule/exam-mapping';
-import { useCoScholasticActivityAreaDropDown, useCoScholasticActivityDropDown, useMasterGradeDropdownList } from '@/hooks/exam/exammodule/usemasters';
+import {
+    useCoScholasticActivityAreaDropDown,
+    useCoScholasticActivityDropDown,
+    useMasterGradeDropdownList
+} from '@/hooks/exam/exammodule/usemasters';
 // dropdown hooks
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { CoScholasticActivityAreaMappingSchema } from '@/schemas/exam/exam-module/exam-mapping';
@@ -32,11 +36,7 @@ export default function AddCoScholasticActivityAreaMapping({
     const [activity, setActivity] = useState<{ ecacT_Id: number; ecacT_SkillName: string }[]>([]);
     const [activityArea, setActivityArea] = useState<{ ecactA_Id: number; ecactA_SkillArea: string }[]>([]);
 
-    const {
-        data: academicYear,
-        isLoading: academicYearLoading,
-        error: academicYearError,
-    } = useAcademicYearDropdown();
+    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
     const { data: gradesData, isLoading: loadingGrades, error: gradesError } = useMasterGradeDropdownList();
     const { data: areaData, isLoading: loadingArea, error: activityAreaError } = useCoScholasticActivityAreaDropDown();
     const { data: activityData, isLoading: loadingActivity, error: activityError } = useCoScholasticActivityDropDown();
@@ -55,7 +55,6 @@ export default function AddCoScholasticActivityAreaMapping({
             ecactaM_ActiveFlag: true
         }
     });
-
 
     // Grades
     useEffect(() => {

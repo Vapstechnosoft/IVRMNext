@@ -1,12 +1,12 @@
 'use client';
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ColumnDef } from '@tanstack/react-table';
-import { IFacility, IEmployee, IHostelDocument, IHostel } from '@/server/hostel/master-hostel/server-action';
 import { Button } from '@/components/ui/button';
-import { Eye } from 'lucide-react';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
+import type { IEmployee, IFacility, IHostel, IHostelDocument } from '@/server/hostel/master-hostel/server-action';
+import type { ColumnDef } from '@tanstack/react-table';
+import { Eye } from 'lucide-react';
 
 // --- View Facilities Modal ---
 
@@ -24,17 +24,17 @@ export function ViewFacilitiesModal({ isOpen, onClose, hostel }: ViewFacilitiesM
         {
             accessorKey: 'hlmftY_FacilityName',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Facility Name' />,
-            cell: ({ row }) => <div>{row.getValue('hlmftY_FacilityName')}</div>,
+            cell: ({ row }) => <div>{row.getValue('hlmftY_FacilityName')}</div>
         }
     ];
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogContent className='max-h-[80vh] max-w-2xl overflow-y-auto'>
                 <DialogHeader>
                     <DialogTitle>Facilities: {hostel?.hlmH_Name}</DialogTitle>
                 </DialogHeader>
-                <div className="mt-4">
+                <div className='mt-4'>
                     <GenericDataTable
                         {...tableProps}
                         data={data}
@@ -68,17 +68,21 @@ export function ViewWardensModal({ isOpen, onClose, hostel }: ViewWardensModalPr
         {
             accessorKey: 'hrmE_EmployeeFirstName',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Warden Name' />,
-            cell: ({ row }) => <div>{row.original.hrmE_EmployeeFirstName} : {row.original.hrmE_EmployeeCode}</div>,
+            cell: ({ row }) => (
+                <div>
+                    {row.original.hrmE_EmployeeFirstName} : {row.original.hrmE_EmployeeCode}
+                </div>
+            )
         }
     ];
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogContent className='max-h-[80vh] max-w-2xl overflow-y-auto'>
                 <DialogHeader>
                     <DialogTitle>Wardens: {hostel?.hlmH_Name}</DialogTitle>
                 </DialogHeader>
-                <div className="mt-4">
+                <div className='mt-4'>
                     <GenericDataTable
                         {...tableProps}
                         data={data}
@@ -112,14 +116,14 @@ export function ViewDocumentsModal({ isOpen, onClose, hostel }: ViewDocumentsMod
         {
             accessorKey: 'hlmhP_FileName',
             header: ({ column }) => <DataTableColumnHeader column={column} title='File Name' />,
-            cell: ({ row }) => <div>{row.original.hlmhP_FileName}</div>,
+            cell: ({ row }) => <div>{row.original.hlmhP_FileName}</div>
         },
         {
             id: 'actions',
             header: 'View',
             cell: ({ row }) => (
-                <Button variant="ghost" size="sm" onClick={() => window.open(row.original.hlmhP_FilePath, '_blank')}>
-                    <Eye className="h-4 w-4 mr-2" /> View
+                <Button variant='ghost' size='sm' onClick={() => window.open(row.original.hlmhP_FilePath, '_blank')}>
+                    <Eye className='mr-2 h-4 w-4' /> View
                 </Button>
             )
         }
@@ -127,11 +131,11 @@ export function ViewDocumentsModal({ isOpen, onClose, hostel }: ViewDocumentsMod
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+            <DialogContent className='max-h-[80vh] max-w-3xl overflow-y-auto'>
                 <DialogHeader>
                     <DialogTitle>Documents: {hostel?.hlmH_Name}</DialogTitle>
                 </DialogHeader>
-                <div className="mt-4">
+                <div className='mt-4'>
                     <GenericDataTable
                         {...tableProps}
                         data={data}

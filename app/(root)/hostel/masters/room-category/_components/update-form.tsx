@@ -1,19 +1,19 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/extension/field';
 import { Form } from '@/components/ui/form';
-import { FormError, Label } from '@/components/ui/extension/field';
+import { FormControl, FormItem, FormMessage } from '@/components/ui/form';
 import { FormInput } from '@/components/ui/form/form-input';
 import { FormTextarea } from '@/components/ui/form/form-textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Controller, useForm } from 'react-hook-form';
+import { RoomCategorySchema, type RoomCategorySchemaType } from '@/schemas/hostel/room-category.schema';
+import { type IFeeGroup, type IHostel, type IRoomCategory, saveRoomCategory } from '@/server/hostel/room-category/server-action';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { RoomCategorySchema, RoomCategorySchemaType } from '@/schemas/hostel/room-category.schema';
-import { IFeeGroup, IHostel, IRoomCategory, saveRoomCategory } from '@/server/hostel/room-category/server-action';
-import { toast } from 'sonner';
 import { useEffect } from 'react';
-import { FormItem, FormMessage, FormControl } from '@/components/ui/form';
+import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 interface UpdateRoomCategoryFormProps {
     initialData: IRoomCategory;
@@ -23,7 +23,13 @@ interface UpdateRoomCategoryFormProps {
     feeGroupList: IFeeGroup[];
 }
 
-export default function UpdateRoomCategoryForm({ initialData, onSuccess, onCancel, hostelList, feeGroupList }: UpdateRoomCategoryFormProps) {
+export default function UpdateRoomCategoryForm({
+    initialData,
+    onSuccess,
+    onCancel,
+    hostelList,
+    feeGroupList
+}: UpdateRoomCategoryFormProps) {
     const form = useForm<RoomCategorySchemaType>({
         resolver: zodResolver(RoomCategorySchema),
         defaultValues: {
@@ -37,11 +43,17 @@ export default function UpdateRoomCategoryForm({ initialData, onSuccess, onCance
             HLMRCA_Description: initialData.hlmrcA_Description,
             hlmrcA_ACFlg: initialData.hlmrcA_ACFlg,
             hlmrcA_SharingFlg: initialData.hlmrcA_SharingFlg,
-            hlmrcA_ActiveFlag: initialData.hlmrcA_ActiveFlag,
-        },
+            hlmrcA_ActiveFlag: initialData.hlmrcA_ActiveFlag
+        }
     });
 
-    const { control, handleSubmit, watch, setValue, formState: { isSubmitting } } = form;
+    const {
+        control,
+        handleSubmit,
+        watch,
+        setValue,
+        formState: { isSubmitting }
+    } = form;
 
     const sharingFlag = watch('hlmrcA_SharingFlg');
 
@@ -66,21 +78,21 @@ export default function UpdateRoomCategoryForm({ initialData, onSuccess, onCance
     };
 
     return (
-        <div className="p-4 bg-background rounded-lg border">
+        <div className='rounded-lg border bg-background p-4'>
             <Form {...form}>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-4">
+                <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
+                    <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+                        <div className='space-y-4'>
                             <Controller
                                 control={control}
-                                name="HLMH_Id"
+                                name='HLMH_Id'
                                 render={({ field, fieldState: { error } }) => (
                                     <FormItem>
                                         <Label required>Hostel Name</Label>
                                         <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                             <FormControl>
-                                                <SelectTrigger className={error ? "border-red-500" : ""}>
-                                                    <SelectValue placeholder="--Select--" />
+                                                <SelectTrigger className={error ? 'border-red-500' : ''}>
+                                                    <SelectValue placeholder='--Select--' />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
@@ -98,14 +110,14 @@ export default function UpdateRoomCategoryForm({ initialData, onSuccess, onCance
 
                             <Controller
                                 control={control}
-                                name="FMG_Id"
+                                name='FMG_Id'
                                 render={({ field, fieldState: { error } }) => (
                                     <FormItem>
                                         <Label required>Fee Group</Label>
                                         <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                             <FormControl>
-                                                <SelectTrigger className={error ? "border-red-500" : ""}>
-                                                    <SelectValue placeholder="--Select--" />
+                                                <SelectTrigger className={error ? 'border-red-500' : ''}>
+                                                    <SelectValue placeholder='--Select--' />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
@@ -123,81 +135,81 @@ export default function UpdateRoomCategoryForm({ initialData, onSuccess, onCance
 
                             <FormInput
                                 control={control}
-                                name="HLMRCA_RoomCategory"
-                                label="Room Category"
-                                placeholder="Enter Room Category Name"
+                                name='HLMRCA_RoomCategory'
+                                label='Room Category'
+                                placeholder='Enter Room Category Name'
                                 required
                             />
 
                             <FormInput
                                 control={control}
-                                name="HLMRCA_SORate"
-                                label="Single Bed Occupancy Rate"
-                                placeholder="Enter Rate"
-                                type="number"
+                                name='HLMRCA_SORate'
+                                label='Single Bed Occupancy Rate'
+                                placeholder='Enter Rate'
+                                type='number'
                                 required
                             />
 
                             <FormInput
                                 control={control}
-                                name="HLMRCA_RoomRate"
-                                label="Multiple Bed Occupancy Rate"
-                                placeholder="Enter Rate"
-                                type="number"
+                                name='HLMRCA_RoomRate'
+                                label='Multiple Bed Occupancy Rate'
+                                placeholder='Enter Rate'
+                                type='number'
                                 disabled={!sharingFlag}
                                 required={sharingFlag}
                             />
                         </div>
 
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6">
-                                <div className="flex items-center space-x-2">
+                        <div className='space-y-4'>
+                            <div className='grid grid-cols-1 gap-4 pt-6 sm:grid-cols-2'>
+                                <div className='flex items-center space-x-2'>
                                     <Controller
                                         control={control}
-                                        name="hlmrcA_ACFlg"
+                                        name='hlmrcA_ACFlg'
                                         render={({ field }) => (
-                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} id="acFlag" />
+                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} id='acFlag' />
                                         )}
                                     />
-                                    <Label htmlFor="acFlag">Whether This Room Have AC?</Label>
+                                    <Label htmlFor='acFlag'>Whether This Room Have AC?</Label>
                                 </div>
-                                <div className="flex items-center space-x-2">
+                                <div className='flex items-center space-x-2'>
                                     <Controller
                                         control={control}
-                                        name="hlmrcA_SharingFlg"
+                                        name='hlmrcA_SharingFlg'
                                         render={({ field }) => (
-                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} id="shareFlag" />
+                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} id='shareFlag' />
                                         )}
                                     />
-                                    <Label htmlFor="shareFlag">Whether This Room is Sharing?</Label>
+                                    <Label htmlFor='shareFlag'>Whether This Room is Sharing?</Label>
                                 </div>
                             </div>
 
                             <FormInput
                                 control={control}
-                                name="HLMRCA_MaxCapacity"
-                                label="Max Capacity"
-                                placeholder="Enter Max Capacity"
-                                type="number"
+                                name='HLMRCA_MaxCapacity'
+                                label='Max Capacity'
+                                placeholder='Enter Max Capacity'
+                                type='number'
                                 maxLength={3}
                                 required
                             />
 
                             <FormTextarea
                                 control={control}
-                                name="HLMRCA_Description"
-                                label="Description"
-                                placeholder="Enter Description..."
+                                name='HLMRCA_Description'
+                                label='Description'
+                                placeholder='Enter Description...'
                                 required
                             />
                         </div>
                     </div>
 
-                    <div className="flex justify-center gap-4 pt-4 border-t mt-4">
-                        <Button type="submit" disabled={isSubmitting} className="w-32">
+                    <div className='mt-4 flex justify-center gap-4 border-t pt-4'>
+                        <Button type='submit' disabled={isSubmitting} className='w-32'>
                             {isSubmitting ? 'Updating...' : 'Update'}
                         </Button>
-                        <Button type="button" variant="destructive" onClick={onCancel} className="w-32">
+                        <Button type='button' variant='destructive' onClick={onCancel} className='w-32'>
                             Cancel
                         </Button>
                     </div>

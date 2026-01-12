@@ -309,19 +309,19 @@ export function ViewGroupsModal({
             const groupExam = group.Exm_M_Prom_Subj_Group_Exams_master.find((g) => g.emE_Id === exam.id);
             return groupExam
                 ? {
-                    ...exam,
-                    isSelected: true,
-                    convertedMarks: groupExam.EMPSGE_ForMaxMarkrs.toString(),
-                    conversionRequired: groupExam.EMPSGE_ConvertionReqOrNot || false,
-                    error: undefined
-                }
+                      ...exam,
+                      isSelected: true,
+                      convertedMarks: groupExam.EMPSGE_ForMaxMarkrs.toString(),
+                      conversionRequired: groupExam.EMPSGE_ConvertionReqOrNot || false,
+                      error: undefined
+                  }
                 : {
-                    ...exam,
-                    isSelected: false,
-                    convertedMarks: '',
-                    conversionRequired: false,
-                    error: undefined
-                };
+                      ...exam,
+                      isSelected: false,
+                      convertedMarks: '',
+                      conversionRequired: false,
+                      error: undefined
+                  };
         });
 
         setLeftExams(updatedLeftExams);
@@ -639,10 +639,13 @@ export function ViewGroupsModal({
                             </table>
 
                             <div className='mt-4 flex w-fit justify-center'>
-                                <Button onClick={() => {
-                                    onSave(groups); // send data to parent
-                                    onClose();
-                                }}>Submit & Close</Button>
+                                <Button
+                                    onClick={() => {
+                                        onSave(groups); // send data to parent
+                                        onClose();
+                                    }}>
+                                    Submit & Close
+                                </Button>
                             </div>
                         </div>
                     )}

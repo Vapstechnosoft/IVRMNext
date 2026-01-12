@@ -1,15 +1,15 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
+import { useFormContext } from '@/components/ui/form/form-provider';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useFormContext } from '@/components/ui/form/form-provider';
-import { masterFloorSchema, IMasterFloorForm } from '@/schemas/hostel/master-floor.schema';
-import { saveFloor, IFacility, IHostel } from '@/server/hostel/master-floor/server-action';
+import { type IMasterFloorForm, masterFloorSchema } from '@/schemas/hostel/master-floor.schema';
+import { type IFacility, type IHostel, saveFloor } from '@/server/hostel/master-floor/server-action';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -30,8 +30,8 @@ export default function AddMasterFloorForm({ onSuccess, hostels, facilities, ini
             hrmF_FloorName: '',
             hrmF_TotalRooms: '',
             hrmF_FloorDesc: '',
-            facilities: [],
-        },
+            facilities: []
+        }
     });
 
     const {
@@ -39,10 +39,8 @@ export default function AddMasterFloorForm({ onSuccess, hostels, facilities, ini
         handleSubmit,
         setValue,
         watch,
-        formState: { errors, isSubmitting },
+        formState: { errors, isSubmitting }
     } = form;
-
-
 
     const onSubmit = async (data: IMasterFloorForm) => {
         const result = await saveFloor(data);
@@ -62,25 +60,24 @@ export default function AddMasterFloorForm({ onSuccess, hostels, facilities, ini
         }
     };
 
-
-
     return (
-        <div className="p-4 bg-background rounded-lg border">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
+        <div className='rounded-lg border bg-background p-4'>
+            <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
+                <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                     {/* LEFT COLUMN */}
-                    <div className="space-y-4">
+                    <div className='space-y-4'>
                         {/* Hostel Selection */}
-                        <div className="space-y-2">
-                            <Label>Hostel Name <span className="text-destructive">*</span></Label>
+                        <div className='space-y-2'>
+                            <Label>
+                                Hostel Name <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 control={control}
-                                name="hlmH_Id"
+                                name='hlmH_Id'
                                 render={({ field }) => (
                                     <Select onValueChange={field.onChange} value={field.value}>
                                         <SelectTrigger className={errors.hlmH_Id ? 'border-destructive' : ''}>
-                                            <SelectValue placeholder="--Select--" />
+                                            <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {hostels.map((h) => (
@@ -96,11 +93,13 @@ export default function AddMasterFloorForm({ onSuccess, hostels, facilities, ini
                         </div>
 
                         {/* Floor Name */}
-                        <div className="space-y-2">
-                            <Label>Floor Name <span className="text-destructive">*</span></Label>
+                        <div className='space-y-2'>
+                            <Label>
+                                Floor Name <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 control={control}
-                                name="hrmF_FloorName"
+                                name='hrmF_FloorName'
                                 render={({ field }) => (
                                     <Input
                                         {...field}
@@ -113,11 +112,13 @@ export default function AddMasterFloorForm({ onSuccess, hostels, facilities, ini
                         </div>
 
                         {/* Total Rooms */}
-                        <div className="space-y-2">
-                            <Label>Total Room <span className="text-destructive">*</span></Label>
+                        <div className='space-y-2'>
+                            <Label>
+                                Total Room <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 control={control}
-                                name="hrmF_TotalRooms"
+                                name='hrmF_TotalRooms'
                                 render={({ field }) => (
                                     <Input
                                         {...field}
@@ -137,11 +138,11 @@ export default function AddMasterFloorForm({ onSuccess, hostels, facilities, ini
                         </div>
 
                         {/* Description */}
-                        <div className="space-y-2">
+                        <div className='space-y-2'>
                             <Label>Description</Label>
                             <Controller
                                 control={control}
-                                name="hrmF_FloorDesc"
+                                name='hrmF_FloorDesc'
                                 render={({ field }) => (
                                     <Textarea
                                         {...field}
@@ -155,15 +156,15 @@ export default function AddMasterFloorForm({ onSuccess, hostels, facilities, ini
                     </div>
 
                     {/* RIGHT COLUMN - Facilities */}
-                    <div className="space-y-4">
+                    <div className='space-y-4'>
                         <Controller
                             control={control}
-                            name="facilities"
+                            name='facilities'
                             render={({ field }) => (
                                 <CustomMultiSelectBox
-                                    label="Facilities"
+                                    label='Facilities'
                                     isRequired
-                                    options={facilities.map(f => ({ label: f.hlmftY_FacilityName, value: f.hlmftY_Id.toString() }))}
+                                    options={facilities.map((f) => ({ label: f.hlmftY_FacilityName, value: f.hlmftY_Id.toString() }))}
                                     value={field.value?.map(String) || []}
                                     onChange={(vals) => field.onChange(vals.map(Number))}
                                     error={errors.facilities?.message}
@@ -172,15 +173,14 @@ export default function AddMasterFloorForm({ onSuccess, hostels, facilities, ini
                             )}
                         />
                     </div>
-
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex justify-center gap-4 pt-4 border-t">
-                    <Button type="submit" disabled={isSubmitting} className="w-32">
+                <div className='flex justify-center gap-4 border-t pt-4'>
+                    <Button type='submit' disabled={isSubmitting} className='w-32'>
                         {isSubmitting ? 'Saving...' : 'Save'}
                     </Button>
-                    <Button type="button" variant="destructive" onClick={onCancel} className="w-32">
+                    <Button type='button' variant='destructive' onClick={onCancel} className='w-32'>
                         Cancel
                     </Button>
                 </div>

@@ -9,7 +9,11 @@ import { InputNumber } from '@/components/ui/extension/input-number';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useExamSubjectWizard, useExamSubjectWizardDetails } from '@/hooks/exam/exammodule/exam-mapping';
-import { useMasterGradeDropdownList, useMasterSubExamDropdownList, useMasterSubSubjectDropdownList } from '@/hooks/exam/exammodule/usemasters';
+import {
+    useMasterGradeDropdownList,
+    useMasterSubExamDropdownList,
+    useMasterSubSubjectDropdownList
+} from '@/hooks/exam/exammodule/usemasters';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { ExamSubjectWizardSchema, SubSubjectSubExamSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import { getCategoryDropDowByExamYearCategoryList } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
@@ -22,10 +26,11 @@ import {
     getSubSubjectsMappedList,
     getSubjectsByCategory
 } from '@/server/exam/exam-module/exam-mapping/exam-subject-wizard';
-import { getMasterSubExamDropdownList } from '@/server/exam/exam-module/masters/sub-exam';
 import type { IExamSubjectWizard, IExamSubjectWizardDetails } from '@/types/exam/exam-module/exam-mapping';
 import type { ICategory, IMasterGrade, IMasterSubExam, IMasterSubSubject } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -34,11 +39,6 @@ import SubExamModal from './subexam-model';
 import SubjectTable from './subject-table';
 import SubSubjectModal from './subsubject-modal';
 import SubSubjectSubExamModal from './subsubject-subexam-model';
-import { Loader2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-
-
-
 
 type FormFields = z.infer<typeof ExamSubjectWizardSchema.addOrUpdate>;
 
@@ -119,7 +119,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
         if (masterSubExam && Array.isArray(masterSubExam.data)) {
             setSubExams(masterSubExam.data);
         }
-    })
+    });
 
     // populate controlled dropdowns on mount / when data arrives
     useEffect(() => {
@@ -186,10 +186,10 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
                 const mappedExams = Array.isArray(ex)
                     ? ex.map((e: any) => ({
-                        EME_Id: e.emE_Id ?? e.EME_Id,
-                        EME_ExamName: e.emE_ExamName ?? e.EME_ExamName,
-                        checked: rowData?.emE_Id === (e.emE_Id ?? e.EME_Id)
-                    }))
+                          EME_Id: e.emE_Id ?? e.EME_Id,
+                          EME_ExamName: e.emE_ExamName ?? e.EME_ExamName,
+                          checked: rowData?.emE_Id === (e.emE_Id ?? e.EME_Id)
+                      }))
                     : [];
 
                 // If rowData exists, merge it into mappedExams
@@ -274,26 +274,26 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
                 const formattedSubjects = Array.isArray(subj)
                     ? subj.map((s: any) => ({
-                        ISMS_Id: s.ismS_Id ?? s.ISMS_Id,
-                        ISMS_SubjectName: s.ismS_SubjectName ?? s.ISMS_SubjectName,
-                        EYCES_MaxMarks: s.EYCES_MaxMarks ?? 0,
-                        EYCES_MinMarks: s.EYCES_MinMarks ?? 0,
-                        EYCES_MarksEntryMax: s.EYCES_MarksEntryMax ?? 0,
-                        EMGR_Id: watchGrade ?? s.EMGR_Id ?? 0,
-                        EYCES_Id: s.eyceS_Id ?? s.EYCES_Id,
-                        EYCES_SubExamFlg: false,
-                        EYCES_SubSubjectFlg: false,
-                        EYCES_ActiveFlg: true,
-                        EYCES_MarksGradeEntryFlg: 'M',
-                        EYCES_MarksDisplayFlg: s.eyceS_MarksDisplayFlg ?? false,
-                        EYCES_GradeDisplayFlg: s.eyceS_GradeDisplayFlg ?? false,
-                        EYCES_AplResultFlg: s.eyceS_AplResultFlg ?? false,
-                        subExamConfig: s.subExamConfig ?? [],
-                        EYCES_SubjectOrder: s.eyceS_SubjectOrder ?? 0,
-                        subSubjectConfig: s.subSubjectConfig ?? [],
-                        subSubjectSubExamConfig: s.subSubjectSubExamConfig ?? [],
-                        Exam_Subject_PT_GradeList: []
-                    }))
+                          ISMS_Id: s.ismS_Id ?? s.ISMS_Id,
+                          ISMS_SubjectName: s.ismS_SubjectName ?? s.ISMS_SubjectName,
+                          EYCES_MaxMarks: s.EYCES_MaxMarks ?? 0,
+                          EYCES_MinMarks: s.EYCES_MinMarks ?? 0,
+                          EYCES_MarksEntryMax: s.EYCES_MarksEntryMax ?? 0,
+                          EMGR_Id: watchGrade ?? s.EMGR_Id ?? 0,
+                          EYCES_Id: s.eyceS_Id ?? s.EYCES_Id,
+                          EYCES_SubExamFlg: false,
+                          EYCES_SubSubjectFlg: false,
+                          EYCES_ActiveFlg: true,
+                          EYCES_MarksGradeEntryFlg: 'M',
+                          EYCES_MarksDisplayFlg: s.eyceS_MarksDisplayFlg ?? false,
+                          EYCES_GradeDisplayFlg: s.eyceS_GradeDisplayFlg ?? false,
+                          EYCES_AplResultFlg: s.eyceS_AplResultFlg ?? false,
+                          subExamConfig: s.subExamConfig ?? [],
+                          EYCES_SubjectOrder: s.eyceS_SubjectOrder ?? 0,
+                          subSubjectConfig: s.subSubjectConfig ?? [],
+                          subSubjectSubExamConfig: s.subSubjectSubExamConfig ?? [],
+                          Exam_Subject_PT_GradeList: []
+                      }))
                     : [];
 
                 setSubjects(formattedSubjects);
@@ -400,8 +400,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
                 setSubjects(fallback);
                 toast.error('Failed to load subjects.');
-            }
-            finally {
+            } finally {
                 setIsEditFormLoading(false);
             }
         })();
@@ -542,15 +541,14 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     };
     // ------------------- Save handlers for modals (they update subjects state) -------------------
 
-
     const handleSubExamClose = (subjectId: number) => {
         setSubjects((prev) =>
             prev.map((s) =>
                 s.ISMS_Id === subjectId
                     ? {
-                        ...s,
-                        EYCES_SubExamFlg: s.subExamConfig && s.subExamConfig.length > 0
-                    }
+                          ...s,
+                          EYCES_SubExamFlg: s.subExamConfig && s.subExamConfig.length > 0
+                      }
                     : s
             )
         );
@@ -567,35 +565,29 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
         console.log('subSubjectList **', subSubjectList);
         setSubSubjects((prev: IMasterSubSubject[]) =>
             prev.map((sub) => {
-                const matched = subSubjectList.find(
-                    (l: any) => l.emsS_Id === sub.emsS_Id
-                );
+                const matched = subSubjectList.find((l: any) => l.emsS_Id === sub.emsS_Id);
 
                 return matched
                     ? {
-                        ...sub,
-                        emsS_Order: Number(matched.eycessS_SubSubjectOrder ?? 0)
-                    }
+                          ...sub,
+                          emsS_Order: Number(matched.eycessS_SubSubjectOrder ?? 0)
+                      }
                     : sub;
             })
         );
         setSubSubjectModalState({ open: false });
         toast.info('Subject saved successfully.');
     };
-    const handleSaveSubExam = (
-        subjectId: number,
-        selectedList: any[],
-        subExamList: any[]
-    ) => {
+    const handleSaveSubExam = (subjectId: number, selectedList: any[], subExamList: any[]) => {
         // update subject level config
         setSubjects((prev) =>
             prev.map((s) =>
                 s.ISMS_Id === subjectId
                     ? {
-                        ...s,
-                        subExamConfig: selectedList,
-                        EYCES_SubExamFlg: selectedList.length > 0
-                    }
+                          ...s,
+                          subExamConfig: selectedList,
+                          EYCES_SubExamFlg: selectedList.length > 0
+                      }
                     : s
             )
         );
@@ -608,15 +600,13 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
         setSubExams((prev: IMasterSubExam[]) =>
             prev.map((exam) => {
-                const matched = subExamList_.find(
-                    (l: any) => l.emsE_Id === exam.emsE_Id
-                );
+                const matched = subExamList_.find((l: any) => l.emsE_Id === exam.emsE_Id);
 
                 return matched
                     ? {
-                        ...exam,
-                        emsE_SubExamOrder: Number(matched.emsE_SubExamOrder ?? 0)
-                    }
+                          ...exam,
+                          emsE_SubExamOrder: Number(matched.emsE_SubExamOrder ?? 0)
+                      }
                     : exam;
             })
         );
@@ -827,12 +817,9 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
     return (
         <FormProvider {...methods}>
-
             <form onSubmit={handleSubmit(onSubmit)}>
-
                 <CollapsibleSection defaultOpen>
                     <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-
                         {/* Left */}
                         <div className='space-y-4'>
                             <Controller
@@ -1051,16 +1038,14 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                             </div>
                         </div>
                     </div>
-                    {isEditFormLoading &&
-
-                        <div className="flex items-center justify-center h-64">
-                            <div className="text-center">
-                                <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-                                <p className="mt-2 text-sm text-gray-600">Loading data...</p>
+                    {isEditFormLoading && (
+                        <div className='flex h-64 items-center justify-center'>
+                            <div className='text-center'>
+                                <Loader2 className='mx-auto h-8 w-8 animate-spin text-primary' />
+                                <p className='mt-2 text-gray-600 text-sm'>Loading data...</p>
                             </div>
                         </div>
-
-                    }
+                    )}
                     {/* Subject Table */}
                     <div className='mt-6'>
                         <SubjectTable
@@ -1083,23 +1068,22 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                         <Button type='button' variant='outline' onClick={handleReset}>
                             Reset
                         </Button>
-                        <Button
-                            type='submit'
-                            disabled={isSubmitting}
-                        >
+                        <Button type='submit' disabled={isSubmitting}>
                             {isSubmitting ? 'Saving...' : 'Save'}
                         </Button>
                     </div>
                 </CollapsibleSection>
 
-                {!isEditFormLoading && <SubExamModal
-                    open={subExamModalState.open}
-                    subject={subExamModalState.subject}
-                    onClose={handleSubExamClose}
-                    onSave={handleSaveSubExam}
-                    gradeList={gradeList}
-                    schema={SubSubjectSubExamSchema}
-                />}
+                {!isEditFormLoading && (
+                    <SubExamModal
+                        open={subExamModalState.open}
+                        subject={subExamModalState.subject}
+                        onClose={handleSubExamClose}
+                        onSave={handleSaveSubExam}
+                        gradeList={gradeList}
+                        schema={SubSubjectSubExamSchema}
+                    />
+                )}
 
                 <SubSubjectModal
                     open={subSubjectModalState.open}

@@ -1,8 +1,8 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
 import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
-import { deleteRoomTariff, IRoomTariff } from '@/server/hostel/room-tariff/server-action';
+import { type IRoomTariff, deleteRoomTariff } from '@/server/hostel/room-tariff/server-action';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 interface ToggleRoomTariffProps {
@@ -13,7 +13,9 @@ interface ToggleRoomTariffProps {
 
 export default function ToggleRoomTariff({ data, onSuccess, onCancel }: ToggleRoomTariffProps) {
     const form = useForm();
-    const { formState: { isSubmitting } } = form;
+    const {
+        formState: { isSubmitting }
+    } = form;
 
     const onSubmit = async () => {
         const result = await deleteRoomTariff(data);

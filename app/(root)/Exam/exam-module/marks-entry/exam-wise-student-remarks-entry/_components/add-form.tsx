@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -160,7 +160,6 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                 setValue('emE_Id', 0, { shouldDirty: false });
 
                 toast.info('No classes found for selected academic year');
-
             } catch {
                 toast.error('Failed to load classes');
                 setClasses([]);
@@ -289,36 +288,45 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
     }, [loadingExams, asmS_Id, exams.length]);
 
     // Handle class change - this will trigger sections to reload
-    const handleClassChange = useCallback((value: string) => {
-        const newClassId = Number(value);
-        setValue('asmcL_Id', newClassId);
-        // Clear dependent dropdowns
-        setSections([]);
-        setExams([]);
-        setValue('asmS_Id', 0);
-        setValue('emE_Id', 0);
-        setStudents([]);
-        setIsStudentsGridOpen(false);
-    }, [setValue]);
+    const handleClassChange = useCallback(
+        (value: string) => {
+            const newClassId = Number(value);
+            setValue('asmcL_Id', newClassId);
+            // Clear dependent dropdowns
+            setSections([]);
+            setExams([]);
+            setValue('asmS_Id', 0);
+            setValue('emE_Id', 0);
+            setStudents([]);
+            setIsStudentsGridOpen(false);
+        },
+        [setValue]
+    );
 
     // Handle section change - this will trigger exams to reload
-    const handleSectionChange = useCallback((value: string) => {
-        const newSectionId = Number(value);
-        setValue('asmS_Id', newSectionId);
-        // Clear dependent dropdown
-        setExams([]);
-        setValue('emE_Id', 0);
-        setStudents([]);
-        setIsStudentsGridOpen(false);
-    }, [setValue]);
+    const handleSectionChange = useCallback(
+        (value: string) => {
+            const newSectionId = Number(value);
+            setValue('asmS_Id', newSectionId);
+            // Clear dependent dropdown
+            setExams([]);
+            setValue('emE_Id', 0);
+            setStudents([]);
+            setIsStudentsGridOpen(false);
+        },
+        [setValue]
+    );
 
     // Handle exam change
-    const handleExamChange = useCallback((value: string) => {
-        const newExamId = Number(value);
-        setValue('emE_Id', newExamId);
-        setStudents([]);
-        setIsStudentsGridOpen(false);
-    }, [setValue]);
+    const handleExamChange = useCallback(
+        (value: string) => {
+            const newExamId = Number(value);
+            setValue('emE_Id', newExamId);
+            setStudents([]);
+            setIsStudentsGridOpen(false);
+        },
+        [setValue]
+    );
 
     async function handleSearch() {
         if (!asmaY_Id || !asmcL_Id || !emE_Id || !asmS_Id || asmaY_Id === 0 || asmcL_Id === 0 || emE_Id === 0 || asmS_Id === 0) {
@@ -536,12 +544,9 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                                 <div className='flex-1'>
                                     <Select
                                         onValueChange={handleClassChange}
-                                        value={field.value && field.value !== 0 ? String(field.value) : ''}
-                                    >
+                                        value={field.value && field.value !== 0 ? String(field.value) : ''}>
                                         <SelectTrigger>
-                                            <SelectValue
-                                                placeholder={classPlaceholder}
-                                            />
+                                            <SelectValue placeholder={classPlaceholder} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {loadingClasses ? (
@@ -579,12 +584,9 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                                 <div className='flex-1'>
                                     <Select
                                         onValueChange={handleSectionChange}
-                                        value={field.value && field.value !== 0 ? String(field.value) : ''}
-                                    >
+                                        value={field.value && field.value !== 0 ? String(field.value) : ''}>
                                         <SelectTrigger>
-                                            <SelectValue
-                                                placeholder={sectionPlaceholder}
-                                            />
+                                            <SelectValue placeholder={sectionPlaceholder} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {loadingSections ? (
@@ -622,12 +624,9 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                                 <div className='flex-1'>
                                     <Select
                                         onValueChange={handleExamChange}
-                                        value={field.value && field.value !== 0 ? String(field.value) : ''}
-                                    >
+                                        value={field.value && field.value !== 0 ? String(field.value) : ''}>
                                         <SelectTrigger>
-                                            <SelectValue
-                                                placeholder={examPlaceholder}
-                                            />
+                                            <SelectValue placeholder={examPlaceholder} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {loadingExams ? (

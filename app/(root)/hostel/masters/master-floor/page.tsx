@@ -6,7 +6,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
 import { useMasterFloor } from '@/hooks/hostel/useMasterFloor';
-import { deleteFloor, IFloorDisplay, IFacility, IHostel } from '@/server/hostel/master-floor/server-action';
+import { type IFacility, type IFloorDisplay, type IHostel, deleteFloor } from '@/server/hostel/master-floor/server-action';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import { toast } from 'sonner';
@@ -87,11 +87,7 @@ function PageContent({
                 </CollapsibleSection>
 
                 {/* Forms & Modals */}
-                <FormSections
-                    onSuccess={refetch}
-                    hostelList={hostelList}
-                    facilityList={facilityList}
-                />
+                <FormSections onSuccess={refetch} hostelList={hostelList} facilityList={facilityList} />
             </div>
         </div>
     );
@@ -160,7 +156,10 @@ function FormSections({
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                             <AddMasterFloorForm
-                                onSuccess={() => { closeAddForm(); onSuccess(); }}
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    onSuccess();
+                                }}
                                 hostels={hostelList}
                                 facilities={facilityList}
                             />
@@ -190,7 +189,10 @@ function FormSections({
                             </Button>
                             <UpdateMasterFloorForm
                                 rowData={selectedRow}
-                                onSuccess={() => { closeEditForm(); onSuccess(); }}
+                                onSuccess={() => {
+                                    closeEditForm();
+                                    onSuccess();
+                                }}
                                 hostels={hostelList}
                                 facilities={facilityList}
                             />

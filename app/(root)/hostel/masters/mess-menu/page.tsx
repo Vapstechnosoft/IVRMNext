@@ -1,19 +1,18 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMessMenu } from '@/hooks/hostel/useMessMenu';
+import type { IMessMenu } from '@/server/hostel/mess-menu/server-action';
 import { Plus, X } from 'lucide-react';
-import { use, useEffect } from 'react';
+import { use } from 'react';
 import { AddForm } from './_components/add-form';
 import { messMenuColumns } from './_components/columns';
-import { IMessMenu } from '@/server/hostel/mess-menu/server-action';
-import { toast } from 'sonner';
 
-import { UpdateForm } from './_components/update-form';
 import { ToggleMessMenuForm } from './_components/toggle-form';
+import { UpdateForm } from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -26,11 +25,7 @@ export default function MessMenuPage(props: { searchParams: SearchParams }) {
 
     return (
         <FormProvider<IMessMenu>>
-            <PageContent
-                response={response}
-                isLoading={isLoading}
-                refetchAll={refetchAll}
-            />
+            <PageContent response={response} isLoading={isLoading} refetchAll={refetchAll} />
         </FormProvider>
     );
 }
@@ -151,7 +146,10 @@ function FormSections({
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                             <AddForm
-                                onSuccess={() => { closeAddForm(); onSuccess(); }}
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    onSuccess();
+                                }}
                                 messList={messList}
                                 categoryList={categoryList}
                             />
@@ -181,7 +179,10 @@ function FormSections({
                             </Button>
                             <UpdateForm
                                 rowData={selectedRow}
-                                onSuccess={() => { closeEditForm(); onSuccess(); }}
+                                onSuccess={() => {
+                                    closeEditForm();
+                                    onSuccess();
+                                }}
                                 messList={messList}
                                 categoryList={categoryList}
                             />
@@ -192,11 +193,7 @@ function FormSections({
 
             {/* Toggle Form */}
             {isToggleFormOpen && selectedRow && (
-                <ToggleMessMenuForm
-                    rowData={selectedRow}
-                    onClose={closeToggleForm}
-                    onSuccess={onSuccess}
-                />
+                <ToggleMessMenuForm rowData={selectedRow} onClose={closeToggleForm} onSuccess={onSuccess} />
             )}
         </>
     );

@@ -1,20 +1,26 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { FormError, Label } from '@/components/ui/extension/field';
-import { Checkbox } from '@/components/ui/checkbox';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useMasterHostel } from '@/hooks/hostel/useMasterHostel';
-import { masterHostelSchema, IMasterHostelForm } from '@/schemas/hostel/master-hostel.schema';
-import { saveHostel, ICountry, IState, IFacility, IMess, IEmployee } from '@/server/hostel/master-hostel/server-action';
+import { type IMasterHostelForm, masterHostelSchema } from '@/schemas/hostel/master-hostel.schema';
+import {
+    type ICountry,
+    type IEmployee,
+    type IFacility,
+    type IMess,
+    type IState,
+    saveHostel
+} from '@/server/hostel/master-hostel/server-action';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, Controller, FormProvider } from 'react-hook-form';
-import { toast } from 'sonner';
-import { useEffect, useMemo } from 'react';
 import { Trash2 } from 'lucide-react';
+import { useMemo } from 'react';
+import { Controller, FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 interface AddMasterHostelFormProps {
     onSuccess: () => void;
@@ -78,7 +84,7 @@ export default function AddMasterHostelForm({
     // Filter states based on country
     const filteredStates = useMemo(() => {
         if (!selectedCountryId) return [];
-        return states.filter(s => s.ivrmmC_Id === Number(selectedCountryId));
+        return states.filter((s) => s.ivrmmC_Id === Number(selectedCountryId));
     }, [selectedCountryId, states]);
 
     const onSubmit = async (data: IMasterHostelForm) => {
@@ -127,7 +133,9 @@ export default function AddMasterHostelForm({
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         {/* Hostel Name */}
                         <div>
-                            <Label>Hostel Name <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Hostel Name <span className='text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 control={control}
                                 name='hlmH_Name'
@@ -142,7 +150,9 @@ export default function AddMasterHostelForm({
 
                         {/* Contact No */}
                         <div>
-                            <Label>Contact No. <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Contact No. <span className='text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 control={control}
                                 name='hlmH_ContactNo'
@@ -157,7 +167,9 @@ export default function AddMasterHostelForm({
 
                         {/* Total Capacity */}
                         <div>
-                            <Label>Total Capacity <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Total Capacity <span className='text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 control={control}
                                 name='hlmH_TotalCapacity'
@@ -172,14 +184,16 @@ export default function AddMasterHostelForm({
 
                         {/* Hostel Category */}
                         <div>
-                            <Label>Hostel Category <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Hostel Category <span className='text-red-500'>*</span>
+                            </Label>
                             <div className='flex gap-4 pt-2'>
-                                <label className='flex items-center gap-2 cursor-pointer'>
-                                    <input type="radio" value="Boys" {...methods.register('hlmH_BoysGirlsFlg')} />
+                                <label className='flex cursor-pointer items-center gap-2'>
+                                    <input type='radio' value='Boys' {...methods.register('hlmH_BoysGirlsFlg')} />
                                     <span>Boys</span>
                                 </label>
-                                <label className='flex items-center gap-2 cursor-pointer'>
-                                    <input type="radio" value="Girls" {...methods.register('hlmH_BoysGirlsFlg')} />
+                                <label className='flex cursor-pointer items-center gap-2'>
+                                    <input type='radio' value='Girls' {...methods.register('hlmH_BoysGirlsFlg')} />
                                     <span>Girls</span>
                                 </label>
                             </div>
@@ -188,7 +202,9 @@ export default function AddMasterHostelForm({
 
                         {/* Country */}
                         <div>
-                            <Label>Country <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Country <span className='text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 control={control}
                                 name='ivrmmC_Id'
@@ -196,11 +212,13 @@ export default function AddMasterHostelForm({
                                     <>
                                         <Select value={field.value?.toString()} onValueChange={field.onChange}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select Country" />
+                                                <SelectValue placeholder='Select Country' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {countries.map(c => (
-                                                    <SelectItem key={c.ivrmmC_Id} value={c.ivrmmC_Id.toString()}>{c.ivrmmC_CountryName}</SelectItem>
+                                                {countries.map((c) => (
+                                                    <SelectItem key={c.ivrmmC_Id} value={c.ivrmmC_Id.toString()}>
+                                                        {c.ivrmmC_CountryName}
+                                                    </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
@@ -212,7 +230,9 @@ export default function AddMasterHostelForm({
 
                         {/* State */}
                         <div>
-                            <Label>State <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                State <span className='text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 control={control}
                                 name='ivrmmS_Id'
@@ -220,11 +240,13 @@ export default function AddMasterHostelForm({
                                     <>
                                         <Select value={field.value?.toString()} onValueChange={field.onChange}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select State" />
+                                                <SelectValue placeholder='Select State' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {filteredStates.map(s => (
-                                                    <SelectItem key={s.ivrmmS_Id} value={s.ivrmmS_Id.toString()}>{s.ivrmmS_Name}</SelectItem>
+                                                {filteredStates.map((s) => (
+                                                    <SelectItem key={s.ivrmmS_Id} value={s.ivrmmS_Id.toString()}>
+                                                        {s.ivrmmS_Name}
+                                                    </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
@@ -236,7 +258,9 @@ export default function AddMasterHostelForm({
 
                         {/* City */}
                         <div>
-                            <Label>City <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                City <span className='text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 control={control}
                                 name='hlmH_City'
@@ -251,7 +275,9 @@ export default function AddMasterHostelForm({
 
                         {/* Pincode */}
                         <div>
-                            <Label>Pincode <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Pincode <span className='text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 control={control}
                                 name='hlmH_Pincode'
@@ -266,7 +292,9 @@ export default function AddMasterHostelForm({
 
                         {/* Total Floor */}
                         <div>
-                            <Label>Total Floor <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Total Floor <span className='text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 control={control}
                                 name='hlmH_TotalFloor'
@@ -281,7 +309,9 @@ export default function AddMasterHostelForm({
 
                         {/* Total Room */}
                         <div>
-                            <Label>Total Room <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Total Room <span className='text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 control={control}
                                 name='hlmH_TotalRoom'
@@ -295,41 +325,41 @@ export default function AddMasterHostelForm({
                         </div>
 
                         {/* Document Upload Section - Moved here as requested */}
-                        <div className="md:col-span-2 border p-4 rounded-md">
-                            <div className="flex justify-between items-center mb-4">
-                                <Label className="text-base font-semibold">Hostel Guide Upload</Label>
+                        <div className='rounded-md border p-4 md:col-span-2'>
+                            <div className='mb-4 flex items-center justify-between'>
+                                <Label className='font-semibold text-base'>Hostel Guide Upload</Label>
                             </div>
 
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-sm text-center">
-                                    <thead className="bg-gray-100">
+                            <div className='overflow-x-auto'>
+                                <table className='w-full text-center text-sm'>
+                                    <thead className='bg-gray-100'>
                                         <tr>
-                                            <th className="p-2 border">SL.NO.</th>
-                                            <th className="p-2 border">File</th>
-                                            <th className="p-2 border">Action</th>
+                                            <th className='border p-2'>SL.NO.</th>
+                                            <th className='border p-2'>File</th>
+                                            <th className='border p-2'>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {documents.map((doc, index) => (
                                             <tr key={index}>
-                                                <td className="p-2 border">{index + 1}</td>
-                                                <td className="p-2 border">{doc.hlmhP_FileName}</td>
-                                                <td className="p-2 border">
-                                                    <Button type="button" variant="ghost" size="sm" onClick={() => removeDocument(index)}>
-                                                        <Trash2 className="h-4 w-4 text-red-500" />
+                                                <td className='border p-2'>{index + 1}</td>
+                                                <td className='border p-2'>{doc.hlmhP_FileName}</td>
+                                                <td className='border p-2'>
+                                                    <Button type='button' variant='ghost' size='sm' onClick={() => removeDocument(index)}>
+                                                        <Trash2 className='h-4 w-4 text-red-500' />
                                                     </Button>
                                                 </td>
                                             </tr>
                                         ))}
                                         <tr>
-                                            <td className="p-2 border text-center" colSpan={3}>
-                                                <div className="relative inline-block">
-                                                    <Button type="button" variant="secondary" size="sm">
+                                            <td className='border p-2 text-center' colSpan={3}>
+                                                <div className='relative inline-block'>
+                                                    <Button type='button' variant='secondary' size='sm'>
                                                         Upload File
                                                     </Button>
                                                     <input
-                                                        type="file"
-                                                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                                        type='file'
+                                                        className='absolute inset-0 h-full w-full cursor-pointer opacity-0'
                                                         onChange={handleFileUpload}
                                                     />
                                                 </div>
@@ -341,8 +371,10 @@ export default function AddMasterHostelForm({
                         </div>
 
                         {/* Address */}
-                        <div className="md:col-span-2">
-                            <Label>Address <span className='text-red-500'>*</span></Label>
+                        <div className='md:col-span-2'>
+                            <Label>
+                                Address <span className='text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 control={control}
                                 name='hlmH_Address'
@@ -356,27 +388,25 @@ export default function AddMasterHostelForm({
                         </div>
 
                         {/* Description */}
-                        <div className="md:col-span-2">
+                        <div className='md:col-span-2'>
                             <Label>Description</Label>
                             <Controller
                                 control={control}
                                 name='hlmH_Desc'
-                                render={({ field }) => (
-                                    <Textarea {...field} placeholder='Enter Description' />
-                                )}
+                                render={({ field }) => <Textarea {...field} placeholder='Enter Description' />}
                             />
                         </div>
 
                         {/* Facilities Checkboxes */}
-                        <div className="md:col-span-2">
+                        <div className='md:col-span-2'>
                             <Controller
                                 control={control}
-                                name="facilities"
+                                name='facilities'
                                 render={({ field }) => (
                                     <CustomMultiSelectBox
-                                        label="Facilities"
+                                        label='Facilities'
                                         isRequired
-                                        options={facilities.map(f => ({ label: f.hlmftY_FacilityName, value: f.hlmftY_Id.toString() }))}
+                                        options={facilities.map((f) => ({ label: f.hlmftY_FacilityName, value: f.hlmftY_Id.toString() }))}
                                         value={field.value?.map(String) || []}
                                         onChange={(vals) => field.onChange(vals.map(Number))}
                                         error={errors.facilities?.message}
@@ -392,22 +422,23 @@ export default function AddMasterHostelForm({
                             <Controller
                                 control={control}
                                 name='hlmhW_WardenType'
-                                render={({ field }) => (
-                                    <Input {...field} placeholder="Enter Warden Type" />
-                                )}
+                                render={({ field }) => <Input {...field} placeholder='Enter Warden Type' />}
                             />
                         </div>
 
                         {/* Wardens Checkboxes */}
-                        <div className="md:col-span-2">
+                        <div className='md:col-span-2'>
                             <Controller
                                 control={control}
-                                name="wardens"
+                                name='wardens'
                                 render={({ field }) => (
                                     <CustomMultiSelectBox
-                                        label="Warden"
+                                        label='Warden'
                                         isRequired
-                                        options={employees.map(e => ({ label: `${e.hrmE_EmployeeFirstName} : ${e.hrmE_EmployeeCode}`, value: e.hrmE_Id.toString() }))}
+                                        options={employees.map((e) => ({
+                                            label: `${e.hrmE_EmployeeFirstName} : ${e.hrmE_EmployeeCode}`,
+                                            value: e.hrmE_Id.toString()
+                                        }))}
                                         value={field.value?.map(String) || []}
                                         onChange={(vals) => field.onChange(vals.map(Number))}
                                         error={errors.wardens?.message}
@@ -418,15 +449,15 @@ export default function AddMasterHostelForm({
                         </div>
 
                         {/* Mess Checkboxes */}
-                        <div className="md:col-span-2">
+                        <div className='md:col-span-2'>
                             <Controller
                                 control={control}
-                                name="messes"
+                                name='messes'
                                 render={({ field }) => (
                                     <CustomMultiSelectBox
-                                        label="Mess"
+                                        label='Mess'
                                         isRequired
-                                        options={messes.map(m => ({ label: m.hlmM_Name, value: m.hlmM_Id.toString() }))}
+                                        options={messes.map((m) => ({ label: m.hlmM_Name, value: m.hlmM_Id.toString() }))}
                                         value={field.value?.map(String) || []}
                                         onChange={(vals) => field.onChange(vals.map(Number))}
                                         error={errors.messes?.message}
@@ -435,12 +466,11 @@ export default function AddMasterHostelForm({
                                 )}
                             />
                         </div>
-
                     </div>
 
                     <div className='flex justify-center gap-2'>
                         <Button type='submit' disabled={isSubmitting}>
-                            {isSubmitting ? (initialData ? 'Updating...' : 'Saving...') : (initialData ? 'Update' : 'Save')}
+                            {isSubmitting ? (initialData ? 'Updating...' : 'Saving...') : initialData ? 'Update' : 'Save'}
                         </Button>
                         <Button
                             type='button'
@@ -448,8 +478,7 @@ export default function AddMasterHostelForm({
                             onClick={() => {
                                 reset();
                                 onSuccess();
-                            }}
-                        >
+                            }}>
                             Cancel
                         </Button>
                     </div>

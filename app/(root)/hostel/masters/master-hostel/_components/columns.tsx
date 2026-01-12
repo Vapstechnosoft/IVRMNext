@@ -3,8 +3,8 @@
 import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { IHostel } from '@/server/hostel/master-hostel/server-action';
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
+import type { IHostel } from '@/server/hostel/master-hostel/server-action';
+import { type ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
 
 export interface IHostelDisplay extends IHostel {
@@ -67,8 +67,8 @@ export const masterHostelColumns: ColumnDef<IHostelDisplay, any>[] = [
     })
 ];
 
-import { ViewFacilitiesModal, ViewWardensModal, ViewDocumentsModal } from './view-modals';
 import { useState } from 'react';
+import { ViewDocumentsModal, ViewFacilitiesModal, ViewWardensModal } from './view-modals';
 
 // ... (existing imports and interface)
 
@@ -79,19 +79,12 @@ function ViewFacilitiesCell({ rowData }: { rowData: IHostelDisplay }) {
     return (
         <>
             <button
-                type="button"
-                className="flex items-center gap-1 text-primary hover:underline hover:text-blue-600"
-                onClick={() => setIsOpen(true)}
-            >
-                <Eye className="h-4 w-4" /> View Facility
+                type='button'
+                className='flex items-center gap-1 text-primary hover:text-blue-600 hover:underline'
+                onClick={() => setIsOpen(true)}>
+                <Eye className='h-4 w-4' /> View Facility
             </button>
-            {isOpen && (
-                <ViewFacilitiesModal
-                    isOpen={isOpen}
-                    onClose={() => setIsOpen(false)}
-                    hostel={rowData}
-                />
-            )}
+            {isOpen && <ViewFacilitiesModal isOpen={isOpen} onClose={() => setIsOpen(false)} hostel={rowData} />}
         </>
     );
 }
@@ -101,19 +94,12 @@ function ViewWardensCell({ rowData }: { rowData: IHostelDisplay }) {
     return (
         <>
             <button
-                type="button"
-                className="flex items-center gap-1 text-primary hover:underline hover:text-blue-600"
-                onClick={() => setIsOpen(true)}
-            >
-                <Eye className="h-4 w-4" /> View Emps
+                type='button'
+                className='flex items-center gap-1 text-primary hover:text-blue-600 hover:underline'
+                onClick={() => setIsOpen(true)}>
+                <Eye className='h-4 w-4' /> View Emps
             </button>
-            {isOpen && (
-                <ViewWardensModal
-                    isOpen={isOpen}
-                    onClose={() => setIsOpen(false)}
-                    hostel={rowData}
-                />
-            )}
+            {isOpen && <ViewWardensModal isOpen={isOpen} onClose={() => setIsOpen(false)} hostel={rowData} />}
         </>
     );
 }
@@ -123,19 +109,12 @@ function ViewDocumentsCell({ rowData }: { rowData: IHostelDisplay }) {
     return (
         <>
             <button
-                type="button"
-                className="flex items-center gap-1 text-primary hover:underline hover:text-blue-600"
-                onClick={() => setIsOpen(true)}
-            >
-                <Eye className="h-4 w-4" />
+                type='button'
+                className='flex items-center gap-1 text-primary hover:text-blue-600 hover:underline'
+                onClick={() => setIsOpen(true)}>
+                <Eye className='h-4 w-4' />
             </button>
-            {isOpen && (
-                <ViewDocumentsModal
-                    isOpen={isOpen}
-                    onClose={() => setIsOpen(false)}
-                    hostel={rowData}
-                />
-            )}
+            {isOpen && <ViewDocumentsModal isOpen={isOpen} onClose={() => setIsOpen(false)} hostel={rowData} />}
         </>
     );
 }

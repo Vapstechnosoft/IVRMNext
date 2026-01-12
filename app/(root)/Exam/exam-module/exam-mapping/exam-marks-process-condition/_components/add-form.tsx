@@ -9,7 +9,6 @@ import { examMarksProcessConditionSchema } from '@/schemas/exam/exam-module/exam
 import { addOrUpdateExamMarksProcessCondition } from '@/server/exam/exam-module/exam-mapping/exam-marks-process-condition';
 import { getCategoryDropDownByAcademicYearlist } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
 import { getExamsByCategoryandAcademicYear } from '@/server/exam/exam-module/masters/exam';
-import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
@@ -44,11 +43,7 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
     const { control, handleSubmit, reset, setValue, formState } = methods;
     const { isSubmitting } = formState;
 
-    const {
-        data: academicYear,
-        isLoading: academicYearLoading,
-        error: academicYearError,
-    } = useAcademicYearDropdown();
+    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
 
     // categories and exams
     const [categories, setCategories] = useState<{ emcA_Id: number; emcA_CategoryName: string }[]>([]);

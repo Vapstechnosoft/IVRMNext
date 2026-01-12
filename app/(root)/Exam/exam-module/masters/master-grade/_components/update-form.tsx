@@ -55,7 +55,6 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
 
-
     //  Fetch and populate grade details
     useEffect(() => {
         async function fetchGradeDetails() {
@@ -65,15 +64,15 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                 if (result?.data) {
                     const data = Array.isArray(result.data)
                         ? result.data.map((g: any) => ({
-                            emgD_Id: Number(g.emgD_Id ?? 0),
-                            emgR_Id: Number(g.emgR_Id ?? 0),
-                            emgD_Name: g.emgD_Name || '',
-                            emgD_From: Number(g.emgD_From ?? null),
-                            emgD_To: Number(g.emgD_To ?? null),
-                            emgD_GradePoints: Number(g.emgD_GradePoints ?? null),
-                            emgD_Remarks: g.emgD_Remarks || '',
-                            emgD_ActiveFlag: g.emgD_ActiveFlag ?? true
-                        }))
+                              emgD_Id: Number(g.emgD_Id ?? 0),
+                              emgR_Id: Number(g.emgR_Id ?? 0),
+                              emgD_Name: g.emgD_Name || '',
+                              emgD_From: Number(g.emgD_From ?? null),
+                              emgD_To: Number(g.emgD_To ?? null),
+                              emgD_GradePoints: Number(g.emgD_GradePoints ?? null),
+                              emgD_Remarks: g.emgD_Remarks || '',
+                              emgD_ActiveFlag: g.emgD_ActiveFlag ?? true
+                          }))
                         : [];
 
                     reset(
@@ -150,15 +149,15 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
             if (result?.data) {
                 const restoredRows = Array.isArray(result.data)
                     ? result.data.map((g: any) => ({
-                        emgD_Id: Number(g.emgD_Id ?? 0),
-                        emgR_Id: Number(g.emgR_Id ?? 0),
-                        emgD_Name: g.emgD_Name || '',
-                        emgD_From: Number(g.emgD_From ?? null),
-                        emgD_To: Number(g.emgD_To ?? null),
-                        emgD_GradePoints: Number(g.emgD_GradePoints ?? null),
-                        emgD_Remarks: g.emgD_Remarks || '',
-                        emgD_ActiveFlag: g.emgD_ActiveFlag ?? true,
-                    }))
+                          emgD_Id: Number(g.emgD_Id ?? 0),
+                          emgR_Id: Number(g.emgR_Id ?? 0),
+                          emgD_Name: g.emgD_Name || '',
+                          emgD_From: Number(g.emgD_From ?? null),
+                          emgD_To: Number(g.emgD_To ?? null),
+                          emgD_GradePoints: Number(g.emgD_GradePoints ?? null),
+                          emgD_Remarks: g.emgD_Remarks || '',
+                          emgD_ActiveFlag: g.emgD_ActiveFlag ?? true
+                      }))
                     : [];
 
                 // ⬅ Reset form with original values
@@ -168,27 +167,25 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                     emgR_GradeName: gradeData.emgR_GradeName ?? '',
                     emgR_MarksPerFlag: (gradeData.emgR_MarksPerFlag as 'm' | 'p') ?? 'm',
                     emgR_ActiveFlag: gradeData.emgR_ActiveFlag ?? true,
-                    grade_list: restoredRows,
+                    grade_list: restoredRows
                 });
 
-                replace(restoredRows);         // restore array rows
-                await trigger();               // re-validate after reset
-                toast.info("Form reset to original data.");
+                replace(restoredRows); // restore array rows
+                await trigger(); // re-validate after reset
+                toast.info('Form reset to original data.');
             } else {
                 toast.error('No data found to reset.');
             }
-
         } catch (error: any) {
-            toast.error(error.message || "Reset failed.");
+            toast.error(error.message || 'Reset failed.');
         } finally {
             setIsLoading(false);
         }
     };
 
-
     useEffect(() => {
         if (fields.length > 0) {
-            tableRef.current?.scrollIntoView({ behavior: "smooth" });
+            tableRef.current?.scrollIntoView({ behavior: 'smooth' });
             setTimeout(scrollToBottom, 50);
         }
     }, [fields.length]);
@@ -254,7 +251,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                     <td className='border'>
                                         <InputText
                                             {...register(`grade_list.${index}.emgD_Name` as const)}
-                                            placeholder="Enter grade name"
+                                            placeholder='Enter grade name'
                                             error={errors.grade_list?.[index]?.emgD_Name?.message}
                                         />
                                     </td>
@@ -262,13 +259,13 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                     {/* From Marks */}
                                     <td className='border'>
                                         <InputText
-                                            type="number"
-                                            step="any"
-                                            min="0"
-                                            max="100"
+                                            type='number'
+                                            step='any'
+                                            min='0'
+                                            max='100'
                                             {...register(`grade_list.${index}.emgD_From`, {
-                                                setValueAs: v => {
-                                                    if (v === "" || v === null) return null;
+                                                setValueAs: (v) => {
+                                                    if (v === '' || v === null) return null;
                                                     const num = Number(v);
                                                     return Number.isNaN(num) ? null : num;
                                                 },
@@ -280,7 +277,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                                     }
                                                 }
                                             })}
-                                            placeholder="0-100"
+                                            placeholder='0-100'
                                             error={errors.grade_list?.[index]?.emgD_From?.message}
                                             onKeyPress={(e) => {
                                                 // Prevent non-numeric characters except decimal point
@@ -302,13 +299,13 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                     {/* To Marks */}
                                     <td className='border'>
                                         <InputText
-                                            type="number"
-                                            step="any"
-                                            min="0"
-                                            max="100"
+                                            type='number'
+                                            step='any'
+                                            min='0'
+                                            max='100'
                                             {...register(`grade_list.${index}.emgD_To`, {
-                                                setValueAs: v => {
-                                                    if (v === "" || v === null) return null;
+                                                setValueAs: (v) => {
+                                                    if (v === '' || v === null) return null;
                                                     const num = Number(v);
                                                     return Number.isNaN(num) ? null : num;
                                                 },
@@ -320,7 +317,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                                     }
                                                 }
                                             })}
-                                            placeholder="0-100"
+                                            placeholder='0-100'
                                             error={errors.grade_list?.[index]?.emgD_To?.message}
                                             onKeyPress={(e) => {
                                                 // Prevent non-numeric characters except decimal point
@@ -342,13 +339,13 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                     {/* Grade Points */}
                                     <td className='border'>
                                         <InputText
-                                            type="number"
-                                            step="any"
-                                            min="0"
-                                            max="10"
+                                            type='number'
+                                            step='any'
+                                            min='0'
+                                            max='10'
                                             {...register(`grade_list.${index}.emgD_GradePoints`, {
-                                                setValueAs: v => {
-                                                    if (v === "" || v === null) return null;
+                                                setValueAs: (v) => {
+                                                    if (v === '' || v === null) return null;
                                                     const num = Number(v);
                                                     return Number.isNaN(num) ? null : num;
                                                 },
@@ -360,7 +357,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                                     }
                                                 }
                                             })}
-                                            placeholder="0-10"
+                                            placeholder='0-10'
                                             error={errors.grade_list?.[index]?.emgD_GradePoints?.message}
                                             onKeyPress={(e) => {
                                                 // Prevent non-numeric characters except decimal point
@@ -383,9 +380,9 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                     <td className='border'>
                                         <InputText
                                             {...register(`grade_list.${index}.emgD_GradePoints` as const, {
-                                                setValueAs: v => v === "" || v === null ? null : Number(v)
+                                                setValueAs: (v) => (v === '' || v === null ? null : Number(v))
                                             })}
-                                            placeholder="Enter points"
+                                            placeholder='Enter points'
                                             error={errors.grade_list?.[index]?.emgD_GradePoints?.message}
                                         />
                                     </td>
@@ -394,7 +391,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                     <td className='border'>
                                         <InputText
                                             {...register(`grade_list.${index}.emgD_Remarks` as const)}
-                                            placeholder="Remarks"
+                                            placeholder='Remarks'
                                             error={errors.grade_list?.[index]?.emgD_Remarks?.message}
                                         />
                                     </td>
@@ -406,12 +403,13 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                                 const last = watch('grade_list')[index];
                                                 console.log(last);
                                                 if (
-                                                    last.emgD_Name.trim() === "" ||
+                                                    last.emgD_Name.trim() === '' ||
                                                     last.emgD_From === null ||
                                                     last.emgD_To === null ||
-                                                    last.emgD_GradePoints === null || last.emgD_Remarks?.trim() === ""
+                                                    last.emgD_GradePoints === null ||
+                                                    last.emgD_Remarks?.trim() === ''
                                                 ) {
-                                                    toast.error("Please fill the current row before adding a new one.");
+                                                    toast.error('Please fill the current row before adding a new one.');
                                                     return;
                                                 }
 
@@ -425,26 +423,23 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                                     emgD_Remarks: '',
                                                     emgD_ActiveFlag: true
                                                 });
-                                            }}
-                                        >
+                                            }}>
                                             <Plus className='h-3 w-3' />
                                         </Button>
 
                                         {/* Remove row */}
                                         {fields.length > 1 && (
                                             <Button
-                                                type="button"
-                                                size="sm"
-                                                variant="destructive"
+                                                type='button'
+                                                size='sm'
+                                                variant='destructive'
                                                 onClick={() => {
                                                     setDeleteIndex(index);
                                                     setConfirmOpen(true);
-                                                }}
-                                            >
-                                                <Trash className="h-3 w-3" />
+                                                }}>
+                                                <Trash className='h-3 w-3' />
                                             </Button>
                                         )}
-
                                     </td>
                                 </tr>
                             ))}
@@ -467,32 +462,29 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                         <h2 className='mb-3 font-semibold text-lg'>Delete Row?</h2>
                         <p className='mb-6 text-gray-700'>Are you sure you want to remove this grade row?</p>
 
-                        <div className="flex justify-center gap-4">
+                        <div className='flex justify-center gap-4'>
                             <Button
-                                variant="outline"
+                                variant='outline'
                                 onClick={() => {
                                     setConfirmOpen(false);
                                     setDeleteIndex(null);
-                                }}
-                            >
+                                }}>
                                 Cancel
                             </Button>
 
                             <Button
-                                variant="destructive"
+                                variant='destructive'
                                 onClick={() => {
                                     if (deleteIndex !== null) remove(deleteIndex);
                                     setConfirmOpen(false);
                                     setDeleteIndex(null);
-                                }}
-                            >
+                                }}>
                                 Yes, Delete
                             </Button>
                         </div>
                     </div>
                 </div>
             )}
-
         </form>
     );
 }

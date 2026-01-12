@@ -1,7 +1,7 @@
 'use client';
 
-import { deleteMessMenu, IMessMenu } from '@/server/hostel/mess-menu/server-action';
 import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
+import { type IMessMenu, deleteMessMenu } from '@/server/hostel/mess-menu/server-action';
 import { toast } from 'sonner';
 
 interface ToggleMessMenuFormProps {

@@ -58,7 +58,6 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
 
-
     const gradeName = watch('emgR_GradeName');
 
     useEffect(() => {
@@ -80,7 +79,6 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                     emgD_Remarks: row.emgD_Remarks,
                     emgD_ActiveFlag: row.emgD_ActiveFlag
                 }))
-
             };
             const response = await addOrUpdateMasterGrade(payload);
             if (response.success) {
@@ -98,7 +96,7 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
     const tableRef = useRef<HTMLDivElement | null>(null);
     useEffect(() => {
         if (fields.length > 0 || isDetailsOpen) {
-            tableRef.current?.scrollIntoView({ behavior: "smooth" });
+            tableRef.current?.scrollIntoView({ behavior: 'smooth' });
             setTimeout(scrollToBottom, 50);
         }
     }, [fields.length, isDetailsOpen]);
@@ -162,7 +160,7 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                         <td className='border'>
                                             <InputText
                                                 {...register(`grade_list.${index}.emgD_Name` as const)}
-                                                placeholder="Enter grade name"
+                                                placeholder='Enter grade name'
                                                 error={errors.grade_list?.[index]?.emgD_Name?.message}
                                             />
                                         </td>
@@ -170,13 +168,13 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                         {/* From Marks */}
                                         <td className='border'>
                                             <InputText
-                                                type="number"
-                                                step="any"
-                                                min="0"
-                                                max="100"
+                                                type='number'
+                                                step='any'
+                                                min='0'
+                                                max='100'
                                                 {...register(`grade_list.${index}.emgD_From`, {
-                                                    setValueAs: v => {
-                                                        if (v === "" || v === null) return null;
+                                                    setValueAs: (v) => {
+                                                        if (v === '' || v === null) return null;
                                                         const num = Number(v);
                                                         return Number.isNaN(num) ? null : num;
                                                     },
@@ -188,7 +186,7 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                                         }
                                                     }
                                                 })}
-                                                placeholder="0-100"
+                                                placeholder='0-100'
                                                 error={errors.grade_list?.[index]?.emgD_From?.message}
                                                 onKeyPress={(e) => {
                                                     // Prevent non-numeric characters except decimal point
@@ -210,13 +208,13 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                         {/* To Marks */}
                                         <td className='border'>
                                             <InputText
-                                                type="number"
-                                                step="any"
-                                                min="0"
-                                                max="100"
+                                                type='number'
+                                                step='any'
+                                                min='0'
+                                                max='100'
                                                 {...register(`grade_list.${index}.emgD_To`, {
-                                                    setValueAs: v => {
-                                                        if (v === "" || v === null) return null;
+                                                    setValueAs: (v) => {
+                                                        if (v === '' || v === null) return null;
                                                         const num = Number(v);
                                                         return Number.isNaN(num) ? null : num;
                                                     },
@@ -228,7 +226,7 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                                         }
                                                     }
                                                 })}
-                                                placeholder="0-100"
+                                                placeholder='0-100'
                                                 error={errors.grade_list?.[index]?.emgD_To?.message}
                                                 onKeyPress={(e) => {
                                                     // Prevent non-numeric characters except decimal point
@@ -250,13 +248,13 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                         {/* Grade Points */}
                                         <td className='border'>
                                             <InputText
-                                                type="number"
-                                                step="any"
-                                                min="0"
-                                                max="10"
+                                                type='number'
+                                                step='any'
+                                                min='0'
+                                                max='10'
                                                 {...register(`grade_list.${index}.emgD_GradePoints`, {
-                                                    setValueAs: v => {
-                                                        if (v === "" || v === null) return null;
+                                                    setValueAs: (v) => {
+                                                        if (v === '' || v === null) return null;
                                                         const num = Number(v);
                                                         return Number.isNaN(num) ? null : num;
                                                     },
@@ -268,7 +266,7 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                                         }
                                                     }
                                                 })}
-                                                placeholder="0-10"
+                                                placeholder='0-10'
                                                 error={errors.grade_list?.[index]?.emgD_GradePoints?.message}
                                                 onKeyPress={(e) => {
                                                     // Prevent non-numeric characters except decimal point
@@ -290,11 +288,11 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                         {/* Grade Points */}
                                         <td className='border'>
                                             <InputText
-                                                {...
-                                                register(`grade_list.${index}.emgD_GradePoints`, {
-                                                    setValueAs: v => v === "" || v === null ? null : Number.isNaN(Number(v)) ? null : Number(v)
+                                                {...register(`grade_list.${index}.emgD_GradePoints`, {
+                                                    setValueAs: (v) =>
+                                                        v === '' || v === null ? null : Number.isNaN(Number(v)) ? null : Number(v)
                                                 })}
-                                                placeholder="Enter points"
+                                                placeholder='Enter points'
                                                 error={errors.grade_list?.[index]?.emgD_GradePoints?.message}
                                                 type='number'
                                             />
@@ -304,7 +302,7 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                         <td className='border'>
                                             <InputText
                                                 {...register(`grade_list.${index}.emgD_Remarks` as const)}
-                                                placeholder="Remarks"
+                                                placeholder='Remarks'
                                                 error={errors.grade_list?.[index]?.emgD_Remarks?.message}
                                             />
                                         </td>
@@ -316,12 +314,12 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                                     const last = watch('grade_list')[index];
                                                     console.log('last', last);
                                                     if (
-                                                        last.emgD_Name.trim() === "" ||
+                                                        last.emgD_Name.trim() === '' ||
                                                         last.emgD_From === null ||
                                                         last.emgD_To === null ||
                                                         last.emgD_GradePoints === null
                                                     ) {
-                                                        toast.error("Please fill the current row before adding a new one.");
+                                                        toast.error('Please fill the current row before adding a new one.');
                                                         return;
                                                     }
 
@@ -335,35 +333,31 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                                         emgD_Remarks: '',
                                                         emgD_ActiveFlag: true
                                                     });
-                                                }}
-                                            >
+                                                }}>
                                                 <Plus className='h-3 w-3' />
                                             </Button>
 
                                             {/* Remove row */}
                                             {fields.length > 1 && (
                                                 <Button
-                                                    type="button"
-                                                    size="sm"
-                                                    variant="destructive"
+                                                    type='button'
+                                                    size='sm'
+                                                    variant='destructive'
                                                     onClick={() => {
                                                         setDeleteIndex(index);
                                                         setConfirmOpen(true);
-                                                    }}
-                                                >
-                                                    <Trash className="h-3 w-3" />
+                                                    }}>
+                                                    <Trash className='h-3 w-3' />
                                                 </Button>
                                             )}
-
                                         </td>
                                     </tr>
                                 ))}
                             </tbody>
-
                         </table>
                     </div>
 
-                    <div className='w-fit flex gap-3 border-t pt-4'>
+                    <div className='flex w-fit gap-3 border-t pt-4'>
                         <Button type='button' variant='outline' onClick={() => reset()} disabled={isSubmitting}>
                             Cancel
                         </Button>
@@ -374,39 +368,36 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                 </CollapsibleSection>
             )}
             {confirmOpen && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-md shadow-xl w-[350px] text-center">
-                        <h2 className="text-lg font-semibold mb-3">Confirm Delete</h2>
-                        <p className="text-gray-700 mb-6">Are you sure you want to delete this row?</p>
+                <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40'>
+                    <div className='w-[350px] rounded-md bg-white p-6 text-center shadow-xl'>
+                        <h2 className='mb-3 font-semibold text-lg'>Confirm Delete</h2>
+                        <p className='mb-6 text-gray-700'>Are you sure you want to delete this row?</p>
 
-                        <div className="flex justify-center gap-4">
+                        <div className='flex justify-center gap-4'>
                             <Button
-                                variant="outline"
+                                variant='outline'
                                 onClick={() => {
                                     setConfirmOpen(false);
                                     setDeleteIndex(null);
-                                }}
-                            >
+                                }}>
                                 Cancel
                             </Button>
 
                             <Button
-                                variant="destructive"
+                                variant='destructive'
                                 onClick={() => {
                                     if (deleteIndex !== null) {
                                         remove(deleteIndex);
                                     }
                                     setConfirmOpen(false);
                                     setDeleteIndex(null);
-                                }}
-                            >
+                                }}>
                                 Yes, Delete
                             </Button>
                         </div>
                     </div>
                 </div>
             )}
-
         </form>
     );
 }

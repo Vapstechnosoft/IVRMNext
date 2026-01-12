@@ -5,14 +5,13 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMasterFacility } from '@/hooks/hostel/useMasterFacility';
+import type { IMasterFacility } from '@/schemas/hostel/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterFacilityForm from './_components/add-form';
 import { masterFacilityColumns } from './_components/columns';
-import UpdateMasterFacilityForm from './_components/update-form';
-import { toast } from 'sonner';
-import { IMasterFacility } from '@/schemas/hostel/masters';
 import ToggleMasterFacilityForm from './_components/toggle-form';
+import UpdateMasterFacilityForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -25,12 +24,7 @@ export default function MasterFacilityPage(props: { searchParams: SearchParams }
 
     return (
         <FormProvider<IMasterFacility>>
-            <MasterFacilityPageContent
-                response={response}
-                isLoading={isLoading}
-                error={error}
-                refetchAll={refetchAll}
-            />
+            <MasterFacilityPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
         </FormProvider>
     );
 }
@@ -129,7 +123,12 @@ function FormSections({ onSuccess }: { onSuccess: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddMasterFacilityForm onSuccess={() => { closeAddForm(); onSuccess(); }} />
+                            <AddMasterFacilityForm
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    onSuccess();
+                                }}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -155,7 +154,10 @@ function FormSections({ onSuccess }: { onSuccess: () => void }) {
                             </Button>
                             <UpdateMasterFacilityForm
                                 selectedRow={selectedRow}
-                                onSuccess={() => { closeEditForm(); onSuccess(); }}
+                                onSuccess={() => {
+                                    closeEditForm();
+                                    onSuccess();
+                                }}
                             />
                         </div>
                     </CollapsibleSection>

@@ -6,14 +6,13 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
 import { useMasterRoom } from '@/hooks/hostel/useMasterRoom';
-import { deleteRoom, IFacility, IHostel, IRoomDisplay } from '@/server/hostel/master-room/server-action';
+import { type IFacility, type IHostel, type IRoomDisplay, deleteRoom } from '@/server/hostel/master-room/server-action';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import { toast } from 'sonner';
 import AddMasterRoomForm from './_components/add-form';
 import { masterRoomColumns } from './_components/columns';
 import UpdateMasterRoomForm from './_components/update-form';
-import { ViewFacilitiesModal } from './_components/view-modals';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -26,13 +25,7 @@ export default function MasterRoomPage(props: { searchParams: SearchParams }) {
 
     return (
         <FormProvider<IRoomDisplay>>
-            <PageContent
-                roomList={roomList}
-                hostels={hostels}
-                facilities={facilities}
-                isLoading={isLoading}
-                refetch={refetch}
-            />
+            <PageContent roomList={roomList} hostels={hostels} facilities={facilities} isLoading={isLoading} refetch={refetch} />
         </FormProvider>
     );
 }
@@ -88,11 +81,7 @@ function PageContent({
                 </CollapsibleSection>
 
                 {/* Forms */}
-                <FormSections
-                    onSuccess={refetch}
-                    hostels={hostels}
-                    facilities={facilities}
-                />
+                <FormSections onSuccess={refetch} hostels={hostels} facilities={facilities} />
             </div>
         </div>
     );
@@ -146,7 +135,10 @@ function FormSections({
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                             <AddMasterRoomForm
-                                onSuccess={() => { closeAddForm(); onSuccess(); }}
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    onSuccess();
+                                }}
                                 hostels={hostels}
                                 facilities={facilities}
                             />
@@ -176,7 +168,10 @@ function FormSections({
                             </Button>
                             <UpdateMasterRoomForm
                                 rowData={selectedRow}
-                                onSuccess={() => { closeEditForm(); onSuccess(); }}
+                                onSuccess={() => {
+                                    closeEditForm();
+                                    onSuccess();
+                                }}
                                 hostels={hostels}
                                 facilities={facilities}
                             />
@@ -187,17 +182,13 @@ function FormSections({
 
             {/* Toggle Form */}
             {isToggleFormOpen && selectedRow && (
-                <ToggleMasterRoomForm
-                    rowData={selectedRow}
-                    onClose={closeToggleForm}
-                    onSuccess={onSuccess}
-                />
+                <ToggleMasterRoomForm rowData={selectedRow} onClose={closeToggleForm} onSuccess={onSuccess} />
             )}
         </>
     );
 }
 
-function ToggleMasterRoomForm({ rowData, onClose, onSuccess }: { rowData: IRoomDisplay, onClose: () => void, onSuccess: () => void }) {
+function ToggleMasterRoomForm({ rowData, onClose, onSuccess }: { rowData: IRoomDisplay; onClose: () => void; onSuccess: () => void }) {
     const onConfirm = async () => {
         try {
             const result = await deleteRoom(rowData.hrmrM_Id);

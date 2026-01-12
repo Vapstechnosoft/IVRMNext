@@ -12,7 +12,7 @@ import {
     getCategoryDropDownByAcademicYearlist,
     getExamGroupsByCategory
 } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
-import { getReportDetails, getToppersReportDetails } from '@/server/exam/exam-module/reports/toppers-list-report';
+import { getToppersReportDetails } from '@/server/exam/exam-module/reports/toppers-list-report';
 import {
     getClassDropDownByYearCategoryList,
     getSectionDropDownByYearCategoryClassList
@@ -173,7 +173,6 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                     setValue('EME_Id', '');
                     setSubjects([]);
                     setValue('ISMS_Id', '');
-
                 } catch (error) {
                     console.error('Error fetching classes and exams:', error);
                     toast.error('Failed to load classes and exams');
@@ -203,11 +202,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                     const categoryId = Number.parseInt(watchCategory, 10);
                     const classId = Number.parseInt(watchClass, 10);
 
-                    const sectionsResponse = await getSectionDropDownByYearCategoryClassList(
-                        yearId,
-                        categoryId,
-                        classId
-                    );
+                    const sectionsResponse = await getSectionDropDownByYearCategoryClassList(yearId, categoryId, classId);
                     const validSections = Array.isArray(sectionsResponse) ? sectionsResponse : [];
                     setSections(validSections);
 
@@ -366,9 +361,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                         </Select>
                                     )}
                                 />
-                                {errors.ASMAY_Id && (
-                                    <FormError>{errors.ASMAY_Id.message}</FormError>
-                                )}
+                                {errors.ASMAY_Id && <FormError>{errors.ASMAY_Id.message}</FormError>}
                             </div>
 
                             {/* Category */}
@@ -401,9 +394,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                         </Select>
                                     )}
                                 />
-                                {errors.EMCA_Id && (
-                                    <FormError>{errors.EMCA_Id.message}</FormError>
-                                )}
+                                {errors.EMCA_Id && <FormError>{errors.EMCA_Id.message}</FormError>}
                             </div>
 
                             {/* Class (Only for Individual type) */}
@@ -436,9 +427,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                         </Select>
                                     )}
                                 />
-                                {errors.ASMCL_Id && (
-                                    <FormError>{errors.ASMCL_Id.message}</FormError>
-                                )}
+                                {errors.ASMCL_Id && <FormError>{errors.ASMCL_Id.message}</FormError>}
                             </div>
 
                             {/* Section (Only for Individual type) */}
@@ -471,9 +460,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                         </Select>
                                     )}
                                 />
-                                {errors.ASMS_Id && (
-                                    <FormError>{errors.ASMS_Id.message}</FormError>
-                                )}
+                                {errors.ASMS_Id && <FormError>{errors.ASMS_Id.message}</FormError>}
                             </div>
 
                             {/* Exam */}
@@ -506,9 +493,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                         </Select>
                                     )}
                                 />
-                                {errors.EME_Id && (
-                                    <FormError>{errors.EME_Id.message}</FormError>
-                                )}
+                                {errors.EME_Id && <FormError>{errors.EME_Id.message}</FormError>}
                             </div>
 
                             {/* Top */}
@@ -524,24 +509,22 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                             {...field}
                                             placeholder='Enter Top Count'
                                             type='number'
-                                            min="1"
+                                            min='1'
                                             onChange={(e) => {
                                                 const value = e.target.value;
                                                 // Only allow positive numbers
-                                                if (value === '' || (Number(value) > 0)) {
+                                                if (value === '' || Number(value) > 0) {
                                                     field.onChange(value);
                                                 }
                                             }}
                                         />
                                     )}
                                 />
-                                {errors.topper && (
-                                    <FormError>{errors.topper.message}</FormError>
-                                )}
+                                {errors.topper && <FormError>{errors.topper.message}</FormError>}
                             </div>
 
                             {/* Subjectwise Checkbox & Dropdown */}
-                            <div className='flex items-center gap-2 col-span-1 md:col-span-2'>
+                            <div className='col-span-1 flex items-center gap-2 md:col-span-2'>
                                 {/* Checkbox part */}
                                 <div className='flex items-center justify-end gap-2'>
                                     <Controller
@@ -596,36 +579,21 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                             </Select>
                                         )}
                                     />
-                                    {errors.ISMS_Id && (
-                                        <FormError>{errors.ISMS_Id.message}</FormError>
-                                    )}
+                                    {errors.ISMS_Id && <FormError>{errors.ISMS_Id.message}</FormError>}
                                 </div>
                             </div>
                         </div>
 
                         {/* Hidden fields for check types */}
-                        <Controller
-                            control={control}
-                            name='exm_check_type'
-                            render={({ field }) => <input type='hidden' {...field} />}
-                        />
-                        <Controller
-                            control={control}
-                            name='sub_check_type'
-                            render={({ field }) => <input type='hidden' {...field} />}
-                        />
+                        <Controller control={control} name='exm_check_type' render={({ field }) => <input type='hidden' {...field} />} />
+                        <Controller control={control} name='sub_check_type' render={({ field }) => <input type='hidden' {...field} />} />
 
                         <div className='flex justify-center space-x-4 pt-4'>
-                            <Button
-                                type='submit'
-                                disabled={loading || isSubmitting}>
+                            <Button type='submit' disabled={loading || isSubmitting}>
                                 {loading && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
                                 Generate Report
                             </Button>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                onClick={handleCancel}>
+                            <Button type='button' variant='outline' onClick={handleCancel}>
                                 Cancel
                             </Button>
                         </div>

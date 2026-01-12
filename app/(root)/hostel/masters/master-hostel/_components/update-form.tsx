@@ -1,7 +1,7 @@
 'use client';
 
-import { IMasterHostelForm } from '@/schemas/hostel/master-hostel.schema';
-import { ICountry, IEmployee, IFacility, IMess, IState } from '@/server/hostel/master-hostel/server-action';
+import type { IMasterHostelForm } from '@/schemas/hostel/master-hostel.schema';
+import type { ICountry, IEmployee, IFacility, IMess, IState } from '@/server/hostel/master-hostel/server-action';
 import AddMasterHostelForm from './add-form';
 
 interface UpdateMasterHostelFormProps {

@@ -375,7 +375,8 @@ export const toppersListReportSchema = z
         EMCA_Id: z.string().min(1, 'Category is required'),
         ASMCL_Id: z.string().min(1, 'Class is required'),
         ASMS_Id: z.string().optional(), // Section (Required only for Individual type)
-        topper: z.string()
+        topper: z
+            .string()
             .min(1, 'Top count is required')
             .regex(/^\d+$/, 'Must be a number')
             .refine((val) => Number.parseInt(val) > 0, 'Top count must be greater than 0'),
@@ -413,7 +414,7 @@ export const toppersListReportSchema = z
         data.exm_check_type = data.EME_Id ? '1' : '0';
 
         // Set sub_check_type based on subjectwise and ISMS_Id
-        data.sub_check_type = (data.subjectwise && data.ISMS_Id) ? '1' : '0';
+        data.sub_check_type = data.subjectwise && data.ISMS_Id ? '1' : '0';
     });
 
 export type ToppersListSchema = z.infer<typeof toppersListReportSchema>;
@@ -436,7 +437,6 @@ export const gradeSlabReportSchema = {
             }
         })
 };
-
 
 export const reportCardIXSchema = z.object({
     ASMAY_Id: z.string().min(1, 'Academic Year is required'),
@@ -485,7 +485,7 @@ export const reportCardViViiiSchema = z.object({
     exmname: z.string().min(1, 'Exam Name is required'),
     superAverage: z.boolean().default(true),
     printLogo: z.boolean().default(true),
-    selectedStudents: z.array(z.string()).min(1, 'Select at least one student'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
 });
 
 export type ReportCardViViiiSchema = z.infer<typeof reportCardViViiiSchema>;
