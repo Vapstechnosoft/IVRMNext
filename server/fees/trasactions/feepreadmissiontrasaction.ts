@@ -33,9 +33,10 @@ export async function getFeePreadmissionTransactionList(asmay_Id: number, search
 }
 export async function getPreadmissionStudentDropdownData(
     searchText: string,
-    radiovalue: string
+    radiovalue: string,
+    asmayId: number
 ): Promise<IFeePreAdmissionStudentsDropDownList[]> {
-    const url = `/FeePreadmission/getstudents?ASMAY_Id=231&SearchText=${searchText}&filterinitialdata=${radiovalue}`;
+    const url = `/FeePreadmission/getstudents?ASMAY_Id=${asmayId}&SearchText=${searchText}&filterinitialdata=${radiovalue}`;
     console.info('preadmissiontransactiondetials api', url);
     const res = await api.get<IFeePreAdmissionStudentsDropDownList[]>('fees', url);
     return res.data ?? [];

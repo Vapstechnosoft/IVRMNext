@@ -213,13 +213,13 @@ function PreadmissionTransactionContent({
                     </CollapsibleSection>
                 )}
 
-                <FormSections transactionType={transactionType} />
+                <FormSections transactionType={transactionType} selectedAsmayId={selectedAsmayId} />
             </div>
         </div>
     );
 }
 
-function FormSections({ transactionType }: { transactionType: 'admission' | 'prospectus' }) {
+function FormSections({ transactionType, selectedAsmayId }: { transactionType: 'admission' | 'prospectus'; selectedAsmayId: number }) {
     const { isAddFormOpen, isDetailsViewOpen, selectedRow, closeDetailsView, closeAddForm, addFormRef } =
         useFormContext<IFeePreAdmissionTransactionDetails>();
 
@@ -248,7 +248,9 @@ function FormSections({ transactionType }: { transactionType: 'admission' | 'pro
                     </CollapsibleSection>
                 </div>
             )}
-            {isDetailsViewOpen && selectedRow && <ReceiptViewPage rowData={selectedRow} onClose={closeDetailsView} />}
+            {isDetailsViewOpen && selectedRow && (
+                <ReceiptViewPage rowData={selectedRow} onClose={closeDetailsView} asmayId={selectedAsmayId} />
+            )}
         </>
     );
 }

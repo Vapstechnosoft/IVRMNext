@@ -194,7 +194,7 @@ export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, classNa
     useEffect(() => {
         const fetchHeadwiseInstallments = async (heads?: number[]) => {
             // need academicYear and at least groupId or classId
-            if (!academicYear || (!groupId && !classId)) {
+            if (!academicYear || !classId || !groupId || !!selectedHeads) {
                 setInstallmentOptions([]);
                 return;
             }

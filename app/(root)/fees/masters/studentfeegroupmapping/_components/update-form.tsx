@@ -157,7 +157,7 @@ export default function UpdateMasterStudentFeeGroupMappingsForm({ onSuccess, cla
     // Fetch installments dynamically when heads change
     useEffect(() => {
         const fetchInstallments = async () => {
-            if (!academicYear || (!groupId && !classId)) {
+            if (!academicYear || !classId || !groupId || !!selectedHeads) {
                 setInstallmentOptions([]);
                 return;
             }
@@ -169,8 +169,10 @@ export default function UpdateMasterStudentFeeGroupMappingsForm({ onSuccess, cla
                     fmg_Id: groupId ?? classId
                 };
 
-                if (selectedHeads.length > 0) {
-                    payload.selectedheadList = selectedHeads.map((h) => ({ fmH_Id: h }));
+                const typedSelectedHeads: any[] = selectedHeads || [];
+
+                if (typedSelectedHeads.length > 0) {
+                    payload.selectedheadList = typedSelectedHeads.map((h) => ({ fmH_Id: h }));
                 }
 
                 const res = await GetInstallmentMasterDropdown(payload);
