@@ -1,0 +1,52 @@
+'use client';
+
+import { deactivateBookRegister, getBookRegisterList, getInitialData, saveBookRegister } from '@/server/library/masters/bookRegister';
+import type { ApiSearchparams } from '@/types';
+import type { BookRegisterPayload } from '@/types/library/masters/bookRegister';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
+const LIBRARY_QUERY_KEYS = {
+    BOOK_REGISTER: 'BOOK_REGISTER',
+    BOOK_REGISTER_INITIAL: 'BOOK_REGISTER_INITIAL'
+};
+
+export function useBookRegister(searchParams?: ApiSearchparams) {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [LIBRARY_QUERY_KEYS.BOOK_REGISTER, searchParams ?? {}],
+            queryFn: async () => getBookRegisterList(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [LIBRARY_QUERY_KEYS.BOOK_REGISTER]
+            });
+        },
+        saveMutation: useMutation({
+            mutationFn: (data: BookRegisterPayload) => saveBookRegister(data),
+            onSuccess: () => {
+                queryClient.invalidateQueries({
+                    queryKey: [LIBRARY_QUERY_KEYS.BOOK_REGISTER]
+                });
+            }
+        }),
+        deactivateMutation: useMutation({
+            mutationFn: (data: { LMB_Id: number; LMB_BookTitle?: string }) => deactivateBookRegister(data),
+            onSuccess: () => {
+                queryClient.invalidateQueries({
+                    queryKey: [LIBRARY_QUERY_KEYS.BOOK_REGISTER]
+                });
+            }
+        })
+    };
+}
+
+export function useBookRegisterInitialData() {
+    return useQuery({
+        queryKey: [LIBRARY_QUERY_KEYS.BOOK_REGISTER_INITIAL],
+        queryFn: async () => getInitialData(),
+        staleTime: 1000 * 60 * 5 // 5 minutes
+    });
+}

@@ -2399,14 +2399,23 @@ export async function getUserAccessibleModules() {
                                             description: 'Library Master Author Details'
                                         },
 
-                                        {
-                                            id: 30003,
-                                            name: 'Master Subject',
-                                            icon: 'BookOpen',
-                                            url: '/library/masters/mastercategory',
-                                            title: 'Need to Add Master Subject',
-                                            description: 'Need to Add Master Subject'
-                                        },
+                                        // {
+                                        //     id: 30003,
+                                        //     name: 'Master Subject',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/library/masters/mastercategory',
+                                        //     title: 'Need to Add Master Subject',
+                                        //     description: 'Need to Add Master Subject'
+                                        // },
+
+                                        //    {
+                                        //     id: 30003,
+                                        //     name: 'MASTER BOOKS CATEGORY ',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/library/masters/mastercategory',
+                                        //     title: 'MASTER BOOKS CATEGORY ',
+                                        //     description: 'MASTER BOOKS CATEGORY '
+                                        // },
 
                                         {
                                             id: 30006,
@@ -2434,17 +2443,15 @@ export async function getUserAccessibleModules() {
                                             description: 'Master Class Category Entry'
                                         },
 
-
                                         {
                                             id: 30003,
                                             name: 'Master Book Category',
                                             icon: 'BookOpen',
                                             url: '/library/masters/mastercategory',
-                                            title: 'Master Class Category',
-                                            description: 'Library Category Details'
+                                            title: 'Master Book Category',
+                                            description: 'Master Book Category Details'
                                         },
 
- 
                                         {
                                             id: 30007,
                                             name: 'Master Department',
@@ -2469,18 +2476,17 @@ export async function getUserAccessibleModules() {
                                             url: '/library/masters/master-time-slab',
                                             title: 'Master Time Slab',
                                             description: 'Master Time Slab Details'
-                                        },
-                                       
-                                        {
-                                            id: 30010,
-                                            name: 'Master Category',
-                                            icon: 'BookOpen',
-                                            url: '/library/masters/category',
-                                            title: 'Library Category',
-                                            description: 'Library Category Details'
                                         }
-                                       
-                                       
+                                        // ,
+
+                                        // {
+                                        //     id: 30010,
+                                        //     name: 'Master Category',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/library/masters/category',
+                                        //     title: 'Library Category',
+                                        //     description: 'Library Category Details'
+                                        // }
                                     ]
                                 },
                                 {
@@ -2490,28 +2496,46 @@ export async function getUserAccessibleModules() {
 
                                     pages: [
                                         {
+                                            id: 31003,
+                                            name: 'Book Register',
+                                            icon: 'BookOpen',
+                                            url: '/library/transactions/book-register',
+                                            title: 'Book Register',
+                                            description: 'Book Register Details'
+                                        },
+
+                                        {
+                                            id: 31001,
+                                            name: 'Book Return',
+                                            icon: 'BookOpen',
+                                            url: '/library/transactions/book-return',
+                                            title: 'Book Return',
+                                            description: 'Book Return Transaction Details'
+                                        },
+                                        // {
+                                        //     id: 31004,
+                                        //     name: 'Circulation Parameter',
+                                        //     icon: 'Settings',
+                                        //     url: '/library/transactions/circulation-parameter',
+                                        //     title: 'Circulation Parameter',
+                                        //     description: 'Manage Circulation Parameters'
+                                        // },
+
+                                        {
+                                            id: 31002,
+                                            name: 'Book Transaction',
+                                            icon: 'BookOpen',
+                                            url: '/library/transactions/lib-book-transaction',
+                                            title: 'Book Transaction',
+                                            description: 'Lib Book Transaction Details'
+                                        },
+                                        {
                                             id: 30011,
                                             name: 'LOST BOOK',
                                             icon: 'BookOpen',
                                             url: '/library/transactions/lostbook',
                                             title: 'LOST BOOK',
                                             description: 'LOST BOOK Details'
-                                        },
-                                        {
-                                            id: 31001,
-                                            name: 'Book Return Transaction',
-                                            icon: 'BookOpen',
-                                            url: '/library/transactions/book-return',
-                                            title: 'Book Return',
-                                            description: 'Book Return Transaction Details'
-                                        },
-                                        {
-                                            id: 31002,
-                                            name: 'Lib Book Transaction',
-                                            icon: 'BookOpen',
-                                            url: '/library/transactions/lib-book-transaction',
-                                            title: 'Lib Book Transaction',
-                                            description: 'Lib Book Transaction Details'
                                         }
                                     ]
                                 },
@@ -2555,18 +2579,18 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 32005,
-                                            name: 'Purchase Donate Report',
+                                            name: 'Purchase/Donate/New Arrival Report',
                                             icon: 'FileText',
                                             url: '/library/reports/purchase-donate-report',
-                                            title: 'Purchase Donate Report',
+                                            title: 'Purchase/Donate/New Arrival Report',
                                             description: 'View Purchase Donate Report'
                                         },
                                         {
                                             id: 32006,
-                                            name: 'Lib Transaction Report',
+                                            name: 'Transaction Count Report',
                                             icon: 'FileText',
                                             url: '/library/reports/lib-transaction-report',
-                                            title: 'Lib Transaction Report',
+                                            title: 'Transaction Count Report',
                                             description: 'View Lib Transaction Report'
                                         },
                                         {
