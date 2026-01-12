@@ -13,5 +13,7 @@ export const TIMETABLE_QUERY_KEYS = {
     MASTER_BREAK_TIME_SETTINGS: 'master_break_time_settings',
     MASTER_PERIOD_DETAILSDATA: 'master_period_detailsdata',
     TT_BREAKTIME_STTINGS: 'tt_breaktime_settings',
-    TT_PERIOD_DISTRIBUTIONDETAILS: 'tt_period_distributiondetails'
+    TT_PERIOD_DISTRIBUTIONDETAILS: 'tt_period_distributiondetails',
+    TT_MASTER_DAYCLASSWISE_DETAILS: 'tt_master_dayclasswise_details',
+    TT_PERIODTIME_SETTINGSDATA: 'tt_periodtimesettingsdata'
 };

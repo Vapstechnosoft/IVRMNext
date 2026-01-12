@@ -2,11 +2,12 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
+import type { IPeriodAllocationMasterDay } from '@/types/timetable/masters/masters';
 
 export async function getAllPeriodDetails(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'ttmP_PeriodName');
-    const url = `/PeriodAllocation/getalldetails?${urlParams}`;
-    return await api.get<any>('timetable', url);
+    const url = `/PeriodAllocationFacade/GetMasterDayClassWiseGridData?${urlParams}`;
+    return await api.get<IPeriodAllocationMasterDay[]>('timetable', url);
 }
 
 export async function savePeriod(data: any) {

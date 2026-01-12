@@ -9,9 +9,11 @@ import {
 import { getMasterCategoryDetails } from '@/server/timetable/masters/masterCategory';
 import { getMasterBuildingDetails } from '@/server/timetable/masters/masterbuilding';
 import { getMasterDayDetails } from '@/server/timetable/masters/masterday';
+import { getMasterDayClassWiseDetails } from '@/server/timetable/masters/masterdayclasswise';
 import { getMasterPeriodDetails } from '@/server/timetable/masters/masterperiod';
 import { getAllPeriodDetails } from '@/server/timetable/masters/periodallocation';
 import { getPeriodDistributionDetails } from '@/server/timetable/masters/perioddistribution';
+import { getAllPeriodTimeSettings } from '@/server/timetable/masters/periodtimesetting';
 import { getStaffAbbreviationDetails, getStaffDropDown } from '@/server/timetable/masters/staffabbreviation';
 import { getSubjectAbbreviationDetails } from '@/server/timetable/masters/subjectabbreviation';
 import type { ApiSearchparams } from '@/types';
@@ -282,6 +284,42 @@ export const usePeriodDistributionDetails = (searchParams?: ApiSearchparams) => 
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [TIMETABLE_QUERY_KEYS.TT_PERIOD_DISTRIBUTIONDETAILS]
+            });
+        }
+    };
+};
+
+export const useMasterDayClasswiseDetails = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.TT_MASTER_DAYCLASSWISE_DETAILS, searchParams ?? {}],
+            queryFn: async () => getMasterDayClassWiseDetails(searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.TT_MASTER_DAYCLASSWISE_DETAILS]
+            });
+        }
+    };
+};
+
+export const usePeriodTimeSettingDetails = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.TT_PERIODTIME_SETTINGSDATA, searchParams ?? {}],
+            queryFn: async () => getAllPeriodTimeSettings(searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.TT_PERIODTIME_SETTINGSDATA]
             });
         }
     };
