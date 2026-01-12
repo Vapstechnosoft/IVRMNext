@@ -57,3 +57,17 @@ export interface IMasterLanguageList {
     lmL_LanguageName: string;
     lmL_ActiveFlg: boolean;
 }
+
+export interface IMasterSubjectList {
+    lmS_Id: number;   
+    lmS_SubjectName: string;
+    lmS_ParentId: number;
+    ismS_SubjectName: string;
+    lmS_ActiveFlg:boolean;
+    lmS_Level: string;
+    lmS_SubjectNo: string;
+    lmS_ClassNo: string;
+}
+
+
+   

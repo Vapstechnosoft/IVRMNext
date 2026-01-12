@@ -202,3 +202,21 @@ export const masterClassCategorySchema = {
         lmcC_Id: z.number()
     })
 };
+
+
+export const masterSubjectSchema = {
+    addOrUpdate: z.object({
+        lmS_Id: z.number().nonnegative().optional(), // optional when creating new record
+        lmS_SubjectName: z.string({ message: 'Subject Name is required' }).min(2).max(100),
+        lmS_ParentId: z.number().optional(),
+        ismS_Id: z.number().optional(),
+        ismS_SubjectName: z.string().optional(),
+        lmS_ActiveFlg: z.boolean().optional(),
+        lmS_Level: z.string({ message: 'Level is required' }).min(1).max(50),
+        lmS_SubjectNo: z.string({ message: 'Subject No is required' }).min(1).max(50),
+        lmS_ClassNo: z.string({ message: 'Class No is required' }).min(1).max(50)
+    }),
+    delete: z.object({
+        lmS_Id: deleteIdSchema('lmS_Id')
+    })
+};

@@ -9,6 +9,7 @@ import { getMasterAuthorList } from '@/server/library/masters/master_author';
 import { getMasterLanguageList } from '@/server/library/masters/master_language';
 import { getMasterLibraryList } from '@/server/library/masters/master_library';
 import { getMasterPublisherList } from '@/server/library/masters/master_publisher';
+import { getMasterSubjectList } from '@/server/library/masters/master_subject';
 import { getMasterRackDetails } from '@/server/library/masters/rack-details';
 import { getMasterTimeSlab } from '@/server/library/masters/time-slab';
 import type { ApiSearchparams } from '@/types';
@@ -211,3 +212,18 @@ export function useMasterClassCategory(searchParams?: ApiSearchparams) {
     };
 }
 
+export const useMasterSubject = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [LIBRARY_QUERY_KEYS.MASTER_SUBJECT_LIST_DATA, searchParams ?? {}],
+            queryFn: async () => getMasterSubjectList(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () =>
+            queryClient.invalidateQueries({
+                queryKey: [LIBRARY_QUERY_KEYS.MASTER_SUBJECT_LIST_DATA]
+            })
+    };
+};

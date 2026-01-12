@@ -2383,7 +2383,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Library Vendor Details'
                                         },
                                         {
-                                            id: 30004,
+                                            id: 30003,
                                             name: 'Master Publisher',
                                             icon: 'BookOpen',
                                             url: '/library/masters/librarypublisher',
@@ -2391,7 +2391,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Library Master Publisher Details'
                                         },
                                         {
-                                            id: 30005,
+                                            id: 30004,
                                             name: 'Master Author',
                                             icon: 'BookOpen',
                                             url: '/library/masters/masterauthor',
@@ -2399,14 +2399,14 @@ export async function getUserAccessibleModules() {
                                             description: 'Library Master Author Details'
                                         },
 
-                                        // {
-                                        //     id: 30003,
-                                        //     name: 'Master Subject',
-                                        //     icon: 'BookOpen',
-                                        //     url: '/library/masters/mastercategory',
-                                        //     title: 'Need to Add Master Subject',
-                                        //     description: 'Need to Add Master Subject'
-                                        // },
+                                        {
+                                            id: 30005,
+                                            name: 'Master Subject',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/mastersubject',
+                                            title: 'Add Master Subject',
+                                            description: 'Add Master Subject'
+                                        },
 
                                         //    {
                                         //     id: 30003,
@@ -2427,7 +2427,7 @@ export async function getUserAccessibleModules() {
                                         },
 
                                         {
-                                            id: 30008,
+                                            id: 30007,
                                             name: 'Master Accessories',
                                             icon: 'BookOpen',
                                             url: '/library/masters/accessories-master',
@@ -2435,7 +2435,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Master Accessories Details'
                                         },
                                         {
-                                            id: 30011,
+                                            id: 30008,
                                             name: 'Master Class Category',
                                             icon: 'BookOpen',
                                             url: '/library/masters/master-class-category',
@@ -2444,7 +2444,7 @@ export async function getUserAccessibleModules() {
                                         },
 
                                         {
-                                            id: 30003,
+                                            id: 30009,
                                             name: 'Master Book Category',
                                             icon: 'BookOpen',
                                             url: '/library/masters/mastercategory',
@@ -2453,7 +2453,7 @@ export async function getUserAccessibleModules() {
                                         },
 
                                         {
-                                            id: 30007,
+                                            id: 30010,
                                             name: 'Master Department',
                                             icon: 'BookOpen',
                                             url: '/library/masters/department-master',
@@ -2470,7 +2470,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Master Rack Details Entry'
                                         },
                                         {
-                                            id: 30009,
+                                            id: 30012,
                                             name: 'Master Time Slab',
                                             icon: 'Clock',
                                             url: '/library/masters/master-time-slab',
@@ -2496,7 +2496,7 @@ export async function getUserAccessibleModules() {
 
                                     pages: [
                                         {
-                                            id: 31003,
+                                            id: 30013,
                                             name: 'Book Register',
                                             icon: 'BookOpen',
                                             url: '/library/transactions/book-register',
@@ -2505,7 +2505,7 @@ export async function getUserAccessibleModules() {
                                         },
 
                                         {
-                                            id: 31001,
+                                            id: 30014,
                                             name: 'Book Return',
                                             icon: 'BookOpen',
                                             url: '/library/transactions/book-return',
@@ -2513,7 +2513,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Book Return Transaction Details'
                                         },
                                         // {
-                                        //     id: 31004,
+                                        //     id: 30015,
                                         //     name: 'Circulation Parameter',
                                         //     icon: 'Settings',
                                         //     url: '/library/transactions/circulation-parameter',
@@ -2522,7 +2522,7 @@ export async function getUserAccessibleModules() {
                                         // },
 
                                         {
-                                            id: 31002,
+                                            id: 30016,
                                             name: 'Book Transaction',
                                             icon: 'BookOpen',
                                             url: '/library/transactions/lib-book-transaction',
@@ -2530,7 +2530,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Lib Book Transaction Details'
                                         },
                                         {
-                                            id: 30011,
+                                            id: 30017,
                                             name: 'LOST BOOK',
                                             icon: 'BookOpen',
                                             url: '/library/transactions/lostbook',
@@ -2546,7 +2546,7 @@ export async function getUserAccessibleModules() {
 
                                     pages: [
                                         {
-                                            id: 32001,
+                                            id: 30018,
                                             name: 'Available Books Report',
                                             icon: 'FileText',
                                             url: '/library/reports/available-books-report',
@@ -2554,7 +2554,7 @@ export async function getUserAccessibleModules() {
                                             description: 'View Available Books Report'
                                         },
                                         {
-                                            id: 32002,
+                                            id: 30019,
                                             name: 'Book Arrival Report',
                                             icon: 'FileText',
                                             url: '/library/reports/book-arrival-report',
@@ -2562,7 +2562,7 @@ export async function getUserAccessibleModules() {
                                             description: 'View Book Arrival Report'
                                         },
                                         {
-                                            id: 32003,
+                                            id: 30020,
                                             name: 'Rack Report',
                                             icon: 'FileText',
                                             url: '/library/reports/rack-report',
@@ -2570,7 +2570,7 @@ export async function getUserAccessibleModules() {
                                             description: 'View Rack Report'
                                         },
                                         {
-                                            id: 32004,
+                                            id: 30021,
                                             name: 'Book Circulation Report',
                                             icon: 'FileText',
                                             url: '/library/reports/book-circulation-report',
@@ -2578,7 +2578,7 @@ export async function getUserAccessibleModules() {
                                             description: 'View Book Circulation Report'
                                         },
                                         {
-                                            id: 32005,
+                                            id: 30022,
                                             name: 'Purchase/Donate/New Arrival Report',
                                             icon: 'FileText',
                                             url: '/library/reports/purchase-donate-report',
@@ -2586,7 +2586,7 @@ export async function getUserAccessibleModules() {
                                             description: 'View Purchase Donate Report'
                                         },
                                         {
-                                            id: 32006,
+                                            id: 30023,
                                             name: 'Transaction Count Report',
                                             icon: 'FileText',
                                             url: '/library/reports/lib-transaction-report',
@@ -2594,7 +2594,7 @@ export async function getUserAccessibleModules() {
                                             description: 'View Lib Transaction Report'
                                         },
                                         {
-                                            id: 32007,
+                                            id: 30024,
                                             name: 'Lost Book Report',
                                             icon: 'FileText',
                                             url: '/library/reports/lib-lost-book-report',
@@ -2602,7 +2602,7 @@ export async function getUserAccessibleModules() {
                                             description: 'View Lost Book Report'
                                         },
                                         {
-                                            id: 32008,
+                                            id: 30025,
                                             name: 'Student Transaction Count Report',
                                             icon: 'FileText',
                                             url: '/library/reports/clg-transaction-count-report',
@@ -2610,7 +2610,7 @@ export async function getUserAccessibleModules() {
                                             description: 'View Student Transaction Count Report'
                                         },
                                         {
-                                            id: 32009,
+                                            id: 30026,
                                             name: 'Book Register Report',
                                             icon: 'FileText',
                                             url: '/library/reports/book-register-report',
@@ -2618,7 +2618,7 @@ export async function getUserAccessibleModules() {
                                             description: 'View Book Register Report'
                                         },
                                         {
-                                            id: 32010,
+                                            id: 30027,
                                             name: 'Library Month End Report',
                                             icon: 'FileText',
                                             url: '/library/reports/library-month-end-report',

@@ -462,5 +462,6 @@ export const LIBRARY_QUERY_KEYS = {
     STAFF_BY_DEPARTMENT: 'staff_by_department',
     DESIGNATIONS_BY_DEPARTMENT: 'designations_by_department',
     SHOW_FINE: 'show_fine',
-    BOOK_AVAILABILITY: 'book_availability'
+    BOOK_AVAILABILITY: 'book_availability',
+    MASTER_SUBJECT_LIST_DATA: 'master_library_subject_data',
 };

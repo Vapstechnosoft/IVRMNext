@@ -92,9 +92,9 @@ function FormSections({ refetch }: { refetch: () => void }) {
         selectedRow,
         closeAddForm,
         closeDeleteForm,
-        closeEditForm,
+        //closeEditForm,
         addFormRef,
-        editFormRef
+        //editFormRef
     } = useFormContext<IMasterClassYearlyList>();
 
     useEffect(() => {
