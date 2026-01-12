@@ -21,13 +21,13 @@ export const lifeSkillsColumns: ColumnDef<ILifeSkill>[] = [
     },
     {
         accessorKey: 'ecS_SkillName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Activity Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Skill Name' />,
         cell: ({ row }) => <div>{row.getValue('ecS_SkillName')}</div>,
         enableSorting: true
     },
     {
         accessorKey: 'ecS_SkillCode',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Activity Code' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Skill Code' />,
         cell: ({ row }) => <div>{row.getValue('ecS_SkillCode')}</div>
     },
     {

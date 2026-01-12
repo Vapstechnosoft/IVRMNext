@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import {
+    createEmailSchema,
     createNumberOnlyStringSchema,
     createStringOnlySchema,
     createStringSchema,
@@ -30,8 +31,13 @@ export const masterFeeheadSchema = {
 export const masterModeOfPaymentSchema = {
     addOrUpdate: z.object({
         ivrmmoD_Id: z.number().int({ message: 'ivrmmoD_Id is required' }).optional(),
-        ivrmmoD_ModeOfPayment: createStringSchema('Mode of Payment', 1, 100),
-        ivrmmoD_ModeOfPayment_Code: createStringSchema('Mode of Payment Code', 1, 100)
+        ivrmmoD_ModeOfPayment: createStringOnlySchema('Mode of Payment', 1, 100),
+        //ivrmmoD_ModeOfPayment_Code: createStringSchema('Mode of Payment Code', 1, 100)
+        ivrmmoD_ModeOfPayment_Code: z
+            .string()
+            .min(1, 'Mode of Payment Code is required')
+            .max(1, 'Mode of Payment Code must be exactly 1 character')
+            .refine((value) => ['C', 'B', 'R', 'S', 'U'].includes(value.toUpperCase()), { message: 'Allowed values: C, B, R, S, U only' })
     }),
     delete: z.object({
         ivrmmoD_Id: deleteIdSchema('ivrmmoD_Id')
@@ -782,9 +788,24 @@ export const masterFeeOtherStudentSchema = {
     addOrUpdate: z.object({
         // mI_Id: z.string().min(1, { message: 'Institution is required' }),
         // institutionName: z.string().min(1, { message: 'Institution Name is required' }),
-        studentName: z.string().min(1, { message: 'Student Name is required' }),
-        mobileno: z.string().min(1, { message: 'Mobile Number is required' }),
-        emailno: z.string().min(1, { message: 'Email Number is required' })
+        // studentName: z.string().min(1, { message: 'Student Name is required' }).max(60, {
+        //     message: 'Name should not exceed 60 characters'
+        // }),
+        studentName: createStringOnlySchema('Student Name', 1, 60),
+        //mobileno:createStringOnlySchema('Mobile Number', 1, 15),
+        // mobileno: z.string().min(1, { message: 'Mobile Number is required' }),
+        //emailno: z.string().min(1, { message: 'Email Number is required' })
+        //emailno:createEmailSchema('Email Number', 1, 50),
+
+        emailno: createEmailSchema('Email Id', 1, 50),
+        mobileno: z
+            .string()
+            .refine((val) => val.length === 10, {
+                message: 'Mobile number must be exactly 10 digits'
+            })
+            .refine((val) => !val.startsWith('0'), {
+                message: 'Mobile number cannot start with 0'
+            })
     }),
     delete: z.object({
         fopM_Id: deleteIdSchema('fopM_Id')

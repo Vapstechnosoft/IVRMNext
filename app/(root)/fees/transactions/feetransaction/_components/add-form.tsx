@@ -22,7 +22,13 @@ import { useStudentClassDropDown, useStudentSectionDropDown } from '@/hooks/fees
 import { useFeeDefaulterReport } from '@/hooks/fees/useReports';
 import { useFeeMasterConfiguration, useFeeTransactionList } from '@/hooks/fees/useTrasactions';
 import { feesStudentTransactionSchema } from '@/schemas/fees/trasactions';
-import { getFeeHead, getStudentDetails, saveFeeTransaction, searchStudentName } from '@/server/fees/trasactions/fee_student_transaction';
+import {
+    getFeeHead,
+    getStudentDetails,
+    masterBank,
+    saveFeeTransaction,
+    searchStudentName
+} from '@/server/fees/trasactions/fee_student_transaction';
 import type {
     IFeeTDetails,
     IFeeTermDetails,
@@ -30,10 +36,12 @@ import type {
     IStudentTDetails,
     IStudentTermList,
     MasterModeofPayment,
-    MasterNarration
+    MasterNarration,
+    masterBankList
 } from '@/types/fees/transactions/transactions';
 import type { z } from 'zod';
 import FeeDetails from './fee-head-column';
+import StudentProfileModal from './student-details';
 
 type FormFields = z.infer<typeof feesStudentTransactionSchema.addOrUpdate>;
 
@@ -120,9 +128,10 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
         [key: number]: string;
     }>({});
     const [filterType, setFilterType] = useState('regular');
+    const [searchByLet, setSearchByLetters] = useState('2');
     const [payType, setPayType] = useState<string>('');
     const [modeType, setModeType] = useState<string>('Single');
-    const [checkPayType, setCheckPayType] = useState<string[]>(['']);
+    const [checkPayType, setCheckPayType] = useState<string[]>([]);
     const [selectedBanks, setSelectedBanks] = useState<Record<number, string>>({});
     const [left, setLeft] = useState(false);
     const [deactive, setDeative] = useState(false);
@@ -134,21 +143,31 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
     const [sms, setSms] = useState(false);
     const [email, setEmail] = useState(false);
     const [openFeeDetails, setOpenFeeDetails] = useState(false);
+
+    const [openStudentDetails, setOpenStudentDetails] = useState(false);
     const [challenSearch, setChallenSearch] = useState('');
     const [todaysDate, setTodaysDate] = useState<Date | undefined>(new Date());
     const [selectedNarration, setSelectedNarration] = useState<number | null>(null);
     const [narrationRemark, setNarrationRemark] = useState('');
+    const [masterBanks, setMasterBanks] = useState<masterBankList[]>([]);
+    const [isLoadingmasterBanks, setIsLoadingMasterBanks] = useState(false);
 
     const filterOptions = [
         { value: 'regular', label: 'Regular' },
         { value: 'Chal_no', label: 'Challan No.' },
         { value: 'regno', label: 'Reg No' },
-        { value: 'admno', label: 'Adm No' },
-        { value: 'nameadmno', label: 'Name:Adm.No.' },
-        { value: 'nameregno', label: 'Name:Reg.No.' },
-        { value: 'father', label: 'Father Name' },
-        { value: 'mother', label: 'Mother Name' },
-        { value: 'mobile', label: 'Mobile No' }
+        { value: 'AdmNo', label: 'Adm No' },
+        { value: 'NameAdmno', label: 'Name:Adm.No.' },
+        { value: 'NameRegNo', label: 'Name:Reg.No.' },
+        { value: 'Fathername', label: 'Father Name' },
+        { value: 'Mothername', label: 'Mother Name' },
+        { value: 'MobileNo', label: 'Mobile No' }
+    ];
+    const searchByLetters = [
+        { value: '2', label: '2' },
+        { value: '3', label: '3' },
+        { value: '4', label: '4' },
+        { value: '5', label: '5' }
     ];
 
     const selectedLabel = filterOptions.find((opt) => opt.value === filterType)?.label || '';
@@ -228,7 +247,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                     searchfilter: studentSearch,
                     asmcL_ID: selectedclassId ?? 0,
                     asmS_Id: selectedSectionId ?? 0,
-                    amsT_SOL: 'string'
+                    amsT_SOL: left === false ? 'S' : 'L'
                 };
                 const studentsArray = await searchStudentName(payload);
                 const studentsData = JSON.parse(JSON.stringify(studentsArray.feeStudentSearch || []));
@@ -309,7 +328,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                 setMasterModeofPaymentList(modeofPaymentList || []);
 
                 setPayType(modeofPaymentList[0]?.ivrmmoD_ModeOfPayment ?? '');
-                setCheckPayType(modeofPaymentList[0]?.ivrmmoD_ModeOfPayment ?? '');
+                // setCheckPayType(modeofPaymentList[0]?.ivrmmoD_ModeOfPayment ?? '');
             } catch (error) {
                 console.error('Failed to fetch fee heads:', error);
                 setFeeHeads([]);
@@ -320,6 +339,21 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
 
         fetchFeeHeadDetails();
     }, [selectedTerm, filterType, selectedStudent, selectedAsmayId]);
+
+    useEffect(() => {
+        setIsLoadingMasterBanks(true);
+        const fetchMasterBank = async () => {
+            try {
+                const masterBanks = await masterBank();
+                setMasterBanks(masterBanks?.data ?? []);
+            } catch (error) {
+                setIsLoadingMasterBanks(false);
+                console.error('Failed to fetch fee heads:', error);
+            }
+        };
+        setIsLoadingMasterBanks(false);
+        fetchMasterBank();
+    }, []);
 
     useEffect(() => {
         const concession = feeHeads.reduce((sum, f) => {
@@ -461,10 +495,10 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
         setTerms(updated);
     };
 
-    const handleCheckboxChange = (checked: boolean, type: 'left' | 'deactive' | 'class' | 'section') => {
+    const handleCheckboxChange = (checked: boolean, type: 'left' | 'inactive' | 'class' | 'section') => {
         if (type === 'left') {
             setLeft(checked);
-        } else if (type === 'deactive') {
+        } else if (type === 'inactive') {
             setDeative(checked);
         } else if (type === 'class') {
             setClass(checked);
@@ -593,13 +627,17 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
 
             if (modeType === 'Single') {
                 const selectedPayment = masterModeofPaymentList.find((f) => f.ivrmmoD_ModeOfPayment === payType);
+
                 if (selectedPayment) {
+                    const bankId = selectedBanks?.[selectedPayment?.ivrmmoD_Id];
+                    const selectedBankName = bankId ? masterBanks.find((f) => f.fmbanK_Id === Number(bankId))?.fmbanK_BankName : '';
+                    // console.log("selectedBankName",selectedBankName)
                     const paymentMode = {
                         fyppM_TotalPaidAmount: amount[selectedPayment.ivrmmoD_Id] || '0',
                         fyppM_TransactionTypeFlag: selectedPayment.ivrmmoD_Flag,
-                        fyppM_BankName: selectedBanks[selectedPayment.ivrmmoD_Id],
+                        fyppM_BankName: selectedBankName,
                         fyppM_DDChequeDate: chequedates[selectedPayment.ivrmmoD_Id] ?? new Date(),
-                        fyppM_DDChequeNo: chequeNo[selectedPayment.ivrmmoD_Id],
+                        fyppM_DDChequeNo: chequeNo[selectedPayment.ivrmmoD_Id] ?? '',
                         ivrmmoD_ModeOfPayment_Code: selectedPayment.ivrmmoD_ModeOfPayment_Code,
                         fyppM_Id: 0
                     };
@@ -608,10 +646,13 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
             } else {
                 const selectedPayment = masterModeofPaymentList.filter((f) => checkPayType.includes(f.ivrmmoD_ModeOfPayment));
                 selectedPayment.forEach((f) => {
+                    const bankId = selectedBanks?.[f?.ivrmmoD_Id];
+                    const selectedBankName = bankId ? masterBanks.find((f) => f.fmbanK_Id === Number(bankId))?.fmbanK_BankName : '';
+                    // console.log("selectedBankName",selectedBankName)
                     const payment = {
                         fyppM_TotalPaidAmount: amount[f.ivrmmoD_Id] || '0',
                         fyppM_TransactionTypeFlag: f.ivrmmoD_Flag,
-                        fyppM_BankName: selectedBanks[f.ivrmmoD_Id] ?? '',
+                        fyppM_BankName: selectedBankName ?? '',
                         fyppM_DDChequeDate: chequedates[f.ivrmmoD_Id] ?? new Date(),
                         fyppM_DDChequeNo: chequeNo[f.ivrmmoD_Id] ?? '',
                         ivrmmoD_ModeOfPayment_Code: f.ivrmmoD_ModeOfPayment_Code,
@@ -733,6 +774,23 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                 ))}
                             </div>
                         </RadioGroup>
+                        {filterType === 'regular' && (
+                            <Card className='mt-5 w-full p-3 shadow'>
+                                Search by (No. of letters) :
+                                <RadioGroup value={searchByLet} onValueChange={setSearchByLetters}>
+                                    <div className='grid grid-cols-5 gap-3'>
+                                        {searchByLetters.map((item) => (
+                                            <div key={item.value} className='flex items-center space-x-2'>
+                                                <RadioGroupItem value={item.value} id={item.value} />
+                                                <Label htmlFor={item.value} className='cursor-pointer text-sm'>
+                                                    {item.label}
+                                                </Label>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </RadioGroup>
+                            </Card>
+                        )}
                         <div className='grid grid-cols-2 gap-3 pt-4 '>
                             <div className='flex items-center space-x-2'>
                                 <Checkbox id='left' checked={left} onCheckedChange={(c) => handleCheckboxChange(c as boolean, 'left')} />
@@ -743,11 +801,11 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
 
                             <div className='flex items-center space-x-2'>
                                 <Checkbox
-                                    id='deactive'
+                                    id='inactive'
                                     checked={deactive}
-                                    onCheckedChange={(c) => handleCheckboxChange(c as boolean, 'deactive')}
+                                    onCheckedChange={(c) => handleCheckboxChange(c as boolean, 'inactive')}
                                 />
-                                <Label htmlFor='deactive' className='cursor-pointer text-sm'>
+                                <Label htmlFor='inactive' className='cursor-pointer text-sm'>
                                     Deactive
                                 </Label>
                             </div>
@@ -759,7 +817,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                     onCheckedChange={(c) => handleCheckboxChange(c as boolean, 'class')}
                                 />
                                 <Label htmlFor='class' className='cursor-pointer text-sm'>
-                                    Class
+                                    Class Wise
                                 </Label>
                             </div>
 
@@ -770,7 +828,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                     onCheckedChange={(c) => handleCheckboxChange(c as boolean, 'section')}
                                 />
                                 <Label htmlFor='section' className='cursor-pointer text-sm'>
-                                    Section
+                                    Section Wise
                                 </Label>
                             </div>
                         </div>
@@ -1101,7 +1159,9 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                         Fee Details <span>➤</span>
                                     </span>
 
-                                    <span className='flex cursor-pointer items-center gap-1 hover:underline'>
+                                    <span
+                                        className='flex cursor-pointer items-center gap-1 hover:underline'
+                                        onClick={() => setOpenStudentDetails(true)}>
                                         Student Profile <span>➤</span>
                                     </span>
                                 </div>
@@ -1112,8 +1172,8 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                             <div>STUDENT NAME</div>
                                             <div className='text-gray-700'>
                                                 {studentDetails?.[0]?.amsT_FirstName || 'N/A'}
-                                                {studentDetails?.[0]?.amsT_MiddleName}
-                                                {studentDetails?.[0]?.amsT_LastName}
+                                                {studentDetails?.[0]?.amsT_MiddleName && ` ${studentDetails[0].amsT_MiddleName}`}
+                                                {studentDetails?.[0]?.amsT_LastName && ` ${studentDetails[0].amsT_LastName}`}
                                             </div>
 
                                             <div>CLASS / SECTION</div>
@@ -1141,6 +1201,17 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                 </div>
 
                 {openFeeDetails && <FeeDetails onClose={() => setOpenFeeDetails(false)} data={feeDetails} loading={false} />}
+
+                {openStudentDetails && (
+                    <StudentProfileModal
+                        isOpen={!!openStudentDetails}
+                        onClose={() => setOpenStudentDetails(false)}
+                        data={openStudentDetails}
+                        loading={false}
+                        amst_Id={Number(selectedStudent?.amst_Id)}
+                        asmay_Id={Number(selectedAsmayId)}
+                    />
+                )}
 
                 {/* -------- FEE GRID -------- */}
                 {loadingFeeHead ? (
@@ -1639,11 +1710,19 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                                                     <SelectValue placeholder='Select Bank' />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
-                                                                    <SelectItem value='sbi'>State Bank Of India</SelectItem>
-                                                                    <SelectItem value='canaraBank'>Canara Bank</SelectItem>
-                                                                    <SelectItem value='karnatakaBank'>Karnataka Bank</SelectItem>
-                                                                    <SelectItem value='hdfcbank'>HDFC</SelectItem>
-                                                                    <SelectItem value='unionBank'>Union Bank</SelectItem>
+                                                                    {isLoadingmasterBanks ? (
+                                                                        <SelectItem value='loading' disabled>
+                                                                            Loading...
+                                                                        </SelectItem>
+                                                                    ) : (
+                                                                        masterBanks.map((item) => (
+                                                                            <SelectItem
+                                                                                key={item.fmbanK_Id}
+                                                                                value={item.fmbanK_Id.toString()}>
+                                                                                {item.fmbanK_BankName}
+                                                                            </SelectItem>
+                                                                        ))
+                                                                    )}
                                                                 </SelectContent>
                                                             </Select>
                                                         )}
@@ -1660,11 +1739,19 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                                                     <SelectValue placeholder='Select Bank' />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
-                                                                    <SelectItem value='sbi'>State Bank Of India</SelectItem>
-                                                                    <SelectItem value='canaraBank'>Canara Bank</SelectItem>
-                                                                    <SelectItem value='karnatakaBank'>Karnataka Bank</SelectItem>
-                                                                    <SelectItem value='hdfcbank'>HDFC</SelectItem>
-                                                                    <SelectItem value='unionBank'>Union Bank</SelectItem>
+                                                                    {isLoadingmasterBanks ? (
+                                                                        <SelectItem value='loading' disabled>
+                                                                            Loading...
+                                                                        </SelectItem>
+                                                                    ) : (
+                                                                        masterBanks.map((item) => (
+                                                                            <SelectItem
+                                                                                key={item.fmbanK_Id}
+                                                                                value={item.fmbanK_Id.toString()}>
+                                                                                {item.fmbanK_BankName}
+                                                                            </SelectItem>
+                                                                        ))
+                                                                    )}
                                                                 </SelectContent>
                                                             </Select>
                                                         )}

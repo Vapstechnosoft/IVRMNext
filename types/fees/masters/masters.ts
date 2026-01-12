@@ -806,3 +806,15 @@ export interface IGroupOption {
     fmG_Id: number;
     fmG_GroupName: string;
 }
+
+export interface IinstitutionDetails {
+    mI_Id: number;
+    mI_Logo: string;
+    mI_Name: string;
+}
+
+export interface IMasterGroupsOnYear {
+    fmG_Id: number;
+    fyG_Id: string;
+    fmG_GroupName: string;
+}

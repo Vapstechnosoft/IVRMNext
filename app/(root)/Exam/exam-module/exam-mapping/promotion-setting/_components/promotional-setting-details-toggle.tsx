@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { togglePromotionalSettingDetails } from '@/server/exam/exam-module/exam-mapping/promotional-setting';
+import { togglePromotionSubjects } from '@/server/exam/exam-module/exam-mapping/promotional-setting';
 import type { IPromotionalSubjectDetails } from '@/types/exam/exam-module/exam-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -23,7 +23,7 @@ interface Props {
 }
 
 export default function PromotionalSettingDetailsToggleForm({ rowData, onClose }: Props) {
-    const isActive = rowData.aplResult;
+    const isActive = rowData.empS_ActiveFlag;
 
     const {
         register,
@@ -33,18 +33,22 @@ export default function PromotionalSettingDetailsToggleForm({ rowData, onClose }
     } = useForm<ToggleFormFields>({
         resolver: zodResolver(PromotionalToggleSchema),
         defaultValues: {
-            slNo: rowData.slNo
+            slNo: rowData.empS_Id
         }
     });
 
-    function closeDialog() {
+    /*************  ✨ Windsurf Command ⭐  *************/
+    /**
+     * Resets the form and closes the dialog.
+     */
+    /*******  5a146f79-5790-446f-9a4f-18844a70cf26  *******/ function closeDialog() {
         reset();
         onClose();
     }
 
     const onSubmit = async (values: ToggleFormFields) => {
         try {
-            const response = await togglePromotionalSettingDetails(values.slNo);
+            const response = await togglePromotionSubjects(values.slNo);
 
             if (response.success) {
                 toast.success(response.message || 'Promotional status updated');
@@ -65,7 +69,7 @@ export default function PromotionalSettingDetailsToggleForm({ rowData, onClose }
 
                     <p>
                         Are you sure you want to <strong>{isActive ? 'Deactivate' : 'Activate'}</strong>{' '}
-                        <strong>{rowData.subjectName}</strong> for promotion?
+                        <strong>{rowData.ismS_SubjectName}</strong> for promotion?
                     </p>
 
                     <FormError>{errors.slNo?.message}</FormError>

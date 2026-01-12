@@ -56,6 +56,8 @@ export default function UpdateMasterConcessionDetailsForm({
         refetchcategory();
     }
 
+    console.log('masterConcessionDetailsselected row', row);
+
     useEffect(() => {
         if (row) {
             console.log('row', row);
@@ -84,6 +86,7 @@ export default function UpdateMasterConcessionDetailsForm({
                 fmccD_CreatedBy: 21602
             };
 
+            console.log('payload', payload);
             const response = await addOrUpdateMasterConcessionDetails(payload);
 
             if (response.success) {
@@ -342,7 +345,83 @@ export default function UpdateMasterConcessionDetailsForm({
                             </div>
                         </div>
 
-                        {/* From No of Siblings */}
+                        {/* <div className='flex items-center justify-center gap-4'>
+                            <label htmlFor='fmccD_FromNoSibblings' className='w-40 whitespace-nowrap text-right'>
+                                From No of Sibling <span className='text-red-500'>*</span>:
+                            </label>
+
+                            <div className='w-64'>
+                                <Controller
+                                    name='fmccD_FromNoSibblings'
+                                    control={control}
+                                    rules={{ required: 'From No of Sibling is required' }}
+                                    render={({ field }) => (
+                                        <div className='flex flex-col'>
+                                            <InputNumber
+                                                id='fmccD_FromNoSibblings'
+                                               
+                                                onChange={(value: number | string) => {
+                                                   
+                                                    if (value === '' || value === null || value === undefined) {
+                                                        field.onChange(undefined);
+                                                        return;
+                                                    }
+
+                                                    const num = Number(value);
+
+                                                  
+                                                    if (Number.isNaN(num)) return;
+
+                                                    field.onChange(num);
+                                                }}
+                                                className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                            />
+                                            {errors.fmccD_FromNoSibblings && <FormError>{errors.fmccD_FromNoSibblings.message}</FormError>}
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+              
+                        <div className='flex items-center justify-center gap-4'>
+                            <label htmlFor='fmccD_ToNoSibblings' className='w-40 whitespace-nowrap text-right'>
+                                To No of Siblings <span className='text-red-500'>*</span>:
+                            </label>
+
+                            <div className='w-64'>
+                                <Controller
+                                    name='fmccD_ToNoSibblings'
+                                    control={control}
+                                    rules={{ required: 'To No of Siblings is required' }}
+                                    render={({ field }) => (
+                                        <div className='flex flex-col'>
+                                            <InputNumber
+                                                id='fmccD_ToNoSibblings'
+                                               
+                                                onChange={(value: number | string) => {
+                                                   
+                                                    if (value === '' || value === null || value === undefined) {
+                                                        field.onChange(undefined);
+                                                        return;
+                                                    }
+
+                                                    const num = Number(value);
+
+                                                    
+                                                    if (Number.isNaN(num)) return;
+
+                                                    field.onChange(num);
+                                                }}
+                                                className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                            />
+                                            {errors.fmccD_ToNoSibblings && <FormError>{errors.fmccD_ToNoSibblings.message}</FormError>}
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div> */}
+
                         <div className='flex items-center justify-center gap-4'>
                             <label htmlFor='fmccD_FromNoSibblings' className='w-40 whitespace-nowrap text-right'>
                                 From No of Sibling <span className='text-red-500'>*</span>:
@@ -357,21 +436,9 @@ export default function UpdateMasterConcessionDetailsForm({
                                         <div className='flex flex-col'>
                                             <InputNumber
                                                 id='fmccD_FromNoSibblings'
-                                                // value={field.value ?? 0}
-                                                // onChange={(value: number) => field.onChange(value)}
-                                                onChange={(value: number | string) => {
-                                                    // Allow empty value without producing NaN
-                                                    if (value === '' || value === null || value === undefined) {
-                                                        field.onChange(undefined);
-                                                        return;
-                                                    }
-
-                                                    const num = Number(value);
-
-                                                    // Prevent NaN from entering form state
-                                                    if (Number.isNaN(num)) return;
-
-                                                    field.onChange(num);
+                                                value={field.value !== undefined && field.value !== null ? field.value : undefined}
+                                                onChange={(value: number | undefined) => {
+                                                    field.onChange(value);
                                                 }}
                                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                                             />
@@ -397,22 +464,9 @@ export default function UpdateMasterConcessionDetailsForm({
                                         <div className='flex flex-col'>
                                             <InputNumber
                                                 id='fmccD_ToNoSibblings'
-                                                // value={field.value ?? 0}
-                                                // onChange={(value: number) => field.onChange(value)}
-
-                                                onChange={(value: number | string) => {
-                                                    // Allow empty value without producing NaN
-                                                    if (value === '' || value === null || value === undefined) {
-                                                        field.onChange(undefined);
-                                                        return;
-                                                    }
-
-                                                    const num = Number(value);
-
-                                                    // Prevent NaN from entering form state
-                                                    if (Number.isNaN(num)) return;
-
-                                                    field.onChange(num);
+                                                value={field.value !== undefined && field.value !== null ? field.value : undefined}
+                                                onChange={(value: number | undefined) => {
+                                                    field.onChange(value);
                                                 }}
                                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                                             />

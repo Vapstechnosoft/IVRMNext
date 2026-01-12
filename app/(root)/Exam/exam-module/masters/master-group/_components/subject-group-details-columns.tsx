@@ -7,7 +7,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 export const MasterSubjectGroupDetailsColumns: ColumnDef<IMasterSubjectGroupDetails>[] = [
     {
         accessorKey: 'ex_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='max-w-20' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -15,7 +15,7 @@ export const MasterSubjectGroupDetailsColumns: ColumnDef<IMasterSubjectGroupDeta
         },
         enableSorting: false,
         enableHiding: true,
-        size: 50, // <-- Set fixed width
+        size: 20, // <-- Set fixed width
         minSize: 50,
         maxSize: 50
     },

@@ -124,7 +124,7 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
             const bankName = bankdata?.data?.find((b) => b.fmbanK_Id === Number(data.bankId))?.fmbanK_BankName ?? '';
 
             const payload = {
-                mI_Id: 30,
+                // mI_Id: 30,
                 fyptP_Name: data.studentName,
                 asmaY_Id: Number(data.academicYearId),
                 fmG_Id: Number(data.groupId),
@@ -143,7 +143,7 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
                 fyP_Date: data.date ? format(new Date(data.date), 'yyyy-MM-dd') : null,
 
                 fyP_Remarks: data.towards,
-                user_id: 21602,
+                //user_id: 21602,
                 FYP_Bank_Or_Cash: data.paymentMode
             };
 
@@ -466,9 +466,7 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
                     <>
                         {/* Bank Name */}
                         <div className='flex items-center gap-4'>
-                            <Label className='min-w-[150px] text-right'>
-                                Bank Name <span className='text-red-500'>*</span>
-                            </Label>
+                            <Label className='min-w-[150px] text-right'>Bank Name</Label>
 
                             <Controller
                                 name='bankId'

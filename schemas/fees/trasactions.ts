@@ -49,7 +49,7 @@ export const thirdPartyTransactionSchema = {
             bankId: z.number().optional(),
             chequeDate: z.string().optional(),
             // chequeNo: z.string().optional(),
-            chequeNo: z.string().min(13, 'Cheque Number is required').max(19, 'Cheque Number is too long'),
+            chequeNo: z.string().min(13, 'Minimum 13 characters for Cheque Number is required').max(19, 'Cheque Number is too long'),
             bankName: z.string().optional()
         })
         .superRefine((data, ctx) => {
@@ -166,6 +166,29 @@ export const feeOpeningBalanceSchema = {
 //     })
 // };
 
+// export const feeTransactionWaivedOffSchema = {
+//     addOrUpdate: z.object({
+//         academicYear: z.number({ message: 'Academic year is required' }),
+//         class: z.number({ message: 'Class is required.' }),
+//         section: z.number({ message: 'Section is required.' }),
+//         student: z.number({ message: 'Student Name is required.' }),
+//         remarks: z.string().min(1, 'Remarks are required.'),
+//         date: z.date({ required_error: 'Date is required' }),
+//         uploadedPhotoPath: z.string().optional(),
+//         feeGroupIds: z
+//             .array(
+//                 z.object({
+//                     ismS_Id: z.number({ required_error: 'Group is required' })
+//                 })
+//             )
+//             .min(1, { message: 'At least one Group must be selected' })
+//     }),
+
+//     delete: z.object({
+//         fmC_Id: deleteIdSchema('fmC_Id')
+//     })
+// };
+
 export const feeTransactionWaivedOffSchema = {
     addOrUpdate: z.object({
         academicYear: z.number({ message: 'Academic year is required' }),
@@ -175,13 +198,7 @@ export const feeTransactionWaivedOffSchema = {
         remarks: z.string().min(1, 'Remarks are required.'),
         date: z.date({ required_error: 'Date is required' }),
         uploadedPhotoPath: z.string().optional(),
-        feeGroupIds: z
-            .array(
-                z.object({
-                    ismS_Id: z.number({ required_error: 'Group is required' })
-                })
-            )
-            .min(1, { message: 'At least one Group must be selected' })
+        feeGroupIds: z.array(z.number()).min(1, { message: 'At least one Group must be selected' })
     }),
 
     delete: z.object({
@@ -349,6 +366,17 @@ export const feesStudentTransactionSchema = {
     })
 };
 
+export const feesStudentTransactionUpdateSchema = {
+    addOrUpdate: z.object({
+        asmaY_Id: z.number({ required_error: 'Academic year is required' }),
+        asmcl_Id: z.number().optional(),
+        asms_Id: z.number().optional(),
+        modeofPayment: z.string().optional(),
+        narrationId: z.number().optional(),
+        studentSearchName: z.string().optional()
+    })
+};
+
 export const feesRefundableSchema = {
     addOrUpdate: z.object({
         refundableflag: z.string().optional(),
@@ -471,3 +499,12 @@ export interface IReceiptRow {
     fineamt?: number;
     fsS_AdjustedAmount?: number;
 }
+
+export const feesStaffOtherTransactionSchema = {
+    addOrUpdate: z.object({
+        asmaY_Id: z.number({ required_error: 'Academic year is required' }),
+        amst_Id: z.number().optional(),
+        modeofPayment: z.string().optional(),
+        narrationId: z.number().optional()
+    })
+};

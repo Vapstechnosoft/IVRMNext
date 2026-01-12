@@ -15,7 +15,7 @@ export const MasterSubjectGroupDetailsViewColumns: ColumnDef<IMasterSubjectGroup
         },
         enableSorting: false,
         enableHiding: true,
-        size: 50, // <-- Set fixed width
+        size: 20, // <-- Set fixed width
         minSize: 50,
         maxSize: 50
     },

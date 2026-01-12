@@ -196,6 +196,8 @@ export const FEES_QUERY_KEYS = {
     FEE_COMPANY_GROUP_MAPPING_COMPANY_DROPDOWN: 'fee_company_group_mapping_company_dropdown',
     FEE_COMPANY_GROUP_MAPPING_GROUP_DROPDOWN: 'fee_company_group_mapping_group_dropdown',
     FEE_COMPANY_GROUPMAPPING_GROUP_DROPDOWN: 'fee_company_groupmapping_group_dropdown',
+    FEE_STUDENT_UPDATE_TRANSACTION: 'fee_student_update_transaction',
+    FEE_STUDENT_CURRENT_ACADEMIC_DETAILS: 'fee_student_current_academic_details',
 
     FEE_DEFAULTER_REPORT: 'fee_defaulter_report',
     FEE_GROUP_DEFAULTER: 'fee_group_defaulter_report',
@@ -251,6 +253,7 @@ export const EXAM_QUERY_KEYS = {
     MASTER_SUB_SUBJECT_EX: 'master_sub_subject-ex',
     MASTER_SUB_SUBJECT_EX_DROPDOWN_LIST: 'master_sub_subject-ex_dropdown_list',
     MASTER_EXAM: 'master-exam',
+    MASTER_EXAM_ORDERED_DROPDOWN_LIST: 'master-exam-ordered-dropdown-list',
     MASTER_EXAM_PAPER: 'master-exam-paper',
     MASTER_SUB_EXAM: 'master-sub-exam',
     MASTER_GRADE_EX: 'master-grade-ex',

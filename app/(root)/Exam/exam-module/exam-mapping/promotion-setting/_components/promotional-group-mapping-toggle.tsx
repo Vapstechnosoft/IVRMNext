@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { togglePromotionalGroupMappings } from '@/server/exam/exam-module/exam-mapping/promotional-setting';
+import { togglePromotionSubjectGroups } from '@/server/exam/exam-module/exam-mapping/promotional-setting';
 import type { IPromotionalGroupDetails } from '@/types/exam/exam-module/exam-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -23,7 +23,7 @@ interface Props {
 }
 
 export default function PromotionalGroupMappingToggleForm({ rowData, onClose }: Props) {
-    const isActive = rowData.isActiveFlag;
+    const isActive = rowData.emP_ActiveFlag;
 
     const {
         register,
@@ -32,7 +32,7 @@ export default function PromotionalGroupMappingToggleForm({ rowData, onClose }: 
         formState: { errors, isSubmitting }
     } = useForm<ToggleFormFields>({
         resolver: zodResolver(PromotionalGroupToggleSchema),
-        defaultValues: { slNo: rowData.slNo }
+        defaultValues: { slNo: rowData.emP_Id }
     });
 
     const closeDialog = () => {
@@ -42,7 +42,7 @@ export default function PromotionalGroupMappingToggleForm({ rowData, onClose }: 
 
     const onSubmit = async (values: ToggleFormFields) => {
         try {
-            const res = await togglePromotionalGroupMappings(values.slNo);
+            const res = await togglePromotionSubjectGroups(values.slNo);
 
             if (res.success) {
                 toast.success(res.message || 'Group status updated');
@@ -63,7 +63,7 @@ export default function PromotionalGroupMappingToggleForm({ rowData, onClose }: 
 
                     <p>
                         Are you sure you want to <strong>{isActive ? 'Deactivate' : 'Activate'}</strong>{' '}
-                        <strong>{rowData.groupName}</strong>?
+                        <strong>{rowData.emcA_CategoryName}</strong>?
                     </p>
 
                     <FormError>{errors.slNo?.message}</FormError>

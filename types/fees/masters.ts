@@ -183,9 +183,15 @@ export interface IspecialFeeHeadList {
     fmH_Id: number;
 }
 
+// export interface IspecialFeeHeadDropdownList {
+//     fmH_Id: number;
+
+//     fmH_FeeName: string;
+// }
+
 export interface IspecialFeeHeadDropdownList {
     fmH_Id: number;
-
+    amount: number;
     fmH_FeeName: string;
 }
 
@@ -231,4 +237,14 @@ export interface ICompanyGroupMappingGroupDropdownList {
     fmG_RegNewFlg?: string;
     createdDate?: string;
     updatedDate?: string;
+}
+
+export interface IAcademicYearDataDetails {
+    asmaY_Id: number;
+    asmaY_Year: string;
+    mI_Id: number;
+    asmaY_From_Date: string;
+    asmaY_To_Date: string;
+    asmaY_Order: number;
+    is_Active: boolean;
 }

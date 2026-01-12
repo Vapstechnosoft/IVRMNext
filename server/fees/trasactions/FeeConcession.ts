@@ -21,6 +21,8 @@ import type {
 
 export async function getConcessionTermDropdownData(groupOrTerm: string, asmaY_Id: number) {
     const url = `FeeConcessionFacade/term-dropdown?groupOrTerm=${groupOrTerm}&asmayId=${asmaY_Id || 0}`;
+
+    console.info('getConcessionTermDropdownData url:', url);
     return await api.get<FeeConcessionTermDropdown[]>('fees', url);
 }
 

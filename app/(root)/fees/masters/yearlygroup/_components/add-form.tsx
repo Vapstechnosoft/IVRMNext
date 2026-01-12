@@ -17,7 +17,7 @@ import { addOrUpdateMasterGroupYearlyCategory } from '@/server/fees/masters/fees
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { CheckSquare, ChevronsUpDown, Save, Search, Square } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -46,9 +46,13 @@ export default function AddMasterYearlyGroup({ onSuccess }: AddMasterYearlyGroup
     const [search, setSearch] = useState('');
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
     const { data: academicYearOptions } = useAcademicYearDropdown();
-    const { data: groupData } = useMasterGroupListDropDown();
+    const { data: groupData, refetch: refetchGroups } = useMasterGroupListDropDown();
     const { refetchAll } = useMasterFeeYearlyGroup();
     const { refetchAll: refetchCategory } = useMasterGetYearlyCategory();
+
+    useEffect(() => {
+        refetchGroups();
+    }, [refetchGroups]);
 
     const feeGroups: FeeGroup[] =
         groupData?.success && Array.isArray(groupData.data)

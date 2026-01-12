@@ -60,10 +60,92 @@ export function printTable(columns: string[], rows: any[], sumRow?: any) {
     printWindow.print();
 }
 
-export function exportToExcel(rows: any[], fileName: string) {
+export function exportToExcelforIndividual(rows: any[], fileName: string) {
     if (!rows || rows.length === 0) return;
+    const dataForExcel = rows.map((row, index) => ({
+        'Sl No': index + 1,
+        'Student Name': row.studentName,
+        'Adm.No': row.admNumber,
+        'Charges as per Academic year': `${row.ChargesasperAcademicyear?.toLocaleString('en-IN') || '0'}`,
+        'Concession as per Academic year': `${row.ConcessionasperAcademicyear?.toLocaleString('en-IN') || '0'}`,
+        'Rebate/Scholarship as per Academic year': `${row.RebateScholarshipasperAcademicyear?.toLocaleString('en-IN') || '0'}`,
+        Fine: `${row.fine?.toLocaleString('en-IN') || '0'}`,
+        'Waive Off as per Academic year': `${row.waivedOffasperAcademicyear?.toLocaleString('en-IN') || '0'}`,
+        'Collection as per Academic year': `${row.collectionasperAcademicyear?.toLocaleString('en-IN') || '0'}`,
+        Balance: `${row.balance?.toLocaleString('en-IN') || '0'}`,
+        'Last Year Due': `${row.lastyearDue?.toLocaleString('en-IN') || '0'}`
+    }));
 
-    const worksheet = XLSX.utils.json_to_sheet(rows);
+    const worksheet = XLSX.utils.json_to_sheet(dataForExcel);
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
+
+    XLSX.writeFile(workbook, `${fileName}.xlsx`);
+}
+
+export function exportToExcelforHeadWise(rows: any[], fileName: string) {
+    if (!rows || rows.length === 0) return;
+    const dataForExcel = rows.map((row, index) => ({
+        'Sl No': index + 1,
+        'Fee Head': row.feeHead,
+        'Charges as per Academic year': `${row.ChargesasperAcademicyear?.toLocaleString('en-IN') || '0'}`,
+        'Concession as per Academic year': `${row.ConcessionasperAcademicyear?.toLocaleString('en-IN') || '0'}`,
+        'Rebate/Scholarship as per Academic year': `${row.RebateScholarshipasperAcademicyear?.toLocaleString('en-IN') || '0'}`,
+        Fine: `${row.fine?.toLocaleString('en-IN') || '0'}`,
+        'Waive Off as per Academic year': `${row.waivedOffasperAcademicyear?.toLocaleString('en-IN') || '0'}`,
+        'Collection as per Academic year': `${row.collectionasperAcademicyear?.toLocaleString('en-IN') || '0'}`,
+        Balance: `${row.balance?.toLocaleString('en-IN') || '0'}`,
+        'Last Year Due': `${row.lastyearDue?.toLocaleString('en-IN') || '0'}`
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataForExcel);
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
+
+    XLSX.writeFile(workbook, `${fileName}.xlsx`);
+}
+
+export function exportToExcelforAll(rows: any[], fileName: string) {
+    if (!rows || rows.length === 0) return;
+    const dataForExcel = rows.map((row, index) => ({
+        'Sl No': index + 1,
+        'Class Name': row.className,
+        'Charges as per Academic year': `${row.ChargesasperAcademicyear?.toLocaleString('en-IN') || '0'}`,
+        'Concession as per Academic year': `${row.ConcessionasperAcademicyear?.toLocaleString('en-IN') || '0'}`,
+        'Rebate/Scholarship as per Academic year': `${row.RebateScholarshipasperAcademicyear?.toLocaleString('en-IN') || '0'}`,
+        Fine: `${row.fine?.toLocaleString('en-IN') || '0'}`,
+        'Waive Off as per Academic year': `${row.waivedOffasperAcademicyear?.toLocaleString('en-IN') || '0'}`,
+        'Collection as per Academic year': `${row.collectionasperAcademicyear?.toLocaleString('en-IN') || '0'}`,
+        Balance: `${row.balance?.toLocaleString('en-IN') || '0'}`,
+        'Last Year Due': `${row.lastyearDue?.toLocaleString('en-IN') || '0'}`
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataForExcel);
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
+
+    XLSX.writeFile(workbook, `${fileName}.xlsx`);
+}
+
+export function exportToExcelforRoute(rows: any[], fileName: string) {
+    if (!rows || rows.length === 0) return;
+    const dataForExcel = rows.map((row, index) => ({
+        'Sl No': index + 1,
+        'Route Name': row.RouteName,
+        'Charges as per Academic year': `${row.ChargesasperAcademicyear?.toLocaleString('en-IN') || '0'}`,
+        'Concession as per Academic year': `${row.ConcessionasperAcademicyear?.toLocaleString('en-IN') || '0'}`,
+        'Rebate/Scholarship as per Academic year': `${row.RebateScholarshipasperAcademicyear?.toLocaleString('en-IN') || '0'}`,
+        Fine: `${row.fine?.toLocaleString('en-IN') || '0'}`,
+        'Waive Off as per Academic year': `${row.waivedOffasperAcademicyear?.toLocaleString('en-IN') || '0'}`,
+        'Collection as per Academic year': `${row.collectionasperAcademicyear?.toLocaleString('en-IN') || '0'}`,
+        Balance: `${row.balance?.toLocaleString('en-IN') || '0'}`,
+        'Last Year Due': `${row.lastyearDue?.toLocaleString('en-IN') || '0'}`
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataForExcel);
     const workbook = XLSX.utils.book_new();
 
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
