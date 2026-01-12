@@ -1414,22 +1414,22 @@ export async function getUserAccessibleModules() {
                                             title: 'Toppers List Report',
                                             description: 'View Toppers List Details'
                                         },
-                                        // {
-                                        //     id: 80,
-                                        //     name: 'Exam Login Privileges Report',
-                                        //     icon: 'BookOpen',
-                                        //     url: '/Exam/exam-module/reports/exam-login-privileges-report',
-                                        //     title: 'Exam Login Privileges Report',
-                                        //     description: 'View Exam Login Privileges Details'
-                                        // },
-                                        // {
-                                        //     id: 81,
-                                        //     name: 'Marks Entry Report',
-                                        //     icon: 'BookOpen',
-                                        //     url: '/Exam/exam-module/reports/marks-entry-report',
-                                        //     title: 'Marks Entry Report',
-                                        //     description: 'View Marks Entry Report Details'
-                                        // },
+                                        {
+                                            id: 80,
+                                            name: 'Exam Login Privileges Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/exam-login-privileges-report',
+                                            title: 'Exam Login Privileges Report',
+                                            description: 'View Exam Login Privileges Details'
+                                        },
+                                        {
+                                            id: 81,
+                                            name: 'Marks Entry Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/marks-entry-report',
+                                            title: 'Marks Entry Report',
+                                            description: 'View Marks Entry Report Details'
+                                        },
                                         {
                                             id: 82,
                                             name: 'Tabulation Report',

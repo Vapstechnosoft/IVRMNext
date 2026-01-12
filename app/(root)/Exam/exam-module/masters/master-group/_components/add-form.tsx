@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -18,6 +18,8 @@ import { addOrUpdateMasterSubjectGroup, getAllMasterSubjectDetails } from '@/ser
 import type { IMasterSubjectGroup, IMasterSubjectGroupDetails } from '@/types/exam/exam-module/masters';
 import { MasterSubjectGroupDetailsColumns } from './subject-group-details-columns';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
 
 type FormFields = z.infer<typeof masterSubjectGroupSchema.addOrUpdate>;
 
@@ -32,7 +34,21 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
     const [selectedSubjects, setSelectedSubjects] = useState<IMasterSubjectGroupDetails[]>([]);
     const [isSubjectsEnabled, setIsSubjectsEnabled] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
     const { refetchAll } = useMasterSubjectGroup();
+
+    // Filter subjects based on search term
+    const filteredSubjects = useMemo(() => {
+        if (!searchTerm.trim()) return allSubjects;
+
+        const term = searchTerm.toLowerCase().trim();
+        return allSubjects.filter(subject =>
+            subject.ismS_SubjectName?.toLowerCase().includes(term) ||
+            subject.ismS_SubjectCode?.toLowerCase().includes(term) ||
+            subject.ismS_SubjectName?.toLowerCase().includes(term) ||
+            subject.ismS_SubjectGroup?.toLowerCase().includes(term)
+        );
+    }, [allSubjects, searchTerm]);
 
     // -------------------------
     // GET SUBJECT LIST
@@ -115,8 +131,8 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
     }, [total, max, min]);
 
     const tableProps = useDataTableProps({
-        data: allSubjects,
-        total: allSubjects.length,
+        data: filteredSubjects,
+        total: filteredSubjects.length,
         pageIndex: 0,
         pageSize: 10
     });
@@ -126,6 +142,11 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
     // -------------------------
     const handleSelectedSubjectsChange = (rows: IMasterSubjectGroupDetails[]) => {
         setSelectedSubjects(rows);
+    };
+
+    // Clear search
+    const handleClearSearch = () => {
+        setSearchTerm('');
     };
 
     // -------------------------
@@ -158,6 +179,7 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
             if (res.success) {
                 toast.success(res.message || "Saved successfully.");
                 reset();
+                setSearchTerm('');
                 refetchAll();
                 onSuccess?.();
             } else {
@@ -268,31 +290,101 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
                     />
                     {errors.emG_BestOff && <FormError>{errors.emG_BestOff.message}</FormError>}
                 </div>
-
-
             </div>
 
             <CollapsibleSection title="Select Subjects" defaultOpen>
+                {/* Search Box Section */}
+                <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="text-sm text-gray-600">
+                        Showing {filteredSubjects.length} of {allSubjects.length} subjects
+                        {searchTerm && (
+                            <span className="ml-2">
+                                (Search: "{searchTerm}")
+                            </span>
+                        )}
+                    </div>
+
+                    <div className="relative w-full sm:w-64">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                            <Input
+                                type="text"
+                                placeholder="Search subjects..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="pl-9 pr-9"
+                            />
+                            {searchTerm && (
+                                <button
+                                    type="button"
+                                    onClick={handleClearSearch}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                    aria-label="Clear search"
+                                >
+                                    ✕
+                                </button>
+                            )}
+                        </div>
+                        {searchTerm && filteredSubjects.length === 0 && (
+                            <p className="mt-1 text-xs text-red-500">
+                                No subjects found matching "{searchTerm}"
+                            </p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Subjects Table */}
                 <GenericDataTable
                     {...tableProps}
                     columns={MasterSubjectGroupDetailsColumns}
                     isLoading={isLoading}
                     maxSelectableRows={total}
                     onRowSelectionChange={handleSelectedSubjectsChange}
-                    noDataTitle="No Subjects Found"
-                    noDataDescription="Please add subjects first"
+                    noDataTitle={searchTerm ? "No Subjects Found" : "No Subjects Available"}
+                    noDataDescription={searchTerm ? "Try a different search term" : "Please add subjects first"}
                 />
+
+                {/* Selection Summary */}
+                {selectedSubjects.length > 0 && (
+                    <div className="mt-4 rounded border bg-gray-50 p-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="text-sm font-medium">
+                                Selected: <span className="text-blue-600">{selectedSubjects.length}</span> of {total} required subjects
+                            </div>
+                            <div className="text-xs text-gray-500">
+                                {selectedSubjects.length >= total ? (
+                                    <span className="text-green-600">✓ Selection requirement met</span>
+                                ) : (
+                                    <span className="text-amber-600">
+                                        Select {total - selectedSubjects.length} more subject(s)
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
             </CollapsibleSection>
 
             <div className="flex gap-2 justify-end">
-                <Button type="button" variant="outline" onClick={() => reset()}>
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                        reset();
+                        setSearchTerm('');
+                        setSelectedSubjects([]);
+                    }}
+                >
                     Cancel
                 </Button>
-                <Button type="submit" disabled={isSubmitting} isLoading={isSubmitting}>
+                <Button
+                    type="submit"
+                    disabled={isSubmitting || !isSubjectsEnabled}
+                    isLoading={isSubmitting}
+                >
                     Save
                 </Button>
             </div>
-
         </form>
     );
 }

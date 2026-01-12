@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMasterGrade } from '@/hooks/exam/exammodule/usemasters';
+import { useMasterGradeDropdownList } from '@/hooks/exam/exammodule/usemasters';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { tbs_reportschoolSchema } from '@/schemas/exam/exam-module/reports';
 import {
@@ -57,7 +57,7 @@ export default function TBSReportSchoolForm({
     const [gradeList, setGradeList] = useState<any[]>([]);
 
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
-    const { data: gradeData, isLoading: gradeLoading, error: gradeError } = useMasterGrade();
+    const { data: gradeData, isLoading: gradeLoading, error: gradeError } = useMasterGradeDropdownList();
 
     const selectedYear = useWatch({ control, name: 'asmaY_Id' });
     const selectedClass = useWatch({ control, name: 'asmcL_Id' });

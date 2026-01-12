@@ -262,22 +262,120 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                     {/* From Marks */}
                                     <td className='border'>
                                         <InputText
-                                            {...register(`grade_list.${index}.emgD_From` as const, {
-                                                setValueAs: v => v === "" || v === null ? null : Number(v)
+                                            type="number"
+                                            step="any"
+                                            min="0"
+                                            max="100"
+                                            {...register(`grade_list.${index}.emgD_From`, {
+                                                setValueAs: v => {
+                                                    if (v === "" || v === null) return null;
+                                                    const num = Number(v);
+                                                    return Number.isNaN(num) ? null : num;
+                                                },
+                                                onChange: (e) => {
+                                                    // Allow only numbers and decimal point
+                                                    const value = e.target.value;
+                                                    if (value && !/^\d*\.?\d*$/.test(value)) {
+                                                        e.target.value = value.replace(/[^\d.]/g, '');
+                                                    }
+                                                }
                                             })}
-                                            placeholder="Enter marks"
+                                            placeholder="0-100"
                                             error={errors.grade_list?.[index]?.emgD_From?.message}
+                                            onKeyPress={(e) => {
+                                                // Prevent non-numeric characters except decimal point
+                                                const char = String.fromCharCode(e.which);
+                                                if (!/[\d.]/.test(char)) {
+                                                    e.preventDefault();
+                                                }
+                                            }}
+                                            onPaste={(e) => {
+                                                // Prevent paste of non-numeric content
+                                                const pasteData = e.clipboardData.getData('text');
+                                                if (!/^[\d.]*$/.test(pasteData)) {
+                                                    e.preventDefault();
+                                                }
+                                            }}
                                         />
                                     </td>
 
                                     {/* To Marks */}
                                     <td className='border'>
                                         <InputText
-                                            {...register(`grade_list.${index}.emgD_To` as const, {
-                                                setValueAs: v => v === "" || v === null ? null : Number(v)
+                                            type="number"
+                                            step="any"
+                                            min="0"
+                                            max="100"
+                                            {...register(`grade_list.${index}.emgD_To`, {
+                                                setValueAs: v => {
+                                                    if (v === "" || v === null) return null;
+                                                    const num = Number(v);
+                                                    return Number.isNaN(num) ? null : num;
+                                                },
+                                                onChange: (e) => {
+                                                    // Allow only numbers and decimal point
+                                                    const value = e.target.value;
+                                                    if (value && !/^\d*\.?\d*$/.test(value)) {
+                                                        e.target.value = value.replace(/[^\d.]/g, '');
+                                                    }
+                                                }
                                             })}
-                                            placeholder="Enter marks"
+                                            placeholder="0-100"
                                             error={errors.grade_list?.[index]?.emgD_To?.message}
+                                            onKeyPress={(e) => {
+                                                // Prevent non-numeric characters except decimal point
+                                                const char = String.fromCharCode(e.which);
+                                                if (!/[\d.]/.test(char)) {
+                                                    e.preventDefault();
+                                                }
+                                            }}
+                                            onPaste={(e) => {
+                                                // Prevent paste of non-numeric content
+                                                const pasteData = e.clipboardData.getData('text');
+                                                if (!/^[\d.]*$/.test(pasteData)) {
+                                                    e.preventDefault();
+                                                }
+                                            }}
+                                        />
+                                    </td>
+
+                                    {/* Grade Points */}
+                                    <td className='border'>
+                                        <InputText
+                                            type="number"
+                                            step="any"
+                                            min="0"
+                                            max="10"
+                                            {...register(`grade_list.${index}.emgD_GradePoints`, {
+                                                setValueAs: v => {
+                                                    if (v === "" || v === null) return null;
+                                                    const num = Number(v);
+                                                    return Number.isNaN(num) ? null : num;
+                                                },
+                                                onChange: (e) => {
+                                                    // Allow only numbers and decimal point
+                                                    const value = e.target.value;
+                                                    if (value && !/^\d*\.?\d*$/.test(value)) {
+                                                        e.target.value = value.replace(/[^\d.]/g, '');
+                                                    }
+                                                }
+                                            })}
+                                            placeholder="0-10"
+                                            error={errors.grade_list?.[index]?.emgD_GradePoints?.message}
+                                            onKeyPress={(e) => {
+                                                // Prevent non-numeric characters except decimal point
+                                                const char = String.fromCharCode(e.which);
+                                                if (!/[\d.]/.test(char)) {
+                                                    e.preventDefault();
+                                                }
+                                            }}
+                                            onPaste={(e) => {
+                                                // Prevent paste of non-numeric content
+                                                const pasteData = e.clipboardData.getData('text');
+                                                if (!/^[\d.]*$/.test(pasteData)) {
+                                                    e.preventDefault();
+                                                }
+                                            }}
                                         />
                                     </td>
 

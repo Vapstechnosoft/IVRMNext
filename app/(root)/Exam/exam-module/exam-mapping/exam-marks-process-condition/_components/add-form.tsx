@@ -30,6 +30,8 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
             mI_Id: orgId,
             asmaY_Id: 0,
             emE_Id: 0,
+            eyC_Id: 1,
+            eycE_Id: 1,
             eycE_ExamStartDate: '',
             eycE_ExamEndDate: '',
             eycE_MarksEntryLastDate: '',
@@ -67,6 +69,7 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
             try {
                 const { data: cats } = await getCategoryDropDownByAcademicYearlist(orgId, Number(selectedYearId));
                 setCategories(Array.isArray(cats) ? cats : []);
+                console.log('categories **', cats);
                 // reset selected category & exams
                 setValue('emcA_Id', 0);
                 setExams([]);
@@ -91,6 +94,7 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
             try {
                 // server helper to fetch exam list for category (I added this helper in server file)
                 const { data: ex } = await getExamsByCategoryandAcademicYear(orgId, Number(selectedYearId), Number(selectedCategoryId));
+                console.log('exams **', ex);
                 setExams(Array.isArray(ex) ? ex : []);
                 setValue('emE_Id', 0);
             } catch (err: any) {
@@ -102,6 +106,7 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
 
     const onSubmit = async (payload: FormFields) => {
         try {
+            console.log('process condition payload', payload);
             const res = await addOrUpdateExamMarksProcessCondition(payload);
             if (res?.success) {
                 toast.success(res.message ?? 'Saved successfully');

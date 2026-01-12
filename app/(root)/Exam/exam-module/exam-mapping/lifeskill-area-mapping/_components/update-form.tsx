@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
-    useMasterGrade,
+    useMasterGradeDropdownList,
     useMasterLifeSkillArea,
     useMasterLifeSkillAreaMapping,
     useMasterLifeSkills
@@ -42,7 +42,7 @@ export default function UpdateLifeSkillAreaMapping({ rowData, onSuccess }: Updat
     const academicYears = academicYear?.data ? academicYear.data : [];
     const { data: lifeSkillData, error: lifeSkillError } = useMasterLifeSkills();
     const { data: lifeSkillAreaData, error: areaError } = useMasterLifeSkillArea();
-    const { data: masterGradeData, error: masterGradeError } = useMasterGrade();
+    const { data: masterGradeData, error: masterGradeError } = useMasterGradeDropdownList();
 
     const methods = useForm<FormFields>({
         resolver: zodResolver(lifeSkillAreaMappingSchema.addOrUpdate),

@@ -372,14 +372,23 @@ export const toppersListReportSchema = z
     .object({
         type: z.enum(['1', '2']), // 1: All, 2: Individual
         ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+        EMCA_Id: z.string().min(1, 'Category is required'),
         ASMCL_Id: z.string().min(1, 'Class is required'),
-        ASMS_Id: z.string().optional(), // Section (Validation depends on type)
-        topper: z.string().min(1, 'Top count is required').regex(/^\d+$/, 'Must be a number'),
+        ASMS_Id: z.string().optional(), // Section (Required only for Individual type)
+        topper: z.string()
+            .min(1, 'Top count is required')
+            .regex(/^\d+$/, 'Must be a number')
+            .refine((val) => Number.parseInt(val) > 0, 'Top count must be greater than 0'),
         EME_Id: z.string().min(1, 'Exam is required'),
         subjectwise: z.boolean().default(false),
-        ISMS_Id: z.string().optional() // Subject (Validation depends on subjectwise)
+        ISMS_Id: z.string().optional(), // Subject (Required only when subjectwise is checked)
+        // Hidden fields for API payload
+        exm_check_type: z.string().default('0'),
+        sub_check_type: z.string().default('0'),
+        report_type: z.string().optional() // This will be derived from 'type'
     })
     .superRefine((data, ctx) => {
+        // Conditional validation for Section when type is Individual (2)
         if (data.type === '2' && !data.ASMS_Id) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
@@ -387,6 +396,8 @@ export const toppersListReportSchema = z
                 path: ['ASMS_Id']
             });
         }
+
+        // Conditional validation for Subject when subjectwise is checked
         if (data.subjectwise && !data.ISMS_Id) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
@@ -394,6 +405,15 @@ export const toppersListReportSchema = z
                 path: ['ISMS_Id']
             });
         }
+
+        // Set derived report_type based on type
+        data.report_type = data.type === '1' ? 'All' : 'Individual';
+
+        // Set exm_check_type based on EME_Id
+        data.exm_check_type = data.EME_Id ? '1' : '0';
+
+        // Set sub_check_type based on subjectwise and ISMS_Id
+        data.sub_check_type = (data.subjectwise && data.ISMS_Id) ? '1' : '0';
     });
 
 export type ToppersListSchema = z.infer<typeof toppersListReportSchema>;

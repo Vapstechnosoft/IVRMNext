@@ -35,7 +35,7 @@ interface SubExamItem {
     eycessS_MarksEntryMax?: string | number;
     EYCESSE_Id?: number;
     EYCESSS_Id?: number;
-    EYCESSE_SubExamOrder?: number;
+    emsE_SubExamOrder?: number;
 }
 
 interface FormData {
@@ -46,7 +46,7 @@ interface SubExamModalProps {
     open: boolean;
     subject?: any;
     onClose: (subjectId: number) => void;
-    onSave: (subjectId: number, selectedList: any[]) => void;
+    onSave: (subjectId: number, selectedList: any[], subExamList: any[]) => void;
     schema: z.ZodType<any>;
     gradeList: IMasterGrade[];
 }
@@ -80,7 +80,12 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
             reset({ subexam_list: [] });
             return;
         }
+        const rawList = subject.list ?? [];
+        console.log('rawList **', rawList);
 
+        const shouldSort = rawList.some(
+            (l: any) => Number(l.emsE_SubExamOrder) > 0
+        );
         const list = (subject.list ?? []).map((l: any) => ({
             ...l,
             emsE_SubExamName: l.emsE_SubExamName,
@@ -91,16 +96,23 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
             emgR_Id: l.EMGR_Id ?? '',
             eycessS_ExemptedFlg: !!l.EYCESSE_ExemptedFlg,
             eycessS_ExemptedPer: l.EYCESSE_ExemptedPer ?? '',
-            eycessS_SubSubjectOrder: l.EYCESSS_SubSubjectOrder ?? '',
             eycessS_ActiveFlg: !!l.EYCESSE_ActiveFlg,
             eycessS_GradesFlg: !!l.EYCESSS_GradesFlg,
             eycessS_MarksFlg: !!l.EYCESSS_MarksFlg,
             eycessS_AplResultFlg: !!l.EYCESSS_AplResultFlg,
             eycessS_MarksEntryMax: l.EYCESSS_MarksEntryMax ?? '',
-            EYCESSE_SubExamOrder: l.EYCESSE_SubExamOrder
+            emsE_SubExamOrder: l.emsE_SubExamOrder
         }));
 
-        replace(list);
+        const finalList = shouldSort
+            ? [...list].sort(
+                (a, b) =>
+                    Number(a.emsE_SubExamOrder) -
+                    Number(b.emsE_SubExamOrder)
+            )
+            : list;
+
+        replace(finalList);
     }, [subject, reset, replace]);
 
     // ----------------------------------
@@ -121,13 +133,13 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
         const reorderedList = (updatedData ?? []).map((item: any, index: number) => {
             const matchId = item.id ?? item.emsE_Id;
             const original = currentList.find((x: any) => x.emsE_Id === matchId) ?? item;
-            return { ...original, EYCESSE_SubExamOrder: index + 1 };
+            return { ...original, emsE_SubExamOrder: index + 1 };
         });
 
         const reorderedIds = new Set(reorderedList.map((r: any) => r.emsE_Id));
         const remaining = currentList.filter((x: any) => !reorderedIds.has(x.emsE_Id));
         const finalList = [...reorderedList, ...remaining].sort(
-            (a, b) => Number(a.EYCESSE_SubExamOrder ?? 0) - Number(b.EYCESSE_SubExamOrder ?? 0)
+            (a, b) => Number(a.emsE_SubExamOrder ?? 0) - Number(b.emsE_SubExamOrder ?? 0)
         );
 
         replace(finalList);
@@ -337,14 +349,14 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
             EYCESSE_ExemptedFlg: !!r.eycessS_ExemptedFlg,
             EYCESSE_ExemptedPer: Number(r.eycessS_ExemptedPer) || 0,
             EYCESSE_ActiveFlg: !!r.eycessS_ActiveFlg,
-            EYCESSE_SubExamOrder: index + 1,
+            emsE_SubExamOrder: index + 1,
             EYCESSS_MarksFlg: !!r.eycessS_MarksFlg,
             EYCESSS_GradesFlg: !!r.eycessS_GradesFlg,
             EYCESSS_AplResultFlg: !!r.eycessS_AplResultFlg,
             EYCESSS_MarksEntryMax: Number(r.eycessS_MarksEntryMax) || 0
         }));
 
-        onSave(subject.ISMS_Id, formatted);
+        onSave(subject.ISMS_Id, formatted, values.subexam_list);
     };
 
     const renderSkeletonTable = () => (
@@ -699,7 +711,7 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                             { key: 'id', label: 'SLNO', className: 'text-center w-12' },
                             { key: 'emsE_SubExamName', label: 'Sub-Exam Name', className: 'text-left' },
                             { key: 'emsE_SubExamCode', label: 'Sub-Exam Code', className: 'text-left' },
-                            { key: 'EYCESSE_SubExamOrder', label: 'Sub-Exam Order', className: 'text-left' }
+                            { key: 'emsE_SubExamOrder', label: 'Sub-Exam Order', className: 'text-left' }
                         ]}
                         onSave={handleOrderSave}
                         tableHeight='500px'

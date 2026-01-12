@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCoScholasticActivityAreaMapping } from '@/hooks/exam/exammodule/exam-mapping';
-import { useCoScholasticActivityAreaDropDown, useCoScholasticActivityDropDown, useMasterGrade } from '@/hooks/exam/exammodule/usemasters';
+import { useCoScholasticActivityAreaDropDown, useCoScholasticActivityDropDown, useMasterGradeDropdownList } from '@/hooks/exam/exammodule/usemasters';
 // dropdown hooks
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { CoScholasticActivityAreaMappingSchema } from '@/schemas/exam/exam-module/exam-mapping';
@@ -37,7 +37,7 @@ export default function AddCoScholasticActivityAreaMapping({
         isLoading: academicYearLoading,
         error: academicYearError,
     } = useAcademicYearDropdown();
-    const { data: gradesData, isLoading: loadingGrades, error: gradesError } = useMasterGrade();
+    const { data: gradesData, isLoading: loadingGrades, error: gradesError } = useMasterGradeDropdownList();
     const { data: areaData, isLoading: loadingArea, error: activityAreaError } = useCoScholasticActivityAreaDropDown();
     const { data: activityData, isLoading: loadingActivity, error: activityError } = useCoScholasticActivityDropDown();
 
@@ -159,8 +159,9 @@ export default function AddCoScholasticActivityAreaMapping({
                                         Academic Year <span className='text-red-500'>*</span>
                                     </Label>
                                     <Select
-                                        value={field.value ? String(field.value) : ''}
-                                        onValueChange={(val) => field.onChange(val ? Number.parseInt(val) : undefined)}>
+                                        key={field.value}
+                                        value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                        onValueChange={(val) => field.onChange(Number(val))}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Academic Year' />
                                         </SelectTrigger>
@@ -196,8 +197,9 @@ export default function AddCoScholasticActivityAreaMapping({
                                         Master Grade <span className='text-red-500'>*</span>
                                     </Label>
                                     <Select
-                                        value={field.value ? String(field.value) : ''}
-                                        onValueChange={(val) => field.onChange(val ? Number.parseInt(val) : undefined)}>
+                                        key={field.value}
+                                        value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                        onValueChange={(val) => field.onChange(Number(val))}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Grade' />
                                         </SelectTrigger>
@@ -223,8 +225,9 @@ export default function AddCoScholasticActivityAreaMapping({
                                         Activities Name <span className='text-red-500'>*</span>
                                     </Label>
                                     <Select
-                                        value={field.value ? String(field.value) : ''}
-                                        onValueChange={(val) => field.onChange(val ? Number.parseInt(val) : undefined)}>
+                                        key={field.value}
+                                        value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                        onValueChange={(val) => field.onChange(Number(val))}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Activity' />
                                         </SelectTrigger>
@@ -251,8 +254,9 @@ export default function AddCoScholasticActivityAreaMapping({
                                         Activities Area <span className='text-red-500'>*</span>
                                     </Label>
                                     <Select
-                                        value={field.value ? String(field.value) : ''}
-                                        onValueChange={(val) => field.onChange(val ? Number.parseInt(val) : undefined)}>
+                                        key={field.value}
+                                        value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                        onValueChange={(val) => field.onChange(Number(val))}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Activity Area' />
                                         </SelectTrigger>

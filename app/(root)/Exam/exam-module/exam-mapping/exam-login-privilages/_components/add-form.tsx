@@ -108,9 +108,8 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
     // Effect to handle edit when rowData is provided
     useEffect(() => {
         const fetchEditData = async () => {
-            if (!rowData?.elP_Id) return;
-
             setIsLoadingEditData(true);
+            if (!rowData?.elP_Id || employeeData?.data.length === 0 || classTeachersData?.data.length === 0 || subjects.length === 0) return;
             try {
                 // Set edit mode
                 setEditMode('edit');
@@ -120,12 +119,15 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                 const editData = await getExamLoginPrivilegesEditDetails(rowData.elP_Id, rowData.asmcL_Id, rowData.asmS_Id);
                 if (editData?.success && Array.isArray(editData.data) && editData.data.length > 0) {
                     const editList = Array.isArray(editData.data) ? editData.data : [editData.data];
-                    console.log(editList);
                     const isClassTeacher = editList?.[0]?.elP_Flg === 'st' || editList?.[0]?.elP_Flg === 'others';
 
-                    const sourceData = isClassTeacher ? classTeachersData?.data : employeeData?.data;
-                    console.log('sourceData **', sourceData);
-                    const employee = sourceData?.find((emp: any) => emp.hrmE_Id === editList?.[0]?.hrmE_Id);
+                    const s_Data = isClassTeacher ? classTeachersData : employeeData;
+                    const sourceData = Array.isArray(s_Data?.data) ? s_Data.data : s_Data?.data;
+                    const employee = sourceData?.find((emp: any) => {
+                        if (!editList?.length) return false;
+                        return emp.hrmE_Id === editList[0]?.hrmE_Id;
+                    });
+
 
                     const employeeName = employee?.hrmE_EmployeeName ?? '';
 
@@ -190,24 +192,9 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                             });
                         }
                     });
-
-                    // Get academic year info
-                    const yearInfo = academicYear?.data?.find((y: any) => y.asmaY_Id === 231);
-
-                    // Set form values
-                    setValue('asmaY_Id', 176);
-                    setValue('hrmE_Id', employee?.hrmE_Id ?? '');
-                    setValue('ivrmulF_Id', userId);
-                    setValue('sectionList', selectedSections);
-                    setValue('classList', Array.from(uniqueClasses.values()));
-                    setValue('subjectList', Array.from(selectedSubjects.values()));
-                    setValue('subSubjectList', Array.from(selectedSubSubjects.values()));
+                    const yearInfo = academicYear?.data?.find((y: any) => y.asmaY_Id === editList[0]?.asmaY_Id);
                     setValue('entryType', entryType as any);
-
-                    // Set details state
                     const detailRows: DetailRow[] = [];
-
-                    // Group by class-section combinations
                     const classSectionMap = new Map();
 
                     editList.forEach((item: any) => {
@@ -249,7 +236,6 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
 
                     setDetails(detailRows);
 
-                    toast.success('Edit data loaded successfully');
                 } else {
                     toast.error('No record found for editing');
                     resetToAddMode();
@@ -264,7 +250,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
         };
 
         fetchEditData();
-    }, [rowData, academicYear?.data]);
+    }, [rowData, academicYear?.data, employeeData?.data, classTeachersData?.data, subjects]);
 
     // Reset to add mode function
     const resetToAddMode = () => {
@@ -398,8 +384,8 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
             Array.isArray(v.classList) && v.classList.length
                 ? v.classList
                 : v.asmcL_Id
-                  ? classes.filter((c) => c.asmcL_Id === v.asmcL_Id)
-                  : [];
+                    ? classes.filter((c) => c.asmcL_Id === v.asmcL_Id)
+                    : [];
 
         if (rawClasses.length === 0) {
             toast.error('No classes selected');
@@ -420,9 +406,9 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
         // FIXED: Use emsS_Id instead of issS_Id
         const selectedSSubjects: any[] = Array.isArray(v.subSubjectList)
             ? v.subSubjectList.map((ss: any) => ({
-                  emsS_Id: ss.emsS_Id,
-                  emsS_SubSubjectName: ss.emsS_SubSubjectName || ''
-              }))
+                emsS_Id: ss.emsS_Id,
+                emsS_SubSubjectName: ss.emsS_SubSubjectName || ''
+            }))
             : [];
 
         const rows: DetailRow[] = [];
@@ -1094,8 +1080,8 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                 ? 'Updating...'
                                                 : 'Saving...'
                                             : editMode === 'edit'
-                                              ? 'Update'
-                                              : 'Save'}
+                                                ? 'Update'
+                                                : 'Save'}
                                     </Button>
 
                                     {editMode === 'edit' && (

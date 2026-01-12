@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
-    useMasterGrade,
+    useMasterGradeDropdownList,
     useMasterLifeSkillArea,
     useMasterLifeSkillAreaMapping,
     useMasterLifeSkills
@@ -30,7 +30,7 @@ export default function AddLifeSkillAreaMapping({ onSuccess }: { onSuccess?: () 
     const [grades, setGrades] = useState<IMasterGrade[]>([]);
     const { data: lifeSkillData, error: lifeSkillError } = useMasterLifeSkills();
     const { data: lifeSkillAreaData, error: areaError } = useMasterLifeSkillArea();
-    const { data: masterGradeData, error: masterGradeError } = useMasterGrade();
+    const { data: masterGradeData, error: masterGradeError } = useMasterGradeDropdownList();
 
     // 🔹 Form Setup
     const methods = useForm<FormFields>({
