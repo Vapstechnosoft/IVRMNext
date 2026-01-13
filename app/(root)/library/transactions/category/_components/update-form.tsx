@@ -182,7 +182,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
             }
 
             try {
-                const response = await getGroupListCategory(30, Number(academicYear), {}); // mi_id = 30
+                const response = await getGroupListCategory(30, Number(academicYear)); // mi_id = 30
 
                 if (response?.data && Array.isArray(response.data)) {
                     const options = response.data.map((item: any) => ({

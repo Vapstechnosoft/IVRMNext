@@ -5,7 +5,7 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown, useClassCategoryDropdown } from '@/hooks/fees/useMasters';
 import { masterClassYearlyCategorySchema } from '@/schemas/fees/masters';
-import { addOrUpdateMasterClassYearlyCategory, getGroupListCategory } from '@/server/fees/masters/class_yearly_category';
+import { addOrUpdateMasterClassYearlyCategory } from '@/server/fees/masters/class_yearly_category';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -114,22 +114,22 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                 return;
             }
 
-            try {
-                const response = await getGroupListCategory(30, Number(academicYear), {}); // mi_id = 30
-                if (response?.data && Array.isArray(response.data)) {
-                    const options = response.data.map((item: any) => ({
-                        value: item.asmcL_Id.toString(),
-                        label: item.asmcL_ClassName
-                    }));
-                    setClassOptions(options);
-                } else {
-                    setClassOptions([]);
-                }
-            } catch (error: any) {
-                console.error('Class fetch error:', error);
-                toast.error(error.message || 'Error fetching classes');
-                setClassOptions([]);
-            }
+            // try {
+            //     const response = await getGroupListCategory(30, Number(academicYear)); // mi_id = 30
+            //     if (response?.data && Array.isArray(response.data)) {
+            //         const options = response.data.map((item: any) => ({
+            //             value: item.asmcL_Id.toString(),
+            //             label: item.asmcL_ClassName
+            //         }));
+            //         setClassOptions(options);
+            //     } else {
+            //         setClassOptions([]);
+            //     }
+            // } catch (error: any) {
+            //     console.error('Class fetch error:', error);
+            //     toast.error(error.message || 'Error fetching classes');
+            //     setClassOptions([]);
+            // }
         };
 
         fetchClasses();

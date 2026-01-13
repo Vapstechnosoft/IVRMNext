@@ -32,7 +32,7 @@ export default function ToggleMasterFeesConfigForm({
         try {
             setIsSubmitting(true);
 
-            const response = await toggleMasterfeeconfig(30, configId);
+            const response = await toggleMasterfeeconfig(30);
 
             if (response.success) {
                 toast.success(response.message || `Configuration ${isActive ? 'deactivated' : 'activated'} successfully`);
