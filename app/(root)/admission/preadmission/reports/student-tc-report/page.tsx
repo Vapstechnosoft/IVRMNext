@@ -12,7 +12,8 @@ import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMaste
 import {
     useActivePreadmissionDetails,
     usePreadmissionAdmissionStatusDropdown,
-    usePreadmissionClassDropdown
+    usePreadmissionClassDropdown,
+    useadmissionSectionDropdown
 } from '@/hooks/admission/preadmission/useTransactions';
 import { cn } from '@/lib/utils';
 
@@ -114,6 +115,11 @@ export default function StudentTcReportPage(props: {
 
     const [viewMode, setViewMode] = useState<'all' | 'indi'>('all');
     const [tcType, setTcType] = useState<'TTC' | 'PTC'>('PTC');
+    const {
+        data: preadmissionSection,
+        isLoading: preadmissionSectionLoading,
+        isError: preadmissionSectionError
+    } = useadmissionSectionDropdown(classId);
 
     const availableColumns = [
         'Student Name',
@@ -372,18 +378,18 @@ export default function StudentTcReportPage(props: {
                                         <SelectItem key={0} value={'0'}>
                                             All
                                         </SelectItem>
-                                        {admissionStatusLoading ? (
+                                        {preadmissionSectionLoading ? (
                                             <SelectItem value='loading' disabled>
                                                 Loading...
                                             </SelectItem>
-                                        ) : admissionStatusError ? (
+                                        ) : preadmissionSectionError ? (
                                             <SelectItem value='error' disabled>
                                                 Error loading
                                             </SelectItem>
                                         ) : (
-                                            admissionStatus?.data?.map((item) => (
-                                                <SelectItem key={item.pamsT_Id} value={item.pamsT_Id.toString()}>
-                                                    {item.pamsT_Status}
+                                            preadmissionSection?.data?.map((item: any) => (
+                                                <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>
+                                                    {item.asmC_SectionName}
                                                 </SelectItem>
                                             ))
                                         )}
