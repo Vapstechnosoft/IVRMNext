@@ -88,7 +88,7 @@ export default function CountReportTable({ data }: CountReportTableProps) {
     });
 
     return (
-        <div className='space-y-4'>
+        <div className='container space-y-4'>
             <div className='flex items-center justify-between'>
                 <div>
                     Total Records: <span className='font-bold'>{data.length}</span>

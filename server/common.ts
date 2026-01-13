@@ -2650,6 +2650,37 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
+                                    id: 3,
+                                    name: 'Constraints',
+                                    icon: 'Clock',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Bifurcation Constraints',
+                                            icon: 'Clock',
+                                            url: '/timetable/constraints/bifurcationconstraints',
+                                            title: 'Bifurcation Constraints',
+                                            description: 'Manage Bifurcation Constraints Details'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'consecutive',
+                                            icon: 'Clock',
+                                            url: '/timetable/constraints/consecutive',
+                                            title: 'Consecutive Constraints',
+                                            description: 'Manage Consecutive Constraints Details'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Fixing',
+                                            icon: 'Clock',
+                                            url: '/timetable/constraints/fixing',
+                                            title: 'Fixing Constraints',
+                                            description: 'Manage Fixing Constraints Details'
+                                        }
+                                    ]
+                                },
+                                {
                                     id: 2,
                                     name: 'Reports',
                                     icon: 'Clock',
