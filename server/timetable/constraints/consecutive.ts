@@ -4,7 +4,7 @@ import { api } from '@/lib/apiService';
 
 // Load initial data (Grid and Dropdowns)
 export async function getConsecutiveConstraintsDetails() {
-    const url = '';
+    const url = '/TT_ConsecutiveFacade/ConsecutiveConstraintsGridData';
     return await api.get<any>('timetable', url);
 }
 

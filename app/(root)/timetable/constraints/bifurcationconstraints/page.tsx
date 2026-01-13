@@ -4,9 +4,9 @@ import BifurcationConstraints from './_components/bifurcation-constraints';
 export default async function BifurcationConstraintsPage() {
     let initialData = null;
     try {
-        initialData = await getBifurcationConstraintsDetails(10);
+        initialData = await getBifurcationConstraintsDetails();
     } catch (error: any) {
-        console.error('Failed to load bifurcation constraints:', error);
+        //console.error('Failed to load bifurcation constraints:', error);
         initialData = {
             success: false,
             message: error?.message || 'Failed to load bifurcation constraints',

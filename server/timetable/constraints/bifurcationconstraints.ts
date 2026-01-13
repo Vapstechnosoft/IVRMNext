@@ -3,8 +3,8 @@
 import { api } from '@/lib/apiService';
 
 // Load initial data (Grid and Dropdowns)
-export async function getBifurcationConstraintsDetails(pageid: number) {
-    const url = `/Bifurcation/getalldetails/${pageid}`;
+export async function getBifurcationConstraintsDetails() {
+    const url = '/BifurcationFacade/BifurcationConstraintsGridData';
     return await api.get<any>('timetable', url);
 }
 

@@ -6,7 +6,7 @@ import type { IStaffAbbreviationList, IStaffDropdownList } from '@/types/timetab
 
 export async function getStaffAbbreviationDetails(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'ttmD_DayName,ttmD_DayCode');
-    const url = `/StaffMasterFacade/staffAbbreviationGridData?${urlParams}`;
+    const url = `/StaffMaster/staffAbbreviationGridData?${urlParams}`;
     console.info('MasterDayFacade', url);
     return await api.get<IStaffAbbreviationList[]>('timetable', url);
 }

@@ -1,6 +1,6 @@
 'use server';
 
-import { api } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type {
     FixingDayPeriodSchema,
     FixingDayStaffSchema,
@@ -8,11 +8,19 @@ import type {
     FixingPeriodStaffSchema,
     FixingPeriodSubjectSchema
 } from '@/schemas/timetable/constraints/fixing';
+import type { ApiSearchparams } from '@/types';
+import type { ITTFixingLoadData } from '@/types/timetable/constraints';
 
 // Load Initial Data
-export async function getFixingLoadData() {
-    const url = '';
-    return await api.get<any>('timetable', url);
+// export async function getFixingLoadData() {
+//     const url = '';
+//     return await api.get<any>('timetable', url);
+// }
+
+export async function getFixingLoadData(searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'ttmC_CategoryName');
+    const url = `/TTMasterCategoryFacade/GetMasterCategoryGridList?${urlParams}`;
+    return await api.get<ITTFixingLoadData[]>('timetable', url);
 }
 
 // -------------------------------------------------------------------------

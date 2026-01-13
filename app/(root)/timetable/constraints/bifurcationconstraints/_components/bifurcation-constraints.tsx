@@ -36,7 +36,7 @@ function BifurcationConstraintsContent({ initialData }: BifurcationConstraintsPr
     // Note: If using `useRouter().refresh()`, the prop `initialData` updates.
 
     // Legacy: detailslist contains the grid data.
-    const dataList = initialData?.detailslist || [];
+    //const dataList = initialData?.detailslist || [];
 
     // tableProps handles pagination object if provided by API, else defaults.
     const tableProps = useDataTableProps(initialData);
@@ -64,7 +64,7 @@ function BifurcationConstraintsContent({ initialData }: BifurcationConstraintsPr
                     <GenericDataTable<IBifurcationConstraintList>
                         isLoading={false}
                         {...tableProps}
-                        data={dataList}
+                        //data={dataList}
                         columns={columns}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading constraints...'
