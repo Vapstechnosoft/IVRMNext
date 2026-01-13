@@ -88,10 +88,11 @@ function FormSections({ refetch }: { refetch: () => void }) {
     const {
         isAddFormOpen,
         isEditFormOpen,
-        //isDeleteFormOpen,
+        isToggleFormOpen,
         selectedRow,
         closeAddForm,
-        //closeDeleteForm,
+        closeToggleForm,
+
         closeEditForm,
         addFormRef,
         editFormRef
@@ -177,6 +178,9 @@ function FormSections({ refetch }: { refetch: () => void }) {
                     </CollapsibleSection>
                 </div>
             )}
+            {/* 
+             {isToggleFormOpen && selectedRow && <ToggleMasterVendorForm rowData={selectedRow} onClose={closeToggleForm} />}
+             */}
         </>
     );
 }

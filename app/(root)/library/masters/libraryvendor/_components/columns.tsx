@@ -53,16 +53,24 @@ export const masterVendorColumns: ColumnDef<IMasterVendorList>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterVendorList }) {
-    const { openDeleteForm, openEditForm } = useFormContext<IMasterVendorList>();
+    const { openToggleForm, openEditForm } = useFormContext<IMasterVendorList>();
 
-    //const handleDelete = useCallback((data: IMasterVendorList) => openDeleteForm(data), [openDeleteForm]);
+    const handleToggle = useCallback(
+        (data: IMasterVendorList) => {
+            openToggleForm(data);
+        },
+        [openToggleForm]
+    );
+
     const handleEdit = useCallback((data: IMasterVendorList) => openEditForm(data), [openEditForm]);
+
     return (
         <ActionButtons
             rowData={rowData}
             buttons={{ edit: true, toggle: true, delete: false }}
-            //onDelete={handleDelete}
+            onToggle={handleToggle}
             onEdit={handleEdit}
+            toggleConditionKey='lmV_ActiveFlg'
         />
     );
 }

@@ -27,28 +27,34 @@ export default function AddMasterAuthorForm({ onSuccess, className = '' }: AddMa
         handleSubmit,
         reset,
         formState: { errors, isSubmitting }
-    } = useForm<FormFields>({
+    } = useForm<z.infer<typeof masterAuthorSchema.addOrUpdate>>({
         resolver: zodResolver(masterAuthorSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            lmA_MobileNo: '',
-            lmA_AuthorName: '',
-            lmA_Address: '',
-            lmA_EMailId: ''
+            lmaU_Id: undefined,
+            lmaU_AuthorFirstName: '',
+            lmaU_AuthorMiddleName: '',
+            lmaU_AuthorLastName: '',
+            lmaU_MobileNo: '',
+            lmaU_Address: '',
+            lmaU_EmailId: '',
+            lmaU_PhoneNo: '',
+            lmaU_ActiveFlg: false
         }
     });
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const { lmA_MobileNo, lmA_AuthorName, lmA_Address, lmA_EMailId } = data;
+            const { lmaU_MobileNo, lmaU_AuthorFirstName, lmaU_Address, lmaU_EmailId, lmaU_PhoneNo } = data;
 
             const payload = {
                 IMCC_ID: 0,
-                lmA_MobileNo,
-                lmA_AuthorName,
-                lmA_Address,
-                lmA_EMailId,
-                lmA_ActiveFlag: true
+                lmaU_MobileNo,
+                lmaU_AuthorFirstName,
+                lmaU_Address,
+                lmaU_EmailId,
+                lmaU_ActiveFlag: true,
+                lmaU_PhoneNo
             };
 
             // const js = JSON.stringify(payload);
@@ -79,17 +85,17 @@ export default function AddMasterAuthorForm({ onSuccess, className = '' }: AddMa
                         <InputText
                             label='Author Name'
                             required
-                            id='lmA_AuthorName'
-                            {...register('lmA_AuthorName')}
-                            error={errors.lmA_AuthorName?.message}
+                            id='lmaU_AuthorFirstName'
+                            {...register('lmaU_AuthorFirstName')}
+                            error={errors.lmaU_AuthorFirstName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
 
                         <InputText
                             label='Email Id'
-                            id='lmA_EMailId'
-                            {...register('lmA_EMailId')}
-                            error={errors.lmA_EMailId?.message}
+                            id='lmaU_EmailId'
+                            {...register('lmaU_EmailId')}
+                            error={errors.lmaU_EmailId?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>
@@ -101,17 +107,17 @@ export default function AddMasterAuthorForm({ onSuccess, className = '' }: AddMa
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
                             label='Mobile No'
-                            id='lmA_MobileNo'
-                            {...register('lmA_MobileNo')}
-                            error={errors.lmA_MobileNo?.message}
+                            id='lmaU_MobileNo'
+                            {...register('lmaU_MobileNo')}
+                            error={errors.lmaU_MobileNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
 
                         <InputText
                             label='Author Address'
-                            id='lmA_Address'
-                            {...register('lmA_Address')}
-                            error={errors.lmA_Address?.message}
+                            id='lmaU_Address'
+                            {...register('lmaU_Address')}
+                            error={errors.lmaU_Address?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>
@@ -123,9 +129,9 @@ export default function AddMasterAuthorForm({ onSuccess, className = '' }: AddMa
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
                             label='Phone No'
-                            id='lmA_AuthorName'
-                            {...register('lmA_AuthorName')}
-                            error={errors.lmA_AuthorName?.message}
+                            id='lmaU_PhoneNo'
+                            {...register('lmaU_PhoneNo')}
+                            error={errors.lmaU_PhoneNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>

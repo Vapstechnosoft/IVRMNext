@@ -2,12 +2,12 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { IMasterLibraryList } from '@/types/library/masters/masters';
+import type { IMasterPublisherList } from '@/types/library/masters/masters';
 
 export async function getMasterPublisherList(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'lmaL_LibraryName');
     const url = `/MasterPublisher/master-publisher-list?${urlParams}`;
-    return await api.get<IMasterLibraryList[]>('library', url);
+    return await api.get<IMasterPublisherList[]>('library', url);
 }
 
 export async function addOrUpdateMasterPublisher(data: any) {
@@ -16,7 +16,7 @@ export async function addOrUpdateMasterPublisher(data: any) {
 }
 
 export async function toggleMasterPublisher(id: number) {
-    const url = `/MasterPublisher/deactivate/${id}`;
+    const url = `/MasterPublisher/toggle/${id}`;
     return await api.put('library', url);
 }
 

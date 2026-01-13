@@ -2,10 +2,10 @@
 
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
-//import { useFormContext } from '@/components/ui/form/form-provider';
+import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IMasterPublisherList } from '@/types/library/masters/masters';
 import type { ColumnDef } from '@tanstack/react-table';
-//import { useCallback } from 'react';
+import { useCallback } from 'react';
 
 export const masterPublisherColumns: ColumnDef<IMasterPublisherList>[] = [
     {
@@ -49,16 +49,23 @@ export const masterPublisherColumns: ColumnDef<IMasterPublisherList>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterPublisherList }) {
-    // const { openDeleteForm, openEditForm } = useFormContext<IMasterPublisherList>();
+    const { openToggleForm, openEditForm } = useFormContext<IMasterPublisherList>();
 
-    // const handleDelete = useCallback((data: IMasterPublisherList) => openDeleteForm(data), [openDeleteForm]);
-    // const handleEdit = useCallback((data: IMasterPublisherList) => openEditForm(data), [openEditForm]);
+    const handleToggle = useCallback(
+        (data: IMasterPublisherList) => {
+            openToggleForm(data);
+        },
+        [openToggleForm]
+    );
+
+    const handleEdit = useCallback((data: IMasterPublisherList) => openEditForm(data), [openEditForm]);
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: false, toggle: false, delete: true }}
-            //onDelete={handleDelete}
-            //  onEdit={handleEdit}
+            buttons={{ edit: true, toggle: true, delete: false }}
+            onToggle={handleToggle}
+            onEdit={handleEdit}
+            toggleConditionKey='lmP_ActiveFlg'
         />
     );
 }
