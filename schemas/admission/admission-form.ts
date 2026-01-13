@@ -70,7 +70,8 @@ export const studentAdmissionFormSchema = {
             amsT_DOB_Words: createStringOnlyOptionalSchema('Date Of Birth In Words', 1, 1000).optional(),
             pasR_Age: z.number().int({ message: 'Age is required' }),
             imC_Id: createStringOnlySchema('Caste', 1, 100),
-            amsT_SubCaste: createStringOnlyOptionalSchema('Sub Caste', 1, 100),
+            amsT_SubCasteIMC_Id: createStringOnlyOptionalSchema('Sub Caste', 1, 100).optional(),
+
             amsT_BirthCertNO: createOptionalAlphaNumericSchema('Birth Certificate Number', 1, 50),
             amsT_CasteCertiNo: createOptionalAlphaNumericSchema('Caste Certificate Number', 1, 50),
             amsT_BiometricId: createOptionalAlphaNumericSchema('Biometric Id', 1, 50),
@@ -100,10 +101,10 @@ export const studentAdmissionFormSchema = {
             // EMIS flag
 
             isEmisBpl: z.number().int(),
-            amsT_EMIS_BPL_STS_No: createOptionalAlphaNumericSchema('EMIS Card No', 1, 50).optional(),
+            amsT_BPLCardNo: createOptionalAlphaNumericSchema('EMIS Card No', 1, 50).optional(),
 
             amsT_Tpin: createOptionalAlphaNumericSchema('Student TPIN', 1, 50),
-            amsT_GPSTracingId: createAllAllowedOptional('GPS Tracing Id', 1, 50),
+            amsT_GPSTrackingId: createAllAllowedOptional('GPS Tracing Id', 1, 50),
             amsT_MOInstruction: createStringOnlyOptionalSchema('Medium Of Instruction', 1, 50),
 
             // NATIONALITY - STRING
@@ -122,19 +123,17 @@ export const studentAdmissionFormSchema = {
                 (val) => (val === undefined || val === null || val === '' ? 0 : Number(val)),
                 z.number().int().min(1, { message: 'Religion is required' })
             ),
-            amsT_SubCasteIMC_Id: z.preprocess(
+            amsT_StudentCategory_Id: z.preprocess(
                 (val) => (val === undefined || val === null || val === '' ? 0 : Number(val)),
                 z.number().int().min(1, { message: 'Caste is required' })
             ),
+
             amsT_ReligionId: z.preprocess(
                 (val) => (val === undefined || val === null || val === '' ? 0 : Number(val)),
                 z.number().int().min(1, { message: 'Student Category is required' })
             ),
             amsT_Date: z.date({ message: 'Date Of Admission is required' }),
-            amsT_Sex: z.preprocess(
-                (val) => (val === undefined || val === null || val === '' ? 0 : Number(val)),
-                z.number().int().min(1, { message: 'Gender is required' })
-            ),
+            amsT_Sex: z.string().min(1, { message: 'Gender is required' }),
             amsT_StudentCountry: z.string().min(1, { message: 'Country is required' }),
             amsT_StudentState: z.coerce.number().int().optional(),
 
@@ -430,7 +429,7 @@ export const studentAdmissionFormSchema = {
             // Siblings count fields validated as numeric-only strings (optional)
             amsT_NoOfSiblings: createOptionalNumberOnlyStringSchema('No of Siblings', 1, 2),
             amsT_NoOfSiblingsSchool: createOptionalNumberOnlyStringSchema('No of Siblings in School', 1, 2),
-            amsT_NoOfSiblingsOtherSchool: createOptionalNumberOnlyStringSchema('No of Siblings in Other School', 1, 2),
+            amsT_NoOfDependencies: createOptionalNumberOnlyStringSchema('No of Siblings in Other School', 1, 2),
 
             amsT_Noofbrothers: createOptionalNumberOnlyStringSchema('No of Brothers', 1, 2),
             amsT_NoOfElderBrothers: createOptionalNumberOnlyStringSchema('No of Elder Brothers', 1, 2),
@@ -474,7 +473,7 @@ export const studentAdmissionFormSchema = {
         .refine(
             (data) => {
                 if (data.isEmisBpl === 1) {
-                    const val = data.amsT_EMIS_BPL_STS_No;
+                    const val = data.amsT_BPLCardNo;
                     return typeof val === 'string' && val.trim() !== '';
                 }
                 return true;

@@ -13,6 +13,7 @@ export default function DeleteMasterClassForm({ row, cell }: { row?: any; cell?:
     const data = cell?.getValue ? cell.getValue() : row;
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedRow, setSelectedRow] = useState<IadmissionStudentApplicationList | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const handleOpen = () => {
         setSelectedRow(data);
@@ -26,6 +27,7 @@ export default function DeleteMasterClassForm({ row, cell }: { row?: any; cell?:
 
     async function onDelete() {
         try {
+            setIsDeleting(true);
             // prefer common id shapes: amsT_Id, AMST_Id, amst_Id, amsTId, id
             const id = Number(selectedRow?.amsT_Id ?? 0) || 0;
 
@@ -43,6 +45,8 @@ export default function DeleteMasterClassForm({ row, cell }: { row?: any; cell?:
             }
         } catch (error: any) {
             toast.error(error?.message ?? 'Delete failed');
+        } finally {
+            setIsDeleting(false);
         }
     }
 
@@ -66,11 +70,11 @@ export default function DeleteMasterClassForm({ row, cell }: { row?: any; cell?:
                             <p>Are you sure you want to delete {selectedRow.studentName}?</p>
                         </AdaptiveBody>
                         <AdaptiveFooter>
-                            <Button variant='secondary' onClick={closeDialog}>
+                            <Button variant='secondary' onClick={closeDialog} disabled={isDeleting}>
                                 Cancel
                             </Button>
-                            <Button type='button' onClick={onDelete}>
-                                Delete
+                            <Button type='button' onClick={onDelete} disabled={isDeleting}>
+                                {isDeleting ? 'Deleting...' : 'Delete'}
                             </Button>
                         </AdaptiveFooter>
                     </div>

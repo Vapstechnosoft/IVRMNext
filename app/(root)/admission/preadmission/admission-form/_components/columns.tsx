@@ -29,6 +29,13 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
         enableSorting: true,
         enableHiding: false
     },
+    //   {
+    //     accessorKey: 'amsT_Id',
+    //     header: ({ column }) => <DataTableColumnHeader column={column} title='Name/view Profile' />,
+    //     cell: ({ row }) => <div>{row.getValue('amsT_Id') ?? 'N.A'}</div>,
+    //     enableSorting: true,
+    //     enableHiding: true
+    // },
     {
         accessorKey: 'studentName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Name/view Profile' />,
@@ -94,10 +101,10 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
     //     enableHiding: true
     // },
     {
-        accessorKey: 'photoUrl',
+        accessorKey: 'studentPhotoUrl',
         header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='Photo' />,
         cell: ({ row }) => {
-            const photo = row.getValue('photoUrl') as string | null;
+            const photo = row.getValue('studentPhotoUrl') as string | null;
 
             const handleDownload = async () => {
                 if (!photo) {
@@ -165,9 +172,8 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
             const { data: applicationFormDetails, isLoading: applicationFormDetailsLoading } = useStudentAdmissionFormById(amstId);
 
             useEffect(() => {
-                if (session?.data?.role === undefined) {
-                    window.location.reload();
-                }
+                // Avoid forcing a full page reload when session role is temporarily undefined.
+                // Session lifecycle should be handled elsewhere; do nothing here.
             }, [session?.data?.role]);
 
             // Trigger form open when applicationFormDetails is loaded
@@ -202,14 +208,22 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
                                 // normalized arrays expected by update-form.tsx
                                 adm_M_Student_EmailIdDTO: src.firstTab?.emailIds || src.emailIds || src.adm_M_Student_EmailIdDTO || [],
                                 mobileNos: src.firstTab?.mobileNos || src.mobileNos || [],
-                                previousSchools: src.previousSchools || src.previous_schools || src.previousSchoolDetails || [],
-                                siblings: src.siblings || src.student_siblings || src.siblingsDetails || [],
+                                previousSchools:
+                                    src.fourthTab?.previousSchools ||
+                                    src.previousSchools ||
+                                    src.previous_schools ||
+                                    src.previousSchoolDetails ||
+                                    [],
+                                siblings: src.fourthTab?.siblings || src.siblings || src.student_siblings || src.siblingsDetails || [],
                                 guardian: src.guardians || src.guardian || src.guardiansDetails || [],
-                                selectedSourceDetails: (src.selectedSourceDetails || src.selectedSource || src.student_sources || []).map(
-                                    (s: any) => ({
-                                        pamS_Id: String(s.pamS_Id)
-                                    })
-                                ),
+                                selectedSourceDetails: (
+                                    src.fourthTab?.src.selectedSourceDetails ||
+                                    src.selectedSource ||
+                                    src.student_sources ||
+                                    []
+                                ).map((s: any) => ({
+                                    pamS_Id: String(s.pamS_Id)
+                                })),
                                 selectedRefrenceDetails: (
                                     src.selectedRefrenceDetails ||
                                     src.selectedReference ||

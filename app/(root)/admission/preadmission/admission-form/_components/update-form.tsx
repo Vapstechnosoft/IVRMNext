@@ -22,7 +22,6 @@ import {
     useAdmissionClassDropdown,
     useCasteDropdown,
     useCountryDropdown,
-    useGenderDropdown,
     useReferenceDropdown,
     useReligionDropdown,
     useSourceDropdown,
@@ -45,7 +44,7 @@ import { deleteDocument, uploadDocument } from '@/server/document_upload';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Check, ChevronLeft, ChevronRight, Eye, Save, Trash } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -61,6 +60,11 @@ interface AddStudentApplicationFormProps {
     onClose?: () => void;
 }
 
+const STUDENT_CATEGORIES = [
+    { id: 1, label: 'Pre-Primary School' },
+    { id: 2, label: 'Primary School' },
+    { id: 3, label: 'High School' }
+];
 const steps = [
     {
         id: 1,
@@ -136,7 +140,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     const {
         fields: previousSchoolFields,
         append: appendPreviousSchool,
-        remove: removePreviousSchool
+        remove: removePreviousSchool,
+        replace: replacePreviousSchool
     } = useFieldArray({
         control,
         name: 'previousSchools'
@@ -200,11 +205,17 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     >([]);
 
     const [savedAmsTId, setSavedAmsTId] = useState<number | null>(null);
+    const _isInitializingRef = useRef(false);
+    const _initialPincodesRef = useRef<{ con?: string; per?: string } | null>(null);
 
     const getAmsTIdToUse = () => savedAmsTId ?? (Number(getValues('amsT_Id' as any) ?? 0) || 0);
 
     useEffect(() => {
         if (!rowData) return;
+
+        // mark initialization to prevent effects (like clearing section) from
+        // overwriting restored values while we reset the form
+        _isInitializingRef.current = true;
 
         let payload = { ...rowData } as any;
 
@@ -267,6 +278,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                   if (typeof e === 'object') {
                       if (typeof e.amsT_emailId === 'string') return { amsT_emailId: e.amsT_emailId };
                       if (typeof e.emailId === 'string') return { amsT_emailId: e.emailId };
+                      // support backend shape: { amstE_EmailId: ["...@..."] }
+                      if (Array.isArray(e?.amstE_EmailId) && e.amstE_EmailId.length > 0)
+                          return { amsT_emailId: String(e.amstE_EmailId[0]) };
                       // handle nested or legacy shapes
                       const possible = e?.email || e?.emailAddress || e?.Email || '';
                       return { amsT_emailId: String(possible ?? '') };
@@ -284,19 +298,243 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         payload.selectedDocuments = payload.selectedDocuments || payload.student_documents || [];
 
         try {
+            // Map alternative backend keys to the form's expected fields so dropdowns load correctly
+            try {
+                // religion may come as ivrmmR_Id or ivrmmR_Id inside nested shapes
+                payload.amsT_ReligionId =
+                    payload.amsT_ReligionId ??
+                    payload.ivrmmR_Id ??
+                    payload.firstTab?.ivrmmR_Id ??
+                    payload.data?.ivrmmR_Id ??
+                    payload.amsT_ReligionId;
+
+                // caste/category may come under different keys
+                payload.amsT_CasteCategoryId =
+                    payload.amsT_CasteCategoryId ?? payload.amsT_SubCasteIMC_Id ?? payload.imcC_Id ?? payload.amsT_CasteCategoryId;
+
+                // student category id mapping
+                payload.studentCategoryId = payload.imcC_Id;
+            } catch (_mapErr) {
+                // ignore mapping errors
+            }
+
+            // If backend returned nested ECS object, map its values into the
+            // flat form fields used by the UI so the ECS panel populates.
+            try {
+                const ecsSrc = payload.adm_M_Student_ECS ?? payload.admM_Student_ECS ?? null;
+                if (ecsSrc && typeof ecsSrc === 'object') {
+                    payload.asecS_AccountNo = ecsSrc.asecS_AccountNo ?? payload.asecS_AccountNo ?? '';
+                    payload.asecS_AccountHolderName = ecsSrc.asecS_AccountHolderName ?? payload.asecS_AccountHolderName ?? '';
+                    payload.asecS_BankName = ecsSrc.asecS_BankName ?? payload.asecS_BankName ?? '';
+                    payload.asecS_AccountType = ecsSrc.asecS_AccountType ?? payload.asecS_AccountType ?? '';
+                    payload.asecS_MICRNo = ecsSrc.asecS_MICRNo ?? payload.asecS_MICRNo ?? '';
+                    payload.asecS_Branch = ecsSrc.asecS_Branch ?? ecsSrc.asecS_BranchName ?? payload.asecS_Branch ?? '';
+                    payload.amsT_ECSFlag = 1;
+                } else {
+                    // normalize falsy flags to 0 so checkbox renders correctly
+                    payload.amsT_ECSFlag = Number(payload.amsT_ECSFlag ? 1 : 0);
+                }
+
+                // Coerce date strings / numbers to Date objects required by zod schema
+                try {
+                    if (payload.amsT_Date) {
+                        const d = payload.amsT_Date;
+                        payload.amsT_Date = d instanceof Date ? d : new Date(d);
+                    }
+                } catch (_e) {
+                    // ignore invalid date
+                }
+                try {
+                    if (payload.amsT_DOB) {
+                        const d2 = payload.amsT_DOB;
+                        payload.amsT_DOB = d2 instanceof Date ? d2 : new Date(d2);
+                    }
+                } catch (_e) {
+                    //ignore
+                }
+
+                // Normalize country fields to string (select expects string values)
+                try {
+                    if (payload.amsT_PerCountry !== undefined && payload.amsT_PerCountry !== null) {
+                        payload.amsT_PerCountry = String(payload.amsT_PerCountry);
+                    }
+                    if (payload.amsT_ConCountry !== undefined && payload.amsT_ConCountry !== null) {
+                        payload.amsT_ConCountry = String(payload.amsT_ConCountry);
+                    }
+                    // Ensure father/mother nationality are strings so Select controls receive string values
+                    if (payload.fatherNationality !== undefined && payload.fatherNationality !== null) {
+                        payload.fatherNationality = String(payload.fatherNationality);
+                    }
+                    if (payload.motherNationality !== undefined && payload.motherNationality !== null) {
+                        payload.motherNationality = String(payload.motherNationality);
+                    }
+                } catch (_e) {
+                    //ignore
+                }
+            } catch (_e) {
+                // ignore mapping errors and continue
+            }
+
+            // Ensure pincodes are strings so input components render them reliably
+            try {
+                if (payload.amsT_ConPincode !== undefined && payload.amsT_ConPincode !== null)
+                    payload.amsT_ConPincode = String(payload.amsT_ConPincode);
+                if (payload.amsT_PerPincode !== undefined && payload.amsT_PerPincode !== null)
+                    payload.amsT_PerPincode = String(payload.amsT_PerPincode);
+            } catch (_e) {
+                //ignore
+            }
+
+            // Store initial pincodes so we can re-apply them after country/state dropdowns load
+            try {
+                _initialPincodesRef.current = {
+                    con: payload.amsT_ConPincode ? String(payload.amsT_ConPincode) : undefined,
+                    per: payload.amsT_PerPincode ? String(payload.amsT_PerPincode) : undefined
+                };
+            } catch (_e) {
+                //ignore
+            }
+
+            // Log incoming pincodes for debugging
+            try {
+                // eslint-disable-next-line no-console
+                console.debug('[UpdateAdmission] payload before reset pincodes:', {
+                    amsT_ConPincode: payload.amsT_ConPincode,
+                    amsT_PerPincode: payload.amsT_PerPincode
+                });
+            } catch (_e) {
+                //ignore
+            }
+
             reset(payload as any);
+
+            // Some consumers (custom inputs) may not pick up reset values reliably in all cases;
+            // set pincodes explicitly after reset while initializing to ensure they appear.
+            try {
+                if (payload.amsT_ConPincode !== undefined && payload.amsT_ConPincode !== null) {
+                    setValue('amsT_ConPincode', String(payload.amsT_ConPincode));
+                }
+                if (payload.amsT_PerPincode !== undefined && payload.amsT_PerPincode !== null) {
+                    setValue('amsT_PerPincode', String(payload.amsT_PerPincode));
+                }
+            } catch (_e) {
+                //ignore
+            }
 
             // Explicitly replace the field array for emails so useFieldArray renders items reliably
             try {
                 const normalized =
                     Array.isArray(payload.adm_M_Student_EmailIdDTO) && payload.adm_M_Student_EmailIdDTO.length > 0
                         ? payload.adm_M_Student_EmailIdDTO.map((e: any) => ({
-                              amsT_emailId: String(e?.amsT_emailId ?? e?.emailId ?? e ?? '')
+                              amsT_emailId: String(
+                                  e?.amsT_emailId ??
+                                      // support backend shape: { amstE_EmailId: ["...@..."] }
+                                      (Array.isArray(e?.amstE_EmailId) ? e.amstE_EmailId[0] : undefined) ??
+                                      e?.emailId ??
+                                      e ??
+                                      ''
+                              )
                           }))
                         : [{ amsT_emailId: '' }];
                 replaceEmail(normalized as any);
                 // sync legacy primary email
                 setValue('amsT_emailId' as any, normalized[0]?.amsT_emailId ?? '');
+                // Normalize primary mobile from payload.mobileNos (support backend shapes)
+                try {
+                    const mobileSrc = Array.isArray(payload.mobileNos) ? payload.mobileNos : [];
+                    const mobileNormalized = (mobileSrc || []).map((m: any) => {
+                        // backend may provide amstsmS_MobileNo: ["9876543210"] and amstsmS_CountryCode: "+91"
+                        let raw = '';
+                        if (Array.isArray(m?.amstsmS_MobileNo) && m.amstsmS_MobileNo.length > 0) raw = String(m.amstsmS_MobileNo[0] ?? '');
+                        else raw = String(m?.amsT_MobileNo ?? m?.mobileNo ?? '');
+                        const country = String(m?.amstsmS_CountryCode ?? m?.amstsmS_CountryCode ?? m?.countryCode ?? '').replace('+', '');
+                        const numberOnly = raw.replace(/\D/g, '');
+                        const formatted = country ? `+${country} ${numberOnly}` : numberOnly;
+                        return { amsT_MobileNo: formatted, amstsmS_CountryCode: country ? `+${country}` : '' };
+                    });
+                    if (mobileNormalized.length > 0) {
+                        setValue('mobileNos' as any, mobileNormalized as any);
+                        setValue('amsT_MobileNo' as any, mobileNormalized[0].amsT_MobileNo);
+                        setPhoneValues((prev) => ({ ...prev, amsT_MobileNo: mobileNormalized[0].amsT_MobileNo }));
+                    }
+                } catch (_e) {
+                    // ignore mobile sync failure
+                }
+
+                // Populate father/mother email and mobile fields from payload (support multiple backend shapes)
+                try {
+                    // Father email (UI expects a single string input; backend may provide array)
+                    if (Array.isArray(payload.fatherEmailIds) && payload.fatherEmailIds.length > 0) {
+                        const f = payload.fatherEmailIds[0];
+                        const email = f?.emailId ?? f?.amsT_emailId ?? f ?? '';
+                        setValue('fatherEmailIds' as any, String(email));
+                    } else if (payload.fatherEmailIds) {
+                        setValue('fatherEmailIds' as any, String(payload.fatherEmailIds));
+                    }
+
+                    // Mother email
+                    if (Array.isArray(payload.motherEmailIds) && payload.motherEmailIds.length > 0) {
+                        const m = payload.motherEmailIds[0];
+                        const email = m?.emailId ?? m?.amsT_emailId ?? m ?? '';
+                        setValue('motherEmailIds' as any, String(email));
+                    } else if (payload.motherEmailIds) {
+                        setValue('motherEmailIds' as any, String(payload.motherEmailIds));
+                    }
+
+                    // Father mobile (PhoneInput expects formatted string like '+91 9876543210')
+                    if (Array.isArray(payload.fatherMobileNumbers) && payload.fatherMobileNumbers.length > 0) {
+                        const f = payload.fatherMobileNumbers[0];
+                        const raw = f?.mobileNo ?? f?.amsT_MobileNo ?? f ?? '';
+                        const country = String(f?.amstsmS_CountryCode ?? f?.countryCode ?? '').replace('+', '') || '';
+                        const num = String(raw ?? '').replace(/\D/g, '');
+                        const formatted = country ? `+${country} ${num}` : num;
+                        setPhoneValues((prev) => ({ ...prev, fatherMobileNumbers: formatted }));
+                        setValue('fatherMobileNumbers' as any, formatted);
+                    } else if (payload.fatherMobileNumbers) {
+                        setValue('fatherMobileNumbers' as any, String(payload.fatherMobileNumbers));
+                    }
+
+                    // Mother mobile
+                    if (Array.isArray(payload.motherMobileNumbers) && payload.motherMobileNumbers.length > 0) {
+                        const m = payload.motherMobileNumbers[0];
+                        const raw = m?.mobileNo ?? m?.amsT_MobileNo ?? m ?? '';
+                        const country = String(m?.amstsmS_CountryCode ?? m?.countryCode ?? '').replace('+', '') || '';
+                        const num = String(raw ?? '').replace(/\D/g, '');
+                        const formatted = country ? `+${country} ${num}` : num;
+                        setPhoneValues((prev) => ({ ...prev, motherMobileNumbers: formatted }));
+                        setValue('motherMobileNumbers' as any, formatted);
+                    } else if (payload.motherMobileNumbers) {
+                        setValue('motherMobileNumbers' as any, String(payload.motherMobileNumbers));
+                    }
+
+                    // Father education / qualification mapping
+                    try {
+                        const fed = payload.FatherEducation ?? payload.fatherEducation ?? payload.fatherQualification ?? '';
+                        if (fed !== undefined && fed !== null) setValue('FatherEducation' as any, String(fed));
+                    } catch (_e) {
+                        //ignore
+                    }
+                } catch (_e) {
+                    // ignore
+                }
+
+                // After resetting values, ensure dependent dropdowns refresh (country -> state, class -> section)
+                try {
+                    _refetchDropdowns();
+                } catch (_e) {
+                    //ignore
+                }
+                try {
+                    if (typeof refetchAdmissionClass === 'function') refetchAdmissionClass();
+                } catch (_e) {
+                    //ignore
+                }
+                try {
+                    const classIdToRefetch = Number(payload?.asmcL_Id ?? payload?.asmcLId ?? payload?.asmcl_id ?? 0) || 0;
+                    if (typeof refetchSection === 'function') refetchSection(classIdToRefetch);
+                } catch (_e) {
+                    //ignore
+                }
             } catch (inner) {
                 // eslint-disable-next-line no-console
                 console.warn('Failed to replace email field array after reset', inner);
@@ -333,12 +571,269 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             setFatherSignature(payload.fatherSignatureUrl ? { path: payload.fatherSignatureUrl } : null);
             setMotherSignature(payload.motherSignatureUrl ? { path: payload.motherSignatureUrl } : null);
 
+            // Populate guardian photos/signatures if provided in payload
+            try {
+                const guardiansSource = Array.isArray(payload.guardians)
+                    ? payload.guardians
+                    : Array.isArray(payload.guardian)
+                      ? payload.guardian
+                      : [];
+                if (guardiansSource && guardiansSource.length > 0) {
+                    const gp: Record<number, { path?: string; isUploading?: boolean }> = {};
+                    const gs: Record<number, { path?: string; isUploading?: boolean }> = {};
+                    guardiansSource.forEach((g: any, i: number) => {
+                        if (g?.guardianPhotoUrl) gp[i] = { path: String(g.guardianPhotoUrl) };
+                        if (g?.guardianSignUrl) gs[i] = { path: String(g.guardianSignUrl) };
+                    });
+                    setGuardianPhotos(gp);
+                    setGuardianSignatures(gs);
+                }
+            } catch (_e) {
+                //ignore
+            }
+
             setSavedAmsTId(Number(payload.amsT_Id ?? payload.amsTId ?? null));
+
+            // Map fourthTab values into the form so the Fourth tab fields populate
+            try {
+                const fourth = payload?.data?.fourthTab ?? payload?.fourthTab ?? null;
+
+                if (fourth && typeof fourth === 'object') {
+                    const prevSource = Array.isArray(fourth.previousSchools) ? fourth.previousSchools : [];
+                    const siblingSource = Array.isArray(fourth.siblings) ? fourth.siblings : [];
+
+                    // ---------- PREVIOUS SCHOOLS ----------
+                    if (prevSource.length > 0) {
+                        try {
+                            const normalizedPrev = prevSource.map((ps: any) => ({
+                                schoolName: ps.schoolName ?? ps.pasrpS_PrvSchoolName ?? ps.pasrS_SchoolName ?? '',
+                                schoolTypeId: ps.schoolTypeId ?? ps.pasrpS_SchoolTypeId ?? 0,
+                                classId: ps.classId ?? ps.pasrpS_PreviousClass ?? 0,
+                                percentage: ps.percentage ?? ps.pasrpS_PreviousPer ?? '',
+                                grade: ps.grade ?? ps.pasrpS_PreviousGrade ?? '',
+                                passedYear: ps.passedYear ?? ps.pasrpS_LeftYear ?? 0,
+                                countryId: ps.countryId ?? ps.country ?? 0,
+                                stateId: ps.stateId ?? ps.state ?? 0,
+                                address: ps.address ?? ps.pasrpS_Address ?? '',
+                                leftReason: ps.leftReason ?? ps.pasrpS_LeftReason ?? '',
+                                medium: ps.medium ?? '',
+                                tcNumber: ps.tcNumber ?? ps.pasrpS_TcNo ?? '',
+                                tcDate:
+                                    ps.tcDate || ps.pasrpS_TcDate
+                                        ? ps.tcDate instanceof Date
+                                            ? ps.tcDate
+                                            : ps.pasrpS_TcDate instanceof Date
+                                              ? ps.pasrpS_TcDate
+                                              : new Date(ps.tcDate || ps.pasrpS_TcDate)
+                                        : null
+                            }));
+                            console.debug('[UpdateAdmission] Normalized previous schools:', normalizedPrev);
+                            replacePreviousSchool(normalizedPrev as any[]);
+                        } catch (e) {
+                            console.error('Error normalizing previousSchools', e);
+                            setValue('previousSchools' as any, prevSource);
+                        }
+                    }
+
+                    // ---------- SIBLINGS ----------
+                    if (siblingSource.length > 0) {
+                        try {
+                            const normalizedSibs = siblingSource.map((s: any) => ({
+                                name: s.name ?? s.pasrS_SiblingsName ?? s.siblingName ?? '',
+                                classId: Number(s.classId ?? s.pasrS_SiblingsClass ?? s.pasrS_SiblingsClassId ?? 0) || 0,
+                                relation: s.relation ?? s.relationShip ?? ''
+                            }));
+                            console.debug('[UpdateAdmission] Normalized siblings:', normalizedSibs);
+                            replaceSibling(normalizedSibs as any[]);
+                        } catch (e) {
+                            console.error('Error normalizing siblings', e);
+                            setValue('siblings' as any, siblingSource);
+                        }
+                    }
+
+                    if (fourth.amsT_PlaceOfBirthCountry !== undefined && fourth.amsT_PlaceOfBirthCountry !== null) {
+                        setValue('amsT_PlaceOfBirthCountry' as any, String(fourth.amsT_PlaceOfBirthCountry));
+                    }
+                    if (fourth.amsT_PlaceOfBirthState !== undefined && fourth.amsT_PlaceOfBirthState !== null) {
+                        setValue('amsT_PlaceOfBirthState' as any, Number(fourth.amsT_PlaceOfBirthState) || 0);
+                    }
+
+                    if (fourth.amsT_Distirct !== undefined) setValue('amsT_Distirct' as any, String(fourth.amsT_Distirct));
+                    if (fourth.amsT_Taluk !== undefined) setValue('amsT_Taluk' as any, String(fourth.amsT_Taluk));
+                    if (fourth.amsT_Town !== undefined) setValue('amsT_Town' as any, String(fourth.amsT_Town));
+                    if (fourth.amsT_Village !== undefined) setValue('amsT_Village' as any, String(fourth.amsT_Village));
+
+                    if (fourth.amsT_NoOfSiblings !== undefined) setValue('amsT_NoOfSiblings' as any, Number(fourth.amsT_NoOfSiblings) || 0);
+                    if (fourth.amsT_NoOfDependencies !== undefined)
+                        setValue(' amsT_NoOfDependencies' as any, Number(fourth.amsT_NoOfDependencies) || 0);
+
+                    if (fourth.amsT_NoOfSiblingsSchool !== undefined)
+                        setValue('amsT_NoOfSiblingsSchool' as any, Number(fourth.amsT_NoOfSiblingsSchool) || 0);
+                    if (fourth.amsT_Noofbrothers !== undefined) setValue('amsT_Noofbrothers' as any, Number(fourth.amsT_Noofbrothers) || 0);
+                    if (fourth.amsT_NoOfElderBrothers !== undefined)
+                        setValue('amsT_NoOfElderBrothers' as any, Number(fourth.amsT_NoOfElderBrothers) || 0);
+                    if (fourth.amsT_NoOfYoungerBrothers !== undefined)
+                        setValue('amsT_NoOfYoungerBrothers' as any, Number(fourth.amsT_NoOfYoungerBrothers) || 0);
+                    if (fourth.amsT_Noofsisters !== undefined) setValue('amsT_Noofsisters' as any, Number(fourth.amsT_Noofsisters) || 0);
+                    if (fourth.amsT_NoOfElderSisters !== undefined)
+                        setValue('amsT_NoOfElderSisters' as any, Number(fourth.amsT_NoOfElderSisters) || 0);
+                    if (fourth.amsT_NoOfYoungerSisters !== undefined)
+                        setValue('amsT_NoOfYoungerSisters' as any, Number(fourth.amsT_NoOfYoungerSisters) || 0);
+
+                    if (fourth.amsT_AdmissionReason !== undefined)
+                        setValue('amsT_AdmissionReason' as any, String(fourth.amsT_AdmissionReason));
+                    if (fourth.amsT_FirstLanguage !== undefined) setValue('amsT_FirstLanguage' as any, String(fourth.amsT_FirstLanguage));
+                    if (fourth.amsT_SecondLanguage !== undefined)
+                        setValue('amsT_SecondLanguage' as any, String(fourth.amsT_SecondLanguage));
+                    if (fourth.amsT_Thirdlanguage !== undefined) setValue('amsT_Thirdlanguage' as any, String(fourth.amsT_Thirdlanguage));
+                    // If payload contains guardian array, replace guardian field array too
+                    if (Array.isArray(payload.guardians) && payload.guardians.length > 0) {
+                        try {
+                            replaceGuardian(payload.guardians as any[]);
+                            // Ensure guardian photos/signatures align with replaced guardians
+                            try {
+                                const gp: Record<number, { path?: string; isUploading?: boolean }> = {};
+                                const gs: Record<number, { path?: string; isUploading?: boolean }> = {};
+                                (payload.guardians as any[]).forEach((g: any, i: number) => {
+                                    if (g?.guardianPhotoUrl) gp[i] = { path: String(g.guardianPhotoUrl) };
+                                    if (g?.guardianSignUrl) gs[i] = { path: String(g.guardianSignUrl) };
+                                });
+                                setGuardianPhotos((prev) => ({ ...prev, ...gp }));
+                                setGuardianSignatures((prev) => ({ ...prev, ...gs }));
+                            } catch (_e) {
+                                //ignore
+                            }
+                        } catch (_e) {
+                            // fallback
+                            setValue('guardian' as any, payload.guardians);
+                        }
+                    } else if (Array.isArray(fourth.guardians) && fourth.guardians.length > 0) {
+                        try {
+                            replaceGuardian(fourth.guardians as any[]);
+                            try {
+                                const gp: Record<number, { path?: string; isUploading?: boolean }> = {};
+                                const gs: Record<number, { path?: string; isUploading?: boolean }> = {};
+                                (fourth.guardians as any[]).forEach((g: any, i: number) => {
+                                    if (g?.guardianPhotoUrl) gp[i] = { path: String(g.guardianPhotoUrl) };
+                                    if (g?.guardianSignUrl) gs[i] = { path: String(g.guardianSignUrl) };
+                                });
+                                setGuardianPhotos((prev) => ({ ...prev, ...gp }));
+                                setGuardianSignatures((prev) => ({ ...prev, ...gs }));
+                            } catch (_e) {
+                                //ignore
+                            }
+                        } catch (_e) {
+                            setValue('guardian' as any, fourth.guardians);
+                        }
+                    }
+                }
+            } catch (_e) {
+                // ignore mapping errors
+            }
 
             console.debug('[UpdateAdmission] payload.adm_M_Student_EmailIdDTO:', payload.adm_M_Student_EmailIdDTO);
             console.debug('[UpdateAdmission] getValues email array after reset:', getValues('adm_M_Student_EmailIdDTO'));
         } catch (e) {
             console.error('Error applying rowData to local state', e);
+        }
+        // finished initializing - log important fields to help debugging
+        try {
+            // eslint-disable-next-line no-console
+            console.debug('[UpdateAdmission] after reset values:', {
+                amsT_ConPincode: getValues('amsT_ConPincode'),
+                amsT_PerPincode: getValues('amsT_PerPincode'),
+                amsT_ConCountry: getValues('amsT_ConCountry'),
+                amsT_PerCountry: getValues('amsT_PerCountry'),
+                sameAsResidential
+            });
+        } catch (_e) {
+            //ignore
+        }
+
+        // finished initializing
+        _isInitializingRef.current = false;
+        // After initialization, ensure field arrays and phoneValues are synced
+        try {
+            // Helper to check if guardian has any content
+            const guardianHasAnyContent = (g: any) => {
+                if (!g) return false;
+                return !!(g.guardianName || g.guardianPhone || g.guardianEmail || g.guardianAddress);
+            };
+
+            const curGuardians = (getValues('guardian') as any[]) || [];
+            // Filter out completely empty guardians, keep only filled ones
+            const filledGuardians = Array.isArray(curGuardians) ? curGuardians.filter(guardianHasAnyContent) : [];
+
+            if (filledGuardians.length === 0) {
+                // no guardians with content, ensure one blank row exists
+                appendGuardian({
+                    guardianName: '',
+                    guardianPhone: '',
+                    guardianAddress: ''
+                });
+            } else {
+                // Replace with only filled guardians
+                replaceGuardian(filledGuardians as any[]);
+                // sync guardian phone values so PhoneInput shows the number
+                const nextPhoneVals: Record<string, string> = {};
+                filledGuardians.forEach((g: any, i: number) => {
+                    if (g.guardianPhone) {
+                        nextPhoneVals[`guardian_${i}_phone`] = String(g.guardianPhone);
+                    }
+                });
+                if (Object.keys(nextPhoneVals).length > 0) setPhoneValues((p) => ({ ...p, ...nextPhoneVals }));
+            }
+
+            // Helper to check if sibling has any content
+            const siblingHasAnyContent = (s: any) => {
+                if (!s) return false;
+                return !!(s.name || s.classId || s.relation);
+            };
+
+            const curSiblings = (getValues('siblings') as any[]) || [];
+            // Filter out completely empty siblings, keep only filled ones
+            const filledSiblings = Array.isArray(curSiblings) ? curSiblings.filter(siblingHasAnyContent) : [];
+
+            if (filledSiblings.length === 0) {
+                // no siblings with content, ensure one blank row exists
+                appendSibling({
+                    name: '',
+                    classId: 0,
+                    relation: ''
+                });
+            } else {
+                // Replace with only filled siblings
+                replaceSibling(filledSiblings as any[]);
+            }
+
+            // Helper to check if previous school has any content
+            const prevSchoolHasAnyContent = (ps: any) => {
+                if (!ps) return false;
+                return !!(
+                    ps.schoolName ||
+                    ps.schoolTypeId ||
+                    ps.classId ||
+                    ps.percentage ||
+                    ps.grade ||
+                    ps.passedYear ||
+                    ps.address ||
+                    ps.tcNumber
+                );
+            };
+
+            const curPrev = (getValues('previousSchools') as any[]) || [];
+            // Filter out completely empty previous schools, keep only filled ones
+            const filledPrev = Array.isArray(curPrev) ? curPrev.filter(prevSchoolHasAnyContent) : [];
+
+            if (filledPrev.length === 0) {
+                // no previous schools with content, ensure one blank row exists
+                addPreviousSchool();
+            } else {
+                // Replace with only filled previous schools
+                replacePreviousSchool(filledPrev as any[]);
+            }
+        } catch (_e) {
+            //ignore
         }
     }, [rowData, reset]);
 
@@ -477,10 +972,19 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         error: motherCasteError,
         refetchAll: refetchMotherCaste
     } = useCasteDropdown(watch('motherReligionId') ?? 0);
-    const { data: gender, isLoading: genderLoading, error: genderError, refetchAll: refetchGender } = useGenderDropdown();
-    const { data: admissionClass, isLoading: admissionClassLoading, isError: admissionClassError } = useAdmissionClassDropdown();
+    const {
+        data: admissionClass,
+        isLoading: admissionClassLoading,
+        isError: admissionClassError,
+        refetchAll: refetchAdmissionClass
+    } = useAdmissionClassDropdown();
     const classId = watch('asmcL_Id');
-    const { data: sectionData, isLoading: sectionLoading, isError: sectionError } = useMasterSectionHeld(Number(classId));
+    const {
+        data: sectionData,
+        isLoading: sectionLoading,
+        isError: sectionError,
+        refetchAll: refetchSection
+    } = useMasterSectionHeld(Number(classId));
     const { data: country, isLoading: countryLoading, error: countryError, refetchAll: refetchCountry } = useCountryDropdown();
 
     // Student address states
@@ -529,11 +1033,10 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
     const _refetchDropdowns = () => {
         refetchReligion();
+
         refetchCaste();
         refetchFatherCaste();
         refetchMotherCaste();
-        refetchGender();
-
         refetchCountry();
         refetchSource();
         refetchReference();
@@ -642,7 +1145,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
             // EMIS conditional
             if (Number(formData.isEmisBpl ?? formData.isEmisBpl) === 1) {
-                const emis = String(formData.amsT_EMIS_BPL_STS_No ?? getValues('amsT_EMIS_BPL_STS_No') ?? '').trim();
+                const emis = String(formData.amsT_BPLCardNo ?? getValues('amsT_BPLCardNo') ?? '').trim();
                 if (!emis) {
                     toast.error('EMIS / BPL / STS No. is required');
                     throw new Error('Validation failed: missing EMIS');
@@ -668,18 +1171,13 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 }
             }
             // Build payload expected by server for first tab
-            const toNullableNumber = (v: any) => {
-                if (v === undefined || v === null || v === '') return null;
-                const n = Number(v);
-                return Number.isNaN(n) ? null : n;
-            };
 
             const payload = {
                 amsT_Id: Number(formData.amsT_Id ?? 0),
-                mI_Id: toNullableNumber(formData.mI_Id ?? 30),
-                asmaY_Id: toNullableNumber(formData.asmaY_Id ?? formData.asmaY_Year),
-                asmcL_Id: toNullableNumber(formData.asmcL_Id),
-                asmS_Id: toNullableNumber(formData.asmS_Id),
+                mI_Id: Number(formData.mI_Id ?? 30),
+                asmaY_Id: Number(formData.asmaY_Id ?? formData.asmaY_Year ?? 0),
+                asmcL_Id: Number(formData.asmcL_Id ?? 0),
+                asmS_Id: Number(formData.asmS_Id ?? 0),
                 amsT_Date: formData.amsT_Date ? new Date(formData.amsT_Date).toISOString() : new Date().toISOString(),
                 amsT_RegistrationNo: String(formData.amsT_RegistrationNo ?? ''),
                 amsT_AdmissionNo: String(formData.amsT_AdmissionNo ?? ''),
@@ -687,37 +1185,28 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 amsT_FirstName: formData.amsT_FirstName ?? '',
                 amsT_MiddleName: formData.amsT_MiddleName ?? '',
                 amsT_LastName: formData.amsT_LastName ?? '',
-                amsT_Sex: (() => {
-                    try {
-                        const sel = formData.amsT_Sex ?? getValues('amsT_Sex');
-                        const found = gender?.data?.find((g: any) => String(g.ivrmmG_Id) === String(sel));
-                        return found?.ivrmmG_GenderName ?? String(sel ?? '');
-                    } catch (_e) {
-                        return String(formData.amsT_Sex ?? '');
-                    }
-                })(),
+                amsT_Sex: String(formData.amsT_Sex ?? ''),
                 amsT_DOB: formData.amsT_DOB ? new Date(formData.amsT_DOB).toISOString() : undefined,
                 amsT_DOB_Words: formData.amsT_DOB_Words ?? dateToWords(formData.amsT_DOB) ?? '',
-                pasR_Age: toNullableNumber(formData.pasR_Age),
+                pasR_Age: Number(formData.pasR_Age ?? 0),
                 amsT_MotherTongue: formData.amsT_MotherTongue ?? '',
                 amsT_LanguageSpoken: formData.amsT_LanguageSpoken ?? '',
-                amsT_StudentCategory_Id: toNullableNumber(formData.studentCategoryId),
+                amsT_StudentCategory_Id: Number(formData.amsT_StudentCategory_Id ?? 0),
                 amsT_BloodGroup: formData.amsT_BloodGroup ?? '',
-                ivrmmR_Id: toNullableNumber(formData.ivrmmR_Id ?? formData.amsT_ReligionId),
-                imcC_Id: toNullableNumber(formData.imcC_Id ?? 1),
-                amsT_SubCasteIMC_Id: toNullableNumber(formData.amsT_SubCasteIMC_Id ?? formData.amsT_CasteCategoryId ?? 1),
+                ivrmmR_Id: Number(formData.ivrmmR_Id ?? formData.amsT_ReligionId ?? 0),
+                imcC_Id: formData.studentCategoryId ?? 1,
+                amsT_SubCasteIMC_Id: (formData.amsT_SubCasteIMC_Id ?? '')?.toString() ?? '',
+
                 amsT_CasteCertiNo: formData.amsT_CasteCertiNo ?? '',
-                amsT_SubCaste: formData.amsT_SubCaste ?? '',
 
                 amsT_BirthPlace: formData.amsT_BirthPlace ?? '',
                 amsT_BirthCertNO: formData.amsT_BirthCertNO ?? '',
-                amsT_AadharNo: formData.amsT_AadharNo ? String(formData.amsT_AadharNo) : '0',
+                amsT_AadharNo: Number(formData.amsT_AadharNo) || 0,
 
                 amsT_BiometricId: formData.amsT_BiometricId ?? '',
                 amsT_RFCardNo: formData.amsT_RFCardNo ?? '',
-                amsT_EMIS_BPL_STS_No: formData.amsT_EMIS_BPL_STS_No ?? '',
+                amsT_BPLCardNo: formData.amsT_BPLCardNo ?? '',
                 isEmisBpl: !!formData.isEmisBpl,
-                amsT_BPLCardNo: formData.amsT_BPLCardNo ?? null,
                 mobileNos: (() => {
                     const src = Array.isArray(getValues('mobileNos'))
                         ? (getValues('mobileNos') as any[])
@@ -728,7 +1217,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         amstsmS_MobileNo: [String(m?.amsT_MobileNo ?? m?.mobileNo ?? m ?? '')],
                         amstsmS_CountryCode: m?.amstsmS_CountryCode ?? m?.countryCode ?? ''
                     }));
-                    return arr.length ? arr : null;
+                    return arr.length ? arr : [];
                 })(),
                 emailIds: (() => {
                     const src = Array.isArray(formData.adm_M_Student_EmailIdDTO)
@@ -739,34 +1228,41 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     const arr = (src || []).map((e: any) => ({
                         amstE_EmailId: [String(e.amsT_emailId ?? e.emailId ?? e ?? '')]
                     }));
-                    return arr.length ? arr : null;
+                    return arr.length ? arr : [];
                 })(),
-                amsT_PerState: toNullableNumber(formData.amsT_PerState),
-                amsT_PerDistrict: toNullableNumber(formData.amsT_PerDistrict),
-                amsT_PerCountry: toNullableNumber(formData.amsT_PerCountry),
-                amsT_PerPincode: toNullableNumber(formData.amsT_PerPincode),
+                amsT_PerState: Number(formData.amsT_PerState ?? 0),
+                amsT_PerDistrict: Number(formData.amsT_PerDistrict ?? 0),
+                amsT_PerCountry: Number(formData.amsT_PerCountry ?? 0),
+                amsT_PerPincode: Number(formData.amsT_PerPincode) || 0,
                 amsT_BankName: formData.amsT_BankName ?? '',
                 amsT_BankBranch: formData.amsT_BankBranch ?? '',
                 amsT_BankAccountNo: formData.amsT_BankAccountNo ?? '',
                 amsT_BankIFSCCode: formData.amsT_BankIFSCCode ?? '',
                 amsT_ECSFlag: !!(formData.amsT_ECSFlag ?? false),
-                adm_M_Student_ECS: formData.amsT_ECSFlag
-                    ? {
-                          asecS_AccountNo: formData.adm_M_Student_ECS?.asecS_AccountNo ?? formData.asecS_AccountNo ?? '',
-                          asecS_AccountHolderName:
-                              formData.adm_M_Student_ECS?.asecS_AccountHolderName ?? formData.asecS_AccountHolderName ?? '',
-                          asecS_BankName: formData.adm_M_Student_ECS?.asecS_BankName ?? formData.asecS_BankName ?? '',
-                          asecS_AccountType: formData.adm_M_Student_ECS?.asecS_AccountType ?? formData.asecS_AccountType ?? '',
-                          asecS_MICRNo: formData.adm_M_Student_ECS?.asecS_MICRNo ?? formData.asecS_MICRNo ?? '',
-                          asecS_BranchName: formData.adm_M_Student_ECS?.asecS_Branch ?? formData.asecS_Branch ?? ''
-                      }
-                    : null,
-                feeConcessionType: toNullableNumber(formData.feeConcessionType),
+                adm_M_Student_ECS: {
+                    asecS_AccountNo: formData.amsT_ECSFlag
+                        ? (formData.adm_M_Student_ECS?.asecS_AccountNo ?? formData.asecS_AccountNo ?? '')
+                        : '',
+                    asecS_AccountHolderName: formData.amsT_ECSFlag
+                        ? (formData.adm_M_Student_ECS?.asecS_AccountHolderName ?? formData.asecS_AccountHolderName ?? '')
+                        : '',
+                    asecS_BankName: formData.amsT_ECSFlag
+                        ? (formData.adm_M_Student_ECS?.asecS_BankName ?? formData.asecS_BankName ?? '')
+                        : '',
+                    asecS_AccountType: formData.amsT_ECSFlag
+                        ? (formData.adm_M_Student_ECS?.asecS_AccountType ?? formData.asecS_AccountType ?? '')
+                        : '',
+                    asecS_MICRNo: formData.amsT_ECSFlag ? (formData.adm_M_Student_ECS?.asecS_MICRNo ?? formData.asecS_MICRNo ?? '') : '',
+                    asecS_BranchName: formData.amsT_ECSFlag ? (formData.adm_M_Student_ECS?.asecS_Branch ?? formData.asecS_Branch ?? '') : ''
+                },
+
+                feeConcessionType: Number(formData.feeConcessionType ?? 0),
                 amsT_Tpin: formData.amsT_Tpin ?? '',
                 amsT_GPSTrackingId: formData.amsT_GPSTrackingId ?? '',
                 amsT_MediumOfInstruction: formData.amsT_MediumOfInstruction ?? '',
-                userId: toNullableNumber(formData.userId) ?? 1,
+                userId: Number(formData.userId ?? 0) || 21602,
                 editFlag: !!formData.editFlag,
+                studentPhotoUrl: '',
                 returnVal: true
             };
 
@@ -822,19 +1318,13 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 fatherAadharNo: formData.fatherAadharNo || '',
                 fatherMaritalStatus: formData.fatherMaritalStatus ?? '',
                 fatherMonthlyIncome: 0,
-                fatherMobileNumbers: Array.isArray(formData.fatherMobileNumbers)
-                    ? formData.fatherMobileNumbers.map((m: any) => ({
-                          mobileNo: String(m.mobileNo ?? m.amsT_MobileNo ?? m)
-                      }))
-                    : formData.fatherMobileNumbers
-                      ? [{ mobileNo: String(formData.fatherMobileNumbers) }]
-                      : [],
+                fatherMobileNumbers: formData.fatherMobileNumbers ? [{ mobileNo: String(formData.fatherMobileNumbers ?? '').trim() }] : [],
                 fatherEmailIds: Array.isArray(formData.fatherEmailIds)
                     ? formData.fatherEmailIds.map((e: any) => ({
-                          emailId: String(e.emailId ?? e.amsT_emailId ?? e)
+                          emailId: String(e?.emailId ?? e?.amsT_emailId ?? e ?? '')
                       }))
                     : formData.fatherEmailIds
-                      ? [{ emailId: String(formData.fatherEmailIds) }]
+                      ? [{ emailId: String(formData.fatherEmailIds ?? '') }]
                       : [],
                 fatherHomePhone: formData.fatherHomePhone || formData.fatherHomePhone || '',
                 fatherNationality: Number(formData.fatherNationality ?? 0) || 0,
@@ -878,19 +1368,13 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 motherSurname: formData.motherSurname || '',
                 motherAadharNo: formData.motherAadharNo || '',
                 motherMaritalStatus: formData.motherMaritalStatus ?? '',
-                motherMobileNumbers: Array.isArray(formData.motherMobileNumbers)
-                    ? formData.motherMobileNumbers.map((m: any) => ({
-                          mobileNo: String(m.mobileNo ?? m.amsT_MobileNo ?? m)
-                      }))
-                    : formData.motherMobileNumbers
-                      ? [{ mobileNo: String(formData.motherMobileNumbers) }]
-                      : [],
+                motherMobileNumbers: formData.motherMobileNumbers ? [{ mobileNo: String(formData.motherMobileNumbers ?? '').trim() }] : [],
                 motherEmailIds: Array.isArray(formData.motherEmailIds)
                     ? formData.motherEmailIds.map((e: any) => ({
-                          emailId: String(e.emailId ?? e.amsT_emailId ?? e)
+                          emailId: String(e?.emailId ?? e?.amsT_emailId ?? e ?? '')
                       }))
                     : formData.motherEmailIds
-                      ? [{ emailId: String(formData.motherEmailIds) }]
+                      ? [{ emailId: String(formData.motherEmailIds ?? '') }]
                       : [],
                 motherHomePhone: formData.motherHomePhone || '',
                 motherNationality: Number(formData.motherNationality ?? 0) || 0,
@@ -927,7 +1411,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 motherAnnualIncome: Number(formData.motherAnnualIncome ?? 0) || 0,
                 motherCasteCertificateNo: formData.motherCasteCertificateNo || '',
                 motherPAN: formData.motherPAN || '',
-                motherEducation: '',
+                motherEducation: formData.motherQualification || '',
                 motherSelfEmployedFlg: !!formData.motherSelfEmployedFlg
             };
 
@@ -976,7 +1460,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 ];
                 // If EMIS checkbox is set, ensure the EMIS field is validated
                 if (Number(getValues('isEmisBpl') ?? 0) === 1) {
-                    fieldsToValidate.push('amsT_EMIS_BPL_STS_No');
+                    fieldsToValidate.push('amsT_BPLCardNo');
                 }
 
                 // If ECS flag is set, ensure ECS bank detail fields are validated
@@ -1226,6 +1710,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         amsT_Village: formData.amsT_Village || '',
                         amsT_NoOfSiblings: Number(formData.amsT_NoOfSiblings ?? 0) || 0,
                         amsT_NoOfSiblingsSchool: Number(formData.amsT_NoOfSiblingsSchool ?? 0) || 0,
+                        amsT_NoOfDependencies: Number(formData.amsT_NoOfDependencies ?? 0) || 0,
                         amsT_Noofbrothers: Number(formData.amsT_Noofbrothers ?? 0) || 0,
                         amsT_NoOfElderBrothers: Number(formData.amsT_NoOfElderBrothers ?? 0) || 0,
                         amsT_NoOfYoungerBrothers: Number(formData.amsT_NoOfYoungerBrothers ?? 0) || 0,
@@ -1265,7 +1750,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
                 // If EMIS/BPL checkbox is checked, require the EMIS/BPL/STS number
                 if (Number(getValues('isEmisBpl') ?? 0) === 1) {
-                    const emis = String(getValues('amsT_EMIS_BPL_STS_No') ?? '').trim();
+                    const emis = String(getValues('amsT_BPLCardNo') ?? '').trim();
                     if (!emis) {
                         toast.error('EMIS / BPL / STS No. is required');
                         return;
@@ -1906,14 +2391,15 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             leftReason: '',
             medium: '',
             tcNumber: '',
-            tcDate: new Date()
+            tcDate: null
         });
     };
     // Guardian FieldArray
     const {
         fields: guardianFields,
         append: appendGuardian,
-        remove: removeGuardianField
+        remove: removeGuardianField,
+        replace: replaceGuardian
     } = useFieldArray({
         control,
         name: 'guardian'
@@ -1923,7 +2409,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     const {
         fields: siblingFields,
         append: appendSibling,
-        remove: removeSiblingField
+        remove: removeSiblingField,
+        replace: replaceSibling
     } = useFieldArray({
         control,
         name: 'siblings'
@@ -1967,7 +2454,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             const formData = new FormData();
             // Use numeric index+1 as the Guardian_Id value (avoid string concatenation)
             formData.append('Guardian_Id', String((index ?? 0) + 1));
-            formData.append('AMST_Id', String(guardianValues?.AMST_Id ?? '15533'));
+            formData.append('AMST_Id', String(getAmsTIdToUse()));
             formData.append('MI_Id', String(guardianValues?.MI_Id ?? '30'));
             formData.append('GuardianName', guardianValues?.guardianName || '');
             formData.append('GuardianPhone', guardianValues?.guardianPhone || '');
@@ -1989,9 +2476,12 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     };
 
     useEffect(() => {
+        // Do not append default rows while we're initializing from payload
+        if (_isInitializingRef.current) return;
         if (guardianFields.length === 0) addGuardian();
         if (siblingFields.length === 0) addSibling();
-    }, []);
+        // re-run if arrays change or initialization state changes
+    }, [guardianFields.length, siblingFields.length, _isInitializingRef.current]);
 
     useEffect(() => {
         if (previousSchoolFields.length === 0) {
@@ -2501,6 +2991,39 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     const conZipLength: number | undefined = conCountryObj?.ivrmmC_ZipNoLength ?? undefined;
     const perZipLength: number | undefined = perCountryObj?.ivrmmC_ZipNoLength ?? undefined;
 
+    // If payload provided pincodes during initialization, apply them once state dropdowns are available
+    useEffect(() => {
+        try {
+            if (!_initialPincodesRef.current) return;
+            const conVal = _initialPincodesRef.current.con;
+            // Apply the pincode if we have a value and state data is available
+            if (conVal && conState?.data) {
+                setValue('amsT_ConPincode', conVal);
+                trigger('amsT_ConPincode');
+                _initialPincodesRef.current.con = undefined;
+            }
+        } catch (_e) {
+            //ignore
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [conState?.data, conConuntryId]);
+
+    useEffect(() => {
+        try {
+            if (!_initialPincodesRef.current) return;
+            const perVal = _initialPincodesRef.current.per;
+            // Apply the pincode if we have a value, state data is available, and permanent is not same as residential
+            if (perVal && perState?.data && !sameAsResidential) {
+                setValue('amsT_PerPincode', perVal);
+                trigger('amsT_PerPincode');
+                _initialPincodesRef.current.per = undefined;
+            }
+        } catch (_e) {
+            //ignore
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [perState?.data, perConuntryId, sameAsResidential]);
+
     // derive father/mother country objects & zip lengths from their nationality selects
     const fatherCountryObj = useMemo(() => {
         if (!country?.data || !fatherPresentCountryId) return undefined;
@@ -2517,18 +3040,32 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     const motherZipLength: number | undefined = motherCountryObj?.ivrmmC_ZipNoLength ?? undefined;
 
     useEffect(() => {
+        // Don't clear pincode during initialization if we're restoring from payload
+        if (_isInitializingRef.current || _initialPincodesRef.current?.con) return;
         setValue('amsT_ConPincode', '');
     }, [conConuntryId, setValue]);
 
     useEffect(() => {
+        // Don't clear pincode during initialization if we're restoring from payload
+        if (_isInitializingRef.current || _initialPincodesRef.current?.per) return;
         if (!sameAsResidential) {
             setValue('amsT_PerPincode', '');
         }
     }, [perConuntryId, setValue, sameAsResidential]);
 
     useEffect(() => {
-        setValue('asmS_Id', 0);
-    }, [classId, setValue]);
+        // Do not clear section while we're initializing the form from payload
+        if (_isInitializingRef.current) return;
+
+        // If section data has loaded and there are available sections, auto-select the first one
+        if (sectionData?.data && sectionData.data.length > 0) {
+            const firstSection = sectionData.data[0];
+            setValue('asmS_Id', firstSection.asmS_Id);
+        } else {
+            // Otherwise, clear the section
+            setValue('asmS_Id', 0);
+        }
+    }, [classId, sectionData, setValue]);
 
     const onSubmit = async (_formData: FormFields) => {
         try {
@@ -2585,7 +3122,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             // Call API with FormData
             const response = await saveFinalTabApi(fd as any);
             if (response?.success) {
-                toast.success('Application submitted successfully');
+                toast.success('Application Updated successfully');
                 reset();
                 setCurrentStep(1);
                 setUploadedDocuments([]);
@@ -3187,11 +3724,11 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                             </div>
 
                                             <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='amsT_SubCasteIMC_Id'>
+                                                <Label htmlFor='amsT_StudentCategory_Id'>
                                                     Caste Category <span className='ml-1 text-red-500'>*</span>
                                                 </Label>
                                                 <Controller
-                                                    name='amsT_SubCasteIMC_Id'
+                                                    name='amsT_StudentCategory_Id'
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
@@ -3221,7 +3758,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                         </Select>
                                                     )}
                                                 />
-                                                {errors.amsT_SubCasteIMC_Id && <FormError>{errors.amsT_SubCasteIMC_Id.message}</FormError>}
+                                                {errors.amsT_StudentCategory_Id && (
+                                                    <FormError>{errors.amsT_StudentCategory_Id.message}</FormError>
+                                                )}
                                             </div>
                                             {/* <InputText
                                                 label='Caste '
@@ -3233,10 +3772,10 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                             /> */}
                                             <InputText
                                                 label='Sub Caste'
-                                                id='amsT_SubCaste'
+                                                id='amsT_SubCasteIMC_Id'
                                                 placeholder='Enter sub caste'
-                                                {...register('amsT_SubCaste')}
-                                                error={errors.amsT_SubCaste?.message}
+                                                {...register('amsT_SubCasteIMC_Id')}
+                                                error={errors.amsT_SubCasteIMC_Id?.message}
                                             />
 
                                             <InputText
@@ -3284,21 +3823,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                 <SelectValue placeholder='Select gender' />
                                                             </SelectTrigger>
                                                             <SelectContent>
-                                                                {genderLoading ? (
-                                                                    <SelectItem value='loading' disabled>
-                                                                        Loading...
-                                                                    </SelectItem>
-                                                                ) : genderError ? (
-                                                                    <SelectItem value='error' disabled>
-                                                                        Error loading
-                                                                    </SelectItem>
-                                                                ) : (
-                                                                    gender?.data?.map((item) => (
-                                                                        <SelectItem key={item.ivrmmG_Id} value={String(item.ivrmmG_Id)}>
-                                                                            {item.ivrmmG_GenderName}
-                                                                        </SelectItem>
-                                                                    ))
-                                                                )}
+                                                                <SelectItem value='Male'>Male</SelectItem>
+                                                                <SelectItem value='Female'>Female</SelectItem>
+                                                                <SelectItem value='Other'>Other</SelectItem>
                                                             </SelectContent>
                                                         </Select>
                                                     )}
@@ -3597,9 +4124,11 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                 <SelectValue placeholder='Select option' />
                                                             </SelectTrigger>
                                                             <SelectContent>
-                                                                <SelectItem value='0'>Pre-Primary School</SelectItem>
-                                                                <SelectItem value='1'>Primary School</SelectItem>
-                                                                <SelectItem value='2'>High School</SelectItem>
+                                                                {STUDENT_CATEGORIES.map((category) => (
+                                                                    <SelectItem key={category.id} value={category.id.toString()}>
+                                                                        {category.label}
+                                                                    </SelectItem>
+                                                                ))}
                                                             </SelectContent>
                                                         </Select>
                                                     )}
@@ -3644,10 +4173,10 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                         <InputText
                                                             label='EMIS / BPL / STS No.'
                                                             required
-                                                            id='amsT_EMIS_BPL_STS_No'
+                                                            id='amsT_BPLCardNo'
                                                             placeholder='Enter card or STS no.'
-                                                            {...register('amsT_EMIS_BPL_STS_No')}
-                                                            error={errors.amsT_EMIS_BPL_STS_No?.message}
+                                                            {...register('amsT_BPLCardNo')}
+                                                            error={errors.amsT_BPLCardNo?.message}
                                                         />
                                                     </div>
                                                 )}
@@ -3813,10 +4342,10 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                             {/* GPS Tracing Id */}
                                             <InputText
                                                 label='GPS Tracing Id'
-                                                id='amsT_GPSTracingId'
+                                                id='amsT_GPSTrackingId'
                                                 placeholder='Enter GPS tracing ID'
-                                                {...register('amsT_GPSTracingId')}
-                                                error={errors.amsT_GPSTracingId?.message}
+                                                {...register('amsT_GPSTrackingId')}
+                                                error={errors.amsT_GPSTrackingId?.message}
                                             />
 
                                             {/* Medium Of Instruction */}
@@ -4703,8 +5232,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                         <Select
                                                                             key={field.value || 'empty'}
                                                                             onValueChange={(value) => field.onChange(Number(value))}
-                                                                            value={field.value?.toString() || ''}
-                                                                            disabled={sameAsResidential}>
+                                                                            value={field.value?.toString() || ''}>
                                                                             <SelectTrigger>
                                                                                 <SelectValue placeholder='Select state' />
                                                                             </SelectTrigger>
@@ -4744,7 +5272,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                 placeholder='Enter city'
                                                                 {...register('fatherPermanentAddress.city')}
                                                                 error={errors.fatherPermanentAddress?.city?.message}
-                                                                disabled={sameAsResidential}
                                                             />
 
                                                             {/* Permanent Pin Code */}
@@ -4801,7 +5328,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                 maxLength={fatherZipLength}
                                                                                 type='number'
                                                                                 showSpinner={false}
-                                                                                disabled={sameAsResidential}
                                                                             />
 
                                                                             {fatherCountryObj && fatherZipLength && (
@@ -5393,8 +5919,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                         <Select
                                                                             key={field.value || 'empty'}
                                                                             onValueChange={(value) => field.onChange(Number(value))}
-                                                                            value={field.value?.toString() || ''}
-                                                                            disabled={sameAsResidential}>
+                                                                            value={field.value?.toString() || ''}>
                                                                             <SelectTrigger>
                                                                                 <SelectValue placeholder='Select state' />
                                                                             </SelectTrigger>
@@ -5434,7 +5959,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                 placeholder='Enter city'
                                                                 {...register('motherPresentAddress.city')}
                                                                 error={errors.motherPresentAddress?.city?.message}
-                                                                disabled={sameAsResidential}
                                                             />
 
                                                             {/* Pincode */}
@@ -5490,7 +6014,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                 maxLength={motherZipLength}
                                                                                 type='number'
                                                                                 showSpinner={false}
-                                                                                disabled={sameAsResidential}
                                                                             />
 
                                                                             {motherCountryObj && motherZipLength && (
@@ -5597,8 +6120,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                         <Select
                                                                             key={field.value || 'empty'}
                                                                             onValueChange={(value) => field.onChange(Number(value))}
-                                                                            value={field.value?.toString() || ''}
-                                                                            disabled={sameAsResidential}>
+                                                                            value={field.value?.toString() || ''}>
                                                                             <SelectTrigger>
                                                                                 <SelectValue placeholder='Select state' />
                                                                             </SelectTrigger>
@@ -5638,7 +6160,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                 placeholder='Enter city'
                                                                 {...register('motherPermanentAddress.city')}
                                                                 error={errors.motherPermanentAddress?.city?.message}
-                                                                disabled={sameAsResidential}
                                                             />
 
                                                             {/* Permanent Pincode */}
@@ -5696,7 +6217,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                 maxLength={motherZipLength}
                                                                                 type='number'
                                                                                 showSpinner={false}
-                                                                                disabled={sameAsResidential}
                                                                             />
 
                                                                             {motherCountryObj && motherZipLength && (
@@ -5989,7 +6509,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                     control={control}
                                                     render={({ field }) => (
                                                         <MultiSelect
-                                                            options={[{ label: 'Sports', value: '1' }]}
+                                                            options={[{ label: 'Sports', value: '2' }]}
                                                             onValueChange={(selectedValues) => {
                                                                 field.onChange(selectedValues);
                                                                 handleActivitySelection(selectedValues);
@@ -6890,8 +7410,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                             <Select
                                                                 key={field.value || 'empty'}
                                                                 value={field.value?.toString() || ''}
-                                                                onValueChange={(value) => field.onChange(Number(value))}
-                                                                disabled={sameAsResidential}>
+                                                                onValueChange={(value) => field.onChange(Number(value))}>
                                                                 <SelectTrigger>
                                                                     <SelectValue placeholder='Select country' />
                                                                 </SelectTrigger>
@@ -6932,8 +7451,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                             <Select
                                                                 key={field.value || 'empty'}
                                                                 value={field.value?.toString() || ''}
-                                                                onValueChange={(value) => field.onChange(Number(value))}
-                                                                disabled={sameAsResidential}>
+                                                                onValueChange={(value) => field.onChange(Number(value))}>
                                                                 <SelectTrigger>
                                                                     <SelectValue placeholder='Select state' />
                                                                 </SelectTrigger>
@@ -7025,11 +7543,11 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                 />
 
                                                 <InputText
-                                                    label='No of Siblings in Other School'
-                                                    id='amsT_NoOfSiblingsOtherSchool'
-                                                    placeholder='Enter No of Siblings in Other School'
-                                                    {...register('amsT_NoOfSiblingsOtherSchool')}
-                                                    error={errors.amsT_NoOfSiblingsOtherSchool?.message}
+                                                    label='No of Dependencies'
+                                                    id='amsT_NoOfDependencies'
+                                                    placeholder='Enter No of Dependencies'
+                                                    {...register('amsT_NoOfDependencies')}
+                                                    error={errors.amsT_NoOfDependencies?.message}
                                                 />
 
                                                 <InputText
