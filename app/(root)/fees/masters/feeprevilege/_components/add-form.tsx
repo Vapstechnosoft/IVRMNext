@@ -191,10 +191,16 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
 
     //const filteredHeadOptions = headOptions.filter((h) => h.label.toLowerCase().includes(headSearchTerm.toLowerCase()));
 
-    const filteredHeadOptions = headOptions.filter((h) =>
-        (h.label ?? '').toString().toLowerCase().includes(headSearchTerm.trim().toLowerCase())
-    );
+    // const filteredHeadOptions = headOptions.filter((h) =>
+    //     (h.label ?? '').toString().toLowerCase().includes(headSearchTerm.trim().toLowerCase())
+    // );
 
+    const filteredHeadOptions = headOptions.filter((h) => {
+        const label = (h.label ?? '').toString().trim();
+        const searchTerm = headSearchTerm.trim();
+
+        return label.toLowerCase().includes(searchTerm.toLowerCase());
+    });
     const filteredUsers = userOptions.filter((u) => u.normalizedUserName.toLowerCase().includes(userSearch.toLowerCase()));
 
     const toggleHead = (id: string) => {
