@@ -16,7 +16,7 @@ export async function addOrUpdateMasterAuthor(data: any) {
 }
 
 export async function toggleMasterAuthor(id: number) {
-    const url = `/MasterAuthor/toggle/${id}`;
+    const url = `/MasterAuthor/toggle?LMAU_Id=${id}`;
     return await api.put('library', url);
 }
 

@@ -106,16 +106,39 @@ export const masterPublisherSchema = {
 
 export const masterAuthorSchema = {
     addOrUpdate: z.object({
-        lmaU_Id: z.number().nonnegative().optional(), // optional when creating new record
+        lmaU_Id: z.number().nonnegative().optional(),
+
         lmaU_AuthorFirstName: z.string({ message: 'Author Name is required' }).min(2).max(100),
+
         lmaU_AuthorMiddleName: z.string().optional(),
         lmaU_AuthorLastName: z.string().optional(),
-        lmaU_MobileNo: z.string({ message: 'Mobile No is required' }).min(10).max(15),
-        lmaU_Address: z.string({ message: 'Address is required' }).min(2).max(200),
-        lmaU_EmailId: z.string({ message: 'Email is required' }).email(),
-        lmaU_PhoneNo: z.string({ message: 'Phone No is required' }).min(10).max(15),
+
+        lmaU_MobileNo: z
+            .string()
+            .trim()
+            .refine((val) => val === '' || /^[6-9]\d{9}$/.test(val), 'Invalid Indian mobile number'),
+
+        lmaU_Address: z
+            .string()
+            .trim()
+            .refine(
+                (val) => val === '' || (val.length >= 5 && val.length <= 200 && /^[A-Za-z0-9\s#]+$/.test(val)),
+                'Address must be 5–200 characters and can contain letters, numbers, spaces and # only'
+            ),
+
+        lmaU_EmailId: z
+            .string()
+            .trim()
+            .refine((val) => val === '' || z.string().email().safeParse(val).success, 'Invalid email address'),
+
+        lmaU_PhoneNo: z
+            .string()
+            .trim()
+            .refine((val) => val === '' || /^\d{10,15}$/.test(val), 'Phone Number must contain 10–15 digits'),
+
         lmaU_ActiveFlg: z.boolean().optional()
     }),
+
     delete: z.object({
         lmaU_Id: deleteIdSchema('lmaU_Id')
     })

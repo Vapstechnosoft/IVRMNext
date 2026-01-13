@@ -8,8 +8,10 @@ import { useLibraryMasterAuthor } from '@/hooks/library/useMasters';
 import type { IMasterAuthorList } from '@/types/library/masters/masters';
 import { Plus, X } from 'lucide-react';
 import { use, useEffect } from 'react';
-//import AddMasterAuthorForm from './_components/add-form';
+import AddMasterAuthorForm from './_components/add-form';
 import { masterAuthorColumns } from './_components/columns';
+import ToggleMasterAuthorForm from './_components/toggle-form';
+import UpdateMasterAuthorForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -53,7 +55,7 @@ function MasterClassPageContent({
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
-                        Add Master Library
+                        Add Master Author
                     </Button>
                 </div>
 
@@ -87,13 +89,13 @@ function FormSections({ refetch }: { refetch: () => void }) {
     const {
         isAddFormOpen,
         isEditFormOpen,
-        //isDeleteFormOpen,
+        isToggleFormOpen,
         selectedRow,
         closeAddForm,
-        //closeDeleteForm,
-        // closeEditForm,
-        addFormRef
-        // editFormRef
+        closeToggleForm,
+        closeEditForm,
+        addFormRef,
+        editFormRef
     } = useFormContext<IMasterAuthorList>();
 
     useEffect(() => {
@@ -128,45 +130,30 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            {/* <AddMasterAuthorForm
-                                onSuccess={() => {
-                                    handleSuccess();
-                                    closeAddForm();
-                                }}
-                            /> */}
+                            {
+                                <AddMasterAuthorForm
+                                    onSuccess={() => {
+                                        handleSuccess();
+                                        closeAddForm();
+                                    }}
+                                />
+                            }
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
 
-            {/* Delete Form */}
-            {/* {isDeleteFormOpen && selectedRow && (
-                <DeleteMasterVendorForm
-                    rowData={selectedRow}
-                    onClose={closeDeleteForm}
-                     onSuccess={() => {
-                         handleSuccess();
-                         closeDeleteForm();
-                     }}
-                />
-            )} */}
+            {/* Edit Form */}
+            {/* Toggle Form */}
+            {isToggleFormOpen && selectedRow && <ToggleMasterAuthorForm rowData={selectedRow} onClose={closeToggleForm} />}
 
             {/* Edit Form */}
-            {/* {isEditFormOpen && selectedRow && (
-                <UpdateMasterClassForm
-                    rowData={selectedRow}
-                    onClose={closeDeleteForm}
-                    onSuccess={() => {
-                        handleSuccess();
-                        closeDeleteForm();
-                    }}
-                />
-            )} */}
 
-            {/* {isEditFormOpen && selectedRow && (
+            {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Yearly Class Category'
+                        title='Edit Master Library'
+                        description='Update the Master Library details below'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -180,11 +167,11 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateMasterClassForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <UpdateMasterAuthorForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
-            )} */}
+            )}
         </>
     );
 }

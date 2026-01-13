@@ -40,7 +40,11 @@ export default function ToggleMasterAuthorForm({ rowData, onClose }: toggleMaste
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
+            //console.log('Toggling Master Author with ID:', rowData.lmaU_Id);
+
             const response = await toggleMasterAuthor(Number(rowData.lmaU_Id));
+
+            // console.log('Toggle Response:', response);
 
             if (response.success) {
                 toast.success(response.message);

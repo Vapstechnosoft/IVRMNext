@@ -5,7 +5,7 @@ import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterLibrary } from '@/hooks/library/useMasters';
 import { masterAuthorSchema } from '@/schemas/library/masters';
-import { addOrUpdateMasterLibrary } from '@/server/library/masters/master_library';
+import { addOrUpdateMasterAuthor } from '@/server/library/masters/master_author';
 import type { IMasterAuthorList } from '@/types/library/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
@@ -16,13 +16,13 @@ import type { z } from 'zod';
 
 type FormFields = z.infer<typeof masterAuthorSchema.addOrUpdate>;
 
-interface UpdateMasterClassFormProps {
+interface UpdateMasterAuthorFormProps {
     onSuccess?: () => void;
     className?: string;
     selectedRow: IMasterAuthorList;
 }
 
-export default function UpdateMasterClassForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterClassFormProps) {
+export default function UpdateMasterAuthorForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterAuthorFormProps) {
     const { refetchAll } = useMasterLibrary();
 
     const {
@@ -77,14 +77,14 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                 lmaU_ActiveFlg
             };
 
-            const response = await addOrUpdateMasterLibrary(payload);
+            const response = await addOrUpdateMasterAuthor(payload);
 
             if (response.success) {
-                toast.success(response.message || 'Master Library updated successfully');
+                toast.success(response.message || 'Master Author updated successfully');
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response.message || 'Failed to update Master Library');
+                toast.error(response.message || 'Failed to update Master Author');
             }
         } catch (error: any) {
             toast.error(error?.message || 'Something went wrong');
@@ -98,23 +98,6 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        {/* <InputText
-                            label='Class Category Code'
-                            required
-                            id='fmcC_ClassCategoryCode'
-                            {...register('fmcC_ClassCategoryCode')}
-                            error={errors.fmcC_ClassCategoryCode?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                        <InputText
-                            label='Class Category Name'
-                            required
-                            id='fmcC_ClassCategoryName'
-                            {...register('fmcC_ClassCategoryName')}
-                            error={errors.fmcC_ClassCategoryName?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        /> */}
-
                         <InputText
                             label='FirstName'
                             {...register('lmaU_AuthorFirstName', {})}
