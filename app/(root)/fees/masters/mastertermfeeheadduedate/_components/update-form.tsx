@@ -139,7 +139,7 @@ export default function UpdateFeeTermsHeadDueDateForm({ onSuccess, termname = ''
         }
 
         const payload = {
-            mI_Id: 30,
+            // mI_Id: 30,
             term_year_id: selectedAcademicYear ?? 0,
             // fmT_Id: selectedTerm ?? 0,
             // fmH_Id: selectedHead ?? 0,

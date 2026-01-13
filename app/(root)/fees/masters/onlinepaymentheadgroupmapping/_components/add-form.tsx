@@ -194,14 +194,14 @@ export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, classNa
     useEffect(() => {
         const fetchHeadwiseInstallments = async (heads?: number[]) => {
             // need academicYear and at least groupId or classId
-            if (!academicYear || (!groupId && !classId)) {
+            if (!academicYear || !classId || !groupId || !!selectedHeads) {
                 setInstallmentOptions([]);
                 return;
             }
 
             try {
                 const payload: any = {
-                    mi_Id: Number(getValues('mI_Id') ?? 30),
+                    // mi_Id: Number(getValues('mI_Id') ?? 30),
                     asmaY_Id: academicYear,
                     // prefer groupId for fmg_Id (group selection), otherwise use classId
                     fmg_Id: groupId ?? classId
@@ -278,7 +278,7 @@ export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, classNa
             }
 
             const payload = {
-                mI_Id: Number(getValues('mI_Id')),
+                // mI_Id: Number(getValues('mI_Id')),
                 asmaY_Id: academicYear,
                 asmcL_ID: classId,
                 fpgd_id: subMerchantId,
@@ -592,7 +592,7 @@ export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, classNa
                                                                 if (academicYear && (groupId ?? classId)) {
                                                                     await (async () => {
                                                                         const payload: any = {
-                                                                            mi_Id: Number(getValues('mI_Id') ?? 30),
+                                                                            // mi_Id: Number(getValues('mI_Id') ?? 30),
                                                                             asmaY_Id: academicYear,
                                                                             fmg_Id: groupId ?? classId
                                                                         };

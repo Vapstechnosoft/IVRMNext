@@ -48,15 +48,15 @@ export async function getFeeRefundableHeadDetails(ASMAY_Id: number, amsT_Id: num
     params.append('ASMAY_Id', String(ASMAY_Id));
     params.append('AMST_Id', String(amsT_Id));
     params.append('IsRefundable', String(IsRefundable));
-    const feeGroupIdsToUse = [374];
+    // const feeGroupIdsToUse = [374];
 
-    // // Append FeeGroupIds as repeated query params
-    // FeeGroupIds.forEach(id => {
-    //     params.append("FeeGroupIds", String(id));
-    // });
-    feeGroupIdsToUse.forEach((id) => {
+    // Append FeeGroupIds as repeated query params
+    FeeGroupIds.forEach((id) => {
         params.append('FeeGroupIds', String(id));
     });
+    // feeGroupIdsToUse.forEach((id) => {
+    //     params.append('FeeGroupIds', String(id));
+    // });
     // const url = `/FeeRefundableFacade/get-refundable-headlist?ASMAY_Id=${ASMAY_Id}&AMST_Id=16857&IsRefundable=${IsRefundable}&FeeGroupIds=${FMG_Id}`;
     const url = `/FeeRefundableFacade/get-refundable-headlist?${params.toString()}`;
     console.info('getFeeRefundableHeadDetails api', url);

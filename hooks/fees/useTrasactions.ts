@@ -356,13 +356,13 @@ export const useFeePreadmissionTransactionList = (
     };
 };
 
-export const usePreadmissionStudentDropdownData = (searchText: string, radiovalue: string) => {
+export const usePreadmissionStudentDropdownData = (searchText: string, radiovalue: string, asmayId: number) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.FEE_PREADMISSION_STUDENT_DROPDOWN, {}],
-            queryFn: async () => getPreadmissionStudentDropdownData(searchText, radiovalue),
+            queryFn: async () => getPreadmissionStudentDropdownData(searchText, radiovalue, asmayId),
             staleTime: 0
         }),
         refetchAll: () => {

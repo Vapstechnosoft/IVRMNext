@@ -6,7 +6,7 @@ import type { IMasterYearlyRebateSettingsList } from '@/types/fees/masters/maste
 
 export async function getMasterYearlyRebateSettings(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/fee_class_category/yearlyclasscategorylist/30?${urlParams}`;
+    const url = `/fee_class_category/yearlyclasscategorylist?${urlParams}`;
     return await api.get<IMasterYearlyRebateSettingsList[]>('fees', url);
 }
 

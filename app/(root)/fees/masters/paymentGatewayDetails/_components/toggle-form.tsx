@@ -41,7 +41,7 @@ export default function TogglepaymentgatewaydetailsForm({ rowData, onClose }: To
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await togglepaymentgatewaydetails(30, Number(rowData.fpgD_Id));
+            const response = await togglepaymentgatewaydetails(Number(rowData.fpgD_Id));
 
             if (response.success) {
                 toast.success(response.message);
