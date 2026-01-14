@@ -169,7 +169,11 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
             const session = useSession();
             const [amstId, setAmstId] = useState<number>(0);
 
-            const { data: applicationFormDetails, isLoading: applicationFormDetailsLoading } = useStudentAdmissionFormById(amstId);
+            const {
+                data: applicationFormDetails,
+                isLoading: applicationFormDetailsLoading,
+                error: applicationFormError
+            } = useStudentAdmissionFormById(amstId);
 
             useEffect(() => {
                 // Avoid forcing a full page reload when session role is temporarily undefined.
@@ -178,6 +182,13 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
 
             // Trigger form open when applicationFormDetails is loaded
             useEffect(() => {
+                if (applicationFormError) {
+                    console.error('Failed to fetch application details:', applicationFormError);
+                    toast.error('Unable to fetch application details');
+                    setAmstId(0);
+                    return;
+                }
+
                 if (amstId && applicationFormDetails?.data && !applicationFormDetailsLoading) {
                     try {
                         const resp = applicationFormDetails.data;
@@ -208,38 +219,63 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
                                 // normalized arrays expected by update-form.tsx
                                 adm_M_Student_EmailIdDTO: src.firstTab?.emailIds || src.emailIds || src.adm_M_Student_EmailIdDTO || [],
                                 mobileNos: src.firstTab?.mobileNos || src.mobileNos || [],
-                                previousSchools:
+                                previousSchools: (
                                     src.fourthTab?.previousSchools ||
                                     src.previousSchools ||
                                     src.previous_schools ||
                                     src.previousSchoolDetails ||
-                                    [],
+                                    []
+                                ).map((ps: any) => ({
+                                    schoolName: ps.schoolName ?? ps.pasrpS_PrvSchoolName ?? ps.pasrS_SchoolName ?? '',
+                                    schoolType: String(ps.schoolType ?? ''),
+                                    class: String((ps.class || ps.classId) ?? ''),
+                                    percentage: ps.percentage ?? ps.pasrpS_PreviousPer ?? '',
+                                    grade: ps.grade ?? ps.pasrpS_PreviousGrade ?? '',
+                                    passedYear: ps.passedYear ? Number(ps.passedYear) : 0,
+                                    country: String(ps.country ?? ''),
+                                    state: String(ps.state ?? ''),
+                                    address: ps.address ?? ps.pasrpS_Address ?? '',
+                                    leftReason: ps.leftReason ?? ps.pasrpS_LeftReason ?? '',
+                                    medium: ps.medium ?? '',
+                                    tcNumber: ps.tcNumber ?? ps.pasrpS_TcNo ?? '',
+                                    tcDate: ps.tcDate ? (ps.tcDate instanceof Date ? ps.tcDate.toISOString() : String(ps.tcDate)) : ''
+                                })),
                                 siblings: src.fourthTab?.siblings || src.siblings || src.student_siblings || src.siblingsDetails || [],
                                 guardian: src.guardians || src.guardian || src.guardiansDetails || [],
                                 selectedSourceDetails: (
-                                    src.fourthTab?.src.selectedSourceDetails ||
+                                    src.fourthTab?.selectedSourceDetails ||
                                     src.selectedSource ||
                                     src.student_sources ||
                                     []
-                                ).map((s: any) => ({
-                                    pamS_Id: String(s.pamS_Id)
-                                })),
+                                )
+                                    .filter(Boolean)
+                                    .map((s: any) => ({
+                                        pamS_Id: String(s?.pamS_Id)
+                                    })),
                                 selectedRefrenceDetails: (
                                     src.selectedRefrenceDetails ||
                                     src.selectedReference ||
                                     src.student_refrences ||
                                     []
-                                ).map((r: any) => ({
-                                    pamR_Id: String(r.pamR_Id)
-                                })),
-                                selectedDocuments: (src.student_documents || src.selectedDocuments || src.student_documents || []).map(
-                                    (d: any) => ({
-                                        pasrD_Id: d.pasrD_Id,
-                                        pasR_Id: d.pasR_Id,
-                                        amsmD_Id: d.amsmD_Id,
-                                        document_Path: d.document_Path
-                                    })
                                 )
+                                    .filter(Boolean)
+                                    .map((r: any) => ({
+                                        pamR_Id: String(r?.pamR_Id)
+                                    })),
+                                selectedDocuments: (src.student_documents || src.selectedDocuments || []).filter(Boolean).map((d: any) => ({
+                                    pasrD_Id: d?.pasrD_Id,
+                                    pasR_Id: d?.pasR_Id,
+                                    amsmD_Id: d?.amsmD_Id,
+                                    document_Path: d?.document_Path
+                                })),
+                                activities: (src.fourthTab?.activities || src.activities || []).map((a: any) => ({
+                                    activityId: a?.activityId,
+                                    isSelected: a?.isSelected ?? true
+                                })),
+                                sourceDetails: (src.fourthTab?.sourceDetails || src.sourceDetails || []).map((s: any) => ({
+                                    sourceId: s?.sourceId,
+                                    isSelected: s?.isSelected ?? true
+                                }))
                             };
                         } else {
                             // fallback to older/flat shape
@@ -249,20 +285,46 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
                                 // normalized keys for flat responses
                                 adm_M_Student_EmailIdDTO: resp?.emailIds || resp?.adm_M_Student_EmailIdDTO || [],
                                 mobileNos: resp?.mobileNos || [],
-                                previousSchools: resp?.previousSchools || resp?.previous_schools || [],
+                                previousSchools: (resp?.previousSchools || resp?.previous_schools || []).map((ps: any) => ({
+                                    schoolName: ps.schoolName ?? ps.pasrpS_PrvSchoolName ?? ps.pasrS_SchoolName ?? '',
+                                    schoolType: String(ps.schoolType ?? ''),
+                                    class: String((ps.class || ps.classId) ?? ''),
+                                    percentage: ps.percentage ?? ps.pasrpS_PreviousPer ?? '',
+                                    grade: ps.grade ?? ps.pasrpS_PreviousGrade ?? '',
+                                    passedYear: ps.passedYear ? Number(ps.passedYear) : 0,
+                                    country: String(ps.country ?? ''),
+                                    state: String(ps.state ?? ''),
+                                    address: ps.address ?? ps.pasrpS_Address ?? '',
+                                    leftReason: ps.leftReason ?? ps.pasrpS_LeftReason ?? '',
+                                    medium: ps.medium ?? '',
+                                    tcNumber: ps.tcNumber ?? ps.pasrpS_TcNo ?? '',
+                                    tcDate: ps.tcDate ? (ps.tcDate instanceof Date ? ps.tcDate.toISOString() : String(ps.tcDate)) : ''
+                                })),
                                 siblings: resp?.siblings || resp?.student_siblings || [],
                                 guardian: resp?.guardian || resp?.guardians || [],
-                                selectedSourceDetails: (resp?.student_sources || resp?.studentSource || []).map((s: any) => ({
-                                    pamS_Id: String(s.pamS_Id)
+                                selectedSourceDetails: (resp?.student_sources || resp?.studentSource || [])
+                                    .filter(Boolean)
+                                    .map((s: any) => ({
+                                        pamS_Id: String(s?.pamS_Id)
+                                    })),
+                                selectedRefrenceDetails: (resp?.student_refrences || resp?.studentReference || [])
+                                    .filter(Boolean)
+                                    .map((r: any) => ({
+                                        pamR_Id: String(r?.pamR_Id)
+                                    })),
+                                selectedDocuments: (resp?.student_documents || []).filter(Boolean).map((d: any) => ({
+                                    pasrD_Id: d?.pasrD_Id,
+                                    pasR_Id: d?.pasR_Id,
+                                    amsmD_Id: d?.amsmD_Id,
+                                    document_Path: d?.document_Path
                                 })),
-                                selectedRefrenceDetails: (resp?.student_refrences || resp?.studentReference || []).map((r: any) => ({
-                                    pamR_Id: String(r.pamR_Id)
+                                activities: (resp?.activities || []).map((a: any) => ({
+                                    activityId: a?.activityId,
+                                    isSelected: a?.isSelected ?? true
                                 })),
-                                selectedDocuments: (resp?.student_documents || []).map((d: any) => ({
-                                    pasrD_Id: d.pasrD_Id,
-                                    pasR_Id: d.pasR_Id,
-                                    amsmD_Id: d.amsmD_Id,
-                                    document_Path: d.document_Path
+                                sourceDetails: (resp?.sourceDetails || []).map((s: any) => ({
+                                    sourceId: s?.sourceId,
+                                    isSelected: s?.isSelected ?? true
                                 }))
                             };
                         }
@@ -271,12 +333,13 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
                         openEditForm(payload);
                         setAmstId(0); // Reset after opening
                     } catch (error) {
-                        console.error('Error fetching application details:', error);
-                        toast.error('Unable to fetch application details');
+                        // eslint-disable-next-line no-console
+                        console.error('Error processing application details:', error);
+                        toast.error('Unable to process application details');
                         setAmstId(0); // Reset on error
                     }
                 }
-            }, [applicationFormDetails, applicationFormDetailsLoading]);
+            }, [applicationFormDetails, applicationFormDetailsLoading, applicationFormError]);
 
             return (
                 <div className='flex items-start justify-start gap-2'>

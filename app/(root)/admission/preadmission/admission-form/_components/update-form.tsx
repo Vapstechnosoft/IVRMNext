@@ -60,11 +60,17 @@ interface AddStudentApplicationFormProps {
     onClose?: () => void;
 }
 
+type Country = {
+    ivrmmC_Id: number;
+    ivrmmC_CountryName: string;
+};
+
 const STUDENT_CATEGORIES = [
     { id: 1, label: 'Pre-Primary School' },
     { id: 2, label: 'Primary School' },
     { id: 3, label: 'High School' }
 ];
+
 const steps = [
     {
         id: 1,
@@ -296,6 +302,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         payload.selectedSourceDetails = payload.selectedSourceDetails || payload.selectedSource || payload.student_sources || [];
         payload.selectedRefrenceDetails = payload.selectedRefrenceDetails || payload.selectedReference || payload.student_refrences || [];
         payload.selectedDocuments = payload.selectedDocuments || payload.student_documents || [];
+        payload.activities = payload.activities || [];
+        payload.sourceDetails = payload.sourceDetails || [];
 
         try {
             // Map alternative backend keys to the form's expected fields so dropdowns load correctly
@@ -391,6 +399,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     con: payload.amsT_ConPincode ? String(payload.amsT_ConPincode) : undefined,
                     per: payload.amsT_PerPincode ? String(payload.amsT_PerPincode) : undefined
                 };
+                // eslint-disable-next-line no-console
+                console.debug('[UpdateAdmission] Stored pincodes in ref:', _initialPincodesRef.current);
             } catch (_e) {
                 //ignore
             }
@@ -405,17 +415,163 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             } catch (_e) {
                 //ignore
             }
-
             reset(payload as any);
+
+            // Apply pincodes immediately after reset to ensure they're set in the form state
+            try {
+                if (payload.amsT_ConPincode) {
+                    const conVal = String(payload.amsT_ConPincode);
+                    // eslint-disable-next-line no-console
+                    console.debug('[UpdateAdmission] Applying residential pincode immediately:', conVal);
+                    setValue('amsT_ConPincode', conVal);
+                    trigger('amsT_ConPincode');
+                }
+                if (payload.amsT_PerPincode) {
+                    const perVal = String(payload.amsT_PerPincode);
+                    // eslint-disable-next-line no-console
+                    console.debug('[UpdateAdmission] Applying permanent pincode immediately:', perVal);
+                    setValue('amsT_PerPincode', perVal);
+                    trigger('amsT_PerPincode');
+                }
+                // Apply activities and sourceDetails
+                if (Array.isArray(payload.activities) && payload.activities.length > 0) {
+                    // eslint-disable-next-line no-console
+                    console.debug('[UpdateAdmission] Applying activities:', payload.activities);
+                    setValue('activities', payload.activities);
+                }
+                if (Array.isArray(payload.sourceDetails) && payload.sourceDetails.length > 0) {
+                    // eslint-disable-next-line no-console
+                    console.debug('[UpdateAdmission] Applying sourceDetails:', payload.sourceDetails);
+                    setValue('sourceDetails', payload.sourceDetails);
+                }
+            } catch (_e) {
+                // eslint-disable-next-line no-console
+                console.error('[UpdateAdmission] Error applying fields immediately:', _e);
+            }
+
+            // Also schedule a second attempt after a short delay to ensure form is fully rendered
+            try {
+                setTimeout(() => {
+                    if (payload.amsT_ConPincode) {
+                        const conVal = String(payload.amsT_ConPincode);
+                        // eslint-disable-next-line no-console
+                        console.debug('[UpdateAdmission] Reapplying residential pincode after delay:', conVal);
+                        setValue('amsT_ConPincode', conVal);
+                    }
+                    if (payload.amsT_PerPincode) {
+                        const perVal = String(payload.amsT_PerPincode);
+                        // eslint-disable-next-line no-console
+                        console.debug('[UpdateAdmission] Reapplying permanent pincode after delay:', perVal);
+                        setValue('amsT_PerPincode', perVal);
+                    }
+                    // Normalize previousSchools to ensure dates are Date objects and field names match form schema
+                    if (Array.isArray(payload.previousSchools) && payload.previousSchools.length > 0) {
+                        const normalizedSchools = payload.previousSchools.map((ps: any) => ({
+                            schoolName: ps.schoolName ?? ps.pasrpS_PrvSchoolName ?? ps.pasrS_SchoolName ?? '',
+                            schoolType: ps.schoolType ? String(ps.schoolType) : '',
+                            class: ps.class || ps.classId ? String(ps.class || ps.classId) : '',
+                            percentage: ps.percentage ?? ps.pasrpS_PreviousPer ?? '',
+                            grade: ps.grade ?? ps.pasrpS_PreviousGrade ?? '',
+                            passedYear: ps.passedYear ? Number(ps.passedYear) : 0,
+                            country: ps.country ? String(ps.country) : '',
+                            state: ps.state ? String(ps.state) : '',
+                            address: ps.address ?? ps.pasrpS_Address ?? '',
+                            leftReason: ps.leftReason ?? ps.pasrpS_LeftReason ?? '',
+                            medium: ps.medium ?? '',
+                            tcNumber: ps.tcNumber ?? ps.pasrpS_TcNo ?? '',
+                            tcDate: ps.tcDate ? (ps.tcDate instanceof Date ? ps.tcDate : new Date(ps.tcDate)) : null
+                        }));
+                        // eslint-disable-next-line no-console
+                        console.debug('[UpdateAdmission] Normalizing previousSchools with field mapping:', normalizedSchools);
+                        setValue('previousSchools' as any, normalizedSchools);
+                    }
+                    if (Array.isArray(payload.activities) && payload.activities.length > 0) {
+                        // eslint-disable-next-line no-console
+                        console.debug('[UpdateAdmission] Reapplying activities after delay:', payload.activities);
+                        setValue('activities', payload.activities);
+                    }
+                    if (Array.isArray(payload.sourceDetails) && payload.sourceDetails.length > 0) {
+                        // eslint-disable-next-line no-console
+                        console.debug('[UpdateAdmission] Reapplying sourceDetails after delay:', payload.sourceDetails);
+                        setValue('sourceDetails', payload.sourceDetails);
+                    }
+                }, 50);
+            } catch (_e) {
+                // ignore
+            }
+
+            // Ensure residential address country/state are set so dropdowns load
+            try {
+                const conCountry = payload.amsT_ConCountry;
+                const conState = payload.amsT_ConState;
+
+                // Set country and state from payload to trigger dropdown fetches
+                if (conCountry !== undefined && conCountry !== null) {
+                    setValue('amsT_ConCountry' as any, conCountry);
+                }
+                if (conState !== undefined && conState !== null) {
+                    setValue('amsT_ConState' as any, conState);
+                }
+            } catch (_e) {
+                //ignore
+            }
+
+            // Ensure permanent address country/state are set so dropdowns load
+            try {
+                const perCountry = payload.amsT_PerCountry ?? payload.amsT_ConCountry;
+                const perState = payload.amsT_PerState ?? payload.amsT_ConState;
+
+                if (perCountry !== undefined && perCountry !== null) {
+                    setValue('amsT_PerCountry' as any, perCountry);
+                }
+                if (perState !== undefined && perState !== null) {
+                    setValue('amsT_PerState' as any, perState);
+                }
+            } catch (_e) {
+                //ignore
+            }
 
             // Some consumers (custom inputs) may not pick up reset values reliably in all cases;
             // set pincodes explicitly after reset while initializing to ensure they appear.
+            // NOTE: We no longer set pincodes here immediately - instead we wait for the
+            // state dropdowns to load (via the effect below) before applying pincodes,
+            // as custom pincode inputs may depend on state data being available
             try {
-                if (payload.amsT_ConPincode !== undefined && payload.amsT_ConPincode !== null) {
-                    setValue('amsT_ConPincode', String(payload.amsT_ConPincode));
-                }
-                if (payload.amsT_PerPincode !== undefined && payload.amsT_PerPincode !== null) {
-                    setValue('amsT_PerPincode', String(payload.amsT_PerPincode));
+                // Just ensure pincodes are in the form state via reset
+                // The effect at useEffect(() => { ... }, [conState?.data, conConuntryId])
+                // will re-apply them once state data loads
+            } catch (_e) {
+                //ignore
+            }
+
+            // Check if permanent address is same as residential and set the flag accordingly
+            try {
+                const conStr = String(payload.amsT_ConStreet ?? '').trim();
+                const conArea = String(payload.amsT_ConArea ?? '').trim();
+                const conCity = String(payload.amsT_ConCity ?? '').trim();
+                const conPincode = String(payload.amsT_ConPincode ?? '').trim();
+                const conState = String(payload.amsT_ConState ?? '').trim();
+                const conCountry = String(payload.amsT_ConCountry ?? '').trim();
+
+                const perStr = String(payload.amsT_PerStreet ?? '').trim();
+                const perArea = String(payload.amsT_PerArea ?? '').trim();
+                const perCity = String(payload.amsT_PerCity ?? '').trim();
+                const perPincode = String(payload.amsT_PerPincode ?? '').trim();
+                const perState = String(payload.amsT_PerState ?? '').trim();
+                const perCountry = String(payload.amsT_PerCountry ?? '').trim();
+
+                // Check if all address fields match
+                const isSameAddress =
+                    conStr === perStr &&
+                    conArea === perArea &&
+                    conCity === perCity &&
+                    conPincode === perPincode &&
+                    conState === perState &&
+                    conCountry === perCountry &&
+                    conStr.length > 0; // Only set if there's actual data
+
+                if (isSameAddress) {
+                    setSameAsResidential(true);
                 }
             } catch (_e) {
                 //ignore
@@ -551,20 +707,37 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     pamS_SourceName: s.pamS_SourceName || ''
                 }))
             );
+            // Also handle sourceDetails if it exists (new structure from API)
+            if (Array.isArray(payload.sourceDetails) && payload.sourceDetails.length > 0) {
+                const sourceDetailsConverted = payload.sourceDetails.map((s: any) => ({
+                    pamS_Id: String(s.sourceId || s.pamS_Id),
+                    pamS_SourceName: s.pamS_SourceName || ''
+                }));
+                // eslint-disable-next-line no-console
+                console.debug('[UpdateAdmission] Initialized sourceDetails:', sourceDetailsConverted);
+                setSelectedSourceItems(sourceDetailsConverted);
+            }
             setSelectedReferenceItems(
                 (payload.selectedRefrenceDetails || []).map((r: any) => ({
                     pamR_Id: String(r.pamR_Id),
                     pamR_ReferenceName: r.pamR_ReferenceName || ''
                 }))
             );
+            // Handle activities - extract activityId from the payload.activities array
+            if (Array.isArray(payload.activities) && payload.activities.length > 0) {
+                const activityIds = payload.activities.map((a: any) => String(a.activityId || a)).filter(Boolean);
+                // eslint-disable-next-line no-console
+                console.debug('[UpdateAdmission] Initialized activities:', activityIds);
+                setSelectedActivityItems(activityIds);
+            }
             setUploadedDocuments(payload.selectedDocuments || []);
-            setStudentPhoto(
-                payload.studentPhotoUrl
-                    ? { amsT_Photoname: payload.studentPhotoUrl }
-                    : payload.studentPhoto
-                      ? { amsT_Photoname: payload.amsT_Photoname || payload.studentPhoto }
-                      : null
-            );
+            const initialPhotoName = payload.studentPhotoUrl
+                ? String(payload.studentPhotoUrl)
+                : payload.studentPhoto
+                  ? String(payload.amsT_Photoname || payload.studentPhoto)
+                  : null;
+            setStudentPhoto(initialPhotoName ? { amsT_Photoname: initialPhotoName } : null);
+            initialStudentPhotoRef.current = initialPhotoName;
 
             setFatherPhoto(payload.fatherPhotoUrl ? { path: payload.fatherPhotoUrl } : null);
             setMotherPhoto(payload.motherPhotoUrl ? { path: payload.motherPhotoUrl } : null);
@@ -607,13 +780,13 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         try {
                             const normalizedPrev = prevSource.map((ps: any) => ({
                                 schoolName: ps.schoolName ?? ps.pasrpS_PrvSchoolName ?? ps.pasrS_SchoolName ?? '',
-                                schoolTypeId: ps.schoolTypeId ?? ps.pasrpS_SchoolTypeId ?? 0,
-                                classId: ps.classId ?? ps.pasrpS_PreviousClass ?? 0,
+                                schoolType: ps.schoolType ?? ps.pasrpS_schoolType ?? '',
+                                classId: ps.classId ?? ps.pasrpS_PreviousClass ?? '',
                                 percentage: ps.percentage ?? ps.pasrpS_PreviousPer ?? '',
                                 grade: ps.grade ?? ps.pasrpS_PreviousGrade ?? '',
                                 passedYear: ps.passedYear ?? ps.pasrpS_LeftYear ?? 0,
-                                countryId: ps.countryId ?? ps.country ?? 0,
-                                stateId: ps.stateId ?? ps.state ?? 0,
+                                country: ps.countryId ?? ps.country ?? '',
+                                state: ps.stateId ?? ps.state ?? '',
                                 address: ps.address ?? ps.pasrpS_Address ?? '',
                                 leftReason: ps.leftReason ?? ps.pasrpS_LeftReason ?? '',
                                 medium: ps.medium ?? '',
@@ -811,7 +984,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 if (!ps) return false;
                 return !!(
                     ps.schoolName ||
-                    ps.schoolTypeId ||
+                    ps.schoolType ||
                     ps.classId ||
                     ps.percentage ||
                     ps.grade ||
@@ -843,30 +1016,28 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     } | null>(null);
     const [studentPhotoFile, setStudentPhotoFile] = useState<File | null>(null);
     const [studentPhotoError, setStudentPhotoError] = useState<string | null>(null);
+    const initialStudentPhotoRef = useRef<string | null>(null);
 
     // Prevent multiple final submissions by showing submitting state
     const [submittingFinal, setSubmittingFinal] = useState(false);
 
-    // Parent photos & signatures for Step 6 (similar to student photo)
-    const [fatherPhoto, setFatherPhoto] = useState<{ path?: string; isUploading?: boolean } | null>(null);
-    const [_fatherPhotoFile, setFatherPhotoFile] = useState<File | null>(null);
+    // Parent photos & signatures for Step 6 (store selected File objects)
+    const [fatherPhoto, setFatherPhoto] = useState<{ path?: string; isUploading?: boolean; file?: File } | null>(null);
     const [_fatherPhotoError, setFatherPhotoError] = useState<string | null>(null);
 
-    const [motherPhoto, setMotherPhoto] = useState<{ path?: string; isUploading?: boolean } | null>(null);
-    const [_motherPhotoFile, setMotherPhotoFile] = useState<File | null>(null);
+    const [motherPhoto, setMotherPhoto] = useState<{ path?: string; isUploading?: boolean; file?: File } | null>(null);
     const [_motherPhotoError, setMotherPhotoError] = useState<string | null>(null);
 
-    const [fatherSignature, setFatherSignature] = useState<{ path?: string; isUploading?: boolean } | null>(null);
-    const [_fatherSignatureFile, setFatherSignatureFile] = useState<File | null>(null);
+    const [fatherSignature, setFatherSignature] = useState<{ path?: string; isUploading?: boolean; file?: File } | null>(null);
     const [_fatherSignatureError, setFatherSignatureError] = useState<string | null>(null);
 
-    const [motherSignature, setMotherSignature] = useState<{ path?: string; isUploading?: boolean } | null>(null);
-    const [_motherSignatureFile, setMotherSignatureFile] = useState<File | null>(null);
+    const [motherSignature, setMotherSignature] = useState<{ path?: string; isUploading?: boolean; file?: File } | null>(null);
     const [_motherSignatureError, setMotherSignatureError] = useState<string | null>(null);
 
     // Guardian photo & signature per guardian index (supports multiple guardians)
-    const [guardianPhotos, setGuardianPhotos] = useState<Record<number, { path?: string; isUploading?: boolean }>>({});
-    const [guardianSignatures, setGuardianSignatures] = useState<Record<number, { path?: string; isUploading?: boolean }>>({});
+    // Keep optional `file` so we can send binary `File` objects to backend
+    const [guardianPhotos, setGuardianPhotos] = useState<Record<number, { path?: string; isUploading?: boolean; file?: File }>>({});
+    const [guardianSignatures, setGuardianSignatures] = useState<Record<number, { path?: string; isUploading?: boolean; file?: File }>>({});
 
     const [_documentErrors, setDocumentErrors] = useState<Record<number, string>>({});
     const [_handledStep3, setHandledStep3] = useState(false);
@@ -880,6 +1051,27 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         setValue('asmaY_Year' as any, year);
         setValue('asmaY_Id' as any, id);
     }, [activePreadmission, setValue]);
+
+    // Watch residential pincode and sync to permanent when sameAsResidential is true
+    const conPincode = watch('amsT_ConPincode');
+    useEffect(() => {
+        if (sameAsResidential && conPincode) {
+            // Sync residential pincode to permanent
+            setValue('amsT_PerPincode', conPincode);
+            // Also sync other address fields if they're empty
+            const perStreet = getValues('amsT_PerStreet');
+            const perArea = getValues('amsT_PerArea');
+            const perCity = getValues('amsT_PerCity');
+            const perCountry = getValues('amsT_PerCountry');
+            const perState = getValues('amsT_PerState');
+
+            if (!perStreet) setValue('amsT_PerStreet', getValues('amsT_ConStreet') || '');
+            if (!perArea) setValue('amsT_PerArea', getValues('amsT_ConArea') || '');
+            if (!perCity) setValue('amsT_PerCity', getValues('amsT_ConCity') || '');
+            if (!perCountry) setValue('amsT_PerCountry', getValues('amsT_ConCountry') || '');
+            if (!perState) setValue('amsT_PerState', getValues('amsT_ConState'));
+        }
+    }, [conPincode, sameAsResidential, setValue, getValues]);
 
     const { data: religion, isLoading: religionLoading, error: religionError, refetchAll: refetchReligion } = useReligionDropdown();
 
@@ -1074,7 +1266,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                             Loading...
                                         </SelectItem>
                                     ) : (
-                                        country?.data?.map((item) => (
+                                        country?.data?.map((item: Country) => (
                                             <SelectItem key={item.ivrmmC_Id} value={item.ivrmmC_Id.toString()}>
                                                 {item.ivrmmC_CountryName}
                                             </SelectItem>
@@ -1095,7 +1287,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         name={`previousSchools.${idx}.stateId` as const}
                         control={control}
                         render={({ field }) => (
-                            <Select value={field.value?.toString() || ''} onValueChange={(val) => field.onChange(Number(val))}>
+                            <Select value={field.value?.toString() || ''} onValueChange={(val) => field.onChange(val)}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select State' />
                                 </SelectTrigger>
@@ -1659,7 +1851,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         guardianName: g.guardianName || g.name || '',
                         guardianAddress: g.guardianAddress || g.address || '',
                         guardianEmail: g.guardianEmail || g.email || '',
-                        guardianPhone: g.guardianPhone || g.phone || ''
+                        guardianPhone: g.guardianPhone || g.phone || '',
+                        guardianPhotoUrl: '',
+                        guardianSignUrl: ''
                     }));
 
                     const siblingsSource = formData.siblings || [];
@@ -1672,13 +1866,13 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     const previousSchoolSource = formData.previousSchools || [];
                     const previousSchools = (Array.isArray(previousSchoolSource) ? previousSchoolSource : []).map((school: any) => ({
                         schoolName: school.pasrpS_PrvSchoolName || school.schoolName || school.pasrS_SchoolName || '',
-                        schoolTypeId: Number(school.schoolTypeId || school.pasrpS_SchoolTypeId) || 0,
-                        classId: Number(school.pasrpS_PreviousClass || school.classId) || 0,
+                        schoolType: Number(school.schoolType || school.pasrpS_schoolType) || '',
+                        class: String(school.pasrpS_PreviousClass || school.classId || ''),
                         percentage: school.pasrpS_PreviousPer || school.percentage || '',
                         grade: school.pasrpS_PreviousGrade || school.grade || '',
                         passedYear: (school.pasrpS_LeftYear ?? school.passedYear) ? Number(school.pasrpS_LeftYear ?? school.passedYear) : 0,
-                        countryId: Number(school.countryId) || 0,
-                        stateId: Number(school.stateId) || 0,
+                        country: Number(school.country) || '',
+                        state: Number(school.state) || '',
                         address: school.pasrpS_Address || school.address || '',
                         leftReason: school.pasrpS_LeftReason || school.leftReason || '',
                         medium: school.medium || '',
@@ -1801,11 +1995,22 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         setSavedAmsTId(returnedId);
                     }
 
-                    // After successful first-tab save, ensure student photo is persisted server-side
+                    // After successful first-tab save, persist student photo only if it changed
                     try {
                         const amsIdToUse = returnedId || Number(getValues('amsT_Id' as any) ?? 0);
                         if (!amsIdToUse) {
                             throw new Error('Missing student id for photo upload');
+                        }
+
+                        const initialPhoto = initialStudentPhotoRef.current ?? '';
+                        const currentPhoto = studentPhoto?.amsT_Photoname ?? '';
+                        const photoChanged = Boolean(studentPhotoFile) || currentPhoto !== initialPhoto;
+
+                        if (!photoChanged) {
+                            // No change to photo — skip calling the photo API
+                            toast.success('Photo saved');
+                            setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+                            return;
                         }
 
                         const photoPayload = new FormData();
@@ -1813,6 +2018,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         if (studentPhotoFile) {
                             photoPayload.append('StudentPhoto', studentPhotoFile);
                         } else {
+                            // If studentPhoto is null/empty, this will send empty string signaling deletion
                             photoPayload.append('StudentPhoto', String(studentPhoto?.amsT_Photoname ?? ''));
                         }
 
@@ -1822,6 +2028,10 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                             toast.error(photoRes?.message || 'Failed to save student photo');
                             return;
                         }
+
+                        // Update initial ref to reflect the saved value so subsequent saves are no-ops
+                        initialStudentPhotoRef.current = studentPhoto?.amsT_Photoname ?? '';
+
                         toast.success('Step 1 saved');
                         setCurrentStep((prev) => Math.min(prev + 1, steps.length));
                         return;
@@ -2123,7 +2333,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                             guardianName: g.guardianName || g.name || '',
                             guardianAddress: g.guardianAddress || g.address || '',
                             guardianEmail: g.guardianEmail || g.email || '',
-                            guardianPhone: g.guardianPhone || g.phone || ''
+                            guardianPhone: g.guardianPhone || g.phone || '',
+                            guardianPhotoUrl: '',
+                            guardianSignUrl: ''
                         }));
 
                         const siblingsSource = formData.siblings || [];
@@ -2136,14 +2348,14 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         const previousSchoolSource = formData.previousSchools || [];
                         const previousSchools = (Array.isArray(previousSchoolSource) ? previousSchoolSource : []).map((school: any) => ({
                             schoolName: school.pasrpS_PrvSchoolName || school.schoolName || school.pasrS_SchoolName || '',
-                            schoolTypeId: Number(school.schoolTypeId || school.pasrpS_SchoolTypeId) || 0,
-                            classId: Number(school.pasrpS_PreviousClass || school.classId) || 0,
+                            schoolType: Number(school.schoolType || school.pasrpS_schoolType) || '',
+                            class: String(school.pasrpS_PreviousClass || school.class || ''),
                             percentage: school.pasrpS_PreviousPer || school.percentage || '',
                             grade: school.pasrpS_PreviousGrade || school.grade || '',
                             passedYear:
                                 (school.pasrpS_LeftYear ?? school.passedYear) ? Number(school.pasrpS_LeftYear ?? school.passedYear) : 0,
-                            countryId: Number(school.countryId) || 0,
-                            stateId: Number(school.stateId) || 0,
+                            country: Number(school.country) || '',
+                            state: Number(school.state) || '',
                             address: school.pasrpS_Address || school.address || '',
                             leftReason: school.pasrpS_LeftReason || school.leftReason || '',
                             medium: school.medium || '',
@@ -2460,8 +2672,17 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             formData.append('GuardianPhone', guardianValues?.guardianPhone || '');
             formData.append('GuardianEmail', guardianValues?.guardianEmail || '');
             formData.append('GuardianAddress', guardianValues?.guardianAddress || '');
-            formData.append('GuardianPhoto', guardianPhotos?.[index]?.path || '');
-            formData.append('GuardianSign', guardianSignatures?.[index]?.path || '');
+            // Guardian Photo (binary)
+            if (guardianPhotos?.[index]?.file instanceof File) {
+                formData.append('GuardianPhoto', guardianPhotos[index].file);
+            }
+
+            // Guardian Signature (binary)
+            if (guardianSignatures?.[index]?.file instanceof File) {
+                formData.append('GuardianSign', guardianSignatures[index].file);
+            }
+
+            // URL fields (optional) - backend may expect these keys even if empty
             formData.append('GuardianPhotoUrl', '');
             formData.append('GuardianSignUrl', '');
 
@@ -2631,7 +2852,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         }
     };
 
-    // Guardian photo upload (per guardian index)
+    // Guardian photo selection (per guardian index) — store File object and local preview, do not upload immediately
     const handleGuardianPhotoUpload = async (idx: number, file: File) => {
         try {
             const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png'];
@@ -2644,39 +2865,45 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 return;
             }
 
+            const localUrl = URL.createObjectURL(file);
+
             setGuardianPhotos((prev) => ({
                 ...(prev || {}),
-                [idx]: { path: '', isUploading: true }
+                [idx]: { path: localUrl, isUploading: false, file }
             }));
 
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('SubContainerName', 'preadmission_guardian_photo');
-
-            const response = await uploadDocument(formData);
-
-            if (response.success && response.data) {
-                setGuardianPhotos((prev) => ({
-                    ...(prev || {}),
-                    [idx]: { path: response.data as string, isUploading: false }
-                }));
-                toast.success('Guardian photo uploaded successfully');
-            } else {
-                throw new Error(response.message || 'Upload failed');
-            }
+            toast.success('Guardian photo selected (will be submitted with save)');
         } catch (error: any) {
-            console.error('Guardian photo upload error:', error);
+            console.error('Guardian photo selection error:', error);
             setGuardianPhotos((prev) => ({
                 ...(prev || {}),
                 [idx]: { path: '', isUploading: false }
             }));
-            const errorMessage = error?.response?.data?.message || error?.message || 'Upload failed';
-            toast.error(`Failed to upload guardian photo: ${errorMessage}`);
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to process file';
+            toast.error(`Failed to select guardian photo: ${errorMessage}`);
         }
     };
 
     const handleGuardianPhotoDelete = async (idx: number) => {
-        const path = guardianPhotos?.[idx]?.path;
+        const target = guardianPhotos?.[idx];
+        if (!target) return;
+
+        // If a local File was selected but not uploaded, just clear local preview
+        if (target.file) {
+            try {
+                if (target.path) URL.revokeObjectURL(target.path);
+            } catch (_) {}
+            setGuardianPhotos((prev) => {
+                const copy = { ...(prev || {}) };
+                delete copy[idx];
+                return copy;
+            });
+            toast.success('Guardian photo removed');
+            return;
+        }
+
+        // Otherwise treat path as remote and attempt deletion
+        const path = target.path;
         if (!path) return;
 
         try {
@@ -2696,7 +2923,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         }
     };
 
-    // Guardian signature upload (per guardian index)
+    // Guardian signature selection (per guardian index) — store File object and local preview, do not upload immediately
     const handleGuardianSignatureUpload = async (idx: number, file: File) => {
         try {
             const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png'];
@@ -2709,39 +2936,45 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 return;
             }
 
+            const localUrl = URL.createObjectURL(file);
+
             setGuardianSignatures((prev) => ({
                 ...(prev || {}),
-                [idx]: { path: '', isUploading: true }
+                [idx]: { path: localUrl, isUploading: false, file }
             }));
 
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('SubContainerName', 'preadmission_guardian_signature');
-
-            const response = await uploadDocument(formData);
-
-            if (response.success && response.data) {
-                setGuardianSignatures((prev) => ({
-                    ...(prev || {}),
-                    [idx]: { path: response.data as string, isUploading: false }
-                }));
-                toast.success('Guardian signature uploaded successfully');
-            } else {
-                throw new Error(response.message || 'Upload failed');
-            }
+            toast.success('Guardian signature selected (will be submitted with save)');
         } catch (error: any) {
-            console.error('Guardian signature upload error:', error);
+            console.error('Guardian signature selection error:', error);
             setGuardianSignatures((prev) => ({
                 ...(prev || {}),
                 [idx]: { path: '', isUploading: false }
             }));
-            const errorMessage = error?.response?.data?.message || error?.message || 'Upload failed';
-            toast.error(`Failed to upload guardian signature: ${errorMessage}`);
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to process file';
+            toast.error(`Failed to select guardian signature: ${errorMessage}`);
         }
     };
 
     const handleGuardianSignatureDelete = async (idx: number) => {
-        const path = guardianSignatures?.[idx]?.path;
+        const target = guardianSignatures?.[idx];
+        if (!target) return;
+
+        // If a local File was selected but not uploaded, just clear local preview
+        if (target.file) {
+            try {
+                if (target.path) URL.revokeObjectURL(target.path);
+            } catch (_) {}
+            setGuardianSignatures((prev) => {
+                const copy = { ...(prev || {}) };
+                delete copy[idx];
+                return copy;
+            });
+            toast.success('Guardian signature removed');
+            return;
+        }
+
+        // Otherwise treat path as remote and attempt deletion
+        const path = target.path;
         if (!path) return;
 
         try {
@@ -2761,7 +2994,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         }
     };
 
-    // Father photo upload (Step 6)
+    // Father photo selection (Step 6) — store File object and local preview, do not upload immediately
     const handleFatherPhotoUpload = async (file: File) => {
         try {
             const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png'];
@@ -2774,33 +3007,29 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 return;
             }
 
-            setFatherPhotoFile(file);
-            setFatherPhoto({ path: '', isUploading: true });
+            const localUrl = URL.createObjectURL(file);
+            setFatherPhoto({ path: localUrl, isUploading: false, file });
             setFatherPhotoError(null);
-
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('SubContainerName', 'preadmission_father_photo');
-
-            const response = await uploadDocument(formData);
-
-            if (response.success && response.data) {
-                setFatherPhoto({ path: response.data as string, isUploading: false });
-                toast.success('Father photo uploaded successfully');
-            } else {
-                throw new Error(response.message || 'Upload failed');
-            }
         } catch (error: any) {
-            console.error('Father photo upload error:', error);
+            console.error('Father photo selection error:', error);
             setFatherPhoto({ path: '', isUploading: false });
-            const errorMessage = error?.response?.data?.message || error?.message || 'Upload failed';
+            const errorMessage = error?.message || 'Failed to process selected file';
             setFatherPhotoError(errorMessage);
-            toast.error(`Failed to upload father photo: ${errorMessage}`);
+            toast.error(`Failed to process father photo: ${errorMessage}`);
         }
     };
 
     const handleFatherPhotoDelete = async () => {
-        const path = fatherPhoto?.path;
+        if (!fatherPhoto) return;
+        // If a local File was selected but not uploaded, just clear local preview
+        if (fatherPhoto.file) {
+            if (fatherPhoto.path) URL.revokeObjectURL(fatherPhoto.path);
+            setFatherPhoto(null);
+            toast.success('Father photo removed');
+            return;
+        }
+
+        const path = fatherPhoto.path;
         if (!path) return;
         try {
             const response = await deleteDocument(path);
@@ -2815,7 +3044,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         }
     };
 
-    // Mother photo upload (Step 6)
+    // Mother photo selection (Step 6) — store File object and local preview, do not upload immediately
     const handleMotherPhotoUpload = async (file: File) => {
         try {
             const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png'];
@@ -2828,32 +3057,26 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 return;
             }
 
-            setMotherPhotoFile(file);
-            setMotherPhoto({ path: '', isUploading: true });
+            const localUrl = URL.createObjectURL(file);
+            setMotherPhoto({ path: localUrl, isUploading: false, file });
             setMotherPhotoError(null);
-
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('SubContainerName', 'preadmission_mother_photo');
-
-            const response = await uploadDocument(formData);
-
-            if (response.success && response.data) {
-                setMotherPhoto({ path: response.data as string, isUploading: false });
-                toast.success('Mother photo uploaded successfully');
-            } else {
-                throw new Error(response.message || 'Upload failed');
-            }
         } catch (error: any) {
-            console.error('Mother photo upload error:', error);
+            console.error('Mother photo selection error:', error);
             setMotherPhoto({ path: '', isUploading: false });
-            const errorMessage = error?.response?.data?.message || error?.message || 'Upload failed';
+            const errorMessage = error?.message || 'Failed to process selected file';
             setMotherPhotoError(errorMessage);
-            toast.error(`Failed to upload mother photo: ${errorMessage}`);
+            toast.error(`Failed to process mother photo: ${errorMessage}`);
         }
     };
 
     const handleMotherPhotoDelete = async () => {
+        if (!motherPhoto) return;
+        if (motherPhoto.file) {
+            if (motherPhoto.path) URL.revokeObjectURL(motherPhoto.path);
+            setMotherPhoto(null);
+            toast.success('Mother photo removed');
+            return;
+        }
         const path = motherPhoto?.path;
         if (!path) return;
         try {
@@ -2882,22 +3105,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 return;
             }
 
-            setFatherSignatureFile(file);
-            setFatherSignature({ path: '', isUploading: true });
+            const localUrl = URL.createObjectURL(file);
+            setFatherSignature({ path: localUrl, isUploading: false, file });
             setFatherSignatureError(null);
-
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('SubContainerName', 'preadmission_father_signature');
-
-            const response = await uploadDocument(formData);
-
-            if (response.success && response.data) {
-                setFatherSignature({ path: response.data as string, isUploading: false });
-                toast.success('Father signature uploaded successfully');
-            } else {
-                throw new Error(response.message || 'Upload failed');
-            }
         } catch (error: any) {
             console.error('Father signature upload error:', error);
             setFatherSignature({ path: '', isUploading: false });
@@ -2908,6 +3118,13 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     };
 
     const handleFatherSignatureDelete = async () => {
+        if (!fatherSignature) return;
+        if (fatherSignature.file) {
+            if (fatherSignature.path) URL.revokeObjectURL(fatherSignature.path);
+            setFatherSignature(null);
+            toast.success('Father signature removed');
+            return;
+        }
         const path = fatherSignature?.path;
         if (!path) return;
         try {
@@ -2936,22 +3153,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 return;
             }
 
-            setMotherSignatureFile(file);
-            setMotherSignature({ path: '', isUploading: true });
+            const localUrl = URL.createObjectURL(file);
+            setMotherSignature({ path: localUrl, isUploading: false, file });
             setMotherSignatureError(null);
-
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('SubContainerName', 'preadmission_mother_signature');
-
-            const response = await uploadDocument(formData);
-
-            if (response.success && response.data) {
-                setMotherSignature({ path: response.data as string, isUploading: false });
-                toast.success('Mother signature uploaded successfully');
-            } else {
-                throw new Error(response.message || 'Upload failed');
-            }
         } catch (error: any) {
             console.error('Mother signature upload error:', error);
             setMotherSignature({ path: '', isUploading: false });
@@ -2962,6 +3166,13 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     };
 
     const handleMotherSignatureDelete = async () => {
+        if (!motherSignature) return;
+        if (motherSignature.file) {
+            if (motherSignature.path) URL.revokeObjectURL(motherSignature.path);
+            setMotherSignature(null);
+            toast.success('Mother signature removed');
+            return;
+        }
         const path = motherSignature?.path;
         if (!path) return;
         try {
@@ -2990,39 +3201,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
     const conZipLength: number | undefined = conCountryObj?.ivrmmC_ZipNoLength ?? undefined;
     const perZipLength: number | undefined = perCountryObj?.ivrmmC_ZipNoLength ?? undefined;
-
-    // If payload provided pincodes during initialization, apply them once state dropdowns are available
-    useEffect(() => {
-        try {
-            if (!_initialPincodesRef.current) return;
-            const conVal = _initialPincodesRef.current.con;
-            // Apply the pincode if we have a value and state data is available
-            if (conVal && conState?.data) {
-                setValue('amsT_ConPincode', conVal);
-                trigger('amsT_ConPincode');
-                _initialPincodesRef.current.con = undefined;
-            }
-        } catch (_e) {
-            //ignore
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [conState?.data, conConuntryId]);
-
-    useEffect(() => {
-        try {
-            if (!_initialPincodesRef.current) return;
-            const perVal = _initialPincodesRef.current.per;
-            // Apply the pincode if we have a value, state data is available, and permanent is not same as residential
-            if (perVal && perState?.data && !sameAsResidential) {
-                setValue('amsT_PerPincode', perVal);
-                trigger('amsT_PerPincode');
-                _initialPincodesRef.current.per = undefined;
-            }
-        } catch (_e) {
-            //ignore
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [perState?.data, perConuntryId, sameAsResidential]);
 
     // derive father/mother country objects & zip lengths from their nationality selects
     const fatherCountryObj = useMemo(() => {
@@ -3095,29 +3273,31 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             fd.append('hostelRequired', String(Boolean(values.hostelRequired)));
             fd.append('transportRequired', String(Boolean(values.transportRequired)));
 
-            // Add resolved parent photo/signature URLs
-            fd.append('FatherPhoto', fatherPhotoUrl || '');
-            fd.append('MotherPhoto', motherPhotoUrl || '');
-            fd.append('FatherSign', fatherSignatureUrl || '');
-            fd.append('MotherSign', motherSignatureUrl || '');
-            fd.append('FatherPhotoUrl', '');
-            fd.append('MotherPhotoUrl', '');
-            fd.append('FatherSignatureUrl', '');
-            fd.append('MotherSignatureUrl', '');
+            // Append parent photo/signature files (binary) if user selected them
+            if (fatherPhoto?.file) {
+                fd.append('FatherPhoto', fatherPhoto.file);
+            }
+            if (fatherSignature?.file) {
+                fd.append('FatherSignature', fatherSignature.file);
+            }
+            if (motherPhoto?.file) {
+                fd.append('MotherPhoto', motherPhoto.file);
+            }
+            if (motherSignature?.file) {
+                fd.append('MotherSignature', motherSignature.file);
+            }
 
-            // Attach documents metadata and files
-            const docs = uploadedDocuments.map((d) => ({
-                documentId: d.amsmD_Id,
-                documentName: d.documentName,
-                filePath: d.document_Path || ''
-            }));
-            fd.append('documents', JSON.stringify(docs));
-            // Append actual files (if any) so backend can receive binary content
-            uploadedDocuments.forEach((d, idx) => {
-                if ((d as any).file) {
-                    fd.append('documentFiles', (d as any).file as File, d.documentName || `document_${idx}`);
-                }
-            });
+            // Send URL fields only if backend expects them and no new file was selected
+            fd.append('FatherPhotoUrl', !fatherPhoto?.file ? fatherPhoto?.path || findUploadedPath('fatherphoto') || '' : '');
+            fd.append('MotherPhotoUrl', !motherPhoto?.file ? motherPhoto?.path || findUploadedPath('motherphoto') || '' : '');
+            fd.append(
+                'FatherSignatureUrl',
+                !fatherSignature?.file ? fatherSignature?.path || findUploadedPath('fathersignature') || '' : ''
+            );
+            fd.append(
+                'MotherSignatureUrl',
+                !motherSignature?.file ? motherSignature?.path || findUploadedPath('mothersignature') || '' : ''
+            );
 
             // Call API with FormData
             const response = await saveFinalTabApi(fd as any);
@@ -6628,9 +6808,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                 </SelectTrigger>
 
                                                                                 <SelectContent>
-                                                                                    <SelectItem value='0'>Pre-Primary School</SelectItem>
-                                                                                    <SelectItem value='1'>Primary School</SelectItem>
-                                                                                    <SelectItem value='2'>High School</SelectItem>
+                                                                                    <SelectItem value='1'>Pre-Primary School</SelectItem>
+                                                                                    <SelectItem value='2'>Primary School</SelectItem>
+                                                                                    <SelectItem value='3'>High School</SelectItem>
                                                                                 </SelectContent>
                                                                             </Select>
                                                                         )}
@@ -6645,10 +6825,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                         control={control}
                                                                         render={({ field, fieldState: { error } }) => (
                                                                             <Select
-                                                                                value={
-                                                                                    field.value !== undefined ? field.value.toString() : ''
-                                                                                }
-                                                                                onValueChange={(val) => field.onChange(Number(val))}>
+                                                                                value={field.value !== undefined ? String(field.value) : ''}
+                                                                                onValueChange={(val) => field.onChange(val)}>
                                                                                 <SelectTrigger className={error && 'border-red-500'}>
                                                                                     <SelectValue placeholder='Select class' />
                                                                                 </SelectTrigger>
@@ -6702,7 +6880,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                         render={({ field }) => (
                                                                             <Select
                                                                                 value={field.value != null ? String(field.value) : ''}
-                                                                                onValueChange={(val) => field.onChange(val)}>
+                                                                                onValueChange={(val) => field.onChange(Number(val))}>
                                                                                 <SelectTrigger>
                                                                                     <SelectValue placeholder='Select passed year' />
                                                                                 </SelectTrigger>
@@ -7076,9 +7254,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                                             <Check className='h-5 w-5' />
                                                                                                             Uploaded Successfully
                                                                                                         </div>
-                                                                                                        <p className='mt-1 text-green-600 text-sm'>
-                                                                                                            Guardian photo is ready
-                                                                                                        </p>
                                                                                                     </div>
                                                                                                 </div>
                                                                                                 <div className='flex items-center gap-2'>
@@ -7221,9 +7396,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                                             <Check className='h-5 w-5' />
                                                                                                             Uploaded Successfully
                                                                                                         </div>
-                                                                                                        <p className='mt-1 text-green-600 text-sm'>
-                                                                                                            Guardian signature is ready
-                                                                                                        </p>
                                                                                                     </div>
                                                                                                 </div>
                                                                                                 <div className='flex items-center gap-2'>
