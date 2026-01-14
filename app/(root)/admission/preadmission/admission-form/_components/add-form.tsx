@@ -7360,9 +7360,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 <span className='text-gray-500 text-sm'>Not Uploaded</span>
                                                             )}
                                                         </td>
-                                                        <td className='px-4 py-4'>
+                                                        <td className='w-40 px-4 py-4'>
                                                             {!fatherPhoto || fatherPhoto.isUploading ? (
-                                                                <label className='inline-block w-48 rounded border-2 border-gray-300 border-dashed p-4 text-center hover:border-primary'>
+                                                                <label className='flex h-20 w-32 cursor-pointer flex-col items-center justify-center rounded-md border-2 border-gray-300 border-dashed bg-white hover:border-primary'>
                                                                     <div className='flex flex-col items-center justify-center gap-1'>
                                                                         <svg
                                                                             className='h-6 w-6 text-purple-600'
@@ -7382,7 +7382,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                 d='M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3'
                                                                             />
                                                                         </svg>
-                                                                        <span className='text-gray-600 text-sm'>Click to upload</span>
+                                                                        <span className='mt-1 text-gray-600 text-xs'>Click to upload</span>
                                                                     </div>
                                                                     <input
                                                                         id='father_photo'
@@ -7406,11 +7406,16 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 </label>
                                                             ) : (
                                                                 <div className='flex items-center gap-2'>
-                                                                    <img
-                                                                        src={fatherPhoto.path}
-                                                                        alt='Father'
-                                                                        className='h-12 w-12 rounded border object-cover'
-                                                                    />
+                                                                    <div
+                                                                        className={
+                                                                            'flex h-20 w-32 items-center justify-center rounded-md border bg-white'
+                                                                        }>
+                                                                        <img
+                                                                            src={fatherPhoto.path}
+                                                                            alt='Father'
+                                                                            className='max-h-full max-w-full object-contain'
+                                                                        />
+                                                                    </div>
                                                                 </div>
                                                             )}
                                                         </td>
@@ -7473,9 +7478,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 <span className='text-gray-500 text-sm'>Not Uploaded</span>
                                                             )}
                                                         </td>
-                                                        <td className='px-4 py-4'>
+                                                        <td className='w-40 px-4 py-4'>
                                                             {!fatherSignature || fatherSignature.isUploading ? (
-                                                                <label className='inline-block w-48 rounded border-2 border-gray-300 border-dashed p-4 text-center hover:border-primary'>
+                                                                <label className='flex h-20 w-32 cursor-pointer flex-col items-center justify-center rounded-md border-2 border-gray-300 border-dashed bg-white hover:border-primary'>
                                                                     <div className='flex flex-col items-center justify-center gap-1'>
                                                                         <svg
                                                                             className='h-6 w-6 text-purple-600'
@@ -7495,7 +7500,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                 d='M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3'
                                                                             />
                                                                         </svg>
-                                                                        <span className='text-gray-600 text-sm'>Click to upload</span>
+                                                                        <span className='mt-1 text-gray-600 text-xs'>Click to upload</span>
                                                                     </div>
                                                                     <input
                                                                         id='father_signature'
@@ -7519,11 +7524,16 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 </label>
                                                             ) : (
                                                                 <div className='flex items-center gap-2'>
-                                                                    <img
-                                                                        src={fatherSignature.path}
-                                                                        alt='Father signature'
-                                                                        className='h-12 w-28 rounded border object-contain'
-                                                                    />
+                                                                    <div
+                                                                        className={
+                                                                            'flex h-20 w-32 items-center justify-center rounded-md border bg-white'
+                                                                        }>
+                                                                        <img
+                                                                            src={fatherSignature.path}
+                                                                            alt='Father signature'
+                                                                            className='max-h-full max-w-full object-contain'
+                                                                        />
+                                                                    </div>
                                                                 </div>
                                                             )}
                                                         </td>
@@ -7586,9 +7596,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 <span className='text-gray-500 text-sm'>Not Uploaded</span>
                                                             )}
                                                         </td>
-                                                        <td className='px-4 py-4'>
+                                                        <td className='w-40 px-4 py-4'>
                                                             {!motherPhoto || motherPhoto.isUploading ? (
-                                                                <label className='inline-block w-48 rounded border-2 border-gray-300 border-dashed p-4 text-center hover:border-primary'>
+                                                                <label className='flex h-20 w-32 cursor-pointer flex-col items-center justify-center rounded-md border-2 border-gray-300 border-dashed bg-white hover:border-primary'>
                                                                     <div className='flex flex-col items-center justify-center gap-1'>
                                                                         <svg
                                                                             className='h-6 w-6 text-purple-600'
@@ -7608,7 +7618,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                 d='M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3'
                                                                             />
                                                                         </svg>
-                                                                        <span className='text-gray-600 text-sm'>Click to upload</span>
+                                                                        <span className='mt-1 text-gray-600 text-xs'>Click to upload</span>
                                                                     </div>
                                                                     <input
                                                                         id='mother_photo'
@@ -7632,11 +7642,16 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 </label>
                                                             ) : (
                                                                 <div className='flex items-center gap-2'>
-                                                                    <img
-                                                                        src={motherPhoto.path}
-                                                                        alt='Mother'
-                                                                        className='h-12 w-12 rounded border object-cover'
-                                                                    />
+                                                                    <div
+                                                                        className={
+                                                                            'flex h-20 w-32 items-center justify-center rounded-md border bg-white'
+                                                                        }>
+                                                                        <img
+                                                                            src={motherPhoto.path}
+                                                                            alt='Mother'
+                                                                            className='max-h-full max-w-full object-contain'
+                                                                        />
+                                                                    </div>
                                                                 </div>
                                                             )}
                                                         </td>
@@ -7699,9 +7714,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 <span className='text-gray-500 text-sm'>Not Uploaded</span>
                                                             )}
                                                         </td>
-                                                        <td className='px-4 py-4'>
+                                                        <td className='w-40 px-4 py-4'>
                                                             {!motherSignature || motherSignature.isUploading ? (
-                                                                <label className='inline-block w-48 rounded border-2 border-gray-300 border-dashed p-4 text-center hover:border-primary'>
+                                                                <label className='flex h-20 w-32 cursor-pointer flex-col items-center justify-center rounded-md border-2 border-gray-300 border-dashed bg-white hover:border-primary'>
                                                                     <div className='flex flex-col items-center justify-center gap-1'>
                                                                         <svg
                                                                             className='h-6 w-6 text-purple-600'
@@ -7721,7 +7736,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                 d='M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3'
                                                                             />
                                                                         </svg>
-                                                                        <span className='text-gray-600 text-sm'>Click to upload</span>
+                                                                        <span className='mt-1 text-gray-600 text-xs'>Click to upload</span>
                                                                     </div>
                                                                     <input
                                                                         id='mother_signature'
@@ -7745,11 +7760,16 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 </label>
                                                             ) : (
                                                                 <div className='flex items-center gap-2'>
-                                                                    <img
-                                                                        src={motherSignature.path}
-                                                                        alt='Mother signature'
-                                                                        className='h-12 w-28 rounded border object-contain'
-                                                                    />
+                                                                    <div
+                                                                        className={
+                                                                            'flex h-20 w-32 items-center justify-center rounded-md border bg-white'
+                                                                        }>
+                                                                        <img
+                                                                            src={motherSignature.path}
+                                                                            alt='Mother signature'
+                                                                            className='max-h-full max-w-full object-contain'
+                                                                        />
+                                                                    </div>
                                                                 </div>
                                                             )}
                                                         </td>

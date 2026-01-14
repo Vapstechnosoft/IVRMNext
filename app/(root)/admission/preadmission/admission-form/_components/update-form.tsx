@@ -937,25 +937,16 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             // Filter out completely empty guardians, keep only filled ones
             const filledGuardians = Array.isArray(curGuardians) ? curGuardians.filter(guardianHasAnyContent) : [];
 
-            if (filledGuardians.length === 0) {
-                // no guardians with content, ensure one blank row exists
-                appendGuardian({
-                    guardianName: '',
-                    guardianPhone: '',
-                    guardianAddress: ''
-                });
-            } else {
-                // Replace with only filled guardians
-                replaceGuardian(filledGuardians as any[]);
-                // sync guardian phone values so PhoneInput shows the number
-                const nextPhoneVals: Record<string, string> = {};
-                filledGuardians.forEach((g: any, i: number) => {
-                    if (g.guardianPhone) {
-                        nextPhoneVals[`guardian_${i}_phone`] = String(g.guardianPhone);
-                    }
-                });
-                if (Object.keys(nextPhoneVals).length > 0) setPhoneValues((p) => ({ ...p, ...nextPhoneVals }));
-            }
+            // Replace with only filled guardians (allow empty array)
+            replaceGuardian(filledGuardians as any[]);
+            // sync guardian phone values so PhoneInput shows the number
+            const nextPhoneVals: Record<string, string> = {};
+            filledGuardians.forEach((g: any, i: number) => {
+                if (g.guardianPhone) {
+                    nextPhoneVals[`guardian_${i}_phone`] = String(g.guardianPhone);
+                }
+            });
+            if (Object.keys(nextPhoneVals).length > 0) setPhoneValues((p) => ({ ...p, ...nextPhoneVals }));
 
             // Helper to check if sibling has any content
             const siblingHasAnyContent = (s: any) => {
@@ -967,17 +958,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             // Filter out completely empty siblings, keep only filled ones
             const filledSiblings = Array.isArray(curSiblings) ? curSiblings.filter(siblingHasAnyContent) : [];
 
-            if (filledSiblings.length === 0) {
-                // no siblings with content, ensure one blank row exists
-                appendSibling({
-                    name: '',
-                    classId: 0,
-                    relation: ''
-                });
-            } else {
-                // Replace with only filled siblings
-                replaceSibling(filledSiblings as any[]);
-            }
+            // Replace with only filled siblings (allow empty array)
+            replaceSibling(filledSiblings as any[]);
 
             // Helper to check if previous school has any content
             const prevSchoolHasAnyContent = (ps: any) => {
@@ -998,13 +980,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             // Filter out completely empty previous schools, keep only filled ones
             const filledPrev = Array.isArray(curPrev) ? curPrev.filter(prevSchoolHasAnyContent) : [];
 
-            if (filledPrev.length === 0) {
-                // no previous schools with content, ensure one blank row exists
-                addPreviousSchool();
-            } else {
-                // Replace with only filled previous schools
-                replacePreviousSchool(filledPrev as any[]);
-            }
+            // Replace with only filled previous schools (allow empty array)
+            replacePreviousSchool(filledPrev as any[]);
         } catch (_e) {
             //ignore
         }
