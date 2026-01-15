@@ -17,12 +17,12 @@ export async function addOrUpdateMasterDay(data: any) {
 }
 
 export async function ToggleMasterDay(ttmd_id: number) {
-    const url = `/MasterDayFacade/MasterDaydayActivateDeactivate/30/${ttmd_id}`;
+    const url = `/MasterDayFacade/MasterDaydayActivateDeactivate/${ttmd_id}`;
     return await api.put<any>('timetable', url);
 }
 
 export async function getMasterDaySetOrderDetails() {
-    const url = '/MasterDayFacade/MasterDaygetorder/30';
+    const url = '/MasterDayFacade/MasterDaygetorder';
     return await api.get<IMasterDaySetOrderList[]>('timetable', url);
 }
 

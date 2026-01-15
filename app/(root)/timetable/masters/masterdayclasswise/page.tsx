@@ -10,6 +10,7 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import { masterDayClasswiseColumns } from './_components/columns';
 import MasterPeriodClassForm from './_components/period-class-form';
+import ToggleMasterDayClasswiseForm from './_components/toggle-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -111,15 +112,15 @@ function FormSections({ onSuccess }: { onSuccess: () => void }) {
                 </div>
             )}
 
-            {/* {isToggleFormOpen && selectedRow && (
-                <ToggleMasterPeriodClassForm
+            {isToggleFormOpen && selectedRow && (
+                <ToggleMasterDayClasswiseForm
                     rowData={selectedRow}
                     onClose={() => {
                         closeToggleForm();
                         onSuccess();
                     }}
                 />
-            )} */}
+            )}
         </>
     );
 }

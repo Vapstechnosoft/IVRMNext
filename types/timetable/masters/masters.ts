@@ -318,12 +318,11 @@ export interface IMasterPeriodClassList {
 // }
 
 export interface IMasterDayClassWise {
-    ttmP_Id: number;
-    mI_Id: number;
-    ttmP_PeriodName: string;
-    ttmP_ActiveFlag: boolean;
-    createdDate: string;
-    updatedDate: string;
+    ttmdC_Id: number;
+    classname: string;
+    academicyr: string;
+    ttmD_DayName: string;
+    ttmdC_ActiveFlag: boolean;
 }
 
 export interface IPeriodTimeSettingData {

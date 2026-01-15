@@ -1,58 +1,77 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
-import { deactivatePeriodClass } from '@/server/timetable/masters/periodallocation';
-import type { IMasterPeriodClassList } from '@/types/timetable/masters/masters';
-import { useMutation } from '@tanstack/react-query';
+import { FormError } from '@/components/ui/extension/field';
+import { useMasterDay } from '@/hooks/timetable/useMasters';
+import { masterDayClasswiseSchema } from '@/schemas/timetable/masters';
+import { ToggleMasterDayClasswise } from '@/server/timetable/masters/masterdayclasswise';
+import type { IMasterDayClassWise } from '@/types/timetable/masters/masters';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import type { z } from 'zod';
 
-interface ToggleMasterPeriodClassFormProps {
-    rowData: IMasterPeriodClassList;
+type FormFields = z.infer<typeof masterDayClasswiseSchema.delete>;
+
+interface ToggleMasterDayFormProps {
+    rowData: IMasterDayClassWise;
     onClose: () => void;
 }
 
-export default function ToggleMasterPeriodClassForm({ rowData, onClose }: ToggleMasterPeriodClassFormProps) {
-    const { mutate, isPending } = useMutation({
-        mutationFn: async () => {
-            const payload = {
-                ttmpC_Id: rowData.ttmpC_Id,
-                ttmpC_ActiveFlag: rowData.ttmpC_ActiveFlag
-            };
-            return await deactivatePeriodClass(payload);
-        },
-        onSuccess: (response) => {
-            if (response.returnval) {
-                toast.success('Status updated successfully');
-                onClose();
-            } else if (response.returnduplicatestatus === 'active') {
-                toast.warning('Master Period is deactivated !!!');
-            } else {
-                toast.error('Failed to update status');
-            }
-        },
-        onError: (error: any) => {
-            toast.error(error.message || 'An error occurred');
-        }
+export default function ToggleMasterDayClasswiseForm({ rowData, onClose }: ToggleMasterDayFormProps) {
+    const { refetchAll } = useMasterDay();
+    const isActive = rowData.ttmdC_ActiveFlag;
+
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors, isSubmitting }
+    } = useForm<FormFields>({
+        resolver: zodResolver(masterDayClasswiseSchema.delete),
+        mode: 'onChange'
     });
 
+    function closeDialog() {
+        onClose();
+        reset();
+    }
+
+    const onSubmit: SubmitHandler<FormFields | any> = async () => {
+        try {
+            const response = await ToggleMasterDayClasswise(Number(rowData.ttmdC_Id));
+
+            if (response.success) {
+                toast.success(response.message);
+                refetchAll();
+                closeDialog();
+            } else {
+                toast.error(response.message);
+            }
+        } catch (error: any) {
+            toast.error(error.message);
+        }
+    };
+
     return (
-        <AdaptiveDialog
-            title={rowData.ttmpC_ActiveFlag ? 'Deactivate Period Class' : 'Activate Period Class'}
-            isOpen={true}
-            onClose={onClose}>
-            <div className='flex flex-col gap-4'>
+        <AdaptiveDialog title='Toggle Master Day Classwise' isOpen={true} onClose={closeDialog}>
+            <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <p>Are you sure you want to {rowData.ttmpC_ActiveFlag ? 'deactivate' : 'activate'} this mapping?</p>
+                    <input type='hidden' {...register('ttmdC_Id')} defaultValue={rowData.ttmdC_Id} />
+                    <p>Are you sure you want to {isActive ? 'deactivate' : 'activate'} the selected Row</p>
+                    <FormError>{errors.ttmdC_Id?.message}</FormError>
+                    <FormError>{errors.root?.message}</FormError>
                 </AdaptiveBody>
                 <AdaptiveFooter>
-                    <Button variant='secondary' onClick={onClose} type='button'>
+                    <Button variant='secondary' onClick={closeDialog} type='button'>
                         Cancel
                     </Button>
-                    <Button onClick={() => mutate()} isLoading={isPending} variant={rowData.ttmpC_ActiveFlag ? 'destructive' : 'default'}>
-                        {rowData.ttmpC_ActiveFlag ? 'Deactivate' : 'Activate'}
+                    <Button type='submit' isLoading={isSubmitting} variant={isActive ? 'destructive' : 'default'}>
+                        {isActive ? 'Deactivate' : 'Activate'}
                     </Button>
                 </AdaptiveFooter>
-            </div>
+            </form>
         </AdaptiveDialog>
     );
 }

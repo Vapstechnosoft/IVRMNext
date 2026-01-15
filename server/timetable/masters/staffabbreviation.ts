@@ -12,7 +12,7 @@ export async function getStaffAbbreviationDetails(searchParams?: ApiSearchparams
 }
 
 export async function addOrUpdateStaffAbbreviation(data: any) {
-    const url = '/StaffMasterFacade/AddorUpdateStaffAbbreviation';
+    const url = '/StaffMaster/staff-save-details';
     return await api.post<any>('timetable', url, data);
 }
 

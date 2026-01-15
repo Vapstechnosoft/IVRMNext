@@ -50,7 +50,7 @@ export default function UpdateMasterDayForm({ onSuccess, masterday = '', selecte
         try {
             const { ttmD_DayName, ttmD_DayCode, ttmD_Id } = data;
             const payload = {
-                mi_id: 30,
+                mi_id: 0,
                 ttmD_DayName: ttmD_DayName,
                 ttmD_DayCode: ttmD_DayCode,
                 ttmD_Id: ttmD_Id

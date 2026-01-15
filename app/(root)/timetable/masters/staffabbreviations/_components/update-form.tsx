@@ -15,13 +15,13 @@ import type { z } from 'zod';
 
 type FormFields = z.infer<typeof staffabbreviationsSchema.addOrUpdate>;
 
-interface UpdateMasterDayFormProps {
+interface UpdateStaffAbbreviationFormProps {
     onSuccess?: () => void;
     masterday?: string;
     selectedRow: IStaffAbbreviationList;
 }
 
-export default function UpdateStaffAbbreviationForm({ onSuccess, masterday = '', selectedRow: row }: UpdateMasterDayFormProps) {
+export default function UpdateStaffAbbreviationForm({ onSuccess, masterday = '', selectedRow: row }: UpdateStaffAbbreviationFormProps) {
     const { refetchAll } = useStaffAbbreviation();
 
     const { data: staffdata, isLoading: staffisLoading, error: stafferror, refetchAll: staffrefetchAll } = useStaffDropDown();

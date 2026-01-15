@@ -9,7 +9,7 @@ import { useCallback } from 'react';
 
 export const masterDayClasswiseColumns: ColumnDef<IMasterDayClassWise>[] = [
     {
-        accessorKey: 'ttmpC_Id',
+        accessorKey: 'ttmdC_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
@@ -20,24 +20,24 @@ export const masterDayClasswiseColumns: ColumnDef<IMasterDayClassWise>[] = [
         enableSorting: true,
         enableHiding: false
     },
-    // {
-    //     accessorKey: 'asmaY_Year',
-    //     header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' />,
-    //     cell: ({ row }) => <div>{row.getValue('asmaY_Year')}</div>,
-    //     enableSorting: true,
-    //     enableHiding: true
-    // },
-    // {
-    //     accessorKey: 'asmcL_ClassName',
-    //     header: ({ column }) => <DataTableColumnHeader column={column} title='Class Name' />,
-    //     cell: ({ row }) => <div>{row.getValue('asmcL_ClassName')}</div>,
-    //     enableSorting: true,
-    //     enableHiding: true
-    // },
     {
-        accessorKey: 'ttmP_PeriodName',
+        accessorKey: 'academicyr',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' />,
+        cell: ({ row }) => <div>{row.getValue('academicyr')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'classname',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Name' />,
+        cell: ({ row }) => <div>{row.getValue('classname')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'ttmD_DayName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Day Name' />,
-        cell: ({ row }) => <div>{row.getValue('ttmP_PeriodName')}</div>,
+        cell: ({ row }) => <div>{row.getValue('ttmD_DayName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
@@ -58,5 +58,5 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterDayClassWise }) {
         [openToggleForm]
     );
 
-    return <ActionButtons rowData={rowData} buttons={{ toggle: true }} onToggle={handleToggle} toggleConditionKey='ttmP_ActiveFlag' />;
+    return <ActionButtons rowData={rowData} buttons={{ toggle: true }} onToggle={handleToggle} toggleConditionKey='ttmdC_ActiveFlag' />;
 }

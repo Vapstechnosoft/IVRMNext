@@ -15,7 +15,7 @@ import { getAllPeriodDetails } from '@/server/timetable/masters/periodallocation
 import { getPeriodDistributionDetails } from '@/server/timetable/masters/perioddistribution';
 import { getAllPeriodTimeSettings } from '@/server/timetable/masters/periodtimesetting';
 import { getStaffAbbreviationDetails, getStaffDropDown } from '@/server/timetable/masters/staffabbreviation';
-import { getSubjectAbbreviationDetails } from '@/server/timetable/masters/subjectabbreviation';
+import { getSubjectAbbreviationDetails, getsubjectDropDown } from '@/server/timetable/masters/subjectabbreviation';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -109,6 +109,23 @@ export const useStaffDropDown = (searchParams?: ApiSearchparams) => {
     };
 };
 
+export const useSubjectDropDown = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_SUBJECT_DROPDOWN, searchParams ?? {}],
+            queryFn: async () => getsubjectDropDown(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_SUBJECT_DROPDOWN]
+            });
+        }
+    };
+};
 export const useTimeTableMasterCategory = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
