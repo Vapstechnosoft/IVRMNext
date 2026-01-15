@@ -14,9 +14,10 @@ export const masterDaySchema = {
 
 export const masterDayClasswiseSchema = {
     addOrUpdate: z.object({
-        // ttmD_Id: z.number().optional(),
-        // ttmD_DayName: createStringOnlySchema('Day Name', 1, 100),
-        // ttmD_DayCode: createStringOnlySchema('Day Code', 1, 100)
+        asmay_id: number().min(1, 'Please select Academic Year'),
+        ttmC_Id: number().min(1, 'Please select Category'),
+        calssids: z.array(z.string()).nonempty('Please select at least one Class'),
+        ttmD_Id: z.array(z.string()).nonempty('Please select at least one Day')
     }),
     delete: z.object({
         ttmdC_Id: deleteIdSchema('ttmdC_Id')
@@ -51,7 +52,7 @@ export const staffabbreviationsSchema = {
 
 export const subjectabbreviationsSchema = {
     addOrUpdate: z.object({
-        ttmsuaB_Id: number().min(1, 'Please select an Subject'),
+        ismS_Id: number().min(1, 'Please select an Subject'),
         ttmsuaB_Abbreviation: createStringOnlySchema('Abbreviation', 1, 100)
     }),
     delete: z.object({

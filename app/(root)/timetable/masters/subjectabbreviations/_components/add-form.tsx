@@ -39,9 +39,9 @@ export default function AddSubjectAbbreviationForm({ onSuccess, buildingname = '
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
-            const { ttmsuaB_Id, ttmsuaB_Abbreviation } = data;
+            const { ismS_Id, ttmsuaB_Abbreviation } = data;
             const payload = {
-                ttmsuaB_Id: ttmsuaB_Id,
+                ismS_Id: ismS_Id,
                 ttmsuaB_Abbreviation: ttmsuaB_Abbreviation
             };
             console.log(JSON.stringify(payload));
@@ -74,10 +74,10 @@ export default function AddSubjectAbbreviationForm({ onSuccess, buildingname = '
                             <div className='w-full'>
                                 <div className='group flex flex-col gap-1.5'>
                                     <Label aria-label='Term' htmlFor='fmT_Id'>
-                                        Staff Name <span className='ml-1 text-red-500'>*</span>
+                                        Subject Name <span className='ml-1 text-red-500'>*</span>
                                     </Label>
                                     <Controller
-                                        name='ttmsuaB_Id'
+                                        name='ismS_Id'
                                         control={control}
                                         render={({ field }) => (
                                             <Select
@@ -87,7 +87,7 @@ export default function AddSubjectAbbreviationForm({ onSuccess, buildingname = '
                                                 }}
                                                 value={field.value?.toString() || undefined}>
                                                 <SelectTrigger className='w-full'>
-                                                    <SelectValue placeholder='Select Staff' />
+                                                    <SelectValue placeholder='Select Subject' />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {subjectisLoading ? (
@@ -100,8 +100,8 @@ export default function AddSubjectAbbreviationForm({ onSuccess, buildingname = '
                                                         </SelectItem>
                                                     ) : (
                                                         subjectdata?.data?.map((item) => (
-                                                            <SelectItem key={item.hrmE_Id} value={item.hrmE_Id.toString()}>
-                                                                {item.staffName}
+                                                            <SelectItem key={item.ismS_Id} value={item.ismS_Id.toString()}>
+                                                                {item.ismS_SubjectName}
                                                             </SelectItem>
                                                         ))
                                                     )}
@@ -109,7 +109,7 @@ export default function AddSubjectAbbreviationForm({ onSuccess, buildingname = '
                                             </Select>
                                         )}
                                     />
-                                    {errors.ttmsuaB_Id && <FormError>{errors.ttmsuaB_Id.message}</FormError>}
+                                    {errors.ismS_Id && <FormError>{errors.ismS_Id.message}</FormError>}
                                 </div>
                             </div>
                             <div className='w-full'>

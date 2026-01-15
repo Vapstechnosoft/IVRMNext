@@ -2,17 +2,17 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { IStaffDropdownList, ISubjectAbbreviationList } from '@/types/timetable/masters/masters';
+import type { ISubjectAbbreviationList, ISubjectDropdownList } from '@/types/timetable/masters/masters';
 
 export async function getSubjectAbbreviationDetails(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'ttmD_DayName,ttmD_DayCode');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'subjectName,ttmsuaB_Abbreviation');
     const url = `/TT_Master_Subject_AbbreviationFacade/subjectAbbreviationGridData?${urlParams}`;
     console.info('MasterDayFacade', url);
     return await api.get<ISubjectAbbreviationList[]>('timetable', url);
 }
 
 export async function addOrUpdateSubjectAbbreviation(data: any) {
-    const url = '/StaffMasterFacade/AddorUpdateStaffAbbreviation';
+    const url = '/TT_Master_Subject_AbbreviationFacade/AddOrUpdateSubjectAbbreviation';
     return await api.post<any>('timetable', url, data);
 }
 
@@ -24,6 +24,6 @@ export async function ToggleSubjectAbbreviation(ttmsaB_Id: number) {
 export async function getsubjectDropDown() {
     // const url = '/TT_Master_Subject_AbbreviationFacade/getsubjectdropdown';
     // return await api.get<any>('timetable', url);
-    const url = '/TimeTableCommon/GetStaffDetails';
-    return await api.get<IStaffDropdownList[]>('timetable', url);
+    const url = '/TimeTableCommon/subject-details';
+    return await api.get<ISubjectDropdownList[]>('timetable', url);
 }

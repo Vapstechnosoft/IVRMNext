@@ -5,7 +5,10 @@ import type { ApiSearchparams } from '@/types';
 import type { IStaffAbbreviationList, IStaffDropdownList } from '@/types/timetable/masters/masters';
 
 export async function getStaffAbbreviationDetails(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'ttmD_DayName,ttmD_DayCode');
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'staffName,ttmsaB_PerDayMaxDeputation,ttmsaB_PerDayMinDeputation,ttmsaB_PerMonthMaxDeputation,ttmsaB_PerMonthMinDeputation,ttmsaB_Abbreviation,firstName,middleName,lastName'
+    );
     const url = `/StaffMaster/staffAbbreviationGridData?${urlParams}`;
     console.info('MasterDayFacade', url);
     return await api.get<IStaffAbbreviationList[]>('timetable', url);
@@ -17,7 +20,7 @@ export async function addOrUpdateStaffAbbreviation(data: any) {
 }
 
 export async function ToggleStaffAbbreviation(ttmsaB_Id: number) {
-    const url = `/StaffMasterFacade/StaffAbbreviationActivateDeactivate/${ttmsaB_Id}`;
+    const url = `/StaffMaster/StaffAbbreviationActivateDeactivate/${ttmsaB_Id}`;
     return await api.put<any>('timetable', url);
 }
 

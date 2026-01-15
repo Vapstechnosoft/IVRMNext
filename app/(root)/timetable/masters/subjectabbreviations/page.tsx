@@ -11,6 +11,7 @@ import type { ISubjectAbbreviationList } from '@/types/timetable/masters/masters
 import AddSubjectAbbreviationForm from './_components/add-form';
 import { subjectAbbreviationsColumns } from './_components/columns';
 import ToggleSubjectAbbreviationForm from './_components/toggleform';
+import UpdateSubjectAbbreviationForm from './_components/update-form';
 
 // import AddMasterModeOfPaymentForm from './_components/add-form';
 // import { modeOfPaymentColumns } from './_components/columns';
@@ -141,7 +142,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            {/* <UpdateSubjectAbbreviationForm selectedRow={selectedRow} onSuccess={closeEditForm} /> */}
+                            <UpdateSubjectAbbreviationForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>

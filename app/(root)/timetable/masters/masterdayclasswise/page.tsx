@@ -8,8 +8,8 @@ import { useMasterDayClasswiseDetails } from '@/hooks/timetable/useMasters';
 import type { IMasterDayClassWise } from '@/types/timetable/masters/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
+import MasterDayClassWiseAddForm from './_components/add-form';
 import { masterDayClasswiseColumns } from './_components/columns';
-import MasterPeriodClassForm from './_components/period-class-form';
 import ToggleMasterDayClasswiseForm from './_components/toggle-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -80,14 +80,15 @@ function MasterPeriodClassPageContent({
 }
 
 function FormSections({ onSuccess }: { onSuccess: () => void }) {
-    const { isToggleFormOpen, selectedRow, closeToggleForm, isAddFormOpen, closeAddForm } = useFormContext<IMasterDayClassWise>();
+    const { isToggleFormOpen, selectedRow, closeToggleForm, isAddFormOpen, closeAddForm, addFormRef } =
+        useFormContext<IMasterDayClassWise>();
 
     return (
         <>
             {isAddFormOpen && (
-                <div>
+                <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add Master Period Allocation Class'
+                        title='Add Master Day Class'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -101,10 +102,9 @@ function FormSections({ onSuccess }: { onSuccess: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <MasterPeriodClassForm
+                            <MasterDayClassWiseAddForm
                                 onSuccess={() => {
                                     closeAddForm();
-                                    onSuccess();
                                 }}
                             />
                         </div>
@@ -117,7 +117,6 @@ function FormSections({ onSuccess }: { onSuccess: () => void }) {
                     rowData={selectedRow}
                     onClose={() => {
                         closeToggleForm();
-                        onSuccess();
                     }}
                 />
             )}

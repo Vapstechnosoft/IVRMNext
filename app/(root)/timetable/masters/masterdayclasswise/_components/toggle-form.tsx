@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { useMasterDay } from '@/hooks/timetable/useMasters';
+import { useMasterDayClasswiseDetails } from '@/hooks/timetable/useMasters';
 import { masterDayClasswiseSchema } from '@/schemas/timetable/masters';
 import { ToggleMasterDayClasswise } from '@/server/timetable/masters/masterdayclasswise';
 import type { IMasterDayClassWise } from '@/types/timetable/masters/masters';
@@ -20,7 +20,7 @@ interface ToggleMasterDayFormProps {
 }
 
 export default function ToggleMasterDayClasswiseForm({ rowData, onClose }: ToggleMasterDayFormProps) {
-    const { refetchAll } = useMasterDay();
+    const { refetchAll } = useMasterDayClasswiseDetails();
     const isActive = rowData.ttmdC_ActiveFlag;
 
     const {

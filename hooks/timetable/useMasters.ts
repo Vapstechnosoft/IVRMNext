@@ -9,7 +9,12 @@ import {
 import { getMasterCategoryDetails } from '@/server/timetable/masters/masterCategory';
 import { getMasterBuildingDetails } from '@/server/timetable/masters/masterbuilding';
 import { getMasterDayDetails } from '@/server/timetable/masters/masterday';
-import { getMasterDayClassWiseDetails } from '@/server/timetable/masters/masterdayclasswise';
+import {
+    getAcademicYearDropDropDownMasterDayClasswise,
+    getCategoryDropDownMasterDayClasswise,
+    getClassDropDownMasterDayClasswise,
+    getMasterDayClassWiseDetails
+} from '@/server/timetable/masters/masterdayclasswise';
 import { getMasterPeriodDetails } from '@/server/timetable/masters/masterperiod';
 import { getAllPeriodDetails } from '@/server/timetable/masters/periodallocation';
 import { getPeriodDistributionDetails } from '@/server/timetable/masters/perioddistribution';
@@ -337,6 +342,60 @@ export const usePeriodTimeSettingDetails = (searchParams?: ApiSearchparams) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [TIMETABLE_QUERY_KEYS.TT_PERIODTIME_SETTINGSDATA]
+            });
+        }
+    };
+};
+
+export const useAcademicYearDropDownMasterDayClasswise = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.ACADEMIC_YEAR_DROPDOWN_MASTERDAYCLASSWISE, searchParams ?? {}],
+            queryFn: async () => getAcademicYearDropDropDownMasterDayClasswise(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.ACADEMIC_YEAR_DROPDOWN_MASTERDAYCLASSWISE]
+            });
+        }
+    };
+};
+
+export const useCategtoryDropDownMasterDayClasswise = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.CATEGORY_DROPDOWN_MASTERDAYCLASSWISE, searchParams ?? {}],
+            queryFn: async () => getCategoryDropDownMasterDayClasswise(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.CATEGORY_DROPDOWN_MASTERDAYCLASSWISE]
+            });
+        }
+    };
+};
+
+export const useClassDropDownMasterDayClasswise = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.CLASS_DROPDOWN_MASTERDAYCLASSWISE, searchParams ?? {}],
+            queryFn: async () => getClassDropDownMasterDayClasswise(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.CLASS_DROPDOWN_MASTERDAYCLASSWISE]
             });
         }
     };
