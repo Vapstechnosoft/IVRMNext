@@ -2474,6 +2474,7 @@ export async function getUserAccessibleModules() {
                         // }
                     ]
                 },
+                 
                 {
                     id: 5,
                     name: 'IFrame',
@@ -3010,7 +3011,92 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                }
+                },
+             
+                {
+                    id: 8,
+                    name: 'Upload',
+                    icon: 'UploadCloud',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Upload',
+                            icon: 'Upload',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Transactions',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 221,
+                                            name: 'Upload ClassWork',
+                                            icon: 'BookOpen',
+                                            url: '/upload/transactions/ivrm-classwork',
+                                            title: 'Upload ClassWork',
+                                            description: 'Manage ClassWork'
+                                        },
+                                        {
+                                            id: 222,
+                                            name: 'Verify Class Work',
+                                            icon: 'BookOpen',
+                                            url: '/upload/transactions/verify-classwork',
+                                            title: 'Verify Class Work',
+                                            description: 'Verify and Enter Class Work Marks'
+                                        },
+                                        {
+                                            id: 223,
+                                            name: 'IVRM HomeWork',
+                                            icon: 'BookOpen',
+                                            url: '/upload/transactions/ivrm-homework',
+                                            title: 'Upload HomeWork',
+                                            description: 'Manage IVRM HomeWork'
+                                        },
+                                        {
+                                            id: 224,
+                                            name: 'HomeWork Marks Update',
+                                            icon: 'BookOpen',
+                                            url: '/upload/transactions/homework-marks-update',
+                                            title: 'Verify HomeWork',
+                                            description: 'Verify HomeWork Marks'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Reports',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'ClassWork Upload Report',
+                                            icon: 'FileText',
+                                            url: '/upload/reports/classwork-upload-report',
+                                            title: 'ClassWork Upload Report',
+                                            description: 'ClassWork Upload Report Details'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'HomeWork Upload Report',
+                                            icon: 'FileText',
+                                            url: '/upload/reports/homework-upload-report',
+                                            title: 'HomeWork Upload Report',
+                                            description: 'HomeWork Upload Report Details'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'NoticeBoard Report',
+                                            icon: 'FileText',
+                                            url: '/upload/reports/noticeboard-report',
+                                            title: 'NoticeBoard Report',
+                                            description: 'NoticeBoard Report Details'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
             ]
         };
     } else {
