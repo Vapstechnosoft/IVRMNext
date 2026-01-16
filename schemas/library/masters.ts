@@ -242,15 +242,34 @@ export const masterClassCategorySchema = {
 
 export const masterSubjectSchema = {
     addOrUpdate: z.object({
+        ismS_Id: z.string().min(1, 'Please Select Parent Subject'),
+
+        lmS_Level: z.string().regex(/^\d{1,25}$/, 'Enter only numeric value'),
+
+        lmS_ClassNo: z
+            .string()
+            .max(27, 'Maximum 27 characters')
+            .regex(/^[a-zA-Z0-9\s-]*$/, 'Invalid Class No'),
+
+        lmS_SubjectName: z
+            .string()
+            .min(1, 'Enter the Subject Name')
+            .max(50)
+            .regex(/^[a-zA-Z\s]*$/, 'Only letters allowed'),
+
+        lmS_SubjectNo: z
+            .string()
+            .max(50)
+            .regex(/^[a-zA-Z0-9\s-]*$/, 'Invalid Subject No'),
         lmS_Id: z.number().nonnegative().optional(), // optional when creating new record
-        lmS_SubjectName: z.string({ message: 'Subject Name is required' }).min(2).max(100),
-        lmS_ParentId: z.number().optional(),
-        ismS_Id: z.number().optional(),
-        ismS_SubjectName: z.string().optional(),
-        lmS_ActiveFlg: z.boolean().optional(),
-        lmS_Level: z.string({ message: 'Level is required' }).min(1).max(50),
-        lmS_SubjectNo: z.string({ message: 'Subject No is required' }).min(1).max(50),
-        lmS_ClassNo: z.string({ message: 'Class No is required' }).min(1).max(50)
+        // lmS_SubjectName: z.string({ message: 'Subject Name is required' }).min(2).max(100),
+        lmS_ParentId: z.number().optional()
+        // ismS_Id: z.number().optional(),
+        // ismS_SubjectName: z.string().optional(),
+        // lmS_ActiveFlg: z.boolean().optional(),
+        // lmS_Level: z.string().min(1).max(30) .refine((val) => /^\d+$/.test(val), 'Only numbers are allowed')   ,
+        // lmS_SubjectNo: z.string().min(1).max(50),
+        // lmS_ClassNo: z.string().min(1).max(50)
     }),
     delete: z.object({
         lmS_Id: deleteIdSchema('lmS_Id')

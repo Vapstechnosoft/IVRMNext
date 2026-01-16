@@ -59,15 +59,17 @@ export interface IMasterLanguageList {
 }
 
 export interface IMasterSubjectList {
-    lmS_Id: number;   
+    lmS_Id: number;
     lmS_SubjectName: string;
     lmS_ParentId: number;
     ismS_SubjectName: string;
-    lmS_ActiveFlg:boolean;
+    lmS_ActiveFlg: boolean;
     lmS_Level: string;
     lmS_SubjectNo: string;
     lmS_ClassNo: string;
 }
 
-
-   
+export interface IParentSubjectDropdownList {
+    lmS_ParentId: number;
+    lmS_SubjectName: string;
+}

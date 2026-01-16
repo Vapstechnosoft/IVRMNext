@@ -22,7 +22,7 @@ interface UpdateMasterSubjectFormProps {
     selectedRow: IMasterSubjectList;
 }
 
-export default function UpdateMasterSubjectForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterSubjectFormProps) {
+export default function UpdateMasterLibraryForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterSubjectFormProps) {
     const { refetchAll } = useMasterSubject();
 
     const {
@@ -85,24 +85,11 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                             label='Subject Name'
                             required
                             id='ismS_Id'
-                            onKeyDown={(e) => {
-                                const allowed = /^[A-Za-z]$/;
-
-                                if (e.key.length === 1 && !allowed.test(e.key)) {
-                                    e.preventDefault();
-                                }
-                            }}
-                            {...register('ismS_Id', {
-                                required: 'Subject Name is required',
-                                pattern: {
-                                    value: /^[A-Za-z]+$/,
-                                    message: 'Only letters allowed'
-                                }
-                            })}
+                            {...register('ismS_Id', {})}
                             error={errors.ismS_Id?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-                       <InputText
+                        <InputText
                             label='Sub-Subject :'
                             required
                             id='lmS_SubjectName'
@@ -113,26 +100,17 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                                     e.preventDefault();
                                 }
                             }}
-                            {...register('lmS_SubjectName', {
-                                required: 'Sub Subject is required',
-                                pattern: {
-                                    value: /^[A-Za-z]+$/,
-                                    message: 'Only letters allowed'
-                                }
-                            })}
+                            {...register('lmS_SubjectName', {})}
                             error={errors.lmS_SubjectName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
-
                     </div>
 
                     {/* Root Error */}
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
-
-                 <div className='space-y-4'>
+                <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
                             label='Level :'
@@ -145,7 +123,7 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                                     e.preventDefault();
                                 }
                             }}
-                            {...register('lmS_Level', {                              
+                            {...register('lmS_Level', {
                                 pattern: {
                                     value: /^[A-Za-z]+$/,
                                     message: 'Only letters allowed'
@@ -154,7 +132,7 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                             error={errors.lmS_Level?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-                       <InputText
+                        <InputText
                             label='Subject No :'
                             required
                             id='lmS_SubjectNo'
@@ -166,7 +144,6 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                                 }
                             }}
                             {...register('lmS_SubjectNo', {
-                               
                                 pattern: {
                                     value: /^[A-Za-z]+$/,
                                     message: 'Only letters allowed'
@@ -175,15 +152,13 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                             error={errors.lmS_SubjectNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
-
                     </div>
 
                     {/* Root Error */}
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
-                 <div className='space-y-4'>
+                <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
                             label='Class No  :'
@@ -196,7 +171,7 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                                     e.preventDefault();
                                 }
                             }}
-                            {...register('lmS_ClassNo', {                              
+                            {...register('lmS_ClassNo', {
                                 pattern: {
                                     value: /^[A-Za-z]+$/,
                                     message: 'Only letters allowed'
@@ -205,16 +180,11 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                             error={errors.lmS_ClassNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-                     
-
                     </div>
 
                     {/* Root Error */}
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
-
-
-
 
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
