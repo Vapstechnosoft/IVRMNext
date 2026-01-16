@@ -3315,12 +3315,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 return found ? found.document_Path || '' : '';
             };
 
-            // Resolve parent photo/signature URLs from state or uploaded documents
-            const fatherPhotoUrl = fatherPhoto?.path || findUploadedPath('fatherphoto') || '';
-            const motherPhotoUrl = motherPhoto?.path || findUploadedPath('motherphoto') || '';
-            const fatherSignatureUrl = fatherSignature?.path || findUploadedPath('fathersignature') || '';
-            const motherSignatureUrl = motherSignature?.path || findUploadedPath('mothersignature') || '';
-
             // Build FormData payload (server expects multipart/form-data)
             const fd = new FormData();
             const amsTIdToUse = savedAmsTId ?? (Number(getValues('amsT_Id' as any) ?? 0) || 25533);
