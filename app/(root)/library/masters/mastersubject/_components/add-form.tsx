@@ -1,17 +1,21 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
+import { Select,SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
-import { useMasterSubject } from '@/hooks/library/useMasters';
-//import { parentsubjectdropdowndata } from '@/hooks/library/useMasters';
-import { masterSubjectSchema } from '@/schemas/library/masters';
+import {   useMasterSubject } from '@/hooks/library/useMasters';
+import { parentsubjectdropdowndata } from '@/hooks/library/useMasters';
+import {  masterSubjectSchema } from '@/schemas/library/masters';
 import { addOrUpdateMasterSubject } from '@/server/library/masters/master_subject';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { type SubmitHandler, useForm } from 'react-hook-form';
-import { toast } from 'sonner';
+import { type SubmitHandler, useForm ,Controller} from 'react-hook-form';
+import { toast } from 'sonner'
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof masterSubjectSchema.addOrUpdate>;
@@ -37,21 +41,26 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
         mode: 'onChange'
     });
 
-    //   const {
-    //         data: category,
-    //         isLoading: categoryLoading,
-    //         error: categoryError,
-    //         refetchAll: refetchcategory
-    //     } = parentsubjectdropdowndata();
+      const {
+            data: category,
+            isLoading: categoryLoading,
+            error: categoryError,
+            refetchAll: refetchcategory
+        } = parentsubjectdropdowndata();
 
-    //console.log('Category Data:', category);
+    console.log('Category Data:', category);
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
-            const { lmS_SubjectName } = data;
+            const { lmS_SubjectName, lmS_ParentId, lmS_Level, lmS_SubjectNo, lmS_ClassNo } = data;
             const payload = {
                 lmS_Id: 0,
-                lmS_SubjectName: lmS_SubjectName
+                lmS_SubjectName: lmS_SubjectName,
+                lmS_ActiveFlag: true,
+                lmS_ParentId: data.lmS_ParentId ,
+                lmS_Level: data.lmS_Level || null,
+                lmS_SubjectNo: data.lmS_SubjectNo || null,
+                lmS_ClassNo: data.lmS_ClassNo || null
             };
 
             const response = await addOrUpdateMasterSubject(payload);
@@ -72,19 +81,19 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
 
     const handleReset = () => {
         reset();
-        // refetchcategory();
+        refetchcategory();
     };
 
     return (
         <div className={`${className}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        {/* <div className='group flex items-center justify-center gap-1.5 space-x-3'>
+                   <div className='grid grid-cols-1 gap-5 md:grid-cols-2 ' >
+                        <div className='group flex flex-col gap-2'>
                             <Label htmlFor='lmS_ParentId' className='whitespace-nowrap font-medium'>
-                                Category <span className='ml-1 text-red-500'>*</span>:
+                                Parent Subject <span className='ml-1 text-red-500'>*</span>:
                             </Label>
-                            <div className='w-96'>
+                            <div className='w-100'>
                                 <Controller
                                     name='lmS_ParentId'
                                     control={control}
@@ -93,21 +102,21 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                                            
                                             value={field.value?.toString() || ''}>
                                             <SelectTrigger className='w-full'>
-                                                <SelectValue placeholder='Select Category' />
+                                                <SelectValue placeholder='Select Parent Subject' />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {categoryLoading ? (
                                                     <SelectItem value='loading' disabled>
-                                                        Loading Category...
+                                                        Loading Parent Subject...
                                                     </SelectItem>
                                                 ) : categoryError ? (
                                                     <SelectItem value='error' disabled>
-                                                        Error loading Categorys
+                                                        Error loading Parent Subjects
                                                     </SelectItem>
                                                 ) : (
                                                     category?.data?.map((item) => (
-                                                        <SelectItem key={item.lmS_ParentId} value={item.lmS_ParentId.toString()}>
-                                                            {item.lmS_SubjectName}
+                                                        <SelectItem key={item.ismS_Id} value={item.ismS_Id.toString()}>
+                                                            {item.ismS_SubjectName}
                                                         </SelectItem>
                                                     ))
                                                 )}
@@ -116,17 +125,8 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                                     )}
                                 />
                                 {errors.lmS_ParentId && <FormError className='ml-2'>{errors.lmS_ParentId.message}</FormError>}
-                            </div>
-                        </div> */}
-                        <InputText
-                            label='Parent Subject :'
-                            required
-                            placeholder='Enter Parent Subject'
-                            {...register('lmS_ParentId', {})}
-                            error={errors.lmS_ParentId?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-
+                            </div></div>
+                                         
                         <InputText
                             label='Sub-Subject :'
                             required
@@ -135,8 +135,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                             error={errors.lmS_SubjectName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-                    </div>
-
+                    </div>  
                     {/* Root Error */}
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>

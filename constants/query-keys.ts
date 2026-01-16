@@ -467,4 +467,5 @@ export const LIBRARY_QUERY_KEYS = {
     SHOW_FINE: 'show_fine',
     BOOK_AVAILABILITY: 'book_availability',
     MASTER_SUBJECT_LIST_DATA: 'master_library_subject_data',
+    LIBRARY_MASTER_SUBJECT_DROPDOWNDATADETAILS: 'library_master_subject_dropdowndetails'
 };

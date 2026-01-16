@@ -23,7 +23,7 @@ export function TimePicker({ value, onChange, disabled, className, min }: TimePi
     React.useEffect(() => {
         if (value) {
             const [h, m] = value.split(':').map(Number);
-            if (!Number.isNaN(h) && !Number.isNaN(m)) {
+            if (!isNaN(h) && !isNaN(m)) {
                 if (h === 0) {
                     setHours(12);
                     setPeriod('AM');

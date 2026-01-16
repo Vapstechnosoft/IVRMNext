@@ -70,6 +70,6 @@ export interface IMasterSubjectList {
 }
 
 export interface IParentSubjectDropdownList {
-    lmS_ParentId: number;
-    lmS_SubjectName: string;
+    ismS_Id: number;
+    ismS_SubjectName: string;
 }
