@@ -76,6 +76,8 @@ import {
     getMasterDepartments,
     getMasterDesignations,
     getMasterEmployeeTypes,
+    getMasterGroupTypes,
+    getMasterMonths,
     getMasterPaymentModeList,
     getMasterYears
 } from '@/server/hrms/master';

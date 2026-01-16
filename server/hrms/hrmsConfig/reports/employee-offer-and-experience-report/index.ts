@@ -40,7 +40,7 @@ export async function filterEmployeeOfferAndExperienceData(
                 HRMGT_Id: 1,
                 HRMGT_EmployeeGroupType: 'Teaching',
                 HRME_DOJ: '2021-05-01',
-                HRME_DOL: null,
+                HRME_DOL: undefined,
                 HRME_LeftFlag: false,
                 HRMET_Id: 1,
                 HRMET_EmployeeType: 'Permanent'
@@ -57,7 +57,7 @@ export async function filterEmployeeOfferAndExperienceData(
                 HRMGT_Id: 1,
                 HRMGT_EmployeeGroupType: 'Teaching',
                 HRME_DOJ: '2023-03-15',
-                HRME_DOL: null,
+                HRME_DOL: undefined,
                 HRME_LeftFlag: false,
                 HRMET_Id: 1,
                 HRMET_EmployeeType: 'Permanent'
@@ -74,7 +74,7 @@ export async function filterEmployeeOfferAndExperienceData(
                 HRMGT_Id: 1,
                 HRMGT_EmployeeGroupType: 'Teaching',
                 HRME_DOJ: '2019-08-01',
-                HRME_DOL: null,
+                HRME_DOL: undefined,
                 HRME_LeftFlag: false,
                 HRMET_Id: 1,
                 HRMET_EmployeeType: 'Permanent'
@@ -91,7 +91,7 @@ export async function filterEmployeeOfferAndExperienceData(
                 HRMGT_Id: 2,
                 HRMGT_EmployeeGroupType: 'Non Teaching',
                 HRME_DOJ: '2020-11-20',
-                HRME_DOL: null,
+                HRME_DOL: undefined,
                 HRME_LeftFlag: false,
                 HRMET_Id: 2,
                 HRMET_EmployeeType: 'Probationary'
@@ -191,7 +191,7 @@ export async function getEmployeeDetailsBySelection(
                 HRMGT_Id: 1,
                 HRMGT_EmployeeGroupType: 'Teaching',
                 HRME_DOJ: '2021-05-01',
-                HRME_DOL: null,
+                HRME_DOL: undefined,
                 HRME_LeftFlag: false,
                 HRMET_Id: 1,
                 HRMET_EmployeeType: 'Permanent'
@@ -208,7 +208,7 @@ export async function getEmployeeDetailsBySelection(
                 HRMGT_Id: 1,
                 HRMGT_EmployeeGroupType: 'Teaching',
                 HRME_DOJ: '2023-03-15',
-                HRME_DOL: null,
+                HRME_DOL: undefined,
                 HRME_LeftFlag: false,
                 HRMET_Id: 1,
                 HRMET_EmployeeType: 'Permanent'
@@ -225,7 +225,7 @@ export async function getEmployeeDetailsBySelection(
                 HRMGT_Id: 1,
                 HRMGT_EmployeeGroupType: 'Teaching',
                 HRME_DOJ: '2019-08-01',
-                HRME_DOL: null,
+                HRME_DOL: undefined,
                 HRME_LeftFlag: false,
                 HRMET_Id: 1,
                 HRMET_EmployeeType: 'Permanent'
@@ -242,7 +242,7 @@ export async function getEmployeeDetailsBySelection(
                 HRMGT_Id: 2,
                 HRMGT_EmployeeGroupType: 'Non Teaching',
                 HRME_DOJ: '2020-11-20',
-                HRME_DOL: null,
+                HRME_DOL: undefined,
                 HRME_LeftFlag: false,
                 HRMET_Id: 2,
                 HRMET_EmployeeType: 'Probationary'

@@ -1,9 +1,9 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Printer, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useRef } from 'react';
-import { useReactToPrint } from 'react-to-print';
+// import { useReactToPrint } from 'react-to-print';
 
 interface ChallanData {
     businessNo: string;
@@ -35,14 +35,14 @@ export default function EpfCombinedChallan({
 }) {
     const componentRef = useRef<HTMLDivElement>(null);
 
-    const handlePrint = useReactToPrint({
-        contentRef: componentRef,
-        documentTitle: `EPF_Challan_${data.month}_${data.year}`,
-        pageStyle: `
-      @page { size: A4; margin: 0.5cm; }
-      @media print { body { -webkit-print-color-adjust: exact; } }
-    `
-    });
+    // const handlePrint = useReactToPrint({
+    //     contentRef: componentRef,
+    //     documentTitle: `EPF_Challan_${data.month}_${data.year}`,
+    //     pageStyle: `
+    //   @page { size: A4; margin: 0.5cm; }
+    //   @media print { body { -webkit-print-color-adjust: exact; } }
+    // `
+    // });
 
     const total = data.totalAc1 + data.ac2 + data.ac10 + data.ac21 + data.ac22;
 
@@ -319,10 +319,10 @@ export default function EpfCombinedChallan({
                         <X className='mr-2 h-4 w-4' />
                         CANCEL
                     </Button>
-                    <Button variant='outline' onClick={handlePrint}>
+                    {/*<Button variant='outline' onClick={handlePrint}>
                         <Printer className='mr-2 h-4 w-4' />
                         PRINT
-                    </Button>
+                    </Button>*/}
                 </div>
             </div>
         </>

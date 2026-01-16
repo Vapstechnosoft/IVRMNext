@@ -55,7 +55,7 @@ const generateMockSalaryData = (year: string): MonthlySalaryDetail[] => {
             year,
             basicSalary: Math.round(basicSalary),
             netSalary: Math.round(netSalary),
-            createdAt: new Date().toISOString()
+            createdAt: new Date()
         };
     });
 };
