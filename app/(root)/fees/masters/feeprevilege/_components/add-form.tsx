@@ -83,7 +83,7 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
         isLoading: masterHeadNameLoading,
         refetch: refetchHeadNames
     } = useHeadsByGroupAndAcademicYear(Number(academicYear), Number(group));
-
+    console.log('masterHeadName', masterHeadName);
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const [academicYearOptions, setAcademicYearOptions] = useState<DropdownOption[]>([]);
     const [roleOptions, setRoleOptions] = useState<DropdownOption[]>([]);

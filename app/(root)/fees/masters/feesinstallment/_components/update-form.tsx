@@ -107,7 +107,7 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
     });
 
     const installmentType = watch('fmI_Installment_Type');
-
+    console.log('installmentType', installmentType);
     // === 1. DEFINE INSTALLMENT_TYPES HERE ===
     const INSTALLMENT_TYPES = [
         { value: 'general', label: 'General', count: 0 },
