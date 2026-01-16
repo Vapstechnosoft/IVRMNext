@@ -294,9 +294,25 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                   return { amsT_emailId: String(e ?? '') };
               })
             : [];
-        payload.previousSchools = Array.isArray(payload.previousSchools) ? payload.previousSchools : payload.previousSchools || [];
-        payload.siblings = Array.isArray(payload.siblings) ? payload.siblings : payload.siblings || [];
-        payload.guardian = Array.isArray(payload.guardian) ? payload.guardian : payload.guardian || [];
+        payload.previousSchools = Array.isArray(payload.previousSchools)
+            ? payload.previousSchools.map((ps: any) => ({
+                  ...ps,
+                  amstpS_Id: ps?.amstpS_Id ?? ps?.id ?? ''
+              }))
+            : [];
+        payload.siblings = Array.isArray(payload.siblings)
+            ? payload.siblings.map((s: any) => ({
+                  ...s,
+                  amsts_Id: s?.amsts_Id ?? s?.id ?? ''
+              }))
+            : [];
+        // Normalize guardian array to ensure guardian_Id is preserved
+        payload.guardian = Array.isArray(payload.guardian)
+            ? payload.guardian.map((g: any) => ({
+                  ...g,
+                  guardian_Id: g?.guardian_Id ?? g?.guardianId ?? g?.id ?? null
+              }))
+            : [];
 
         // Support alternative keys
         payload.selectedSourceDetails = payload.selectedSourceDetails || payload.selectedSource || payload.student_sources || [];
@@ -342,6 +358,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     // normalize falsy flags to 0 so checkbox renders correctly
                     payload.amsT_ECSFlag = Number(payload.amsT_ECSFlag ? 1 : 0);
                 }
+
+                // Normalize isEmisBpl flag to 0 or 1 so checkbox renders correctly
+                payload.isEmisBpl = Number(payload.isEmisBpl ? 1 : 0);
 
                 // Coerce date strings / numbers to Date objects required by zod schema
                 try {
@@ -501,6 +520,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                             }
 
                             return {
+                                amstpS_Id: ps?.amstpS_Id ?? ps?.id ?? '',
                                 schoolName: ps.schoolName ?? ps.pasrpS_PrvSchoolName ?? ps.pasrS_SchoolName ?? '',
                                 schoolType: schoolTypeName,
                                 schoolTypeId: schoolTypeId,
@@ -851,6 +871,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     if (siblingSource.length > 0) {
                         try {
                             const normalizedSibs = siblingSource.map((s: any) => ({
+                                amsts_Id: s?.amsts_Id ?? s?.id ?? '',
                                 name: s.name ?? s.pasrS_SiblingsName ?? s.siblingName ?? '',
                                 classId: Number(s.classId ?? s.pasrS_SiblingsClass ?? s.pasrS_SiblingsClassId ?? 0) || 0,
                                 relation: s.relation ?? s.relationShip ?? ''
@@ -2721,8 +2742,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             const guardianValues = getValues(`guardian.${index}` as any) as any;
 
             const formData = new FormData();
-            // Use numeric index+1 as the Guardian_Id value (avoid string concatenation)
-            formData.append('Guardian_Id', String((index ?? 0) + 1));
+            // Use guardian_Id from form data if available, otherwise use index+1
+            const guardianId = guardianValues?.guardian_Id ?? guardianValues?.guardianId ?? '';
+            formData.append('Guardian_Id', String(guardianId));
             formData.append('AMST_Id', String(getAmsTIdToUse()));
             formData.append('MI_Id', String(guardianValues?.MI_Id ?? '30'));
             formData.append('GuardianName', guardianValues?.guardianName || '');
@@ -2742,6 +2764,15 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             // URL fields (optional) - backend may expect these keys even if empty
             formData.append('GuardianPhotoUrl', '');
             formData.append('GuardianSignUrl', '');
+
+            // eslint-disable-next-line no-console
+            console.debug('[UpdateAdmission] Saving guardian:', {
+                guardianIndex: index,
+                guardian_Id: guardianId,
+                guardianName: guardianValues?.guardianName,
+                guardianPhone: guardianValues?.guardianPhone,
+                guardianEmail: guardianValues?.guardianEmail
+            });
 
             await saveGaurdianApi(formData);
             toast.success('Guardian saved successfully');
@@ -2929,7 +2960,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 [idx]: { path: localUrl, isUploading: false, file }
             }));
 
-            toast.success('Guardian photo selected (will be submitted with save)');
+            toast.success('Guardian photo Uploaded');
         } catch (error: any) {
             console.error('Guardian photo selection error:', error);
             setGuardianPhotos((prev) => ({
@@ -3000,7 +3031,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 [idx]: { path: localUrl, isUploading: false, file }
             }));
 
-            toast.success('Guardian signature selected (will be submitted with save)');
+            toast.success('Guardian signature Uploaded');
         } catch (error: any) {
             console.error('Guardian signature selection error:', error);
             setGuardianSignatures((prev) => ({

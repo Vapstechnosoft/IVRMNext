@@ -284,7 +284,7 @@ export default function AdmissionReportPage(props: {
 
     const handleExportExcel = () => {
         const data = Array.isArray(response?.data) ? response.data : (response?.data as any)?.searchstudentDetails;
-        if (!data || data.length === 0) {
+        if (!data || !Array.isArray(data) || data.length === 0) {
             toast.error('No data available to export');
             return;
         }
@@ -299,7 +299,7 @@ export default function AdmissionReportPage(props: {
 
     const handlePrint = () => {
         const data = Array.isArray(response?.data) ? response.data : (response?.data as any)?.searchstudentDetails;
-        if (!data || data.length === 0) {
+        if (!data || !Array.isArray(data) || data.length === 0) {
             toast.error('No data available to print');
             return;
         }
@@ -569,14 +569,14 @@ export default function AdmissionReportPage(props: {
                                 </Button>
 
                                 {showReport &&
-                                    (response?.data as any).searchstudentDetails &&
-                                    (response?.data as any).searchstudentDetails.length > 0 && (
+                                    (response?.data as any)?.searchstudentDetails &&
+                                    Array.isArray((response?.data as any)?.searchstudentDetails) &&
+                                    (response?.data as any)?.searchstudentDetails.length > 0 && (
                                         <>
                                             <Button
                                                 variant='outline'
                                                 className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'
-                                                onClick={handleExportExcel}
-                                                disabled={selectedStudents.length === 0}>
+                                                onClick={handleExportExcel}>
                                                 <FileSpreadsheet className='mr-2 h-4 w-4' />
                                                 Export to Excel
                                             </Button>

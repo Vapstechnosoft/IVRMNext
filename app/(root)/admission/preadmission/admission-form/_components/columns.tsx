@@ -226,6 +226,7 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
                                     src.previousSchoolDetails ||
                                     []
                                 ).map((ps: any) => ({
+                                    amstpS_Id: ps?.amstpS_Id ?? ps?.id ?? '',
                                     schoolName: ps.schoolName ?? ps.pasrpS_PrvSchoolName ?? ps.pasrS_SchoolName ?? '',
                                     schoolType: String(ps.schoolType ?? ''),
                                     class: String((ps.class || ps.classId) ?? ''),
@@ -240,8 +241,20 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
                                     tcNumber: ps.tcNumber ?? ps.pasrpS_TcNo ?? '',
                                     tcDate: ps.tcDate ? (ps.tcDate instanceof Date ? ps.tcDate.toISOString() : String(ps.tcDate)) : ''
                                 })),
-                                siblings: src.fourthTab?.siblings || src.siblings || src.student_siblings || src.siblingsDetails || [],
-                                guardian: src.guardians || src.guardian || src.guardiansDetails || [],
+                                siblings: (
+                                    src.fourthTab?.siblings ||
+                                    src.siblings ||
+                                    src.student_siblings ||
+                                    src.siblingsDetails ||
+                                    []
+                                ).map((s: any) => ({
+                                    ...s,
+                                    amsts_Id: s?.amsts_Id ?? s?.id ?? ''
+                                })),
+                                guardian: (src.guardians || src.guardian || src.guardiansDetails || []).map((g: any) => ({
+                                    ...g,
+                                    guardian_Id: g?.guardian_Id ?? g?.guardianId ?? g?.id ?? null
+                                })),
                                 selectedSourceDetails: (
                                     src.fourthTab?.selectedSourceDetails ||
                                     src.selectedSource ||
@@ -286,6 +299,7 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
                                 adm_M_Student_EmailIdDTO: resp?.emailIds || resp?.adm_M_Student_EmailIdDTO || [],
                                 mobileNos: resp?.mobileNos || [],
                                 previousSchools: (resp?.previousSchools || resp?.previous_schools || []).map((ps: any) => ({
+                                    amstpS_Id: ps?.amstpS_Id ?? ps?.id ?? '',
                                     schoolName: ps.schoolName ?? ps.pasrpS_PrvSchoolName ?? ps.pasrS_SchoolName ?? '',
                                     schoolType: String(ps.schoolType ?? ''),
                                     class: String((ps.class || ps.classId) ?? ''),
@@ -300,8 +314,14 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
                                     tcNumber: ps.tcNumber ?? ps.pasrpS_TcNo ?? '',
                                     tcDate: ps.tcDate ? (ps.tcDate instanceof Date ? ps.tcDate.toISOString() : String(ps.tcDate)) : ''
                                 })),
-                                siblings: resp?.siblings || resp?.student_siblings || [],
-                                guardian: resp?.guardian || resp?.guardians || [],
+                                siblings: (resp?.siblings || resp?.student_siblings || []).map((s: any) => ({
+                                    ...s,
+                                    amsts_Id: s?.amsts_Id ?? s?.id ?? ''
+                                })),
+                                guardian: (resp?.guardian || resp?.guardians || []).map((g: any) => ({
+                                    ...g,
+                                    guardian_Id: g?.guardian_Id ?? g?.guardianId ?? g?.id ?? null
+                                })),
                                 selectedSourceDetails: (resp?.student_sources || resp?.studentSource || [])
                                     .filter(Boolean)
                                     .map((s: any) => ({

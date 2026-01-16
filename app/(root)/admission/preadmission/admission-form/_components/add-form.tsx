@@ -1949,8 +1949,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             const guardianValues = getValues(`guardian.${index}` as any) as any;
 
             const formData = new FormData();
-            // Use numeric index+1 as the Guardian_Id value (avoid string concatenation)
-            formData.append('Guardian_Id', String((index ?? 0) + 1));
+            formData.append('Guardian_Id', String(0));
             const resolvedAmsId = Number(getValues('amsT_Id' as any) || savedAmsTId || guardianValues?.AMST_Id || 0) || 0;
             formData.append('AMST_Id', String(resolvedAmsId));
             formData.append('MI_Id', String(guardianValues?.MI_Id ?? '30'));
@@ -2155,7 +2154,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 [idx]: { path: localUrl, isUploading: false, file }
             }));
 
-            toast.success('Guardian photo selected (will be submitted with save)');
+            toast.success('Guardian photo Uploaded');
         } catch (error: any) {
             console.error('Guardian photo selection error:', error);
             setGuardianPhotos((prev) => ({
@@ -2228,7 +2227,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 [idx]: { path: localUrl, isUploading: false, file }
             }));
 
-            toast.success('Guardian signature selected (will be submitted with save)');
+            toast.success('Guardian signature Uploaded');
         } catch (error: any) {
             console.error('Guardian signature selection error:', error);
             setGuardianSignatures((prev) => ({
