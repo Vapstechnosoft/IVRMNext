@@ -466,21 +466,60 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     }
                     // Normalize previousSchools to ensure dates are Date objects and field names match form schema
                     if (Array.isArray(payload.previousSchools) && payload.previousSchools.length > 0) {
-                        const normalizedSchools = payload.previousSchools.map((ps: any) => ({
-                            schoolName: ps.schoolName ?? ps.pasrpS_PrvSchoolName ?? ps.pasrS_SchoolName ?? '',
-                            schoolType: ps.schoolType ? String(ps.schoolType) : '',
-                            class: ps.class || ps.classId ? String(ps.class || ps.classId) : '',
-                            percentage: ps.percentage ?? ps.pasrpS_PreviousPer ?? '',
-                            grade: ps.grade ?? ps.pasrpS_PreviousGrade ?? '',
-                            passedYear: ps.passedYear ? Number(ps.passedYear) : 0,
-                            country: ps.country ? String(ps.country) : '',
-                            state: ps.state ? String(ps.state) : '',
-                            address: ps.address ?? ps.pasrpS_Address ?? '',
-                            leftReason: ps.leftReason ?? ps.pasrpS_LeftReason ?? '',
-                            medium: ps.medium ?? '',
-                            tcNumber: ps.tcNumber ?? ps.pasrpS_TcNo ?? '',
-                            tcDate: ps.tcDate ? (ps.tcDate instanceof Date ? ps.tcDate : new Date(ps.tcDate)) : null
-                        }));
+                        const normalizedSchools = payload.previousSchools.map((ps: any) => {
+                            const schoolTypeName = ps.schoolType ? String(ps.schoolType) : '';
+
+                            // Resolve schoolTypeId from known map or numeric value
+                            const schoolTypeMap: Record<string, number> = {
+                                'Pre-Primary School': 1,
+                                'Primary School': 2,
+                                'High School': 3
+                            };
+                            let schoolTypeId = 0;
+                            const parsedSchoolType = Number(schoolTypeName);
+                            if (!Number.isNaN(parsedSchoolType) && parsedSchoolType !== 0) schoolTypeId = parsedSchoolType;
+                            else if (schoolTypeName && schoolTypeMap[schoolTypeName]) schoolTypeId = schoolTypeMap[schoolTypeName];
+
+                            // Resolve classId from numeric or admissionClass lookup
+                            const classVal = ps.class ?? ps.classId ?? '';
+                            let classId = 0;
+                            const parsedClass = Number(classVal);
+                            if (!Number.isNaN(parsedClass) && parsedClass !== 0) classId = parsedClass;
+                            else if (classVal && admissionClass?.data) {
+                                const found = admissionClass.data.find((c: any) => String(c.asmcL_ClassName) === String(classVal));
+                                if (found) classId = Number(found.asmcL_Id);
+                            }
+
+                            // Resolve countryId from numeric or country lookup
+                            const countryVal = ps.country ?? '';
+                            let countryId = 0;
+                            const parsedCountry = Number(countryVal);
+                            if (!Number.isNaN(parsedCountry) && parsedCountry !== 0) countryId = parsedCountry;
+                            else if (countryVal && country?.data) {
+                                const foundC = country.data.find((c: any) => String(c.ivrmmC_CountryName) === String(countryVal));
+                                if (foundC) countryId = Number(foundC.ivrmmC_Id);
+                            }
+
+                            return {
+                                schoolName: ps.schoolName ?? ps.pasrpS_PrvSchoolName ?? ps.pasrS_SchoolName ?? '',
+                                schoolType: schoolTypeName,
+                                schoolTypeId: schoolTypeId,
+                                class: (ps.class ?? ps.classId ?? '') ? String(ps.class ?? ps.classId ?? '') : '',
+                                classId: classId,
+                                percentage: ps.percentage ?? ps.pasrpS_PreviousPer ?? '',
+                                grade: ps.grade ?? ps.pasrpS_PreviousGrade ?? '',
+                                passedYear: ps.passedYear ? Number(ps.passedYear) : 0,
+                                country: countryVal ? String(countryVal) : '',
+                                countryId: countryId,
+                                state: ps.state ? String(ps.state) : '',
+                                stateId: ps.state && Number(ps.state) ? Number(ps.state) : 0,
+                                address: ps.address ?? ps.pasrpS_Address ?? '',
+                                leftReason: ps.leftReason ?? ps.pasrpS_LeftReason ?? '',
+                                medium: ps.medium ?? '',
+                                tcNumber: ps.tcNumber ?? ps.pasrpS_TcNo ?? '',
+                                tcDate: ps.tcDate ? (ps.tcDate instanceof Date ? ps.tcDate : new Date(ps.tcDate)) : null
+                            } as any;
+                        });
                         // eslint-disable-next-line no-console
                         console.debug('[UpdateAdmission] Normalizing previousSchools with field mapping:', normalizedSchools);
                         setValue('previousSchools' as any, normalizedSchools);
@@ -1224,6 +1263,28 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         const countryId = watch(`previousSchools.${idx}.countryId` as const) as any;
         const { data: prevStates, isLoading: prevStatesLoading } = useStateDropdown(Number(countryId));
 
+        // If the row has a state name but no stateId yet, try to resolve it
+        useEffect(() => {
+            try {
+                const curState = getValues(`previousSchools.${idx}.state` as any) as string | undefined;
+                const curStateId = getValues(`previousSchools.${idx}.stateId` as any) as any;
+                if (
+                    curState &&
+                    (!curStateId || Number(curStateId) === 0) &&
+                    Array.isArray(prevStates?.data) &&
+                    prevStates.data.length > 0
+                ) {
+                    const found = prevStates.data.find((s: any) => String(s.ivrmmS_Name) === String(curState));
+                    if (found) {
+                        setValue(`previousSchools.${idx}.stateId` as any, Number(found.ivrmmS_Id));
+                    }
+                }
+            } catch (_e) {
+                // ignore
+            }
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [prevStates?.data, getValues(`previousSchools.${idx}.state` as any)]);
+
         return (
             <>
                 <div className='flex flex-col gap-1.5'>
@@ -1233,7 +1294,18 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         name={`previousSchools.${idx}.countryId` as const}
                         control={control}
                         render={({ field }) => (
-                            <Select value={field.value?.toString() || ''} onValueChange={(val) => field.onChange(Number(val))}>
+                            <Select
+                                value={field.value?.toString() || ''}
+                                onValueChange={(val) => {
+                                    const id = Number(val) || 0;
+                                    field.onChange(id);
+                                    // Save the human-readable country name alongside the id
+                                    const found = country?.data?.find((c: Country) => c.ivrmmC_Id === id);
+                                    setValue(`previousSchools.${idx}.country` as any, found?.ivrmmC_CountryName ?? '');
+                                    // Clear any previously selected state when country changes
+                                    setValue(`previousSchools.${idx}.stateId` as any, '');
+                                    setValue(`previousSchools.${idx}.state` as any, '');
+                                }}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Country' />
                                 </SelectTrigger>
@@ -1264,7 +1336,15 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         name={`previousSchools.${idx}.stateId` as const}
                         control={control}
                         render={({ field }) => (
-                            <Select value={field.value?.toString() || ''} onValueChange={(val) => field.onChange(val)}>
+                            <Select
+                                value={field.value?.toString() || ''}
+                                onValueChange={(val) => {
+                                    const id = Number(val) || 0;
+                                    field.onChange(id);
+                                    // Save the human-readable state name alongside the id
+                                    const foundState = prevStates?.data?.find((s: any) => s.ivrmmS_Id === id);
+                                    setValue(`previousSchools.${idx}.state` as any, foundState?.ivrmmS_Name ?? '');
+                                }}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select State' />
                                 </SelectTrigger>
@@ -1843,13 +1923,13 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     const previousSchoolSource = formData.previousSchools || [];
                     const previousSchools = (Array.isArray(previousSchoolSource) ? previousSchoolSource : []).map((school: any) => ({
                         schoolName: school.pasrpS_PrvSchoolName || school.schoolName || school.pasrS_SchoolName || '',
-                        schoolType: Number(school.schoolType || school.pasrpS_schoolType) || '',
+                        schoolType: school.schoolType || (school.pasrpS_schoolType ? String(school.pasrpS_schoolType) : '') || '',
                         class: String(school.pasrpS_PreviousClass || school.classId || ''),
                         percentage: school.pasrpS_PreviousPer || school.percentage || '',
                         grade: school.pasrpS_PreviousGrade || school.grade || '',
                         passedYear: (school.pasrpS_LeftYear ?? school.passedYear) ? Number(school.pasrpS_LeftYear ?? school.passedYear) : 0,
-                        country: Number(school.country) || '',
-                        state: Number(school.state) || '',
+                        country: school.country || '',
+                        state: school.state || '',
                         address: school.pasrpS_Address || school.address || '',
                         leftReason: school.pasrpS_LeftReason || school.leftReason || '',
                         medium: school.medium || '',
@@ -6779,7 +6859,19 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                         render={({ field }) => (
                                                                             <Select
                                                                                 value={field.value?.toString() || ''}
-                                                                                onValueChange={(val) => field.onChange(val)}>
+                                                                                onValueChange={(val) => {
+                                                                                    const id = Number(val) || 0;
+                                                                                    field.onChange(id);
+                                                                                    const map: Record<number, string> = {
+                                                                                        1: 'Pre-Primary School',
+                                                                                        2: 'Primary School',
+                                                                                        3: 'High School'
+                                                                                    };
+                                                                                    setValue(
+                                                                                        `previousSchools.${idx}.schoolType` as any,
+                                                                                        map[id] ?? ''
+                                                                                    );
+                                                                                }}>
                                                                                 <SelectTrigger>
                                                                                     <SelectValue placeholder='Select school type' />
                                                                                 </SelectTrigger>
