@@ -1072,11 +1072,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                         schoolType:
                             school.schoolType ||
                             (school.schoolTypeId !== undefined && school.schoolTypeId !== null
-                                ? school.schoolTypeId === 0
+                                ? school.schoolTypeId === 1
                                     ? 'Pre-Primary School'
-                                    : school.schoolTypeId === 1
+                                    : school.schoolTypeId === 2
                                       ? 'Primary School'
-                                      : school.schoolTypeId === 2
+                                      : school.schoolTypeId === 3
                                         ? 'High School'
                                         : String(school.schoolTypeId)
                                 : ''),
@@ -2552,12 +2552,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             // Document checklist removed; user-uploaded documents are submitted with final form
 
             const values = getValues();
-
-            // Helper: try to resolve uploaded document path by name (case-insensitive substring match)
-            const findUploadedPath = (needle: string) => {
-                const found = uploadedDocuments.find((d) => (d.documentName || '').toLowerCase().includes(needle.toLowerCase()));
-                return found ? found.document_Path || '' : '';
-            };
 
             // Build FormData payload (server expects multipart/form-data)
             const fd = new FormData();
@@ -6093,9 +6087,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                 </SelectTrigger>
 
                                                                                 <SelectContent>
-                                                                                    <SelectItem value='0'>Pre-Primary School</SelectItem>
-                                                                                    <SelectItem value='1'>Primary School</SelectItem>
-                                                                                    <SelectItem value='2'>High School</SelectItem>
+                                                                                    <SelectItem value='1'>Pre-Primary School</SelectItem>
+                                                                                    <SelectItem value='2'>Primary School</SelectItem>
+                                                                                    <SelectItem value='3'>High School</SelectItem>
                                                                                 </SelectContent>
                                                                             </Select>
                                                                         )}
