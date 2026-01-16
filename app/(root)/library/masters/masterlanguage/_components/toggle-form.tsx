@@ -5,7 +5,7 @@ import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/ex
 import { FormError } from '@/components/ui/extension/field';
 import { useMasterLanguage } from '@/hooks/library/useMasters';
 import { masterLibrarySchema } from '@/schemas/library/masters';
-import { toggleMasterLibrary } from '@/server/library/masters/master_library';
+import { toggleMasterLanguage } from '@/server/library/masters/master_language';
 import type { IMasterLanguageList } from '@/types/library/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
@@ -41,7 +41,7 @@ export default function ToggleMasterLanguageForm({ rowData, onClose }: ToggleMas
 
     const onSubmit: SubmitHandler<FormFields> = async () => {
         try {
-            const response = await toggleMasterLibrary(rowData.lmL_Id);
+            const response = await toggleMasterLanguage(rowData.lmL_Id);
 
             if (response.success) {
                 toast.success(response.message || 'Status updated successfully');
