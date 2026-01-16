@@ -12,6 +12,18 @@ export const masterDaySchema = {
     })
 };
 
+export const masterDayClasswiseSchema = {
+    addOrUpdate: z.object({
+        asmay_id: number().min(1, 'Please select Academic Year'),
+        ttmC_Id: number().min(1, 'Please select Category'),
+        calssids: z.array(z.string()).nonempty('Please select at least one Class'),
+        ttmD_Id: z.array(z.string()).nonempty('Please select at least one Day')
+    }),
+    delete: z.object({
+        ttmdC_Id: deleteIdSchema('ttmdC_Id')
+    })
+};
+
 export const masterBuildingSchema = {
     addOrUpdate: z.object({
         ttmB_Id: z.number().optional(),
@@ -40,14 +52,8 @@ export const staffabbreviationsSchema = {
 
 export const subjectabbreviationsSchema = {
     addOrUpdate: z.object({
-        // TTMSAB_Id: z.number().optional(),
-        // HRME_Id: createNumberOnlyStringSchemaRequired('Staff', 1, 100),
-        // // ttmB_BuildingName: createStringOnlySchema('Building Name', 1, 100),
-        // TTMSAB_Abbreviation: createStringOnlySchema('Abbreviation', 1, 100),
-        // TTMSAB_PerDayMaxDeputation: createOptionalNumberOnlyStringSchema('Per Day Max Deputation', 1, 100),
-        // TTMSAB_PerWeekMaxDeputation: createOptionalNumberOnlyStringSchema('Per Week Max Deputation', 1, 100),
-        // TTMSAB_PerMonthMaxDeputation: createOptionalNumberOnlyStringSchema('Per Month Max Deputation', 1, 100),
-        // TTMSAB_PerYearMaxDeputation: createOptionalNumberOnlyStringSchema('Per Month Max Deputation', 1, 100)
+        ismS_Id: number().min(1, 'Please select an Subject'),
+        ttmsuaB_Abbreviation: createStringOnlySchema('Abbreviation', 1, 100)
     }),
     delete: z.object({
         ttmsuaB_Id: deleteIdSchema('ttmsuaB_Id')

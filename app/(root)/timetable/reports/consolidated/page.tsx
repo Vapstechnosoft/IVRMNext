@@ -229,7 +229,7 @@ export default function ConsolidatedReportPage() {
     };
 
     return (
-        <div className='space-y-4 p-1'>
+        <div className='container space-y-4 p-1'>
             <CollapsibleSection title='Consolidated Report' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                 <ConsolidatedForm initialData={initialData} onSubmit={handleFormSubmit} />
                 {/* {error && (

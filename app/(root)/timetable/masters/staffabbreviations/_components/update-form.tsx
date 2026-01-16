@@ -6,22 +6,24 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useStaffAbbreviation, useStaffDropDown } from '@/hooks/timetable/useMasters';
 import { staffabbreviationsSchema } from '@/schemas/timetable/masters';
+import { addOrUpdateStaffAbbreviation } from '@/server/timetable/masters/staffabbreviation';
 import type { IStaffAbbreviationList } from '@/types/timetable/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof staffabbreviationsSchema.addOrUpdate>;
 
-interface UpdateMasterDayFormProps {
+interface UpdateStaffAbbreviationFormProps {
     onSuccess?: () => void;
     masterday?: string;
     selectedRow: IStaffAbbreviationList;
 }
 
-export default function UpdateStaffAbbreviationForm({ onSuccess, masterday = '', selectedRow: row }: UpdateMasterDayFormProps) {
+export default function UpdateStaffAbbreviationForm({ onSuccess, masterday = '', selectedRow: row }: UpdateStaffAbbreviationFormProps) {
     const { refetchAll } = useStaffAbbreviation();
 
     const { data: staffdata, isLoading: staffisLoading, error: stafferror, refetchAll: staffrefetchAll } = useStaffDropDown();
@@ -43,36 +45,46 @@ export default function UpdateStaffAbbreviationForm({ onSuccess, masterday = '',
             reset({
                 TTMSAB_Id: row.ttmsaB_Id,
                 HRME_Id: row.hrmE_Id,
-                TTMSAB_Abbreviation: row.ttmsaB_Abbreviation
-                // TTMSAB_PerDayMaxDeputation: row.ttmsaB_PerDayMaxDeputation,
-                // TTMSAB_PerWeekMaxDeputation: row.ttmsaB_PerWeekMaxDeputation,
-                // TTMSAB_PerMonthMaxDeputation: row.ttmsaB_PerMonthMaxDeputation,
-                // TTMSAB_PerYearMaxDeputation: row.ttmsaB_PerYearMaxDeputation
+                TTMSAB_Abbreviation: row.ttmsaB_Abbreviation,
+                TTMSAB_PerDayMaxDeputation: String(row.ttmsaB_PerDayMaxDeputation),
+                TTMSAB_PerWeekMaxDeputation: String(row.ttmsaB_PerWeekMaxDeputation),
+                TTMSAB_PerMonthMaxDeputation: String(row.ttmsaB_PerMonthMaxDeputation),
+                TTMSAB_PerYearMaxDeputation: String(row.ttmsaB_PerYearMaxDeputation)
             });
         }
     }, [row, reset, setValue]);
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
-        // try {
-        //     const { ttmD_DayName, ttmD_DayCode, ttmD_Id } = data;
-        //     const payload = {
-        //         mi_id: 30,
-        //         ttmD_DayName: ttmD_DayName,
-        //         ttmD_DayCode: ttmD_DayCode,
-        //         ttmD_Id: ttmD_Id
-        //     };
-        //     const response = await addOrUpdateStaffAbbreviation(payload);
-        //     if (response.success) {
-        //         toast.success(response.message);
-        //         reset();
-        //         refetchAll();
-        //         onSuccess?.();
-        //     } else {
-        //         toast.error(response.message);
-        //     }
-        // } catch (error: any) {
-        //     toast.error(error.message);
-        // }
+        try {
+            const {
+                HRME_Id,
+                TTMSAB_Abbreviation,
+                TTMSAB_PerDayMaxDeputation,
+                TTMSAB_PerWeekMaxDeputation,
+                TTMSAB_PerMonthMaxDeputation,
+                TTMSAB_PerYearMaxDeputation
+            } = data;
+            const payload = {
+                ttmsaB_Id: row.ttmsaB_Id,
+                hrmE_Id: HRME_Id,
+                ttmsaB_Abbreviation: TTMSAB_Abbreviation,
+                ttmsaB_PerDayMaxDeputation: TTMSAB_PerDayMaxDeputation,
+                ttmsaB_PerMonthMaxDeputation: TTMSAB_PerMonthMaxDeputation,
+                ttmsaB_PerWeekMaxDeputation: TTMSAB_PerWeekMaxDeputation,
+                ttmsaB_PerYearMaxDeputation: TTMSAB_PerYearMaxDeputation
+            };
+            const response = await addOrUpdateStaffAbbreviation(payload);
+            if (response.success) {
+                toast.success(response.message);
+                reset();
+                refetchAll();
+                onSuccess?.();
+            } else {
+                toast.error(response.message);
+            }
+        } catch (error: any) {
+            toast.error(error.message);
+        }
     };
 
     const handleReset = () => {
@@ -87,16 +99,8 @@ export default function UpdateStaffAbbreviationForm({ onSuccess, masterday = '',
                         {/* Row 1 */}
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                             <div className='w-full'>
-                                {/* <InputText
-                                    label='Staff Name'
-                                    required
-                                    id='HRME_Id'
-                                    {...register('HRME_Id')}
-                                    error={errors.HRME_Id?.message}
-                                    className='w-full transition-colors focus:ring-2 focus:ring-primary/20'
-                                /> */}
                                 <div className='group flex flex-col gap-1.5'>
-                                    <Label aria-label='Term' htmlFor='fmT_Id'>
+                                    <Label aria-label='HRME_Id' htmlFor='fmT_Id'>
                                         Staff Name <span className='ml-1 text-red-500'>*</span>
                                     </Label>
                                     <Controller

@@ -37,8 +37,6 @@ export default function AddMasterDayForm({ onSuccess, className = '' }: AddMaste
         try {
             const { ttmD_DayName, ttmD_DayCode } = data;
             const payload = {
-                ttmD_Id: 0,
-                mi_id: 30,
                 ttmD_DayName: ttmD_DayName,
                 ttmD_DayCode: ttmD_DayCode
             };

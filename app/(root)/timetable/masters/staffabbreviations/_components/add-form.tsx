@@ -15,12 +15,12 @@ import type { z } from 'zod';
 
 type FormFields = z.infer<typeof staffabbreviationsSchema.addOrUpdate>;
 
-interface AddMasterDayProps {
+interface AddStaffAbbreviationProps {
     onSuccess?: () => void;
     buildingname?: string;
 }
 
-export default function AddStaffAbbreviationForm({ onSuccess, buildingname = '' }: AddMasterDayProps) {
+export default function AddStaffAbbreviationForm({ onSuccess, buildingname = '' }: AddStaffAbbreviationProps) {
     const { refetchAll } = useStaffAbbreviation();
 
     const { data: staffdata, isLoading: staffisLoading, error: stafferror, refetchAll: staffrefetchAll } = useStaffDropDown();
@@ -39,13 +39,23 @@ export default function AddStaffAbbreviationForm({ onSuccess, buildingname = '' 
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
-            //const { ttmB_BuildingName } = data;
+            const {
+                HRME_Id,
+                TTMSAB_Abbreviation,
+                TTMSAB_PerDayMaxDeputation,
+                TTMSAB_PerWeekMaxDeputation,
+                TTMSAB_PerMonthMaxDeputation,
+                TTMSAB_PerYearMaxDeputation
+            } = data;
             const payload = {
-                ttmD_Id: 0,
-                mi_id: 30
-                //ttmB_BuildingName: ttmB_BuildingName,
+                hrmE_Id: HRME_Id,
+                ttmsaB_Abbreviation: TTMSAB_Abbreviation,
+                ttmsaB_PerDayMaxDeputation: TTMSAB_PerDayMaxDeputation,
+                ttmsaB_PerMonthMaxDeputation: TTMSAB_PerMonthMaxDeputation,
+                ttmsaB_PerWeekMaxDeputation: TTMSAB_PerWeekMaxDeputation,
+                ttmsaB_PerYearMaxDeputation: TTMSAB_PerYearMaxDeputation
             };
-            console.log(payload);
+            console.log(JSON.stringify(payload));
             const response = await addOrUpdateStaffAbbreviation(payload);
             if (response.success) {
                 toast.success(response.message);
@@ -199,7 +209,7 @@ export default function AddStaffAbbreviationForm({ onSuccess, buildingname = '' 
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Master Day
+                            Save Staff Abbreviation
                         </div>
                     </Button>
                 </div>

@@ -191,7 +191,7 @@ export default function SubjectWiseReportPage() {
     };
 
     return (
-        <div className='space-y-4 p-1'>
+        <div className='container space-y-4 p-1'>
             <CollapsibleSection title='Subject Wise TimeTable Report' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                 <SubjectWiseForm initialData={initialData} onSubmit={handleFormSubmit} onCancel={handleCancel} />
                 {/* {error && (

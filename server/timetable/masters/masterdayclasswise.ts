@@ -2,11 +2,16 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { IMasterDayClassWise } from '@/types/timetable/masters/masters';
+import type {
+    AcademicYearDropDownTT,
+    CategoryDropDownTT,
+    ClassDropDownDataTT,
+    IMasterDayClassWise
+} from '@/types/timetable/masters/masters';
 
 export async function getMasterDayClassWiseDetails(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'ttmP_PeriodName,ttmP_ActiveFlag,ttmP_Id');
-    const url = `/PeriodAllocationFacade/GetMasterDayClassWiseGridData?${urlParams}`;
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'academicyr,classname');
+    const url = `/MasterDayFacade/MasterDayClasswiseDetails?${urlParams}`;
     return await api.get<IMasterDayClassWise[]>('timetable', url);
 }
 
@@ -15,7 +20,22 @@ export async function addOrUpdateMasterDay(data: any) {
     return await api.post<any>('timetable', url, data);
 }
 
-export async function ToggleMasterDay(ttmd_id: number) {
-    const url = `/MasterDayFacade/MasterDaydayActivateDeactivate/30/${ttmd_id}`;
+export async function ToggleMasterDayClasswise(ttmd_id: number) {
+    const url = `/MasterDayFacade/MasterDaydayClasswiseActivateDeactivate/${ttmd_id}`;
     return await api.put<any>('timetable', url);
+}
+
+export async function getAcademicYearDropDropDownMasterDayClasswise() {
+    const url = '/TimeTableCommon/GetAcademicYearData';
+    return await api.get<AcademicYearDropDownTT[]>('timetable', url);
+}
+
+export async function getCategoryDropDownMasterDayClasswise() {
+    const url = '/TimeTableCommon/GetCategoryDetails';
+    return await api.get<CategoryDropDownTT[]>('timetable', url);
+}
+
+export async function getClassDropDownMasterDayClasswise() {
+    const url = '/TimeTableCommon/GetClassData';
+    return await api.get<ClassDropDownDataTT[]>('timetable', url);
 }

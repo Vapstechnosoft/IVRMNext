@@ -189,7 +189,7 @@ export default function StaffWiseReportPage() {
     };
 
     return (
-        <div className='space-y-4 p-1'>
+        <div className='container space-y-4 p-1'>
             <CollapsibleSection title='Staff Wise TimeTable Report' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                 <StaffWiseForm initialData={initialData} onSubmit={handleFormSubmit} onCancel={handleCancel} />
                 {/* {error && (

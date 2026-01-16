@@ -39,6 +39,10 @@ export interface IStaffAbbreviationList {
     firstName: string;
     middleName: string;
     lastName: string;
+    ttmsaB_PerDayMaxDeputation: number;
+    ttmsaB_PerWeekMaxDeputation: number;
+    ttmsaB_PerYearMaxDeputation: number;
+    ttmsaB_PerMonthMaxDeputation: number;
 }
 
 export interface ISubjectAbbreviationList {
@@ -60,6 +64,26 @@ export interface IStaffDropdownList {
     lastName: string;
     ttmsaB_ActiveFlag: boolean;
     asmaY_Id: number;
+    createdDate: string;
+    updatedDate: string;
+}
+export interface ISubjectDropdownList {
+    ismS_Id: number;
+    mI_Id: number;
+    ismS_SubjectName: string;
+    ismS_SubjectCode: string;
+    ismS_Max_Marks: number;
+    ismS_Min_Marks: number;
+    ismS_ExamFlag: number;
+    ismS_PreadmFlag: number;
+    ismS_BatchAppl: number;
+    ismS_ActiveFlag: number;
+    ismS_OrderFlag: number;
+    ismS_AttendanceFlag: boolean;
+    ismS_AtExtraFeeFlg: number;
+    ismS_LanguageFlg: number;
+    ismS_IVRSSubjectName: string;
+    ismS_SubjectNameNew: string;
     createdDate: string;
     updatedDate: string;
 }
@@ -318,12 +342,11 @@ export interface IMasterPeriodClassList {
 // }
 
 export interface IMasterDayClassWise {
-    ttmP_Id: number;
-    mI_Id: number;
-    ttmP_PeriodName: string;
-    ttmP_ActiveFlag: boolean;
-    createdDate: string;
-    updatedDate: string;
+    ttmdC_Id: number;
+    classname: string;
+    academicyr: string;
+    ttmD_DayName: string;
+    ttmdC_ActiveFlag: boolean;
 }
 
 export interface IPeriodTimeSettingData {
@@ -342,6 +365,60 @@ export interface IPeriodAllocationMasterDay {
     mI_Id: number;
     ttmP_PeriodName: string;
     ttmP_ActiveFlag: boolean;
+    createdDate: string;
+    updatedDate: string;
+}
+
+export interface AcademicYearDropDownTT {
+    asmaY_Id: number;
+    mI_Id: number;
+    asmaY_Year: string;
+    asmaY_From_Date: string;
+    asmaY_To_Date: string;
+    asmaY_PreAdm_F_Date: string;
+    asmaY_PreAdm_T_Date: string;
+    asmaY_Order: number;
+    asmaY_ActiveFlag: number;
+    asmaY_Cut_Of_Date: string;
+    asmaY_Pre_ActiveFlag: number;
+    is_Active: boolean;
+    asmaY_ReggularFlg: boolean;
+    asmaY_NewFlg: boolean;
+    asmaY_NewAdmissionFlg: boolean;
+    asmaY_CreatedBy: number;
+    asmaY_UpdatedBy: number;
+    asmaY_AcademicYearCode: string;
+    asmaY_RegularFeeFDate: string;
+    asmaY_RegularFeeTDate: string;
+    createdDate: string;
+    updatedDate: string;
+}
+
+export interface CategoryDropDownTT {
+    ttmC_Id: number;
+    mI_Id: number;
+    ttmC_CategoryName: string;
+    createdDate: string;
+    updatedDate: string;
+
+    ttmC_ActiveFlag: boolean;
+}
+
+export interface ClassDropDownDataTT {
+    asmcL_Id: number;
+    mI_Id: number;
+    asmcL_ClassName: string;
+    asmcL_MinAgeYear: number;
+    asmcL_MinAgeMonth: number;
+    asmcL_MinAgeDays: number;
+    asmcL_MaxAgeYear: number;
+    asmcL_MaxAgeMonth: number;
+    asmcL_MaxAgeDays: number;
+    asmcL_Order: number;
+    asmcL_ClassCode: string;
+    asmcL_ActiveFlag: boolean;
+    asmcL_MaxCapacity: number;
+    asmcL_PreadmFlag: number;
     createdDate: string;
     updatedDate: string;
 }

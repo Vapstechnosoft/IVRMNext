@@ -110,7 +110,7 @@ export default function DeputationReportForm() {
     };
 
     return (
-        <div className='space-y-6'>
+        <div className='container space-y-4 p-1'>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                     <div className='space-y-2'>

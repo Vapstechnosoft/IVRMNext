@@ -9,13 +9,18 @@ import {
 import { getMasterCategoryDetails } from '@/server/timetable/masters/masterCategory';
 import { getMasterBuildingDetails } from '@/server/timetable/masters/masterbuilding';
 import { getMasterDayDetails } from '@/server/timetable/masters/masterday';
-import { getMasterDayClassWiseDetails } from '@/server/timetable/masters/masterdayclasswise';
+import {
+    getAcademicYearDropDropDownMasterDayClasswise,
+    getCategoryDropDownMasterDayClasswise,
+    getClassDropDownMasterDayClasswise,
+    getMasterDayClassWiseDetails
+} from '@/server/timetable/masters/masterdayclasswise';
 import { getMasterPeriodDetails } from '@/server/timetable/masters/masterperiod';
 import { getAllPeriodDetails } from '@/server/timetable/masters/periodallocation';
 import { getPeriodDistributionDetails } from '@/server/timetable/masters/perioddistribution';
 import { getAllPeriodTimeSettings } from '@/server/timetable/masters/periodtimesetting';
 import { getStaffAbbreviationDetails, getStaffDropDown } from '@/server/timetable/masters/staffabbreviation';
-import { getSubjectAbbreviationDetails } from '@/server/timetable/masters/subjectabbreviation';
+import { getSubjectAbbreviationDetails, getsubjectDropDown } from '@/server/timetable/masters/subjectabbreviation';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -109,6 +114,23 @@ export const useStaffDropDown = (searchParams?: ApiSearchparams) => {
     };
 };
 
+export const useSubjectDropDown = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_SUBJECT_DROPDOWN, searchParams ?? {}],
+            queryFn: async () => getsubjectDropDown(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_SUBJECT_DROPDOWN]
+            });
+        }
+    };
+};
 export const useTimeTableMasterCategory = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
@@ -320,6 +342,60 @@ export const usePeriodTimeSettingDetails = (searchParams?: ApiSearchparams) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [TIMETABLE_QUERY_KEYS.TT_PERIODTIME_SETTINGSDATA]
+            });
+        }
+    };
+};
+
+export const useAcademicYearDropDownMasterDayClasswise = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.ACADEMIC_YEAR_DROPDOWN_MASTERDAYCLASSWISE, searchParams ?? {}],
+            queryFn: async () => getAcademicYearDropDropDownMasterDayClasswise(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.ACADEMIC_YEAR_DROPDOWN_MASTERDAYCLASSWISE]
+            });
+        }
+    };
+};
+
+export const useCategtoryDropDownMasterDayClasswise = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.CATEGORY_DROPDOWN_MASTERDAYCLASSWISE, searchParams ?? {}],
+            queryFn: async () => getCategoryDropDownMasterDayClasswise(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.CATEGORY_DROPDOWN_MASTERDAYCLASSWISE]
+            });
+        }
+    };
+};
+
+export const useClassDropDownMasterDayClasswise = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.CLASS_DROPDOWN_MASTERDAYCLASSWISE, searchParams ?? {}],
+            queryFn: async () => getClassDropDownMasterDayClasswise(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.CLASS_DROPDOWN_MASTERDAYCLASSWISE]
             });
         }
     };

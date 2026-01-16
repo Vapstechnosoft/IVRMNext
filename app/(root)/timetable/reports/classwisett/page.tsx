@@ -234,7 +234,7 @@ export default function ClassWiseReportPage() {
     };
 
     return (
-        <div className='space-y-4 p-1'>
+        <div className='container space-y-4 p-1'>
             <CollapsibleSection title='Class Wise TimeTable Report' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                 <ClassWiseForm initialData={initialData} onSubmit={handleFormSubmit} onCancel={handleCancel} />
                 {/* {error && (
