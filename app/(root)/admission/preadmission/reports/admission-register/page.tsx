@@ -13,6 +13,7 @@ import { useAdmissionRegister } from '@/hooks/admission/preadmission/useReports'
 import { usePreadmissionClassDropdown1 } from '@/hooks/admission/preadmission/useTransactions';
 import { cn } from '@/lib/utils';
 import { admissionReportSchema } from '@/schemas/admission/preadmission/reports';
+import { getExcelAdmissionRegistrationReport } from '@/server/admission/preadmission/reports/month_end_report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, FileSpreadsheet, FileText, Printer, RotateCcw, Search, Square, X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -187,6 +188,41 @@ export default function AdmissionReportPage(props: {
 
     const tableProps = useDataTableProps(transformedResponse);
 
+    const downloadExcel = async () => {
+        try {
+            const response = await getExcelAdmissionRegistrationReport(academicYearValue, statusValue, requestPayload);
+
+            // Ensure we have a Blob
+            const blob =
+                response instanceof Blob
+                    ? response
+                    : new Blob([new Uint8Array(response)], {
+                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                      });
+
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'Admission Register_Report.xlsx';
+            document.body.appendChild(link);
+            link.click();
+
+            // Cleanup
+            setTimeout(() => {
+                link.remove();
+                window.URL.revokeObjectURL(url);
+            }, 100);
+
+            setShowReport(false);
+
+            toast.success('Excel downloaded successfully');
+        } catch (error) {
+            console.error('Download error:', error);
+            toast.error('Failed to download Excel');
+        }
+    };
+
     const handleClassToggle = (classId: number) => {
         const current = selectedClasses || [];
         const updated = current.includes(classId) ? current.filter((c) => c !== classId) : [...current, classId];
@@ -280,21 +316,6 @@ export default function AdmissionReportPage(props: {
         setSelectedStudents([]);
         tableRef.current?.resetSelection();
         toast.info('Report cancelled');
-    };
-
-    const handleExportExcel = () => {
-        const data = Array.isArray(response?.data) ? response.data : (response?.data as any)?.searchstudentDetails;
-        if (!data || !Array.isArray(data) || data.length === 0) {
-            toast.error('No data available to export');
-            return;
-        }
-
-        if (selectedStudents.length === 0) {
-            toast.error('Please select at least one record to export');
-            return;
-        }
-
-        toast.info('Excel export feature coming soon');
     };
 
     const handlePrint = () => {
@@ -576,7 +597,7 @@ export default function AdmissionReportPage(props: {
                                             <Button
                                                 variant='outline'
                                                 className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'
-                                                onClick={handleExportExcel}>
+                                                onClick={downloadExcel}>
                                                 <FileSpreadsheet className='mr-2 h-4 w-4' />
                                                 Export to Excel
                                             </Button>
