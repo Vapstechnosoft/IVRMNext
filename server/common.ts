@@ -575,11 +575,12 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 26,
-                                            name: 'Master Fee Concession',
+                                            // name: 'Master Fee Concession',
+                                            name: 'Concession Category',
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/masterfeeconcession',
-                                            title: 'Fee Master Concession',
-                                            description: 'Manage Master Fee Concession Details'
+                                            title: 'Concession Category',
+                                            description: 'Manage Concession Category Details'
                                         },
 
                                         {
