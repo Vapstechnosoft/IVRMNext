@@ -105,6 +105,8 @@ export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeCo
 
             const jsondata = JSON.stringify(payload);
 
+            console.log('Payload to be sent:', jsondata);
+
             const response = await addOrUpdatefeeconfig(payload);
             if (response.success) {
                 toast.success(response.message);
@@ -479,7 +481,7 @@ export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeCo
                                                 onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
                                                 id='FMC_USER_PREVILEDGE'
                                             />
-                                            <Label htmlFor='User Level Previledge'>User Level Previledge</Label>
+                                            <Label htmlFor='User Level Previledge'>User Level Privilege</Label>
                                         </div>
                                     )}
                                 />

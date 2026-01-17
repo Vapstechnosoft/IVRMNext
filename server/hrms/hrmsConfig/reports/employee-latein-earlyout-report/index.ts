@@ -1,13 +1,11 @@
 'use server';
-
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type {
+    EmployeeLateInEarlyOutReportGetDataResponse,
     EmployeeLateInEarlyOutReportOnloadRequest,
-    EmployeeLateInEarlyOutReportOnloadResponse,
-    EmployeeLateInEarlyOutReportGetDataResponse
+    EmployeeLateInEarlyOutReportOnloadResponse
 } from '@/types/hrms/reports/employee-latein-earlyout-report';
-
 /**
  * Get onload data for employee late in early out report
  * This endpoint returns filter dropdowns (types/group types, employees, months, years)
@@ -19,7 +17,6 @@ export async function getEmployeeLateInEarlyOutReportOnload(
     UserRole = ''
 ): Promise<ApiResponse<EmployeeLateInEarlyOutReportOnloadResponse>> {
     const url = '/api/EmployeeLateInEarlyOutReportFacade/getdata';
-    
     // Build request body
     const requestBody: EmployeeLateInEarlyOutReportOnloadRequest = {
         page: 1,
@@ -33,34 +30,20 @@ export async function getEmployeeLateInEarlyOutReportOnload(
         loginUserId: LoginUserId,
         userRole: UserRole
     };
-    
-    console.log('🔵 ========== EMPLOYEE LATE IN EARLY OUT REPORT ONLOAD ==========');
-    console.log('🔵 [SERVER] Request URL:', url);
     console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-    
     let response: any;
     try {
         response = await api.post<EmployeeLateInEarlyOutReportGetDataResponse>('hrmsfrontoffice', url, requestBody);
-        console.log('✅ [SERVER] API Request Successful');
-        console.log('🔵 [SERVER] Raw Response Type:', typeof response);
         console.log('🔵 [SERVER] Raw Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
-        console.error('❌ [SERVER] API Request Failed:', {
-            errorMessage: error?.message,
-            errorStatus: error?.response?.status,
-            errorStatusText: error?.response?.statusText,
-            errorUrl: url,
-            errorData: error?.response?.data,
-            fullError: error
-        });
         console.log('🔵 ========== END SERVER ONLOAD (ERROR) ==========');
-        
         // Return error response
         return {
             success: false,
-            message: error?.response?.status === 404 
-                ? `Endpoint not found: ${url}. Please verify the endpoint URL.`
-                : error?.message || 'Failed to load data from API',
+            message:
+                error?.response?.status === 404
+                    ? `Endpoint not found: ${url}. Please verify the endpoint URL.`
+                    : error?.message || 'Failed to load data from API',
             data: {
                 types: [],
                 employees: [],
@@ -69,7 +52,6 @@ export async function getEmployeeLateInEarlyOutReportOnload(
             }
         };
     }
-    
     // Detailed response structure analysis
     console.log('📊 [SERVER] Response Structure Analysis:', {
         hasResponse: !!response,
@@ -101,12 +83,10 @@ export async function getEmployeeLateInEarlyOutReportOnload(
         yearsIsArray: Array.isArray(response?.data?.years),
         yearsLength: Array.isArray(response?.data?.years) ? response.data.years.length : 0
     });
-    
     // The backend returns data in ApiResponse format
     // Structure: { success: true, message: "OK", data: { types: [...], employees: [...], months: [...], years: [...] }, total: 0, page: 1, page_size: 10 }
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         const responseData = response.data;
-        
         console.log('🔵 [SERVER] Extracting responseData:', {
             hasResponseData: !!responseData,
             responseDataType: typeof responseData,
@@ -118,7 +98,6 @@ export async function getEmployeeLateInEarlyOutReportOnload(
             firstType: responseData?.types?.[0],
             firstEmployee: responseData?.employees?.[0]
         });
-        
         if (responseData) {
             const result = {
                 success: response.success,
@@ -130,28 +109,11 @@ export async function getEmployeeLateInEarlyOutReportOnload(
                     years: responseData.years || []
                 }
             };
-            
-            console.log('✅ [SERVER] Returning transformed response:', {
-                success: result.success,
-                message: result.message,
-                typesCount: result.data.types.length,
-                employeesCount: result.data.employees.length,
-                monthsCount: result.data.months.length,
-                yearsCount: result.data.years.length,
-                firstTypeSample: result.data.types[0],
-                firstEmployeeSample: result.data.employees[0]
-            });
-            console.log('🔵 ========== END SERVER ONLOAD ==========');
-            
             return result;
         }
     }
-    
     // Return empty data if response structure is unexpected
-    console.log('❌ [SERVER] Response structure unexpected, returning empty data');
     console.log('🔵 [SERVER] Response was:', JSON.stringify(response, null, 2));
-    console.log('🔵 ========== END SERVER ONLOAD ==========');
-    
     return {
         success: false,
         message: 'Failed to load data',
@@ -163,7 +125,6 @@ export async function getEmployeeLateInEarlyOutReportOnload(
         }
     };
 }
-
 /**
  * Get employee late in early out report data with pagination, search, and sort
  * TODO: Replace this with the actual search endpoint once provided
@@ -192,7 +153,6 @@ export async function getEmployeeLateInEarlyOutReportList(
 ): Promise<ApiResponse<any>> {
     // TODO: Replace this URL with the actual search endpoint
     const url = '/api/EmployeeLateInEarlyOutReportFacade/search'; // PLACEHOLDER - update when search endpoint is provided
-    
     // Build request body with pagination, search, sort, and filter params
     const requestBody: any = {
         page: searchParams?.page || 1,
@@ -206,7 +166,6 @@ export async function getEmployeeLateInEarlyOutReportList(
         loginUserId: filterParams?.LoginUserId || 0,
         userRole: filterParams?.UserRole || ''
     };
-    
     // Add filter parameters
     if (filterParams?.fromDate) {
         requestBody.fromDate = filterParams.fromDate;
@@ -241,10 +200,8 @@ export async function getEmployeeLateInEarlyOutReportList(
     if (filterParams?.year) {
         requestBody.year = filterParams.year;
     }
-    
     // TODO: Uncomment and update when search endpoint is available
     // const response = await api.post<any>('hrms', url, requestBody);
-    
     // For now, return empty response until search endpoint is provided
     return {
         success: false,
@@ -257,4 +214,12 @@ export async function getEmployeeLateInEarlyOutReportList(
         }
     };
 }
-
+/**
+ * Get employee late in/early out report data
+ * POST /api/EmployeeLateInEarlyOutReportFacade/search
+ */
+export async function getEmployeeLateInEarlyOutReport(data: any, searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'searchableColumns');
+    const url = `/api/EmployeeLateInEarlyOutReportFacade/search?${urlParams}`;
+    return await api.post<any>('hrmsfrontoffice', url, data);
+}

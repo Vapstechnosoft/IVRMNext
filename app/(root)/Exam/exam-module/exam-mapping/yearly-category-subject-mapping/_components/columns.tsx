@@ -1,4 +1,4 @@
-import { Checkbox } from '@/components/ui/checkbox';
+import { getStatusBadge } from '@/components/extras/helpers/helper';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
@@ -8,22 +8,6 @@ import { Eye } from 'lucide-react';
 import { useCallback } from 'react';
 
 export const YearlyCategorySubjectMappingColumns: ColumnDef<IYearlyCategorySubjectMapping>[] = [
-    {
-        id: 'select',
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-        size: 24
-    },
     {
         accessorKey: 'slNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
@@ -52,13 +36,13 @@ export const YearlyCategorySubjectMappingColumns: ColumnDef<IYearlyCategorySubje
     },
     {
         accessorKey: 'emG_ElectiveFlg',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Elective' />,
-        cell: ({ row }) => <div>{row.original.emG_ElectiveFlg ? 'Yes' : 'No'}</div>
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Elective Subjects' />,
+        cell: ({ row }) => getStatusBadge((row.getValue('emG_ElectiveFlg') as boolean) === true ? 'yes' : 'no')
     },
     {
         accessorKey: 'eyC_BasedOnPaperTypeFlg',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Based On Paper Type' />,
-        cell: ({ row }) => <div>{row.original.eyC_BasedOnPaperTypeFlg ? 'Yes' : 'No'}</div>
+        cell: ({ row }) => getStatusBadge((row.getValue('eyC_BasedOnPaperTypeFlg') as boolean) === true ? 'yes' : 'no')
     },
     {
         id: 'actions',
@@ -86,7 +70,7 @@ function ActionButtonsCell({ rowData }: { rowData: IYearlyCategorySubjectMapping
                 buttons={{ edit: true, delete: false, toggle: true }}
                 onEdit={handleEdit}
                 onToggle={handleToggle}
-                toggleConditionKey='eyC_ActiveFlg'
+                toggleConditionKey='eycG_ActiveFlg'
             />
         </div>
     );

@@ -49,6 +49,29 @@ export function createOptionalNumberOnlyStringSchema(field: string, min: number,
         .or(z.literal('')); // empty allowed
 }
 
+export function createNumberOnlyStringSchema(field: string, min: number, max: number) {
+    return z
+        .string()
+        .regex(/^\d+$/, { message: `${field} must contain only numbers` }) // at least 1 digit
+        .min(min, { message: `${field} must have at least ${min} digits` })
+        .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
+        .refine((value) => value.trim() === value, {
+            message: `${field} cannot have leading or trailing spaces`
+        });
+}
+
+export function createNumberOnlyStringSchemaRequired(field: string, min: number, max: number) {
+    return z
+        .string({
+            required_error: `${field} is required`,
+            invalid_type_error: `${field} must be a string`
+        })
+        .trim() // removes leading/trailing spaces before validation
+        .regex(/^\d+$/, { message: `${field} must contain only numbers` }) // only digits, not optional
+        .min(min, { message: `${field} must have at least ${min} digits` })
+        .max(max, { message: `Maximum ${max} characters allowed for ${field}` });
+}
+
 export function createOptionalStringSchemaNotAllowNumbersOnly(field: string, min: number, max: number) {
     return (
         z
@@ -186,7 +209,7 @@ export function createCustomStringSchema(field: string, min: number, max: number
         .refine((value) => value.trim() === value, {
             message: `${field} cannot have leading or trailing spaces`
         })
-        .refine((val) => /^[A-Za-z0-9][A-Za-z0-9\s!@#$%^&*(),.?":{}|<>-]*$/.test(val), {
+        .refine((val) => /^[A-Za-z0-9][A-Za-z0-9+\s!@#$%^&*(),.?":{}|<>-]*$/.test(val), {
             message: `${field} should not start with a special character`
         })
         .refine((val) => !/^[0-9]+$/.test(val), { message: `${field} cannot be only numbers` });
@@ -198,21 +221,23 @@ export function createOptionalAlphaNumericSchema(field: string, min: number, max
             .string()
             .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
 
+            // ❗ Allow ONLY alphabets & numbers
+            .regex(/^[A-Za-z0-9]*$/, {
+                message: `${field} can contain only letters and numbers`
+            })
+
             // ❗ No leading or trailing spaces
-            .refine((value) => value.length === 0 || value.trim() === value, {
+            .refine((value: string) => value.length === 0 || value.trim() === value, {
                 message: `${field} cannot have leading or trailing spaces`
             })
 
-            // ❗ Cannot start with a special character
-            .refine((value) => value.length === 0 || /^[A-Za-z0-9]/.test(value), {
-                message: `${field} cannot start with a special character`
+            // ❗ Must contain at least one alphabet if not empty
+            .refine((value: string) => value.length === 0 || /[A-Za-z]/.test(value), {
+                message: `${field} must contain at least one letter`
             })
 
-            // ❗ Must contain at least one alphabet if not empty
-            .refine((value) => value.length === 0 || /[A-Za-z]/.test(value), { message: `${field} must contain at least one letter` })
-
             // ❗ Minimum length when not empty
-            .refine((value) => value.length === 0 || value.length >= min, {
+            .refine((value: string) => value.length === 0 || value.length >= min, {
                 message: `${field} must have at least ${min} characters or be empty.`
             })
 
@@ -308,4 +333,33 @@ export function createOptionalAlphaNumericSchemaNotOptional(field: string, min: 
 
 export function isAlphabetsOnly(text: string): boolean {
     return /^[a-zA-Z\s]*$/.test(text);
+}
+
+export function createRequiredAlphaNumericWithSpaceSchema(field: string, min: number, max: number) {
+    return (
+        z
+            .string()
+            .min(min, { message: `${field} must have at least ${min} characters` })
+            .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
+
+            // Allow letters, numbers, and spaces
+            .regex(/^[A-Za-z0-9 ]+$/, {
+                message: `${field} can contain only letters, numbers, and spaces`
+            })
+
+            // No leading or trailing spaces
+            .refine((value) => value.trim() === value, {
+                message: `${field} cannot have leading or trailing spaces`
+            })
+
+            // Must contain at least one alphabet
+            .refine((value) => /[A-Za-z]/.test(value), {
+                message: `${field} must contain at least one letter`
+            })
+
+            // Must not be only numbers
+            .refine((value) => !/^[0-9]+$/.test(value), {
+                message: `${field} cannot contain only numbers`
+            })
+    );
 }

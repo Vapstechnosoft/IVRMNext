@@ -1,5 +1,4 @@
 'use client';
-
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
 import { createLocalCrud } from '@/lib/localdb';
@@ -11,7 +10,6 @@ import type { MasterLeave } from '@/app/(root)/hrms/leave-management/masters/mas
 import type { LeaveAuthorization } from '@/app/(root)/hrms/leave-management/masters/leave-authorization/_components/columns';
 import type { MasterLeaveGetResponseData, MasterLeaveDTOO } from '@/types/hrms/leave-management/master-leave';
 import type { LeaveAuthorizationGetResponseData } from '@/types/hrms/leave-management/leave-authorization';
-
 // MasterLeaveYear type - placeholder until actual type is defined
 interface MasterLeaveYear {
     id: number;
@@ -21,7 +19,6 @@ interface MasterLeaveYear {
     toDate: string;
     isActive: boolean;
 }
-
 /**
  * Map API response data to frontend MasterLeave format
  */
@@ -29,7 +26,6 @@ function mapApiDataToMasterLeave(apiData: MasterLeaveGetResponseData | null): Ma
     if (!apiData || !apiData.HRML_Id) {
         return null;
     }
-
     return {
         id: apiData.HRML_Id,
         createdAt: apiData.CreatedDate ? new Date(apiData.CreatedDate) : new Date(),
@@ -47,7 +43,6 @@ function mapApiDataToMasterLeave(apiData: MasterLeaveGetResponseData | null): Ma
         isActive: true // Default to true, may need to be determined from API
     };
 }
-
 /**
  * Map frontend MasterLeave format to API request format
  */
@@ -74,13 +69,11 @@ function mapMasterLeaveToApiData(data: MasterLeave | Omit<MasterLeave, 'id' | 'c
         HRML_LateDeductOrder: data.leaveOrder || 0
     };
 }
-
 /**
  * Hook to fetch master leave dropdown options (leave types, etc.)
  */
 export function useMasterLeaveDropdowns() {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE, 'dropdowns'],
@@ -108,11 +101,9 @@ export function useMasterLeaveDropdowns() {
         }
     };
 }
-
 // Master Leave hooks
 export function useMasterLeave() {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE],
@@ -124,15 +115,12 @@ export function useMasterLeave() {
                         MI_Id: HRMS_MI_ID,
                         HRML_Id: 0
                     });
-
                     if (!response.success) {
                         throw new Error(response.message || 'Failed to fetch master leave');
                     }
-
                     // Extract list from response
                     // The API might return list in GridviewDetails, leavelistedit, or as an array
                     let leaveList: MasterLeave[] = [];
-                    
                     if (response.data) {
                         // Check if GridviewDetails contains the list
                         if (response.data.GridviewDetails && Array.isArray(response.data.GridviewDetails)) {
@@ -154,7 +142,6 @@ export function useMasterLeave() {
                             }
                         }
                     }
-
                     return {
                         success: true,
                         data: leaveList,
@@ -174,10 +161,8 @@ export function useMasterLeave() {
         }
     };
 }
-
 export function useSaveMasterLeave() {
     const queryClient = useQueryClient();
-
     return useMutation<
         { success: boolean; data: MasterLeave; message: string },
         Error,
@@ -186,17 +171,14 @@ export function useSaveMasterLeave() {
         mutationFn: async (data: Omit<MasterLeave, 'id' | 'createdAt'>) => {
             const apiData = mapMasterLeaveToApiData(data);
             const response = await saveMasterLeaveAPI(apiData);
-
             if (!response.success) {
                 throw new Error(response.message || 'Failed to save master leave');
             }
-
             // Map response back to frontend format
             const mappedData = mapApiDataToMasterLeave(response.data);
             if (!mappedData) {
                 throw new Error('Failed to parse saved leave data');
             }
-
             return {
                 success: true,
                 data: mappedData,
@@ -219,14 +201,12 @@ export function useSaveMasterLeave() {
         }
     });
 }
-
 /**
  * Hook to fetch master leave data for editing
  * Uses the Edit endpoint to get fresh data for a specific leave
  */
 export function useMasterLeaveForEdit(HRML_Id: number | null) {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE, 'edit', HRML_Id],
@@ -234,20 +214,16 @@ export function useMasterLeaveForEdit(HRML_Id: number | null) {
                 if (!HRML_Id) {
                     throw new Error('HRML_Id is required');
                 }
-
                 try {
                     const response = await getMasterLeaveForEdit(HRML_Id);
-
                     if (!response.success) {
                         throw new Error(response.message || 'Failed to fetch leave data for editing');
                     }
-
                     // Map API response to frontend format
                     const mappedData = mapApiDataToMasterLeave(response.data);
                     if (!mappedData) {
                         throw new Error('Failed to parse leave data');
                     }
-
                     return {
                         success: true,
                         data: mappedData,
@@ -267,10 +243,8 @@ export function useMasterLeaveForEdit(HRML_Id: number | null) {
         }
     };
 }
-
 export function useUpdateMasterLeave() {
     const queryClient = useQueryClient();
-
     return useMutation<
         { success: boolean; data: MasterLeave; message: string },
         Error,
@@ -280,20 +254,16 @@ export function useUpdateMasterLeave() {
             if (!data.id) {
                 throw new Error('ID is required for update');
             }
-
             const apiData = mapMasterLeaveToApiData(data);
             const response = await saveMasterLeaveAPI(apiData);
-
             if (!response.success) {
                 throw new Error(response.message || 'Failed to update master leave');
             }
-
             // Map response back to frontend format
             const mappedData = mapApiDataToMasterLeave(response.data);
             if (!mappedData) {
                 throw new Error('Failed to parse updated leave data');
             }
-
             return {
                 success: true,
                 data: mappedData,
@@ -316,7 +286,6 @@ export function useUpdateMasterLeave() {
         }
     });
 }
-
 /**
  * Hook to validate master leave order number
  * Uses the ValidateOrderNumber endpoint
@@ -332,11 +301,9 @@ export function useValidateMasterLeaveOrderNumber() {
                 const response = await validateMasterLeaveOrderNumber({
                     MasterLeaveDTOO: masterLeaveDTOO
                 });
-
                 if (!response.success) {
                     throw new Error(response.message || 'Order number validation failed');
                 }
-
                 return {
                     success: true,
                     message: response.message || 'Order number validated successfully',
@@ -352,14 +319,12 @@ export function useValidateMasterLeaveOrderNumber() {
         }
     });
 }
-
 /**
  * Hook to delete master leave
  * Uses the DeletePages endpoint
  */
 export function useDeleteMasterLeave() {
     const queryClient = useQueryClient();
-
     return useMutation<
         { success: boolean; message: string },
         Error,
@@ -369,14 +334,11 @@ export function useDeleteMasterLeave() {
             if (!HRML_Id || HRML_Id <= 0) {
                 throw new Error('Valid HRML_Id is required for deletion');
             }
-
             try {
                 const response = await deleteMasterLeaveAPI(HRML_Id);
-
                 if (!response.success) {
                     throw new Error(response.message || 'Failed to delete master leave');
                 }
-
                 return {
                     success: true,
                     message: response.message || 'Master leave deleted successfully'
@@ -401,12 +363,10 @@ export function useDeleteMasterLeave() {
         }
     });
 }
-
 // Master Leave Year hooks
 export function useMasterLeaveYear() {
     const queryClient = useQueryClient();
     const db = createLocalCrud<MasterLeaveYear>('masterLeaveYear');
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR],
@@ -426,11 +386,9 @@ export function useMasterLeaveYear() {
         }
     };
 }
-
 export function useSaveMasterLeaveYear() {
     const queryClient = useQueryClient();
     const db = createLocalCrud<MasterLeaveYear>('masterLeaveYear');
-
     return useMutation<
         { success: boolean; data: MasterLeaveYear; message: string },
         Error,
@@ -459,11 +417,9 @@ export function useSaveMasterLeaveYear() {
         }
     });
 }
-
 export function useUpdateMasterLeaveYear() {
     const queryClient = useQueryClient();
     const db = createLocalCrud<MasterLeaveYear>('masterLeaveYear');
-
     return useMutation<
         { success: boolean; data: MasterLeaveYear; message: string },
         Error,
@@ -495,7 +451,6 @@ export function useUpdateMasterLeaveYear() {
         }
     });
 }
-
 /**
  * Map API response data to frontend LeaveAuthorization format
  */
@@ -503,7 +458,6 @@ function mapApiDataToLeaveAuthorization(apiData: LeaveAuthorizationGetResponseDa
     if (!apiData) {
         return null;
     }
-
     // Map API fields to frontend format
     // This will be updated once we see the actual API response structure
     const mappedData: LeaveAuthorization & { _HRLA_Id?: number } = {
@@ -519,19 +473,15 @@ function mapApiDataToLeaveAuthorization(apiData: LeaveAuthorizationGetResponseDa
         approvalPerson: (apiData as any).HRMLA_ApprovalPerson || (apiData as any).approvalPerson || '',
         finalFlag: (apiData as any).HRMLA_FinalFlag || (apiData as any).finalFlag || false
     };
-    
     // Store HRLA_Id if available (needed for delete operation)
     if ((apiData as any).HRLA_Id !== undefined) {
         (mappedData as any)._HRLA_Id = (apiData as any).HRLA_Id;
     }
-    
     return mappedData;
 }
-
 // Leave Authorization hooks
 export function useLeaveAuthorization() {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_AUTHORIZATION],
@@ -543,15 +493,12 @@ export function useLeaveAuthorization() {
                         MI_Id: HRMS_MI_ID,
                         onchangeoronload: ''
                     });
-
                     if (!response.success) {
                         throw new Error(response.message || 'Failed to fetch leave authorization');
                     }
-
                     // Extract list from response
                     // The API might return list in GridviewDetails, leavelistauth, or as an array
                     let authList: LeaveAuthorization[] = [];
-                    
                     if (response.data) {
                         // Check if GridviewDetails contains the list
                         if ((response.data as any).GridviewDetails && Array.isArray((response.data as any).GridviewDetails)) {
@@ -579,7 +526,6 @@ export function useLeaveAuthorization() {
                                 .filter((item: LeaveAuthorization | null): item is LeaveAuthorization => item !== null);
                         }
                     }
-
                     return {
                         success: true,
                         data: authList,
@@ -598,13 +544,11 @@ export function useLeaveAuthorization() {
         }
     };
 }
-
 /**
  * Hook to fetch leave authorization dropdown options
  */
 export function useLeaveAuthorizationDropdowns() {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_AUTHORIZATION, 'dropdowns'],
@@ -633,7 +577,6 @@ export function useLeaveAuthorizationDropdowns() {
         }
     };
 }
-
 /**
  * Hook to fetch a single leave authorization record for editing
  * @param HRLAON_Id - Leave authorization ID
@@ -645,20 +588,16 @@ export function useLeaveAuthorizationForEdit(HRLAON_Id: number | null) {
             if (!HRLAON_Id) {
                 throw new Error('HRLAON_Id is required');
             }
-
             try {
                 const response = await getLeaveAuthorizationForEdit(HRLAON_Id);
-                
                 if (!response.success || !response.data) {
                     throw new Error(response.message || 'Failed to fetch leave authorization data');
                 }
-
                 // Map API response to frontend format
                 const mappedData = mapApiDataToLeaveAuthorization(response.data);
                 if (!mappedData) {
                     throw new Error('Failed to parse leave authorization data');
                 }
-
                 return {
                     success: true,
                     data: mappedData,
@@ -672,7 +611,6 @@ export function useLeaveAuthorizationForEdit(HRLAON_Id: number | null) {
         retry: 1
     });
 }
-
 /**
  * Map frontend LeaveAuthorization format to API request format
  */
@@ -700,7 +638,6 @@ function mapLeaveAuthorizationToApiData(
     const designationId = dropdownData?.designations?.find((d: any) => d.label === data.designationName || d.value === data.designationName)?.value || 0;
     const leaveTypeId = dropdownData?.leaveTypes?.find((l: any) => l.label === data.leaveType || l.value === data.leaveType)?.value || 0;
     const approvalPersonId = dropdownData?.approvalPersons?.find((a: any) => a.label === data.approvalPerson || a.value === data.approvalPerson)?.value || 0;
-
     return {
         MI_Id: HRMS_MI_ID,
         HRMG_Id: Number(gradeId),
@@ -718,11 +655,9 @@ function mapLeaveAuthorizationToApiData(
         ]
     };
 }
-
 export function useSaveLeaveAuthorization() {
     const queryClient = useQueryClient();
     const { data: dropdownData } = useLeaveAuthorizationDropdowns();
-
     return useMutation<
         { success: boolean; data: LeaveAuthorization; message: string },
         Error,
@@ -732,20 +667,16 @@ export function useSaveLeaveAuthorization() {
             if (!dropdownData?.data) {
                 throw new Error('Dropdown data not loaded. Please wait...');
             }
-
             const apiData = mapLeaveAuthorizationToApiData(data, dropdownData.data);
             const response = await saveLeaveAuthorizationAPI(apiData);
-
             if (!response.success) {
                 throw new Error(response.message || 'Failed to save leave authorization');
             }
-
             // Map response back to frontend format
             const mappedData = mapApiDataToLeaveAuthorization(response.data);
             if (!mappedData) {
                 throw new Error('Failed to parse saved authorization data');
             }
-
             return {
                 success: true,
                 data: mappedData,
@@ -768,11 +699,9 @@ export function useSaveLeaveAuthorization() {
         }
     });
 }
-
 export function useUpdateLeaveAuthorization() {
     const queryClient = useQueryClient();
     const { data: dropdownData } = useLeaveAuthorizationDropdowns();
-
     return useMutation<
         { success: boolean; data: LeaveAuthorization; message: string },
         Error,
@@ -782,24 +711,19 @@ export function useUpdateLeaveAuthorization() {
             if (!data.id) {
                 throw new Error('ID is required for update');
             }
-
             if (!dropdownData?.data) {
                 throw new Error('Dropdown data not loaded. Please wait...');
             }
-
             const apiData = mapLeaveAuthorizationToApiData(data, dropdownData.data);
             const response = await saveLeaveAuthorizationAPI(apiData);
-
             if (!response.success) {
                 throw new Error(response.message || 'Failed to update leave authorization');
             }
-
             // Map response back to frontend format
             const mappedData = mapApiDataToLeaveAuthorization(response.data);
             if (!mappedData) {
                 throw new Error('Failed to parse updated authorization data');
             }
-
             return {
                 success: true,
                 data: mappedData,
@@ -822,22 +746,18 @@ export function useUpdateLeaveAuthorization() {
         }
     });
 }
-
 /**
  * Hook to delete a leave authorization
  */
 export function useDeleteLeaveAuthorization() {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (request: { HRLA_Id: number; HRLAON_Id: number }) => {
             try {
                 const response = await deleteLeaveAuthorizationAPI(request);
-                
                 if (!response.success) {
                     throw new Error(response.message || 'Failed to delete leave authorization');
                 }
-
                 return {
                     success: true,
                     message: response.message || 'Leave authorization deleted successfully'
@@ -862,4 +782,3 @@ export function useDeleteLeaveAuthorization() {
         }
     });
 }
-

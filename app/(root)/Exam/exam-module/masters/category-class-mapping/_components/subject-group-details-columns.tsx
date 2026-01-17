@@ -48,7 +48,7 @@ function ActionButtonsCell({ rowData }: { rowData: ICategoryClassMappingDetails 
 
     return (
         <div className='flex justify-center'>
-            <ActionButtons rowData={rowData} buttons={{ toggle: true }} onToggle={handleToggle} toggleConditionKey='asmC_ActiveFlag' />
+            <ActionButtons rowData={rowData} buttons={{ toggle: true }} onToggle={handleToggle} toggleConditionKey='ecaC_ActiveFlag' />
         </div>
     );
 }

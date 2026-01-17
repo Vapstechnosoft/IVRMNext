@@ -2,254 +2,200 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { DatePickerWithYear } from '@/components/ui/date-picker-year';
-import { FormError } from '@/components/ui/extension/field';
+import { DateField } from '@/components/ui/dateField';
+import { DaySelectionCheckbox } from '@/components/ui/day-selection-checkbox';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMasterHoliday, useSaveMasterHoliday } from '@/hooks/hrms/attendance-management/useMasters';
-import { cn } from '@/lib/utils';
-import { holidayMasterSchema } from '@/schemas/hrms/attendance-management-schemas';
-import type { MasterHolidayGetDataResponseData } from '@/types/hrms/attendance-management/master-holiday';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useHolidayDatesForDays, useMasterHoliday } from '@/hooks/hrms/attendance-management/useMasters';
+import { useMasterDepartment } from '@/hooks/hrms/useMasters';
+import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
+import { addOrUpdateMasterHoliday } from '@/server/hrms/attendance-management/masters/master-holiday';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { format } from 'date-fns';
-import { CalendarIcon, Save } from 'lucide-react';
-import React, { useMemo } from 'react';
+import { Save } from 'lucide-react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-type MasterHolidayForm = z.infer<typeof holidayMasterSchema.addOrUpdate> & {
-    selectDay: boolean;
-    department: string;
-    isActive: boolean;
-};
+type FormFields = z.infer<typeof hrmsMasterSchemas.masterHoliday.add>;
 
 interface AddMasterHolidayFormProps {
     onSuccess?: () => void;
     className?: string;
-    dropdownData?: MasterHolidayGetDataResponseData;
 }
 
-export default function AddMasterHolidayForm({ onSuccess, className = '', dropdownData }: AddMasterHolidayFormProps) {
+export default function AddMasterHolidayForm({ onSuccess, className = '' }: AddMasterHolidayFormProps) {
     const { refetchAll } = useMasterHoliday();
-    const { mutate: saveMasterHoliday, isPending } = useSaveMasterHoliday();
+    const { data: departmentData } = useMasterDepartment();
 
-    // Debug: Log dropdown data structure
-    React.useEffect(() => {}, [dropdownData]);
-
-    // Extract dropdown data from API response
-    // API field names are uppercase: HRMLY_LeaveYear, HRMD_DepartmentName, FOHTWD_HolidayWDType, FOMD_DayCode, FOMD_DayName
+    // Generate calendar years (current year - 10 to current year + 10)
     const calendarYears = useMemo(() => {
-        if (!dropdownData?.yeardropdown) {
-            console.warn('⚠️ [ADD FORM] No yeardropdown in dropdownData');
-            return [];
-        }
-        const years = dropdownData.yeardropdown.map((year: any) => year.HRMLY_LeaveYear || year.hrmlY_LeaveYear || '').filter(Boolean);
-        return years;
-    }, [dropdownData?.yeardropdown]);
+        const currentYear = new Date().getFullYear();
+        return Array.from({ length: 21 }, (_, i) => currentYear - 10 + i);
+    }, []);
 
-    const departments = useMemo(() => {
-        if (!dropdownData?.departmentType) {
-            console.warn('⚠️ [ADD FORM] No departmentType in dropdownData');
-            return [];
-        }
-        const depts = dropdownData.departmentType
-            .map((dept: any) => dept.HRMD_DepartmentName || dept.hrmD_DepartmentName || '')
-            .filter(Boolean);
-        return depts;
-    }, [dropdownData?.departmentType]);
-
-    const holidayTypes = useMemo(() => {
-        if (!dropdownData?.holidayType) {
-            console.warn('⚠️ [ADD FORM] No holidayType in dropdownData');
-            return [];
-        }
-        const types = dropdownData.holidayType
-            .map((type: any) => type.FOHTWD_HolidayWDType || type.fohtwD_HolidayWDType || '')
-            .filter(Boolean);
-        return types;
-    }, [dropdownData?.holidayType]);
-
-    const weekDays = useMemo(() => {
-        if (!dropdownData?.dayslist) {
-            console.warn('⚠️ [ADD FORM] No dayslist in dropdownData');
-            return [];
-        }
-        const days = dropdownData.dayslist
-            .map((day: any) => ({
-                value: day.FOMD_DayCode || day.fomD_DayCode || '',
-                label: day.FOMD_DayName || day.fomD_DayName || ''
+    // Get departments from API
+    const departmentOptions = useMemo(() => {
+        if (!departmentData?.data) return [];
+        const data = Array.isArray(departmentData.data) ? departmentData.data : (departmentData.data as any)?.report_list || [];
+        return data
+            .filter((dept: { hrmD_ActiveFlag?: boolean }) => dept.hrmD_ActiveFlag)
+            .map((dept: { hrmD_DepartmentName?: string; hrmD_Id?: number }) => ({
+                label: dept.hrmD_DepartmentName || '',
+                value: String(dept.hrmD_Id || '')
             }))
-            .filter((day: { value: string; label: string }) => day.value && day.label);
-        return days;
-    }, [dropdownData?.dayslist]);
+            .filter((dept: { label: string; value: string }) => dept.label && dept.value);
+    }, [departmentData]);
+
+    // Holiday types - placeholder, update when API is available
+    const holidayTypeOptions = useMemo(() => {
+        // Sample data - replace with actual API call when available
+        return [
+            { label: 'Public Holiday', value: 'PUBLIC_HOLIDAY' },
+            { label: 'Week Day', value: 'WEEK_DAY' },
+            { label: 'Festival', value: 'FESTIVAL' }
+        ];
+    }, []);
+
+    // Holiday types that require Start Date, End Date, Holiday Name, and Remarks
+    const holidayTypesRequiringDateFields = useMemo(() => ['PUBLIC_HOLIDAY'], []);
+
+    const calendarYearId = useId();
+    const departmentId = useId();
+    const holidayTypeId = useId();
+    const selectedDaysId = useId();
+    const startDateId = useId();
+    const endDateId = useId();
+    const holidayNameId = useId();
+    const remarksId = useId();
 
     const {
-        register,
         handleSubmit,
         control,
-        setValue,
         watch,
+        setValue,
         reset,
         formState: { errors, isSubmitting }
-    } = useForm<MasterHolidayForm>({
-        resolver: zodResolver(holidayMasterSchema.addOrUpdate),
+    } = useForm<FormFields>({
+        resolver: zodResolver(hrmsMasterSchemas.masterHoliday.add),
         mode: 'onChange',
         defaultValues: {
-            isActive: true,
-            selectedDays: [],
-            selectDay: false,
-            fromDate: new Date().toISOString().split('T')[0],
-            toDate: new Date().toISOString().split('T')[0],
             calendarYear: '',
-            holidayType: '',
-            name: '',
-            department: '',
-            remarks: ''
+            fomhwD_Department: '',
+            fomhwD_HolidayType: '',
+            selectedDays: [],
+            fomhwD_FromDate: '',
+            fomhwD_ToDate: '',
+            fomhwD_Name: '',
+            fomhwD_Remarks: ''
         }
     });
 
     const calendarYear = watch('calendarYear');
-    const department = watch('department');
-    const holidayType = watch('holidayType');
-    const selectDay = watch('selectDay');
-    const selectedDays = watch('selectedDays');
-    const fromDate = watch('fromDate');
+    const holidayType = watch('fomhwD_HolidayType');
+    const selectedDays = watch('selectedDays') || [];
 
-    const handleDayToggle = (day: string) => {
-        const currentDays = selectedDays || [];
-        const newDays = currentDays.includes(day) ? currentDays.filter((d) => d !== day) : [...currentDays, day];
-        setValue('selectedDays', newDays);
+    // Check if date fields should be shown
+    const shouldShowDateFields = useMemo(() => {
+        return holidayType && holidayTypesRequiringDateFields.includes(holidayType) && (!selectedDays || selectedDays.length === 0);
+    }, [holidayType, selectedDays, holidayTypesRequiringDateFields]);
+
+    // State to track selected rows in the table
+    const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
+
+    // Call API when days are selected
+    const { data: datesData, isLoading: isLoadingDates } = useHolidayDatesForDays(
+        calendarYear && holidayType && selectedDays.length > 0
+            ? {
+                  calendarYear,
+                  holidayType,
+                  selectedDays
+              }
+            : undefined,
+        true
+    );
+
+    // Parse dates from API response
+    const holidayDates = useMemo(() => {
+        if (!datesData?.data) return [];
+
+        // Handle different response structures
+        let data: any[] = [];
+        if (Array.isArray(datesData.data)) {
+            data = datesData.data;
+        } else if ((datesData.data as any)?.report_list) {
+            data = (datesData.data as any).report_list;
+        } else if ((datesData.data as any)?.data) {
+            data = Array.isArray((datesData.data as any).data) ? (datesData.data as any).data : [];
+        }
+
+        return data
+            .filter((item: any) => item && (item.Date || item.date || item.Dayname || item.dayname))
+            .map((item: { Date?: string; date?: string; Dayname?: string; dayname?: string; DayName?: string; dayName?: string }) => ({
+                id: `${item.Date || item.date || ''}_${item.Dayname || item.dayname || item.DayName || item.dayName || ''}_${Math.random()}`,
+                dayName: item.Dayname || item.dayname || item.DayName || item.dayName || '',
+                date: item.Date || item.date || ''
+            }))
+            .filter((item: { dayName: string; date: string }) => item.dayName && item.date); // Only include items with both dayName and date
+    }, [datesData]);
+
+    // Handle select all checkbox
+    const handleSelectAll = (checked: boolean) => {
+        if (checked) {
+            setSelectedRows(new Set(holidayDates.map((item: { id: string; dayName: string; date: string }) => item.id)));
+        } else {
+            setSelectedRows(new Set());
+        }
     };
 
-    const onSubmit: SubmitHandler<MasterHolidayForm> = async (data) => {
+    // Handle individual row checkbox
+    const handleRowSelect = (id: string, checked: boolean) => {
+        const newSelected = new Set(selectedRows);
+        if (checked) {
+            newSelected.add(id);
+        } else {
+            newSelected.delete(id);
+        }
+        setSelectedRows(newSelected);
+    };
+
+    // Reset selected rows when dates change
+    useEffect(() => {
+        setSelectedRows(new Set());
+    }, [holidayDates]);
+
+    const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            // Date validation - only for PUBLIC HOLIDAY and WEEK END
-            // WEEK DAY doesn't require dates, so skip validation for it
-            const requiresDates = data.holidayType === 'PUBLIC HOLIDAY' || data.holidayType === 'WEEK END';
-            const isWeekDay = data.holidayType === 'WEEK DAY';
-
-            // For WEEK DAY, validate that at least one day is selected and department is provided
-            if (isWeekDay) {
-                if (!data.selectedDays || data.selectedDays.length === 0) {
-                    console.error('❌ [CLIENT] Validation failed: No days selected for WEEK DAY');
-                    toast.error('At least one day must be selected for WEEK DAY holiday type');
-                    return;
-                }
-
-                if (!data.department || data.department.trim() === '') {
-                    console.error('❌ [CLIENT] Validation failed: Department required for WEEK DAY');
-                    toast.error('Department is required for WEEK DAY holiday type');
-                    return;
-                }
-            }
-
-            if (requiresDates && data.fromDate) {
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                today.setMinutes(0, 0, 0);
-
-                // Parse date string with explicit time to avoid timezone issues
-                const fromDateStr = data.fromDate.includes('T') ? data.fromDate : `${data.fromDate}T00:00:00`;
-                const toDateStr = data.toDate?.includes('T') ? data.toDate : data.toDate ? `${data.toDate}T00:00:00` : null;
-
-                const fromDateObj = new Date(fromDateStr);
-                fromDateObj.setHours(0, 0, 0, 0);
-                const toDateObj = toDateStr ? new Date(toDateStr) : null;
-                if (toDateObj) {
-                    toDateObj.setHours(0, 0, 0, 0);
-                }
-                const selectedYear = Number.parseInt(data.calendarYear);
-
-                if (fromDateObj < today) {
-                    console.error('❌ [CLIENT] Validation failed: Start date is in the past', {
-                        fromDate: fromDateObj.toISOString(),
-                        fromDateLocal: fromDateObj.toString(),
-                        today: today.toISOString(),
-                        todayLocal: today.toString(),
-                        comparison: fromDateObj.getTime() < today.getTime(),
-                        timeDifference: fromDateObj.getTime() - today.getTime()
-                    });
-                    toast.error('Start date cannot be in the past');
-                    return;
-                }
-
-                if (toDateObj && toDateObj < fromDateObj) {
-                    console.error('❌ [CLIENT] Validation failed: End date is before start date');
-                    toast.error('End date must be after start date');
-                    return;
-                }
-
-                if (fromDateObj.getFullYear() !== selectedYear || (toDateObj && toDateObj.getFullYear() !== selectedYear)) {
-                    console.error('❌ [CLIENT] Validation failed: Dates not in selected year', {
-                        fromDateYear: fromDateObj.getFullYear(),
-                        toDateYear: toDateObj?.getFullYear(),
-                        selectedYear
-                    });
-                    toast.error('Dates must be within the selected calendar year');
-                    return;
-                }
-            } else if (requiresDates && !data.fromDate) {
-                console.error('❌ [CLIENT] Validation failed: Date required for this holiday type');
-                toast.error('Start date is required for this holiday type');
-                return;
-            }
-
-            // Check if dropdown data is available
-            if (!dropdownData) {
-                console.error('❌ [CLIENT] Dropdown data not available');
-                toast.error('Dropdown data not loaded. Please wait and try again.');
-                return;
-            }
-
-            const submitData = {
-                calendarYear: data.calendarYear,
-                department: data.department,
-                holidayType: data.holidayType,
-                name: data.name || '',
-                // Send selectedDays if they exist, regardless of selectDay checkbox state
-                selectedDays: data.selectedDays && data.selectedDays.length > 0 ? data.selectedDays : [],
-                fromDate: requiresDates ? data.fromDate || '' : '', // Only include dates if required
-                toDate: requiresDates ? data.toDate || '' : '', // Only include dates if required
-                isActive: data.isActive
+            // Sample payload structure following project architecture
+            // Note: mI_Id is handled by JWT, not included in request body
+            const payload = {
+                fomhwD_Id: 0, // 0 for add operation
+                calendarYear: data.calendarYear || '',
+                fomhwD_Department: data.fomhwD_Department || '',
+                fomhwD_HolidayType: data.fomhwD_HolidayType || '',
+                selectedDays: data.selectedDays || [],
+                fomhwD_FromDate: data.fomhwD_FromDate || '',
+                fomhwD_ToDate: data.fomhwD_ToDate || '',
+                fomhwD_Name: data.fomhwD_Name || '',
+                fomhwD_Remarks: data.fomhwD_Remarks || '',
+                fomhwD_ActiveFlag: true
             };
 
-            saveMasterHoliday(
-                {
-                    data: submitData,
-                    dropdownData: dropdownData
-                },
-                {
-                    onSuccess: (response) => {
-                        // Check if mutation hook already handled success/error
-                        const isSuccess = response?.success === true;
+            const response = await addOrUpdateMasterHoliday(payload);
 
-                        if (isSuccess) {
-                            reset();
-                            refetchAll();
-                            onSuccess?.();
-                        } else {
-                        }
-                    },
-                    onError: (error) => {
-                        console.error('🔴 ========== FORM onError CALLBACK ==========');
-                        console.error('❌ [CLIENT] Form onError callback called');
-                        console.error('💥 [CLIENT] Error in form callback:', {
-                            message: error?.message,
-                            error: error,
-                            errorType: typeof error,
-                            errorKeys: error ? Object.keys(error) : []
-                        });
-                        console.error('💥 [CLIENT] Full error in form:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
-                        // Don't show toast here as mutation hook should handle it
-                        console.error('🔴 ========== END FORM onError CALLBACK ==========');
-                    }
-                }
-            );
+            if (response?.success) {
+                toast.success(response?.message || 'Master holiday saved successfully');
+                reset();
+                refetchAll();
+                onSuccess?.();
+            } else {
+                toast.error(response?.message || 'Failed to save master holiday');
+            }
         } catch (error: any) {
-            console.error('Form submission error:', error);
-            toast.error(error.message || 'An error occurred while submitting the form');
+            toast.error(error?.message || 'Failed to save master holiday');
         }
     };
 
@@ -259,295 +205,278 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
 
     return (
         <div className={`${className}`}>
-            <form
-                onSubmit={handleSubmit(onSubmit, (errors) => {
-                    console.error('Form validation errors:', errors);
-                    const firstError = Object.values(errors)[0];
-                    if (firstError?.message) {
-                        toast.error(firstError.message);
-                    } else {
-                        toast.error('Please fix the form errors');
-                    }
-                })}
-                className='max-w-full space-y-6'>
+            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
-                    <div className='grid grid-cols-1 gap-4 lg:grid-cols-3'>
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                        {/* Calendar Year */}
                         <div className='space-y-2'>
-                            <label className='font-medium text-sm' htmlFor='calendarYear'>
-                                Calendar Year <span className='text-red-500'>*</span>
-                            </label>
-                            <Select value={calendarYear || ''} onValueChange={(value) => setValue('calendarYear', value)}>
-                                <SelectTrigger id='calendarYear' className={errors.calendarYear ? 'border-red-500' : ''}>
-                                    <SelectValue placeholder={calendarYears.length === 0 ? 'Loading...' : '--Select--'} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {calendarYears.length === 0 ? (
-                                        <SelectItem value='__no_years__' disabled>
-                                            No years available
-                                        </SelectItem>
-                                    ) : (
-                                        calendarYears.map((year) => (
-                                            <SelectItem key={year} value={year}>
-                                                {year}
-                                            </SelectItem>
-                                        ))
-                                    )}
-                                </SelectContent>
-                            </Select>
-                            {!calendarYear && (
-                                <input
-                                    type='hidden'
-                                    {...register('calendarYear', {
-                                        required: 'Calendar Year is required'
-                                    })}
-                                />
-                            )}
+                            <Label htmlFor={calendarYearId}>
+                                Calendar year <span className='text-red-500'>*</span>
+                            </Label>
+                            <Controller
+                                name='calendarYear'
+                                control={control}
+                                render={({ field }) => (
+                                    <Select value={field.value} onValueChange={field.onChange}>
+                                        <SelectTrigger id={calendarYearId} className={errors.calendarYear ? 'border-red-500' : ''}>
+                                            <SelectValue placeholder='--Select--' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {calendarYears.map((year) => (
+                                                <SelectItem key={year} value={String(year)}>
+                                                    {year}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
                             {errors.calendarYear && <FormError>{errors.calendarYear.message}</FormError>}
                         </div>
 
+                        {/* Department */}
                         <div className='space-y-2'>
-                            <label className='font-medium text-sm' htmlFor='department'>
-                                Department <span className='text-red-500'>*</span>
-                            </label>
-                            <Select value={department || ''} onValueChange={(value) => setValue('department', value)}>
-                                <SelectTrigger id='department' className={errors.department ? 'border-red-500' : ''}>
-                                    <SelectValue placeholder={departments.length === 0 ? 'Loading...' : '--Select--'} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {departments.length === 0 ? (
-                                        <SelectItem value='__no_departments__' disabled>
-                                            No departments available
-                                        </SelectItem>
-                                    ) : (
-                                        departments.map((dept) => (
-                                            <SelectItem key={dept} value={dept}>
-                                                {dept}
-                                            </SelectItem>
-                                        ))
-                                    )}
-                                </SelectContent>
-                            </Select>
-                            {!department && (
-                                <input
-                                    type='hidden'
-                                    {...register('department', {
-                                        required: 'Department is required'
-                                    })}
-                                />
-                            )}
-                            {errors.department && <FormError>{errors.department.message}</FormError>}
+                            <Label htmlFor={departmentId}>Department</Label>
+                            <Controller
+                                name='fomhwD_Department'
+                                control={control}
+                                render={({ field }) => (
+                                    <Select value={field.value} onValueChange={field.onChange}>
+                                        <SelectTrigger id={departmentId} className={errors.fomhwD_Department ? 'border-red-500' : ''}>
+                                            <SelectValue placeholder='--Select--' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {departmentOptions.map((dept: { label: string; value: string }) => (
+                                                <SelectItem key={dept.value} value={dept.value}>
+                                                    {dept.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.fomhwD_Department && <FormError>{errors.fomhwD_Department.message}</FormError>}
                         </div>
 
+                        {/* Holiday Type */}
                         <div className='space-y-2'>
-                            <label className='font-medium text-sm' htmlFor='holidayType'>
+                            <Label htmlFor={holidayTypeId}>
                                 Holiday Type <span className='text-red-500'>*</span>
-                            </label>
-                            <Select value={holidayType || ''} onValueChange={(value) => setValue('holidayType', value)}>
-                                <SelectTrigger id='holidayType' className={errors.holidayType ? 'border-red-500' : ''}>
-                                    <SelectValue placeholder={holidayTypes.length === 0 ? 'Loading...' : '--Select--'} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {holidayTypes.length === 0 ? (
-                                        <SelectItem value='__no_holiday_types__' disabled>
-                                            No holiday types available
-                                        </SelectItem>
-                                    ) : (
-                                        holidayTypes.map((type) => (
-                                            <SelectItem key={type} value={type}>
-                                                {type}
-                                            </SelectItem>
-                                        ))
-                                    )}
-                                </SelectContent>
-                            </Select>
-                            {!holidayType && (
-                                <input
-                                    type='hidden'
-                                    {...register('holidayType', {
-                                        required: 'Holiday Type is required'
-                                    })}
-                                />
-                            )}
-                            {errors.holidayType && <FormError>{errors.holidayType.message}</FormError>}
+                            </Label>
+                            <Controller
+                                name='fomhwD_HolidayType'
+                                control={control}
+                                render={({ field }) => (
+                                    <Select value={field.value} onValueChange={field.onChange}>
+                                        <SelectTrigger id={holidayTypeId} className={errors.fomhwD_HolidayType ? 'border-red-500' : ''}>
+                                            <SelectValue placeholder='--Select--' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {holidayTypeOptions.map((type) => (
+                                                <SelectItem key={type.value} value={type.value}>
+                                                    {type.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.fomhwD_HolidayType && <FormError>{errors.fomhwD_HolidayType.message}</FormError>}
                         </div>
-                    </div>
 
-                    <div className='flex items-center space-y-2'>
-                        <Checkbox id='selectDay' checked={selectDay} onCheckedChange={(checked) => setValue('selectDay', !!checked)} />
-                        <label htmlFor='selectDay' className='ml-2 font-medium text-foreground text-sm'>
-                            Select Day
-                        </label>
-                    </div>
-
-                    {selectDay && (
+                        {/* Select Day */}
                         <div className='space-y-2'>
-                            <span className='font-medium text-sm'>Select Days:</span>
-                            <div className='max-h-32 overflow-y-auto rounded-md border bg-background p-3'>
-                                <div className='grid grid-cols-4 gap-2'>
-                                    {weekDays.map((day) => (
-                                        <div key={day.value} className='flex cursor-pointer items-center gap-2 text-sm'>
-                                            <Checkbox
-                                                checked={selectedDays?.includes(day.value) || false}
-                                                onCheckedChange={() => handleDayToggle(day.value)}
-                                            />
-                                            <span>{day.label}</span>
-                                        </div>
-                                    ))}
-                                </div>
+                            <Label htmlFor={selectedDaysId}>
+                                Select Day <span className='text-red-500'>*</span>
+                            </Label>
+                            <Controller
+                                name='selectedDays'
+                                control={control}
+                                render={({ field }) => (
+                                    <DaySelectionCheckbox
+                                        id={selectedDaysId}
+                                        label='Select Day'
+                                        selectedDays={field.value || []}
+                                        onDaysChange={(days) => {
+                                            field.onChange(days);
+                                            // Clear date fields when days are selected
+                                            if (days.length > 0) {
+                                                setValue('fomhwD_FromDate', '');
+                                                setValue('fomhwD_ToDate', '');
+                                                setValue('fomhwD_Name', '');
+                                                setValue('fomhwD_Remarks', '');
+                                            }
+                                        }}
+                                        checked={(field.value || []).length > 0}
+                                    />
+                                )}
+                            />
+                            {errors.selectedDays && <FormError>{errors.selectedDays.message}</FormError>}
+                        </div>
+                    </div>
+
+                    {/* Conditional Fields: Start Date, End Date, Holiday Name, Remarks */}
+                    {shouldShowDateFields && (
+                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                            {/* Start Date */}
+                            <div className='space-y-2'>
+                                <Label htmlFor={startDateId}>Start Date</Label>
+                                <Controller
+                                    name='fomhwD_FromDate'
+                                    control={control}
+                                    render={({ field, fieldState }) => (
+                                        <DateField field={field} fieldState={fieldState} label='' fromDate={new Date()} />
+                                    )}
+                                />
+                                {errors.fomhwD_FromDate && <FormError>{errors.fomhwD_FromDate.message}</FormError>}
+                            </div>
+
+                            {/* End Date */}
+                            <div className='space-y-2'>
+                                <Label htmlFor={endDateId}>End Date</Label>
+                                <Controller
+                                    name='fomhwD_ToDate'
+                                    control={control}
+                                    render={({ field, fieldState }) => (
+                                        <DateField field={field} fieldState={fieldState} label='' fromDate={new Date()} />
+                                    )}
+                                />
+                                {errors.fomhwD_ToDate && <FormError>{errors.fomhwD_ToDate.message}</FormError>}
+                            </div>
+
+                            {/* Holiday Name */}
+                            <div className='space-y-2'>
+                                <Label htmlFor={holidayNameId}>Holiday Name</Label>
+                                <Controller
+                                    name='fomhwD_Name'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <InputText
+                                            id={holidayNameId}
+                                            placeholder='Enter holiday name'
+                                            maxLength={100}
+                                            {...field}
+                                            error={errors.fomhwD_Name?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    )}
+                                />
+                                {errors.fomhwD_Name && <FormError>{errors.fomhwD_Name.message}</FormError>}
+                            </div>
+
+                            {/* Remarks */}
+                            <div className='space-y-2'>
+                                <Label htmlFor={remarksId}>Remarks</Label>
+                                <Controller
+                                    name='fomhwD_Remarks'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <InputTextarea
+                                            id={remarksId}
+                                            placeholder='Enter remarks'
+                                            maxLength={250}
+                                            rows={4}
+                                            {...field}
+                                            error={errors.fomhwD_Remarks?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    )}
+                                />
+                                {errors.fomhwD_Remarks && <FormError>{errors.fomhwD_Remarks.message}</FormError>}
                             </div>
                         </div>
                     )}
 
-                    {(holidayType === 'PUBLIC HOLIDAY' || holidayType === 'WEEK END') && (
-                        <>
-                            <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-                                <div className='space-y-2'>
-                                    <label className='font-medium text-sm' htmlFor='fromDate'>
-                                        Start Date <span className='text-red-500'>*</span>
-                                    </label>
-                                    <Controller
-                                        name='fromDate'
-                                        control={control}
-                                        render={({ field }) => {
-                                            const selectedDate = field.value ? new Date(field.value) : undefined;
-                                            const minDate = new Date();
-                                            minDate.setHours(0, 0, 0, 0);
-
-                                            return (
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <Button
-                                                            variant='outline'
-                                                            className={cn(
-                                                                'w-full justify-start text-left font-normal',
-                                                                !selectedDate && 'text-muted-foreground',
-                                                                errors.fromDate && 'border-red-500'
-                                                            )}
-                                                            type='button'>
-                                                            <CalendarIcon className='mr-2 h-4 w-4' />
-                                                            {selectedDate ? format(selectedDate, 'dd-MM-yyyy') : 'Enter date'}
-                                                        </Button>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className='w-auto p-0' align='start'>
-                                                        <DatePickerWithYear
-                                                            mode='single'
-                                                            selected={selectedDate}
-                                                            onDayClick={(day) => {
-                                                                if (day) {
-                                                                    const dateStr = format(day, 'yyyy-MM-dd');
-                                                                    field.onChange(dateStr);
-                                                                }
-                                                            }}
-                                                            fromDate={minDate}
-                                                            initialFocus
-                                                        />
-                                                    </PopoverContent>
-                                                </Popover>
-                                            );
-                                        }}
-                                    />
-                                    {errors.fromDate && <FormError>{errors.fromDate.message}</FormError>}
-                                </div>
-
-                                <div className='space-y-2'>
-                                    <label className='font-medium text-sm' htmlFor='toDate'>
-                                        End Date <span className='text-red-500'>*</span>
-                                    </label>
-                                    <Controller
-                                        name='toDate'
-                                        control={control}
-                                        render={({ field }) => {
-                                            const selectedDate = field.value ? new Date(field.value) : undefined;
-                                            const minDate = fromDate ? new Date(fromDate) : new Date();
-                                            minDate.setHours(0, 0, 0, 0);
-
-                                            return (
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <Button
-                                                            variant='outline'
-                                                            className={cn(
-                                                                'w-full justify-start text-left font-normal',
-                                                                !selectedDate && 'text-muted-foreground',
-                                                                errors.toDate && 'border-red-500'
-                                                            )}
-                                                            type='button'>
-                                                            <CalendarIcon className='mr-2 h-4 w-4' />
-                                                            {selectedDate ? format(selectedDate, 'dd-MM-yyyy') : 'Enter date'}
-                                                        </Button>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className='w-auto p-0' align='start'>
-                                                        <DatePickerWithYear
-                                                            mode='single'
-                                                            selected={selectedDate}
-                                                            onDayClick={(day) => {
-                                                                if (day) {
-                                                                    const dateStr = format(day, 'yyyy-MM-dd');
-                                                                    field.onChange(dateStr);
-                                                                }
-                                                            }}
-                                                            fromDate={minDate}
-                                                            initialFocus
-                                                        />
-                                                    </PopoverContent>
-                                                </Popover>
-                                            );
-                                        }}
-                                    />
-                                    {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
-                                </div>
-                            </div>
-
-                            <div className='grid grid-cols-1 gap-4'>
-                                <InputText
-                                    label='Holiday Name'
-                                    required
-                                    id='name'
-                                    {...register('name')}
-                                    error={errors.name?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                    maxLength={100}
-                                />
-                            </div>
-
-                            <div className='space-y-2'>
-                                <label className='font-medium text-sm' htmlFor='remarks'>
-                                    Remarks
-                                </label>
-                                <textarea
-                                    id='remarks'
-                                    {...register('remarks')}
-                                    rows={3}
-                                    maxLength={250}
-                                    className={`w-full rounded-md border px-3 py-2 ${errors.remarks ? 'border-red-500' : 'border-input'}`}
-                                    placeholder='Enter remarks...'
-                                />
-                                {errors.remarks && <FormError>{errors.remarks.message}</FormError>}
-                            </div>
-                        </>
-                    )}
-
+                    {/* Root Error */}
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
+                {/* Holiday Dates Table - Show when days are selected */}
+                {selectedDays && selectedDays.length > 0 && (
+                    <div className='space-y-4 rounded-md border border-input bg-background p-4'>
+                        <h3 className='font-semibold text-sm'>Holiday List</h3>
+                        {!calendarYear || !holidayType ? (
+                            <div className='rounded-md border border-yellow-200 bg-yellow-50 p-4 text-center text-sm text-yellow-800'>
+                                Please select Calendar Year and Holiday Type to load holiday dates.
+                            </div>
+                        ) : (
+                            <div className='overflow-x-auto'>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead className='w-12'>
+                                                <Checkbox
+                                                    checked={holidayDates.length > 0 && selectedRows.size === holidayDates.length}
+                                                    onCheckedChange={handleSelectAll}
+                                                    aria-label='Select all'
+                                                />
+                                            </TableHead>
+                                            <TableHead>Day Name</TableHead>
+                                            <TableHead>Date</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {isLoadingDates ? (
+                                            <TableRow>
+                                                <TableCell colSpan={3} className='text-center'>
+                                                    Loading dates...
+                                                </TableCell>
+                                            </TableRow>
+                                        ) : holidayDates.length === 0 ? (
+                                            <TableRow>
+                                                <TableCell colSpan={3} className='text-center'>
+                                                    No dates found
+                                                </TableCell>
+                                            </TableRow>
+                                        ) : (
+                                            holidayDates.map((item: { id: string; dayName: string; date: string }) => (
+                                                <TableRow key={item.id}>
+                                                    <TableCell>
+                                                        <Checkbox
+                                                            checked={selectedRows.has(item.id)}
+                                                            onCheckedChange={(checked) => handleRowSelect(item.id, !!checked)}
+                                                            aria-label='Select row'
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>{item.dayName}</TableCell>
+                                                    <TableCell>
+                                                        {item.date
+                                                            ? new Date(item.date).toLocaleDateString('en-GB', {
+                                                                  day: '2-digit',
+                                                                  month: '2-digit',
+                                                                  year: 'numeric'
+                                                              })
+                                                            : '-'}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'
                         variant='outline'
                         onClick={handleReset}
-                        disabled={isSubmitting || isPending}
+                        disabled={isSubmitting}
                         className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                        Reset
+                        Cancel
                     </Button>
                     <Button
                         type='submit'
-                        disabled={isSubmitting || isPending}
+                        disabled={isSubmitting}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
-                        isLoading={isSubmitting || isPending}
+                        isLoading={isSubmitting}
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Master Holiday
+                            Save
                         </div>
                     </Button>
                 </div>

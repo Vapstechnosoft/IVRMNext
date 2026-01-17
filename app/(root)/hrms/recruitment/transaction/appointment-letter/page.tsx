@@ -4,9 +4,7 @@
 // 2. Import form from _components/appointment-letter-form.tsx
 // 3. Extract column definitions and form to the respective files
 // 4. Update handlers to use the new structure
-
 'use client';
-
 import { Heading } from '@/components/layout/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -29,7 +27,6 @@ import { Calendar as CalendarIcon, DollarSign, Edit, FileText, Plus, RefreshCw, 
 import { useEffect, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-
 interface AppointmentLetter extends BaseEntity {
     candidateName: string;
     candidateId: number;
@@ -42,13 +39,10 @@ interface AppointmentLetter extends BaseEntity {
     dateOfJoining: string;
     probationPeriod: number;
     basicSalary: number;
-
     // Salary Details - Earning Head
     earningDetails: EarningDetail[];
-
     // Salary Details - Deduction Head
     deductionDetails: DeductionDetail[];
-
     // Document Details
     firstDocumentName: string;
     firstDocumentDate: string;
@@ -57,17 +51,14 @@ interface AppointmentLetter extends BaseEntity {
     annualCTC: number;
     companyOwnerName: string;
     monthlyCTC: number;
-
     // Letter Generation Details
     secondDocumentName: string;
     secondDocumentDate: string;
-
     status: 'Draft' | 'Generated' | 'Sent' | 'Acknowledged';
     letterGeneratedDate?: string;
     letterSentDate?: string;
     acknowledgedDate?: string;
 }
-
 interface EarningDetail {
     serialNo: number;
     earningHead: string;
@@ -76,7 +67,6 @@ interface EarningDetail {
     applicability: string;
     remarks: string;
 }
-
 interface DeductionDetail {
     serialNo: number;
     deductionHead: string;
@@ -85,7 +75,6 @@ interface DeductionDetail {
     applicability: string;
     remarks: string;
 }
-
 interface Candidate extends BaseEntity {
     firstName: string;
     middleName?: string;
@@ -98,7 +87,6 @@ interface Candidate extends BaseEntity {
     caste: string;
     status: string;
 }
-
 type AppointmentLetterForm = {
     candidateId: string;
     companyName: string;
@@ -121,7 +109,6 @@ type AppointmentLetterForm = {
     secondDocumentDate: Date | undefined;
     sendWelcomeNotification: boolean;
 };
-
 export default function AppointmentLetterPage() {
     const [appointmentLetters, setAppointmentLetters] = useState<AppointmentLetter[]>([]);
     const [candidates, setCandidates] = useState<Candidate[]>([]);
@@ -131,10 +118,8 @@ export default function AppointmentLetterPage() {
     const [earningDetails, setEarningDetails] = useState<EarningDetail[]>([]);
     const [deductionDetails, setDeductionDetails] = useState<DeductionDetail[]>([]);
     const formRef = useRef<HTMLDivElement>(null);
-
     const appointmentDB = createLocalCrud<AppointmentLetter>('recruitment:appointment-letter');
     const candidateDB = createLocalCrud<Candidate>('recruitment:candidate');
-
     const {
         register,
         handleSubmit,
@@ -154,12 +139,10 @@ export default function AppointmentLetterPage() {
             sendWelcomeNotification: true
         }
     });
-
     // Load data on component mount
     useEffect(() => {
         loadData();
     }, []);
-
     const loadData = async () => {
         try {
             setAppointmentLetters(appointmentDB.list());
@@ -170,14 +153,12 @@ export default function AppointmentLetterPage() {
             setIsLoading(false);
         }
     };
-
     const handleAddClick = () => {
         setIsFormOpen(true);
         setTimeout(() => {
             formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
     };
-
     const handleFormClose = () => {
         setIsFormOpen(false);
         setEditingLetter(null);
@@ -193,21 +174,17 @@ export default function AppointmentLetterPage() {
             sendWelcomeNotification: true
         });
     };
-
     const onSubmit: SubmitHandler<AppointmentLetterForm> = async (data: AppointmentLetterForm) => {
         try {
             if (!data.dateOfJoining || !data.firstDocumentDate || !data.secondDocumentDate) {
                 toast.error('Please fill all required date fields');
                 return;
             }
-
             const candidate = candidates.find((c) => c.id.toString() === data.candidateId);
-
             if (!candidate) {
                 toast.error('Please select a valid candidate');
                 return;
             }
-
             const appointmentData: Omit<AppointmentLetter, 'id' | 'createdAt'> = {
                 candidateName: `${candidate.firstName} ${candidate.middleName || ''} ${candidate.lastName}`.trim(),
                 candidateId: candidate.id,
@@ -233,7 +210,6 @@ export default function AppointmentLetterPage() {
                 secondDocumentDate: format(data.secondDocumentDate, 'yyyy-MM-dd'),
                 status: 'Draft'
             };
-
             if (editingLetter) {
                 appointmentDB.update(editingLetter.id, appointmentData);
                 toast.success('Appointment letter updated successfully');
@@ -241,24 +217,20 @@ export default function AppointmentLetterPage() {
                 appointmentDB.create(appointmentData);
                 toast.success('Appointment letter created successfully');
             }
-
             handleFormClose();
             loadData();
         } catch (error: any) {
             toast.error(error.message || 'Operation failed');
         }
     };
-
     const handleClear = () => {
         handleFormClose();
         toast.info('Form cleared');
     };
-
     const handleEdit = (letter: AppointmentLetter) => {
         setEditingLetter(letter);
         setEarningDetails(letter.earningDetails || []);
         setDeductionDetails(letter.deductionDetails || []);
-
         reset({
             candidateId: letter.candidateId.toString(),
             companyName: letter.companyName,
@@ -281,13 +253,11 @@ export default function AppointmentLetterPage() {
             secondDocumentDate: new Date(letter.secondDocumentDate),
             sendWelcomeNotification: true
         });
-
         setIsFormOpen(true);
         setTimeout(() => {
             formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
     };
-
     const handleDelete = async (letter: AppointmentLetter) => {
         try {
             appointmentDB.remove(letter.id);
@@ -297,7 +267,6 @@ export default function AppointmentLetterPage() {
             toast.error('Failed to delete appointment letter');
         }
     };
-
     const addEarningDetail = () => {
         setEarningDetails([
             ...earningDetails,
@@ -311,7 +280,6 @@ export default function AppointmentLetterPage() {
             }
         ]);
     };
-
     const addDeductionDetail = () => {
         setDeductionDetails([
             ...deductionDetails,
@@ -325,37 +293,30 @@ export default function AppointmentLetterPage() {
             }
         ]);
     };
-
     const removeEarningDetail = (index: number) => {
         setEarningDetails(earningDetails.filter((_, i) => i !== index));
     };
-
     const removeDeductionDetail = (index: number) => {
         setDeductionDetails(deductionDetails.filter((_, i) => i !== index));
     };
-
     const updateEarningDetail = (index: number, field: keyof EarningDetail, value: any) => {
         const updated = [...earningDetails];
         updated[index] = { ...updated[index], [field]: value };
         setEarningDetails(updated);
     };
-
     const updateDeductionDetail = (index: number, field: keyof DeductionDetail, value: any) => {
         const updated = [...deductionDetails];
         updated[index] = { ...updated[index], [field]: value };
         setDeductionDetails(updated);
     };
-
     const handleGenerateLetter = (_letter: AppointmentLetter, type: string) => {
         toast.success(`${type} generated successfully`);
         // Here you would implement actual letter generation logic
     };
-
     const getCandidateName = (candidateId: number) => {
         const candidate = candidates.find((c) => c.id === candidateId);
         return candidate ? `${candidate.firstName} ${candidate.middleName || ''} ${candidate.lastName}`.trim() : 'Unknown';
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -376,7 +337,6 @@ export default function AppointmentLetterPage() {
                         Generate Appointment Letter
                     </Button>
                 </div>
-
                 {/* Data Table Section - Collapsible but default open */}
                 <CollapsibleSection
                     title='Appointment Letters Data'
@@ -395,7 +355,6 @@ export default function AppointmentLetterPage() {
                         getCandidateName={getCandidateName}
                     />
                 </CollapsibleSection>
-
                 {/* Add Form Section - Conditionally Rendered */}
                 {isFormOpen && (
                     <div ref={formRef}>
@@ -426,7 +385,6 @@ export default function AppointmentLetterPage() {
                                             Letter Generation
                                         </TabsTrigger>
                                     </TabsList>
-
                                     {/* Candidate Details Tab */}
                                     <TabsContent value='candidate-details' className='space-y-6'>
                                         <Card>
@@ -457,7 +415,6 @@ export default function AppointmentLetterPage() {
                                                         </Select>
                                                         {errors.candidateId && <FormError>Candidate selection is required</FormError>}
                                                     </div>
-
                                                     {/* Company Name */}
                                                     <div className='space-y-2'>
                                                         <span className='font-medium text-gray-700 text-sm'>
@@ -475,7 +432,6 @@ export default function AppointmentLetterPage() {
                                                         </Select>
                                                         {errors.companyName && <FormError>Company is required</FormError>}
                                                     </div>
-
                                                     {/* Department */}
                                                     <div className='space-y-2'>
                                                         <span className='font-medium text-gray-700 text-sm'>
@@ -497,7 +453,6 @@ export default function AppointmentLetterPage() {
                                                         </Select>
                                                         {errors.department && <FormError>Department is required</FormError>}
                                                     </div>
-
                                                     {/* Designation */}
                                                     <div className='space-y-2'>
                                                         <span className='font-medium text-gray-700 text-sm'>
@@ -519,7 +474,6 @@ export default function AppointmentLetterPage() {
                                                         </Select>
                                                         {errors.designation && <FormError>Designation is required</FormError>}
                                                     </div>
-
                                                     {/* Qualification */}
                                                     <div className='space-y-2'>
                                                         <span className='font-medium text-gray-700 text-sm'>
@@ -540,7 +494,6 @@ export default function AppointmentLetterPage() {
                                                         </Select>
                                                         {errors.qualification && <FormError>Qualification is required</FormError>}
                                                     </div>
-
                                                     {/* Marital Status */}
                                                     <div className='space-y-2'>
                                                         <span className='font-medium text-gray-700 text-sm'>
@@ -559,7 +512,6 @@ export default function AppointmentLetterPage() {
                                                         </Select>
                                                         {errors.maritalStatus && <FormError>Marital status is required</FormError>}
                                                     </div>
-
                                                     {/* Caste */}
                                                     <div className='space-y-2'>
                                                         <span className='font-medium text-gray-700 text-sm'>
@@ -579,7 +531,6 @@ export default function AppointmentLetterPage() {
                                                         </Select>
                                                         {errors.caste && <FormError>Caste is required</FormError>}
                                                     </div>
-
                                                     {/* Date of Joining */}
                                                     <div className='space-y-2'>
                                                         <span className='font-medium text-gray-700 text-sm'>
@@ -617,7 +568,6 @@ export default function AppointmentLetterPage() {
                                                         />
                                                         {errors.dateOfJoining && <FormError>{errors.dateOfJoining.message}</FormError>}
                                                     </div>
-
                                                     {/* Probation Period */}
                                                     <div className='space-y-2'>
                                                         <span className='font-medium text-gray-700 text-sm'>
@@ -630,7 +580,6 @@ export default function AppointmentLetterPage() {
                                                             error={errors.probationPeriod?.message}
                                                         />
                                                     </div>
-
                                                     {/* Basic Salary */}
                                                     <div className='space-y-2'>
                                                         <span className='font-medium text-gray-700 text-sm'>
@@ -647,7 +596,6 @@ export default function AppointmentLetterPage() {
                                             </CardContent>
                                         </Card>
                                     </TabsContent>
-
                                     {/* Candidate Payroll Tab */}
                                     <TabsContent value='candidate-payroll' className='space-y-6'>
                                         <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
@@ -771,7 +719,6 @@ export default function AppointmentLetterPage() {
                                                     </div>
                                                 </CardContent>
                                             </Card>
-
                                             {/* Salary Details - Deduction Head */}
                                             <Card>
                                                 <CardHeader>
@@ -882,7 +829,6 @@ export default function AppointmentLetterPage() {
                                             </Card>
                                         </div>
                                     </TabsContent>
-
                                     {/* Letter Generation Tab */}
                                     <TabsContent value='letter-generation' className='space-y-6'>
                                         <Card>
@@ -907,7 +853,6 @@ export default function AppointmentLetterPage() {
                                                             error={errors.firstDocumentName?.message}
                                                         />
                                                     </div>
-
                                                     {/* Second Document Name */}
                                                     <div className='space-y-2'>
                                                         <span className='font-medium text-gray-700 text-sm'>
@@ -921,7 +866,6 @@ export default function AppointmentLetterPage() {
                                                             error={errors.secondDocumentName?.message}
                                                         />
                                                     </div>
-
                                                     {/* First Document Date */}
                                                     <div className='space-y-2'>
                                                         <span className='font-medium text-gray-700 text-sm'>
@@ -961,7 +905,6 @@ export default function AppointmentLetterPage() {
                                                             <FormError>{errors.firstDocumentDate.message}</FormError>
                                                         )}
                                                     </div>
-
                                                     {/* Second Document Date */}
                                                     <div className='space-y-2'>
                                                         <span className='font-medium text-gray-700 text-sm'>
@@ -1001,7 +944,6 @@ export default function AppointmentLetterPage() {
                                                             <FormError>{errors.secondDocumentDate.message}</FormError>
                                                         )}
                                                     </div>
-
                                                     {/* Appointment Ref No */}
                                                     <div className='space-y-2'>
                                                         <span className='font-medium text-gray-700 text-sm'>
@@ -1015,7 +957,6 @@ export default function AppointmentLetterPage() {
                                                             error={errors.appointmentRefNo?.message}
                                                         />
                                                     </div>
-
                                                     {/* Acknowledgment Ref No */}
                                                     <div className='space-y-2'>
                                                         <span className='font-medium text-gray-700 text-sm'>
@@ -1029,7 +970,6 @@ export default function AppointmentLetterPage() {
                                                             error={errors.acknowledgmentRefNo?.message}
                                                         />
                                                     </div>
-
                                                     {/* Annual CTC */}
                                                     <div className='space-y-2'>
                                                         <span className='font-medium text-gray-700 text-sm'>
@@ -1042,7 +982,6 @@ export default function AppointmentLetterPage() {
                                                             error={errors.annualCTC?.message}
                                                         />
                                                     </div>
-
                                                     {/* Monthly CTC */}
                                                     <div className='space-y-2'>
                                                         <span className='font-medium text-gray-700 text-sm'>
@@ -1055,7 +994,6 @@ export default function AppointmentLetterPage() {
                                                             error={errors.monthlyCTC?.message}
                                                         />
                                                     </div>
-
                                                     {/* Company Owner Name */}
                                                     <div className='space-y-2'>
                                                         <span className='font-medium text-gray-700 text-sm'>
@@ -1070,7 +1008,6 @@ export default function AppointmentLetterPage() {
                                                         />
                                                     </div>
                                                 </div>
-
                                                 {/* Send Welcome Notification */}
                                                 <div className='mt-6'>
                                                     <div className='flex items-center space-x-2'>
@@ -1086,7 +1023,6 @@ export default function AppointmentLetterPage() {
                                         </Card>
                                     </TabsContent>
                                 </Tabs>
-
                                 {/* Form Actions */}
                                 <div className='flex justify-center gap-4 border-t pt-6'>
                                     <Button type='button' variant='outline' onClick={handleClear}>
@@ -1115,7 +1051,6 @@ export default function AppointmentLetterPage() {
         </div>
     );
 }
-
 interface AppointmentLetterTableProps {
     letters: AppointmentLetter[];
     isLoading: boolean;
@@ -1124,7 +1059,6 @@ interface AppointmentLetterTableProps {
     onGenerateLetter: (letter: AppointmentLetter, type: string) => void;
     getCandidateName: (candidateId: number) => string;
 }
-
 function AppointmentLetterTable({
     letters,
     isLoading,
@@ -1211,7 +1145,6 @@ function AppointmentLetterTable({
             }
         }
     ];
-
     return (
         <GenericDataTable isLoading={isLoading} columns={letterColumns} data={letters} totalItems={letters.length} showViewOptions={true} />
     );

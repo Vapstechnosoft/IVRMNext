@@ -3,15 +3,11 @@
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { Input } from '@/components/ui/input';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterGroupType } from '@/hooks/hrms/useMasters';
-import type { GroupTypeDetail, MasterGroupTypeResponse } from '@/types/hrms/master-group-type';
+import type { IMasterGroupTypeList } from '@/types/hrms/hrms-config/master';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
-import { toast } from 'sonner';
 
-export const columns: ColumnDef<GroupTypeDetail>[] = [
+export const columns: ColumnDef<IMasterGroupTypeList>[] = [
     {
         id: 'slNo',
         header: () => <div className='text-center font-medium'>Sl No</div>,
@@ -25,18 +21,18 @@ export const columns: ColumnDef<GroupTypeDetail>[] = [
         size: 60
     },
     {
-        accessorKey: 'HRMGT_EmployeeGroupType',
+        accessorKey: 'hrmgT_EmployeeGroupType',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Group Type' className='whitespace-nowrap' />
     },
     {
-        accessorKey: 'HRMGT_Code',
+        accessorKey: 'hrmgT_Code',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Code' className='whitespace-nowrap' />
     },
     {
-        accessorKey: 'HRMGT_Order',
+        accessorKey: 'hrmgT_Order',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Order' className='whitespace-nowrap' />,
         cell: ({ row }) => {
-            const orderValue = row.original.HRMGT_Order;
+            const orderValue = row.original.hrmgT_Order;
             return <div>{orderValue ?? '-'}</div>;
         }
     },
@@ -48,39 +44,21 @@ export const columns: ColumnDef<GroupTypeDetail>[] = [
     }
 ];
 
-function ActionButtonsCell({ rowData }: { rowData: GroupTypeDetail }) {
-    const { openEditForm } = useFormContext<MasterGroupTypeResponse>();
-    const { toggleMutation } = useMasterGroupType(HRMS_MI_ID);
+function ActionButtonsCell({ rowData }: { rowData: IMasterGroupTypeList }) {
+    const { openEditForm, openToggleForm } = useFormContext<IMasterGroupTypeList>();
 
     const handleEdit = useCallback(
-        (data: GroupTypeDetail) => {
+        (data: IMasterGroupTypeList) => {
             openEditForm(data as any);
         },
         [openEditForm]
     );
 
     const handleToggle = useCallback(
-        async (data: GroupTypeDetail, newState: boolean) => {
-            try {
-                const result = await toggleMutation.mutateAsync({
-                    HRMGT_Id: data.HRMGT_Id,
-                    HRMGT_ActiveFlag: newState,
-                    MI_Id: HRMS_MI_ID
-                });
-
-                // Check if the record is mapped/in use
-                const retrunMsg = (result as any)?.retrunMsg || '';
-
-                if (retrunMsg === 'Mapped') {
-                    toast.error('Cannot deactivate - Group Type is currently assigned/in use');
-                } else {
-                    toast.success(`Group Type ${newState ? 'activated' : 'deactivated'} successfully`);
-                }
-            } catch (_error) {
-                toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} group type`);
-            }
+        (data: IMasterGroupTypeList) => {
+            openToggleForm(data);
         },
-        [toggleMutation]
+        [openToggleForm]
     );
 
     return (
@@ -89,45 +67,7 @@ function ActionButtonsCell({ rowData }: { rowData: GroupTypeDetail }) {
             buttons={{ edit: true, toggle: true, delete: false }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            toggleConditionKey='HRMGT_ActiveFlag'
+            toggleConditionKey='hrmgT_ActiveFlag'
         />
     );
-}
-
-export function getEditableColumns(onOrderChange: (rowId: number, newOrder: number) => void): ColumnDef<GroupTypeDetail>[] {
-    return [
-        {
-            id: 'slNo',
-            header: () => <div className='text-center font-medium'>Sl No</div>,
-            cell: ({ row, table }) => {
-                const pageIndex = table.getState().pagination.pageIndex;
-                const pageSize = table.getState().pagination.pageSize;
-                const continuousIndex = pageIndex * pageSize + row.index + 1;
-                return <div className='text-center'>{continuousIndex}</div>;
-            },
-            enableSorting: false,
-            size: 60
-        },
-        {
-            accessorKey: 'HRMGT_EmployeeGroupType',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Group Type' className='whitespace-nowrap' />
-        },
-        {
-            accessorKey: 'HRMGT_Code',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Code' className='whitespace-nowrap' />
-        },
-        {
-            accessorKey: 'HRMGT_Order',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Order' className='whitespace-nowrap' />,
-            cell: ({ row }) => (
-                <Input
-                    type='number'
-                    value={row.original.HRMGT_Order ?? 0}
-                    onChange={(e) => onOrderChange(row.original.HRMGT_Id, Number.parseInt(e.target.value) || 0)}
-                    className='w-20'
-                    min='0'
-                />
-            )
-        }
-    ];
 }

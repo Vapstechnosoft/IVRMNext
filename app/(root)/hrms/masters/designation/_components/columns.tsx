@@ -3,15 +3,11 @@
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { Input } from '@/components/ui/input';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterDesignation } from '@/hooks/hrms/useMasters';
-import type { DesignationDetail, MasterDesignationResponse } from '@/types/hrms/master-designation';
+import type { IMasterDesignationList } from '@/types/hrms/hrms-config/master';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
-import { toast } from 'sonner';
 
-export const columns: ColumnDef<DesignationDetail>[] = [
+export const columns: ColumnDef<IMasterDesignationList>[] = [
     {
         id: 'slNo',
         header: () => <div className='text-center font-medium'>Sl No</div>,
@@ -25,22 +21,28 @@ export const columns: ColumnDef<DesignationDetail>[] = [
         size: 60
     },
     {
-        accessorKey: 'HRMDES_DesignationName',
+        accessorKey: 'hrmdeS_DesignationName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Designation' className='whitespace-nowrap' />
     },
     {
-        accessorKey: 'HRMDES_BasicAmount',
+        accessorKey: 'hrmdeS_BasicAmount',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Basic Amount' className='whitespace-nowrap' />
     },
     {
-        accessorKey: 'HRMDES_SanctionedSeats',
+        accessorKey: 'hrmdeS_SanctionedSeats',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sanctioned Seats' className='whitespace-nowrap' />
     },
     {
-        accessorKey: 'HRMDES_Order',
+        accessorKey: 'hrmdeS_DisplaySanctionedSeatsFlag',
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title='Display Sanctioned Seats Flag' className='whitespace-nowrap' />
+        )
+    },
+    {
+        accessorKey: 'hrmdeS_Order',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Order' className='whitespace-nowrap' />,
         cell: ({ row }) => {
-            const orderValue = row.original.HRMDES_Order;
+            const orderValue = row.original.hrmdeS_Order;
             return <div>{orderValue ?? '-'}</div>;
         }
     },
@@ -52,38 +54,21 @@ export const columns: ColumnDef<DesignationDetail>[] = [
     }
 ];
 
-function ActionButtonsCell({ rowData }: { rowData: DesignationDetail }) {
-    const { openEditForm } = useFormContext<MasterDesignationResponse>();
-    const { toggleMutation } = useMasterDesignation(HRMS_MI_ID);
+function ActionButtonsCell({ rowData }: { rowData: IMasterDesignationList }) {
+    const { openEditForm, openToggleForm } = useFormContext<IMasterDesignationList>();
 
     const handleEdit = useCallback(
-        (data: DesignationDetail) => {
+        (data: IMasterDesignationList) => {
             openEditForm(data as any);
         },
         [openEditForm]
     );
 
     const handleToggle = useCallback(
-        async (data: DesignationDetail, newState: boolean) => {
-            try {
-                const result = await toggleMutation.mutateAsync({
-                    HRMDES_Id: data.HRMDES_Id,
-                    HRMDES_ActiveFlag: newState
-                });
-
-                // Check if the record is mapped/in use
-                const retrunMsg = (result as any)?.retrunMsg || '';
-
-                if (retrunMsg === 'Mapped') {
-                    toast.error('Cannot deactivate - Designation is currently assigned/in use');
-                } else {
-                    toast.success(`Designation ${newState ? 'activated' : 'deactivated'} successfully`);
-                }
-            } catch (_error) {
-                toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} designation`);
-            }
+        (data: IMasterDesignationList) => {
+            openToggleForm(data);
         },
-        [toggleMutation]
+        [openToggleForm]
     );
 
     return (
@@ -92,49 +77,7 @@ function ActionButtonsCell({ rowData }: { rowData: DesignationDetail }) {
             buttons={{ edit: true, toggle: true, delete: false }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            toggleConditionKey='HRMDES_ActiveFlag'
+            toggleConditionKey='hrmdeS_ActiveFlag'
         />
     );
-}
-
-export function getEditableColumns(onOrderChange: (rowId: number, newOrder: number) => void): ColumnDef<DesignationDetail>[] {
-    return [
-        {
-            id: 'slNo',
-            header: () => <div className='text-center font-medium'>Sl No</div>,
-            cell: ({ row, table }) => {
-                const pageIndex = table.getState().pagination.pageIndex;
-                const pageSize = table.getState().pagination.pageSize;
-                const continuousIndex = pageIndex * pageSize + row.index + 1;
-                return <div className='text-center'>{continuousIndex}</div>;
-            },
-            enableSorting: false,
-            size: 60
-        },
-        {
-            accessorKey: 'HRMDES_DesignationName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Designation' className='whitespace-nowrap' />
-        },
-        {
-            accessorKey: 'HRMDES_BasicAmount',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Basic Amount' className='whitespace-nowrap' />
-        },
-        {
-            accessorKey: 'HRMDES_SanctionedSeats',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Sanctioned Seats' className='whitespace-nowrap' />
-        },
-        {
-            accessorKey: 'HRMDES_Order',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Order' className='whitespace-nowrap' />,
-            cell: ({ row }) => (
-                <Input
-                    type='number'
-                    value={row.original.HRMDES_Order ?? 0}
-                    onChange={(e) => onOrderChange(row.original.HRMDES_Id, Number.parseInt(e.target.value) || 0)}
-                    className='w-20'
-                    min='0'
-                />
-            )
-        }
-    ];
 }

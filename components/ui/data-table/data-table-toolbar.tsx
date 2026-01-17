@@ -1,15 +1,17 @@
+// components/ui/data-table/data-table-toolbar.tsx
 'use client';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useDebounce } from '@/hooks/utils/use-debounce';
+import { blobToFile, enhanceAndConvertToWav } from '@/lib/audio-utils';
 import { tableSearchVariables } from '@/lib/data-table.config';
 import { exportToExcel } from '@/lib/utils';
 import type { ColumnDef, Table } from '@tanstack/react-table';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { DownloadIcon, FileSpreadsheet, FileText, Settings2, X } from 'lucide-react';
+import { DownloadIcon, FileSpreadsheet, FileText, Mic, MicOff, Settings2, X } from 'lucide-react';
 import { parseAsString, useQueryState } from 'nuqs';
 import { useEffect, useRef, useState } from 'react';
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../dropdown-menu';
@@ -20,6 +22,7 @@ interface DataTableToolbarProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
     showExportOptions?: boolean;
     showViewOptions?: boolean;
+    showSearchColumns?: boolean;
 }
 
 export function DataTableToolbar<TData, TValue>({
@@ -27,40 +30,36 @@ export function DataTableToolbar<TData, TValue>({
     data,
     columns,
     showExportOptions = true,
-    showViewOptions = true
+    showViewOptions = true,
+    showSearchColumns = false
 }: DataTableToolbarProps<TData, TValue>) {
     const [searchQuery, setSearchQuery] = useQueryState(
         tableSearchVariables.search,
         parseAsString.withOptions({ shallow: false }).withDefault('')
     );
 
-    // Add local state for immediate input feedback
-    const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery || ''); // Initialize with searchQuery
+    const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery || '');
+    const debouncedSearchQuery = useDebounce(localSearchQuery, 800);
 
-    // Debounce the local search query with 1 seconds delay
-    const debouncedSearchQuery = useDebounce(localSearchQuery, 1000);
-
-    // Only sync from URL to local state on mount or when URL changes externally
-    // Use a ref to track if this is user input or external change
     const isUserInputRef = useRef(false);
-    const [showSearchColumns, setShowSearchColumns] = useState(false);
 
+    // Sync URL → local input on initial load
     useEffect(() => {
         if (!isUserInputRef.current) {
-            // Only update if it's not from user input (e.g., browser back/forward, initial load)
             setLocalSearchQuery(searchQuery || '');
         }
         isUserInputRef.current = false;
     }, [searchQuery]);
 
-    // Update URL when debounced value changes
+    // Apply search to URL + table
     useEffect(() => {
         if (debouncedSearchQuery !== searchQuery) {
             isUserInputRef.current = true;
-            setSearchQuery(debouncedSearchQuery || null); // Use null to clear the param
+            setSearchQuery(debouncedSearchQuery || null);
+            table.setGlobalFilter(debouncedSearchQuery);
             table.setPageIndex(0);
         }
-    }, [debouncedSearchQuery]);
+    }, [debouncedSearchQuery, searchQuery, table, setSearchQuery]);
 
     const handleSearch = (term: string) => {
         isUserInputRef.current = true;
@@ -70,208 +69,312 @@ export function DataTableToolbar<TData, TValue>({
     const handleReset = () => {
         isUserInputRef.current = true;
         setLocalSearchQuery('');
-        setSearchQuery(null); // Clear the URL param completely
-        table.resetColumnFilters();
-        table.resetColumnVisibility();
-        table.resetSorting();
-        setSearchColumns(tableSearchVariables.search_columns, parseAsString.withOptions({ shallow: false }).withDefault(allCols));
+        setSearchQuery(null);
+        table.setGlobalFilter('');
+        table.setPageIndex(0);
     };
 
-    //find if any column is hiding
-    const anyColumnHiding = table.getAllColumns().filter((column) => typeof column.accessorFn !== 'undefined' && column.getCanHide());
+    // Column settings
+    const anyColumnHiding = table.getAllColumns().filter((c) => typeof c.accessorFn !== 'undefined' && c.getCanHide());
+    const hideableColumns = table.getAllColumns().filter((col) => col.getCanHide());
     const allCols = anyColumnHiding.map((c) => c.id).join(',');
     const [searchColumns, setSearchColumns] = useQueryState(
         tableSearchVariables.search_columns,
         parseAsString.withOptions({ shallow: false }).withDefault(allCols)
     );
-    const handleExportToExcel = () => {
-        exportToExcel(data);
+
+    const allSearchableColumns = anyColumnHiding.map((c) => c.id);
+    const selectedSearchColumns = searchColumns ? searchColumns.split(',') : allSearchableColumns;
+
+    const toggleSelectAllSearchColumns = () => {
+        const newCols = selectedSearchColumns.length === allSearchableColumns.length ? '' : allSearchableColumns.join(',');
+
+        // Must use '' not null or dropdown breaks
+        setSearchColumns(newCols);
     };
+
+    const toggleSearchColumn = (colId: string, checked: boolean) => {
+        const updated = checked ? [...new Set([...selectedSearchColumns, colId])] : selectedSearchColumns.filter((id) => id !== colId);
+        if (searchQuery != null || searchQuery !== '') setSearchColumns(updated.join(',') || null);
+    };
+    const getColumnTitle = (column: any) => {
+        const header = column.columnDef?.header;
+
+        // case 1: header is a function that receives props
+        if (typeof header === 'function') {
+            try {
+                const props = header({ column });
+                return props?.props?.title || column.id;
+            } catch {
+                return column.id;
+            }
+        }
+
+        // case 2: header is plain text
+        if (typeof header === 'string') {
+            return header;
+        }
+
+        // fallback
+        return column.id;
+    };
+
+    // Voice Search
+    const [isRecording, setIsRecording] = useState(false);
+    const [isTranscribing, setIsTranscribing] = useState(false);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const chunksRef = useRef<BlobPart[]>([]);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    const startRecording = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const recorder = new MediaRecorder(stream);
+            chunksRef.current = [];
+
+            recorder.ondataavailable = (e) => {
+                if (e.data.size > 0) chunksRef.current.push(e.data);
+            };
+
+            recorder.onstop = async () => {
+                const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+                stream.getTracks().forEach((t) => t.stop());
+
+                if (blob.size < 1000) {
+                    alert('No audio detected. Please speak louder.');
+                    setIsTranscribing(false);
+                    return;
+                }
+
+                setIsTranscribing(true);
+                try {
+                    const wavBlob = await enhanceAndConvertToWav(blob);
+                    const file = blobToFile(wavBlob, 'voice-search.wav');
+
+                    const formData = new FormData(); // Fixed: was 'form'
+                    formData.append('audio', file); // Fixed: was 'form.append'
+
+                    const res = await fetch('/api/transcribe', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await res.json();
+
+                    if (res.ok && result.text?.trim()) {
+                        const text = result.text.trim();
+                        setLocalSearchQuery(text);
+                        isUserInputRef.current = true;
+                        table.setGlobalFilter(text);
+                        table.setPageIndex(0);
+                    } else {
+                        alert('Speech not recognized. Try again.');
+                    }
+                } catch (err: any) {
+                    console.error(err);
+                    alert(`Transcription failed: ${err.message}`);
+                } finally {
+                    setIsTranscribing(false);
+                }
+            };
+
+            recorder.start();
+            mediaRecorderRef.current = recorder;
+            setIsRecording(true);
+
+            timeoutRef.current = setTimeout(() => stopRecording(), 2000);
+        } catch (err: any) {
+            alert(`Microphone access denied: ${err.message}`);
+        }
+    };
+
+    const stopRecording = () => {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        if (mediaRecorderRef.current?.state === 'recording') {
+            mediaRecorderRef.current.stop();
+            setIsRecording(false);
+        }
+    };
+
+    useEffect(() => {
+        return () => {
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        };
+    }, []);
+
+    // Export
+    const handleExportToExcel = () => exportToExcel(data);
 
     const handleExportToPDF = () => {
         const doc = new jsPDF();
+        const visibleCols = table.getVisibleLeafColumns().map((col) => ({
+            header: (col.columnDef.meta as any)?.title || col.id.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
+            dataKey: col.id
+        }));
 
-        // Get visible columns
-        const visibleColumns = table
-            .getAllColumns()
-            .filter((col) => col.getIsVisible())
-            .map((col) => ({
-                header: col.id.charAt(0).toUpperCase() + col.id.slice(1),
-                dataKey: col.id
-            }));
-
-        // Prepare the data for PDF
-        const tableData = data.map((item) => {
-            const row: Record<string, any> = {};
-            visibleColumns.forEach((col) => {
-                row[col.dataKey] = (item as any)[col.dataKey]?.toString() || '';
+        const rows = data.map((row: any) => {
+            const obj: Record<string, string> = {};
+            visibleCols.forEach((c) => {
+                obj[c.dataKey] = row[c.dataKey]?.toString() || '';
             });
-            return row;
+            return obj;
         });
 
-        // Generate PDF
         autoTable(doc, {
-            columns: visibleColumns,
-            body: tableData,
+            head: [visibleCols.map((c) => c.header)],
+            body: rows.map((r) => Object.values(r)),
             theme: 'grid',
-            styles: { fontSize: 8 },
-            headStyles: { fillColor: [41, 128, 185], textColor: 255 },
-            margin: { top: 20 }
+            styles: { fontSize: 8 }
         });
 
-        doc.save('data.pdf');
+        doc.save('table-data.pdf');
     };
-
-    const selectedRows = table.getSelectedRowModel().rows;
-
-    function handleUnselectAll() {
-        table.toggleAllPageRowsSelected(false);
-    }
-    const allSearchableColumns = anyColumnHiding.map((c) => c.id);
-    const selectedSearchColumns = searchColumns ? searchColumns.split(',') : [];
-
-    const toggleSearchColumn = (colId: string, checked: boolean) => {
-        let updated: string[];
-        if (checked) {
-            updated = [...new Set([...selectedSearchColumns, colId])];
-        } else {
-            updated = selectedSearchColumns.filter((id) => id !== colId);
-        }
-        setSearchColumns(updated.join(','));
-    };
-
-    const toggleSelectAllSearchColumns = () => {
-        if (selectedSearchColumns.length === allSearchableColumns.length) {
-            setSearchColumns('');
-        } else {
-            setSearchColumns(allSearchableColumns.join(','));
-        }
-    };
-    const [isSearchColumnModalOpen, setIsSearchColumnModalOpen] = useState(true);
 
     return (
-        <div className='flex w-full items-center justify-between gap-2 overflow-auto p-0.5'>
+        <div className='flex w-full items-center justify-between gap-3 overflow-auto py-1'>
             <div className='flex items-center gap-2'>
-                <Input
-                    id='table-search-input'
-                    onChange={(event) => handleSearch(event.target.value)}
-                    className='h-8 w-40 lg:w-64'
-                    placeholder='Search...'
-                    value={localSearchQuery || ''}
-                />
+                <div className='relative'>
+                    <Input
+                        placeholder='Search...'
+                        value={localSearchQuery}
+                        onChange={(e) => handleSearch(e.target.value)}
+                        className='h-9 w-64 pr-12'
+                    />
+
+                    {/* Mic button - hold to speak */}
+                    <button
+                        type='button'
+                        onClick={isRecording ? stopRecording : startRecording} // ← toggle behavior
+                        disabled={isTranscribing}
+                        className={`-translate-y-1/2 absolute top-1/2 right-1 rounded-md p-2 transition ${isRecording ? 'animate-pulse text-red-600' : 'text-muted-foreground hover:text-foreground'}
+              ${isTranscribing ? 'cursor-not-allowed opacity-50' : ''}
+            `}
+                        aria-label='Hold to speak'>
+                        {isTranscribing ? (
+                            <div className='h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent' />
+                        ) : isRecording ? (
+                            <MicOff className='h-4 w-4' />
+                        ) : (
+                            <Mic className='h-4 w-4' />
+                        )}
+                    </button>
+                </div>
                 {localSearchQuery && (
-                    <Button onClick={handleReset} variant='ghost' suffix={<X className='h-4 w-4' />} className='h-8 w-fit'>
+                    <Button variant='ghost' size='sm' onClick={handleReset} className='h-9 px-2' aria-label='Reset search'>
+                        <X className='mr-1 h-4 w-4' />
                         Reset
                     </Button>
                 )}
+                {isTranscribing && <span className='text-blue-600 text-sm'>Transcribing...</span>}
             </div>
+
             <div className='flex items-center gap-2'>
-                {selectedRows.length > 0 && (
-                    <div className='flex-center gap-2'>
-                        <Button onClick={handleUnselectAll} variant='ghost' suffix={<X className='h-4 w-4' />} className='h-8 w-fit'>
-                            Reset
-                        </Button>
-                    </div>
-                )}
-
+                {/* Export */}
                 {showExportOptions && table.getFilteredRowModel().rows.length > 0 && (
-                    <div className='flex items-center gap-2'>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button variant='outline' size='sm' prefix={<DownloadIcon className='h-4 w-4' />} className='h-8 w-fit'>
-                                    Export
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className='w-[200px] p-2' align='end'>
-                                <div className='flex flex-col gap-2'>
-                                    <Button variant='ghost' className='w-full justify-start' onClick={handleExportToExcel}>
-                                        <FileSpreadsheet className='mr-2 h-4 w-4 text-green-500' />
-                                        Export as Excel
-                                    </Button>
-                                    <Button variant='ghost' className='w-full justify-start' onClick={handleExportToPDF}>
-                                        <FileText className='mr-2 h-4 w-4 text-orange-500' />
-                                        Export as PDF
-                                    </Button>
-                                </div>
-                            </PopoverContent>
-                        </Popover>
-                    </div>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button variant='outline' size='sm'>
+                                <DownloadIcon className='mr-2 h-4 w-4' />
+                                Export
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className='w-48 p-1' align='end'>
+                            <Button variant='ghost' size='sm' className='w-full justify-start' onClick={handleExportToExcel}>
+                                <FileSpreadsheet className='mr-2 h-4 w-4 text-green-600' />
+                                Excel
+                            </Button>
+                            <Button variant='ghost' size='sm' className='w-full justify-start' onClick={handleExportToPDF}>
+                                <FileText className='mr-2 h-4 w-4 text-orange-600' />
+                                PDF
+                            </Button>
+                        </PopoverContent>
+                    </Popover>
                 )}
 
-                {/* Search Columns */}
-                {isSearchColumnModalOpen && anyColumnHiding.length > 0 && (
+                {/* Search In Columns */}
+                {hideableColumns.length > 0 && showSearchColumns && (
                     <DropdownMenu>
-                        {/* <DropdownMenuTrigger asChild>
-                            <Button
-                                variant='outline'
-                                size='sm'
-                                prefix={<Settings2 className='h-4 w-4' />}
-                                className='hidden h-8 w-fit sm:flex'>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant='outline' size='sm' className='hidden h-8 w-fit sm:flex'>
+                                <Settings2 className='mr-1 h-4 w-4' />
                                 Search Columns
                             </Button>
-                        </DropdownMenuTrigger> */}
-                        <DropdownMenuContent align='end' className='w-[180px]'>
-                            <DropdownMenuItem onClick={toggleSelectAllSearchColumns}>
-                                {selectedSearchColumns.length === allSearchableColumns.length ? 'Deselect All' : 'Select All'}
-                            </DropdownMenuItem>
-                            <div className='my-1 border-t' />
-                            {table
-                                .getAllColumns()
-                                .filter((column) => typeof column.accessorFn !== 'undefined' && column.getCanHide())
-                                .map((column) => {
-                                    const displayName =
-                                        (column.columnDef.meta as any)?.title ||
-                                        column.id
-                                            .split('_')
-                                            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                                            .join(' ');
+                        </DropdownMenuTrigger>
 
-                                    return (
-                                        <DropdownMenuCheckboxItem
-                                            key={column.id}
-                                            checked={selectedSearchColumns.includes(column.id)}
-                                            onCheckedChange={(value) => toggleSearchColumn(column.id, !!value)}>
-                                            {displayName}
-                                        </DropdownMenuCheckboxItem>
-                                    );
-                                })}
+                        <DropdownMenuContent align='end' className='max-h-[300px] w-[320px] overflow-x-auto overflow-y-auto'>
+                            {/* Select / Deselect all */}
+                            <DropdownMenuItem
+                                onSelect={(e) => {
+                                    e.preventDefault();
+                                    toggleSelectAllSearchColumns();
+                                }}
+                                className='cursor-pointer font-medium'>
+                                Select All
+                            </DropdownMenuItem>
+
+                            <div className='my-1 border-t' />
+
+                            {/* Column list */}
+                            {anyColumnHiding.map((column) => {
+                                const displayName = getColumnTitle(column);
+
+                                const isChecked = selectedSearchColumns.includes(column.id);
+                                return (
+                                    <DropdownMenuItem
+                                        key={column.id}
+                                        className={`group flex cursor-pointer items-center justify-between px-2 py-1 ${isChecked ? 'bg-accent/90' : ''}`}
+                                        onSelect={(e) => e.preventDefault()}>
+                                        {/* Checkbox + label */}
+                                        <div className='flex w-full items-center'>
+                                            <DropdownMenuCheckboxItem
+                                                checked={isChecked}
+                                                onCheckedChange={(v) => toggleSearchColumn(column.id, !!v)}
+                                                className='/* ↓↓↓ smaller height */ h-6 py-0 pr-4 text-sm leading-none '>
+                                                {displayName}
+                                            </DropdownMenuCheckboxItem>
+                                        </div>
+
+                                        {/* Hover button for "Only" */}
+                                        <Button
+                                            size='xs'
+                                            variant='secondary'
+                                            className='/* ↓ smaller button */ w-fit px-2 py-[1px] text-[10px] opacity-0 transition group-hover:opacity-100 '
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSearchColumns(column.id);
+                                            }}>
+                                            Only
+                                        </Button>
+                                    </DropdownMenuItem>
+                                );
+                            })}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 )}
 
-                {showViewOptions && anyColumnHiding.length > 0 && (
+                {/* View Columns */}
+                {showViewOptions && hideableColumns.length > 0 && (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button
-                                variant='outline'
-                                size='sm'
-                                prefix={<Settings2 className='h-4 w-4' />}
-                                className='hidden h-8 w-fit sm:flex'>
+                            <Button variant='outline' size='sm'>
+                                <Settings2 className='mr-2 h-4 w-4' />
                                 View
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align='end' className='w-[150px]'>
-                            {table
-                                .getAllColumns()
-                                .filter((column) => typeof column.accessorFn !== 'undefined' && column.getCanHide())
-                                .map((column) => {
-                                    // Get display name from meta or format the column id
-                                    const displayName =
-                                        (column.columnDef.meta as any)?.title ||
-                                        column.id
-                                            .split('_')
-                                            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                                            .join(' ');
-
-                                    return (
-                                        <DropdownMenuCheckboxItem
-                                            key={column.id}
-                                            checked={column.getIsVisible()}
-                                            onCheckedChange={(value) => column.toggleVisibility(!!value)}>
-                                            {displayName}
-                                        </DropdownMenuCheckboxItem>
-                                    );
-                                })}
+                        <DropdownMenuContent align='end'>
+                            {hideableColumns.map((column) => {
+                                const title =
+                                    (column.columnDef.meta as any)?.title ||
+                                    column.id.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+                                return (
+                                    <DropdownMenuCheckboxItem
+                                        key={column.id}
+                                        checked={column.getIsVisible()}
+                                        onCheckedChange={(v) => column.toggleVisibility(!!v)}>
+                                        {title}
+                                    </DropdownMenuCheckboxItem>
+                                );
+                            })}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 )}

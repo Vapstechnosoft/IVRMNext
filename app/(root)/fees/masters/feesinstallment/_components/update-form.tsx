@@ -35,8 +35,6 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
         fmI_ActiveFlag?: any;
     }>({});
 
-    console.log('row data', row);
-
     const sanitizeId = (id: any) => {
         if (id === null || id === undefined) return undefined;
         if (typeof id === 'string') {
@@ -48,9 +46,6 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
             const n = Number(trimmed);
             if (!Number.isNaN(n) && n > 0 && Number.isInteger(n)) {
                 return n;
-            }
-            if (!Number.isNaN(n)) {
-                return undefined;
             }
             return trimmed;
         }
@@ -75,7 +70,6 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
         }
 
         copy.fmI_No_Of_Installments = Number(copy.fmI_No_Of_Installments) || 1;
-
         copy.fmI_Installment_Type = copy.fmI_Installment_Type ?? '';
         copy.fmI_Name = copy.fmI_Name ?? '';
 
@@ -94,9 +88,9 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
         mode: 'onChange',
         defaultValues: {
             installments: [],
-            fmI_Installment_Type: row?.fmI_Installment_Type?.toLowerCase() || '',
-            fmI_Name: row?.fmI_Name || '',
-            fmI_No_Of_Installments: row?.fmI_No_Of_Installments || 1
+            fmI_Installment_Type: '',
+            fmI_Name: '',
+            fmI_No_Of_Installments: 1
         }
     });
 
@@ -112,74 +106,119 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
         name: 'fmI_No_Of_Installments'
     });
 
+    const installmentType = watch('fmI_Installment_Type');
+
+    // === 1. DEFINE INSTALLMENT_TYPES HERE ===
+    const INSTALLMENT_TYPES = [
+        { value: 'general', label: 'General', count: 0 },
+        { value: 'monthly', label: 'Monthly', count: 12 },
+        { value: 'quarterly', label: 'Quarterly', count: 4 },
+        { value: 'halfyearly', label: 'Half Yearly', count: 2 },
+        { value: 'yearly', label: 'Yearly', count: 1 },
+        { value: 'bimonthly', label: 'Bi-Monthly', count: 24 },
+        { value: 'anytime', label: 'Anytime', count: 1 }
+    ] as const;
+
+    // === 2. ADD THIS useEffect: React to Installment Type change ===
+    useEffect(() => {
+        if (!installmentType || installmentType === 'general') {
+            return; // User manually controls count
+        }
+
+        const selected = INSTALLMENT_TYPES.find((t) => t.value === installmentType);
+        if (!selected || selected.count === 0) return;
+
+        const newCount = selected.count;
+
+        setValue('fmI_No_Of_Installments', newCount, { shouldValidate: true });
+
+        // Reset to fresh defaults when type changes
+        const newInstallments = Array.from({ length: newCount }, (_, i) => ({
+            sno: i + 1,
+            ftI_Name: `Installment ${i + 1}`,
+            ftI_Id: undefined // New installments → no old ID
+        }));
+
+        setValue('installments', newInstallments, { shouldValidate: true });
+    }, [installmentType, setValue]);
+
+    // === 3. Initial load effect (must come AFTER type change effect) ===
     useEffect(() => {
         if (!row) return;
 
-        const rawType = row.fmI_Installment_Type;
         let normalizedType = '';
-
-        if (rawType === undefined || rawType === null) {
-            normalizedType = '';
-        } else if (typeof rawType === 'number' || /^(\d+)$/g.test(String(rawType))) {
-            const num = Number(rawType);
-            normalizedType = num === 1 ? 'monthly' : num === 2 ? 'quarterly' : String(rawType);
-        } else {
-            normalizedType = String(rawType).toLowerCase();
+        if (row.fmI_Installment_Type) {
+            normalizedType = String(row.fmI_Installment_Type).toLowerCase().trim();
         }
 
         const fmIId = sanitizeId(row.fmI_Id ?? (row as any).id);
         sanitizedRef.current = {
             fmI_Id: fmIId,
-            fmI_ActiveFlag: row.fmI_ActiceFlag
+            fmI_ActiveFlag: row.fmI_ActiceFlag || row.fmI_ActiceFlag
         };
 
-        const installments =
-            Array.isArray((row as any).fydto) && (row as any).fydto.length > 0
-                ? (row as any).fydto.map((inst: any, index: number) => ({
-                      sno: index + 1,
-                      ftI_Name: inst.ftI_Name ?? `Installment ${index + 1}`,
-                      ftI_Id: sanitizeId(inst.ftI_Id ?? inst.id)
-                  }))
-                : Array.from({ length: row.fmI_No_Of_Installments || 1 }, (_, i) => ({
-                      sno: i + 1,
-                      ftI_Name: `Installment ${i + 1}`
-                  }));
+        let targetCount = row.fmI_No_Of_Installments || 1;
+        const preset = INSTALLMENT_TYPES.find((t) => t.value === normalizedType);
+        if (preset && preset.count > 0 && normalizedType !== 'general') {
+            targetCount = preset.count;
+        }
+
+        let installments: { sno: number; ftI_Name: string; ftI_Id?: number }[] = [];
+
+        if (Array.isArray((row as any).fydto) && (row as any).fydto.length > 0) {
+            installments = (row as any).fydto.map((inst: any, index: number) => ({
+                sno: index + 1,
+                ftI_Name: inst.ftI_Name || `Installment ${index + 1}`,
+                ftI_Id: sanitizeId(inst.ftI_Id ?? inst.id)
+            }));
+
+            while (installments.length < targetCount) {
+                installments.push({
+                    sno: installments.length + 1,
+                    ftI_Name: `Installment ${installments.length + 1}`
+                });
+            }
+        } else {
+            installments = Array.from({ length: targetCount }, (_, i) => ({
+                sno: i + 1,
+                ftI_Name: `Installment ${i + 1}`
+            }));
+        }
 
         setValue('fmI_Installment_Type', normalizedType, { shouldValidate: true });
-        setValue('fmI_Name', row.fmI_Name, { shouldValidate: true });
-        setValue('fmI_No_Of_Installments', installments.length, {
-            shouldValidate: true
-        });
+        setValue('fmI_Name', row.fmI_Name || '', { shouldValidate: true });
+        setValue('fmI_No_Of_Installments', targetCount, { shouldValidate: true });
         setValue('installments', installments, { shouldValidate: true });
         setValue('fmI_Id', typeof fmIId === 'number' ? fmIId : undefined);
 
-        initialValuesRef.current = sanitizeSnapshot({
+        initialValuesRef.current = {
             fmI_Id: typeof fmIId === 'number' ? fmIId : undefined,
             fmI_Installment_Type: normalizedType,
-            fmI_Name: row.fmI_Name,
-            fmI_No_Of_Installments: installments.length,
+            fmI_Name: row.fmI_Name || '',
+            fmI_No_Of_Installments: targetCount,
             installments
-        });
+        };
     }, [row, setValue]);
 
+    // === 4. Handle manual count change for General ===
     useEffect(() => {
-        if (watchNoOfInstallments !== undefined) {
-            const targetLength = Number(watchNoOfInstallments);
-            const currentLength = fields.length;
+        if (watchNoOfInstallments === undefined) return;
 
-            if (targetLength > currentLength) {
-                for (let i = currentLength; i < targetLength; i++) {
-                    append({ sno: i + 1, ftI_Name: `Installment ${i + 1}` });
-                }
-            } else if (targetLength < currentLength) {
-                for (let i = currentLength - 1; i >= targetLength; i--) {
-                    remove(i);
-                }
+        const targetLength = Number(watchNoOfInstallments);
+        const currentLength = fields.length;
+
+        if (targetLength > currentLength) {
+            for (let i = currentLength; i < targetLength; i++) {
+                append({ sno: i + 1, ftI_Name: `Installment ${i + 1}` });
+            }
+        } else if (targetLength < currentLength) {
+            for (let i = currentLength - 1; i >= targetLength; i--) {
+                remove(i);
             }
         }
     }, [watchNoOfInstallments, fields.length, append, remove]);
 
-    const installmentType = watch('fmI_Installment_Type');
+    // === Rest of your code (onSubmit, handleReset, JSX) remains the same ===
 
     const onSubmit = async (data: FormFields) => {
         try {
@@ -219,7 +258,7 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
                     return obj;
                 }
                 if (typeof obj === 'number' || typeof obj === 'boolean') return obj;
-                if (Array.isArray(obj)) return obj.map((v) => sanitizeOutgoing(v));
+                if (Array.isArray(obj)) return obj.map(sanitizeOutgoing);
                 if (typeof obj === 'object') {
                     const out: any = Array.isArray(obj) ? [] : {};
                     for (const k of Object.keys(obj)) {
@@ -264,35 +303,19 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
                 <Controller
                     name='fmI_Id'
                     control={control}
-                    render={({ field }) => (
-                        <input
-                            type='hidden'
-                            {...field}
-                            value={field.value ?? ('' as any)}
-                            onChange={(e) => field.onChange(e.target.value)}
-                        />
-                    )}
+                    render={({ field }) => <input type='hidden' {...field} value={field.value ?? ''} />}
                 />
 
                 <div className='flex flex-col gap-1.5'>
                     <Label htmlFor='fmI_Name'>
                         Master Installment Name <span className='text-red-500'>*</span>
                     </Label>
-                    {/* <Controller
+                    <Controller
                         name='fmI_Name'
                         control={control}
-                        render={({ field }) => (
-                            <InputText
-                                id='fmI_Name'
-                                placeholder='Enter master installment name'
-                                {...field}
-                                value={field.value ?? ''}
-                                onChange={field.onChange}
-                                disabled
-                            />
-                        )}
-                    /> */}
-                    <Controller
+                        render={({ field }) => <InputText id='fmI_Name' placeholder='Enter master installment name' {...field} disabled />}
+                    />
+                    {/* <Controller
                         name='fmI_Name'
                         control={control}
                         render={({ field }) => (
@@ -308,7 +331,7 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
                                 disabled
                             />
                         )}
-                    />
+                    /> */}
 
                     {errors.fmI_Name && <FormError>{errors.fmI_Name.message}</FormError>}
                 </div>
@@ -321,18 +344,16 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
                         name='fmI_Installment_Type'
                         control={control}
                         render={({ field }) => (
-                            <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                            <Select onValueChange={field.onChange} value={field.value}>
                                 <SelectTrigger className='w-full'>
                                     <SelectValue placeholder='Select Installment Type' />
                                 </SelectTrigger>
-                                <SelectContent className='max-h-56 overflow-y-auto'>
-                                    <SelectItem value='general'>General</SelectItem>
-                                    <SelectItem value='monthly'>Monthly</SelectItem>
-                                    <SelectItem value='quarterly'>Quarterly</SelectItem>
-                                    <SelectItem value='halfyearly'>Half Yearly</SelectItem>
-                                    <SelectItem value='yearly'>Yearly</SelectItem>
-                                    <SelectItem value='bimonthly'>Bi-Monthly</SelectItem>
-                                    <SelectItem value='anytime'>Anytime</SelectItem>
+                                <SelectContent>
+                                    {INSTALLMENT_TYPES.map((type) => (
+                                        <SelectItem key={type.value} value={type.value}>
+                                            {type.label}
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                         )}
@@ -353,7 +374,10 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
                                     min='1'
                                     {...field}
                                     value={field.value ?? ''}
-                                    onChange={(e) => field.onChange(Number(e.target.value))}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        field.onChange(val === '' ? undefined : Number(val));
+                                    }}
                                     placeholder='Enter number of installments'
                                     className='w-full rounded-md border border-gray-300 px-2 py-2 text-sm outline-none transition focus:border-primary focus:ring-1 focus:ring-primary'
                                 />
@@ -380,27 +404,20 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
                                             <Controller
                                                 name={`installments.${index}.ftI_Name`}
                                                 control={control}
-                                                render={({ field }) => (
+                                                render={({ field: nameField }) => (
                                                     <input
                                                         type='text'
-                                                        {...field}
+                                                        {...nameField}
                                                         placeholder={`Installment ${index + 1}`}
                                                         className='w-full rounded-md border border-gray-300 px-2 py-1 text-sm outline-none transition focus:border-primary focus:ring-1 focus:ring-primary'
                                                     />
                                                 )}
                                             />
-                                            {/* Preserve ftI_Id so payload includes existing installment IDs. Use Controller to avoid DOM string coercion issues. */}
                                             <Controller
-                                                name={`installments.${index}.ftI_Id` as const}
+                                                name={`installments.${index}.ftI_Id`}
                                                 control={control}
-                                                render={({ field }) => (
-                                                    <input
-                                                        type='hidden'
-                                                        value={field.value ?? ('' as any)}
-                                                        onChange={(e) => {
-                                                            field.onChange(e.target.value);
-                                                        }}
-                                                    />
+                                                render={({ field: idField }) => (
+                                                    <input type='hidden' {...idField} value={idField.value ?? ''} />
                                                 )}
                                             />
                                             {errors.installments?.[index]?.ftI_Name && (

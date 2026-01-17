@@ -75,6 +75,7 @@ export function DataTableToolbar<TData>({
     const handleReset = () => {
         isUserInputRef.current = true;
         setLocalSearchQuery('');
+        onSearchQueryChange?.('');
         setSearchQuery(''); // Clear the URL param completely
         table.resetColumnFilters();
         table.resetColumnVisibility();

@@ -198,7 +198,6 @@ export default function SalaryCertificatePage() {
         setReportData(null);
         toast.info('Form has been reset');
     };
-
     const handlePrint = () => {
         window.print();
         toast.success('Print dialog opened');

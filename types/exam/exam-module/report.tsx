@@ -58,6 +58,8 @@ export interface IAcademicYearandClassandsection {
     emE_ExamName: string;
     amsT_Id: number;
     amsT_FirstName: string;
+    emcA_Id: number;
+    emcA_CategoryName: string;
 }
 
 export interface IExamReportCard {
@@ -85,4 +87,89 @@ export interface IExamReportCard {
     classheld?: number | null;
     classatt?: number | null;
     estmP_TotalGradeRemark?: string;
+}
+
+export interface IExamElectivesReport {
+    asmaY_Id: number;
+    asmaY_Year: string;
+    asmcL_Id: number;
+    asmcL_ClassName: string;
+    asmS_Id: number;
+    asmC_SectionName: string;
+    emE_Id: number;
+    emE_ExamName: string;
+    amsT_Id: number;
+    amsT_FirstName: string;
+    emcA_Id: number;
+    emcA_CategoryName: string;
+    emG_Id: number;
+    emG_GroupName: string;
+    ismS_Id: number;
+    ismS_SubjectName: string;
+}
+
+export interface ElectiveGroup {
+    emG_Id: number;
+    emG_GroupName: string;
+}
+
+export interface StudentSubject {
+    ismS_Id: number;
+    ismS_SubjectName: string;
+    emG_GroupName?: string;
+}
+
+export interface StudentRow {
+    amsT_Id: number;
+    amsT_FirstName: string;
+    amsT_AdmNo?: string;
+    amsT_MobileNo?: string;
+    amsT_emailId?: string;
+    asmcL_ClassName: string;
+    asmC_SectionName: string;
+    sub_list: StudentSubject[];
+}
+
+// Add these interfaces at the top of your types file
+export interface CategoryItem {
+    emcA_Id: number;
+    emcA_CategoryName: string;
+    mI_Id?: number;
+    eyC_Id?: number;
+}
+
+export interface SubjectGroupItem {
+    emG_Id: number;
+    emG_GroupName: string;
+}
+
+export interface SubjectItem {
+    ismS_Id: number;
+    ismS_SubjectName: string;
+}
+
+export interface ClassItem {
+    asmcL_Id: number;
+    asmcL_ClassName: string;
+}
+
+export interface SectionItem {
+    asmS_Id: number;
+    asmC_SectionName: string;
+}
+
+// Add this interface
+export interface ApiResponse<T> {
+    success: boolean;
+    message: string;
+    data: T;
+    total?: number | null;
+    page?: number | null;
+    page_size?: number | null;
+}
+
+export interface IMasterInstitution {
+    mI_Id: number;
+    mI_Name: string;
+    mI_Logo: string;
 }

@@ -25,7 +25,7 @@ export interface EmployeeRegisterOnloadResponse {
     HRME_EmployeeCode?: string;
     HRME_BiometricCode?: string;
     HRME_RFCardId?: string;
-    
+
     // All dropdown lists
     employeeTypedropdownlist?: DropdownItemGeneric[] | null;
     groupTypedropdownlist?: DropdownItemGeneric[] | null;
@@ -43,14 +43,14 @@ export interface EmployeeRegisterOnloadResponse {
     countrydropdownlist?: DropdownItemGeneric[] | null;
     AllState?: DropdownItemGeneric[] | null;
     institutiondropdownlist?: DropdownItemGeneric[] | null;
-    
+
     // Data lists
     employeedetailList?: DropdownItemGeneric[] | null;
     experienceDetails?: DropdownItemGeneric[] | null;
     qualificationDetails?: DropdownItemGeneric[] | null;
     documentList?: DropdownItemGeneric[] | null;
     LeavingReasonList?: DropdownItemGeneric[] | null;
-    
+
     // Earnings/Deductions
     earningList?: DropdownItemGeneric[] | null;
     detectionList?: DropdownItemGeneric[] | null;
@@ -60,18 +60,18 @@ export interface EmployeeRegisterOnloadResponse {
     arrearList?: DropdownItemGeneric[] | null;
     grossList?: DropdownItemGeneric[] | null;
     employeeEarningsDeductionsDetails?: DropdownItemGeneric[] | null;
-    
+
     // Increment Details
     IncrementDetailsDTO?: any;
     incrementDetails?: DropdownItemGeneric[] | null;
-    
+
     // Configuration
     configurationDetails?: any;
-    
+
     // Other fields
     retrunMsg?: string | null;
     roleId?: number | null;
-    
+
     // Additional fields from the comprehensive response
     [key: string]: any; // Allow additional fields to match the full API response
 }
@@ -84,11 +84,12 @@ export interface ApiResponse<T> {
 
 // Save Personal Details Request (Employee + Address tabs combined)
 // Note: Optional string fields should be null (not empty string) when not provided
+// Note: MI_Id is extracted from JWT by backend, so it's optional in the request
 export interface SavePersonalDetailsRequest {
     CreatedDate: string;
     UpdatedDate: string;
     HRME_Id: number;
-    MI_Id: number;
+    MI_Id?: number; // Optional - backend extracts from JWT
     dmoObj?: any; // Required by API but unclear structure
     HRMET_Id: number;
     HRMGT_Id: number;
@@ -190,6 +191,109 @@ export interface SavePersonalDetailsResponse {
     roleId?: number;
     countrydropdownlist?: DropdownItemGeneric[] | null;
     AllState?: DropdownItemGeneric[] | null;
+}
+
+// Save Personal Details API Request (with lowercase field names as per API)
+export interface SavePersonalDetailsApiRequest {
+    hrmE_Id: number;
+    hrmeT_Id: number;
+    hrmgT_Id: number;
+    hrmD_Id: number;
+    hrmdeS_Id: number;
+    hrmG_Id: number;
+    hrmE_EmployeeFirstName: string | null;
+    hrmE_EmployeeMiddleName: string | null;
+    hrmE_EmployeeLastName: string | null;
+    hrmE_EmployeeCode: string | null;
+    hrmE_BiometricCode: string | null;
+    hrmE_RFCardId: string | null;
+    hrmE_PerStreet: string | null;
+    hrmE_PerArea: string | null;
+    hrmE_PerCity: string | null;
+    hrmE_PerAdd4: string | null;
+    hrmE_PerStateId: number;
+    hrmE_PerCountryId: number;
+    hrmE_PerPincode: number;
+    hrmE_LocStreet: string | null;
+    hrmE_LocArea: string | null;
+    hrmE_LocCity: string | null;
+    hrmE_LocAdd4: string | null;
+    hrmE_LocStateId: number;
+    hrmE_LocCountryId: number;
+    hrmE_LocPincode: number;
+    ivrmmmS_Id: number;
+    ivrmmG_Id: number;
+    casteCategoryId: number;
+    casteId: number;
+    religionId: number;
+    hrmE_FatherName: string | null;
+    hrmE_MotherName: string | null;
+    hrmE_SpouseName: string | null;
+    hrmE_SpouseOccupation: string | null;
+    hrmE_SpouseMobileNo: number;
+    hrmE_SpouseEmailId: string | null;
+    hrmE_SpouseAddress: string | null;
+    hrmE_DOB: string | null;
+    hrmE_DOJ: string | null;
+    hrmE_ExpectedRetirementDate: string | null;
+    hrmE_PFDate: string | null;
+    hrmE_ESIDate: string | null;
+    hrmE_MobileNo: number;
+    hrmE_EmailId: string | null;
+    hrmE_BloodGroup: string | null;
+    hrmE_PaymentType: string | null;
+    hrmE_BankAccountNo: string | null;
+    hrmE_PFApplicableFlag: boolean;
+    hrmE_PFMaxFlag: boolean;
+    hrmE_PFFixedFlag: boolean;
+    hrmE_PFAccNo: string | null;
+    hrmE_ESIAccNo: string | null;
+    hrmE_GratuityAccNo: string | null;
+    hrmE_ESIApplicableFlag: boolean;
+    hrmE_Photo: string | null;
+    hrmE_LeftFlag: boolean;
+    hrmE_DOL: string | null;
+    hrmE_LeavingReason: string | null;
+    hrmE_Height: string | null;
+    hrmE_HeightUOM: string | null;
+    hrmE_Weight: number;
+    hrmE_WeightUOM: string | null;
+    hrmE_IdentificationMark: string | null;
+    hrmE_ApprovalNo: string | null;
+    hrmE_PANCardNo: string | null;
+    hrmE_AadharCardNo: number;
+    hrmE_SubstituteFlag: boolean;
+    hrmE_NationalSSN: string | null;
+    hrmE_SalaryType: string | null;
+    hrmE_EmployeeOrder: number;
+    hrmE_ActiveFlag: boolean;
+    hrmE_UINumber: string | null;
+    hrmE_doc: string | null;
+    hrmE_SubjectsTaught: string | null;
+    hrmE_AppDownloadedDeviceId: string | null;
+    hrmE_PHDResearchGuideFlg: boolean;
+    hrmE_TechNonTeachingFlg: string | null;
+    hrmE_RGRecognitionYear: number;
+    hrmE_AnyHealthIssue: string | null;
+    hrmE_EyeSightIssue: string | null;
+    hrmE_TransfferedTo: number;
+    hrmE_RecordTransferredFlg: boolean;
+    hrmE_MSTeamsUserId: string | null;
+    hrmE_MSTeamsEmailId: string | null;
+    hrmE_MSTeamsPassword: string | null;
+    hrmE_ExcPunch: boolean;
+    hrmE_RetiredFlg: boolean;
+    hrmE_PensionStoppedDate: string | null;
+    hrmE_FPFNotApplicableFlg: boolean;
+    hrmE_EPFNotApplicableFlg: boolean;
+    hrmE_AllowSoftwareAccessFlg: boolean;
+    // Other tab objects - send as null when saving personal details
+    qualificationDetails?: null;
+    experienceDetails?: null;
+    documentList?: null;
+    medicalDetails?: null;
+    otherDetails?: null;
+    payrollDetails?: null;
 }
 
 // Employee Save/Update Request - Updated to match API expectations

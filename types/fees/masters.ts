@@ -173,3 +173,78 @@ export interface IMasterFeesInstallmentDuedateList {
     asmaY_Id: number;
     fmI_Id: number;
 }
+
+export interface IspecialFeeHeadList {
+    fmsfH_Id: number;
+    fmsfhfH_Id: number;
+    fmsfH_Name: string;
+    fmH_Name: string;
+    fmsfhfH_ActiceFlag: boolean;
+    fmH_Id: number;
+}
+
+// export interface IspecialFeeHeadDropdownList {
+//     fmH_Id: number;
+
+//     fmH_FeeName: string;
+// }
+
+export interface IspecialFeeHeadDropdownList {
+    fmH_Id: number;
+    amount: number;
+    fmH_FeeName: string;
+}
+
+export interface IfeeCompanyGroupMappingList {
+    ftmcoM_CompanyName: string;
+    fmG_GroupName: string;
+    ftmcoM_CompanyCode: string;
+    ffgcmA_Id: number;
+    fmgG_Id: number;
+    ftmcoM_Id: number;
+    ffgcmA_ActiveId: boolean;
+}
+
+export interface ICompanyGroupMappingGroupDropdownList {
+    fmgG_Id: number;
+    fmgG_GroupName: string;
+}
+
+export interface ICompanyGroupMappingCompanyDropdownList {
+    mI_Id: number;
+    ftmcoM_Id: number;
+    ftmcoM_CompanyName: string;
+    ftmcoM_CompanyCode: string;
+    ftmcoM_CreatedDate: string;
+    ftmcoM_UpdatedDate: string;
+}
+
+export interface ICompanyGroupMappingGroupDropdownList {
+    fmG_Id: number;
+    mI_Id?: number;
+    fmG_GroupName?: string;
+    fmG_Remarks?: string;
+    fmG_CompulsoryFlag?: string;
+    fmG_ActiceFlag?: boolean;
+    user_id?: number;
+    fmG_Order?: number;
+    fmG_PRE_FLAG?: string;
+    fmG_CreatedBy?: number;
+    fmG_UpdatedBy?: number;
+    fmG_TransportFlg?: boolean;
+    fmG_HostelFlg?: boolean;
+    fmG_BatchwiseFeeApplFlg?: boolean;
+    fmG_RegNewFlg?: string;
+    createdDate?: string;
+    updatedDate?: string;
+}
+
+export interface IAcademicYearDataDetails {
+    asmaY_Id: number;
+    asmaY_Year: string;
+    mI_Id: number;
+    asmaY_From_Date: string;
+    asmaY_To_Date: string;
+    asmaY_Order: number;
+    is_Active: boolean;
+}

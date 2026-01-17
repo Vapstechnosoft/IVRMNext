@@ -1,0 +1,230 @@
+// Dropdown Interfaces - All follow the key/value pattern from /api/MasterDropDown endpoints
+export interface IGradeDropdown {
+    key: number;
+    value: string;
+}
+
+export interface IEmployeeTypeDropdown {
+    key: number;
+    value: string;
+}
+
+export interface IGroupTypeDropdown {
+    key: number;
+    value: string;
+}
+
+export interface IDepartmentDropdown {
+    key: number;
+    value: string;
+}
+
+export interface IDesignationDropdown {
+    key: number;
+    value: string;
+}
+
+export interface IGenderDropdown {
+    key: number;
+    value: string;
+}
+
+export interface IMaritalStatusDropdown {
+    key: number;
+    value: string;
+}
+
+export interface IReligionDropdown {
+    key: number;
+    value: string;
+}
+
+export interface ICasteCategoryDropdown {
+    key: number;
+    value: string;
+}
+
+export interface ICasteDropdown {
+    key: number;
+    value: string;
+}
+
+export interface IBankDropdown {
+    key: number;
+    value: string;
+}
+
+export interface ICountryDropdown {
+    key: number;
+    value: string;
+}
+
+export interface IStateDropdown {
+    key: number;
+    value: string;
+}
+
+export interface ICourseDropdown {
+    key: number;
+    value: string;
+}
+
+export interface ISpecializationDropdown {
+    key: number;
+    value: string;
+}
+
+export interface IInstitutionDropdown {
+    key: number;
+    value: string;
+}
+
+export interface IPaymentModeDropdown {
+    key: string;
+    value: string;
+}
+
+export interface ILeaveReasonDropdown {
+    key: number;
+    value: string;
+}
+
+export interface IBloodGroupDropdown {
+    key: string;
+    value: string;
+}
+
+export interface ISalaryTypeDropdown {
+    key: string;
+    value: string;
+}
+
+export interface ITeachingTypeDropdown {
+    key: string;
+    value: string;
+}
+
+export interface IScoreTypeDropdown {
+    key: string;
+    value: string;
+}
+
+export interface IContactTypeDropdown {
+    key: string;
+    value: string;
+}
+
+// Employee List Interface - matches API response from /api/EmployeeRegistration/GetEmployeeDetails
+export interface IEmployeeList {
+    hrmE_Id: number;
+    mI_Id: number;
+    hrmeT_Id: number;
+    hrmgT_Id: number;
+    hrmD_Id: number;
+    hrmdeS_Id: number;
+    hrmG_Id: number;
+    hrmE_EmployeeFirstName: string;
+    hrmE_EmployeeMiddleName: string | null;
+    hrmE_EmployeeLastName: string;
+    hrmE_EmployeeCode: string;
+    hrmE_BiometricCode: string | null;
+    hrmE_RFCardId: string | null;
+    hrmE_PerStreet: string;
+    hrmE_PerArea: string;
+    hrmE_PerCity: string;
+    hrmE_PerAdd4: string | null;
+    hrmE_PerStateId: number;
+    hrmE_PerCountryId: number;
+    hrmE_PerPincode: number;
+    hrmE_LocStreet: string;
+    hrmE_LocArea: string;
+    hrmE_LocCity: string;
+    hrmE_LocAdd4: string | null;
+    hrmE_LocStateId: number;
+    hrmE_LocCountryId: number;
+    hrmE_LocPincode: number;
+    ivrmmmS_Id: number;
+    ivrmmG_Id: number;
+    casteCategoryId: number;
+    casteId: number;
+    religionId: number;
+    hrmE_FatherName: string;
+    hrmE_MotherName: string;
+    hrmE_SpouseName: string | null;
+    hrmE_SpouseOccupation: string | null;
+    hrmE_SpouseMobileNo: number;
+    hrmE_SpouseEmailId: string | null;
+    hrmE_SpouseAddress: string | null;
+    hrmE_DOB: string;
+    hrmE_DOJ: string;
+    hrmE_ExpectedRetirementDate: string;
+    hrmE_PFDate: string;
+    hrmE_ESIDate: string;
+    hrmE_MobileNo: number;
+    hrmE_EmailId: string;
+    hrmE_BloodGroup: string;
+    hrmE_PaymentType: string;
+    hrmE_BankAccountNo: string | null;
+    hrmE_PFApplicableFlag: boolean;
+    hrmE_PFMaxFlag: boolean;
+    hrmE_PFFixedFlag: boolean;
+    hrmE_PFAccNo: string;
+    hrmE_ESIAccNo: string;
+    hrmE_GratuityAccNo: string;
+    hrmE_ESIApplicableFlag: boolean;
+    hrmE_Photo: string | null;
+    hrmE_LeftFlag: boolean;
+    hrmE_DOC: string | null;
+    hrmE_DOL: string | null;
+    hrmE_LeavingReason: string | null;
+    hrmE_Height: string;
+    hrmE_HeightUOM: string;
+    hrmE_Weight: number;
+    hrmE_WeightUOM: string;
+    hrmE_IdentificationMark: string;
+    hrmE_ApprovalNo: string | null;
+    hrmE_PANCardNo: string;
+    hrmE_AadharCardNo: number;
+    hrmE_SubstituteFlag: boolean;
+    hrmE_NationalSSN: string;
+    hrmE_SalaryType: string;
+    hrmE_EmployeeOrder: number;
+    hrmE_ActiveFlag: boolean;
+    hrmE_UINumber: string;
+    hrmE_SubjectsTaught: string | null;
+    hrmE_AppDownloadedDeviceId: string | null;
+    hrmE_PHDResearchGuideFlg: boolean;
+    hrmE_TechNonTeachingFlg: string;
+    hrmE_RGRecognitionYear: number;
+    hrmE_AnyHealthIssue: string;
+    hrmE_EyeSightIssue: string;
+    hrmE_TransfferedTo: number;
+    hrmE_RecordTransferredFlg: boolean;
+    hrmE_MSTeamsUserId: string | null;
+    hrmE_MSTeamsEmailId: string | null;
+    hrmE_MSTeamsPassword: string | null;
+    hrmE_ExcPunch: boolean;
+    hrmE_RetiredFlg: boolean;
+    hrmE_PensionStoppedDate: string | null;
+    hrmE_FPFNotApplicableFlg: boolean;
+    hrmE_EPFNotApplicableFlg: boolean;
+    hrmE_AllowSoftwareAccessFlg: boolean;
+    createdDate: string;
+    updatedDate: string;
+}
+
+// Employee Save Request/Response - Will be defined based on actual form payloads
+export interface IEmployeeSaveRequest {
+    [key: string]: any;
+}
+
+export interface IEmployeeSaveResponse {
+    success: boolean;
+    message: string;
+    data?: any;
+}
+
+// Employee Detail Response
+export interface IEmployeeDetailResponse {
+    [key: string]: any;
+}

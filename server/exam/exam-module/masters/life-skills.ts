@@ -54,6 +54,8 @@ export async function toggleMasterLifeSkillArea(id: number) {
     return await api.put('exam', url);
 }
 
+
+
 // add or update life skill area mapping
 export async function addOrUpdateMasterLifeSkillMapping(data: any) {
     const url = '/MasterLifeSkillFacade/add_or_update_master_life_skill_Area_mapping';

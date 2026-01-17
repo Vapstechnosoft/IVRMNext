@@ -2,7 +2,7 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { ICategory, ICategoryMapping, IClass, ISection } from '@/types/exam/exam-module/masters';
+import type { ICategory, ICategoryClassMappingDetails, ICategoryMapping, IClass, ISection } from '@/types/exam/exam-module/masters';
 
 /* -------------------------------------------------
    GET EXAM MASTER CATEGORY (with class mapping)
@@ -50,7 +50,7 @@ export async function getClasses() {
 
 export async function getCategoryMappedSections(academicYear: number, category: number, className: number) {
     const url = `/exam_master_category/exam_category_class_details_by_ids/30/${category}/${academicYear}/${className}`;
-    return await api.get<ISection>('exam', url);
+    return await api.get<ICategoryClassMappingDetails>('exam', url);
 }
 
 // Getting Assigned sections for Particular AcademicYear and Class
@@ -77,8 +77,7 @@ export async function addOrUpdateCategoryClassMapping(data: any) {
     }
 }
 
-export async function toggleMasterExamCategoryClassSection(mi_id: number, id: number) {
-    console.log(mi_id, id);
-    const url = `/exam_master_category/toggle_exam_category_class_section/${mi_id}/${id}`;
+export async function toggleMasterExamCategoryClassSection(ecaC_Id: number) {
+    const url = `/exam_master_category/toggle_exam_category_class_section/30/${ecaC_Id}`;
     return await api.put('exam', url);
 }

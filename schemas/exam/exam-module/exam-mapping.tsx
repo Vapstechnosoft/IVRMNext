@@ -13,7 +13,21 @@ export const examLoginPrivilegesSchema = {
 
             ivrmulF_Id: z.number({ required_error: 'User Login is required' }).min(1, { message: 'Please select a User Login' }),
 
-            asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, { message: 'Please select a Class' }),
+            // Make asmcL_Id optional since we're using classList
+            asmcL_Id: z.number().optional(),
+
+            /**
+             * ✔ Added support for multi-select classList
+             * Used when teacher-mapped classes need to be selected automatically.
+             */
+            classList: z
+                .array(
+                    z.object({
+                        asmcL_Id: z.number(),
+                        asmcL_ClassName: z.string().optional()
+                    })
+                )
+                .optional(),
 
             // Multi selections
             sectionList: z
@@ -32,10 +46,11 @@ export const examLoginPrivilegesSchema = {
                 )
                 .min(1, { message: 'At least one subject must be selected' }),
 
+            // FIXED: Changed from issS_Id to emsS_Id
             subSubjectList: z
                 .array(
                     z.object({
-                        issS_Id: z.number({ required_error: 'Sub-subject is required' }).min(1, { message: 'Please select a Sub-subject' })
+                        emsS_Id: z.number({ required_error: 'Sub-subject is required' }).min(1, { message: 'Please select a Sub-subject' })
                     })
                 )
                 .optional(),
@@ -51,6 +66,15 @@ export const examLoginPrivilegesSchema = {
         .superRefine((data, ctx) => {
             // Cross validation rules
 
+            // Must have at least one class (either via asmcL_Id or classList)
+            if (!data.asmcL_Id && (!data.classList || data.classList.length === 0)) {
+                ctx.addIssue({
+                    path: ['asmcL_Id'],
+                    code: z.ZodIssueCode.custom,
+                    message: 'Please select at least one Class'
+                });
+            }
+
             // Must have at least one section or subject
             if ((!data.sectionList || data.sectionList.length === 0) && (!data.subjectList || data.subjectList.length === 0)) {
                 ctx.addIssue({
@@ -58,6 +82,18 @@ export const examLoginPrivilegesSchema = {
                     code: z.ZodIssueCode.custom,
                     message: 'At least one Section or Subject must be selected'
                 });
+            }
+
+            // Disallow duplicate classes in classList
+            if (data.classList) {
+                const classIds = data.classList.map((c) => c.asmcL_Id);
+                if (new Set(classIds).size !== classIds.length) {
+                    ctx.addIssue({
+                        path: ['classList'],
+                        code: z.ZodIssueCode.custom,
+                        message: 'Duplicate classes are not allowed'
+                    });
+                }
             }
 
             // Disallow duplicate sections
@@ -80,8 +116,9 @@ export const examLoginPrivilegesSchema = {
                 });
             }
 
+            // FIXED: Changed from issS_Id to emsS_Id
             // Disallow duplicate sub-subjects (if present)
-            const subIds = data.subSubjectList?.map((s) => s.issS_Id) || [];
+            const subIds = data.subSubjectList?.map((s) => s.emsS_Id) || [];
             if (subIds.length > 0 && new Set(subIds).size !== subIds.length) {
                 ctx.addIssue({
                     path: ['subSubjectList'],
@@ -340,6 +377,7 @@ export const SubSubjectSubExamSchema = z
         eyceS_Id: z.number().int().nonnegative().optional(), // Foreign key to parent subject
         ismS_Id: z.number().int().positive({ message: 'ismS_Id required' }), // Subject Id
         emsS_Id: z.number().int().positive({ message: 'emsS_Id required' }), // SubSubject Id
+        emsE_Id: z.number().int().positive({ message: 'emsE_Id required' }), // SubExam Id
         emgR_GradeName: z.string().min(1, { message: 'Grade Name required' }),
         ismS_SubjectName: z.string().min(1, { message: 'Subject Name required' }),
         ismS_SubjectCode: z.string().min(1, { message: 'Subject Code required' }),
@@ -701,3 +739,104 @@ export const examMarksProcessConditionSchema = {
             }
         )
 };
+
+export const hallTicketGenerationSchema = z
+    .object({
+        mI_Id: z.number().int().positive().optional().default(30),
+        asmaY_Id: z.number().int().positive(),
+        asmcL_Id: z.number().int().positive(),
+        sectionList: z.array(z.object({ asmS_Id: z.number().int().positive() })).min(1, 'At least one section is required'),
+        emE_Id: z.number().int().positive(),
+        prefixNo: z.string().optional(),
+        leadingzeros: z
+            .number()
+            .int()
+            .nonnegative()
+            .optional()
+            .default(0)
+            .refine((val) => val <= 9, 'Leading zeros must be less than or equal to 9'),
+        startingNo: z.string().regex(/^\d+$/, 'Starting No. must be a number').min(1, 'Starting No. is required'),
+        increment: z.string().regex(/^\d+$/, 'Increment must be a number').min(1, 'Increment is required'),
+        prefixNoFlag: z.enum(['Y', 'N'])
+    })
+    .superRefine((data, ctx) => {
+        if (data.prefixNoFlag === 'Y') {
+            if (!data.prefixNo || data.prefixNo.trim() === '') {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Prefix No. is required when PrefixNo is Yes',
+                    path: ['prefixNo']
+                });
+            }
+        }
+    });
+export const StudentTransactionSchema = {
+    search: z
+        .object({
+            academicYearId: z.coerce
+                .number()
+                .min(1, 'Academic Year is required')
+                .refine((val) => val !== 0, 'Select Academic Year'),
+            classId: z.coerce
+                .number()
+                .min(1, 'Class is required')
+                .refine((val) => val !== 0, 'Select Class'),
+            sectionId: z.coerce
+                .number()
+                .min(1, 'Section is required')
+                .refine((val) => val !== 0, 'Select Section'),
+            examTermId: z.coerce.number().optional(),
+            emE_Id: z.coerce.number().optional(),
+            skillActivityType: z.enum(['Skills', 'Activities']).optional(),
+            nameId: z.coerce.number().optional(),
+            areaId: z.coerce.number().optional(),
+            exam_termwise_flag: z.enum(['TermWise', 'ExamWise']).default('TermWise')
+        })
+        .superRefine((data, ctx) => {
+            // Conditional validation for exam term/exam
+            if (data.exam_termwise_flag === 'TermWise' && (!data.examTermId || data.examTermId === 0)) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Exam Term is required',
+                    path: ['examTermId']
+                });
+            }
+
+            if (data.exam_termwise_flag === 'ExamWise' && (!data.emE_Id || data.emE_Id === 0)) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Exam is required',
+                    path: ['emE_Id']
+                });
+            }
+
+            // Conditional validation for skill/activity type
+            if (!data.skillActivityType) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Skill/Activities type is required',
+                    path: ['skillActivityType']
+                });
+            }
+
+            // Conditional validation for name
+            if (data.skillActivityType && (!data.nameId || data.nameId === 0)) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: data.skillActivityType === 'Skills' ? 'Skills Name is required' : 'Activities Name is required',
+                    path: ['nameId']
+                });
+            }
+
+            // Conditional validation for area
+            if (data.skillActivityType && data.nameId && data.nameId !== 0 && (!data.areaId || data.areaId === 0)) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: data.skillActivityType === 'Skills' ? 'Skill Area is required' : 'Activities Area is required',
+                    path: ['areaId']
+                });
+            }
+        })
+};
+
+export type StudentTransactionFormData = z.infer<typeof StudentTransactionSchema.search>;

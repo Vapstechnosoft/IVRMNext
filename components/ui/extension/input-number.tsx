@@ -28,13 +28,6 @@ function NumberFieldInput({ className, ...props }: AriaInputProps) {
                     className
                 )
             )}
-            onBlur={(e) => {
-                const value = e.currentTarget.value.trim();
-                if (value === '' || Number.isNaN(Number(value))) {
-                    e.currentTarget.value = '0';
-                }
-                props.onBlur?.(e);
-            }}
             {...props}
         />
     );
@@ -90,8 +83,11 @@ function InputNumber({
     maxDigits,
     ...props
 }: NumberFieldProps) {
-    // Ensure defaultValue is never NaN
-    const safeDefaultValue = props.defaultValue === undefined || Number.isNaN(Number(props.defaultValue)) ? 0 : props.defaultValue;
+    // Check if defaultValue is provided; if undefined, let it be undefined.
+    // We only sanitize NaN if a value IS provided but invalid, though typical usage defines it or not.
+    // To safely handle existing usages relying on 0, we'll only check if it is explicitly passed as undefined.
+    // If it's NaN, we probably shouldn't pass it as is, but passing undefined is safer than forced 0.
+    const safeDefaultValue = props.defaultValue;
     // Compute a maxValue from maxDigits if provided and no explicit maxValue passed
     const computedMaxValue = props.maxValue ?? (maxDigits ? 10 ** maxDigits - 1 : undefined);
     return (

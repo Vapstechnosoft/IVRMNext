@@ -1,9 +1,7 @@
 'use client';
-
 import { Badge } from '@/components/ui/badge';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
-
 // Employee Advance Record
 export interface EmployeeAdvanceRecord {
     id?: string;
@@ -31,7 +29,6 @@ export interface EmployeeAdvanceRecord {
     basicSalary: number;
     advancePercentage: number;
 }
-
 // Advance Type Summary
 export interface AdvanceTypeSummary {
     advanceType: string;
@@ -42,7 +39,6 @@ export interface AdvanceTypeSummary {
     recoveredAmount: number;
     remainingAmount: number;
 }
-
 // Main table columns
 export const advanceReportColumns: ColumnDef<EmployeeAdvanceRecord>[] = [
     {
@@ -142,7 +138,6 @@ export const advanceReportColumns: ColumnDef<EmployeeAdvanceRecord>[] = [
         enableHiding: true
     }
 ];
-
 // Advance type summary columns
 export const advanceTypeSummaryColumns: ColumnDef<AdvanceTypeSummary>[] = [
     {

@@ -16,9 +16,8 @@ import {
     getSubjectsForIndividualExam,
     getSubjectsForPromotionalExam
 } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
-import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
 import type { IESubject } from '@/types/exam/exam-module/exam-mapping';
-import type { IAcademicYear, ICategory } from '@/types/exam/exam-module/masters';
+import type { ICategory } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
@@ -51,33 +50,14 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
     const { isSubmitting } = formState;
     const { refetchAll } = useExamSubjectGroupMapping();
 
-    const [academicYears, setAcademicYears] = useState<IAcademicYear[]>([]);
     const [categories, setCategories] = useState<ICategory[]>([]);
     const [exams, setExams] = useState<{ emE_Id: number; emE_ExamName: string }[]>([]);
     const [subjects, setSubjects] = useState<IESubject[]>([]);
-    const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
+    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
     const esG_ExamPromotionFlag = useWatch({ control, name: 'esG_ExamPromotionFlag' });
     const asmaY_Id = useWatch({ control, name: 'asmaY_Id' });
     const emcA_Id = useWatch({ control, name: 'emcA_Id' });
     const emE_Id = useWatch({ control, name: 'emE_Id' });
-
-    // Fetch Academic Years
-    useEffect(() => {
-        // Academic Years
-        if (academicError) {
-            toast.error(academicError.message || 'Error fetching academic years');
-            setAcademicYears([]);
-        } else if (academicData?.data && Array.isArray(academicData.data)) {
-            const formattedYears: IAcademicYearDropDown[] = academicData.data.map((item: any) => ({
-                asmaY_Id: item.asmaY_Id?.toString() ?? '',
-                asmaY_Year: item.asmaY_Year ?? '',
-                asmaY_Order: item.asmaY_Order ?? 0
-            }));
-            setAcademicYears(formattedYears);
-        } else {
-            setAcademicYears([]);
-        }
-    }, [academicData, academicError]);
 
     // Fetch Categories
     useEffect(() => {
@@ -102,6 +82,7 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
                 try {
                     const { data } = await getExamGroupsByCategory(asmaY_Id, emcA_Id);
                     setExams(data ?? []);
+                    if (data && data.length === 0) toast.info('No exams found for this category');
                     setValue('emE_Id', 0);
                 } catch (err: any) {
                     toast.error(err?.message ?? 'Failed to load exams');
@@ -149,6 +130,12 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
             toast.error(err?.message ?? 'Failed to save');
         }
     };
+    const handleReset = () => {
+        reset();
+        setSubjects([]);
+        setExams([]);
+        setCategories([]);
+    };
 
     return (
         <div className='flex w-full flex-col gap-6'>
@@ -163,8 +150,6 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
                                 Promotional Exam
                             </TabsTrigger>
                         </TabsList>
-
-                        {/* Individual Exam Tab */}
                         <TabsContent value='IE'>
                             <div className='grid grid-cols-2 gap-6'>
                                 <div className='space-y-4'>
@@ -185,11 +170,21 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
                                                         <SelectValue placeholder='Select Academic Year' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {academicYears.map((y) => (
-                                                            <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                                {y.asmaY_Year}
+                                                        {academicYearLoading ? (
+                                                            <SelectItem value='loading' disabled>
+                                                                Loading Academic Year...
                                                             </SelectItem>
-                                                        ))}
+                                                        ) : academicYearError ? (
+                                                            <SelectItem value='error' disabled>
+                                                                Error loading Academic Year
+                                                            </SelectItem>
+                                                        ) : (
+                                                            academicYear?.data?.map((item) => (
+                                                                <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                                    {item.asmaY_Year}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -375,9 +370,7 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
                         {/* Promotional Exam Tab */}
                         <TabsContent value='PE'>
                             <div className='grid grid-cols-2 gap-6'>
-                                {/* Left Side */}
                                 <div className='space-y-4'>
-                                    {/* Academic Year */}
                                     <Controller
                                         control={control}
                                         name='asmaY_Id'
@@ -391,11 +384,21 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
                                                         <SelectValue placeholder='Select Academic Year' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {academicYears.map((y) => (
-                                                            <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                                {y.asmaY_Year}
+                                                        {academicYearLoading ? (
+                                                            <SelectItem value='loading' disabled>
+                                                                Loading Academic Year...
                                                             </SelectItem>
-                                                        ))}
+                                                        ) : academicYearError ? (
+                                                            <SelectItem value='error' disabled>
+                                                                Error loading Academic Year
+                                                            </SelectItem>
+                                                        ) : (
+                                                            academicYear?.data?.map((item) => (
+                                                                <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                                    {item.asmaY_Year}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -461,7 +464,18 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
                                                     type='number'
                                                     className='w-full rounded-md border px-3 py-2'
                                                     value={field.value}
-                                                    onChange={(e) => field.onChange(Number(e.target.value))} // convert string to number
+                                                    onChange={(e) => {
+                                                        let val = e.target.value;
+
+                                                        // Remove all leading zeros except for "0"
+                                                        if (val.length > 1) {
+                                                            val = val.replace(/^0+/, '');
+                                                        }
+
+                                                        // Update UI immediately
+                                                        e.target.value = val;
+                                                        field.onChange(val === '' ? 0 : Number(val));
+                                                    }}
                                                 />
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </div>
@@ -481,7 +495,18 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
                                                     type='number'
                                                     className='w-full rounded-md border px-3 py-2'
                                                     value={field.value}
-                                                    onChange={(e) => field.onChange(Number(e.target.value))} // convert string to number
+                                                    onChange={(e) => {
+                                                        let val = e.target.value;
+
+                                                        // Remove all leading zeros except for "0"
+                                                        if (val.length > 1) {
+                                                            val = val.replace(/^0+/, '');
+                                                        }
+
+                                                        // Update UI immediately
+                                                        e.target.value = val;
+                                                        field.onChange(val === '' ? 0 : Number(val));
+                                                    }}
                                                 />
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </div>
@@ -531,7 +556,7 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
                         <Button type='submit' disabled={isSubmitting}>
                             {isSubmitting ? 'Saving...' : 'Save'}
                         </Button>
-                        <Button type='button' variant='outline' onClick={() => reset()}>
+                        <Button type='button' variant='outline' onClick={() => handleReset()}>
                             Reset
                         </Button>
                     </div>

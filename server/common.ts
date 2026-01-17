@@ -157,12 +157,28 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Master Religion Caste Category Details'
                                         },
                                         {
-                                            id: 12,
+                                            id: 1290,
                                             name: 'Master Class Teacher',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/masters/class-teacher',
                                             title: 'Master Class Teacher',
                                             description: 'Manage Master Class Teacher Details'
+                                        },
+                                        {
+                                            id: 13,
+                                            name: 'Master Class Held',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/masters/class-held',
+                                            title: 'Master Class Held',
+                                            description: 'Manage Master Class Held '
+                                        },
+                                        {
+                                            id: 88,
+                                            name: 'Active Deactive Students',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/masters/active-deactive-students',
+                                            title: 'Active Deactive Students',
+                                            description: 'Active Deactive Students'
                                         }
                                     ]
                                 },
@@ -172,7 +188,7 @@ export async function getUserAccessibleModules() {
                                     icon: 'Settings',
                                     pages: [
                                         {
-                                            id: 12,
+                                            id: 1211,
                                             name: 'Preadmission Form',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/transactions/application-form',
@@ -251,6 +267,245 @@ export async function getUserAccessibleModules() {
                                             description: 'Pre-Registration Numbering'
                                         }
                                     ]
+                                },
+
+                                {
+                                    id: 4,
+                                    name: 'Section Allotment',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 21,
+                                            name: 'New Section',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/section/new-section',
+                                            title: 'New Section ',
+                                            description: 'New Section'
+                                        },
+                                        {
+                                            id: 22,
+                                            name: 'Change Section',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/section/change-section',
+                                            title: 'Change Section',
+                                            description: 'Change Section'
+                                        },
+                                        {
+                                            id: 23,
+                                            name: 'Delete Student Section',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/section/delete-student-section',
+                                            title: 'Delete Student Section',
+                                            description: 'Delete Student Section'
+                                        },
+                                        {
+                                            id: 24,
+                                            name: 'Promotion Section',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/section/promotion-section',
+                                            title: 'Promotion Section',
+                                            description: 'Promotion Section'
+                                        },
+                                        {
+                                            id: 25,
+                                            name: 'Year Loss Section',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/section/year-loss-section',
+                                            title: 'Year Loss Section',
+                                            description: 'Year Loss Section'
+                                        },
+                                        {
+                                            id: 26,
+                                            name: 'Update Roll Number',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/section/update-roll-number',
+                                            title: 'Update Roll Number',
+                                            description: 'Update Roll Number'
+                                        },
+                                        {
+                                            id: 27,
+                                            name: 'Change Class',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/section/change-class',
+                                            title: 'Change Class',
+                                            description: 'Change Class'
+                                        }
+                                    ]
+                                },
+
+                                {
+                                    id: 5,
+                                    name: 'Reports',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'student Count Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/student-count-report',
+                                            title: 'student Count Report',
+                                            description: 'student Count Report'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Registration Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/registration-report',
+                                            title: 'Registration Report',
+                                            description: 'Registration Report'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'EMAIL SMS Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/email-sms',
+                                            title: 'EMAIL SMS Report',
+                                            description: 'EMAIL SMS Report'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'PreAdmission Month End Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/preadmission-month-end-report',
+                                            title: 'PreAdmission Month End Report',
+                                            description: 'PreAdmission Month End Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            id: 2,
+                            name: 'Admission',
+                            icon: 'UserCog',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Application',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Admission Form',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/admission-form',
+                                            title: 'Master Class',
+                                            description: 'Manage Master Class Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Reports',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Class Teacher Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/class-teacher-report',
+                                            title: 'Class Teacher Report',
+                                            description: 'Class Teacher Report'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Student Yearly Attendance Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/students-yearly-attendence-report',
+                                            title: 'Student Yearly Attendance Report',
+                                            description: 'Student Yearly Attendance Report'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Student TC Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/student-tc-report',
+                                            title: 'Student TC Report',
+                                            description: 'Student TC Report'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'class-wise student details',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/class-wise-student-details',
+                                            title: 'class-wise student details',
+                                            description: 'class-wise student details'
+                                        },
+
+                                        {
+                                            id: 5,
+                                            name: 'Total Strength Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/total-strength',
+                                            title: 'Total Strength Report',
+                                            description: 'Total Strength Report'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Admission Register Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/admission-register',
+                                            title: 'Admission Register Report',
+                                            description: 'Admission Register Report '
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Attendance Absentees Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/attendance-absent-sms',
+                                            title: 'Attendance Absentees Report',
+                                            description: 'Attendance Absentees Report'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Student Search',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/student-search',
+                                            title: 'Student Search',
+                                            description: 'Student Search'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'Month End Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/month-end-report',
+                                            title: 'Month End Report',
+                                            description: 'Month End Report'
+                                        },
+
+                                        {
+                                            id: 10,
+                                            name: 'Study Certificate Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/study-certificate-report',
+                                            title: 'Study Certificate Report',
+                                            description: 'Study Certificate Report'
+                                        },
+                                        {
+                                            id: 11,
+                                            name: 'Date Of Birth Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/date-of-birth-report',
+                                            title: 'Date Of Birth Report',
+                                            description: 'Date Of Birth Report'
+                                        },
+                                        {
+                                            id: 12,
+                                            name: 'Overall Daily Attendance Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/overall-daily-attendance-report',
+                                            title: 'Overall Daily Attendance Report',
+                                            description: 'Overall Daily Attendance Report'
+                                        },
+                                        {
+                                            id: 13,
+                                            name: 'Student Attendance Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/student-attendance-report',
+                                            title: 'Student Attendance Report',
+                                            description: 'Student Attendance Report'
+                                        }
+                                    ]
                                 }
                             ]
                         }
@@ -259,22 +514,22 @@ export async function getUserAccessibleModules() {
                 {
                     id: 2,
                     name: 'Fees Management',
-                    icon: 'Settings',
+                    icon: 'BadgeIndianRupee',
                     menu: [
                         {
                             id: 2,
                             name: 'Fees',
-                            icon: 'Settings',
+                            icon: 'BadgeIndianRupee',
                             sub_menu: [
                                 {
                                     id: 4,
                                     name: 'Configuration',
-                                    icon: 'Settings',
+                                    icon: 'BadgeIndianRupee',
                                     pages: [
                                         {
                                             id: 21,
                                             name: 'Fee configuration',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/configuration/masterfeeconfig',
                                             title: 'Fee configuration',
                                             description: 'Fee configuration'
@@ -284,77 +539,77 @@ export async function getUserAccessibleModules() {
                                 {
                                     id: 5,
                                     name: 'Masters',
-                                    icon: 'Settings',
+                                    icon: 'BadgeIndianRupee',
                                     pages: [
                                         {
                                             id: 22,
                                             name: 'Master Fee Head',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/feehead',
                                             title: 'Master Fee Head',
-                                            description: 'Manage Fee Head Details'
+                                            description: 'Manage Master Fee Head Details'
                                         },
                                         {
                                             id: 23,
                                             name: 'Master Mode Of Payment',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/modeofpayment',
                                             title: 'Master Mode Of Payment',
-                                            description: 'Manage Mode Of Payment Details'
+                                            description: 'Manage Master Mode Of Payment Details'
                                         },
                                         {
                                             id: 24,
                                             name: 'Master Payment Gateway Details',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/paymentGatewayDetails',
                                             title: 'Master Payment Gateway Details',
-                                            description: 'Manage Payment Gateway Details'
+                                            description: 'Manage Master Payment Gateway Details'
                                         },
                                         {
                                             id: 25,
                                             name: 'Master Fine Slab',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/masterfineslab',
                                             title: 'Master Fine Slab',
                                             description: 'Manage Master Fine Slab Details'
                                         },
                                         {
                                             id: 26,
-                                            name: 'Master Fee Master Concession',
-                                            icon: 'Settings',
+                                            name: 'Master Fee Concession',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/masterfeeconcession',
                                             title: 'Fee Master Concession',
-                                            description: 'Manage Fee Master Concession Details'
+                                            description: 'Manage Master Fee Concession Details'
                                         },
 
                                         {
                                             id: 600,
                                             name: 'Master Concession Category Details',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/masterfeeconcessiondetails',
-                                            title: 'Concession Category Details',
-                                            description: 'Concession Category Details'
+                                            title: 'Master Concession Category Details',
+                                            description: 'Manage Master Concession Category Details'
                                         },
-                                        //  {
-                                        //     id: 650,
-                                        //     name: 'Master Concession Category Group Head Mapping',
-                                        //     icon: 'Settings',
-                                        //     url: '/fees/masters/concessioncategorygroupheadmapping',
-                                        //     title: 'Concession Category Group Head Mapping',
-                                        //     description: 'Concession Category Group Head Mapping'
-                                        // },
+                                        {
+                                            id: 650,
+                                            name: 'Master Concession Category Group Head Mapping',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/masters/concessioncategorygroupheadmapping',
+                                            title: 'Master Concession Category Group Head Mapping',
+                                            description: 'Manage Master Concession Category Group Head Mapping'
+                                        },
                                         {
                                             id: 27,
                                             name: 'Master Fee Terms',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/feemasterterms',
-                                            title: 'Fee Terms',
-                                            description: 'Manage Fee Terms Details'
+                                            title: 'Master Fee Terms',
+                                            description: 'Manage Master Fee Terms Details'
                                         },
                                         {
                                             id: 28,
                                             name: 'Master Term Fee Head',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/mastertermfeehead',
                                             title: 'Master Term Fee Head',
                                             description: 'Manage Master Term Fee Head Details'
@@ -362,7 +617,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 601,
                                             name: 'Master Term Fee Head Due Date',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/mastertermfeeheadduedate',
                                             title: 'Master Term Fee Head Due Date',
                                             description: 'Manage Master Term Fee Head Due Date'
@@ -370,7 +625,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 2001,
                                             name: 'Master Terms Period',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/masterTermsPeriod',
                                             title: 'Master Terms Period',
                                             description: 'Manage Master Terms Period'
@@ -378,127 +633,143 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 29,
                                             name: 'Master Class Category',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/classcategory',
-                                            title: 'Class Category',
-                                            description: 'Manage Class Category'
+                                            title: ' Master Class Category',
+                                            description: 'Manage Master Class Category'
                                         },
                                         {
                                             id: 30,
-                                            name: 'Master Yearly Category',
-                                            icon: 'Settings',
+                                            name: 'Master Yearly Class Category',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/category',
-                                            title: 'Yearly Category',
-                                            description: 'Manage Yearly Category'
+                                            title: 'Master Yearly Class Category',
+                                            description: 'Manage Master Yearly Class Category'
                                         },
                                         {
                                             id: 31,
                                             name: 'Master Fee Installment',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/feesinstallment',
-                                            title: 'Fee Installment',
-                                            description: ' Manage Fee Installment'
+                                            title: 'Master Fee Installment',
+                                            description: 'Manage Master Fee Installment'
                                         },
                                         {
                                             id: 32,
                                             name: 'Master Installment due date',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/feesinstallmentduedate',
-                                            title: 'Installment due date',
-                                            description: 'Installment due date'
+                                            title: 'Master Installment due date',
+                                            description: 'Manage Master Installment due date'
                                         },
                                         {
                                             id: 33,
                                             name: 'Master Fee Group Grouping',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/groupsgrouping',
-                                            title: 'Group Grouping',
-                                            description: 'Manage Group Grouping'
+                                            title: 'Master Fee Group Grouping',
+                                            description: 'Manage Master Fee Group Grouping'
                                         },
                                         {
                                             id: 34,
                                             name: 'Master Fee Groups',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/mastergroup',
-                                            title: 'Groups',
-                                            description: 'Manage Groups'
+                                            title: 'Master Fee Groups',
+                                            description: 'Manage Master Fee Groups'
                                         },
                                         {
                                             id: 35,
-                                            name: 'Fee Yearly Groups',
-                                            icon: 'Settings',
+                                            name: 'Master Fee Yearly Groups',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/yearlygroup',
-                                            title: 'Yearly Groups',
-                                            description: 'Manage Yearly Groups'
+                                            title: 'Master Fee Yearly Groups',
+                                            description: 'Manage Master Fee Yearly Groups'
                                         },
 
                                         {
                                             id: 36,
                                             name: 'Master Fee Yearly Groups Mapping',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/yearlygroupmapping',
-                                            title: 'Yearly Groups Mapping',
-                                            description: 'Manage Yearly Groups Mapping'
+                                            title: 'Master Fee Yearly Groups Mapping',
+                                            description: 'Manage Master Fee Yearly Groups Mapping'
                                         },
                                         {
                                             id: 37,
-                                            name: 'Master Fee Group wise  Auto Receipt',
-                                            icon: 'Settings',
+                                            name: 'Master Fee Group wise Auto Receipt',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/groupwiseautoreceipt',
-                                            title: 'Group wise  Auto Receipt',
-                                            description: 'Manage Group wise  Auto Receipt'
+                                            title: 'Master Fee Group wise Auto Receipt',
+                                            description: 'Manage Master Fee Group wise Auto Receipt'
                                         },
                                         {
                                             id: 38,
                                             name: 'Master Fee Yearly Rebate Settings',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/yearlyrebatesetting',
-                                            title: 'Yearly Rebate Settings',
-                                            description: 'Manage Yeary Rebate Settings'
+                                            title: 'Master Yearly Rebate Settings',
+                                            description: 'Manage Master Yeary Rebate Settings'
                                         },
                                         {
                                             id: 39,
                                             name: 'Master Fee Privilege',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/feeprevilege',
-                                            title: 'Fee Privilege',
-                                            description: 'Manage Fee Privilege Details'
+                                            title: 'Master Fee Privilege',
+                                            description: 'Manage Master Fee Privilege Details'
                                         },
                                         {
                                             id: 40,
                                             name: 'Master Online Payment Head Group',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/onlinepaymentheadgroupmapping',
-                                            title: 'Online Payment Head Group',
-                                            description: 'Manage Online Payment Head Group Mapping Details'
+                                            title: 'Master Online Payment Head Group',
+                                            description: 'Manage Master Online Payment Head Group Mapping Details'
                                         },
-                                        // {
-                                        //     id: 900,
-                                        //     name: 'Master Student Fee Group Mapping',
-                                        //     icon: 'Settings',
-                                        //     url: '/fees/masters/studentfeegroupmapping',
-                                        //     title: 'Student Fee Group Mapping',
-                                        //     description: 'Manage Student Fee Group Mapping Details'
-                                        // },
+                                        {
+                                            id: 900,
+                                            name: 'Master Student Fee Group Mapping',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/masters/studentfeegroupmapping',
+                                            title: 'Master Student Fee Group Mapping',
+                                            description: 'Manage Master Student Fee Group Mapping Details'
+                                        },
                                         {
                                             id: 501,
                                             name: 'Master Fee Other Student',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/feeotherstudent',
-                                            title: 'Fee Other Student',
-                                            description: 'Manage Fee Other Student Details'
+                                            title: 'Master Fee Other Student',
+                                            description: 'Manage Master Fee Other Student Details'
+                                        },
+                                        {
+                                            id: 502,
+                                            name: 'Master Special Fee Head',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/masters/specialFeeHead',
+                                            title: 'Master Special Fee Head',
+                                            description: 'Manage Master Special Fee Head Details'
+                                        },
+                                        {
+                                            id: 506,
+                                            name: 'Master Fee Tally Master',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/masters/feecompanygroupmapping',
+                                            title: 'Master Fee Tally Master',
+                                            description: 'Manage Fee Tally  Details'
                                         }
                                     ]
                                 },
                                 {
                                     id: 6,
                                     name: 'Transactions',
-                                    icon: 'Settings',
+                                    icon: 'BadgeIndianRupee',
                                     pages: [
                                         {
                                             id: 40,
                                             name: 'Fee Amount Entry',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/transactions/feeamountentry',
                                             title: 'Fee Amount Entry',
                                             description: 'Manage Fee Amount Entry Details'
@@ -506,34 +777,250 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 41,
                                             name: 'Third Party Transaction',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/transactions/thirdPartyTransaction',
                                             title: 'Third Party Transaction',
-                                            description: 'Third Party Transaction'
+                                            description: 'Manage Third Party Transaction'
                                         },
                                         {
                                             id: 42,
                                             name: 'Fee Opening Balance',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/transactions/feeopeningbalance',
                                             title: 'Fee Opening Balance',
-                                            description: 'Fee Opening Balance'
+                                            description: 'Manage Fee Opening Balance'
                                         },
                                         {
                                             id: 43,
-                                            name: 'Fee waivedoff',
-                                            icon: 'Settings',
+                                            name: 'Fee Waivedoff',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/transactions/waivedoff',
-                                            title: 'Fee waivedoff',
-                                            description: 'Fee waivedoff'
+                                            title: 'Fee Waivedoff',
+                                            description: 'Manage Fee Waivedoff'
                                         },
                                         {
                                             id: 500,
                                             name: 'Fee Preadmission Transaction',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/transactions/feepreadmissiontrasaction',
                                             title: 'Fee Preadmission Transaction',
-                                            description: 'Fee Preadmission Transaction'
+                                            description: 'Manage Fee Preadmission Transaction'
+                                        },
+                                        {
+                                            id: 508,
+                                            name: 'Fee Refundable',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/feerefundable',
+                                            title: 'Fee Refundable',
+                                            description: 'Manage Fee Refundable'
+                                        },
+                                        // {
+                                        //     id: 511,
+                                        //     name: 'Fee OnlinePayment',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/transactions/feeOnlinePayment',
+                                        //     title: 'Fee OnlinePayment',
+                                        //     description: 'Manage Fee OnlinePayment'
+                                        // }
+                                        // ,
+                                        {
+                                            id: 505,
+                                            name: 'Fee Transaction',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/feetransaction',
+                                            title: 'Fee Transaction',
+                                            description: 'Fee Transaction'
+                                        },
+                                        {
+                                            id: 506,
+                                            name: 'Fee Adjustment',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/feeadjustment',
+                                            title: 'Fee Adjustment',
+                                            description: 'Manage Fee Adjustment'
+                                        },
+                                        {
+                                            id: 507,
+                                            name: 'Fee Master Concession',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/feeconcession',
+                                            title: 'Fee Master Concession',
+                                            description: 'Manage Fee Master Concession'
+                                        },
+                                        {
+                                            id: 515,
+                                            name: 'Fee Receipt Import Delete',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/feesreceiptimportdelete',
+                                            title: 'Fee Receipt Import Delete',
+                                            description: 'Manage Fee Receipt Import Delete'
+                                        },
+                                        {
+                                            id: 516,
+                                            name: 'Fee Receipt Import',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/feesreceiptimportstthomas',
+                                            title: 'Fee Receipt Import',
+                                            description: 'Manage Fee Receipt Import'
+                                        },
+                                        {
+                                            id: 517,
+                                            name: 'Bank Payment Import',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/bankpaymentimportstthomas',
+                                            title: 'Bank Payment Import',
+                                            description: 'Manage Bank Payment Import'
+                                        },
+                                        {
+                                            id: 518,
+                                            name: 'Fee Staff Other Transaction',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/stafftransaction',
+                                            title: 'Fee Staff Other Transaction',
+                                            description: 'Fee Staff Other Transaction'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2001,
+                                    name: 'Reports',
+                                    icon: 'BadgeIndianRupee',
+                                    pages: [
+                                        {
+                                            id: 10011,
+                                            name: 'Fee Defaulter report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feedefaulterreport',
+                                            title: 'Fee Defaulter Report',
+                                            description: 'Fee Defaulter Report'
+                                        },
+                                        {
+                                            id: 10012,
+                                            name: 'Daily Fee Collection Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/dailyfeecollectionreport',
+                                            title: 'Daily Fee Collection Report',
+                                            description: 'Manage Daily Fee Collection Report Details'
+                                        },
+                                        {
+                                            id: 10013,
+                                            name: 'Yearly Fee Collection Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/yearlyfeecollectionreport',
+                                            title: 'Yearly Fee Collection Report',
+                                            description: 'Manage Yearly Fee Collection Report Details'
+                                        },
+                                        {
+                                            id: 10014,
+                                            name: 'Audit Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/auditreport',
+                                            title: 'Audit Report',
+                                            description: 'Manage Audit Report Details'
+                                        },
+                                        {
+                                            id: 10015,
+                                            name: 'Fee Concession Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feeconcessionreport',
+                                            title: 'Fee Concession Report',
+                                            description: 'Manage Fee Concession Report Details'
+                                        },
+                                        {
+                                            id: 10016,
+                                            name: 'Fee Head Wise Report ',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/headwisereport',
+                                            title: 'Fee Head Wise Report',
+                                            description: 'Manage Fee Head Wise Report Details'
+                                        },
+                                        {
+                                            id: 10017,
+                                            name: 'Fee Due Date Report ',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feeduedatereport',
+                                            title: 'Fee Due Date Report',
+                                            description: 'Manage Fee Due Date Report Details'
+                                        },
+                                        {
+                                            id: 10018,
+                                            name: 'Fee Month End Report ',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feemonthendreport',
+                                            title: 'Fee Month End Report',
+                                            description: 'Manage Fee Month End Report Details'
+                                        },
+                                        {
+                                            id: 10019,
+                                            name: 'Fee Class Category Report ',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/classcategoryreport',
+                                            title: 'Fee Class Category Report',
+                                            description: 'Manage Fee Class Category Report Details'
+                                        },
+                                        {
+                                            id: 10020,
+                                            name: 'Fee Consolidated Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feeconsolidatedreport',
+                                            title: 'Fee Consolidated Report',
+                                            description: 'Manage Fee Consolidated Report Details'
+                                        },
+                                        {
+                                            id: 10021,
+                                            name: 'Fee Installment Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feesinstallmentreport',
+                                            title: 'Fee Installment Report',
+                                            description: 'Manage Fee Installment Report Details'
+                                        },
+                                        {
+                                            id: 10022,
+                                            name: 'Fee Receipt Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feereceiptreport',
+                                            title: 'Fee Receipt Report',
+                                            description: 'Manage Fee Receipt Report Details'
+                                        },
+                                        {
+                                            id: 10023,
+                                            name: 'Fee Accounts Position Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feeaccountspositionReport',
+                                            title: 'Fee Accounts Position Report',
+                                            description: 'Manage Fee Accounts Position Report Details'
+                                        },
+                                        {
+                                            id: 10024,
+                                            name: 'Fee Student Term Wise Paid Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feestudenttermwisepaidreport',
+                                            title: 'Fee Student Term Wise Paid Report',
+                                            description: 'Manage Fee Student Term Wise Paid Report Details'
+                                        },
+                                        {
+                                            id: 10025,
+                                            name: 'Excel Not Imported Student Details Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/excelnotimportedstudentdetailsreport',
+                                            title: 'Excel Not Imported Student Details Report',
+                                            description: 'Manage Excel Not Imported Student Details Report'
+                                        },
+                                        {
+                                            id: 10026,
+                                            name: 'Fee Group Wise Student Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feegroupwisestudentreport',
+                                            title: 'Fee Group Wise Student Report',
+                                            description: 'Manage Fee Group Wise Student Report Details'
+                                        },
+                                        {
+                                            id: 10027,
+                                            name: 'Fee Defaulter Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feedefaulterreportstthomas',
+                                            title: 'Fee Defaulter Report',
+                                            description: 'Manage Fee Defaulter Report Details'
                                         }
                                     ]
                                 }
@@ -690,14 +1177,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Exam Subject Wizard',
                                             description: 'Manage Exam Subject Wizard Details'
                                         },
-                                        // {
-                                        //     id: 54,
-                                        //     name: 'Exam Login Privilages',
-                                        //     icon: 'CalendarDays',
-                                        //     url: '/Exam/exam-module/exam-mapping/exam-login-privilages',
-                                        //     title: 'Exam Login Privilages',
-                                        //     description: 'Manage Exam Login Privilages Details'
-                                        // },
+                                        {
+                                            id: 54,
+                                            name: 'Exam Login Privilages',
+                                            icon: 'CalendarDays',
+                                            url: '/Exam/exam-module/exam-mapping/exam-login-privilages',
+                                            title: 'Exam Login Privilages',
+                                            description: 'Manage Exam Login Privilages Details'
+                                        },
                                         {
                                             id: 55,
                                             name: 'Yearly category Subject Mapping',
@@ -753,6 +1240,38 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/exam-mapping/exam-marks-process-condition',
                                             title: 'Exam Marks Process Condition',
                                             description: 'Manage Exam Marks Process Condition Details'
+                                        },
+                                        {
+                                            id: 62,
+                                            name: 'Hall Ticket Generation',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/exam-mapping/exam-hall-ticket-generation',
+                                            title: 'Hall Ticket Generation',
+                                            description: 'Manage Hall Ticket Generation Details'
+                                        },
+                                        {
+                                            id: 63,
+                                            name: 'Student Subject Mapping',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/exam-mapping/student-subject-mapping',
+                                            title: 'Student Subject Mapping',
+                                            description: 'Manage Student Subject Mapping Details'
+                                        },
+                                        {
+                                            id: 64,
+                                            name: 'Promotion Setting',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/exam-mapping/promotion-setting',
+                                            title: 'Promotion Setting',
+                                            description: 'Manage Promotion Setting Details'
+                                        },
+                                        {
+                                            id: 95,
+                                            name: 'Student Transaction',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/exam-mapping/student-transactioncce',
+                                            title: 'Student Transaction',
+                                            description: 'Manage Student Transaction Details'
                                         }
                                     ]
                                 },
@@ -762,12 +1281,59 @@ export async function getUserAccessibleModules() {
                                     icon: 'Settings',
                                     pages: [
                                         {
-                                            id: 62,
+                                            id: 63,
                                             name: 'Exam Wise Student Remarks Entry',
                                             icon: 'CalendarDays',
                                             url: '/Exam/exam-module/marks-entry/exam-wise-student-remarks-entry',
                                             title: 'Exam Wise Student Remarks Entry',
                                             description: 'Manage Exam Wise Student Remarks Entry Details'
+                                        },
+                                        {
+                                            id: 64,
+                                            name: 'Promotion Remarks',
+                                            icon: 'CalendarDays',
+                                            url: '/Exam/exam-module/marks-entry/exam-promotion-remarks',
+                                            title: 'PROMOTION REMARKS',
+                                            description: ''
+                                        },
+                                        {
+                                            id: 65,
+                                            name: 'Marks Entry',
+                                            icon: 'CalendarDays',
+                                            url: '/Exam/exam-module/marks-entry/exam-marks-entry',
+                                            title: 'Marks Entry',
+                                            description: 'Manage Marks Entry Details'
+                                        },
+                                        {
+                                            id: 66,
+                                            name: 'Student Wise Publish Marks',
+                                            icon: 'CalendarDays',
+                                            url: '/Exam/exam-module/marks-entry/student-wise-publish-marks',
+                                            title: 'Student Marks Publish',
+                                            description: 'Manage Student Marks Publish Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 11,
+                                    name: 'Marks Calculation',
+                                    icon: 'BookOpen',
+                                    pages: [
+                                        {
+                                            id: 72,
+                                            name: 'Exam Marks Calculation',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/calculation/marks-calculation',
+                                            title: 'Exam Marks Calculation',
+                                            description: 'Manage Exam Marks Calculation Details'
+                                        },
+                                        {
+                                            id: 93,
+                                            name: 'Promotion Calculation',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/calculation/promotion-calculation',
+                                            title: 'Promotion Calculation',
+                                            description: 'Manage Promotion Calculation Details'
                                         }
                                     ]
                                 },
@@ -777,7 +1343,7 @@ export async function getUserAccessibleModules() {
                                     icon: 'Settings',
                                     pages: [
                                         {
-                                            id: 63,
+                                            id: 70,
                                             name: 'Cumulative Report',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/cumulative-report',
@@ -785,12 +1351,140 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Cumulative Report Details'
                                         },
                                         {
-                                            id: 62,
+                                            id: 71,
                                             name: 'Progress Card Report',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/vvehpc_exam-report-card',
-                                            title: 'VVEHPC_ExamReportCard',
-                                            description: 'Manage VVEHPC_ExamReportCard Details'
+                                            title: 'Progress Card Report',
+                                            description: 'Manage Progress Card Report Details'
+                                        },
+                                        {
+                                            id: 65,
+                                            name: 'Elective Subject Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/exam-electives-report',
+                                            title: 'Elective Subject Report',
+                                            description: 'Manage Elective Subject Report Details'
+                                        },
+                                        {
+                                            id: 73,
+                                            name: 'Exam Month End Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/exam-month-end-report',
+                                            title: 'Exam Month End Report',
+                                            description: 'Manage Exam Month End Report Details'
+                                        },
+                                        {
+                                            id: 74,
+                                            name: 'Exam Category Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/exam-category-report',
+                                            title: 'Exam Category Report',
+                                            description: 'Manage Exam Category Report Details'
+                                        },
+                                        // {
+                                        //     id: 75,
+                                        //     name: 'TBS Report School',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/Exam/exam-module/reports/tbs-report-school',
+                                        //     title: 'TBS Report School',
+                                        //     description: 'Manage TBS Report School Details'
+                                        // },
+                                        {
+                                            id: 77,
+                                            name: 'Percentagewise Details Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/percentagewise-details-report',
+                                            title: 'Percentagewise Details Report',
+                                            description: 'Manage Percentagewise Student Details Report'
+                                        },
+                                        {
+                                            id: 78,
+                                            name: 'Grade Slab Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/grade-slab-report',
+                                            title: 'Grade Slab Report',
+                                            description: 'View Grade Slab Details'
+                                        },
+                                        {
+                                            id: 79,
+                                            name: 'Toppers List Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/toppers-list-report',
+                                            title: 'Toppers List Report',
+                                            description: 'View Toppers List Details'
+                                        },
+                                        // {
+                                        //     id: 80,
+                                        //     name: 'Exam Login Privileges Report',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/Exam/exam-module/reports/exam-login-privileges-report',
+                                        //     title: 'Exam Login Privileges Report',
+                                        //     description: 'View Exam Login Privileges Details'
+                                        // },
+                                        // {
+                                        //     id: 81,
+                                        //     name: 'Marks Entry Report',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/Exam/exam-module/reports/marks-entry-report',
+                                        //     title: 'Marks Entry Report',
+                                        //     description: 'View Marks Entry Report Details'
+                                        // },
+                                        {
+                                            id: 82,
+                                            name: 'Tabulation Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/promotion-details-report',
+                                            title: 'Tabulation Report',
+                                            description: 'View Tabulation Report'
+                                        },
+                                        {
+                                            id: 83,
+                                            name: 'Juniors Progress Card Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/juniors-progress-card-report',
+                                            title: 'Juniors Progress Card Report',
+                                            description: 'View Juniors Progress Card Report'
+                                        },
+                                        {
+                                            id: 84,
+                                            name: 'Report Card VI_VIII',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Report_Card_VI_VIII',
+                                            title: 'Report Card VI_VIII',
+                                            description: 'Report Card VI_VIII'
+                                        },
+                                        {
+                                            id: 85,
+                                            name: 'Report Card X_XII',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Report_Card_X_XII',
+                                            title: 'Report Card X_XII',
+                                            description: 'Report Card X_XII'
+                                        },
+                                        {
+                                            id: 86,
+                                            name: 'Report Card XI',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Report_Card_XI',
+                                            title: 'Report Card XI',
+                                            description: 'Report Card XI'
+                                        },
+                                        {
+                                            id: 87,
+                                            name: 'Report Card_IX',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Report_Card_IX',
+                                            title: 'Report Card_IX',
+                                            description: 'Report Card_IX'
+                                        },
+                                        {
+                                            id: 88,
+                                            name: 'Report Card_X',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/Report_Card_X',
+                                            title: 'Report Card_X',
+                                            description: 'Report Card_X'
                                         }
                                     ]
                                 }
@@ -847,14 +1541,6 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 5,
-                                            name: 'Leave Year',
-                                            icon: 'Calendar',
-                                            url: '/hrms/masters/leave-year',
-                                            title: 'Leave Year Master',
-                                            description: 'Manage Leave Year'
-                                        },
-                                        {
-                                            id: 6,
                                             name: 'Marital Status',
                                             icon: 'Heart',
                                             url: '/hrms/masters/marital-status',
@@ -862,23 +1548,55 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Marital Status'
                                         },
                                         {
+                                            id: 6,
+                                            name: 'Specialization',
+                                            icon: 'GraduationCap',
+                                            url: '/hrms/masters/specialization',
+                                            title: 'Specialization Master',
+                                            description: 'Manage Specialization Details'
+                                        },
+                                        {
                                             id: 7,
-                                            name: 'Professional Tax',
-                                            icon: 'FileText',
-                                            url: '/hrms/masters/professional-tax',
-                                            title: 'Professional Tax Slab',
-                                            description: 'Manage Professional Tax'
+                                            name: 'Employee Type',
+                                            icon: 'Users',
+                                            url: '/hrms/masters/employee-type',
+                                            title: 'Employee Type Master',
+                                            description: 'Manage Employee Types'
                                         },
                                         {
                                             id: 8,
-                                            name: 'Employee Category',
-                                            icon: 'Users',
-                                            url: '/hrms/masters/employee-category',
-                                            title: 'Employee Category Management',
-                                            description: 'Manage Employee Categories and Classifications'
+                                            name: 'Group Type',
+                                            icon: 'Layers',
+                                            url: '/hrms/masters/group-type',
+                                            title: 'Group Type Master',
+                                            description: 'Manage Group Types'
                                         },
                                         {
                                             id: 9,
+                                            name: 'Department',
+                                            icon: 'Building2',
+                                            url: '/hrms/masters/department',
+                                            title: 'Department Master',
+                                            description: 'Manage Departments'
+                                        },
+                                        {
+                                            id: 10,
+                                            name: 'Designation',
+                                            icon: 'Award',
+                                            url: '/hrms/masters/designation',
+                                            title: 'Designation Master',
+                                            description: 'Manage Designations'
+                                        },
+                                        {
+                                            id: 11,
+                                            name: 'Grade',
+                                            icon: 'Trophy',
+                                            url: '/hrms/masters/grade',
+                                            title: 'Grade Master',
+                                            description: 'Manage Grades'
+                                        },
+                                        {
+                                            id: 1288,
                                             name: 'Group-Dept-Desig Mapping',
                                             icon: 'Network',
                                             url: '/hrms/masters/group-dept-dessg-mapping',
@@ -886,7 +1604,23 @@ export async function getUserAccessibleModules() {
                                             description: 'Map Group, Department & Designation'
                                         },
                                         {
-                                            id: 10,
+                                            id: 13,
+                                            name: 'Leave Year',
+                                            icon: 'Calendar',
+                                            url: '/hrms/masters/leave-year',
+                                            title: 'Leave Year Master',
+                                            description: 'Manage Leave Year'
+                                        },
+                                        {
+                                            id: 14,
+                                            name: 'Professional Tax',
+                                            icon: 'FileText',
+                                            url: '/hrms/masters/professional-tax',
+                                            title: 'Professional Tax Slab',
+                                            description: 'Manage Professional Tax'
+                                        },
+                                        {
+                                            id: 15,
                                             name: 'Loan',
                                             icon: 'CreditCard',
                                             url: '/hrms/masters/loan',
@@ -894,7 +1628,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Loan Types'
                                         },
                                         {
-                                            id: 11,
+                                            id: 16,
                                             name: 'Payroll Standard',
                                             icon: 'Calculator',
                                             url: '/hrms/masters/payroll-standard',
@@ -902,292 +1636,285 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Payroll Standards'
                                         },
                                         {
-                                            id: 12,
+                                            id: 17,
                                             name: 'Religion-Category Mapping',
                                             icon: 'Link',
                                             url: '/hrms/masters/religion-category-mapping',
                                             title: 'Religion-Category Mapping',
                                             description: 'Map Religion & Category'
-                                        },
-                                        {
-                                            id: 13,
-                                            name: 'Specialization',
-                                            icon: 'GraduationCap',
-                                            url: '/hrms/masters/specialization',
-                                            title: 'Specialization Master',
-                                            description: 'Manage Specialization Details'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 2,
-                                    name: 'Employee',
-                                    icon: 'User',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Employee Register',
-                                            icon: 'UserPlus',
-                                            url: '/hrms/employee',
-                                            title: 'Employee Register',
-                                            description: 'Manage Employee Registration'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 3,
-                                    name: 'Transactions',
-                                    icon: 'FileText',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Salary Approval',
-                                            icon: 'CheckSquare',
-                                            url: '/hrms/transactions/salary-approval',
-                                            title: 'Salary Approval',
-                                            description: 'Approve Calculated Salaries'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Salary Calculation',
-                                            icon: 'Calculator',
-                                            url: '/hrms/transactions/salary-calculation',
-                                            title: 'Salary Calculation',
-                                            description: 'Calculate Employee Salary'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Salary Increment Process',
-                                            icon: 'TrendingUp',
-                                            url: '/hrms/transactions/salary-increment',
-                                            title: 'Salary Increment Process',
-                                            description: 'Manage Salary Increments'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Salary Updation',
-                                            icon: 'Edit',
-                                            url: '/hrms/transactions/salary-updation',
-                                            title: 'Salary Updation',
-                                            description: 'Update Employee Salary'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'Mass Updation',
-                                            icon: 'RefreshCw',
-                                            url: '/hrms/transactions/mass-updation',
-                                            title: 'Mass Updation',
-                                            description: 'Bulk Update Employee Data'
-                                        },
-                                        {
-                                            id: 6,
-                                            name: 'Salary Advance',
-                                            icon: 'DollarSign',
-                                            url: '/hrms/transactions/salary-advance',
-                                            title: 'Salary Advance',
-                                            description: 'Manage Salary Advances'
-                                        },
-                                        {
-                                            id: 7,
-                                            name: 'Employee Loan',
-                                            icon: 'CreditCard',
-                                            url: '/hrms/transactions/employee-loan',
-                                            title: 'Employee Loan',
-                                            description: 'Manage Employee Loans'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 4,
-                                    name: 'Reports',
-                                    icon: 'FileText',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Cumulative Salary Report',
-                                            icon: 'BarChart3',
-                                            url: '/hrms/reports/cumulative-salary-report',
-                                            title: 'Cumulative Salary Report',
-                                            description: 'Cumulative Salary Analysis'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Employee Details',
-                                            icon: 'UserCheck',
-                                            url: '/hrms/reports/employee-details',
-                                            title: 'Employee Details',
-                                            description: 'Detailed Employee Information'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Employee Profile',
-                                            icon: 'User',
-                                            url: '/hrms/reports/employee-profile',
-                                            title: 'Employee Profile',
-                                            description: 'Employee Profile Report'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Salary Slip',
-                                            icon: 'Receipt',
-                                            url: '/hrms/reports/salary-slip',
-                                            title: 'Salary Slip',
-                                            description: 'Generate Salary Slips'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'Employee Contribution',
-                                            icon: 'Coins',
-                                            url: '/hrms/reports/employee-contribution',
-                                            title: 'Employee Contribution',
-                                            description: 'Employee Contribution Report'
-                                        },
-                                        {
-                                            id: 6,
-                                            name: 'Employee Salary Details',
-                                            icon: 'DollarSign',
-                                            url: '/hrms/reports/employee-salary-details',
-                                            title: 'Employee Salary Details',
-                                            description: 'Detailed Salary Information'
-                                        },
-                                        {
-                                            id: 7,
-                                            name: 'Employee Strength',
-                                            icon: 'Users',
-                                            url: '/hrms/reports/employee-strength',
-                                            title: 'Employee Strength',
-                                            description: 'Employee Strength Report'
-                                        },
-                                        {
-                                            id: 8,
-                                            name: 'ESI Report',
-                                            icon: 'Shield',
-                                            url: '/hrms/reports/esi-report',
-                                            title: 'ESI Report',
-                                            description: 'ESI Contribution Report'
-                                        },
-                                        {
-                                            id: 9,
-                                            name: 'Head Wise Report',
-                                            icon: 'List',
-                                            url: '/hrms/reports/head-wise-report',
-                                            title: 'Head Wise Report',
-                                            description: 'Head-wise Analysis Report'
-                                        },
-                                        {
-                                            id: 10,
-                                            name: 'Bank Cash Report',
-                                            icon: 'Banknote',
-                                            url: '/hrms/reports/bank-cash-report',
-                                            title: 'Bank Cash Report',
-                                            description: 'Bank & Cash Summary'
-                                        },
-                                        {
-                                            id: 11,
-                                            name: 'Employee Service Report',
-                                            icon: 'Briefcase',
-                                            url: '/hrms/reports/employee-service-report',
-                                            title: 'Employee Service Report',
-                                            description: 'Employee Service Summary'
-                                        },
-                                        {
-                                            id: 12,
-                                            name: 'Salary Certificate',
-                                            icon: 'Award',
-                                            url: '/hrms/reports/salary-certificate',
-                                            title: 'Salary Certificate',
-                                            description: 'Generate Salary Certificates'
-                                        },
-                                        {
-                                            id: 13,
-                                            name: 'PF Challan',
-                                            icon: 'FileCheck',
-                                            url: '/hrms/reports/pf-challan',
-                                            title: 'PF Challan',
-                                            description: 'Provident Fund Challan'
-                                        },
-                                        {
-                                            id: 14,
-                                            name: 'Form 10',
-                                            icon: 'FileType',
-                                            url: '/hrms/reports/pf-form-10',
-                                            title: 'Form 10',
-                                            description: 'Provident Fund Form 10'
-                                        },
-                                        {
-                                            id: 15,
-                                            name: 'Form 5',
-                                            icon: 'FileType',
-                                            url: '/hrms/reports/pf-form-5',
-                                            title: 'Form 5',
-                                            description: 'Provident Fund Form 5'
-                                        },
-                                        {
-                                            id: 16,
-                                            name: 'PF Form6A',
-                                            icon: 'FileType',
-                                            url: '/hrms/reports/pf-form6a',
-                                            title: 'PF Form6A',
-                                            description: 'Provident Fund Form 6A'
-                                        },
-                                        {
-                                            id: 17,
-                                            name: 'PF Form3A',
-                                            icon: 'FileType',
-                                            url: '/hrms/reports/pf-form3a',
-                                            title: 'PF Form3A',
-                                            description: 'Provident Fund Form 3A'
-                                        },
-                                        {
-                                            id: 18,
-                                            name: 'HRMS Monthend Report',
-                                            icon: 'CalendarCheck',
-                                            url: '/hrms/reports/hrms-monthend-report',
-                                            title: 'HRMS Monthend Report',
-                                            description: 'Monthly Closure Report'
-                                        },
-                                        {
-                                            id: 19,
-                                            name: 'Retirement Report',
-                                            icon: 'Clock',
-                                            url: '/hrms/reports/retirement-report',
-                                            title: 'Retirement Report',
-                                            description: 'Employee Retirement Report'
-                                        },
-                                        {
-                                            id: 20,
-                                            name: 'Department Salary Report',
-                                            icon: 'Building2',
-                                            url: '/hrms/reports/department-salary-report',
-                                            title: 'Department Salary Report',
-                                            description: 'Department-wise Salary'
-                                        },
-                                        {
-                                            id: 21,
-                                            name: 'Advance Report',
-                                            icon: 'FileSearch',
-                                            url: '/hrms/reports/advance-report',
-                                            title: 'Advance Report',
-                                            description: 'View Advance Reports'
-                                        },
-                                        {
-                                            id: 22,
-                                            name: 'Employee offer letter',
-                                            icon: 'FileText',
-                                            url: '/hrms/reports/employee-offer-letter',
-                                            title: 'Employee offer letter',
-                                            description: 'Generate Offer Letters'
-                                        },
-                                        {
-                                            id: 23,
-                                            name: 'Loan Report',
-                                            icon: 'CreditCard',
-                                            url: '/hrms/reports/loan-report',
-                                            title: 'Loan Report',
-                                            description: 'Employee Loan Report'
                                         }
                                     ]
                                 }
+                                //,
+                                // {
+                                //     id: 2,
+                                //     name: 'Employee',
+                                //     icon: 'User',
+                                //     pages: [
+                                //         {
+                                //             id: 1,
+                                //             name: 'Employee Register',
+                                //             icon: 'UserPlus',
+                                //             url: '/hrms/employee',
+                                //             title: 'Employee Register',
+                                //             description: 'Manage Employee Registration'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 3,
+                                //     name: 'Transactions',
+                                //     icon: 'FileText',
+                                //     pages: [
+                                //         {
+                                //             id: 1,
+                                //             name: 'Salary Approval',
+                                //             icon: 'CheckSquare',
+                                //             url: '/hrms/transactions/salary-approval',
+                                //             title: 'Salary Approval',
+                                //             description: 'Approve Calculated Salaries'
+                                //         },
+                                //         {
+                                //             id: 2,
+                                //             name: 'Salary Calculation',
+                                //             icon: 'Calculator',
+                                //             url: '/hrms/transactions/salary-calculation',
+                                //             title: 'Salary Calculation',
+                                //             description: 'Calculate Employee Salary'
+                                //         },
+                                //         {
+                                //             id: 3,
+                                //             name: 'Salary Increment Process',
+                                //             icon: 'TrendingUp',
+                                //             url: '/hrms/transactions/salary-increment',
+                                //             title: 'Salary Increment Process',
+                                //             description: 'Manage Salary Increments'
+                                //         },
+                                //         {
+                                //             id: 4,
+                                //             name: 'Salary Updation',
+                                //             icon: 'Edit',
+                                //             url: '/hrms/transactions/salary-updation',
+                                //             title: 'Salary Updation',
+                                //             description: 'Update Employee Salary'
+                                //         },
+                                //         {
+                                //             id: 5,
+                                //             name: 'Mass Updation',
+                                //             icon: 'RefreshCw',
+                                //             url: '/hrms/transactions/mass-updation',
+                                //             title: 'Mass Updation',
+                                //             description: 'Bulk Update Employee Data'
+                                //         },
+                                //         {
+                                //             id: 6,
+                                //             name: 'Salary Advance',
+                                //             icon: 'DollarSign',
+                                //             url: '/hrms/transactions/salary-advance',
+                                //             title: 'Salary Advance',
+                                //             description: 'Manage Salary Advances'
+                                //         },
+                                //         {
+                                //             id: 7,
+                                //             name: 'Employee Loan',
+                                //             icon: 'CreditCard',
+                                //             url: '/hrms/transactions/employee-loan',
+                                //             title: 'Employee Loan',
+                                //             description: 'Manage Employee Loans'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 4,
+                                //     name: 'Reports',
+                                //     icon: 'FileText',
+                                //     pages: [
+                                //         {
+                                //             id: 1,
+                                //             name: 'Cumulative Salary Report',
+                                //             icon: 'BarChart3',
+                                //             url: '/hrms/reports/cumulative-salary-report',
+                                //             title: 'Cumulative Salary Report',
+                                //             description: 'Cumulative Salary Analysis'
+                                //         },
+                                //         {
+                                //             id: 2,
+                                //             name: 'Employee Details',
+                                //             icon: 'UserCheck',
+                                //             url: '/hrms/reports/employee-details',
+                                //             title: 'Employee Details',
+                                //             description: 'Detailed Employee Information'
+                                //         },
+                                //         {
+                                //             id: 3,
+                                //             name: 'Employee Profile',
+                                //             icon: 'User',
+                                //             url: '/hrms/reports/employee-profile',
+                                //             title: 'Employee Profile',
+                                //             description: 'Employee Profile Report'
+                                //         },
+                                //         {
+                                //             id: 4,
+                                //             name: 'Salary Slip',
+                                //             icon: 'Receipt',
+                                //             url: '/hrms/reports/salary-slip',
+                                //             title: 'Salary Slip',
+                                //             description: 'Generate Salary Slips'
+                                //         },
+                                //         {
+                                //             id: 5,
+                                //             name: 'Employee Contribution',
+                                //             icon: 'Coins',
+                                //             url: '/hrms/reports/employee-contribution',
+                                //             title: 'Employee Contribution',
+                                //             description: 'Employee Contribution Report'
+                                //         },
+                                //         {
+                                //             id: 6,
+                                //             name: 'Employee Salary Details',
+                                //             icon: 'DollarSign',
+                                //             url: '/hrms/reports/employee-salary-details',
+                                //             title: 'Employee Salary Details',
+                                //             description: 'Detailed Salary Information'
+                                //         },
+                                //         {
+                                //             id: 7,
+                                //             name: 'Employee Strength',
+                                //             icon: 'Users',
+                                //             url: '/hrms/reports/employee-strength',
+                                //             title: 'Employee Strength',
+                                //             description: 'Employee Strength Report'
+                                //         },
+                                //         {
+                                //             id: 8,
+                                //             name: 'ESI Report',
+                                //             icon: 'Shield',
+                                //             url: '/hrms/reports/esi-report',
+                                //             title: 'ESI Report',
+                                //             description: 'ESI Contribution Report'
+                                //         },
+                                //         {
+                                //             id: 9,
+                                //             name: 'Head Wise Report',
+                                //             icon: 'List',
+                                //             url: '/hrms/reports/head-wise-report',
+                                //             title: 'Head Wise Report',
+                                //             description: 'Head-wise Analysis Report'
+                                //         },
+                                //         {
+                                //             id: 10,
+                                //             name: 'Bank Cash Report',
+                                //             icon: 'Banknote',
+                                //             url: '/hrms/reports/bank-cash-report',
+                                //             title: 'Bank Cash Report',
+                                //             description: 'Bank & Cash Summary'
+                                //         },
+                                //         {
+                                //             id: 11,
+                                //             name: 'Employee Service Report',
+                                //             icon: 'Briefcase',
+                                //             url: '/hrms/reports/employee-service-report',
+                                //             title: 'Employee Service Report',
+                                //             description: 'Employee Service Summary'
+                                //         },
+                                //         {
+                                //             id: 1289,
+                                //             name: 'Salary Certificate',
+                                //             icon: 'Award',
+                                //             url: '/hrms/reports/salary-certificate',
+                                //             title: 'Salary Certificate',
+                                //             description: 'Generate Salary Certificates'
+                                //         },
+                                //         {
+                                //             id: 13,
+                                //             name: 'PF Challan',
+                                //             icon: 'FileCheck',
+                                //             url: '/hrms/reports/pf-challan',
+                                //             title: 'PF Challan',
+                                //             description: 'Provident Fund Challan'
+                                //         },
+                                //         {
+                                //             id: 14,
+                                //             name: 'Form 10',
+                                //             icon: 'FileType',
+                                //             url: '/hrms/reports/pf-form-10',
+                                //             title: 'Form 10',
+                                //             description: 'Provident Fund Form 10'
+                                //         },
+                                //         {
+                                //             id: 15,
+                                //             name: 'Form 5',
+                                //             icon: 'FileType',
+                                //             url: '/hrms/reports/pf-form-5',
+                                //             title: 'Form 5',
+                                //             description: 'Provident Fund Form 5'
+                                //         },
+                                //         {
+                                //             id: 16,
+                                //             name: 'PF Form6A',
+                                //             icon: 'FileType',
+                                //             url: '/hrms/reports/pf-form6a',
+                                //             title: 'PF Form6A',
+                                //             description: 'Provident Fund Form 6A'
+                                //         },
+                                //         {
+                                //             id: 17,
+                                //             name: 'PF Form3A',
+                                //             icon: 'FileType',
+                                //             url: '/hrms/reports/pf-form3a',
+                                //             title: 'PF Form3A',
+                                //             description: 'Provident Fund Form 3A'
+                                //         },
+                                //         {
+                                //             id: 18,
+                                //             name: 'HRMS Monthend Report',
+                                //             icon: 'CalendarCheck',
+                                //             url: '/hrms/reports/hrms-monthend-report',
+                                //             title: 'HRMS Monthend Report',
+                                //             description: 'Monthly Closure Report'
+                                //         },
+                                //         {
+                                //             id: 19,
+                                //             name: 'Retirement Report',
+                                //             icon: 'Clock',
+                                //             url: '/hrms/reports/retirement-report',
+                                //             title: 'Retirement Report',
+                                //             description: 'Employee Retirement Report'
+                                //         },
+                                //         {
+                                //             id: 20,
+                                //             name: 'Department Salary Report',
+                                //             icon: 'Building2',
+                                //             url: '/hrms/reports/department-salary-report',
+                                //             title: 'Department Salary Report',
+                                //             description: 'Department-wise Salary'
+                                //         },
+                                //         {
+                                //             id: 21,
+                                //             name: 'Advance Report',
+                                //             icon: 'FileSearch',
+                                //             url: '/hrms/reports/advance-report',
+                                //             title: 'Advance Report',
+                                //             description: 'View Advance Reports'
+                                //         },
+                                //         {
+                                //             id: 22,
+                                //             name: 'Employee offer letter',
+                                //             icon: 'FileText',
+                                //             url: '/hrms/reports/employee-offer-letter',
+                                //             title: 'Employee offer letter',
+                                //             description: 'Generate Offer Letters'
+                                //         },
+                                //         {
+                                //             id: 23,
+                                //             name: 'Loan Report',
+                                //             icon: 'CreditCard',
+                                //             url: '/hrms/reports/loan-report',
+                                //             title: 'Loan Report',
+                                //             description: 'Employee Loan Report'
+                                //         }
+                                //     ]
+                                // }
                             ]
                         },
                         {

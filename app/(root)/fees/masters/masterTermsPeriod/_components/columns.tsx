@@ -81,6 +81,13 @@ export const termsPeriodColumns: ColumnDef<IMasterTermsPeriodList>[] = [
     },
 
     {
+        accessorKey: 'feeFlag',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Fee Type' />,
+        cell: ({ row }) => <div>{row.getValue('feeFlag')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
         accessorFn: (row: any) => row,

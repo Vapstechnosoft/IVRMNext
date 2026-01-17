@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { FormError } from '@/components/ui/extension/field';
@@ -199,7 +198,6 @@ export default function SalaryCertificatePage() {
         setReportData(null);
         toast.info('Form has been reset');
     };
-
     const handlePrint = () => {
         window.print();
         toast.success('Print dialog opened');

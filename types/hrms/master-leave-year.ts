@@ -51,3 +51,9 @@ export interface MasterLeaveYearInput {
     CreatedDate?: string;
     UpdatedDate?: string;
 }
+
+export interface LeaveYearSetOrderList {
+    HRMLY_Id: number;
+    HRMLY_LeaveYear: string;
+    HRMLY_LeaveYearOrder: number;
+}

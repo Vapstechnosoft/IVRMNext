@@ -1,13 +1,10 @@
 'use client';
-
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { CompOffRequestItem, EmployeeLeaveDetail } from '@/types/hrms/leave-management/comp-off-request';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
-
 export type { CompOffRequestItem, EmployeeLeaveDetail };
-
 export const compOffRequestColumns = (
     selectedRows: Set<number>,
     onSelectRow: (id: number, checked: boolean) => void,
@@ -101,7 +98,6 @@ export const compOffRequestColumns = (
         )
     }
 ];
-
 export const employeeLeaveDetailColumns: ColumnDef<EmployeeLeaveDetail>[] = [
     {
         accessorKey: 'slNo',

@@ -1,5 +1,4 @@
 'use server';
-
 import { type ApiResponse, api } from '@/lib/apiService';
 import type {
     MonthEndReportOnloadRequest,
@@ -7,7 +6,6 @@ import type {
     MonthEndReportSearchRequest,
     MonthEndReportSearchResponse
 } from '@/types/hrms/reports/month-end-report';
-
 /**
  * Get onload data for Month End Report
  * POST /api/MonthEndReportFacade/onloadgetdetails
@@ -16,21 +14,15 @@ import type {
  */
 export async function getMonthEndReportOnload(MI_Id = 30): Promise<ApiResponse<MonthEndReportOnloadResponse>> {
     const url = '/api/MonthEndReportFacade/onloadgetdetails';
-
     const requestBody: MonthEndReportOnloadRequest = {
         MI_Id
     };
-
-    console.log('🔵 ========== MONTH END REPORT ONLOAD ==========');
-    console.log('🔵 [SERVER] Request URL:', url);
     console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     let response: any;
     try {
         response = await api.post<MonthEndReportOnloadResponse>('hrms', url, requestBody);
         console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
         return {
             success: false,
             message: error?.message || 'Failed to load month end report data',
@@ -73,14 +65,12 @@ export async function getMonthEndReportOnload(MI_Id = 30): Promise<ApiResponse<M
             }
         };
     }
-
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         // Already wrapped
         return response as ApiResponse<MonthEndReportOnloadResponse>;
     }
-
     // Wrap raw response data
     const rawResponse = response as unknown as MonthEndReportOnloadResponse;
     return {
@@ -89,7 +79,6 @@ export async function getMonthEndReportOnload(MI_Id = 30): Promise<ApiResponse<M
         data: rawResponse
     };
 }
-
 /**
  * Get employee details by selection for Month End Report
  * POST /api/MonthEndReportFacade/getEmployeedetailsBySelection
@@ -98,7 +87,6 @@ export async function getMonthEndReportOnload(MI_Id = 30): Promise<ApiResponse<M
  */
 export async function searchMonthEndReport(request: MonthEndReportSearchRequest): Promise<ApiResponse<MonthEndReportSearchResponse>> {
     const url = '/api/MonthEndReportFacade/getEmployeedetailsBySelection';
-
     const requestBody: MonthEndReportSearchRequest = {
         MI_Id: request.MI_Id || 30,
         retrunMsg: request.retrunMsg || '',
@@ -113,17 +101,12 @@ export async function searchMonthEndReport(request: MonthEndReportSearchRequest)
         hrmdeS_IdList: request.hrmdeS_IdList || [],
         empid: request.empid || []
     };
-
-    console.log('🔵 ========== MONTH END REPORT SEARCH ==========');
-    console.log('🔵 [SERVER] Request URL:', url);
     console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     let response: any;
     try {
         response = await api.post<MonthEndReportSearchResponse>('hrms', url, requestBody);
         console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
         return {
             success: false,
             message: error?.message || 'Failed to search month end report',
@@ -158,14 +141,12 @@ export async function searchMonthEndReport(request: MonthEndReportSearchRequest)
             }
         };
     }
-
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         // Already wrapped
         return response as ApiResponse<MonthEndReportSearchResponse>;
     }
-
     // Wrap raw response data
     const rawResponse = response as unknown as MonthEndReportSearchResponse;
     return {

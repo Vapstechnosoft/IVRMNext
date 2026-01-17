@@ -3,24 +3,24 @@
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { HRMSCollapsibleSection } from '../_components/hrms-collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useEmployeeShiftMapping } from '@/hooks/hrms/attendance-management/useMasters';
+import type { IMasterEmployeeShiftMappingList } from '@/types/hrms/attendance-management/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddEmployeeShiftMappingForm from './_components/add-form';
-import { type EmployeeShiftMapping, employeeShiftMappingColumns } from './_components/columns';
+import { employeeShiftMappingColumns } from './_components/columns';
 import DeleteEmployeeShiftMappingForm from './_components/delete-form';
 import UpdateEmployeeShiftMappingForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function EmployeeShiftMappingPage(props: { searchParams: SearchParams }) {
-    const _searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useEmployeeShiftMapping();
+    const searchParams = use(props.searchParams);
+    const { data: response, isLoading, error } = useEmployeeShiftMapping(searchParams);
 
     return (
-        <FormProvider<EmployeeShiftMapping>>
+        <FormProvider<IMasterEmployeeShiftMappingList>>
             <EmployeeShiftMappingPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
@@ -35,14 +35,14 @@ function EmployeeShiftMappingPageContent({
     isLoading: boolean;
     error: any;
 }) {
-    const { openAddForm } = useFormContext<EmployeeShiftMapping>();
+    const { openAddForm } = useFormContext<IMasterEmployeeShiftMappingList>();
     const tableProps = useDataTableProps(response);
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Header */}
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+                <div className='flex justify-end'>
                     <Button
                         type='button'
                         onClick={openAddForm}
@@ -57,9 +57,8 @@ function EmployeeShiftMappingPageContent({
                     defaultOpen={true}
                     variant='default'
                     size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
-                    headerClassName=''>
-                    <GenericDataTable<EmployeeShiftMapping>
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    <GenericDataTable<IMasterEmployeeShiftMappingList>
                         {...tableProps}
                         columns={employeeShiftMappingColumns}
                         isLoading={isLoading}
@@ -91,55 +90,57 @@ function FormSections() {
         closeDeleteForm,
         addFormRef,
         editFormRef
-    } = useFormContext<EmployeeShiftMapping>();
+    } = useFormContext<IMasterEmployeeShiftMappingList>();
 
     return (
         <>
             {/* Add Form */}
             {isAddFormOpen && (
                 <div ref={addFormRef}>
-                    <HRMSCollapsibleSection
-                        title='Add Employee Shift Mapping'
+                    <CollapsibleSection
+                        title='Add New Employee Shift Mapping'
+                        description='Fill in the details below to create a new employee shift mapping'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'
-                        closeButton={
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
                             <Button
                                 type='button'
                                 onClick={closeAddForm}
                                 variant='ghost'
                                 size='sm'
-                                className='w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                        }>
-                        <AddEmployeeShiftMappingForm onSuccess={closeAddForm} />
-                    </HRMSCollapsibleSection>
+                            <AddEmployeeShiftMappingForm onSuccess={closeAddForm} />
+                        </div>
+                    </CollapsibleSection>
                 </div>
             )}
 
             {/* Edit Form */}
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
-                    <HRMSCollapsibleSection
+                    <CollapsibleSection
                         title='Update Employee Shift Mapping'
+                        description='Update the details below to modify the employee shift mapping'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'
-                        closeButton={
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
                             <Button
                                 type='button'
                                 onClick={closeEditForm}
                                 variant='ghost'
                                 size='sm'
-                                className='w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                        }>
-                        <UpdateEmployeeShiftMappingForm selectedRow={selectedRow} onSuccess={closeEditForm} />
-                    </HRMSCollapsibleSection>
+                            <UpdateEmployeeShiftMappingForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                        </div>
+                    </CollapsibleSection>
                 </div>
             )}
 

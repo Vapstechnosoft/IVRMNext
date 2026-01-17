@@ -2,6 +2,7 @@ import {
     createAlphanumericSchema,
     createOptionalAlphaNumericSchemaNotOptional,
     createOptionalStringSchema,
+    createRequiredAlphaNumericWithSpaceSchema,
     createStringOnlySchema,
     createStringSchema,
     createStringSchemaNotAllowNumbersOnly,
@@ -16,7 +17,16 @@ export const loginSchema = z.object({
         .refine((value) => value.trim() === value, {
             message: 'Username cannot have leading or trailing spaces'
         }),
-    password: createStringSchema('Password', 6, 50)
+    password: z
+        .string({ message: 'Password is required' })
+        .min(8, { message: `Minimum ${8} characters required for Password` })
+        .max(15, { message: `Maximum ${15} characters allowed for Password` })
+        .regex(/^\S+$/, {
+            message: 'Password cannot contain whitespace'
+        })
+        .refine((value) => value.trim() === value, {
+            message: 'Password cannot have leading or trailing spaces'
+        })
 });
 
 export const masterClassSchema = {
@@ -108,7 +118,8 @@ export const masterClassCategorySchema = {
         asmcC_Id: z.number().int({ message: 'ASMCC_ID is required' }).optional(),
         asmaY_Id: z.number().int({ message: 'Academic Year is required' }),
         amC_Id: z.number().int({ message: 'Category is required' }),
-        class_ids: z.array(z.string()).nonempty('Please select at least one class')
+        category_classes: z.array(z.string()).min(1, 'Please select at least one class'),
+        category_class_sections: z.array(z.string()).min(1, 'Please select at least one class')
     }),
     delete: z.object({
         asmcC_Id: deleteIdSchema('asmcC_Id')
@@ -117,28 +128,17 @@ export const masterClassCategorySchema = {
 
 export const masterClassHeldSchema = {
     add: z.object({
-        asmaY_Id: z.number().int({ message: 'Academic Year is required' }),
+        asmaY_Id: z.number().int().min(1, { message: 'Academic Year is required' }),
         classCategory: z.string().min(1, { message: 'Class is required' }),
         section: z.string().min(1, { message: 'Section is required' }),
         classHeldData: z
             .array(
                 z.object({
-                    month: z.string().min(1, { message: 'Month is required' }),
-                    classHeld: z.number().int().min(0, { message: 'Class held must be 0 or greater' })
-                })
-            )
-            .nonempty({ message: 'Please select at least one month' })
-    }),
-    update: z.object({
-        id: z.number().int({ message: 'ID is required' }),
-        asmaY_Id: z.number().int({ message: 'Academic Year is required' }),
-        classCategory: z.string().min(1, { message: 'Class is required' }),
-        section: z.string().min(1, { message: 'Section is required' }),
-        classHeldData: z
-            .array(
-                z.object({
-                    month: z.string().min(1, { message: 'Month is required' }),
-                    classHeld: z.number().int().min(0, { message: 'Class held must be 0 or greater' })
+                    ivrM_Month_Id: z.number().int(),
+                    ivrM_Month_Name: z.string().min(1, { message: 'Month name is required' }),
+                    is_Active: z.boolean(),
+                    ivrM_Month_Max_Days: z.number().int(),
+                    ascH_ClassHeld: z.number().int().min(0, { message: 'Class held must be 0 or greater' })
                 })
             )
             .nonempty({ message: 'Please select at least one month' })
@@ -202,7 +202,7 @@ export const masterDocumentSchema = {
     addOrUpdate: z.object({
         amsmD_Id: z.number().int({ message: 'AMSMD_ID is required' }).optional(),
         amsmD_DocumentName: createStringOnlySchema('Document Name', 1, 100),
-        amsmD_Description: createOptionalAlphaNumericSchemaNotOptional('Description', 1, 1000),
+        amsmD_Description: createRequiredAlphaNumericWithSpaceSchema('Description', 1, 1000),
         amsmD_FLAG: z.number().int({ message: 'Mandatory Flag is required' })
     }),
     delete: z.object({
@@ -214,7 +214,7 @@ export const masterReferenceSchema = {
     addOrUpdate: z.object({
         pamR_Id: z.number().int({ message: 'PAMR_Id is required' }).optional(),
         pamR_ReferenceName: createStringOnlySchema('Reference Name', 1, 50),
-        pamR_ReferenceDesc: createStringOnlySchema('Description', 1, 500)
+        pamR_ReferenceDesc: createRequiredAlphaNumericWithSpaceSchema('Description', 1, 500)
     }),
     delete: z.object({
         pamR_Id: deleteIdSchema('pamR_Id')
@@ -225,7 +225,7 @@ export const masterSourceSchema = {
     addOrUpdate: z.object({
         pamS_Id: z.number().int({ message: 'PAMS_ID is required' }).optional(),
         pamS_SourceName: createStringOnlySchema('Source Name', 1, 50),
-        pamS_SourceDesc: createStringOnlySchema('Description', 1, 500)
+        pamS_SourceDesc: createRequiredAlphaNumericWithSpaceSchema('Description', 1, 500)
     }),
     delete: z.object({
         pamS_Id: deleteIdSchema('pamS_Id')
@@ -321,3 +321,20 @@ export const masterConfigurationSchema = {
             }
         })
 };
+export const masterActiveDeactiveStudentSchema = z.object({
+    amsT_SOL: z.enum(['S', 'D'], { required_error: 'Status is required' }),
+    asmaY_Id: z.number().int().min(1, { message: 'Academic Year is required' }),
+    asmcL_Id: z.number().int().min(1, { message: 'Class is required' }),
+    asmS_Id: z.number().int().min(1, { message: 'Section is required' }),
+    students: z
+        .array(
+            z.object({
+                amsT_Id: z.number(),
+                reason: z.string(),
+                remarks: z.string()
+            })
+        )
+        .min(1, { message: 'Please select at least one student' })
+        .optional()
+        .default([])
+});

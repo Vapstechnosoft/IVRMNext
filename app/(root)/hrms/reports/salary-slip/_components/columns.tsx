@@ -1,9 +1,7 @@
 'use client';
-
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
-
 export interface EmployeeSalarySlipDisplay {
     id: number;
     employeeCode: string;
@@ -14,12 +12,10 @@ export interface EmployeeSalarySlipDisplay {
     HRME_Id: number;
     isSelected: boolean;
 }
-
 interface SalarySlipColumnsProps {
     onSelectAll: (checked: boolean) => void;
     onSelectEmployee: (employeeId: number, checked: boolean) => void;
 }
-
 export const getSalarySlipColumns = ({ onSelectAll, onSelectEmployee }: SalarySlipColumnsProps): ColumnDef<EmployeeSalarySlipDisplay>[] => [
     {
         id: 'select',

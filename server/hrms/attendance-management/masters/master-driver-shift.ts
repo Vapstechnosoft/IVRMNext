@@ -1,7 +1,5 @@
 'use server';
-
 import { createLocalCrud } from '@/lib/localdb';
-
 export interface MasterDriverShift {
     id: number;
     shift: string;
@@ -14,9 +12,7 @@ export interface MasterDriverShift {
     isActive?: boolean;
     createdAt: Date;
 }
-
 const store = createLocalCrud<MasterDriverShift>('attendance:master-driver-shift');
-
 export async function getMasterDriverShift() {
     return {
         success: true,
@@ -24,7 +20,6 @@ export async function getMasterDriverShift() {
         message: 'Master driver shifts retrieved successfully'
     };
 }
-
 export async function addOrUpdateMasterDriverShift(data: {
     id?: number;
     shift: string;
@@ -83,7 +78,6 @@ export async function addOrUpdateMasterDriverShift(data: {
         };
     }
 }
-
 export async function deleteMasterDriverShift(id: number) {
     try {
         const removed = store.remove(id);
@@ -104,4 +98,3 @@ export async function deleteMasterDriverShift(id: number) {
         };
     }
 }
-

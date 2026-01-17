@@ -119,11 +119,9 @@ export default function DepartmentSalaryReportPage() {
         setSelectedMonth('');
         setSelectedYear('');
     };
-
     const handlePrint = () => {
         window.print();
     };
-
     return (
         <div className='min-h-screen p-8'>
             <div className='container space-y-4 p-1'>

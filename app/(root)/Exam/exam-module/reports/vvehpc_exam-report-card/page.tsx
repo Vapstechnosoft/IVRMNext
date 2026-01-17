@@ -12,16 +12,15 @@ import ProgressCardPrintView from './_components/progress-card-printable';
 export default function ProgressCardReportPage() {
     const [reportData, setReportData] = useState<IExamReportCard[]>([]);
     const [subjects, setSubjects] = useState<ISubject[]>([]);
-    const [headerInfo, setHeaderInfo] = useState<Partial<any>>({});
+    const [headerInfo, setHeaderInfo] = useState<any>({});
     const [examName, setExamName] = useState<string>('');
-    const [examCode, setExamCode] = useState<string>('FA1');
+    const [examCode] = useState<string>('FA1');
     const [year, setYear] = useState<string>('');
     const [isReportVisible, setIsReportVisible] = useState(false);
 
     const handleReportSuccess = async (payload: any) => {
         try {
             const res = await getExamReportCard(payload);
-
             if (!res?.success || !Array.isArray(res?.data) || res.data.length === 0) {
                 toast.error('No records found');
                 setIsReportVisible(false);
@@ -29,78 +28,84 @@ export default function ProgressCardReportPage() {
             }
 
             const flatRows: any[] = res.data;
-            const selectedIds = payload.amsT_Ids ? new Set(payload.amsT_Ids.split(',').map(Number)) : new Set();
-
-            const subjMap = new Map<number, ISubject>();
-            flatRows.forEach((r: any) => {
-                if (!subjMap.has(r.ismS_Id)) {
-                    subjMap.set(r.ismS_Id, {
-                        ismS_Id: r.ismS_Id,
-                        ismS_SubjectName: r.ismS_SubjectName,
-                        eyceS_AplResultFlg: r.eyceS_AplResultFlg ?? true,
-                        type: r.eyceS_GradeDisplayFlg ? 'Grade' : 'Marks',
-                        eyceS_MarksDisplayFlg: r.eyceS_MarksDisplayFlg ?? false,
-                        eyceS_GradeDisplayFlg: r.eyceS_GradeDisplayFlg ?? false,
-                        eyceS_SubjectOrder: r.eyceS_SubjectOrder ?? 999
-                    });
-                }
-            });
-
-            const subjectsList = Array.from(subjMap.values()).sort((a, b) => (a.eyceS_SubjectOrder ?? 999) - (b.eyceS_SubjectOrder ?? 999));
 
             const studentMap = new Map<number, IExamReportCard>();
-            flatRows.forEach((r: any) => {
-                const sid = r.amsT_Id;
-                if (selectedIds.size > 0 && !selectedIds.has(sid)) return;
+            const subjectMap = new Map<number, ISubject>();
 
-                if (!studentMap.has(sid)) {
-                    studentMap.set(sid, {
-                        amsT_Id: sid,
-                        amsT_FirstName: [r.amsT_FirstName, r.amsT_MiddleName, r.amsT_LastName].filter(Boolean).join(' ').trim(),
-                        amsT_FatherName: r.amsT_FatherName ?? null,
-                        amsT_DOB: r.amsT_DOB ?? null,
-                        amaY_RollNo: r.amaY_RollNo ?? null,
-                        amsT_AdmNo: r.amsT_AdmNo ?? null,
-                        amsT_RegistrationNo: r.amsT_RegistrationNo ?? null,
-                        sub_list: [],
-                        estmP_TotalMaxMarks: r.estmP_TotalMaxMarks ?? null,
-                        estmP_TotalObtMarks: r.estmP_TotalObtMarks ?? null,
-                        estmP_Percentage: r.estmP_Percentage ?? null,
-                        estmP_TotalGrade: r.estmP_TotalGrade ?? null,
-                        estmP_Result: r.estmP_Result ?? null,
-                        estmP_ClassRank: r.estmP_ClassRank ?? null,
-                        estmP_SectionRank: r.estmP_SectionRank ?? null,
-                        classheld: r.classheld ?? null,
-                        classatt: r.classatt ?? null,
-                        estmP_TotalGradeRemark: r.estmP_TotalGradeRemark ?? null
+            flatRows.forEach((row) => {
+                const studentId = row.amsT_Id;
+
+                // Build unique subjects
+                if (row.ismS_Id && !subjectMap.has(row.ismS_Id)) {
+                    subjectMap.set(row.ismS_Id, {
+                        ismS_Id: row.ismS_Id,
+                        ismS_SubjectName: row.ismS_SubjectName,
+                        eyceS_AplResultFlg: row.eyceS_AplResultFlg ?? true,
+                        eyceS_MarksDisplayFlg: row.eyceS_MarksDisplayFlg ?? true,
+                        eyceS_GradeDisplayFlg: row.eyceS_GradeDisplayFlg ?? true,
+                        eyceS_SubjectOrder: row.eyceS_SubjectOrder ?? 999,
+                        type: row.eyceS_GradeDisplayFlg ? 'Grade' : 'Marks'
                     });
                 }
 
-                studentMap.get(sid)!.sub_list.push({
-                    ismS_Id: r.ismS_Id,
-                    estmpS_ObtainedMarks: r.estmpS_ObtainedMarks ?? null,
-                    estmpS_ObtainedGrade: r.estmpS_ObtainedGrade ?? null,
-                    estmpS_PassFailFlg: r.estmpS_PassFailFlg ?? null,
-                    estmpS_MaxMarks: r.estmpS_MaxMarks ?? null
-                });
+                // Initialize student
+                if (!studentMap.has(studentId)) {
+                    studentMap.set(studentId, {
+                        amsT_Id: studentId,
+                        amsT_FirstName: row.amsT_FirstName.trim(),
+                        amsT_FatherName: row.amsT_FatherName || 'N/A',
+                        amsT_DOB: row.amsT_DOB,
+                        amaY_RollNo: row.amaY_RollNo,
+                        amsT_AdmNo: row.amsT_AdmNo,
+                        amsT_RegistrationNo: row.amsT_RegistrationNo,
+                        sub_list: [],
+                        estmP_TotalMaxMarks: row.estmP_TotalMaxMarks,
+                        estmP_TotalObtMarks: row.estmP_TotalObtMarks,
+                        estmP_Percentage: row.estmP_Percentage,
+                        estmP_TotalGrade: row.estmP_TotalGrade,
+                        estmP_Result: row.estmP_Result,
+                        estmP_ClassRank: row.estmP_ClassRank,
+                        estmP_SectionRank: row.estmP_SectionRank,
+                        classheld: row.asA_ClassHeld,
+                        classatt: row.asA_Class_Attended,
+                        estmP_TotalGradeRemark: row.emgD_Remarks || row.estmP_TotalGradeRemark || 'Good'
+                    });
+                }
+
+                // Only add subjects with actual marks
+                if (row.ismS_Id && row.estmpS_MaxMarks > 0) {
+                    studentMap.get(studentId)!.sub_list.push({
+                        ismS_Id: row.ismS_Id,
+                        estmpS_MaxMarks: row.estmpS_MaxMarks,
+                        estmpS_ObtainedMarks: row.estmpS_ObtainedMarks ?? null,
+                        estmpS_ObtainedGrade: row.estmpS_ObtainedGrade || '-',
+                        estmpS_PassFailFlg: row.estmpS_PassFailFlg
+                    });
+                }
             });
 
-            const first = flatRows[0];
-            const header = {
-                mI_name: first.mI_Name || 'Vidya Vikasa Vidya Samsthe (R)',
-                cla: first.asmcL_ClassName,
-                sec: first.asmC_SectionName,
-                yr: first.asmaY_Year,
-                exmmid: first.emE_ExamName
-            };
+            // Filter subjects that actually have marks
+            const validSubjectIds = new Set(Array.from(studentMap.values()).flatMap((s) => s.sub_list.map((m) => m.ismS_Id)));
 
-            setSubjects(subjectsList);
+            const filteredSubjects = Array.from(subjectMap.values())
+                .filter((s) => validSubjectIds.has(s.ismS_Id))
+                .sort((a, b) => (a.eyceS_SubjectOrder ?? 999) - (b.eyceS_SubjectOrder ?? 999));
+
+            const firstRow = flatRows[0];
+
+            setSubjects(filteredSubjects);
             setReportData(Array.from(studentMap.values()));
-            setHeaderInfo(header);
-            setExamName(first.emE_ExamName || 'Progress Card');
-            setYear(first.asmaY_Year || '');
+            const safeReportData = Array.from(studentMap.values());
+            console.log('reportData', safeReportData);
+            console.log(reportData);
+            setHeaderInfo({
+                cla: firstRow.asmcL_ClassName,
+                sec: firstRow.asmC_SectionName
+            });
+            setExamName(firstRow.emE_ExamName || 'Progress Card');
+            setYear(firstRow.asmaY_Year || new Date().getFullYear().toString());
             setIsReportVisible(true);
-            toast.success('Progress cards generated successfully');
+            toast.success(`${studentMap.size} progress card(s) generated successfully!`);
         } catch (e: any) {
             console.error(e);
             toast.error(e?.message || 'Error generating report');
@@ -117,8 +122,8 @@ export default function ProgressCardReportPage() {
             </CollapsibleSection>
 
             {isReportVisible && (
-                <CollapsibleSection title='Progress Cards (Print View)' defaultOpen>
-                    <div className='no-print my-4 flex justify-end'>
+                <CollapsibleSection title='Progress Cards Report' defaultOpen>
+                    <div className='no Print my-4 flex justify-end'>
                         {/* biome-ignore lint/a11y/useButtonType: <explanation> */}
                         <button
                             onClick={handlePrint}
@@ -127,7 +132,6 @@ export default function ProgressCardReportPage() {
                             Print All Cards
                         </button>
                     </div>
-
                     <ProgressCardPrintView
                         reportData={reportData}
                         subjects={subjects}

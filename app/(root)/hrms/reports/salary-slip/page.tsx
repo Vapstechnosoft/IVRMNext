@@ -1,5 +1,4 @@
 'use client';
-
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useFilterEmployeesByYearMonth, useGenerateSalarySlip, useSalarySlipOnload } from '@/hooks/hrms/useReports';
@@ -8,23 +7,19 @@ import { toast } from 'sonner';
 import type { EmployeeSalarySlipDisplay } from './_components/columns';
 import { SalarySlipFilters, type SalarySlipFilters as SalarySlipFiltersType } from './_components/filters';
 import { SalarySlipTemplate } from './_components/salary-slip-template';
-
 export default function SalarySlipReportPage() {
     const roleId = HRMS_MI_ID;
     const LogInUserId = 0;
-
     // React Query hooks
     const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = useSalarySlipOnload(roleId, LogInUserId);
     const filterMutation = useFilterEmployeesByYearMonth();
     const generateMutation = useGenerateSalarySlip();
-
     // Memoize arrays to prevent unnecessary re-renders
     const groupTypes = useMemo(() => onloadData?.data?.groupTypedropdownlist || [], [onloadData?.data?.groupTypedropdownlist]);
     const departments = useMemo(() => onloadData?.data?.departmentdropdownlist || [], [onloadData?.data?.departmentdropdownlist]);
     const designations = useMemo(() => onloadData?.data?.designationdropdownlist || [], [onloadData?.data?.designationdropdownlist]);
     const months = useMemo(() => onloadData?.data?.monthdropdown || [], [onloadData?.data?.monthdropdown]);
     const years = useMemo(() => onloadData?.data?.leaveyeardropdown || [], [onloadData?.data?.leaveyeardropdown]);
-
     // State
     const [employees, setEmployees] = useState<EmployeeSalarySlipDisplay[]>([]);
     const [filteredEmployees, setFilteredEmployees] = useState<EmployeeSalarySlipDisplay[]>([]);
@@ -56,7 +51,6 @@ export default function SalarySlipReportPage() {
             }>;
         }>
     >([]);
-
     const [filters, setFilters] = useState<SalarySlipFilters>({
         groupType: [],
         department: [],
@@ -71,7 +65,6 @@ export default function SalarySlipReportPage() {
             bankDetails: false
         }
     });
-
     // Load employees when year/month changes
     useEffect(() => {
         if (filters.year && filters.month) {
@@ -81,7 +74,6 @@ export default function SalarySlipReportPage() {
                 HRES_Year: filters.year,
                 HRES_Month: filters.month
             };
-
             filterMutation.mutate(request, {
                 onSuccess: (response) => {
                     if (response.success && response.data?.employeedropdown) {
@@ -105,7 +97,6 @@ export default function SalarySlipReportPage() {
                     }
                 },
                 onError: (error) => {
-                    console.error('Error filtering employees:', error);
                     toast.error(error.message || 'Failed to load employees. Please check if the API endpoint is available.');
                 }
             });
@@ -115,24 +106,19 @@ export default function SalarySlipReportPage() {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filters.year, filters.month]);
-
     // Filter employees based on selected criteria and search term
     useEffect(() => {
         let filtered = employees;
-
         // Apply dropdown filters
         if (filters.groupType.length > 0) {
             filtered = filtered.filter((emp) => filters.groupType.includes(emp.groupTypeId));
         }
-
         if (filters.department.length > 0) {
             filtered = filtered.filter((emp) => filters.department.includes(emp.departmentId));
         }
-
         if (filters.designation.length > 0) {
             filtered = filtered.filter((emp) => filters.designation.includes(emp.designationId));
         }
-
         // Apply search filter
         if (searchTerm) {
             filtered = filtered.filter(
@@ -141,10 +127,8 @@ export default function SalarySlipReportPage() {
                     emp.employeeName.toLowerCase().includes(searchTerm.toLowerCase())
             );
         }
-
         setFilteredEmployees(filtered);
     }, [filters, employees, searchTerm]);
-
     const handleOptionChange = (option: keyof SalarySlipFiltersType['options'], checked: boolean) => {
         setFilters((prev) => ({
             ...prev,
@@ -154,36 +138,29 @@ export default function SalarySlipReportPage() {
             }
         }));
     };
-
     const handleFilterChange = (newFilters: SalarySlipFiltersType) => {
         setFilters(newFilters);
     };
-
     const handleSelectEmployee = (employeeId: number, checked: boolean) => {
         const updatedEmployees = employees.map((emp) => (emp.id === employeeId ? { ...emp, isSelected: checked } : emp));
         setEmployees(updatedEmployees);
     };
-
     const handleSelectAll = (checked: boolean) => {
         const updatedEmployees = employees.map((emp) => ({ ...emp, isSelected: checked }));
         setEmployees(updatedEmployees);
     };
-
     const handleGenerateSlip = () => {
         // Always show report template when generate is clicked
         setShowReport(true);
-
         const selectedEmployees = filteredEmployees.filter((emp) => emp.isSelected);
         if (selectedEmployees.length === 0) {
             toast.warning('Please select at least one employee. Showing empty salary slip template.');
             return;
         }
-
         if (!filters.month || !filters.year) {
             toast.warning('Please select month and year. Showing empty salary slip template.');
             return;
         }
-
         const request = {
             MI_Id: roleId,
             HRES_Year: filters.year,
@@ -193,13 +170,11 @@ export default function SalarySlipReportPage() {
             hrmD_IdList: filters.department.length > 0 ? filters.department : [],
             groupTypeIdList: filters.groupType.length > 0 ? filters.groupType : []
         };
-
         generateMutation.mutate(request, {
             onSuccess: (response) => {
                 if (response.success && response.data) {
                     // Parse salary slip data from API response
                     const slips: typeof salarySlips = [];
-
                     // The API might return data in different formats
                     const responseData = response.data;
                     const employeeList = responseData.employeedropdown || [];
@@ -208,7 +183,6 @@ export default function SalarySlipReportPage() {
                     const employeeLeaveDetails = responseData.employeeLeaveDetails || [];
                     const mainList = responseData.main_list || [];
                     const reportData = responseData.ReportData || [];
-
                     // Try to get employee details - could be in different locations
                     let currentemployeeDetails: any = {};
                     if (responseData.currentemployeeDetails) {
@@ -227,16 +201,13 @@ export default function SalarySlipReportPage() {
                             });
                         }
                     }
-
                     // Process each selected employee
                     selectedEmployees.forEach((selectedEmp) => {
                         const empData = employeeList.find((e: any) => e.HRME_Id === selectedEmp.HRME_Id) || {};
                         const empDetails = currentemployeeDetails[selectedEmp.HRME_Id] || currentemployeeDetails || empData || {};
-
                         // Extract earnings and deductions
                         const earnings: Array<{ name: string; amount: number }> = [];
                         const deductions: Array<{ name: string; amount: number }> = [];
-
                         // Process earningdeductiondetails - could be array or object
                         let earningDeductionList: any[] = [];
                         if (Array.isArray(earningdeductiondetails)) {
@@ -245,18 +216,14 @@ export default function SalarySlipReportPage() {
                             // If it's an object, try to find arrays within it
                             earningDeductionList = Object.values(earningdeductiondetails).filter(Array.isArray).flat() as any[];
                         }
-
                         earningDeductionList.forEach((item: any) => {
                             if (!item || typeof item !== 'object') return;
-
                             // Check if this item belongs to the current employee
                             const belongsToEmployee = !item.HRME_Id || item.HRME_Id === selectedEmp.HRME_Id;
                             if (!belongsToEmployee) return;
-
                             const earnDedFlag = item.HRMED_EarnDedFlag || item.EarnDedFlag || item.flag || '';
                             const name = item.HRMED_Name || item.Name || item.name || '';
                             const amount = item.HREED_Amount || item.Amount || item.amount || 0;
-
                             if (earnDedFlag === 'Earning' || earnDedFlag === 'E' || name.toLowerCase().includes('earning')) {
                                 if (name && amount) {
                                     earnings.push({ name, amount: Number(amount) || 0 });
@@ -267,7 +234,6 @@ export default function SalarySlipReportPage() {
                                 }
                             }
                         });
-
                         // If no earnings/deductions found, try main_list or ReportData
                         if (earnings.length === 0 && deductions.length === 0) {
                             const dataSource = mainList.length > 0 ? mainList : Array.isArray(reportData) ? reportData : [];
@@ -283,12 +249,10 @@ export default function SalarySlipReportPage() {
                                 }
                             });
                         }
-
                         // Calculate totals - use from API if available, otherwise calculate
                         const grossPay = responseData.empGrossSal || earnings.reduce((sum, e) => sum + (e.amount || 0), 0);
                         const totalDeduction = deductions.reduce((sum, d) => sum + (d.amount || 0), 0);
                         const netPayable = responseData.HRESD_Amount || grossPay - totalDeduction;
-
                         // Extract leave details
                         const leaveDetails: Array<{
                             serialNo: number;
@@ -297,12 +261,10 @@ export default function SalarySlipReportPage() {
                             availedLeaves: number;
                             balanceLeaves: number;
                         }> = [];
-
                         if (Array.isArray(employeeLeaveDetails)) {
                             employeeLeaveDetails.forEach((leave: any, index: number) => {
                                 if (!leave || typeof leave !== 'object') return;
                                 if (leave.HRME_Id && leave.HRME_Id !== selectedEmp.HRME_Id) return;
-
                                 leaveDetails.push({
                                     serialNo: index + 1,
                                     leaveName: leave.HRML_LeaveName || leave.LeaveName || leave.leaveName || '-',
@@ -312,7 +274,6 @@ export default function SalarySlipReportPage() {
                                 });
                             });
                         }
-
                         // Get employee designation from various sources
                         const empDesigId = (empDetails as any).HRMDES_Id || (empData as any).HRMDES_Id;
                         const designation =
@@ -321,7 +282,6 @@ export default function SalarySlipReportPage() {
                             responseData.DesignationName ||
                             designations.find((d: any) => d.HRMDES_Id === empDesigId)?.HRMDES_DesignationName ||
                             '-';
-
                         slips.push({
                             employeeId: selectedEmp.HRME_Id,
                             employeeName: selectedEmp.employeeName,
@@ -358,7 +318,6 @@ export default function SalarySlipReportPage() {
                             leaveDetails
                         });
                     });
-
                     setSalarySlips(slips);
                     setShowReport(true);
                     toast.success(`Salary slips generated successfully for ${selectedEmployees.length} employee(s)`);
@@ -370,7 +329,6 @@ export default function SalarySlipReportPage() {
                 }
             },
             onError: (error) => {
-                console.error('Error generating salary slips:', error);
                 toast.error(error.message || 'Failed to generate salary slips. Please check if the API endpoint is available.');
                 // Still show template even on error
                 setSalarySlips([]);
@@ -378,7 +336,6 @@ export default function SalarySlipReportPage() {
             }
         });
     };
-
     const handleCancel = () => {
         setFilters({
             groupType: [],
@@ -397,27 +354,21 @@ export default function SalarySlipReportPage() {
         setSearchTerm('');
         setShowReport(false);
         setSalarySlips([]);
-
         // Clear all selections
         const updatedEmployees = employees.map((emp) => ({ ...emp, isSelected: false }));
         setEmployees(updatedEmployees);
-
         toast.info('Filters and selections cleared');
     };
-
     const handlePrint = () => {
         window.print();
         toast.success('Print dialog opened');
     };
-
     const handleSendMail = () => {
         toast.success('Salary slip email sent successfully');
     };
-
     const handleSendSMS = () => {
         toast.success('Salary slip SMS sent successfully');
     };
-
     // Get institution details
     const institutionDetails = useMemo(() => {
         const generateResponse = generateMutation.data?.data;
@@ -430,7 +381,6 @@ export default function SalarySlipReportPage() {
         }
         return null;
     }, [generateMutation.data, onloadData]);
-
     // Build school name and address
     const schoolName = institutionDetails?.MI_Name || '';
     const schoolAddress = useMemo(() => {
@@ -445,12 +395,9 @@ export default function SalarySlipReportPage() {
         }
         return addressParts.join(', ');
     }, [institutionDetails]);
-
     const schoolLogo = institutionDetails?.MI_Logo;
-
     const selectedCount = filteredEmployees.filter((emp) => emp.isSelected).length;
     const isLoading = isLoadingOnload || filterMutation.isPending || generateMutation.isPending;
-
     // Handle onload errors
     useEffect(() => {
         if (onloadError) {
@@ -459,7 +406,6 @@ export default function SalarySlipReportPage() {
             toast.error(onloadData.message || 'Failed to load filter options');
         }
     }, [onloadError, onloadData]);
-
     // Show error message if onload fails
     if (onloadError || (onloadData && !onloadData.success)) {
         return (
@@ -476,7 +422,6 @@ export default function SalarySlipReportPage() {
             </div>
         );
     }
-
     // Show error message if onload fails
     if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
         return (
@@ -496,7 +441,6 @@ export default function SalarySlipReportPage() {
             </div>
         );
     }
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -521,7 +465,6 @@ export default function SalarySlipReportPage() {
                     onGenerateSlip={handleGenerateSlip}
                     onCancel={handleCancel}
                 />
-
                 {/* Salary Slip Reports Section - Show template even when no data */}
                 {showReport && (
                     <div className='space-y-6'>

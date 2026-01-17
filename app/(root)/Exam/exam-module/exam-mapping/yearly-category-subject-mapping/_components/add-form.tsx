@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -11,7 +12,6 @@ import { categorySubjectMappingSchema } from '@/schemas/exam/exam-module/exam-ma
 import { getCategoryDropDownByAcademicYearlist } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
 import { addOrUpdateYearlyCategorySubjectMapping } from '@/server/exam/exam-module/exam-mapping/yearly-category-subject-mapping';
 import { getMasterSubjectGroupDetails } from '@/server/exam/exam-module/masters/subject-group';
-import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
 import type { IYearlyCategorySubjectMapping } from '@/types/exam/exam-module/exam-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
@@ -39,12 +39,10 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
     const { refetchAll } = useYearlyCategorySubjectMapping();
     const { control, handleSubmit, reset, setValue, formState } = methods;
     const { errors, isSubmitting } = formState;
-
-    const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
     const [categories, setCategories] = useState<{ emcA_Id: number; emcA_CategoryName: string }[]>([]);
     const [subjectGroups, setSubjectGroups] = useState<{ emG_Id: number; emG_GroupName: string }[]>([]);
     const [subjects, setSubjects] = useState<{ ismS_Id: number; ismS_SubjectName: string }[]>([]);
-    const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
+    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
     const { data: subjectGroupList, error: subjectGroupError } = useMasterSubjectGroupDropdownList();
     useEffect(() => {
         reset({
@@ -60,21 +58,6 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
     }, [reset, rowData]);
 
     useEffect(() => {
-        // Academic Years
-        if (academicError) {
-            toast.error(academicError.message || 'Error fetching academic years');
-            setAcademicYears([]);
-        } else if (academicData?.data && Array.isArray(academicData.data)) {
-            const formattedYears: IAcademicYearDropDown[] = academicData.data.map((item: any) => ({
-                asmaY_Id: item.asmaY_Id?.toString() ?? '',
-                asmaY_Year: item.asmaY_Year ?? '',
-                asmaY_Order: item.asmaY_Order ?? 0
-            }));
-            setAcademicYears(formattedYears);
-        } else {
-            setAcademicYears([]);
-        }
-
         if (subjectGroupError) {
             toast.error(subjectGroupError.message || 'Error fetching subject groups');
             setSubjectGroups([]);
@@ -83,7 +66,7 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
         } else {
             setSubjectGroups([]);
         }
-    }, [academicData, academicError, subjectGroupList, subjectGroupError]);
+    }, [subjectGroupList, subjectGroupError]);
 
     // Watch selected Academic Year
     const selectedYearId = useWatch({
@@ -111,7 +94,6 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
         name: 'emG_Id'
     });
 
-    // Fetch categories whenever Academic Year changes
     useEffect(() => {
         if (!selectedGroupSubjectId) return;
         async function fetchSubjects() {
@@ -119,7 +101,7 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
                 const { data: subj } = await getMasterSubjectGroupDetails(selectedGroupSubjectId);
 
                 setSubjects(Array.isArray(subj) ? subj : []);
-                setValue('subjects_list', []); // reset selected category whenever year changes
+                setValue('subjects_list', Array.isArray(subj) ? subj : []); // reset selected category whenever year changes
             } catch (err: any) {
                 toast.error(err?.message ?? 'Failed to load categories');
             }
@@ -189,11 +171,21 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
                                                 <SelectValue placeholder='Select Academic Year' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {academicYears.map((y) => (
-                                                    <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                        {y.asmaY_Year}
+                                                {academicYearLoading ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading Academic Year...
                                                     </SelectItem>
-                                                ))}
+                                                ) : academicYearError ? (
+                                                    <SelectItem value='error' disabled>
+                                                        Error loading Academic Year
+                                                    </SelectItem>
+                                                ) : (
+                                                    academicYear?.data?.map((item) => (
+                                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                            {item.asmaY_Year}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -254,21 +246,27 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
                                     </div>
                                 )}
                             />
+
                             <Controller
                                 control={control}
                                 name='eyC_BasedOnPaperTypeFlg'
-                                render={({ field }) => (
-                                    <label className='flex items-center space-x-2'>
-                                        <input
-                                            type='checkbox'
-                                            checked={field.value}
-                                            value={field.value ? 'true' : 'false'}
-                                            onChange={(e) => field.onChange(e.target.checked)}
-                                        />
+                                render={({ field }) => {
+                                    const checkboxId = 'eyc_based_on_paper_type_flag';
 
-                                        <span>Based on Paper Type</span>
-                                    </label>
-                                )}
+                                    return (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                id={checkboxId}
+                                                checked={field.value}
+                                                onCheckedChange={(checked) => field.onChange(!!checked)}
+                                            />
+
+                                            <label htmlFor={checkboxId} className='cursor-pointer font-medium text-sm leading-none'>
+                                                Based on Paper Type
+                                            </label>
+                                        </div>
+                                    );
+                                }}
                             />
                         </div>
 

@@ -180,7 +180,6 @@ export default function LoanReportPage() {
         setReportData(null);
         toast.info('Form has been reset');
     };
-
     const handlePrint = () => {
         window.print();
         toast.success('Print dialog opened');
@@ -219,7 +218,6 @@ export default function LoanReportPage() {
                 return 'text-gray-600';
         }
     };
-
     return (
         <div className='min-h-screen p-8'>
             <div className='container space-y-4 p-1'>

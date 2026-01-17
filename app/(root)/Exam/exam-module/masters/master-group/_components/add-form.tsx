@@ -7,7 +7,6 @@ import { toast } from 'sonner';
 import type { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { FormError } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
@@ -18,6 +17,7 @@ import { masterSubjectGroupSchema } from '@/schemas/exam/exam-module/masters';
 import { addOrUpdateMasterSubjectGroup, getAllMasterSubjectDetails } from '@/server/exam/exam-module/masters/subject-group';
 import type { IMasterSubjectGroup, IMasterSubjectGroupDetails } from '@/types/exam/exam-module/masters';
 import { MasterSubjectGroupDetailsColumns } from './subject-group-details-columns';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 
 type FormFields = z.infer<typeof masterSubjectGroupSchema.addOrUpdate>;
 
@@ -35,31 +35,32 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
     const { refetchAll } = useMasterSubjectGroup();
 
     // -------------------------
-    // FETCH SUBJECTS
+    // GET SUBJECT LIST
     // -------------------------
     useEffect(() => {
-        async function fetchSubjects() {
+        async function loadSubjects() {
             try {
                 setIsLoading(true);
                 const res = await getAllMasterSubjectDetails();
-                const data: IMasterSubjectGroupDetails[] = Array.isArray(res?.data) ? res.data : [];
+                const data = Array.isArray(res?.data) ? res.data : [];
                 setAllSubjects(data);
 
                 if (initialData?.subjects?.length) {
-                    const selected = data.filter((s) => initialData.subjects?.some((init) => init.ismS_Id === s.ismS_Id));
+                    const selected = data.filter((s) => initialData.subjects?.some((i) => i.ismS_Id === s.ismS_Id));
                     setSelectedSubjects(selected);
                 }
             } catch (err: any) {
-                toast.error(err.message || 'Failed to fetch subjects');
+                toast.error(err.message || "Failed to fetch subjects");
             } finally {
                 setIsLoading(false);
             }
         }
-        fetchSubjects();
+
+        loadSubjects();
     }, [initialData]);
 
     // -------------------------
-    // FORM SETUP
+    // FORM SETUP + LIVE VALIDATION
     // -------------------------
     const {
         register,
@@ -67,36 +68,51 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
         control,
         watch,
         reset,
-        formState: { errors, isSubmitting }
+        trigger, // used to re-validate dependent fields immediately
+        formState
     } = useForm<FormFields>({
         resolver: zodResolver(masterSubjectGroupSchema.addOrUpdate),
-        mode: 'onChange',
+        mode: "onChange",
+        reValidateMode: "onChange",
         defaultValues: initialData
             ? {
-                  emG_GroupName: initialData.emG_GroupName,
-                  emG_TotSubjects: initialData.emG_TotSubjects,
-                  emG_MaxAplSubjects: initialData.emG_MaxAplSubjects,
-                  emG_MinAplSubjects: initialData.emG_MinAplSubjects,
-                  emG_BestOff: initialData.emG_BestOff,
-                  subject_list: initialData.subjects?.map((s) => ({ ismS_Id: s.ismS_Id })) || []
-              }
+                emG_GroupName: initialData.emG_GroupName,
+                emG_TotSubjects: initialData.emG_TotSubjects,
+                emG_MaxAplSubjects: initialData.emG_MaxAplSubjects,
+                emG_MinAplSubjects: initialData.emG_MinAplSubjects,
+                emG_BestOff: initialData.emG_BestOff,
+                subject_list: initialData.subjects?.map(s => ({ ismS_Id: s.ismS_Id })) ?? []
+            }
             : {
-                  emG_GroupName: '',
-                  emG_TotSubjects: 1,
-                  emG_MaxAplSubjects: 1,
-                  emG_MinAplSubjects: 1,
-                  emG_BestOff: 0,
-                  subject_list: []
-              }
+                emG_GroupName: "",
+                emG_TotSubjects: 1,
+                emG_MaxAplSubjects: 1,
+                emG_MinAplSubjects: 1,
+                emG_BestOff: 1,
+                subject_list: []
+            }
     });
 
-    const maxApplicableSubjects = watch('emG_MaxAplSubjects');
-    const minApplicableSubjects = watch('emG_MinAplSubjects');
+    const { errors, isSubmitting, touchedFields, isSubmitted } = formState;
 
+    // -------------------------
+    // Watch Dependent Fields
+    // -------------------------
+    const total = watch("emG_TotSubjects");
+    const max = watch("emG_MaxAplSubjects");
+    const min = watch("emG_MinAplSubjects");
+    const best = watch("emG_BestOff");
+
+    // Whenever dependent fields change -> revalidate to update errors immediately
     useEffect(() => {
-        const valid = maxApplicableSubjects > 0 && minApplicableSubjects > 0 && minApplicableSubjects <= maxApplicableSubjects;
-        setIsSubjectsEnabled(valid);
-    }, [maxApplicableSubjects, minApplicableSubjects]);
+        // trigger only the dependent fields to reduce overhead
+        trigger(["emG_TotSubjects", "emG_MaxAplSubjects", "emG_MinAplSubjects", "emG_BestOff"]);
+    }, [total, max, min, best, trigger]);
+
+    // Enable subject selection only when values are logically valid
+    useEffect(() => {
+        setIsSubjectsEnabled(min > 0 && max > 0 && min <= max && max <= total);
+    }, [total, max, min]);
 
     const tableProps = useDataTableProps({
         data: allSubjects,
@@ -106,158 +122,177 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
     });
 
     // -------------------------
-    // ROW SELECTION HANDLER
+    // TABLE SELECTION
     // -------------------------
-    const handleSelectedSubjectsChange = (selectedRows: IMasterSubjectGroupDetails[]) => {
-        setSelectedSubjects(selectedRows);
+    const handleSelectedSubjectsChange = (rows: IMasterSubjectGroupDetails[]) => {
+        setSelectedSubjects(rows);
     };
 
     // -------------------------
-    // SUBMIT HANDLER
+    // SUBMIT
     // -------------------------
-    const onSubmit: SubmitHandler<FormFields> = async (data) => {
+    const onSubmit: SubmitHandler<FormFields> = async (d) => {
         if (!isSubjectsEnabled) {
-            toast.error('Enter valid Min/Max subjects before selecting subjects');
+            toast.error("Enter valid Min/Max subjects first");
             return;
         }
 
-        if (selectedSubjects.length < data.emG_TotSubjects) {
-            toast.error(`Please select ${data.emG_TotSubjects} (Total Subjects) subjects`);
+        if (selectedSubjects.length < d.emG_TotSubjects) {
+            toast.error(`Select exactly ${d.emG_TotSubjects} subjects`);
             return;
         }
 
         const payload = {
             emG_Id: initialData?.emG_Id ?? 0,
-            mI_Id: 30, // hardcoded or pass from context
-            emG_GroupName: data.emG_GroupName,
-            emG_TotSubjects: data.emG_TotSubjects,
-            emG_MaxAplSubjects: data.emG_MaxAplSubjects,
-            emG_MinAplSubjects: data.emG_MinAplSubjects,
-            emG_BestOff: data.emG_BestOff,
-            subject_list: selectedSubjects.map((s) => ({ ismS_Id: s.ismS_Id }))
+            mI_Id: 30,
+            emG_GroupName: d.emG_GroupName,
+            emG_TotSubjects: d.emG_TotSubjects,
+            emG_MaxAplSubjects: d.emG_MaxAplSubjects,
+            emG_MinAplSubjects: d.emG_MinAplSubjects,
+            emG_BestOff: d.emG_BestOff,
+            subject_list: selectedSubjects.map(s => ({ ismS_Id: s.ismS_Id }))
         };
 
         try {
             const res = await addOrUpdateMasterSubjectGroup(payload);
             if (res.success) {
-                toast.success(res.message || 'Saved successfully.');
+                toast.success(res.message || "Saved successfully.");
                 reset();
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(res.message || 'Failed to save.');
+                toast.error(res.message || "Failed to save");
             }
-        } catch (err: any) {
-            toast.error(err.message || 'Something went wrong.');
+        } catch (e: any) {
+            toast.error(e.message || "Something went wrong");
         }
     };
 
     // -------------------------
-    // RENDER
+    // UI
     // -------------------------
     return (
         <form onSubmit={handleSubmit(onSubmit)} className={`space-y-6 ${className}`}>
-            {/* Group Info */}
-            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                <div className='flex flex-col gap-1'>
-                    <InputText label='Group Name' required {...register('emG_GroupName')} error={errors.emG_GroupName?.message} />
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {/* GROUP NAME */}
+                <div>
+                    <InputText
+                        label="Group Name"
+                        required
+                        placeholder="Enter Group Name"
+                        {...register("emG_GroupName")}
+                    />
+                    {errors.emG_GroupName && <FormError>{errors.emG_GroupName.message}</FormError>}
                 </div>
 
-                <div className='flex flex-col gap-1'>
+                {/* TOTAL SUBJECTS */}
+                <div>
                     <Controller
-                        name='emG_TotSubjects'
+                        name="emG_TotSubjects"
                         control={control}
                         render={({ field }) => (
                             <InputNumber
-                                label='Total Subjects'
+                                label="Total Subjects"
                                 required
-                                value={field.value ?? 0}
-                                onChange={field.onChange}
                                 minValue={1}
-                                step={1}
+                                value={field.value}
+                                onChange={(v) => {
+                                    field.onChange(v);
+                                    trigger("emG_TotSubjects");
+                                }}
                             />
                         )}
                     />
                     {errors.emG_TotSubjects && <FormError>{errors.emG_TotSubjects.message}</FormError>}
                 </div>
 
-                <div className='flex flex-col gap-1'>
+                {/* MAX */}
+                <div>
                     <Controller
-                        name='emG_MaxAplSubjects'
+                        name="emG_MaxAplSubjects"
                         control={control}
                         render={({ field }) => (
                             <InputNumber
-                                label='Max Applicable Subjects'
+                                label="Max Applicable Subjects"
                                 required
-                                value={field.value ?? 0}
-                                onChange={field.onChange}
                                 minValue={1}
-                                step={1}
+                                value={field.value}
+                                onChange={(v) => {
+                                    field.onChange(v);
+                                    trigger("emG_MaxAplSubjects");
+                                }}
                             />
                         )}
                     />
                     {errors.emG_MaxAplSubjects && <FormError>{errors.emG_MaxAplSubjects.message}</FormError>}
                 </div>
 
-                <div className='flex flex-col gap-1'>
+                {/* MIN */}
+                <div>
                     <Controller
-                        name='emG_MinAplSubjects'
+                        name="emG_MinAplSubjects"
                         control={control}
                         render={({ field }) => (
                             <InputNumber
-                                label='Min Applicable Subjects'
+                                label="Min Applicable Subjects"
                                 required
-                                value={field.value ?? 0}
-                                onChange={field.onChange}
                                 minValue={1}
-                                step={1}
+                                value={field.value}
+                                onChange={(v) => {
+                                    field.onChange(v);
+                                    trigger("emG_MinAplSubjects");
+                                }}
                             />
                         )}
                     />
                     {errors.emG_MinAplSubjects && <FormError>{errors.emG_MinAplSubjects.message}</FormError>}
                 </div>
 
-                <div className='flex flex-col gap-1'>
+                {/* BEST OFF */}
+                <div>
                     <Controller
-                        name='emG_BestOff'
+                        name="emG_BestOff"
                         control={control}
                         render={({ field }) => (
                             <InputNumber
-                                label='Best Off Subjects'
+                                label="Best Off Subjects"
                                 required
-                                value={field.value ?? 0}
-                                onChange={field.onChange}
                                 minValue={0}
-                                step={1}
+                                value={field.value}
+                                onChange={(v) => {
+                                    field.onChange(v);
+                                    trigger("emG_BestOff");
+                                }}
                             />
                         )}
                     />
                     {errors.emG_BestOff && <FormError>{errors.emG_BestOff.message}</FormError>}
                 </div>
+
+
             </div>
 
-            {/* Subjects Table */}
-            <CollapsibleSection title='Select Subjects' defaultOpen>
+            <CollapsibleSection title="Select Subjects" defaultOpen>
                 <GenericDataTable
                     {...tableProps}
                     columns={MasterSubjectGroupDetailsColumns}
-                    maxSelectableRows={watch('emG_TotSubjects')}
                     isLoading={isLoading}
-                    noDataTitle='No Subjects Found'
-                    noDataDescription='Please add subjects first.'
+                    maxSelectableRows={total}
                     onRowSelectionChange={handleSelectedSubjectsChange}
+                    noDataTitle="No Subjects Found"
+                    noDataDescription="Please add subjects first"
                 />
             </CollapsibleSection>
 
-            {/* Actions */}
-            <div className='flex justify-end gap-2'>
-                <Button type='button' variant='outline' onClick={() => window.location.reload()}>
+            <div className="flex gap-2 justify-end">
+                <Button type="button" variant="outline" onClick={() => reset()}>
                     Cancel
                 </Button>
-                <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting} loadingText='Saving...'>
+                <Button type="submit" disabled={isSubmitting} isLoading={isSubmitting}>
                     Save
                 </Button>
             </div>
+
         </form>
     );
 }

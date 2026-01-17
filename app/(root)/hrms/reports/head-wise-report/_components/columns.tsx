@@ -1,9 +1,7 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { cn } from '@/lib/utils';
 import type { ColumnDef } from '@tanstack/react-table';
-
 export interface HeadWiseRecord {
     id?: number;
     createdAt?: string;
@@ -19,7 +17,6 @@ export interface HeadWiseRecord {
     month: string;
     year: string;
 }
-
 export const headWiseReportColumns: ColumnDef<HeadWiseRecord>[] = [
     {
         accessorKey: 'id',

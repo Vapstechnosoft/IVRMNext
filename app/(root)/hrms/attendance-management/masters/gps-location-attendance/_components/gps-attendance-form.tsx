@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError } from '@/components/ui/extension/field';
@@ -13,7 +12,6 @@ import { useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-
 export type GPSForm = z.infer<typeof gpsLocationAttendanceSchema.addOrUpdate> & {
     designation?: string;
     doj?: string;
@@ -21,12 +19,10 @@ export type GPSForm = z.infer<typeof gpsLocationAttendanceSchema.addOrUpdate> & 
     phone?: string;
     location?: string;
 };
-
 interface GPSAttendanceFormProps {
     onSubmit: (data: GPSForm) => void;
     onCancel: () => void;
 }
-
 export function GPSAttendanceForm({ onSubmit, onCancel }: GPSAttendanceFormProps) {
     const {
         register,
@@ -47,14 +43,11 @@ export function GPSAttendanceForm({ onSubmit, onCancel }: GPSAttendanceFormProps
             location: 'Ringwood Circle, Doctor B R Ambedkar Veedhi, Gandhinagar, Bengaluru - 560001, Karnataka, India'
         }
     });
-
     const [isGettingLocation, setIsGettingLocation] = useState(false);
-
     const handleFormSubmit: SubmitHandler<GPSForm> = (data) => {
         onSubmit(data);
         reset({ punchFlag: false } as any);
     };
-
     const reverseGeocode = async (latitude: number, longitude: number): Promise<string> => {
         try {
             // Using OpenStreetMap Nominatim API for reverse geocoding (free, no API key required)
@@ -66,35 +59,27 @@ export function GPSAttendanceForm({ onSubmit, onCancel }: GPSAttendanceFormProps
                     }
                 }
             );
-
             if (!response.ok) {
                 throw new Error('Failed to fetch address');
             }
-
             const data = await response.json();
-
             if (data.error) {
                 throw new Error(data.error);
             }
-
             // Format the address from the response
             const address = data.display_name || `${latitude}, ${longitude}`;
             return address;
-        } catch (error) {
-            console.error('Reverse geocoding error:', error);
+        } catch (_error) {
             // Fallback to coordinates if reverse geocoding fails
             return `${latitude}, ${longitude}`;
         }
     };
-
     const handleGetCurrentLocation = async () => {
         if (!navigator.geolocation) {
             toast.error('Geolocation is not supported by your browser');
             return;
         }
-
         setIsGettingLocation(true);
-
         navigator.geolocation.getCurrentPosition(
             async (position) => {
                 try {
@@ -102,8 +87,7 @@ export function GPSAttendanceForm({ onSubmit, onCancel }: GPSAttendanceFormProps
                     const address = await reverseGeocode(latitude, longitude);
                     setValue('location', address);
                     toast.success('Location captured successfully');
-                } catch (error) {
-                    console.error('Error getting location:', error);
+                } catch (_error) {
                     toast.error('Failed to retrieve address. Using coordinates instead.');
                     const { latitude, longitude } = position.coords;
                     setValue('location', `${latitude}, ${longitude}`);
@@ -114,7 +98,6 @@ export function GPSAttendanceForm({ onSubmit, onCancel }: GPSAttendanceFormProps
             (error) => {
                 setIsGettingLocation(false);
                 let errorMessage = 'Failed to get current location';
-
                 switch (error.code) {
                     case error.PERMISSION_DENIED:
                         errorMessage = 'Location access denied. Please enable location permissions.';
@@ -126,7 +109,6 @@ export function GPSAttendanceForm({ onSubmit, onCancel }: GPSAttendanceFormProps
                         errorMessage = 'Location request timed out.';
                         break;
                 }
-
                 toast.error(errorMessage);
             },
             {
@@ -136,13 +118,11 @@ export function GPSAttendanceForm({ onSubmit, onCancel }: GPSAttendanceFormProps
             }
         );
     };
-
     // Mock employee data - in real app, this would come from a database/API
     const mockEmployees = [
         { name: 'John Doe', designation: 'Manager', doj: '2020-01-15', email: 'john.doe@example.com', phone: '1234567890' },
         { name: 'Jane Smith', designation: 'Developer', doj: '2021-03-20', email: 'jane.smith@example.com', phone: '0987654321' }
     ];
-
     const handleEmployeeChange = (value: string) => {
         setValue('employeeName', value);
         const selectedEmployee = mockEmployees.find((emp) => emp.name === value);
@@ -158,7 +138,6 @@ export function GPSAttendanceForm({ onSubmit, onCancel }: GPSAttendanceFormProps
             setValue('phone', '');
         }
     };
-
     return (
         <form onSubmit={handleSubmit(handleFormSubmit)} className='space-y-6'>
             {/* Section 1: GPS LOCATION ATTENDANCE */}
@@ -209,7 +188,6 @@ export function GPSAttendanceForm({ onSubmit, onCancel }: GPSAttendanceFormProps
                     </div>
                 </div>
             </div>
-
             {/* Section 2: GPS LOCATION PARAMETERS */}
             <div className='border-primary border-t-2 pt-4'>
                 <h3 className='mb-4 font-semibold text-base text-foreground'>GPS LOCATION PARAMETERS</h3>
@@ -247,7 +225,6 @@ export function GPSAttendanceForm({ onSubmit, onCancel }: GPSAttendanceFormProps
                         {errors.salesLead && <FormError>{errors.salesLead.message}</FormError>}
                     </div>
                 </div>
-
                 <div className='mt-4 space-y-2'>
                     <div className='font-medium text-sm'>Location Display</div>
                     <div className='flex items-start gap-2 rounded-md border border-input bg-muted p-3'>
@@ -269,7 +246,6 @@ export function GPSAttendanceForm({ onSubmit, onCancel }: GPSAttendanceFormProps
                         </span>
                     </div>
                 </div>
-
                 <div className='mt-4 space-y-2'>
                     <label className='font-medium text-sm' htmlFor='remarks'>
                         Remark <span className='text-red-500'>*</span>
@@ -285,13 +261,11 @@ export function GPSAttendanceForm({ onSubmit, onCancel }: GPSAttendanceFormProps
                     {errors.remarks?.message && <FormError>{errors.remarks.message}</FormError>}
                     <div className='text-right text-muted-foreground text-xs'>{watch('remarks')?.length || 0}/250 characters</div>
                 </div>
-
                 <div className='mt-4 flex items-center gap-2'>
                     <Checkbox checked={watch('punchFlag')} onCheckedChange={(v) => setValue('punchFlag', Boolean(v))} />
                     <span className='font-medium text-sm'>Punch Flag</span>
                 </div>
             </div>
-
             <div className='flex justify-end gap-4 border-t pt-6'>
                 <Button type='button' variant='outline' onClick={onCancel}>
                     <X className='mr-2 h-4 w-4' /> CANCEL

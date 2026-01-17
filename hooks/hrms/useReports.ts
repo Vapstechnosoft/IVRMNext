@@ -1,5 +1,5 @@
 'use client';
-
+// import { HRMS_MI_ID } from '@/constants/hrms-config';
 /**
  * Unified HRMS Report Hooks
  * All report-related hooks consolidated in one file
@@ -108,11 +108,9 @@ import type { PFForm10ReportFilterRequest, PFForm10ReportSearchRequest } from '@
 import type { SalarySlipFilterRequest, SalarySlipGenerateRequest } from '@/types/hrms/reports/salary-slip-report';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-
 // ============================================================================
 // EMPLOYEE PROFILE REPORT
 // ============================================================================
-
 export function useEmployeeProfileReportOnload(MI_Id = 30, LogInUserId = 0) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_PROFILE_REPORT_ONLOAD, MI_Id, LogInUserId],
@@ -120,10 +118,8 @@ export function useEmployeeProfileReportOnload(MI_Id = 30, LogInUserId = 0) {
         staleTime: 5 * 60 * 1000
     });
 }
-
 export function useFilterEmployeesBySelection() {
     const _queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: (data: EmployeeProfileReportFilterRequest) => filterEmployeesBySelection(data),
         onSuccess: (response) => {
@@ -132,15 +128,12 @@ export function useFilterEmployeesBySelection() {
             }
         },
         onError: (error: Error) => {
-            console.error('Error filtering employees:', error);
             toast.error(error.message || 'Failed to filter employees');
         }
     });
 }
-
 export function useSearchEmployeeProfileDetails() {
     const _queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: (data: EmployeeProfileReportSearchRequest) => searchEmployeeProfileDetails(data),
         onSuccess: (response) => {
@@ -149,16 +142,13 @@ export function useSearchEmployeeProfileDetails() {
             }
         },
         onError: (error: Error) => {
-            console.error('Error searching employee profile:', error);
             toast.error(error.message || 'Failed to retrieve employee details');
         }
     });
 }
-
 // ============================================================================
 // EMPLOYEE DETAILS REPORT
 // ============================================================================
-
 export function useEmployeeDetailsReportOnload(MI_Id = 30, LogInUserId = 0) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_DETAILS_REPORT_ONLOAD, MI_Id, LogInUserId],
@@ -166,11 +156,9 @@ export function useEmployeeDetailsReportOnload(MI_Id = 30, LogInUserId = 0) {
         staleTime: 5 * 60 * 1000
     });
 }
-
 // ============================================================================
 // EMPLOYEE CONTRIBUTION REPORT
 // ============================================================================
-
 export function useEmployeeContributionReportOnload(MI_Id = 30, LogInUserId = 0) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_CONTRIBUTION_REPORT_ONLOAD, MI_Id, LogInUserId],
@@ -178,11 +166,9 @@ export function useEmployeeContributionReportOnload(MI_Id = 30, LogInUserId = 0)
         staleTime: 5 * 60 * 1000
     });
 }
-
 // ============================================================================
 // EMPLOYEE STRENGTH REPORT
 // ============================================================================
-
 export function useEmployeeStrengthReportOnload(MI_Id = 30, LogInUserId = 0) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_STRENGTH_REPORT_ONLOAD, MI_Id, LogInUserId],
@@ -190,10 +176,8 @@ export function useEmployeeStrengthReportOnload(MI_Id = 30, LogInUserId = 0) {
         staleTime: 5 * 60 * 1000
     });
 }
-
 export function useSearchEmployeeStrengthReport() {
     const _queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: (data: EmployeeStrengthReportSearchRequest) => searchEmployeeStrengthReport(data),
         onSuccess: (response) => {
@@ -202,16 +186,13 @@ export function useSearchEmployeeStrengthReport() {
             }
         },
         onError: (error: Error) => {
-            console.error('Error searching employee strength report:', error);
             toast.error(error.message || 'Failed to search employee strength report');
         }
     });
 }
-
 // ============================================================================
 // ESI REPORT
 // ============================================================================
-
 export function useESIReportOnload(MI_Id = 30, LogInUserId = 0) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.ESI_REPORT_ONLOAD, MI_Id, LogInUserId],
@@ -219,10 +200,8 @@ export function useESIReportOnload(MI_Id = 30, LogInUserId = 0) {
         staleTime: 5 * 60 * 1000
     });
 }
-
 export function useSearchESIReport() {
     const _queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: (data: ESIReportSearchRequest) => searchESIReport(data),
         onSuccess: (response) => {
@@ -231,16 +210,13 @@ export function useSearchESIReport() {
             }
         },
         onError: (error: Error) => {
-            console.error('Error searching ESI report:', error);
             toast.error(error.message || 'Failed to search ESI report');
         }
     });
 }
-
 // ============================================================================
 // HEAD WISE REPORT
 // ============================================================================
-
 export function useHeadWiseReportOnload(MI_Id = 30, LogInUserId = 0) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.HEAD_WISE_REPORT_ONLOAD, MI_Id, LogInUserId],
@@ -248,10 +224,8 @@ export function useHeadWiseReportOnload(MI_Id = 30, LogInUserId = 0) {
         staleTime: 5 * 60 * 1000
     });
 }
-
 export function useSearchHeadWiseReport() {
     const _queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: (data: HeadWiseReportSearchRequest) => searchHeadWiseReport(data),
         onSuccess: (response) => {
@@ -260,16 +234,13 @@ export function useSearchHeadWiseReport() {
             }
         },
         onError: (error: Error) => {
-            console.error('Error searching head wise report:', error);
             toast.error(error.message || 'Failed to search head wise report');
         }
     });
 }
-
 // ============================================================================
 // BANK CASH REPORT
 // ============================================================================
-
 export function useBankCashReportOnload(MI_Id = 30, LogInUserId = 0) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.BANK_CASH_REPORT_ONLOAD, MI_Id, LogInUserId],
@@ -277,10 +248,8 @@ export function useBankCashReportOnload(MI_Id = 30, LogInUserId = 0) {
         staleTime: 5 * 60 * 1000
     });
 }
-
 export function useSearchBankCashReport() {
     const _queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: (data: BankCashReportSearchRequest) => searchBankCashReport(data),
         onSuccess: (response) => {
@@ -289,16 +258,13 @@ export function useSearchBankCashReport() {
             }
         },
         onError: (error: Error) => {
-            console.error('Error searching bank cash report:', error);
             toast.error(error.message || 'Failed to search bank cash report');
         }
     });
 }
-
 // ============================================================================
 // PF CHALLAN REPORT
 // ============================================================================
-
 export function usePFChallanReportOnload(MI_Id = 30) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.PF_CHALLAN_REPORT_ONLOAD, MI_Id],
@@ -306,7 +272,6 @@ export function usePFChallanReportOnload(MI_Id = 30) {
         staleTime: 5 * 60 * 1000
     });
 }
-
 export function useFilterPFChallanEmployeeData() {
     return useMutation({
         mutationFn: (data: PFChallanReportFilterRequest) => filterPFChallanEmployeeData(data),
@@ -316,12 +281,10 @@ export function useFilterPFChallanEmployeeData() {
             }
         },
         onError: (error: Error) => {
-            console.error('Error filtering PF challan employee data:', error);
             toast.error(error.message || 'Failed to filter PF challan employee data');
         }
     });
 }
-
 export function useSearchPFChallanReport() {
     return useMutation({
         mutationFn: (data: PFChallanReportSearchRequest) => searchPFChallanReport(data),
@@ -331,16 +294,13 @@ export function useSearchPFChallanReport() {
             }
         },
         onError: (error: Error) => {
-            console.error('Error searching PF challan report:', error);
             toast.error(error.message || 'Failed to search PF challan report');
         }
     });
 }
-
 // ============================================================================
 // PF FORM 10 REPORT
 // ============================================================================
-
 export function usePFForm10ReportOnload(MI_Id = 30) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.PF_FORM_10_REPORT_ONLOAD, MI_Id],
@@ -348,7 +308,6 @@ export function usePFForm10ReportOnload(MI_Id = 30) {
         staleTime: 5 * 60 * 1000
     });
 }
-
 export function useFilterPFForm10EmployeeData() {
     return useMutation({
         mutationFn: (data: PFForm10ReportFilterRequest) => filterPFForm10EmployeeData(data),
@@ -358,12 +317,10 @@ export function useFilterPFForm10EmployeeData() {
             }
         },
         onError: (error: Error) => {
-            console.error('Error filtering PF Form 10 employee data:', error);
             toast.error(error.message || 'Failed to filter PF Form 10 employee data');
         }
     });
 }
-
 export function useSearchPFForm10Report() {
     return useMutation({
         mutationFn: (data: PFForm10ReportSearchRequest) => searchPFForm10Report(data),
@@ -373,16 +330,13 @@ export function useSearchPFForm10Report() {
             }
         },
         onError: (error: Error) => {
-            console.error('Error searching PF Form 10 report:', error);
             toast.error(error.message || 'Failed to search PF Form 10 report');
         }
     });
 }
-
 // ============================================================================
 // PF FORM 5 REPORT
 // ============================================================================
-
 export function usePFForm5ReportOnload(MI_Id = 30) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.PF_FORM_5_REPORT_ONLOAD, MI_Id],
@@ -390,7 +344,6 @@ export function usePFForm5ReportOnload(MI_Id = 30) {
         staleTime: 5 * 60 * 1000
     });
 }
-
 export function useFilterPFForm5EmployeeData() {
     return useMutation({
         mutationFn: (data: PFForm5ReportFilterRequest) => filterPFForm5EmployeeData(data),
@@ -400,12 +353,10 @@ export function useFilterPFForm5EmployeeData() {
             }
         },
         onError: (error: Error) => {
-            console.error('Error filtering PF Form 5 employee data:', error);
             toast.error(error.message || 'Failed to filter PF Form 5 employee data');
         }
     });
 }
-
 export function useSearchPFForm5Report() {
     return useMutation({
         mutationFn: (data: PFForm5ReportSearchRequest) => searchPFForm5Report(data),
@@ -415,16 +366,13 @@ export function useSearchPFForm5Report() {
             }
         },
         onError: (error: Error) => {
-            console.error('Error searching PF Form 5 report:', error);
             toast.error(error.message || 'Failed to search PF Form 5 report');
         }
     });
 }
-
 // ============================================================================
 // PF FORM 3A REPORT
 // ============================================================================
-
 export function usePFForm3AReportOnload(MI_Id = 30) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.PF_FORM_3A_REPORT_ONLOAD, MI_Id],
@@ -432,7 +380,6 @@ export function usePFForm3AReportOnload(MI_Id = 30) {
         staleTime: 5 * 60 * 1000
     });
 }
-
 export function useFilterPFForm3AEmployeeData() {
     return useMutation({
         mutationFn: (data: PFForm3AReportFilterRequest) => filterPFForm3AEmployeeData(data),
@@ -442,12 +389,10 @@ export function useFilterPFForm3AEmployeeData() {
             }
         },
         onError: (error: Error) => {
-            console.error('Error filtering PF Form 3A employee data:', error);
             toast.error(error.message || 'Failed to filter PF Form 3A employee data');
         }
     });
 }
-
 export function useSearchPFForm3AReport() {
     return useMutation({
         mutationFn: (data: PFForm3AReportSearchRequest) => searchPFForm3AReport(data),
@@ -457,16 +402,13 @@ export function useSearchPFForm3AReport() {
             }
         },
         onError: (error: Error) => {
-            console.error('Error searching PF Form 3A report:', error);
             toast.error(error.message || 'Failed to search PF Form 3A report');
         }
     });
 }
-
 // ============================================================================
 // PF FORM 6A REPORT
 // ============================================================================
-
 export function usePFForm6AReportOnload(MI_Id = 30) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.PF_FORM_6A_REPORT_ONLOAD, MI_Id],
@@ -474,7 +416,6 @@ export function usePFForm6AReportOnload(MI_Id = 30) {
         staleTime: 5 * 60 * 1000
     });
 }
-
 export function useFilterPFForm6AEmployeeData() {
     return useMutation({
         mutationFn: (data: PFForm6AReportFilterRequest) => filterPFForm6AEmployeeData(data),
@@ -484,12 +425,10 @@ export function useFilterPFForm6AEmployeeData() {
             }
         },
         onError: (error: Error) => {
-            console.error('Error filtering PF Form 6A employee data:', error);
             toast.error(error.message || 'Failed to filter PF Form 6A employee data');
         }
     });
 }
-
 export function useSearchPFForm6AReport() {
     return useMutation({
         mutationFn: (data: PFForm6AReportSearchRequest) => searchPFForm6AReport(data),
@@ -499,16 +438,13 @@ export function useSearchPFForm6AReport() {
             }
         },
         onError: (error: Error) => {
-            console.error('Error searching PF Form 6A report:', error);
             toast.error(error.message || 'Failed to search PF Form 6A report');
         }
     });
 }
-
 // ============================================================================
 // MONTH END REPORT
 // ============================================================================
-
 export function useMonthEndReportOnload(MI_Id = 30) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.MONTH_END_REPORT_ONLOAD, MI_Id],
@@ -516,7 +452,6 @@ export function useMonthEndReportOnload(MI_Id = 30) {
         staleTime: 5 * 60 * 1000
     });
 }
-
 export function useSearchMonthEndReport() {
     const _queryClient = useQueryClient();
 
@@ -528,12 +463,10 @@ export function useSearchMonthEndReport() {
             }
         },
         onError: (error: Error) => {
-            console.error('Error searching month end report:', error);
             toast.error(error.message || 'Failed to search month end report');
         }
     });
 }
-
 export function useFilterEmployeeContributionReport() {
     const _queryClient = useQueryClient();
 
@@ -545,12 +478,10 @@ export function useFilterEmployeeContributionReport() {
             }
         },
         onError: (error: Error) => {
-            console.error('Error filtering employee contribution data:', error);
             toast.error(error.message || 'Failed to filter employee contribution data');
         }
     });
 }
-
 export function useSearchEmployeeContributionDetails() {
     const _queryClient = useQueryClient();
 
@@ -562,15 +493,12 @@ export function useSearchEmployeeContributionDetails() {
             }
         },
         onError: (error: Error) => {
-            console.error('Error searching employee contribution details:', error);
             toast.error(error.message || 'Failed to search employee contribution details');
         }
     });
 }
-
 export function useFilterEmployeeDetailsReport() {
     const _queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: (data: EmployeeDetailsReportFilterRequest) => filterEmployeeDetailsReport(data),
         onSuccess: (response) => {
@@ -579,15 +507,12 @@ export function useFilterEmployeeDetailsReport() {
             }
         },
         onError: (error: Error) => {
-            console.error('Error filtering employee details:', error);
             toast.error(error.message || 'Failed to filter employee details');
         }
     });
 }
-
 export function useSearchEmployeeDetailsReport() {
     const _queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: (data: EmployeeDetailsReportSearchRequest) => searchEmployeeDetailsReport(data),
         onSuccess: (response) => {
@@ -596,16 +521,13 @@ export function useSearchEmployeeDetailsReport() {
             }
         },
         onError: (error: Error) => {
-            console.error('Error searching employee details:', error);
             toast.error(error.message || 'Failed to search employee details');
         }
     });
 }
-
 // ============================================================================
 // CUMULATIVE SALARY REPORT
 // ============================================================================
-
 export function useCumulativeSalaryReportOnload(MI_Id = 30, LoginUserId = 0, UserRole = '', is_export = false, page = 1, page_size = 10) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.CUMULATIVE_SALARY_REPORT_ONLOAD, MI_Id, LoginUserId, UserRole, is_export, page, page_size],
@@ -613,7 +535,6 @@ export function useCumulativeSalaryReportOnload(MI_Id = 30, LoginUserId = 0, Use
         staleTime: 5 * 60 * 1000
     });
 }
-
 export function useCumulativeSalaryReportList(
     searchParams?: ApiSearchparams,
     filterParams?: {
@@ -634,33 +555,13 @@ export function useCumulativeSalaryReportList(
     const query = useQuery({
         queryKey: [HRMS_QUERY_KEYS.CUMULATIVE_SALARY_REPORT_SEARCH, searchParams ?? {}, filterParams ?? {}],
         queryFn: async () => {
-            console.log('🔵 [CUMULATIVE SALARY] Query function called', {
-                searchParams,
-                filterParams,
-                timestamp: new Date().toISOString()
-            });
             const { getCumulativeSalaryReportList } = await import('@/server/hrms/hrmsConfig/reports/cumulative-salary-report');
             const result = await getCumulativeSalaryReportList(searchParams, filterParams);
-            console.log('🔵 [CUMULATIVE SALARY] Query function completed', {
-                success: result.success,
-                hasData: !!result.data,
-                timestamp: new Date().toISOString()
-            });
             return result;
         },
         staleTime: 0,
         enabled // Only fetch when enabled (when search criteria are present)
     });
-
-    console.log('🔵 [CUMULATIVE SALARY] useQuery hook state', {
-        enabled,
-        status: query.status,
-        isLoading: query.isLoading,
-        isFetching: query.isFetching,
-        hasData: !!query.data,
-        queryKey: [HRMS_QUERY_KEYS.CUMULATIVE_SALARY_REPORT_SEARCH, searchParams ?? {}, filterParams ?? {}]
-    });
-
     return {
         ...query,
         refetchAll: () => {
@@ -670,7 +571,6 @@ export function useCumulativeSalaryReportList(
         }
     };
 }
-
 /**
  * Search cumulative salary report by selection criteria
  * Uses the GetEmployeedetailsBySelection endpoint
@@ -693,16 +593,13 @@ export function useSearchCumulativeSalaryReport() {
             }
         },
         onError: (error: Error) => {
-            console.error('Error searching cumulative salary report:', error);
             toast.error(error.message || 'Failed to search salary report');
         }
     });
 }
-
 // ============================================================================
 // EMPLOYEE IN-OUT REPORT
 // ============================================================================
-
 export function useEmployeeInOutReportOnload(MI_Id = 30, LoginUserId = 0, UserRole = '') {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_INOUT_REPORT_ONLOAD, MI_Id, LoginUserId, UserRole],
@@ -710,7 +607,6 @@ export function useEmployeeInOutReportOnload(MI_Id = 30, LoginUserId = 0, UserRo
         staleTime: 5 * 60 * 1000
     });
 }
-
 export function useEmployeeInOutReportList(
     searchParams?: ApiSearchparams,
     filterParams?: {
@@ -748,7 +644,6 @@ export function useEmployeeInOutReportList(
         }
     };
 }
-
 export function useEmployeeInOutReportDepartments(MI_Id = 30, UserId = 0, IVRMRT_Id = 0, multipletype = '', enabled = true) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_INOUT_REPORT_DEPARTMENTS, MI_Id, UserId, IVRMRT_Id, multipletype],
@@ -760,7 +655,6 @@ export function useEmployeeInOutReportDepartments(MI_Id = 30, UserId = 0, IVRMRT
         enabled: enabled && multipletype.length > 0 // Only fetch when types are selected
     });
 }
-
 export function useEmployeeInOutReportDesignations(MI_Id = 30, multipledep = '', enabled = true) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_INOUT_REPORT_DESIGNATIONS, MI_Id, multipledep],
@@ -772,7 +666,6 @@ export function useEmployeeInOutReportDesignations(MI_Id = 30, multipledep = '',
         enabled: enabled && multipledep.length > 0 // Only fetch when departments are selected
     });
 }
-
 export function useEmployeeInOutReportEmployees(MI_Id = 30, multipledes = '', multipledep = '', multipletype = '', enabled = true) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_INOUT_REPORT_EMPLOYEES, MI_Id, multipledes, multipledep, multipletype],
@@ -784,11 +677,9 @@ export function useEmployeeInOutReportEmployees(MI_Id = 30, multipledes = '', mu
         enabled: enabled && (multipledes.length > 0 || multipledep.length > 0 || multipletype.length > 0) // Only fetch when at least one filter is selected
     });
 }
-
 // ============================================================================
 // EMPLOYEE LATE IN EARLY OUT REPORT
 // ============================================================================
-
 export function useEmployeeLateInEarlyOutReportOnload(MI_Id = 30, LoginUserId = 0, UserRole = '') {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LATEIN_EARLYOUT_REPORT_ONLOAD, MI_Id, LoginUserId, UserRole],
@@ -796,7 +687,6 @@ export function useEmployeeLateInEarlyOutReportOnload(MI_Id = 30, LoginUserId = 
         staleTime: 5 * 60 * 1000
     });
 }
-
 export function useEmployeeLateInEarlyOutReportList(
     searchParams?: ApiSearchparams,
     filterParams?: {
@@ -852,6 +742,7 @@ export function useEmployeeLogReportOnload(MI_Id = 30, LoginUserId = 0, UserRole
     });
 }
 
+
 export function useEmployeeLogReportList(
     searchParams?: ApiSearchparams,
     filterParams?: {
@@ -897,7 +788,6 @@ export function useEmployeeLogReportList(
 // ============================================================================
 // EMPLOYEE YEARLY REPORT
 // ============================================================================
-
 export function useEmployeeYearlyReportOnload(MI_Id = 30, LoginUserId = 0, UserRole = '') {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_YEARLY_REPORT_ONLOAD, MI_Id, LoginUserId, UserRole],
@@ -905,7 +795,6 @@ export function useEmployeeYearlyReportOnload(MI_Id = 30, LoginUserId = 0, UserR
         staleTime: 5 * 60 * 1000
     });
 }
-
 export function useEmployeeYearlyReportList(
     searchParams?: ApiSearchparams,
     filterParams?: {
@@ -943,11 +832,9 @@ export function useEmployeeYearlyReportList(
         }
     };
 }
-
 // ============================================================================
 // EMPLOYEE MONTHLY REPORT
 // ============================================================================
-
 export function useEmployeeMonthlyReportOnload(MI_Id = 30, LoginUserId = 0, UserRole = '') {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_MONTHLY_REPORT_ONLOAD, MI_Id, LoginUserId, UserRole],
@@ -955,7 +842,6 @@ export function useEmployeeMonthlyReportOnload(MI_Id = 30, LoginUserId = 0, User
         staleTime: 5 * 60 * 1000
     });
 }
-
 export function useEmployeeMonthlyReportList(
     searchParams?: ApiSearchparams,
     filterParams?: {
@@ -992,11 +878,9 @@ export function useEmployeeMonthlyReportList(
         }
     };
 }
-
 // ============================================================================
 // FRONT OFFICE MONTH END REPORT
 // ============================================================================
-
 export function useFOMonthEndReportOnload(MI_Id = 30, LoginUserId = 0, UserRole = '') {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.FO_MONTHEND_REPORT, MI_Id, LoginUserId, UserRole],
@@ -1004,11 +888,9 @@ export function useFOMonthEndReportOnload(MI_Id = 30, LoginUserId = 0, UserRole 
         staleTime: 5 * 60 * 1000
     });
 }
-
 // ============================================================================
 // SALARY SLIP REPORT
 // ============================================================================
-
 export function useSalarySlipOnload(MI_Id = 30, LogInUserId = 2) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.SALARY_SLIP_ONLOAD, MI_Id, LogInUserId],
@@ -1016,10 +898,8 @@ export function useSalarySlipOnload(MI_Id = 30, LogInUserId = 2) {
         staleTime: 5 * 60 * 1000
     });
 }
-
 export function useFilterEmployeesByYearMonth() {
     const _queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: (data: SalarySlipFilterRequest) => filterEmployeesByYearMonth(data),
         onSuccess: (response) => {
@@ -1028,15 +908,12 @@ export function useFilterEmployeesByYearMonth() {
             }
         },
         onError: (error: Error) => {
-            console.error('Error filtering employees by year/month:', error);
             toast.error(error.message || 'Failed to filter employees');
         }
     });
 }
-
 export function useGenerateSalarySlip() {
     const _queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: (data: SalarySlipGenerateRequest) => generateSalarySlip(data),
         onSuccess: (response) => {
@@ -1045,16 +922,13 @@ export function useGenerateSalarySlip() {
             }
         },
         onError: (error: Error) => {
-            console.error('Error generating salary slip:', error);
             toast.error(error.message || 'Failed to generate salary slip');
         }
     });
 }
-
 // ============================================================================
 // LOAN REPORT
 // ============================================================================
-
 export function useLoanReportOnload(MI_Id = 30, roleId = 0, LogInUserId = 0) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.LOAN_REPORT_ONLOAD, MI_Id, roleId, LogInUserId],
@@ -1062,10 +936,8 @@ export function useLoanReportOnload(MI_Id = 30, roleId = 0, LogInUserId = 0) {
         staleTime: 5 * 60 * 1000
     });
 }
-
 export function useFilterEmployeesForLoanReport() {
     const _queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: (data: LoanReportFilterRequest) => filterEmployeesForLoanReport(data),
         onSuccess: (response) => {
@@ -1074,15 +946,12 @@ export function useFilterEmployeesForLoanReport() {
             }
         },
         onError: (error: Error) => {
-            console.error('Error filtering employees for loan report:', error);
             toast.error(error.message || 'Failed to filter employees');
         }
     });
 }
-
 export function useGetEmployeeLoanDetails() {
     const _queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: (data: LoanReportSearchRequest) => getEmployeeLoanDetails(data),
         onSuccess: (response) => {
@@ -1091,16 +960,13 @@ export function useGetEmployeeLoanDetails() {
             }
         },
         onError: (error: Error) => {
-            console.error('Error getting employee loan details:', error);
             toast.error(error.message || 'Failed to get loan details');
         }
     });
 }
-
 // ============================================================================
 // ADVANCE REPORT
 // ============================================================================
-
 export function useEmployeeAdvanceReportOnload(MI_Id = 30, LogInUserId = 0) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.ADVANCE_REPORT_ONLOAD, MI_Id, LogInUserId],
@@ -1108,7 +974,6 @@ export function useEmployeeAdvanceReportOnload(MI_Id = 30, LogInUserId = 0) {
         staleTime: 5 * 60 * 1000
     });
 }
-
 export function useSearchEmployeeAdvanceReport() {
     const _queryClient = useQueryClient();
 
@@ -1120,19 +985,15 @@ export function useSearchEmployeeAdvanceReport() {
             }
         },
         onError: (error: Error) => {
-            console.error('Error searching advance report:', error);
             toast.error(error.message || 'Failed to search advance report');
         }
     });
 }
-
 // ============================================================================
 // EMPLOYEE OFFER AND EXPERIENCE REPORT
 // ============================================================================
-
 export function useFilterEmployeeOfferAndExperienceData() {
     const _queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: (data: EmployeeOfferAndExperienceReportFilterRequest) => filterEmployeeOfferAndExperienceData(data),
         onSuccess: (response) => {
@@ -1141,15 +1002,12 @@ export function useFilterEmployeeOfferAndExperienceData() {
             }
         },
         onError: (error: Error) => {
-            console.error('Error filtering employee offer and experience data:', error);
             toast.error(error.message || 'Failed to filter employee data');
         }
     });
 }
-
 export function useGetEmployeeDetailsBySelection() {
     const _queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: (data: EmployeeOfferAndExperienceReportSearchRequest) => getEmployeeDetailsBySelection(data),
         onSuccess: (response) => {
@@ -1158,16 +1016,13 @@ export function useGetEmployeeDetailsBySelection() {
             }
         },
         onError: (error: Error) => {
-            console.error('Error getting employee details by selection:', error);
             toast.error(error.message || 'Failed to get employee details');
         }
     });
 }
-
 // ============================================================================
 // LEAVE REPORT
 // ============================================================================
-
 /**
  * Hook to fetch leave report data
  * POST /api/LeaveReportWrapperFacade/GetLeaveReport
@@ -1180,11 +1035,9 @@ export function useLeaveReport(request?: { MI_Id?: number }, enabled = true) {
                 const response = await getLeaveReport({
                     MI_Id: request?.MI_Id || HRMS_MI_ID
                 });
-
                 if (!response.success || !response.data) {
                     throw new Error(response.message || 'Failed to fetch leave report');
                 }
-
                 // Extract leave report list from API response
                 const data = response.data;
 
@@ -1202,7 +1055,6 @@ export function useLeaveReport(request?: { MI_Id?: number }, enabled = true) {
                 } else if (Array.isArray(data)) {
                     reportList = data;
                 }
-
                 // Map to leave report format matching LeaveReportRow interface
                 const mappedReportList = reportList.map((item: any, index: number) => ({
                     slNo: index + 1,
@@ -1218,7 +1070,6 @@ export function useLeaveReport(request?: { MI_Id?: number }, enabled = true) {
                     leaveStatus: (item.HRELAP_ApplicationStatus || item.leaveStatus || 'Pending') as 'Approved' | 'Pending' | 'Rejected',
                     leaveBalance: item.HRELS_TotalLeaves || item.leaveBalance || 0
                 }));
-
                 return {
                     success: true,
                     data: {
@@ -1235,7 +1086,6 @@ export function useLeaveReport(request?: { MI_Id?: number }, enabled = true) {
         staleTime: 0 // Don't cache as this might be filter-dependent
     });
 }
-
 /**
  * Hook to fetch departments for period leave report
  * POST /api/LeaveReportWrapperFacade/PeriodGetDepartments
@@ -1249,14 +1099,11 @@ export function usePeriodLeaveReportDepartments(request?: { MI_Id?: number; empt
                     MI_Id: request?.MI_Id || HRMS_MI_ID,
                     emptypes: request?.emptypes || []
                 });
-
                 if (!response.success || !response.data) {
                     throw new Error(response.message || 'Failed to fetch departments for period leave report');
                 }
-
                 // Extract and map department options from API response
                 const data = response.data;
-
                 // Map DepartmentTempDto to departmentOptions
                 const departmentOptions = (data.DepartmentTempDto || [])
                     .map((item: any) => ({
@@ -1264,7 +1111,6 @@ export function usePeriodLeaveReportDepartments(request?: { MI_Id?: number; empt
                         value: String(item.HRMD_Id || item.value || '')
                     }))
                     .filter((item: { label: string; value: string }) => item.label && item.value);
-
                 // Also check other possible locations
                 if (departmentOptions.length === 0 && data.departmentdropdownlist && Array.isArray(data.departmentdropdownlist)) {
                     const mapped = data.departmentdropdownlist
@@ -1277,7 +1123,6 @@ export function usePeriodLeaveReportDepartments(request?: { MI_Id?: number; empt
                         departmentOptions.push(...mapped);
                     }
                 }
-
                 // Check GridviewDetails as fallback
                 if (departmentOptions.length === 0 && data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                     const mapped = data.GridviewDetails.map((item: any) => ({
@@ -1288,7 +1133,6 @@ export function usePeriodLeaveReportDepartments(request?: { MI_Id?: number; empt
                         departmentOptions.push(...mapped);
                     }
                 }
-
                 // Check departmentList or departments as fallback
                 if (departmentOptions.length === 0 && data.departmentList && Array.isArray(data.departmentList)) {
                     const mapped = data.departmentList
@@ -1301,7 +1145,6 @@ export function usePeriodLeaveReportDepartments(request?: { MI_Id?: number; empt
                         departmentOptions.push(...mapped);
                     }
                 }
-
                 if (departmentOptions.length === 0 && data.departments && Array.isArray(data.departments)) {
                     const mapped = data.departments
                         .map((item: any) => ({
@@ -1313,7 +1156,6 @@ export function usePeriodLeaveReportDepartments(request?: { MI_Id?: number; empt
                         departmentOptions.push(...mapped);
                     }
                 }
-
                 return {
                     success: true,
                     data: {
@@ -1330,7 +1172,6 @@ export function usePeriodLeaveReportDepartments(request?: { MI_Id?: number; empt
         staleTime: 0 // Don't cache as this is filter-dependent
     });
 }
-
 /**
  * Hook to fetch designations for period leave report
  * POST /api/LeaveReportWrapperFacade/PeriodGetDesignation
@@ -1344,14 +1185,11 @@ export function usePeriodLeaveReportDesignation(request?: { MI_Id?: number; empt
                     MI_Id: request?.MI_Id || HRMS_MI_ID,
                     emptypes: request?.emptypes || []
                 });
-
                 if (!response.success || !response.data) {
                     throw new Error(response.message || 'Failed to fetch designations for period leave report');
                 }
-
                 // Extract and map designation options from API response
                 const data = response.data;
-
                 // Map DesignationTempDto to designationOptions
                 const designationOptions = (data.DesignationTempDto || [])
                     .map((item: any) => ({
@@ -1359,7 +1197,6 @@ export function usePeriodLeaveReportDesignation(request?: { MI_Id?: number; empt
                         value: String(item.HRMDES_Id || item.value || '')
                     }))
                     .filter((item: { label: string; value: string }) => item.label && item.value);
-
                 // Also check other possible locations
                 if (designationOptions.length === 0 && data.designationdropdownlist && Array.isArray(data.designationdropdownlist)) {
                     const mapped = data.designationdropdownlist
@@ -1372,7 +1209,6 @@ export function usePeriodLeaveReportDesignation(request?: { MI_Id?: number; empt
                         designationOptions.push(...mapped);
                     }
                 }
-
                 // Check GridviewDetails as fallback
                 if (designationOptions.length === 0 && data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                     const mapped = data.GridviewDetails.map((item: any) => ({
@@ -1383,7 +1219,6 @@ export function usePeriodLeaveReportDesignation(request?: { MI_Id?: number; empt
                         designationOptions.push(...mapped);
                     }
                 }
-
                 // Check designationList or designations as fallback
                 if (designationOptions.length === 0 && data.designationList && Array.isArray(data.designationList)) {
                     const mapped = data.designationList
@@ -1396,7 +1231,6 @@ export function usePeriodLeaveReportDesignation(request?: { MI_Id?: number; empt
                         designationOptions.push(...mapped);
                     }
                 }
-
                 if (designationOptions.length === 0 && data.designations && Array.isArray(data.designations)) {
                     const mapped = data.designations
                         .map((item: any) => ({
@@ -1408,7 +1242,6 @@ export function usePeriodLeaveReportDesignation(request?: { MI_Id?: number; empt
                         designationOptions.push(...mapped);
                     }
                 }
-
                 return {
                     success: true,
                     data: {
@@ -1425,7 +1258,6 @@ export function usePeriodLeaveReportDesignation(request?: { MI_Id?: number; empt
         staleTime: 0 // Don't cache as this is filter-dependent
     });
 }
-
 /**
  * Hook to fetch employees for period leave report
  * POST /api/LeaveReportWrapperFacade/PeriodGetEmployees
@@ -1440,11 +1272,9 @@ export function usePeriodLeaveReportEmployees(request?: { MI_Id?: number; emptyp
                     emptypes: request?.emptypes || [],
                     empdept: request?.empdept || []
                 });
-
                 if (!response.success || !response.data) {
                     throw new Error(response.message || 'Failed to fetch employees for period leave report');
                 }
-
                 // Extract employee list from API response
                 const data = response.data;
 
@@ -1462,7 +1292,6 @@ export function usePeriodLeaveReportEmployees(request?: { MI_Id?: number; emptyp
                 } else if (Array.isArray(data)) {
                     employeeList = data;
                 }
-
                 // Map to employee format for dropdowns
                 const employeeOptions = employeeList
                     .map((item: any) => ({
@@ -1483,7 +1312,6 @@ export function usePeriodLeaveReportEmployees(request?: { MI_Id?: number; emptyp
                         value: String(item.HRME_Id || item.value || item.id || '')
                     }))
                     .filter((item: { label: string; value: string }) => item.label && item.value);
-
                 return {
                     success: true,
                     data: {
@@ -1512,7 +1340,6 @@ export function usePeriodLeaveReportEmployees(request?: { MI_Id?: number; emptyp
         staleTime: 0 // Don't cache as this is filter-dependent
     });
 }
-
 /**
  * Hook to fetch departments for leave report
  * POST /api/LeaveReportWrapperFacade/GetDepartments
@@ -1526,14 +1353,11 @@ export function useLeaveReportDepartments(request?: { MI_Id?: number; emptypes?:
                     MI_Id: request?.MI_Id || HRMS_MI_ID,
                     emptypes: request?.emptypes || []
                 });
-
                 if (!response.success || !response.data) {
                     throw new Error(response.message || 'Failed to fetch departments');
                 }
-
                 // Extract and map department options from API response
                 const data = response.data;
-
                 // Map DepartmentTempDto to departmentOptions
                 const departmentOptions = (data.DepartmentTempDto || [])
                     .map((item: any) => ({
@@ -1541,7 +1365,6 @@ export function useLeaveReportDepartments(request?: { MI_Id?: number; emptypes?:
                         value: String(item.HRMD_Id || item.value || '')
                     }))
                     .filter((item: { label: string; value: string }) => item.label && item.value);
-
                 // Also check other possible locations
                 if (departmentOptions.length === 0 && data.departmentdropdownlist && Array.isArray(data.departmentdropdownlist)) {
                     const mapped = data.departmentdropdownlist
@@ -1554,7 +1377,6 @@ export function useLeaveReportDepartments(request?: { MI_Id?: number; emptypes?:
                         departmentOptions.push(...mapped);
                     }
                 }
-
                 // Check GridviewDetails as fallback
                 if (departmentOptions.length === 0 && data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                     const mapped = data.GridviewDetails.map((item: any) => ({
@@ -1565,7 +1387,6 @@ export function useLeaveReportDepartments(request?: { MI_Id?: number; emptypes?:
                         departmentOptions.push(...mapped);
                     }
                 }
-
                 // Check departmentList or departments as fallback
                 if (departmentOptions.length === 0 && data.departmentList && Array.isArray(data.departmentList)) {
                     const mapped = data.departmentList
@@ -1578,7 +1399,6 @@ export function useLeaveReportDepartments(request?: { MI_Id?: number; emptypes?:
                         departmentOptions.push(...mapped);
                     }
                 }
-
                 if (departmentOptions.length === 0 && data.departments && Array.isArray(data.departments)) {
                     const mapped = data.departments
                         .map((item: any) => ({
@@ -1590,7 +1410,6 @@ export function useLeaveReportDepartments(request?: { MI_Id?: number; emptypes?:
                         departmentOptions.push(...mapped);
                     }
                 }
-
                 return {
                     success: true,
                     data: {
@@ -1607,7 +1426,6 @@ export function useLeaveReportDepartments(request?: { MI_Id?: number; emptypes?:
         staleTime: 0 // Don't cache as this is filter-dependent
     });
 }
-
 /**
  * Hook to fetch designations for leave report
  * POST /api/LeaveReportWrapperFacade/GetDesignation
@@ -1621,14 +1439,11 @@ export function useLeaveReportDesignation(request?: { MI_Id?: number; emptypes?:
                     MI_Id: request?.MI_Id || HRMS_MI_ID,
                     emptypes: request?.emptypes || []
                 });
-
                 if (!response.success || !response.data) {
                     throw new Error(response.message || 'Failed to fetch designations');
                 }
-
                 // Extract and map designation options from API response
                 const data = response.data;
-
                 // Map DesignationTempDto to designationOptions
                 const designationOptions = (data.DesignationTempDto || [])
                     .map((item: any) => ({
@@ -1636,7 +1451,6 @@ export function useLeaveReportDesignation(request?: { MI_Id?: number; emptypes?:
                         value: String(item.HRMDES_Id || item.value || '')
                     }))
                     .filter((item: { label: string; value: string }) => item.label && item.value);
-
                 // Also check other possible locations
                 if (designationOptions.length === 0 && data.designationdropdownlist && Array.isArray(data.designationdropdownlist)) {
                     const mapped = data.designationdropdownlist
@@ -1649,7 +1463,6 @@ export function useLeaveReportDesignation(request?: { MI_Id?: number; emptypes?:
                         designationOptions.push(...mapped);
                     }
                 }
-
                 // Check GridviewDetails as fallback
                 if (designationOptions.length === 0 && data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                     const mapped = data.GridviewDetails.map((item: any) => ({
@@ -1660,7 +1473,6 @@ export function useLeaveReportDesignation(request?: { MI_Id?: number; emptypes?:
                         designationOptions.push(...mapped);
                     }
                 }
-
                 // Check designationList or designations as fallback
                 if (designationOptions.length === 0 && data.designationList && Array.isArray(data.designationList)) {
                     const mapped = data.designationList
@@ -1673,7 +1485,6 @@ export function useLeaveReportDesignation(request?: { MI_Id?: number; emptypes?:
                         designationOptions.push(...mapped);
                     }
                 }
-
                 if (designationOptions.length === 0 && data.designations && Array.isArray(data.designations)) {
                     const mapped = data.designations
                         .map((item: any) => ({
@@ -1685,7 +1496,6 @@ export function useLeaveReportDesignation(request?: { MI_Id?: number; emptypes?:
                         designationOptions.push(...mapped);
                     }
                 }
-
                 return {
                     success: true,
                     data: {
@@ -1702,7 +1512,6 @@ export function useLeaveReportDesignation(request?: { MI_Id?: number; emptypes?:
         staleTime: 0 // Don't cache as this is filter-dependent
     });
 }
-
 /**
  * Hook to fetch employees for leave report
  * POST /api/LeaveReportWrapperFacade/GetEmployees
@@ -1717,11 +1526,9 @@ export function useLeaveReportEmployees(request?: { MI_Id?: number; emptypes?: a
                     emptypes: request?.emptypes || [],
                     empdept: request?.empdept || []
                 });
-
                 if (!response.success || !response.data) {
                     throw new Error(response.message || 'Failed to fetch employees');
                 }
-
                 // Extract employee list from API response
                 const data = response.data;
 
@@ -1739,7 +1546,6 @@ export function useLeaveReportEmployees(request?: { MI_Id?: number; emptypes?: a
                 } else if (Array.isArray(data)) {
                     employeeList = data;
                 }
-
                 // Map to employee format for dropdowns
                 const employeeOptions = employeeList
                     .map((item: any) => ({
@@ -1760,7 +1566,6 @@ export function useLeaveReportEmployees(request?: { MI_Id?: number; emptypes?: a
                         value: String(item.HRME_Id || item.value || item.id || '')
                     }))
                     .filter((item: { label: string; value: string }) => item.label && item.value);
-
                 return {
                     success: true,
                     data: {
@@ -1789,7 +1594,6 @@ export function useLeaveReportEmployees(request?: { MI_Id?: number; emptypes?: a
         staleTime: 0 // Don't cache as this is filter-dependent
     });
 }
-
 /**
  * Hook to fetch leave report data with filters
  * POST /api/LeaveReportWrapperFacade/GetReport
@@ -1821,11 +1625,9 @@ export function useLeaveReportData(
                     selectedreport: request?.selectedreport || [],
                     UserId: request?.UserId || 0
                 });
-
                 if (!response.success || !response.data) {
                     throw new Error(response.message || 'Failed to fetch leave report data');
                 }
-
                 // Extract report list from API response
                 const data = response.data;
 
@@ -1843,7 +1645,6 @@ export function useLeaveReportData(
                 } else if (Array.isArray(data)) {
                     reportList = data;
                 }
-
                 // Map to leave report format matching LeaveReportRow interface
                 const mappedReportList = reportList.map((item: any, index: number) => ({
                     slNo: index + 1,
@@ -1859,7 +1660,6 @@ export function useLeaveReportData(
                     leaveStatus: (item.HRELAP_ApplicationStatus || item.leaveStatus || 'Pending') as 'Approved' | 'Pending' | 'Rejected',
                     leaveBalance: item.HRELS_TotalLeaves || item.leaveBalance || 0
                 }));
-
                 return {
                     success: true,
                     data: {
@@ -1876,7 +1676,6 @@ export function useLeaveReportData(
         staleTime: 0 // Don't cache as this is filter-dependent
     });
 }
-
 /**
  * Hook to fetch period leave report data with filters
  * POST /api/LeaveReportWrapperFacade/PeriodGetReport
@@ -1908,11 +1707,9 @@ export function usePeriodLeaveReportData(
                     selectedreport: request?.selectedreport || [],
                     UserId: request?.UserId || 0
                 });
-
                 if (!response.success || !response.data) {
                     throw new Error(response.message || 'Failed to fetch period leave report data');
                 }
-
                 // Extract period report list from API response
                 const data = response.data;
 
@@ -1930,7 +1727,6 @@ export function usePeriodLeaveReportData(
                 } else if (Array.isArray(data)) {
                     reportList = data;
                 }
-
                 // Map to period leave report format
                 const mappedReportList = reportList.map((item: any, index: number) => ({
                     slNo: index + 1,
@@ -1950,7 +1746,6 @@ export function usePeriodLeaveReportData(
                     departmentName: item.HRMD_DepartmentName || item.departmentName || '',
                     designationName: item.HRMDES_DesignationName || item.designationName || ''
                 }));
-
                 return {
                     success: true,
                     data: {
@@ -1967,7 +1762,6 @@ export function usePeriodLeaveReportData(
         staleTime: 0 // Don't cache as this is filter-dependent
     });
 }
-
 /**
  * Hook to fetch yearwise leave report data with filters
  * POST /api/LeaveReportWrapperFacade/GetReportYearwise
@@ -2001,11 +1795,9 @@ export function useLeaveReportYearwise(
                     UserId: request?.UserId || 0,
                     valreturn: request?.valreturn || ''
                 });
-
                 if (!response.success || !response.data) {
                     throw new Error(response.message || 'Failed to fetch yearwise leave report data');
                 }
-
                 // Extract yearwise report list from API response
                 const data = response.data;
 
@@ -2023,7 +1815,6 @@ export function useLeaveReportYearwise(
                 } else if (Array.isArray(data)) {
                     reportList = data;
                 }
-
                 // Map to yearwise leave report format
                 const mappedReportList = reportList.map((item: any, index: number) => ({
                     slNo: index + 1,
@@ -2043,7 +1834,6 @@ export function useLeaveReportYearwise(
                     departmentName: item.HRMD_DepartmentName || item.departmentName || '',
                     designationName: item.HRMDES_DesignationName || item.designationName || ''
                 }));
-
                 const dataAny = data as any;
                 return {
                     success: true,

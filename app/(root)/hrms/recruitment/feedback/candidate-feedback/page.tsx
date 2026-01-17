@@ -4,9 +4,7 @@
 // 2. Import form from _components/candidate-feedback-form.tsx
 // 3. Extract column definitions and form to the respective files
 // 4. Update handlers to use the new structure
-
 'use client';
-
 import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
@@ -20,7 +18,6 @@ import { Edit, Plus, RefreshCw, Save, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-
 interface CandidateFeedback extends BaseEntity {
     candidateName: string;
     interviewType: string;
@@ -28,7 +25,6 @@ interface CandidateFeedback extends BaseEntity {
     status: 'Selected' | 'Rejected' | 'On Hold' | 'In Progress';
     comments?: string;
 }
-
 type FeedbackForm = {
     candidateName: string;
     interviewType: string;
@@ -36,16 +32,13 @@ type FeedbackForm = {
     status: CandidateFeedback['status'];
     comments?: string;
 };
-
 export default function CandidateFeedbackPage() {
     const [rows, setRows] = useState<CandidateFeedback[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editing, setEditing] = useState<CandidateFeedback | null>(null);
     const formRef = useRef<HTMLDivElement>(null);
-
     const store = createLocalCrud<CandidateFeedback>('recruitment:candidate-feedback');
-
     const {
         register,
         handleSubmit,
@@ -53,19 +46,16 @@ export default function CandidateFeedbackPage() {
         setValue,
         formState: { errors, isSubmitting }
     } = useForm<FeedbackForm>({ mode: 'onChange' });
-
     useEffect(() => {
         setRows(store.list());
         setIsLoading(false);
     }, []);
-
     const handleAdd = () => {
         setIsFormOpen(true);
         setEditing(null);
         reset();
         setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
     };
-
     const onSubmit: SubmitHandler<FeedbackForm> = async (data) => {
         try {
             if (editing) {
@@ -82,20 +72,17 @@ export default function CandidateFeedbackPage() {
             toast.error(e.message || 'Operation failed');
         }
     };
-
     const handleEdit = (row: CandidateFeedback) => {
         setEditing(row);
         reset({ ...row });
         setIsFormOpen(true);
         setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
     };
-
     const handleDelete = (row: CandidateFeedback) => {
         store.remove(row.id);
         toast.success('Deleted');
         setRows(store.list());
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -112,7 +99,6 @@ export default function CandidateFeedbackPage() {
                         Add Feedback
                     </Button>
                 </div>
-
                 <CollapsibleSection
                     title='Candidate Feedback List'
                     description='Browse feedback records'
@@ -123,7 +109,6 @@ export default function CandidateFeedbackPage() {
                     headerClassName=''>
                     <FeedbackTable data={rows} isLoading={isLoading} onEdit={handleEdit} onDelete={handleDelete} />
                 </CollapsibleSection>
-
                 {isFormOpen && (
                     <div ref={formRef}>
                         <CollapsibleSection
@@ -191,7 +176,6 @@ export default function CandidateFeedbackPage() {
                                     <span className='font-medium text-sm'>Comments</span>
                                     <InputText placeholder='Add any notes' {...register('comments')} />
                                 </div>
-
                                 <div className='flex justify-center gap-4 border-t pt-6 md:col-span-2'>
                                     <Button
                                         type='button'
@@ -225,14 +209,12 @@ export default function CandidateFeedbackPage() {
         </div>
     );
 }
-
 interface TableProps {
     data: CandidateFeedback[];
     isLoading: boolean;
     onEdit: (row: CandidateFeedback) => void;
     onDelete: (row: CandidateFeedback) => void;
 }
-
 function FeedbackTable({ data, isLoading, onEdit, onDelete }: TableProps) {
     const columns: ColumnDef<CandidateFeedback>[] = [
         {

@@ -61,9 +61,9 @@ function ActionButtonsCell({ rowData }: { rowData: IExamLoginPrivileges }) {
             </button>
             <ActionButtons
                 rowData={rowData}
-                buttons={{ edit: true, delete: true, toggle: true }}
+                buttons={{ edit: true, delete: false, toggle: false }}
                 onEdit={handleEdit}
-                onDelete={() => {}}
+                onDelete={() => { }}
                 toggleConditionKey='elP_ActiveFlg'
             />
         </div>

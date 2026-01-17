@@ -15,6 +15,7 @@ import {
 } from '@/server/exam/exam-module/masters/category-class-mapping';
 import type { ICategoryMapping } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { set } from 'date-fns';
 import { Edit, Save, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
@@ -57,11 +58,21 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
     const [categories, setCategories] = useState<Category[]>([]);
     const [classes, setClasses] = useState<ClassItem[]>([]);
     const [sections, setSections] = useState<SectionItem[]>([]);
+    const [initialSections, setIntialSections] = useState<SectionItem[]>([]);
+    const [initialSelectedSections, setInitialSelectedSections] = useState<SectionItem[]>([]);
     const [loadingSections, setLoadingSections] = useState(false);
     const { refetchAll } = useMasterCategoryClassMapping();
 
     // Local mapping list (table) and edit state
     const [mappingList, setMappingList] = useState<
+        {
+            asmaY_Id: number;
+            emcA_Id: number;
+            asmcL_Id: number;
+            section_list: SectionItem[];
+        }[]
+    >([]);
+    const [initialMappingList, setInitialMappingList] = useState<
         {
             asmaY_Id: number;
             emcA_Id: number;
@@ -77,6 +88,13 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
         }
     };
 
+    useEffect(() => {
+        if (mappingList.length > 0) {
+            tableRef.current?.scrollIntoView({ behavior: "smooth" });
+            setTimeout(scrollToBottom, 50);
+        }
+    }, [mappingList]);
+
     const watchedYear = watch('asmaY_Id');
     const watchedCategory = watch('emcA_Id');
     const watchedClass = watch('asmcL_Id');
@@ -85,34 +103,14 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
     useEffect(() => {
         setValue('asmaY_Id', selectedRow?.asmaY_Id ?? 0);
         setValue('emcA_Id', selectedRow?.emcA_Id ?? 0);
-        //setValue('asmcL_Id', selectedRow?.asmcL_Id ?? 0);
-        console.log(classes, categories, academicYears);
-        console.log(
-            selectedRow?.asmaY_Id,
-            selectedRow?.emcA_Id,
-            selectedRow?.asmcL_Id,
-            classes.length,
-            categories.length,
-            academicYears.length
-        );
     }, [selectedRow, classes.length, categories.length, academicYears.length]);
 
     // Academic years hook
-    const { data: acadData, error: acadError } = useAcademicYearDropdown();
-    useEffect(() => {
-        if (acadError) {
-            toast.error(acadError.message || 'Failed to load academic years');
-            setAcademicYears([]);
-        } else if (acadData?.data && Array.isArray(acadData.data)) {
-            const formatted = acadData.data.map((y: any) => ({
-                asmaY_Id: y.asmaY_Id,
-                asmaY_Year: y.asmaY_Year
-            }));
-            setAcademicYears(formatted);
-        } else {
-            setAcademicYears([]);
-        }
-    }, [acadData, acadError]);
+    const {
+        data: academicYear,
+        isLoading: academicYearLoading,
+        error: academicYearError,
+    } = useAcademicYearDropdown();
 
     // Load categories & classes
     useEffect(() => {
@@ -124,6 +122,7 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
                 if (!mounted) return;
                 setCategories(Array.isArray(cats) ? cats : []);
                 setClasses(Array.isArray(cls) ? cls : []);
+                if (Array.isArray(cls) && cls.length === 0) toast.info('No classes found');
             } catch (err: any) {
                 toast.error(err?.message || 'Failed to load categories/classes');
                 setCategories([]);
@@ -162,16 +161,15 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
                 // Prefill basic fields (these fields will be disabled in UI)
                 setValue('asmaY_Id', selectedRow.asmaY_Id);
                 setValue('emcA_Id', selectedRow.emcA_Id);
-                // Wait for classes to load below to set class value (we also set it here; effect below will verify existence)
-                //setValue('asmcL_Id', selectedRow.asmcL_Id);
+                setValue('asmcL_Id', selectedRow.asmcL_Id);
 
                 // fetch all class sections (options)
                 const classSectionsRes = await getClassMappedSections(selectedRow.asmaY_Id, selectedRow.asmcL_Id);
                 const classSections = Array.isArray(classSectionsRes)
                     ? classSectionsRes
                     : Array.isArray(classSectionsRes?.data)
-                      ? classSectionsRes.data
-                      : [];
+                        ? classSectionsRes.data
+                        : [];
 
                 // fetch category mapped sections (the server mapping for the given year+category+class)
                 const catMappedRes = await getCategoryMappedSections(selectedRow.asmaY_Id, selectedRow.emcA_Id, selectedRow.asmcL_Id);
@@ -192,11 +190,21 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
                 if (!mounted) return;
 
                 setSections(sectionOptions);
-                // set into form so the multi-select will show checked values
+                if (sectionOptions.length === 0) toast.info('No sections are mapped to this class');
                 setValue('section_list', selectedSections);
+                setIntialSections(sectionOptions);
+                setInitialSelectedSections(selectedSections);
 
                 // mappingList initial row (use selectedSections)
                 setMappingList([
+                    {
+                        asmaY_Id: selectedRow.asmaY_Id,
+                        emcA_Id: selectedRow.emcA_Id,
+                        asmcL_Id: selectedRow.asmcL_Id,
+                        section_list: selectedSections
+                    }
+                ]);
+                setInitialMappingList([
                     {
                         asmaY_Id: selectedRow.asmaY_Id,
                         emcA_Id: selectedRow.emcA_Id,
@@ -246,6 +254,20 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
                     // do not auto-clear if user wants empty selection — but for safety we set to []
                     setValue('section_list', []);
                 }
+                if (watchedClass === selectedRow?.asmcL_Id) {
+                    const classSectionsRes = await getClassMappedSections(selectedRow.asmaY_Id, selectedRow.asmcL_Id);
+                    const classSections = Array.isArray(classSectionsRes)
+                        ? classSectionsRes
+                        : Array.isArray(classSectionsRes?.data)
+                            ? classSectionsRes.data
+                            : [];
+
+                    // build section objects for form and mappingList rows
+                    const sectionOptions: SectionItem[] = classSections.map((s: any) => ({
+                        asmS_Id: Number(s.asmS_Id),
+                        asmC_SectionName: s.asmC_SectionName ?? String(s.asmS_Id)
+                    }));
+                }
             } catch {
                 setSections([]);
                 setValue('section_list', []);
@@ -269,7 +291,7 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
         if (selectedRow?.asmcL_Id) {
             const exists = classes.some((c) => Number(c.asmcL_Id) === Number(selectedRow.asmcL_Id));
             if (exists) {
-                //setValue('asmcL_Id', Number(selectedRow.asmcL_Id));
+                setValue('asmcL_Id', Number(selectedRow.asmcL_Id));
             }
         }
 
@@ -277,7 +299,7 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
         const current = watch('asmcL_Id');
         const hasCurrent = classes.some((c) => Number(c.asmcL_Id) === Number(current));
         if (!hasCurrent) {
-            //setValue('asmcL_Id', 0);
+            setValue('asmcL_Id', 0);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [classes]);
@@ -418,7 +440,7 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
     };
 
     // Safe arrays to avoid undefined.map errors
-    const safeAcademicYears = Array.isArray(academicYears) ? academicYears : [];
+    const safeAcademicYears = Array.isArray(academicYear?.data) ? academicYear.data : [];
     const safeCategories = Array.isArray(categories) ? categories : [];
     const safeClasses = Array.isArray(classes) ? classes : [];
     const safeSections = Array.isArray(sections) ? sections : [];
@@ -442,11 +464,21 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
                                     <SelectValue placeholder='Select Academic Year' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {safeAcademicYears.map((y) => (
-                                        <SelectItem key={String(y.asmaY_Id)} value={String(y.asmaY_Id)}>
-                                            {y.asmaY_Year}
+                                    {academicYearLoading ? (
+                                        <SelectItem value='loading' disabled>
+                                            Loading Academic Year...
                                         </SelectItem>
-                                    ))}
+                                    ) : academicYearError ? (
+                                        <SelectItem value='error' disabled>
+                                            Error loading Academic Year
+                                        </SelectItem>
+                                    ) : (
+                                        academicYear?.data?.map((item) => (
+                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                {item.asmaY_Year}
+                                            </SelectItem>
+                                        ))
+                                    )}
                                 </SelectContent>
                             </Select>
                         )}
@@ -630,8 +662,12 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
                             variant='outline'
                             type='button'
                             onClick={() => {
-                                // setValue('asmcL_Id', 0);
-                                //setValue('section_list', []);
+                                setValue('asmcL_Id', selectedRow?.asmcL_Id || 0);
+                                setValue('section_list', initialSelectedSections || []);
+                                setSections(initialSections || []);
+                                setValue('asmaY_Id', selectedRow?.asmaY_Id || 0);
+                                setValue('emcA_Id', selectedRow?.emcA_Id || 0);
+                                setMappingList(initialMappingList || []);
                                 setEditIndex(null);
                             }}>
                             Reset
@@ -649,3 +685,5 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
         </form>
     );
 }
+
+

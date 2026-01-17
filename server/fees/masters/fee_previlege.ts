@@ -12,7 +12,7 @@ import type {
 } from '@/types/fees/masters/masters';
 
 export async function getGroupsDropdown() {
-    const url = '/fee_class_category/academicyearlist/30';
+    const url = '/fee_class_category/academicyearlist';
     return await api.get<IMasterGroupDropdown[]>('fees', url);
 }
 export async function getRolesDropdown() {

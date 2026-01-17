@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { FormError, Label } from '@/components/ui/extension/field';
@@ -9,40 +8,40 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useSaveEmployeeLoan } from '@/hooks/hrms/useTransactions';
 import { cn } from '@/lib/utils';
-import { employeeLoanFormSchema } from '@/schemas/hrms/employee-loan-schemas';
+import { hrmsTransactionSchemas } from '@/schemas/hrms/transaction';
 import type { EmployeeLoanOnloadResponse } from '@/types/hrms/employee-loan';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
 import { useMemo } from 'react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { Controller, type SubmitHandler, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-
-type EmployeeLoanForm = z.infer<typeof employeeLoanFormSchema>;
-
+type EmployeeLoanForm = z.infer<typeof hrmsTransactionSchemas.employeeLoan.form>;
 interface AddFormProps {
     onloadData: EmployeeLoanOnloadResponse | undefined;
     onSuccess: () => void;
     className?: string;
 }
-
 export default function AddEmployeeLoanForm({ onloadData, onSuccess, className = '' }: AddFormProps) {
     const { mutate: saveLoan, isPending } = useSaveEmployeeLoan();
-
     // Memoize arrays to prevent unnecessary re-renders
     const employees = useMemo(() => onloadData?.employeedropdown || [], [onloadData?.employeedropdown]);
     const loanTypes = useMemo(() => onloadData?.masterloandropdown || [], [onloadData?.masterloandropdown]);
     const paymentModes = useMemo(() => onloadData?.modeOfPaymentdropdown || [], [onloadData?.modeOfPaymentdropdown]);
-
+    // Debug logging for loan types
+    if (loanTypes && loanTypes.length > 0) {
+    }
     const {
         register,
         handleSubmit,
         reset,
         control,
+        setValue,
+        watch,
         formState: { errors, isSubmitting }
     } = useForm<EmployeeLoanForm>({
-        resolver: zodResolver(employeeLoanFormSchema),
+        resolver: zodResolver(hrmsTransactionSchemas.employeeLoan.form),
         mode: 'onChange',
         defaultValues: {
             employeeId: 0,
@@ -56,7 +55,13 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
             loanEMI: 0
         }
     });
-
+    // Watch employeeId to enable/disable loan fields
+    const watchedEmployeeId = useWatch({
+        control,
+        name: 'employeeId',
+        defaultValue: 0
+    });
+    const isEmployeeSelected = watchedEmployeeId && watchedEmployeeId > 0;
     const onSubmit: SubmitHandler<EmployeeLoanForm> = async (data: EmployeeLoanForm) => {
         const loanData = {
             HREL_Id: 0,
@@ -73,7 +78,6 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
             HREL_ReferenceNo: data.referenceNo || 0,
             ASMAY_Id: 0
         };
-
         saveLoan(loanData, {
             onSuccess: () => {
                 toast.success('Employee loan created successfully!');
@@ -85,7 +89,6 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
             }
         });
     };
-
     return (
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -123,7 +126,6 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                             </div>
                         )}
                     />
-
                     <div className='space-y-2'>
                         <Label>Applied Date *</Label>
                         <Controller
@@ -156,33 +158,36 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                         {errors.startDate && <FormError>{errors.startDate.message}</FormError>}
                     </div>
                 </div>
-
                 <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-                    <Controller
-                        name='loanTypeId'
-                        control={control}
-                        render={({ field }) => (
-                            <div className='space-y-2'>
-                                <Label>Loan Type *</Label>
-                                <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder='Select' />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {loanTypes
-                                            .filter((type) => type?.HRMLN_Id != null)
-                                            .map((loanType) => (
-                                                <SelectItem key={loanType.HRMLN_Id} value={loanType.HRMLN_Id.toString()}>
-                                                    {loanType.HRML_LoanType} (Max: ₹{loanType.HRML_Max?.toLocaleString() || 0})
-                                                </SelectItem>
-                                            ))}
-                                    </SelectContent>
-                                </Select>
-                                {errors.loanTypeId && <FormError>{errors.loanTypeId.message}</FormError>}
-                            </div>
-                        )}
-                    />
-
+                    <div className='space-y-2'>
+                        <Label>Loan Type *</Label>
+                        <Select
+                            key={`loan-type-${loanTypes.length}`}
+                            onValueChange={(value) => {
+                                setValue('loanTypeId', Number(value));
+                            }}
+                            value={watch('loanTypeId')?.toString() || ''}>
+                            <SelectTrigger>
+                                <SelectValue placeholder='Select Loan Type' />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {loanTypes && loanTypes.length > 0 ? (
+                                    loanTypes
+                                        .filter((type) => type && type.HRMLN_Id !== undefined && type.HRMLN_Id !== null)
+                                        .map((loanType) => (
+                                            <SelectItem key={`loan-${loanType.HRMLN_Id}`} value={loanType.HRMLN_Id.toString()}>
+                                                {`${loanType.HRML_LoanType} (Max: ₹${loanType.HRML_Max?.toLocaleString() || 0})`}
+                                            </SelectItem>
+                                        ))
+                                ) : (
+                                    <div className='p-2 text-muted-foreground text-sm'>
+                                        {onloadData === undefined ? 'Loading loan types...' : 'No loan types available'}
+                                    </div>
+                                )}
+                            </SelectContent>
+                        </Select>
+                        {errors.loanTypeId && <FormError>{errors.loanTypeId.message}</FormError>}
+                    </div>
                     <Controller
                         name='modeOfPayment'
                         control={control}
@@ -208,7 +213,6 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                         )}
                     />
                 </div>
-
                 <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                     <Controller
                         name='referenceNo'
@@ -227,7 +231,6 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                         )}
                     />
                 </div>
-
                 <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                     <InputText
                         label='Loan Amount *'
@@ -237,9 +240,9 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                         placeholder='Enter loan amount (max 10 digits including decimals)'
                         {...register('amount', { valueAsNumber: true })}
                         error={errors.amount?.message}
+                        disabled={!isEmployeeSelected}
                         className='transition-colors focus:ring-2 focus:ring-primary/20'
                     />
-
                     <InputText
                         label='Loan Interest *'
                         type='number'
@@ -248,10 +251,10 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                         placeholder='Enter loan interest (max 5 digits including decimals)'
                         {...register('loanInterest', { valueAsNumber: true })}
                         error={errors.loanInterest?.message}
+                        disabled={!isEmployeeSelected}
                         className='transition-colors focus:ring-2 focus:ring-primary/20'
                     />
                 </div>
-
                 <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                     <InputText
                         label='Loan Installments (IN MONTHS) *'
@@ -260,9 +263,9 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                         placeholder='Enter loan installments (max 4 digits)'
                         {...register('installments', { valueAsNumber: true })}
                         error={errors.installments?.message}
+                        disabled={!isEmployeeSelected}
                         className='transition-colors focus:ring-2 focus:ring-primary/20'
                     />
-
                     <InputText
                         label='Loan EMI *'
                         type='number'
@@ -271,10 +274,10 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                         placeholder='Enter loan EMI (max 10 digits including decimals)'
                         {...register('loanEMI', { valueAsNumber: true })}
                         error={errors.loanEMI?.message}
+                        disabled={!isEmployeeSelected}
                         className='transition-colors focus:ring-2 focus:ring-primary/20'
                     />
                 </div>
-
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'

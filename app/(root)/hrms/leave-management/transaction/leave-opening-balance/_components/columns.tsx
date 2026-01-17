@@ -1,21 +1,17 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit } from 'lucide-react';
-
 export interface LeaveOpeningBalance extends BaseEntity {
     employeeName: string;
     leaveName: string;
     leaveBalance: number;
 }
-
 interface LeaveOpeningBalanceColumnsProps {
     onEdit: (row: LeaveOpeningBalance) => void;
 }
-
 export const getLeaveOpeningBalanceColumns = ({ onEdit }: LeaveOpeningBalanceColumnsProps): ColumnDef<LeaveOpeningBalance>[] => [
     {
         id: 'sl',

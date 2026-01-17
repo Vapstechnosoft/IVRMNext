@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { DaySelectionCheckbox } from '@/components/ui/day-selection-checkbox';
 import { FormError } from '@/components/ui/extension/field';
@@ -12,19 +11,15 @@ import { useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 import { TimePicker12Hour } from './time-picker-12hour';
-
 type FormFields = z.infer<typeof masterShiftSchema.addOrUpdate>;
-
 interface AddMasterShiftFormProps {
     onSuccess?: () => void;
     className?: string;
 }
-
 export default function AddMasterShiftForm({ onSuccess, className = '' }: AddMasterShiftFormProps) {
     const { refetchAll } = useMasterShift();
     const { mutate: saveMasterShift, isPending } = useSaveMasterShift();
     const [selectedDays, setSelectedDays] = useState<string[]>([]);
-
     const {
         register,
         handleSubmit,
@@ -44,7 +39,6 @@ export default function AddMasterShiftForm({ onSuccess, className = '' }: AddMas
             specificDay: false
         }
     });
-
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         saveMasterShift(
             {
@@ -63,17 +57,14 @@ export default function AddMasterShiftForm({ onSuccess, className = '' }: AddMas
             }
         );
     };
-
     const handleReset = () => {
         reset();
         setSelectedDays([]);
     };
-
     const handleDaysChange = (days: string[]) => {
         setSelectedDays(days);
         setValue('specificDay', days.length > 0);
     };
-
     return (
         <div className={`${className}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -88,7 +79,6 @@ export default function AddMasterShiftForm({ onSuccess, className = '' }: AddMas
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                             maxLength={100}
                         />
-
                         <InputText
                             label='Remarks'
                             required
@@ -99,7 +89,6 @@ export default function AddMasterShiftForm({ onSuccess, className = '' }: AddMas
                             maxLength={250}
                         />
                     </div>
-
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <div className='space-y-2'>
                             <label htmlFor='startTime' className='font-medium text-sm'>
@@ -114,7 +103,6 @@ export default function AddMasterShiftForm({ onSuccess, className = '' }: AddMas
                             />
                             {errors.startTime && <FormError>{errors.startTime.message}</FormError>}
                         </div>
-
                         <div className='space-y-2'>
                             <label htmlFor='endTime' className='font-medium text-sm'>
                                 Shift End Time <span className='text-red-500'>*</span>
@@ -129,7 +117,6 @@ export default function AddMasterShiftForm({ onSuccess, className = '' }: AddMas
                             {errors.endTime && <FormError>{errors.endTime.message}</FormError>}
                         </div>
                     </div>
-
                     <div className='flex items-center gap-8'>
                         <DaySelectionCheckbox
                             id='specificDay'
@@ -141,7 +128,6 @@ export default function AddMasterShiftForm({ onSuccess, className = '' }: AddMas
                         />
                     </div>
                 </div>
-
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'
@@ -151,7 +137,6 @@ export default function AddMasterShiftForm({ onSuccess, className = '' }: AddMas
                         className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
                         Reset
                     </Button>
-
                     <Button
                         type='submit'
                         disabled={isSubmitting || isPending}

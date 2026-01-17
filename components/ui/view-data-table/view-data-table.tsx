@@ -1,7 +1,6 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { getCommonPinningStyles } from '@/lib/data-table.config';
 import type { ApiSearchparams } from '@/types';
@@ -39,7 +38,6 @@ interface DataTableProps<TData, TValue> {
     defaultSelectedRowIds?: string[];
     onRowSelectionChange?: (selectedRows: TData[]) => void;
     currentApiParams?: ApiSearchparams;
-
 }
 
 export interface DataTableRef {
@@ -51,7 +49,7 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
         columns,
         data,
         totalItems,
-        pageSizeOptions = [10, 20, 30, 40, 50],
+        pageSizeOptions = [10, 20, 30, 40, 50, 60],
         isLoading,
         showExportOptions = false,
         showViewOptions = true,
@@ -85,7 +83,7 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
     useEffect(() => {
         if (!Array.isArray(defaultSelectedRowIds)) return;
 
-        setRowSelection(prev => {
+        setRowSelection((prev) => {
             const updated = { ...prev };
 
             // Update OR add
@@ -98,8 +96,7 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
             if (onRowSelectionChange) {
                 const selectedRows = table
                     .getFilteredRowModel()
-                    .rows
-                    .filter((r) => updated[r.id])
+                    .rows.filter((r) => updated[r.id])
                     .map((r) => r.original);
 
                 onRowSelectionChange(selectedRows);
@@ -220,71 +217,64 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                 <>
                     {/* ---------- FIXED TABLE STRUCTURE ---------- */}
                     <div className='overflow-hidden rounded-md border'>
-                        <div className='overflow-x-auto'>
-                            <div className='relative max-h-[384px] overflow-y-auto'>
-                                <Table className='min-w-full table-auto border-separate border-spacing-0'>
-                                    <TableHeader className='sticky top-0 z-30 bg-card'>
-                                        {table.getHeaderGroups().map((headerGroup) => (
-                                            <TableRow key={headerGroup.id}>
-                                                {headerGroup.headers.map((header) => (
-                                                    <TableHead
-                                                        key={header.id}
-                                                        colSpan={header.colSpan}
-                                                        className='whitespace-nowrap border-b bg-card'
-                                                        style={{
-                                                            ...getCommonPinningStyles({
-                                                                column: header.column
-                                                            }),
-                                                            top: 0,
-                                                            zIndex: 20
-                                                        }}>
-                                                        {header.isPlaceholder
-                                                            ? null
-                                                            : flexRender(header.column.columnDef.header, header.getContext())}
-                                                    </TableHead>
+                        <div className="relative max-h-[520px] overflow-auto">   {/* SINGLE SCROLL CONTAINER */}
+                            <Table className="min-w-full table-fixed border-separate border-spacing-0">
+
+                                {/* column widths stay the same for both header & body */}
+                                <colgroup>
+                                    {table.getAllLeafColumns().map(col => (
+                                        <col key={col.id} style={{ width: col.getSize() }} />
+                                    ))}
+                                </colgroup>
+
+                                <TableHeader className="bg-card">
+                                    {table.getHeaderGroups().map(headerGroup => (
+                                        <TableRow key={headerGroup.id}>
+                                            {headerGroup.headers.map(header => (
+                                                <TableHead
+                                                    key={header.id}
+                                                    colSpan={header.colSpan}
+                                                    className="sticky top-0 z-20 bg-card border-b whitespace-nowrap"
+                                                    style={getCommonPinningStyles({ column: header.column })}  // 👈 pinning works here
+                                                >
+                                                    {header.isPlaceholder ? null :
+                                                        flexRender(header.column.columnDef.header, header.getContext())}
+                                                </TableHead>
+                                            ))}
+                                        </TableRow>
+                                    ))}
+                                </TableHeader>
+
+                                <TableBody>
+                                    {table.getRowModel().rows?.length ? (
+                                        table.getRowModel().rows.map(row => (
+                                            <TableRow key={row.id} className="border-b">
+                                                {row.getVisibleCells().map(cell => (
+                                                    <TableCell
+                                                        key={cell.id}
+                                                        className="whitespace-nowrap border-b"
+                                                        style={getCommonPinningStyles({ column: cell.column })}  // 👈 NOW body pinning works
+                                                    >
+                                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                                    </TableCell>
                                                 ))}
                                             </TableRow>
-                                        ))}
-                                    </TableHeader>
-
-                                    <TableBody>
-                                        {table.getRowModel().rows?.length ? (
-                                            table.getRowModel().rows.map((row) => (
-                                                <TableRow key={row.id} data-state={row.getIsSelected()} className='border-b'>
-                                                    {row.getVisibleCells().map((cell) => (
-                                                        <TableCell
-                                                            key={cell.id}
-                                                            className='whitespace-nowrap'
-                                                            style={{
-                                                                ...getCommonPinningStyles({
-                                                                    column: cell.column
-                                                                })
-                                                            }}>
-                                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                                        </TableCell>
-                                                    ))}
-                                                </TableRow>
-                                            ))
-                                        ) : (
-                                            <TableRow>
-                                                <TableCell colSpan={table.getAllColumns().length} className='h-24 text-center'>
-                                                    <div className='flex flex-col items-center justify-center space-y-2'>
-                                                        <p className='font-medium text-muted-foreground'>
-                                                            {searchQuery ? `No results found for "${searchQuery}"` : 'No results.'}
-                                                        </p>
-                                                        {searchQuery && (
-                                                            <p className='text-muted-foreground text-sm'>
-                                                                Try adjusting your search or filters
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                </TableCell>
-                                            </TableRow>
-                                        )}
-                                    </TableBody>
-                                </Table>
-                            </div>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell
+                                                colSpan={table.getAllColumns().length}
+                                                className="h-24 text-center"
+                                            >
+                                                No results found
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
                         </div>
+
+
                     </div>
 
                     {/* ---------- PAGINATION ---------- */}
@@ -308,7 +298,7 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                                 )}
 
                                 {/* Rows per page */}
-                                <div className='flex items-center space-x-2'>
+                                {/* <div className='flex items-center space-x-2'>
                                     <p className='whitespace-nowrap font-medium text-sm'>Rows per page</p>
                                     <Select
                                         value={`${paginationState.pageSize}`}
@@ -325,7 +315,7 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                </div>
+                                </div> */}
 
                                 {/* Controls */}
                                 <div className='flex items-center space-x-2'>

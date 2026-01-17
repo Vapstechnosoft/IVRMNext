@@ -7,7 +7,6 @@ import type {
     EmployeeOfferAndExperienceReportSearchRequest,
     EmployeeOfferAndExperienceReportSearchResponse
 } from '@/types/hrms/reports/employee-offer-and-experience-report';
-
 /**
  * Filter employee data for offer and experience report
  * POST /api/EmployeeOfferAndExperienceReportFacade/FilterEmployeeData
@@ -16,7 +15,6 @@ import type {
 export async function filterEmployeeOfferAndExperienceData(
     requestBody: EmployeeOfferAndExperienceReportFilterRequest
 ): Promise<ApiResponse<EmployeeOfferAndExperienceReportFilterResponse>> {
-    console.log('🔵 [EMPLOYEE OFFER AND EXPERIENCE REPORT] filterEmployeeOfferAndExperienceData - START');
     console.log('📥 [EMPLOYEE OFFER AND EXPERIENCE REPORT] Request payload:', JSON.stringify(requestBody, null, 2));
 
     const url = '/api/EmployeeOfferAndExperienceReportFacade/FilterEmployeeData';
@@ -125,19 +123,15 @@ export async function filterEmployeeOfferAndExperienceData(
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped
             const responseData = response.data as unknown as EmployeeOfferAndExperienceReportFilterResponse;
-            console.log('✅ [EMPLOYEE OFFER AND EXPERIENCE REPORT] Response already wrapped, returning as-is');
             console.log('📊 [EMPLOYEE OFFER AND EXPERIENCE REPORT] Response data summary:', {
                 hasEmployeedropdown: !!responseData?.employeedropdown,
                 employeedropdownCount: Array.isArray(responseData?.employeedropdown) ? responseData.employeedropdown.length : 0,
                 retrunMsg: responseData?.retrunMsg
             });
-
             return response as ApiResponse<EmployeeOfferAndExperienceReportFilterResponse>;
         }
-
         // Wrap raw response data
         const rawResponse = response as unknown as EmployeeOfferAndExperienceReportFilterResponse;
-        console.log('⚠️ [EMPLOYEE OFFER AND EXPERIENCE REPORT] Response not wrapped, wrapping it');
         return {
             success: true,
             message: rawResponse?.retrunMsg || 'Filter completed successfully',
@@ -158,7 +152,6 @@ export async function filterEmployeeOfferAndExperienceData(
         };
     }
 }
-
 /**
  * Get employee details by selection for offer and experience report
  * POST /api/EmployeeOfferAndExperienceReportFacade/getEmployeedetailsBySelection
@@ -167,7 +160,6 @@ export async function filterEmployeeOfferAndExperienceData(
 export async function getEmployeeDetailsBySelection(
     requestBody: EmployeeOfferAndExperienceReportSearchRequest
 ): Promise<ApiResponse<EmployeeOfferAndExperienceReportSearchResponse>> {
-    console.log('🔵 [EMPLOYEE OFFER AND EXPERIENCE REPORT] getEmployeeDetailsBySelection - START');
     console.log('📥 [EMPLOYEE OFFER AND EXPERIENCE REPORT] Request payload:', JSON.stringify(requestBody, null, 2));
 
     const url = '/api/EmployeeOfferAndExperienceReportFacade/getEmployeedetailsBySelection';
@@ -276,19 +268,15 @@ export async function getEmployeeDetailsBySelection(
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped
             const responseData = response.data as unknown as EmployeeOfferAndExperienceReportSearchResponse;
-            console.log('✅ [EMPLOYEE OFFER AND EXPERIENCE REPORT] Response already wrapped, returning as-is');
             console.log('📊 [EMPLOYEE OFFER AND EXPERIENCE REPORT] Response data summary:', {
                 hasEmployeedropdown: !!responseData?.employeedropdown,
                 employeedropdownCount: Array.isArray(responseData?.employeedropdown) ? responseData.employeedropdown.length : 0,
                 retrunMsg: responseData?.retrunMsg
             });
-
             return response as ApiResponse<EmployeeOfferAndExperienceReportSearchResponse>;
         }
-
         // Wrap raw response data
         const rawResponse = response as unknown as EmployeeOfferAndExperienceReportSearchResponse;
-        console.log('⚠️ [EMPLOYEE OFFER AND EXPERIENCE REPORT] Response not wrapped, wrapping it');
         return {
             success: true,
             message: rawResponse?.retrunMsg || 'Employee details retrieved successfully',

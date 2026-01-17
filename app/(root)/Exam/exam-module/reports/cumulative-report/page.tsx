@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import CumulativeReportForm from './_components/add-form';
 import CumulativeReportGridView from './_components/columns';
+import CumulativeReportExcel from './_components/cumulative-report-excel';
 import CumulativeReportPrintView from './_components/cumulative-report-printable';
 
 export default function CumulativeReportPage() {
@@ -170,6 +171,15 @@ export default function CumulativeReportPage() {
                             columnFlags={columnFlags}
                             onPrint={handlePrint}
                         />
+
+                        <div className='mt-6 flex justify-end print:hidden'>
+                            <CumulativeReportExcel
+                                reportData={reportData}
+                                subjects={subjects}
+                                headerInfo={headerInfo}
+                                columnFlags={columnFlags}
+                            />
+                        </div>
 
                         <div className='mt-10'>
                             <GenericDataTable

@@ -1,9 +1,7 @@
 'use client';
-
 import { Badge } from '@/components/ui/badge';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
-
 // Employee Loan Record
 export interface EmployeeLoanRecord {
     id?: number;
@@ -38,7 +36,6 @@ export interface EmployeeLoanRecord {
     basicSalary: number;
     loanToSalaryRatio: number;
 }
-
 // Loan Type Summary
 export interface LoanTypeSummary {
     loanType: string;
@@ -51,7 +48,6 @@ export interface LoanTypeSummary {
     averageInterestRate: number;
     totalInterest: number;
 }
-
 // Main table columns
 export const loanReportColumns: ColumnDef<EmployeeLoanRecord>[] = [
     {
@@ -158,7 +154,6 @@ export const loanReportColumns: ColumnDef<EmployeeLoanRecord>[] = [
         enableHiding: true
     }
 ];
-
 // Loan type summary columns
 export const loanTypeSummaryColumns: ColumnDef<LoanTypeSummary>[] = [
     {

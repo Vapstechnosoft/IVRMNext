@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -12,20 +11,16 @@ import { toast } from 'sonner';
 import AddMasterLeaveForm from './_components/add-form';
 import { type MasterLeave, getMasterLeaveColumns } from './_components/columns';
 import UpdateMasterLeaveForm from './_components/update-form';
-
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
 export default function MasterLeavePage(props: { searchParams: SearchParams }) {
     const _searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useMasterLeave();
-
     return (
         <FormProvider<MasterLeave>>
             <MasterLeavePageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
-
 function MasterLeavePageContent({
     response,
     isLoading,
@@ -38,7 +33,6 @@ function MasterLeavePageContent({
     const { openAddForm } = useFormContext<MasterLeave>();
     const { openEditForm, openDeleteForm, openToggleForm } = useFormContext<MasterLeave>();
     const tableProps = useDataTableProps(response);
-
     const columns = getMasterLeaveColumns({
         onEdit: openEditForm,
         onDelete: (id: number) => {
@@ -50,7 +44,6 @@ function MasterLeavePageContent({
         },
         onToggleStatus: openToggleForm
     });
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -64,7 +57,6 @@ function MasterLeavePageContent({
                         Add Master Leave
                     </Button>
                 </div>
-
                 {/* Data Table Section */}
                 <CollapsibleSection
                     defaultOpen={true}
@@ -84,14 +76,12 @@ function MasterLeavePageContent({
                         errorTitle='Error Loading Master Leaves'
                     />
                 </CollapsibleSection>
-
                 {/* Forms */}
                 <FormSections />
             </div>
         </div>
     );
 }
-
 function FormSections() {
     const {
         isAddFormOpen,
@@ -109,7 +99,6 @@ function FormSections() {
     const _queryClient = useQueryClient();
     const { mutate: updateMasterLeave } = useUpdateMasterLeave();
     const { mutate: deleteMasterLeave, isPending: isDeleting } = useDeleteMasterLeave();
-
     const handleDelete = () => {
         if (selectedRow) {
             deleteMasterLeave(selectedRow.id, {
@@ -119,7 +108,6 @@ function FormSections() {
             });
         }
     };
-
     const handleToggleStatus = () => {
         if (selectedRow) {
             const updatedRow = { ...selectedRow, isActive: !selectedRow.isActive };
@@ -131,7 +119,6 @@ function FormSections() {
             });
         }
     };
-
     return (
         <>
             {/* Add Form */}
@@ -158,7 +145,6 @@ function FormSections() {
                     </CollapsibleSection>
                 </div>
             )}
-
             {/* Edit Form */}
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
@@ -182,7 +168,6 @@ function FormSections() {
                     </CollapsibleSection>
                 </div>
             )}
-
             {/* Delete Form */}
             {isDeleteFormOpen && selectedRow && (
                 <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50'>
@@ -200,7 +185,6 @@ function FormSections() {
                     </div>
                 </div>
             )}
-
             {/* Toggle Status Form */}
             {isToggleFormOpen && selectedRow && (
                 <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50'>

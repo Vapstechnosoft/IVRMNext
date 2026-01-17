@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -9,9 +8,7 @@ import { useSession } from 'next-auth/react';
 import { use, useEffect } from 'react';
 import AddCandidateInterviewForm from './_components/add-form';
 import { candidateInterviewColumns } from './_components/columns';
-
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
 export default function AddCandidateInterviewPage(props: {
     searchParams: SearchParams;
 }) {
@@ -19,14 +16,12 @@ export default function AddCandidateInterviewPage(props: {
     // Mock data for now - replace with actual API call
     const response = { data: [], totalItems: 0, isLoading: false, error: null };
     const refetchAll = () => {};
-
     return (
         <FormProvider<any>>
             <AddCandidateInterviewPageContent response={response} isLoading={false} error={null} refetch={refetchAll} />
         </FormProvider>
     );
 }
-
 function AddCandidateInterviewPageContent({
     response,
     isLoading,
@@ -41,13 +36,11 @@ function AddCandidateInterviewPageContent({
     const { openAddForm } = useFormContext();
     const tableProps = useDataTableProps(response);
     const session = useSession();
-
     useEffect(() => {
         if (session?.data?.role === undefined) {
             window.location.reload();
         }
     }, [session?.data?.role]);
-
     return (
         <div className='min-h-screen'>
             <div className='container mx-auto space-y-6 px-4 py-6 md:px-6 lg:px-8'>
@@ -86,14 +79,12 @@ function AddCandidateInterviewPageContent({
         </div>
     );
 }
-
 function FormSections({
     refetch
 }: {
     refetch: () => void;
 }) {
     const { isAddFormOpen, closeAddForm, addFormRef } = useFormContext();
-
     return (
         <>
             {/* Add Form */}

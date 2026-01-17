@@ -125,8 +125,8 @@ function FormSections() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add Student Fee Group Mapping'
-                        description='Fill in the details below to create a New Student Fee Group Mapping'
+                        title='Add Fee Other Student'
+                        description='Fill in the details below to create a New Fee Other Student'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -156,7 +156,7 @@ function FormSections() {
                 />
             )}
 
-            {isEditFormOpen && selectedRow && (
+            {/* {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <UpdtaeFeeOtherStudentFrom
                         selectedRow={selectedRow}
@@ -165,6 +165,30 @@ function FormSections() {
                             closeEditForm();
                         }}
                     />
+                </div>
+            )} */}
+
+            {/* Edit Form */}
+            {isEditFormOpen && selectedRow && (
+                <div ref={editFormRef}>
+                    <CollapsibleSection
+                        title='Edit Fee Other Student'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeEditForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <UpdtaeFeeOtherStudentFrom selectedRow={selectedRow} onSuccess={closeEditForm} />
+                        </div>
+                    </CollapsibleSection>
                 </div>
             )}
         </>

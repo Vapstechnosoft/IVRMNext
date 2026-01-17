@@ -13,31 +13,31 @@ import type {
 
 export async function getThirdPartyTrasaction(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/ThirdPartyTransaction/30?${urlParams}`;
+    const url = `/ThirdPartyTransaction?${urlParams}`;
     return await api.get<IFeeThirdPartyTransaction[]>('fees', url);
 }
 
 export async function getThirdPartyTrasactionGroupDropDown(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `ThirdPartyTransaction/group_drop_down_list/30?${urlParams}`;
+    const url = `ThirdPartyTransaction/group_drop_down_list?${urlParams}`;
     return await api.get<IFeeThirdPartyTransactionGroupDropDown[]>('fees', url);
 }
 
 export async function getThirdPartyTrasactionHeadDropDown(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `ThirdPartyTransaction/head_drop_down_list/30?${urlParams}`;
+    const url = `ThirdPartyTransaction/head_drop_down_list?${urlParams}`;
     return await api.get<IFeeThirdPartyTransactionHeadDropDown[]>('fees', url);
 }
 
 export async function getThirdPartyTrasactionBankDropDown(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `ThirdPartyTransaction/bank_drop_down_list/30?${urlParams}`;
+    const url = `ThirdPartyTransaction/bank_drop_down_list?${urlParams}`;
     return await api.get<IFeeBankDetails[]>('fees', url);
 }
 
 export async function getThirdPartyTrasactionStudentDropDown(asmaY_Id: number) {
     //const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/ThirdPartyTransaction/SelectOrSearchStudent/30/${asmaY_Id}`;
+    const url = `/ThirdPartyTransaction/SelectOrSearchStudent/${asmaY_Id}`;
     console.info('ThirdPartyTransaction', url);
     return await api.get<IFeeThirdPartyTransactionStudentDetails[]>('fees', url);
 }
@@ -50,7 +50,7 @@ export async function saveorUpdateThirdPartyTrasaction(data: any) {
 
 export async function get_Receipt_number() {
     //const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = '/ThirdPartyTransaction/get_Receipt_number/30';
+    const url = '/ThirdPartyTransaction/get_Receipt_number';
     console.info('ThirdPartyTransaction', url);
     return await api.get<any>('fees', url);
 }

@@ -45,14 +45,14 @@ export const feetermheadColumns: ColumnDef<IMasterTermFeeHeadList>[] = [
     },
     {
         accessorKey: 'headname',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Head Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Fee Head' />,
         cell: ({ row }) => <div>{row.getValue('headname')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'installmentname',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Installment Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Fee Installment' />,
         cell: ({ row }) => <div>{row.getValue('installmentname')}</div>,
         enableSorting: true,
         enableHiding: true

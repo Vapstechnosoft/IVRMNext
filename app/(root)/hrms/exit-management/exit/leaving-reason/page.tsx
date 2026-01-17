@@ -4,11 +4,7 @@
 // 2. Import form from _components/leaving-reason-form.tsx
 // 3. Extract column definitions and form to the respective files
 // 4. Update handlers to use the new structure
-
 'use client';
-
-import { useEffect, useMemo, useRef, useState } from 'react';
-
 import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
@@ -19,8 +15,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Eye, Plus, X } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
-
 type LeavingReason = {
     id: string;
     company: string;
@@ -29,21 +25,18 @@ type LeavingReason = {
     noticePeriodInDays: number | null;
     isActive: boolean;
 };
-
 type LeavingReasonFormData = {
     company: string;
     reason: string;
     reasonType: string;
     noticePeriodInDays: number | null;
 };
-
 export default function LeavingReasonPage() {
     const [items, setItems] = useState<LeavingReason[]>([]);
     const [search, setSearch] = useState('');
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<LeavingReason | null>(null);
     const formRef = useRef<HTMLDivElement>(null);
-
     const {
         register,
         handleSubmit,
@@ -57,7 +50,6 @@ export default function LeavingReasonPage() {
             noticePeriodInDays: null
         }
     });
-
     useEffect(() => {
         const seed: LeavingReason[] = [
             {
@@ -119,7 +111,6 @@ export default function LeavingReasonPage() {
         ];
         setItems(seed);
     }, []);
-
     const filtered = useMemo(() => {
         const q = search.trim().toLowerCase();
         if (!q) return items;
@@ -127,7 +118,6 @@ export default function LeavingReasonPage() {
             (x) => x.company.toLowerCase().includes(q) || x.reason.toLowerCase().includes(q) || x.reasonType.toLowerCase().includes(q)
         );
     }, [items, search]);
-
     const handleAddClick = () => {
         setEditingItem(null);
         reset();
@@ -140,7 +130,6 @@ export default function LeavingReasonPage() {
             });
         }, 100);
     };
-
     const handleEditClick = (item: LeavingReason) => {
         setEditingItem(item);
         setValue('company', item.company);
@@ -149,13 +138,11 @@ export default function LeavingReasonPage() {
         setValue('noticePeriodInDays', item.noticePeriodInDays);
         setIsFormOpen(true);
     };
-
     const handleFormClose = () => {
         setIsFormOpen(false);
         setEditingItem(null);
         reset();
     };
-
     // Define columns with proper sorting
     const columns: ColumnDef<LeavingReason>[] = [
         {
@@ -221,7 +208,6 @@ export default function LeavingReasonPage() {
             enableSorting: false
         }
     ];
-
     const onSubmit = (data: LeavingReasonFormData) => {
         if (editingItem) {
             // Update existing item
@@ -237,7 +223,6 @@ export default function LeavingReasonPage() {
         }
         handleFormClose();
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -258,7 +243,6 @@ export default function LeavingReasonPage() {
                         Add Leaving Reason
                     </Button>
                 </div>
-
                 {/* Data Table Section - Collapsible but default open */}
                 <CollapsibleSection
                     title='Leaving Reasons Data'
@@ -276,7 +260,6 @@ export default function LeavingReasonPage() {
                         totalItems={filtered.length}
                     />
                 </CollapsibleSection>
-
                 {/* Add Form Section - Conditionally Rendered */}
                 {isFormOpen && (
                     <div ref={formRef} className='slide-in-from-top-4 animate-in duration-300'>
@@ -298,7 +281,6 @@ export default function LeavingReasonPage() {
                                     className='-top-[4rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                     <X className='h-4 w-4 text-destructive' /> Close
                                 </Button>
-
                                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                                     <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                                         {/* Company Name */}
@@ -323,7 +305,6 @@ export default function LeavingReasonPage() {
                                             </Select>
                                             {errors.company && <p className='text-red-500 text-sm'>{errors.company.message}</p>}
                                         </div>
-
                                         {/* Leaving Reason */}
                                         <div className='space-y-2'>
                                             <label htmlFor='leaving-reason-input' className='font-medium text-gray-700 text-sm'>
@@ -336,7 +317,6 @@ export default function LeavingReasonPage() {
                                                 error={errors.reason?.message}
                                             />
                                         </div>
-
                                         {/* Reason Type */}
                                         <div className='space-y-2'>
                                             <label htmlFor='reason-type-select' className='font-medium text-gray-700 text-sm'>
@@ -355,7 +335,6 @@ export default function LeavingReasonPage() {
                                             </Select>
                                             {errors.reasonType && <p className='text-red-500 text-sm'>{errors.reasonType.message}</p>}
                                         </div>
-
                                         {/* Notice Period In Days */}
                                         <div className='space-y-2'>
                                             <label htmlFor='notice-period-input' className='font-medium text-gray-700 text-sm'>
@@ -373,7 +352,6 @@ export default function LeavingReasonPage() {
                                             />
                                         </div>
                                     </div>
-
                                     {/* Form Actions */}
                                     <div className='flex justify-end gap-3 pt-4'>
                                         <Button type='button' variant='outline' onClick={handleFormClose}>
@@ -392,7 +370,6 @@ export default function LeavingReasonPage() {
         </div>
     );
 }
-
 function LeavingReasonTable({
     columns,
     data,
@@ -427,7 +404,6 @@ function LeavingReasonTable({
                     </svg>
                 </div>
             </div>
-
             {/* Data Table */}
             <GenericDataTable columns={columns} data={data} totalItems={totalItems} isLoading={false} />
         </div>

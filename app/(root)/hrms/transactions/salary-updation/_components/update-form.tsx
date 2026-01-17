@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { FormError, Label } from '@/components/ui/extension/field';
@@ -9,7 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSaveSalaryUpdation } from '@/hooks/hrms/useTransactions';
 import { cn } from '@/lib/utils';
-import { salaryUpdationSchema } from '@/schemas/hrms/salary-updation-schemas';
+import { hrmsTransactionSchemas } from '@/schemas/hrms/transaction';
 import type { SalaryUpdationItem, SalaryUpdationOnloadResponse } from '@/types/hrms/salary-updation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
@@ -18,19 +17,15 @@ import { useEffect, useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-
-type FormFields = z.infer<typeof salaryUpdationSchema.addOrUpdate>;
-
+type FormFields = z.infer<typeof hrmsTransactionSchemas.salaryUpdation.addOrUpdate>;
 interface UpdateFormProps {
     selectedRow: SalaryUpdationItem | null;
     onloadData: SalaryUpdationOnloadResponse | undefined;
     onSuccess: () => void;
     className?: string;
 }
-
 export default function UpdateSalaryUpdationForm({ selectedRow, onloadData, onSuccess, className = '' }: UpdateFormProps) {
     const { mutate: saveUpdation, isPending } = useSaveSalaryUpdation();
-
     const {
         control,
         register,
@@ -38,7 +33,7 @@ export default function UpdateSalaryUpdationForm({ selectedRow, onloadData, onSu
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(salaryUpdationSchema.addOrUpdate),
+        resolver: zodResolver(hrmsTransactionSchemas.salaryUpdation.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
             HRESU_Id: 0,
@@ -52,7 +47,6 @@ export default function UpdateSalaryUpdationForm({ selectedRow, onloadData, onSu
             LogInUserId: 2
         }
     });
-
     useEffect(() => {
         if (selectedRow) {
             reset({
@@ -68,13 +62,11 @@ export default function UpdateSalaryUpdationForm({ selectedRow, onloadData, onSu
             });
         }
     }, [selectedRow, reset]);
-
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         if (!selectedRow) {
             toast.error('No row selected for update');
             return;
         }
-
         const payload = {
             HRESU_Id: data.HRESU_Id || 0,
             MI_Id: data.MI_Id,
@@ -86,7 +78,6 @@ export default function UpdateSalaryUpdationForm({ selectedRow, onloadData, onSu
             HRESU_ActiveFlag: data.HRESU_ActiveFlg,
             roleId: data.LogInUserId || 2
         };
-
         saveUpdation(payload as any, {
             onSuccess: (response) => {
                 toast.success((response as any)?.retrunMsg || 'Salary updation updated successfully');
@@ -97,10 +88,8 @@ export default function UpdateSalaryUpdationForm({ selectedRow, onloadData, onSu
             }
         });
     };
-
     // Memoize arrays to prevent unnecessary re-renders
     const employees = useMemo(() => onloadData?.employeedropdown || [], [onloadData?.employeedropdown]);
-
     return (
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -133,7 +122,6 @@ export default function UpdateSalaryUpdationForm({ selectedRow, onloadData, onSu
                             />
                             {errors.HRME_Id && <FormError>{errors.HRME_Id.message}</FormError>}
                         </div>
-
                         {/* Old Salary */}
                         <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='HRESU_OldSalary'>
@@ -153,7 +141,6 @@ export default function UpdateSalaryUpdationForm({ selectedRow, onloadData, onSu
                                 )}
                             />
                         </div>
-
                         {/* New Salary */}
                         <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='HRESU_NewSalary'>
@@ -173,7 +160,6 @@ export default function UpdateSalaryUpdationForm({ selectedRow, onloadData, onSu
                                 )}
                             />
                         </div>
-
                         {/* Effective Date */}
                         <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='HRESU_EffectiveDate'>
@@ -208,7 +194,6 @@ export default function UpdateSalaryUpdationForm({ selectedRow, onloadData, onSu
                             />
                             {errors.HRESU_EffectiveDate && <FormError>{errors.HRESU_EffectiveDate.message}</FormError>}
                         </div>
-
                         {/* Remarks */}
                         <div className='col-span-full'>
                             <InputText
@@ -221,10 +206,8 @@ export default function UpdateSalaryUpdationForm({ selectedRow, onloadData, onSu
                             />
                         </div>
                     </div>
-
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
-
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button

@@ -6,7 +6,8 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
 
 export const ExamWiseStudentRemarksColumns = (
-    updateStudent: (id: number, remarks: string) => void
+    updateStudent: (id: number, remarks: string) => void,
+    validationErrors?: Record<number, string> // Add validation errors parameter
 ): ColumnDef<IExamWiseStudentRemarksStudent>[] => [
     // SELECT
     {
@@ -81,7 +82,7 @@ export const ExamWiseStudentRemarksColumns = (
         }
     },
 
-    // REMARKS — FIXED VERSION
+    // REMARKS with error message
     {
         accessorKey: 'emeR_Remarks',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Remarks' />,
@@ -91,19 +92,45 @@ export const ExamWiseStudentRemarksColumns = (
             // Local field value → avoids re-renders
             const [localValue, setLocalValue] = useState(emeR_Remarks ?? '');
 
+            // Check if this row has a validation error
+            const errorMessage = validationErrors?.[amsT_Id];
+
             // Update local when row data changes (pagination / reload)
             useEffect(() => {
                 setLocalValue(emeR_Remarks ?? '');
             }, [emeR_Remarks]);
 
+            const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                const newValue = e.target.value;
+                setLocalValue(newValue);
+
+                // If there was an error and user starts typing, clear it immediately
+                if (errorMessage && newValue.trim()) {
+                    // We'll let the parent component handle clearing the error
+                }
+            };
+
+            const handleBlur = () => {
+                // Only update parent on blur
+                updateStudent(amsT_Id, localValue);
+
+                // Clear validation error if text is now filled
+                if (errorMessage && localValue.trim()) {
+                    // Error will be cleared by parent component
+                }
+            };
+
             return (
-                <Textarea
-                    value={localValue}
-                    onChange={(e) => setLocalValue(e.target.value)}
-                    onBlur={() => updateStudent(amsT_Id, localValue)} // update only onBlur
-                    className='h-20 resize-none border-blue-300 focus-visible:ring-blue-400'
-                    placeholder='Enter remarks'
-                />
+                <div className='space-y-1'>
+                    <Textarea
+                        value={localValue}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        className={`h-20 resize-none ${errorMessage ? 'border-red-500 focus-visible:ring-red-400' : 'border-blue-300 focus-visible:ring-blue-400'}`}
+                        placeholder='Enter remarks'
+                    />
+                    {errorMessage && <div className='text-red-600 text-xs'>{errorMessage}</div>}
+                </div>
             );
         },
         enableSorting: false

@@ -25,6 +25,49 @@ export interface IFeeAcademicyearDropDownList {
     asmaY_Year: string;
     asmaY_Order: number;
 }
+export interface IFeeOpeningAcademicyearDropDownList {
+    miid: number;
+    asmaY_Id: number;
+    asmaY_Year: string;
+    asmaY_Order: number;
+}
+export interface IFeeOpeningClassDropdownList {
+    mI_Id: number;
+    asmcL_Id: number;
+    asmcL_ClassName: string;
+    // asmcL_MinAgeYear: number;
+    // asmcL_MinAgeMonth: number;
+    // asmcL_MinAgeDays: number;
+    // asmcL_MaxAgeYear: number;
+    // asmcL_MaxAgeMonth: number;
+    // asmcL_MaxAgeDays: number;
+    // asmcL_Order: number;
+    // asmcL_ClassCode: string;
+    // asmcL_ActiveFlag: boolean;
+    // asmcL_MaxCapacity: number;
+    // asmcL_PreadmFlag: number;
+}
+
+export interface IFeeOpeningSectionDropdownList {
+    asmS_Id: number;
+    asmC_SectionName: string;
+}
+export interface IFeeOpeningHeadDropDownList {
+    fmH_Id: number;
+    fmH_FeeName: string;
+}
+export interface IFeeOpeningCategoryDropDownList {
+    fmcC_Id: number;
+    fmcC_ClassCategoryName: string;
+}
+export interface IFeeOpeningGroupDropdownList {
+    fmG_Id: number;
+    fmG_GroupName: string;
+}
+export interface IFeeOpeningInstallmentDropdownList {
+    ftI_Id: number;
+    ftI_Name: string;
+}
 
 export interface IMasterAmountEntryDetails {
     fmA_Id: number;
@@ -59,23 +102,23 @@ export interface IFeeTransactionWaivedOffList {
     groupList: string[];
 }
 
-export interface IFeeOpeningBalanceList {
-    mi_id: number;
-    selectionType: 'T' | 'G' | 'C';
-    academicYear: string;
-    category?: string | null;
-    class?: string | null;
-    section?: string | null;
-    student?: string | null;
-    feeHead?: string | null;
-    feeGroup?: string | null;
-    feeInstallments?: string[];
-    date?: string;
-    refundableType: 'Refundable' | 'NonRefundable';
-    activeType: 'Active' | 'Left';
-    pdaorfeeType: 'Fees';
-    nameFormat: 'NameReg.No' | 'Reg.NoName';
-}
+// export interface IFeeOpeningBalanceList {
+//     mi_id: number;
+//     selectionType: 'T' | 'G' | 'C';
+//     academicYear: string;
+//     category?: string | null;
+//     class?: string | null;
+//     section?: string | null;
+//     student?: string | null;
+//     feeHead?: string | null;
+//     feeGroup?: string | null;
+//     feeInstallments?: string[];
+//     date?: string;
+//     refundableType: 'Refundable' | 'NonRefundable';
+//     activeType: 'Active' | 'Left';
+//     pdaorfeeType: 'Fees';
+//     nameFormat: 'NameReg.No' | 'Reg.NoName';
+// }
 
 export interface IFeeThirdPartyTransaction {
     fyptP_Id: number;
@@ -134,6 +177,7 @@ export interface IFeePreAdmissionTransactionDetails {
 export interface IFeePreAdmissionStudentsDropDownList {
     amsT_Id: number;
     studentName: string;
+    prospectusNo: string;
 }
 
 export interface IFeePreAdmissionStudentInformation {
@@ -195,6 +239,25 @@ export interface IFeeTransactionApiResponse {
     };
 }
 
+// export interface Ifeetransaction {
+//     amsT_FirstName: string;
+//     amsT_MiddleName: string | null;
+//     amsT_LastName: string | null;
+
+//     classname: string;
+//     sectionname: string;
+//     amsT_AdmNo: string;
+
+//     fyP_Receipt_No: string;
+//     fyP_Date: string; // or Date
+//     fyP_Tot_Amount: number;
+//     fyP_Bank_Or_Cash: string; // example: 'C', 'O'
+//     fyP_Chq_Bounce: string | null; // 'CL', 'CB', null
+
+//     fyP_Id: number;
+//     amst_Id: number;
+// }
+
 export interface Ifeetransaction {
     amsT_FirstName: string;
     amsT_MiddleName: string | null;
@@ -212,6 +275,8 @@ export interface Ifeetransaction {
 
     fyP_Id: number;
     amst_Id: number;
+    asmaY_ID: number;
+    asmaY_Year: string;
 }
 
 export interface IStudentDropdown {
@@ -395,4 +460,579 @@ export interface IFeeClassList {
     asmcL_UpdatedBy: string | null;
     createdDate: string;
     updatedDate: string;
+}
+
+export interface feeTransactionWaivedOffGrid {
+    fswO_Id: number;
+    amsT_FirstName: string;
+    amsT_MiddleName: string;
+    amsT_LastName: string;
+    fmH_FeeName: string;
+    ftI_Name: string;
+    fswO_WaivedOffAmount: number;
+    fswO_Date: string;
+    mI_Id: number;
+    asmaY_Id: number;
+    amsT_Id: number;
+    asmcL_Id: number;
+    asmS_Id: number;
+    fswO_WaivedOffRemarks: string;
+    fmG_Id: number;
+    fmH_Id: number;
+    fswO_FineFlg: number;
+    fswO_FullFineWaiveOffFlg: number;
+    ftI_Id: number;
+    fmA_Id: number;
+}
+export interface feeTransactionWaivedOffStudentDetails {
+    amsT_RegistrationNo: number;
+    studentName: string;
+    amsT_Id: number;
+}
+
+export interface feeTransactionWaivedOffGroup {
+    fmG_Id: number;
+    fmG_GroupName: string;
+}
+
+export interface feeTransactionWaivedOffHead {
+    fmH_Id: number;
+    fmH_FeeName: string;
+    ftI_Id: number;
+    ftI_Name: string;
+    fmG_Id: number;
+    fmA_Id: number;
+    totalTobepaid: number;
+    tobepaid: number;
+    fsS_PaidAmount: number;
+    waivedOff: number;
+}
+
+export interface IFeeOpeningBalance {
+    amst_Id: number;
+    amsT_FirstName: string;
+    amsT_MiddleName?: string;
+    amsT_LastName?: string;
+    fmoB_Id: number;
+    asmay_id: number;
+    fmoB_EntryDate: string;
+    fmoB_Student_Due: number;
+    fmoB_Institution_Due: number;
+    asmcL_ClassName: string;
+    asmC_SectionName: string;
+    asmaY_Year?: string;
+}
+
+export interface IFeeOpeningPDA {
+    tempararyArrayListnew: string;
+    tempararyArrayhEADListnew: string;
+    savetmpdata: string;
+    mI_ID: 0;
+    admsudentslist: string;
+    acayear: string;
+    busroutelist: string;
+    classlist: string;
+    sectionlist: string;
+    grouplist: string;
+    headlist: string;
+    filterrefund: string;
+    amst_Id: number;
+    amsT_FirstName: string;
+    amsT_MiddleName: string;
+    amsT_LastName: string;
+    asmay_id: number;
+    asmcL_Id: number;
+    asmS_Id: number;
+    filterinitialdata: string;
+    reportdatelist: string;
+    fmG_Id: number;
+    fmH_Id: number;
+    ftI_Id: number;
+    fmH_FeeName: string;
+    checkedgrplst: false;
+    checkedheadlst: false;
+    fsscount: number;
+    savegrplst: string;
+    saveheadlst: string;
+    asmayidpss: number;
+    typeofrpt: string;
+    datepass: string;
+    fillbusroutestudents: string;
+    fillclasflg: number;
+    fillseccls: number;
+    studenttype: string;
+    asmcL_ClassName: string;
+    asmC_SectionName: string;
+    fmoB_Id: number;
+    fmoB_EntryDate: string;
+    fmoB_Student_Due: number;
+    fmoB_Institution_Due: number;
+    checkedvalue: boolean;
+    returnval: boolean;
+    returntxt: string;
+    class_Category_List: string;
+    fmcC_Id: number;
+    searchType: string;
+    searchtext: string;
+    searchnumber: number;
+    userid: number;
+    fillmastergroup: string;
+    fillmasterhead: string;
+    fillinstallment: string;
+    studentName: string;
+}
+export interface IFeeOpeningRefundable {
+    fmH_Id: number;
+    fmH_FeeName: string;
+}
+
+export interface IFeeOpeningBalanceList {
+    amst_Id: number;
+    amsT_FirstName: string;
+    amsT_MiddleName?: string;
+    amsT_LastName?: string;
+    fmoB_Id: number;
+    asmay_id: number;
+    fmoB_EntryDate: string;
+    fmoB_Student_Due: number;
+    fmoB_Institution_Due: number;
+    asmcL_ClassName: string;
+    asmC_SectionName: string;
+
+    fmC_Id?: number;
+    studentName: string;
+}
+
+export type OpeningBalanceRow = {
+    amsT_FirstName?: string;
+    amsT_MiddleName?: string;
+    amsT_LastName?: string;
+    asmcL_ClassName?: string;
+    asmC_SectionName?: string;
+    fmoB_Student_Due?: number;
+    fmoB_Institution_Due?: number;
+    fmoB_EntryDate?: string;
+    asmay_id?: number;
+    fmC_Id?: number;
+    amst_Id?: number;
+    fmoB_Id?: number;
+    [key: string]: any;
+};
+
+export interface IfeeConcession {
+    fmcC_Id: number;
+    fmcC_ClassCategoryName: string;
+    fmH_Id: number;
+}
+
+// export interface FeeConcessionTermDropdown {
+//     fmT_Id: number;
+//     fmT_Name: string;
+//     fmT_Order: number;
+//     isChecked: boolean;
+//     asmaY_Id: number;
+// }
+
+export interface FeeConcessionTermDropdown {
+    fmG_Id: number;
+    fmG_GroupName: string;
+}
+
+export interface IFeeConcessionAcademicyearDropDownList {
+    asmaY_Id: number;
+    asmaY_Year: string;
+    asmaY_Order: number;
+    is_Active: boolean;
+}
+export interface IStudentSearchList {
+    amst_Id: number;
+    amsT_StudentName: string;
+}
+
+export interface IStudentTermList {
+    checked: boolean;
+    fmG_Id: number;
+    fmG_GroupName: string;
+    fmT_Id: number;
+    disablepaisterms: boolean;
+}
+
+export interface IStudentTDetails {
+    amst_Id: number;
+    amsT_FirstName: string;
+    amsT_MiddleName: string;
+    amsT_LastName: string;
+    amsT_RegistrationNo: string;
+    amsT_AdmNo: string;
+    amaY_RollNo: number;
+    classname: string;
+    sectionname: string;
+    fathername: string;
+    studentdob: string;
+    amst_mobile: number;
+    amsT_Photoname: string;
+    username: string;
+}
+
+export interface IFeeTDetails {
+    fsS_CurrentYrCharges: number;
+    fmG_GroupName: string;
+    fsS_TotalToBePaid: number;
+    fsS_ToBePaid: number;
+    fsS_PaidAmount: number;
+    fsS_ConcessionAmount: number;
+    fsS_AdjustedAmount: number;
+    fsS_WaivedAmount: number;
+    fsS_RefundAmount: number;
+    fmG_Id: number;
+    fsS_RunningExcessAmount: number;
+    fsS_FineAmount: number;
+    portalusername: string;
+    ftP_Paid_Amt: number;
+    ftP_Concession_Amt: number;
+}
+
+export interface IFeeRefundableList {
+    amst_Id: number;
+    studentName: string;
+    admisionNo: string;
+    voucherNo: string;
+    refundedAmount: number;
+    modeOfPayment: string;
+    fr_Date: string;
+    fR_ID: number;
+    asmay_id: number;
+}
+
+export interface IFeeConcessionClassDropDownList {
+    asmcL_Id: number;
+    asmcL_ClassName: string;
+    asmcL_Order: number;
+}
+export interface IFeeConcessionCategoryDropDownList {
+    fmcC_Id: number;
+    fmcC_ConcessionName: string;
+}
+
+// export interface IFeeConcessionHeadList {
+//     slno: number;
+//     fmH_Id: number;
+//     fmH_FeeName: string;
+//     fmI_Id: number;
+//     fmI_Name: string;
+//     fmA_Amount: number;
+//     isSelected: boolean;
+// }
+
+export interface IFeeConcessionHeadList {
+    fmH_FeeName: string;
+    ftI_Name: string;
+    ftI_Id: number;
+    fmH_Id: number;
+    fmA_Amount: number;
+    fmA_Id: number;
+    fmG_Id: number;
+    amsT_Id: number;
+    fmT_Id: number;
+}
+
+export interface IFeeConcessionStudentList {
+    slno: number;
+    amsT_Id: number;
+    amsT_AdmNo: string;
+    amsT_RegistrationNo: string;
+    amsT_FirstName: string;
+    amsT_MiddleName: string;
+    amsT_LastName: string;
+    amaY_RollNo: number;
+    asmcL_ClassName?: string;
+    isSelected: boolean;
+}
+
+export interface IFeeConcessionStudentConcessionGrid {
+    slno: number;
+    fmI_Id: number;
+    amsT_Id: number;
+    studentName: string;
+    amsT_AdmNo: number;
+    asmcL_ClassName: string;
+    asmaY_Year: string;
+    fmG_GroupName: string;
+    fmH_FeeName: string;
+    ftI_Name: string;
+    fmcC_ConcessionName: string;
+    fsC_ConcessionAmount: number;
+    fsC_Id: number;
+    asmaY_Id: number;
+    fscI_ID: number;
+}
+
+export interface IFeeRefundableStudentDropDownList {
+    amsT_Id: number;
+    studentName: string;
+    amsT_AdmNo: string;
+    // amsT_RegistrationNo: string;
+
+    // amsT_MobileNo: string;
+    // amsT_emailId: string;
+}
+
+export interface IFeeRefundableGroupDropDownList {
+    fmG_Id: number;
+    fmG_GroupName: string;
+}
+
+export interface IFeeRefundableHeadList {
+    fsS_Id: number;
+    fmH_ID: number;
+    fmH_FeeName: string;
+    ftI_Id: number;
+    ftI_Name: string;
+    fsS_RunningExcessAmount: number;
+    fsS_RefundableAmount: number;
+    fsS_RefundAmount: number;
+    fmG_Id: number;
+}
+
+export interface IFeeCommonSettingConfigSet {
+    fmC_GroupOrTermFlg: string;
+    fmC_EableStaffTrans: number;
+    fmC_EableOtherStudentTrans: number;
+}
+
+export interface IFeeConcessionStaffList {
+    hrmE_EmployeeFirstName: string;
+    hrmdeS_DesignationName: string;
+    hrmD_DepartmentName: string;
+    fmG_GroupName: string;
+    fmH_FeeName: string;
+    ftI_Name: string;
+    fscI_ConcessionAmount: number;
+    feC_Id: number;
+    ftI_Id: number;
+    fecI_Id: number;
+}
+
+export interface IFeeConcessionOthersList {
+    fmosT_StudentName: string;
+    fmosT_StudentMobileNo: number;
+    fmosT_StudentEmailId: string;
+    fmG_GroupName: string;
+    fmH_FeeName: string;
+    ftI_Name: string;
+    fscI_ConcessionAmount: number;
+    foC_Id: number;
+    ftI_Id: number;
+    focI_Id: number;
+}
+
+export interface IFeeCategoryConcessionDropDownList {
+    fmcC_Id: number;
+    mI_Id: number;
+    fmcC_ConcessionName: string;
+    fmcC_ConcessionFlag: number;
+    fmcC_ConcessionApplLimit: number;
+    fmcC_ActiveFlag: boolean;
+    fmcC_CreatedBy: null;
+    fmcC_UpdatedBy: null;
+    createdDate: number;
+    updatedDate: number;
+}
+
+export interface IFeeAdjustmentGridList {
+    fsA_Id: number;
+    fsA_Date: string;
+    fsA_AdjustedAmount: number;
+    studentName: string;
+    fromHead: string;
+    toHead: string;
+    fromInstallment: string;
+    toInstallment: string;
+}
+
+export interface IFeeRefundedDetails {
+    amsT_ID: number;
+    fmH_FeeName: string;
+    fmA_Amount: number;
+    fR_Date: string; // ISO string
+    fR_RefundNo: string;
+    fR_RefundAmount: number;
+}
+
+export interface IStudentDetails {
+    amsT_FirstName: string;
+    amsT_MiddleName: string;
+    amsT_LastName: string;
+    amsT_FatherName: string;
+    amsT_MotherName: string;
+    asmaY_Year: string;
+    asmcL_ClassName: string;
+    asmC_SectionName: string;
+    amsT_AdmNo: string;
+    fR_RefundNo: string;
+}
+
+export interface IRefundReceiptResponse {
+    feerefunded_details: IFeeRefundedDetails[];
+    student_details: IStudentDetails[];
+}
+
+export interface IFeeConcessionEdit {
+    asmaY_Id: number;
+    asmcL_ID: number;
+    classname: string;
+    termname: string;
+    fmT_Id: number;
+    amsT_RegistrationNo: string;
+    amsT_AdmNo: string;
+    amsT_FirstName: string;
+    fmH_Id: number;
+    fmG_Id: number;
+    ftI_Id: number;
+    fmA_Id: number;
+    fscI_ID: number;
+    fsC_Id: number;
+    fmH_FeeName: string;
+    ftI_Name: string;
+    fmA_Amount: number;
+    fscI_ConcessionAmount: number;
+    fsC_ConcessionType: string;
+    fsC_ConcessionReason: string;
+    amst_Id: number;
+}
+
+export interface IFeeConcessionAdmissionNo {
+    amst_Id: number;
+    amsT_FirstName: string;
+    amsT_AdmNo: string;
+}
+
+export interface IFeeConcessionStudentData {
+    amsT_Id: number;
+    amsT_MiddleName: string;
+    amsT_LastName: string;
+    amsT_AdmNo: string;
+    amsT_RegistrationNo: string;
+    amaY_RollNo: number;
+    asmcL_ClassName: string;
+}
+
+export interface IFeeAdjustmentGroupDropDown {
+    fmG_Id: number;
+    fsA_From_FMG_Id: number;
+    fmG_GroupNameF: string;
+}
+
+export interface IFeeAdjustmentHeadDropDown {
+    fsA_From_FMH_Id: number;
+    fmH_FeeNameF: string;
+    fsA_From_FTI_Id: number;
+    ftI_NameF: string;
+    fsA_From_FMG_Id: number;
+    fsA_From_FMA_Id: number;
+    fsS_RunningExcessAmount: number;
+}
+
+export interface IFeeAdjustmentGroupToDropDown {
+    fsA_To_FMG_Id: number;
+    fmG_GroupNameT: string;
+}
+
+export interface IFeeAdjustmentToHead {
+    fsA_To_FMH_Id: number;
+    fmH_FeeNameT: string;
+    fsA_TO_FTI_Id: number;
+    ftI_NameT: string;
+    fsA_To_FMG_Id: number;
+    fsA_To_FMA_Id: number;
+    tobepaid: number;
+}
+
+export interface IFeeTermDetails {
+    fmA_Id: number;
+    fmH_FeeName: string;
+    fmH_Flag: string;
+    ftI_Name: string;
+    fmH_Id: number;
+    ftI_Id: number;
+    totalamount: number;
+    fsS_ToBePaid: number;
+    fsS_ConcessionAmount: number;
+    fsS_FineAmount: number;
+    fsS_CurrentYrCharges: number;
+    fsS_TotalToBePaid: number;
+    fmG_Id: number;
+    fmG_GroupName: string;
+    fsS_OBArrearAmount: number;
+    fmT_Id: number;
+    fsS_RebateAmount: number;
+    fsS_WaivedAmount: number;
+    fsS_OBAsPerFY: number;
+    fsS_AdjustedAmount: number;
+}
+export interface MasterNarration {
+    fmnaR_Id: number;
+    fmnaR_Narration: string;
+}
+export interface MasterModeofPayment {
+    ivrmmoD_Id: number;
+    ivrmmoD_ModeOfPayment: string;
+    ivrmmoD_Flag: string;
+    ivrmmoD_ModeOfPayment_Code: string;
+    bank_Date: string;
+    bank_No: string;
+    bank_Amount: string;
+    bank_Name: string;
+    fyppM_Id: number;
+}
+
+export interface StudentPrintDetails {
+    amst_id: number;
+    fyp_id: number;
+    student_name: string;
+    fmh_id: number;
+    fmh_feename: string;
+    fti_id: number;
+    fti_name: string;
+    paid_amount: number;
+    concession_amount: number;
+    fine_amount: number;
+    to_be_paid: number;
+    fyp_date: string;
+    feeAmount: number;
+    asmay_Year: string;
+}
+
+export interface CurrentPaymentDetails {
+    ftP_Paid_Amt: number;
+    ftP_Concession_Amt: number;
+    fyP_Date: string;
+    fyP_Bank_Or_Cash: string;
+    fyP_DD_Cheque_No: string;
+    fyP_DD_Cheque_Date: string;
+    fyP_Bank_Name: string;
+    fyP_Remarks: string;
+    fyppM_TotalPaidAmount: number;
+    fyP_TransactionTypeFlag: string;
+    fyppM_BankName: string;
+    fyppM_DDChequeNo: string;
+    fyppM_DDChequeDate: string;
+    fyppM_TransactionId: string;
+    fyppM_PaymentReferenceId: string;
+    ivrmmoD_ModeOfPayment: string;
+    ivrmmoD_Flag: string;
+}
+
+export interface masterBankList {
+    fmbanK_Id: number;
+    fmbanK_BankName: string;
+}
+
+export interface IFeeReceiptImportDelate {
+    studentname: string;
+    admissionnumber: string;
+    date: string;
+    receiptno: string;
+    amount: number;
+    fyP_Id: number;
 }

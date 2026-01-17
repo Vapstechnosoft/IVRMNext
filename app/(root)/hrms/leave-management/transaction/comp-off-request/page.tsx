@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { Label } from '@/components/ui/extension/field';
@@ -14,18 +13,15 @@ import {
     compOffRequestColumns,
     employeeLeaveDetailColumns
 } from './_components/columns';
-
 export default function CompOffRequestPage() {
     const { data: response, isLoading, error, refetchAll } = useCompOffRequest();
     const { mutate: submitRequest, isPending: isSubmitting } = useSubmitCompOffRequest();
     const { mutate: cancelRequest, isPending: isCancelling } = useCancelCompOffRequest();
     const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
     const [leaveSearchQuery, setLeaveSearchQuery] = useState('');
-
     const employeeDetails = response?.data?.employeeDetails;
     const compOffRequests = response?.data?.compOffRequests || [];
     const leaveDetails = response?.data?.leaveDetails || [];
-
     // Filter leave details based on search query
     const filteredLeaveDetails = useMemo(() => {
         if (!leaveSearchQuery.trim()) return leaveDetails;
@@ -37,7 +33,6 @@ export default function CompOffRequestPage() {
                 leave.status.toLowerCase().includes(query)
         );
     }, [leaveDetails, leaveSearchQuery]);
-
     const handleSelectRow = (id: number, checked: boolean) => {
         const newSelected = new Set(selectedRows);
         if (checked) {
@@ -47,7 +42,6 @@ export default function CompOffRequestPage() {
         }
         setSelectedRows(newSelected);
     };
-
     const handleRequest = () => {
         if (selectedRows.size === 0) {
             return;
@@ -59,7 +53,6 @@ export default function CompOffRequestPage() {
             }
         });
     };
-
     const handleCancel = () => {
         if (selectedRows.size === 0) {
             return;
@@ -71,28 +64,23 @@ export default function CompOffRequestPage() {
             }
         });
     };
-
     const compOffRequestTableProps = useDataTableProps({
         data: compOffRequests,
         totalItems: compOffRequests.length
     });
-
     const leaveDetailsTableProps = useDataTableProps({
         data: filteredLeaveDetails,
         totalItems: filteredLeaveDetails.length
     });
-
     const compOffColumns = useMemo(
         () => compOffRequestColumns(selectedRows, handleSelectRow, compOffRequests),
         [selectedRows, compOffRequests]
     );
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Header */}
                 <div className='flex justify-end'>{/* Header buttons can be added here if needed */}</div>
-
                 {/* Employee Details Section */}
                 <CollapsibleSection
                     defaultOpen={true}
@@ -122,7 +110,6 @@ export default function CompOffRequestPage() {
                         </div>
                     </div>
                 </CollapsibleSection>
-
                 {/* Request - On Duty / Comp Off Section */}
                 <CollapsibleSection
                     defaultOpen={true}
@@ -161,7 +148,6 @@ export default function CompOffRequestPage() {
                         </div>
                     </div>
                 </CollapsibleSection>
-
                 {/* Employee Leave Details Section */}
                 <CollapsibleSection
                     defaultOpen={true}

@@ -1,88 +1,100 @@
 'use client';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+
+import { Button } from '@/components/ui/button';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { createLocalCrud } from '@/lib/localdb';
-import { useMemo, useState } from 'react';
-import { type GPSLog, gpsLocationReportColumns } from './_components/columns';
-import { type GPSLocationReportFilters, GPSLocationReportFilters as GPSLocationReportFiltersComponent } from './_components/filters';
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { useGPSLocationReport } from '@/hooks/hrms/attendance-management/useReports';
+import { X } from 'lucide-react';
+import { use } from 'react';
+import AddGPSLocationReportForm from './_components/add-from';
+import type { GPSLog } from './_components/columns';
+import { gpsLocationReportColumns } from './_components/columns';
 
-export default function GPSLocationReportPage() {
-    const db = createLocalCrud<GPSLog>('attendance:gps-location-attendance'); // reuse same storage
-    const [showReport, setShowReport] = useState(false);
-    const [_selectedRows, setSelectedRows] = useState<GPSLog[]>([]);
-    const [filters, setFilters] = useState<GPSLocationReportFilters>({
-        filterType: 'Between Date',
-        fromDate: '',
-        toDate: '',
-        employee: ''
-    });
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-    const data = useMemo(() => db.list(), []);
+export default function GPSLocationReportPage(props: {
+    searchParams: SearchParams;
+}) {
+    const searchParams = use(props.searchParams);
+    const { data: response, isLoading, error } = useGPSLocationReport(searchParams);
 
-    const employees = useMemo(() => [...new Set(data.map((d) => d.employeeName))], [data]);
+    return (
+        <FormProvider<GPSLog>>
+            <GPSLocationReportPageContent response={response} isLoading={isLoading} error={error} searchParams={searchParams} />
+        </FormProvider>
+    );
+}
 
-    const filtered = useMemo(() => {
-        return data.filter((r) => {
-            if (filters.filterType === 'Employee Wise') {
-                return filters.employee ? r.employeeName === filters.employee : false;
-            }
-            const okFrom = filters.fromDate ? new Date(r.gpsDate) >= new Date(filters.fromDate) : true;
-            const okTo = filters.toDate ? new Date(r.gpsDate) <= new Date(filters.toDate) : true;
-            return okFrom && okTo;
-        });
-    }, [data, filters]);
+function FormSections({ searchParams }: { searchParams?: any }) {
+    const { closeAddForm, addFormRef } = useFormContext<GPSLog>();
 
-    const handleSearch = () => {
-        setShowReport(true);
-    };
+    return (
+        <>
+            <div ref={addFormRef}>
+                <CollapsibleSection
+                    title='Generate GPS Location Report'
+                    description='Fill in the details below to generate the report'
+                    defaultOpen={true}
+                    variant='outline'
+                    size='md'
+                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                    <div className='relative'>
+                        <Button
+                            type='button'
+                            onClick={closeAddForm}
+                            variant='ghost'
+                            size='sm'
+                            className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                            <X className='h-4 w-4 text-destructive' /> Close
+                        </Button>
+                        <AddGPSLocationReportForm onSuccess={closeAddForm} searchParams={searchParams} />
+                    </div>
+                </CollapsibleSection>
+            </div>
+        </>
+    );
+}
 
-    const handleCancel = () => {
-        setFilters({
-            filterType: 'Between Date',
-            fromDate: '',
-            toDate: '',
-            employee: ''
-        });
-        setShowReport(false);
-        setSelectedRows([]);
-    };
-
-    const handleExport = () => {};
-
-    const _handleRowSelectionChange = (rows: GPSLog[]) => {
-        setSelectedRows(rows);
-    };
+function GPSLocationReportPageContent({
+    response,
+    isLoading,
+    error,
+    searchParams
+}: {
+    response: any;
+    isLoading: boolean;
+    error: any;
+    searchParams?: any;
+}) {
+    const tableProps = useDataTableProps(response);
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                <GPSLocationReportFiltersComponent
-                    filters={filters}
-                    employees={employees}
-                    onFilterChange={setFilters}
-                    onSearch={handleSearch}
-                    onCancel={handleCancel}
-                    onExport={handleExport}
-                    onPrint={() => window.print()}
-                />
+                {/* Add Form Section (shown first) */}
+                <FormSections searchParams={searchParams} />
 
-                {showReport && (
-                    <CollapsibleSection
-                        title='Attendance GPS Location Report'
-                        description=''
-                        defaultOpen={true}
-                        variant='default'
-                        size='lg'
-                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                        <GenericDataTable
-                            isLoading={false}
-                            columns={gpsLocationReportColumns}
-                            data={filtered}
-                            totalItems={filtered.length}
-                            showViewOptions
-                        />
-                    </CollapsibleSection>
-                )}
+                {/* Data Table Section */}
+                <CollapsibleSection
+                    defaultOpen={true}
+                    variant='default'
+                    size='lg'
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    <GenericDataTable<GPSLog>
+                        {...tableProps}
+                        columns={gpsLocationReportColumns}
+                        isLoading={isLoading}
+                        error={error}
+                        showViewOptions={false}
+                        columnPinning={{ right: ['actions'] }}
+                        isPaginationRequired={true}
+                        loadingMessage='Loading GPS Location Reports...'
+                        noDataTitle='No GPS Location Reports Found'
+                        noDataDescription='Get started by generating your first GPS Location Report'
+                        errorTitle='Error Loading GPS Location Reports'
+                    />
+                </CollapsibleSection>
             </div>
         </div>
     );

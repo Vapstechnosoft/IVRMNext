@@ -1,5 +1,4 @@
 'use server';
-
 import { api, type ApiResponse } from '@/lib/apiService';
 import type {
     EmployeeStrengthReportOnloadRequest,
@@ -7,7 +6,6 @@ import type {
     EmployeeStrengthReportSearchRequest,
     EmployeeStrengthReportSearchResponse
 } from '@/types/hrms/reports/employee-strength-report';
-
 /**
  * Get onload data for Employee Strength Report
  * POST /api/EmployeeStrengthReportFacade/onloadgetdetails
@@ -19,22 +17,16 @@ export async function getEmployeeStrengthReportOnload(
     LogInUserId = 0
 ): Promise<ApiResponse<EmployeeStrengthReportOnloadResponse>> {
     const url = '/api/EmployeeStrengthReportFacade/onloadgetdetails';
-
     const requestBody: EmployeeStrengthReportOnloadRequest = {
         MI_Id,
         LogInUserId
     };
-
-    console.log('🔵 ========== EMPLOYEE STRENGTH REPORT ONLOAD ==========');
-    console.log('🔵 [SERVER] Request URL:', url);
     console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     let response: any;
     try {
         response = await api.post<EmployeeStrengthReportOnloadResponse>('hrms', url, requestBody);
         console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
         return {
             success: false,
             message: error?.message || 'Failed to load employee strength report data',
@@ -74,14 +66,12 @@ export async function getEmployeeStrengthReportOnload(
             }
         };
     }
-
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         // Already wrapped
         return response as ApiResponse<EmployeeStrengthReportOnloadResponse>;
     }
-
     // Wrap raw response data
     const rawResponse = response as unknown as EmployeeStrengthReportOnloadResponse;
     return {
@@ -90,7 +80,6 @@ export async function getEmployeeStrengthReportOnload(
         data: rawResponse
     };
 }
-
 /**
  * Search employee strength report by selection criteria
  * POST /api/EmployeeStrengthReportFacade/getEmployeedetailsBySelection
@@ -101,7 +90,6 @@ export async function searchEmployeeStrengthReport(
     request: EmployeeStrengthReportSearchRequest
 ): Promise<ApiResponse<EmployeeStrengthReportSearchResponse>> {
     const url = '/api/EmployeeStrengthReportFacade/getEmployeedetailsBySelection';
-
     const requestBody: EmployeeStrengthReportSearchRequest = {
         MI_Id: request.MI_Id || 30,
         designationselected: request.designationselected || [],
@@ -113,17 +101,12 @@ export async function searchEmployeeStrengthReport(
         FromDate: request.FromDate || '',
         ToDate: request.ToDate || ''
     };
-
-    console.log('🔵 ========== EMPLOYEE STRENGTH REPORT SEARCH ==========');
-    console.log('🔵 [SERVER] Request URL:', url);
     console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     let response: any;
     try {
         response = await api.post<EmployeeStrengthReportSearchResponse>('hrms', url, requestBody);
         console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
         return {
             success: false,
             message: error?.message || 'Failed to search employee strength report',
@@ -134,14 +117,12 @@ export async function searchEmployeeStrengthReport(
             }
         };
     }
-
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         // Already wrapped
         return response as ApiResponse<EmployeeStrengthReportSearchResponse>;
     }
-
     // Wrap raw response data
     const rawResponse = response as unknown as EmployeeStrengthReportSearchResponse;
     return {
@@ -150,4 +131,3 @@ export async function searchEmployeeStrengthReport(
         data: rawResponse
     };
 }
-

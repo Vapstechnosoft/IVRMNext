@@ -1,29 +1,44 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterEarningsDeductions } from '@/hooks/hrms/useMasters';
-import type { EarningsDeductionDetail } from '@/types/hrms/master-earnings-deductions';
-import { ListOrdered, Plus, Save, X } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import { toast } from 'sonner';
-import { columns, getEditableColumns } from './_components/columns';
-import EarningsDeductionsForm from './_components/earnings-deductions-form';
+import type { IMasterEarningsDeductionsList } from '@/types/hrms/hrms-config/master';
+import { Plus, X } from 'lucide-react';
+import { use, useMemo, useState } from 'react';
+import AddEarningsDeductionsForm from './_components/add-form';
+import { columns } from './_components/columns';
+import ReorderEarningsDeductionsForm from './_components/reorder-form';
+import ToggleMasterEarningsDeductionsForm from './_components/toggle-form';
+import UpdateEarningsDeductionsForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function MasterEarningsDeductionsPage(_props: {
-    searchParams: SearchParams;
-}) {
-    const roleId = HRMS_MI_ID;
-    const { listQuery } = useMasterEarningsDeductions(roleId);
+export default function MasterEarningsDeductionsPage(props: { searchParams: SearchParams }) {
+    const initialSearchParams = use(props.searchParams);
+    const [filterCategory, setFilterCategory] = useState<string>('all');
+
+    const searchParams = useMemo(() => {
+        const params: Record<string, any> = { ...initialSearchParams };
+        if (filterCategory !== 'all') {
+            params.search_query = filterCategory;
+            params.search_column = 'hrmeD_EarnDedFlag';
+        }
+        return params;
+    }, [initialSearchParams, filterCategory]);
+
+    const { data: response, isLoading, error } = useMasterEarningsDeductions(searchParams);
 
     return (
-        <FormProvider<EarningsDeductionDetail>>
-            <MasterEarningsDeductionsPageContent response={listQuery.data} isLoading={listQuery.isLoading} error={listQuery.error} />
+        <FormProvider<IMasterEarningsDeductionsList>>
+            <MasterEarningsDeductionsPageContent
+                response={response}
+                isLoading={isLoading}
+                error={error}
+                filterCategory={filterCategory}
+                setFilterCategory={setFilterCategory}
+            />
         </FormProvider>
     );
 }
@@ -31,63 +46,23 @@ export default function MasterEarningsDeductionsPage(_props: {
 function MasterEarningsDeductionsPageContent({
     response,
     isLoading,
-    error
+    error,
+    filterCategory,
+    setFilterCategory
 }: {
     response: any;
     isLoading: boolean;
     error: any;
+    filterCategory: string;
+    setFilterCategory: (value: string) => void;
 }) {
-    const { openAddForm } = useFormContext<EarningsDeductionDetail>();
-    const { saveOrderMutation } = useMasterEarningsDeductions(HRMS_MI_ID);
-    // Memoize arrays to prevent unnecessary re-renders
-    // Use earningdetectionList array which contains all records (earnings and deductions)
-    const rows: EarningsDeductionDetail[] = useMemo(() => {
-        // Use earningdetectionList which contains all records
-        const earningdetectionList = Array.isArray(response?.data?.earningdetectionList) ? response.data.earningdetectionList : [];
-
-        return earningdetectionList;
-    }, [response?.data?.earningdetectionList]);
-    const typeDropdown = useMemo(() => response?.data?.eardettypeDropdown ?? [], [response?.data?.eardettypeDropdown]);
-
-    const [isEditOrderMode, setIsEditOrderMode] = useState(false);
-    const [editedRows, setEditedRows] = useState<EarningsDeductionDetail[]>([]);
-    const [filterCategory, setFilterCategory] = useState<string>('all');
-
-    const handleSetOrder = () => {
-        setIsEditOrderMode(true);
-        setEditedRows([...rows]);
-    };
-
-    const handleCancelOrder = () => {
-        setIsEditOrderMode(false);
-        setEditedRows([]);
-    };
-
-    const handleSaveOrder = async () => {
-        try {
-            await saveOrderMutation.mutateAsync(editedRows);
-            toast.success('Order saved successfully');
-            setIsEditOrderMode(false);
-            setEditedRows([]);
-        } catch (_error) {
-            toast.error('Failed to save order');
-        }
-    };
-
-    const handleOrderChange = (rowId: number, newOrder: number) => {
-        setEditedRows((prev) => prev.map((row) => (row.HRMED_Id === rowId ? { ...row, HRMED_Order: newOrder } : row)));
-    };
-
-    const displayColumns = isEditOrderMode ? getEditableColumns(handleOrderChange) : columns;
-
-    // Filter data based on selected category
-    const filteredRows = filterCategory === 'all' ? rows : rows.filter((row) => row.HRMED_EarnDedFlag === filterCategory);
-
-    const displayData = isEditOrderMode ? editedRows : filteredRows;
+    const { openAddForm } = useFormContext<IMasterEarningsDeductionsList>();
+    const tableProps = useDataTableProps(response);
 
     return (
         <div className='min-h-screen'>
-            <div className='container mx-auto space-y-6 px-4 py-6 md:px-6 lg:px-8'>
+            <div className='container space-y-4 p-1'>
+                {/* Header */}
                 <div className='flex justify-between gap-2'>
                     {/* Filter Dropdown */}
                     <div className='flex items-center gap-2'>
@@ -101,67 +76,33 @@ function MasterEarningsDeductionsPageContent({
                             <option value='Arrear'>Arrears</option>
                             <option value='Gross'>Gross</option>
                         </select>
-                        {filterCategory !== 'all' && (
-                            <span className='text-muted-foreground text-sm'>
-                                Showing {filteredRows.length} of {rows.length} items
-                            </span>
-                        )}
                     </div>
-
                     {/* Action Buttons */}
                     <div className='flex gap-2'>
-                        {isEditOrderMode ? (
-                            <>
-                                <Button
-                                    type='button'
-                                    onClick={handleCancelOrder}
-                                    variant='outline'
-                                    className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                                    <X className='h-4 w-4' />
-                                    Cancel
-                                </Button>
-                                <Button
-                                    type='button'
-                                    onClick={handleSaveOrder}
-                                    disabled={saveOrderMutation.isPending}
-                                    className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                                    <Save className='h-4 w-4' />
-                                    {saveOrderMutation.isPending ? 'Saving...' : 'Save Order'}
-                                </Button>
-                            </>
-                        ) : (
-                            <>
-                                <Button
-                                    type='button'
-                                    onClick={handleSetOrder}
-                                    variant='outline'
-                                    className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                                    <ListOrdered className='h-4 w-4' />
-                                    Set Order
-                                </Button>
-                                <Button
-                                    type='button'
-                                    onClick={openAddForm}
-                                    className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                                    <Plus className='h-4 w-4' />
-                                    Add Earning/Deduction
-                                </Button>
-                            </>
-                        )}
+                        <Button
+                            type='button'
+                            onClick={openAddForm}
+                            className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                            <Plus className='h-4 w-4' />
+                            Add Earning/Deduction
+                        </Button>
                     </div>
                 </div>
-
+                {/* Data Table Section */}
                 <CollapsibleSection
                     defaultOpen={true}
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<EarningsDeductionDetail>
-                        data={displayData}
-                        totalItems={displayData.length}
-                        columns={displayColumns}
+                    <div className='flex justify-end'>
+                        <ReorderEarningsDeductionsForm />
+                    </div>
+                    <GenericDataTable<IMasterEarningsDeductionsList>
+                        {...tableProps}
+                        columns={columns}
                         isLoading={isLoading}
                         error={error}
+                        showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading earnings/deductions...'
                         noDataTitle='No Earnings/Deductions Found'
@@ -169,19 +110,28 @@ function MasterEarningsDeductionsPageContent({
                         errorTitle='Error Loading Earnings/Deductions'
                     />
                 </CollapsibleSection>
-
-                <FormSections typeDropdown={typeDropdown} />
+                {/* Forms */}
+                <FormSections />
             </div>
         </div>
     );
 }
-
-function FormSections({ typeDropdown }: { typeDropdown: any[] }) {
-    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
-        useFormContext<EarningsDeductionDetail>();
+function FormSections() {
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isToggleFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        closeToggleForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<IMasterEarningsDeductionsList>();
 
     return (
         <>
+            {/* Add Form */}
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
@@ -200,12 +150,13 @@ function FormSections({ typeDropdown }: { typeDropdown: any[] }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <EarningsDeductionsForm typeDropdown={typeDropdown} onSuccess={closeAddForm} />
+                            <AddEarningsDeductionsForm onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
 
+            {/* Edit Form */}
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
@@ -223,11 +174,14 @@ function FormSections({ typeDropdown }: { typeDropdown: any[] }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <EarningsDeductionsForm typeDropdown={typeDropdown} selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <UpdateEarningsDeductionsForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
+
+            {/* Toggle Form */}
+            {isToggleFormOpen && selectedRow && <ToggleMasterEarningsDeductionsForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

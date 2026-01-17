@@ -27,7 +27,7 @@ import {
 
 import { cn } from '@/lib/utils';
 import { thirdPartyTransactionSchema } from '@/schemas/fees/trasactions';
-import { addOrUpdateMasterfeehead } from '@/server/fees/masters/feehead';
+import { saveorUpdateThirdPartyTrasaction } from '@/server/fees/trasactions/thirdPartyTrasaction';
 import type { IFeeThirdPartyTransaction } from '@/types/fees/transactions/transactions';
 import type { z } from 'zod';
 
@@ -130,7 +130,7 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
             const bankName = bankdata?.data?.find((x) => x.fmbanK_Id === data.bankId)?.fmbanK_BankName || '';
 
             const payload = {
-                mI_Id: 30,
+                // mI_Id: 30,
                 fyptP_Name: data.studentName,
                 asmaY_Id: Number(data.academicYearId),
                 fmG_Id: Number(data.groupId),
@@ -145,7 +145,7 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                 fyP_Date: data.date ? format(new Date(data.date), 'yyyy-MM-dd') : null,
 
                 fyP_Remarks: data.towards,
-                user_id: 21602,
+                //user_id: 21602,
                 FYP_Bank_Or_Cash: data.paymentMode,
                 fyP_Id: row.fyP_Id
             };
@@ -153,7 +153,7 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
             const payloaddata = JSON.stringify(payload);
             console.log('Payload to be sent:', payloaddata);
 
-            const response = await addOrUpdateMasterfeehead(payload);
+            const response = await saveorUpdateThirdPartyTrasaction(payload);
 
             if (response.success) {
                 toast.success('Updated Successfully');
@@ -170,6 +170,10 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
     if (loading) {
         return <div className='flex items-center justify-center p-8 font-medium text-lg'>Loading data...</div>;
     }
+
+    const handleReset = () => {
+        reset();
+    };
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className='flex w-full flex-col items-center justify-center space-y-6'>
@@ -259,14 +263,18 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                 </div>
             ) : (
                 <div className='flex items-center gap-4'>
-                    <Label className='min-w-[150px] text-right'>Student Name</Label>
+                    <Label className='min-w-[150px] text-right'>
+                        Student Name<span className='text-red-500'>*</span>
+                    </Label>
                     <InputText {...register('studentName')} className='min-w-[400px]' />
                 </div>
             )}
 
             {/* Group */}
             <div className='flex items-center gap-4'>
-                <Label className='min-w-[150px] text-right'>Group</Label>
+                <Label className='min-w-[150px] text-right'>
+                    Group<span className='text-red-500'>*</span>
+                </Label>
                 <Controller
                     name='groupId'
                     control={control}
@@ -289,7 +297,9 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
 
             {/* Head */}
             <div className='flex items-center gap-4'>
-                <Label className='min-w-[150px] text-right'>Head</Label>
+                <Label className='min-w-[150px] text-right'>
+                    Head<span className='text-red-500'>*</span>
+                </Label>
                 <Controller
                     name='headId'
                     control={control}
@@ -312,7 +322,9 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
 
             {/* Amount */}
             <div className='flex items-center gap-4'>
-                <Label className='min-w-[150px] text-right'>Amount</Label>
+                <Label className='min-w-[150px] text-right'>
+                    Amount<span className='text-red-500'>*</span>
+                </Label>
                 <Controller
                     name='amount'
                     control={control}
@@ -434,7 +446,9 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
             {(watchPaymentMode === 'B' || watchPaymentMode === 'R') && (
                 <>
                     <div className='flex items-center gap-4'>
-                        <Label className='min-w-[150px] text-right'>Bank Name</Label>
+                        <Label className='min-w-[150px] text-right'>
+                            Bank Name<span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             name='bankId'
                             control={control}
@@ -457,7 +471,9 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                     </div>
 
                     <div className='flex items-center gap-4'>
-                        <Label className='min-w-[150px] text-right'>Cheque Date</Label>
+                        <Label className='min-w-[150px] text-right'>
+                            Cheque Date<span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             name='chequeDate'
                             control={control}
@@ -488,7 +504,7 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                         <Label className='min-w-[150px] text-right'>
                             Cheque No<span className='text-red-500'>*</span>
                         </Label>
-                        <InputText {...register('chequeNo')} />
+                        <InputText {...register('chequeNo')} error={errors.chequeNo?.message} />
                     </div>
                 </>
             )}
@@ -546,9 +562,31 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
             )}
 
             {/* Submit Button */}
-            <div className='flex gap-3 border-t pt-4'>
+            {/* <div className='flex gap-3 border-t pt-4'>
                 <Button type='submit' disabled={isSubmitting}>
                     <Save className='mr-2 h-4 w-4' /> Update Third Party Transaction
+                </Button>
+            </div> */}
+
+            <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
+                <Button
+                    type='button'
+                    variant='outline'
+                    onClick={handleReset}
+                    disabled={isSubmitting}
+                    className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                    Reset
+                </Button>
+                <Button
+                    type='submit'
+                    disabled={isSubmitting}
+                    className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                    isLoading={isSubmitting}
+                    loadingText='Saving...'>
+                    <div className='flex items-center'>
+                        <Save className='mr-2 h-4 w-4' />
+                        Update Third Party Transaction
+                    </div>
                 </Button>
             </div>
         </form>

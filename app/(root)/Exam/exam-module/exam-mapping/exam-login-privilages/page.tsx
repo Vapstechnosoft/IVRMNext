@@ -7,19 +7,16 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useExamLoginPrivileges } from '@/hooks/exam/exammodule/exam-mapping';
 import type { IExamLoginPrivileges } from '@/types/exam/exam-module/exam-mapping';
 import { Plus, X } from 'lucide-react';
-import { use, useEffect } from 'react';
+import { use } from 'react';
+import AddExamLoginPrivileges from './_components/add-form';
 import { ExamLoginPrivilegesColumns } from './_components/columns';
+import LoginPrivilegesDetailsPage from './_components/yearly-category-subject-mapping-details';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function ExamLoginPrivilegesPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data, isLoading, error } = useExamLoginPrivileges(searchParams);
-
-    useEffect(() => {
-        console.log('login privileges data', data);
-    }, [data]);
-
     return (
         <FormProvider<IExamLoginPrivileges>>
             <ExamLoginPrivilegesPageContent
@@ -118,6 +115,7 @@ function FormSections() {
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                         </div>
+                        <AddExamLoginPrivileges />
                     </CollapsibleSection>
                 </div>
             )}
@@ -141,11 +139,12 @@ function FormSections() {
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                         </div>
+                        <AddExamLoginPrivileges rowData={selectedRow} />
                     </CollapsibleSection>
                 </div>
             )}
             {/* Details View */}
-            {/* {isDetailsViewOpen && selectedRow && <ExamSubjectGroupingDetailsPage rowData={selectedRow} onClose={closeDetailsView} />} */}
+            {isDetailsViewOpen && selectedRow && <LoginPrivilegesDetailsPage rowData={selectedRow} onClose={closeDetailsView} />}
         </>
     );
 }

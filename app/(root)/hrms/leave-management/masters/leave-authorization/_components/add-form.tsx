@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError } from '@/components/ui/extension/field';
@@ -11,18 +10,15 @@ import { Save, X } from 'lucide-react';
 import { useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveAuthorization } from './columns';
-
 interface AddLeaveAuthorizationFormProps {
     onSuccess?: () => void;
     onCancel?: () => void;
     className?: string;
 }
-
 export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, className = '' }: AddLeaveAuthorizationFormProps) {
     const { refetchAll } = useLeaveAuthorization();
     const { mutate: saveLeaveAuthorization, isPending } = useSaveLeaveAuthorization();
     const { data: dropdownData, isLoading: isLoadingDropdowns } = useLeaveAuthorizationDropdowns();
-
     // Extract dropdown options from API
     const gradeOptions = useMemo(() => {
         if (!dropdownData?.data?.grades || !Array.isArray(dropdownData.data.grades)) {
@@ -30,42 +26,36 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
         }
         return dropdownData.data.grades;
     }, [dropdownData]);
-
     const groupTypeOptions = useMemo(() => {
         if (!dropdownData?.data?.groupTypes || !Array.isArray(dropdownData.data.groupTypes)) {
             return [];
         }
         return dropdownData.data.groupTypes;
     }, [dropdownData]);
-
     const departmentOptions = useMemo(() => {
         if (!dropdownData?.data?.departments || !Array.isArray(dropdownData.data.departments)) {
             return [];
         }
         return dropdownData.data.departments;
     }, [dropdownData]);
-
     const designationOptions = useMemo(() => {
         if (!dropdownData?.data?.designations || !Array.isArray(dropdownData.data.designations)) {
             return [];
         }
         return dropdownData.data.designations;
     }, [dropdownData]);
-
     const leaveTypeOptions = useMemo(() => {
         if (!dropdownData?.data?.leaveTypes || !Array.isArray(dropdownData.data.leaveTypes)) {
             return [];
         }
         return dropdownData.data.leaveTypes;
     }, [dropdownData]);
-
     const approvalPersonOptions = useMemo(() => {
         if (!dropdownData?.data?.approvalPersons || !Array.isArray(dropdownData.data.approvalPersons)) {
             return [];
         }
         return dropdownData.data.approvalPersons;
     }, [dropdownData]);
-
     const {
         register,
         handleSubmit,
@@ -88,7 +78,6 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
             finalFlag: false
         }
     });
-
     const onSubmit: SubmitHandler<LeaveAuthorization> = async (data) => {
         saveLeaveAuthorization(data, {
             onSuccess: () => {
@@ -98,11 +87,9 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
             }
         });
     };
-
     const handleReset = () => {
         reset();
     };
-
     return (
         <div className={`${className}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -115,7 +102,6 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                         {watch('institution')}
                     </div>
                 </div>
-
                 {/* Form Fields Grid */}
                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                     {/* Left Column */}
@@ -151,7 +137,6 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                 </div>
                             )}
                         />
-
                         <Controller
                             name='groupTypeName'
                             control={control}
@@ -183,7 +168,6 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                 </div>
                             )}
                         />
-
                         <Controller
                             name='departmentName'
                             control={control}
@@ -215,7 +199,6 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                 </div>
                             )}
                         />
-
                         <Controller
                             name='designationName'
                             control={control}
@@ -248,7 +231,6 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                             )}
                         />
                     </div>
-
                     {/* Right Column */}
                     <div className='space-y-4'>
                         <Controller
@@ -282,7 +264,6 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                 </div>
                             )}
                         />
-
                         <InputText
                             label='Order of Approval'
                             required
@@ -292,7 +273,6 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                             error={errors.orderOfApproval?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
                         <Controller
                             name='approvalPerson'
                             control={control}
@@ -326,7 +306,6 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                 </div>
                             )}
                         />
-
                         <div className='flex items-center space-x-2'>
                             <Controller
                                 name='finalFlag'
@@ -339,7 +318,6 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                         </div>
                     </div>
                 </div>
-
                 {/* Action Buttons */}
                 <div className='flex justify-end gap-2'>
                     {onCancel && (

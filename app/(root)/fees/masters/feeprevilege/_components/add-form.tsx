@@ -14,8 +14,9 @@ import {
     useUserNameDropdown
 } from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
-import type { feePrivilegeSchema } from '@/schemas/fees/masters';
+import { feePrivilegeSchema } from '@/schemas/fees/masters';
 import { addOrUpdateFeePrivilege } from '@/server/fees/masters/fee_previlege';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, RotateCcw, Save, Square } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
@@ -49,6 +50,7 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
         formState: { errors, isSubmitting },
         reset
     } = useForm<FormFields>({
+        resolver: zodResolver(feePrivilegeSchema.addOrUpdate),
         defaultValues: {
             academicYear: '',
             group: '',
@@ -187,14 +189,20 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
         }
     }, [userNameData, userNameError, roles]);
 
-    const filteredHeadOptions = headOptions.filter((h) => h.label.toLowerCase().includes(headSearchTerm.toLowerCase()));
+    //const filteredHeadOptions = headOptions.filter((h) => h.label.toLowerCase().includes(headSearchTerm.toLowerCase()));
+
+    const filteredHeadOptions = headOptions.filter((h) =>
+        (h.label ?? '').toString().toLowerCase().includes(headSearchTerm.trim().toLowerCase())
+    );
 
     const filteredUsers = userOptions.filter((u) => u.normalizedUserName.toLowerCase().includes(userSearch.toLowerCase()));
 
     const toggleHead = (id: string) => {
         const cur = headsValue || [];
         const updated = cur.includes(id) ? cur.filter((v) => v !== id) : [...cur, id];
-        setValue('heads', updated, { shouldValidate: hasSubmitted });
+        //setValue('heads', updated, { shouldValidate: hasSubmitted });
+
+        setValue('heads', updated, { shouldValidate: true });
     };
 
     const selectAllHeads = () => {
@@ -202,14 +210,18 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
             setValue('heads', [], { shouldValidate: hasSubmitted });
         } else {
             const all = headOptions.map((h) => h.value);
-            setValue('heads', all, { shouldValidate: hasSubmitted });
+            // setValue('heads', all, { shouldValidate: hasSubmitted });
+
+            setValue('heads', all, { shouldValidate: true });
         }
     };
 
     const toggleUser = (id: string) => {
         const cur = usersValue || [];
         const updated = cur.includes(id) ? cur.filter((v) => v !== id) : [...cur, id];
-        setValue('users', updated, { shouldValidate: hasSubmitted });
+        // setValue('users', updated, { shouldValidate: hasSubmitted });
+
+        setValue('users', updated, { shouldValidate: true });
     };
 
     const selectAllUsers = () => {
@@ -217,7 +229,8 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
             setValue('users', [], { shouldValidate: hasSubmitted });
         } else {
             const all = userOptions.map((u) => u.userId.toString());
-            setValue('users', all, { shouldValidate: hasSubmitted });
+            // setValue('users', all, { shouldValidate: hasSubmitted });
+            setValue('users', all, { shouldValidate: true });
         }
     };
 
@@ -356,7 +369,7 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
                                         disabled={!academicYear || !group}
                                     />
 
-                                    {headOptions.length > 0 && (
+                                    {headOptions.length > 0 && filteredHeadOptions.length > 0 && (
                                         <div
                                             onClick={selectAllHeads}
                                             className={cn(

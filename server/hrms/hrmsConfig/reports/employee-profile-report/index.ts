@@ -1,5 +1,4 @@
 'use server';
-
 import { api, type ApiResponse } from '@/lib/apiService';
 import type {
     EmployeeDropdown,
@@ -11,7 +10,6 @@ import type {
     EmployeeProfileReportSearchRequest,
     EmployeeProfileReportSearchResponse
 } from '@/types/hrms/reports/employee-profile-report';
-
 /**
  * Get onload details for employee profile report
  * POST /api/EmployeeProfileReportFacade/onloadgetdetailsNew
@@ -27,14 +25,12 @@ export async function getEmployeeProfileReportOnload(
         LogInUserId
     };
     const response = await api.post<EmployeeProfileReportResponse>('hrms', '/api/EmployeeProfileReportFacade/onloadgetdetailsNew', requestBody);
-
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         // Already wrapped
         return response as ApiResponse<EmployeeProfileReportResponse>;
     }
-
     // Wrap raw response data
     return {
         success: true,
@@ -42,7 +38,6 @@ export async function getEmployeeProfileReportOnload(
         data: response as unknown as EmployeeProfileReportResponse
     };
 }
-
 /**
  * Filter employees by selection criteria
  * POST /api/EmployeeProfileReportFacade/FilterEmployeedetailsBySelectionNew
@@ -58,14 +53,12 @@ export async function filterEmployeesBySelection(request: EmployeeProfileReportF
         hrmdeS_IdList: request.hrmdeS_IdList && request.hrmdeS_IdList.length > 0 ? request.hrmdeS_IdList : [0]
     };
     const response = await api.post<any>('hrms', '/api/EmployeeProfileReportFacade/FilterEmployeedetailsBySelectionNew', requestBody);
-
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         // Already wrapped
         return response as ApiResponse<{ employeedropdown?: EmployeeDropdown[] }>;
     }
-
     // Wrap raw response data
     // Backend might return { employeedropdown: [...] } or similar structure
     const rawResponse = response as any;
@@ -77,7 +70,6 @@ export async function filterEmployeesBySelection(request: EmployeeProfileReportF
         }
     };
 }
-
 /**
  * Search employee profile details
  * POST /api/EmployeeProfileReportFacade/getEmployeedetailsBySelectionNew
@@ -90,14 +82,12 @@ export async function searchEmployeeProfileDetails(request: EmployeeProfileRepor
         hrmE_multiId: request.employeeIds.length > 0 ? request.employeeIds : [0]
     };
     const response = await api.post<any>('hrms', '/api/EmployeeProfileReportFacade/getEmployeedetailsBySelectionNew', requestBody);
-
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         // Already wrapped
         return response as ApiResponse<EmployeeProfileReportSearchResponse>;
     }
-
     // Wrap raw response data
     const rawResponse = response as unknown as EmployeeProfileReportSearchResponse;
     // The API response may contain retrunMsg (with typo) at the root level

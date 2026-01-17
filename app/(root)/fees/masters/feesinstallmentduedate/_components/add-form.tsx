@@ -15,7 +15,7 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-t
 import { useAcademicYearDropdown, useMasterFeeInstallmentDropDown, useMasterFeeInstallmentDueDateList } from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
 import { masterInstallmentDueDateSchema } from '@/schemas/fees/masters';
-import { getInstallmentDueDateList, saveInstallmentDueDate } from '@/server/fees/masters/feeinstallmentduedate';
+import { getAcademicYearDetailsData, getInstallmentDueDateList, saveInstallmentDueDate } from '@/server/fees/masters/feeinstallmentduedate';
 import type { IMasterFeesInstallmentDueDateList } from '@/types/fees/masters';
 import type { IMasterFeeInstallmentDropDown } from '@/types/fees/masters/masters';
 import { masterFeeInstallmentDueDateColumn } from './fee_due_date_column';
@@ -70,7 +70,7 @@ export default function AddMasterInstallmentDueDateForm({ onSuccess }: AddMaster
         try {
             setMasterInstallmentDueDataLoading(true);
             setMasterInstallmentDueDataError(null);
-            const res = await getInstallmentDueDateList(Number(asmayId || 231), Number(fmI_Installment_Type || 0));
+            const res = await getInstallmentDueDateList(Number(asmayId || 0), Number(fmI_Installment_Type || 0));
             setMasterInstallmentDueData(res.data);
             setTableProps(useDataTableProps(res || []));
         } catch (error) {
@@ -81,6 +81,50 @@ export default function AddMasterInstallmentDueDateForm({ onSuccess }: AddMaster
         }
     };
 
+    const asmay_Id = watch('asmay_Id');
+
+    const [academicYearRange, setAcademicYearRange] = useState<{
+        minDate: Date | null;
+        maxDate: Date | null;
+    }>({ minDate: null, maxDate: null });
+    useEffect(() => {
+        const fetchAcademicYearDetails = async () => {
+            console.log('setting min and max dates', asmay_Id);
+            if (!asmay_Id) {
+                setAcademicYearRange({ minDate: null, maxDate: null });
+                return;
+            }
+            try {
+                const response = await getAcademicYearDetailsData(Number(asmay_Id));
+                console.log('Response:', response);
+
+                // Assuming response has startDate and endDate
+                // Adjust based on your actual API response structure
+                if (response.data) {
+                    const academicYear = response.data[0]; // Or use response.data.find(...) if selecting by criteria
+
+                    const minDateStr = academicYear.asmaY_From_Date ? new Date(academicYear.asmaY_From_Date) : '';
+                    const maxDateStr = academicYear.asmaY_To_Date ? new Date(academicYear.asmaY_To_Date) : '';
+                    // const minDateStr = '2025-01-01';
+                    // const maxDateStr = '2025-12-31';
+
+                    // Convert strings to Date objects
+                    const minDate = new Date(minDateStr);
+                    const maxDate = new Date(maxDateStr);
+
+                    console.log('mindate', minDate);
+                    console.log('mindate', minDate);
+                    setAcademicYearRange({ minDate, maxDate });
+                }
+            } catch (error) {
+                console.error('Error fetching academic year details:', error);
+                setAcademicYearRange({ minDate: null, maxDate: null });
+            }
+        };
+
+        fetchAcademicYearDetails();
+    }, [asmay_Id]);
+
     function formatDateToYMD(date: any) {
         if (!date) return null;
         const d = new Date(date);
@@ -89,6 +133,15 @@ export default function AddMasterInstallmentDueDateForm({ onSuccess }: AddMaster
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
+            // --- Manual validation for all date fields ---
+            const missing = masterInstallmentDueData.some((item) => {
+                return !item.fdate || !item.tdate || !item.aplc || !item.ddate;
+            });
+
+            if (missing) {
+                toast.error('Please fill all date fields before saving.');
+                return;
+            }
             const buildPayload = () => {
                 return {
                     // fmI_Id: fmI_Installment_Type,
@@ -202,24 +255,26 @@ export default function AddMasterInstallmentDueDateForm({ onSuccess }: AddMaster
                     </div>
                 </div>
 
-                <CollapsibleSection
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IMasterFeesInstallmentDueDateList>
-                        {...tableProps}
-                        columns={masterFeeInstallmentDueDateColumn}
-                        isLoading={masterInstallmentDueDataLoading}
-                        error={masterInstallmentDueDataError}
-                        // onRowSelectionChange={handleSelectStudent}
-                        columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading Fee Installment Due Date...'
-                        noDataTitle='No Fee Installment Due Date Found'
-                        noDataDescription='Get started by creating your first Fee Installment Due Date'
-                        errorTitle='Error Fee Installment Due Date'
-                    />
-                </CollapsibleSection>
+                {asmayId && fmI_Installment_Type ? (
+                    <CollapsibleSection
+                        defaultOpen={true}
+                        variant='default'
+                        size='lg'
+                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                        <GenericDataTable<IMasterFeesInstallmentDueDateList>
+                            {...tableProps}
+                            columns={masterFeeInstallmentDueDateColumn(academicYearRange.minDate, academicYearRange.maxDate)}
+                            isLoading={masterInstallmentDueDataLoading}
+                            error={masterInstallmentDueDataError}
+                            // onRowSelectionChange={handleSelectStudent}
+                            columnPinning={{ right: ['actions'] }}
+                            loadingMessage='Loading Fee Installment Due Date...'
+                            noDataTitle='No Fee Installment Due Date Found'
+                            noDataDescription='Get started by creating your first Fee Installment Due Date'
+                            errorTitle='Error Fee Installment Due Date'
+                        />
+                    </CollapsibleSection>
+                ) : null}
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button

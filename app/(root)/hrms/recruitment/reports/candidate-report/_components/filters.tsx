@@ -1,15 +1,12 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Printer, RefreshCw } from 'lucide-react';
-
 export interface CandidateReportFilters {
     institution: string;
     candidateId: string;
 }
-
 interface CandidateReportFiltersProps {
     filters: CandidateReportFilters;
     institutions: string[];
@@ -18,7 +15,6 @@ interface CandidateReportFiltersProps {
     onReport: () => void;
     onPrint: () => void;
 }
-
 export function CandidateReportFilters({
     filters,
     institutions,

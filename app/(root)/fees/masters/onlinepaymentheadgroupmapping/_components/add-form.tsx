@@ -32,6 +32,8 @@ interface AddMasterOnlinePaymentHeadGroupFormProps {
 
 export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, className = '' }: AddMasterOnlinePaymentHeadGroupFormProps) {
     const { refetchAll } = useMasterFeeOnlinePaymentHeadGroupTable();
+    //const { data: instituteData, isLoading: instituteLoading, error: instituteError } = useInstituteDropDown();
+
     const { data: instituteData, isLoading: instituteLoading, error: instituteError } = useInstituteDropDown();
 
     const [academicYear, setAcademicYear] = useState<number | null>(null);
@@ -88,8 +90,8 @@ export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, classNa
         resolver: zodResolver(masterOnlinePaymentHeadGroupSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            mI_Id: '30',
-            institutionName: 'vidya_vikas_vidya_samste',
+            // mI_Id: '30',
+            institutionName: '',
             asmaY_Id: undefined,
             classCategory: '',
             subMerchantId: '',
@@ -276,28 +278,31 @@ export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, classNa
             }
 
             const payload = {
-                mI_Id: Number(getValues('mI_Id') ?? 30),
+                mI_Id: Number(getValues('mI_Id')),
                 asmaY_Id: academicYear,
                 asmcL_ID: classId,
                 fpgd_id: subMerchantId,
                 fmg_id: groupId,
                 selectedheadList: selectedHeads.map((headId) => ({ fmH_Id: headId })),
                 fmt_id: termId,
-                fti_id: installmentId,
-                user_id: 1001
+                fti_id: installmentId
+                //user_id: 1001
             };
 
             // submitted payload
 
+            const js = JSON.stringify(payload);
+            console.log('Payload JSON:', js);
+
             const response = await addMasterOnlinePaymentHeadGroup(payload);
 
             if (response.success) {
-                toast.success(response.message || 'Online Payment Head Group added successfully');
+                toast.success(response.message);
                 await refetchAll();
                 handleReset();
                 onSuccess?.();
             } else {
-                toast.error(response.message || 'Failed to add Online Payment Head Group');
+                toast.error(response.message);
             }
         } catch (error: any) {
             console.error('Error submitting form:', error);
@@ -307,8 +312,8 @@ export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, classNa
 
     const handleReset = () => {
         reset({
-            mI_Id: '30',
-            institutionName: 'vidya_vikas_vidya_samste',
+            // mI_Id: '30',
+            institutionName: '',
             asmaY_Id: undefined,
             classCategory: '',
             subMerchantId: '',
@@ -345,11 +350,7 @@ export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, classNa
                                     <Select value={field.value} disabled>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue
-                                                placeholder={
-                                                    instituteLoading
-                                                        ? 'Loading...'
-                                                        : ((instituteData?.data?.[0] as any)?.mI_Name ?? 'Vidya Vikas Vidya Samste (R)')
-                                                }
+                                                placeholder={instituteLoading ? 'Loading...' : (instituteData?.data?.[0] as any)?.mI_Name}
                                             />
                                         </SelectTrigger>
                                         <SelectContent>

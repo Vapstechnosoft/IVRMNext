@@ -19,3 +19,8 @@ export async function toggleMasterConcession(mi_id: number, id: number) {
     const url = `FeeMasterConcession/ToggleConcession/${id}/30`;
     return await api.put('fees', url);
 }
+
+export async function deleteMasterConcession(id: number) {
+    const url = `/FeeMasterConcession/DeleteConcession/${id}/30`;
+    return await api.delete('fees', url);
+}

@@ -302,8 +302,12 @@ export default function AddFeeTermsHeadDueDateFormForm({ onSuccess, termname = '
                                             <td className='border border-gray-300 px-2 py-1'>
                                                 <input
                                                     type='date'
+                                                    onKeyDown={(e) => e.preventDefault()} // BLOCK ALL TYPING
+                                                    min='1900-01-01'
+                                                    max='2100-12-31'
                                                     className='w-full rounded-md border border-gray-300 px-2 py-1 text-gray-700 outline-none focus:border-blue-400 focus:ring focus:ring-blue-100'
-                                                    value={item.fmtfhdD_FromDate?.split('T')[0] || ''}
+                                                    //value={item.fmtfhdD_FromDate?.split('T')[0] || ''}
+                                                    value={item.fmtfhdD_FromDate ? item.fmtfhdD_FromDate.split('T')[0] : ''}
                                                     onChange={(e) => {
                                                         const updated = [...gridData];
                                                         updated[index].fmtfhdD_FromDate = e.target.value;
@@ -315,8 +319,10 @@ export default function AddFeeTermsHeadDueDateFormForm({ onSuccess, termname = '
                                             <td className='border border-gray-300 px-2 py-1'>
                                                 <input
                                                     type='date'
+                                                    onKeyDown={(e) => e.preventDefault()}
                                                     className='w-full rounded-md border border-gray-300 px-2 py-1 text-gray-700 outline-none focus:border-blue-400 focus:ring focus:ring-blue-100'
-                                                    value={item.fmtfhdD_ToDate?.split('T')[0] || ''}
+                                                    // value={item.fmtfhdD_ToDate?.split('T')[0] || ''}
+                                                    value={item.fmtfhdD_ToDate ? item.fmtfhdD_FromDate.split('T')[0] : ''}
                                                     onChange={(e) => {
                                                         const updated = [...gridData];
                                                         updated[index].fmtfhdD_ToDate = e.target.value;
@@ -328,8 +334,10 @@ export default function AddFeeTermsHeadDueDateFormForm({ onSuccess, termname = '
                                             <td className='border border-gray-300 px-2 py-1'>
                                                 <input
                                                     type='date'
+                                                    onKeyDown={(e) => e.preventDefault()}
                                                     className='w-full rounded-md border border-gray-300 px-2 py-1 text-gray-700 outline-none focus:border-blue-400 focus:ring focus:ring-blue-100'
-                                                    value={item.fmtfhdD_ApplicableDate?.split('T')[0] || ''}
+                                                    //  value={item.fmtfhdD_ApplicableDate?.split('T')[0] || ''}
+                                                    value={item.fmtfhdD_ApplicableDate ? item.fmtfhdD_FromDate.split('T')[0] : ''}
                                                     onChange={(e) => {
                                                         const updated = [...gridData];
                                                         updated[index].fmtfhdD_ApplicableDate = e.target.value;
@@ -341,8 +349,10 @@ export default function AddFeeTermsHeadDueDateFormForm({ onSuccess, termname = '
                                             <td className='border border-gray-300 px-2 py-1'>
                                                 <input
                                                     type='date'
+                                                    onKeyDown={(e) => e.preventDefault()}
                                                     className='w-full rounded-md border border-gray-300 px-2 py-1 text-gray-700 outline-none focus:border-blue-400 focus:ring focus:ring-blue-100'
-                                                    value={item.fmtfhdD_DueDate?.split('T')[0] || ''}
+                                                    // value={item.fmtfhdD_DueDate?.split('T')[0] || ''}
+                                                    value={item.fmtfhdD_DueDate ? item.fmtfhdD_FromDate.split('T')[0] : ''}
                                                     onChange={(e) => {
                                                         const updated = [...gridData];
                                                         updated[index].fmtfhdD_DueDate = e.target.value;

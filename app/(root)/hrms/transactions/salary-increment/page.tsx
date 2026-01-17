@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -10,7 +9,6 @@ import { TrendingUp } from 'lucide-react';
 import { useMemo } from 'react';
 import { salaryIncrementColumns } from './_components/columns';
 import FormSections from './_components/form-sections';
-
 export default function SalaryIncrementProcessPage() {
     const { data: onloadData, isLoading } = useSalaryIncrementOnload({
         page: 1,
@@ -23,14 +21,12 @@ export default function SalaryIncrementProcessPage() {
         MIID: 30, // Kept hardcoded as requested
         roleId: 0 // Using roleId for hook compatibility
     });
-
     return (
         <FormProvider<SalaryIncrementGridItem>>
             <SalaryIncrementProcessPageContent onloadData={onloadData} isLoading={isLoading} />
         </FormProvider>
     );
 }
-
 function SalaryIncrementProcessPageContent({
     onloadData,
     isLoading
@@ -40,10 +36,8 @@ function SalaryIncrementProcessPageContent({
 }) {
     const { openAddForm } = useFormContext<SalaryIncrementGridItem>();
     const deleteMutation = useDeleteSalaryIncrement();
-
     // Memoize grid data
     const gridData = useMemo(() => onloadData?.griddata || [], [onloadData?.griddata]);
-
     // Prepare table data - convert gridData to table format
     const tableData = useMemo(() => {
         if (!gridData || gridData.length === 0) return [];
@@ -52,7 +46,6 @@ function SalaryIncrementProcessPageContent({
             id: item.HREIC_Id || 0
         }));
     }, [gridData]);
-
     // Prepare response format for useDataTableProps
     const tableResponse = useMemo(() => {
         return {
@@ -63,13 +56,10 @@ function SalaryIncrementProcessPageContent({
             page_size: tableData.length
         };
     }, [tableData]);
-
     const tableProps = useDataTableProps(tableResponse);
-
     const handleRefetch = () => {
         // Refetch logic if needed
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -83,7 +73,6 @@ function SalaryIncrementProcessPageContent({
                         Add Increment
                     </Button>
                 </div>
-
                 {/* Data Table Section */}
                 <CollapsibleSection
                     defaultOpen={true}
@@ -103,7 +92,6 @@ function SalaryIncrementProcessPageContent({
                         errorTitle='Error Loading Salary Increments'
                     />
                 </CollapsibleSection>
-
                 {/* Forms */}
                 <FormSections onloadData={onloadData} onSuccess={handleRefetch} />
             </div>

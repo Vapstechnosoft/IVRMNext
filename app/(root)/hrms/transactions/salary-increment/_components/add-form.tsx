@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { FormError, Label } from '@/components/ui/extension/field';
@@ -12,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useSaveSalaryIncrement } from '@/hooks/hrms/useTransactions';
 import { cn } from '@/lib/utils';
-import { salaryIncrementSchema } from '@/schemas/hrms/salary-increment-schemas';
+import { hrmsTransactionSchemas } from '@/schemas/hrms/transaction';
 import type { SalaryIncrementOnloadResponse } from '@/types/hrms/salary-increment';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
@@ -21,18 +20,14 @@ import { useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-
-type FormFields = z.infer<typeof salaryIncrementSchema.addOrUpdate>;
-
+type FormFields = z.infer<typeof hrmsTransactionSchemas.salaryIncrement.addOrUpdate>;
 interface AddFormProps {
     onloadData: SalaryIncrementOnloadResponse | undefined;
     onSuccess: () => void;
     className?: string;
 }
-
 export default function AddSalaryIncrementForm({ onloadData, onSuccess, className = '' }: AddFormProps) {
     const { mutate: saveIncrement, isPending } = useSaveSalaryIncrement();
-
     const {
         control,
         register,
@@ -41,7 +36,7 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
         watch,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(salaryIncrementSchema.addOrUpdate),
+        resolver: zodResolver(hrmsTransactionSchemas.salaryIncrement.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
             HRESI_Id: 0,
@@ -57,7 +52,6 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
             LogInUserId: 2
         }
     });
-
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         const payload = {
             HREIC_Id: data.HRESI_Id || 0,
@@ -74,7 +68,6 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
             roleId: data.LogInUserId || 2,
             UserId: data.LogInUserId || 2
         };
-
         saveIncrement(payload as any, {
             onSuccess: (response) => {
                 toast.success(response?.retrunMsg || 'Salary increment added successfully');
@@ -86,15 +79,12 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
             }
         });
     };
-
     const handleReset = () => {
         reset();
     };
-
     // Memoize arrays to prevent unnecessary re-renders
     const employees = useMemo(() => onloadData?.employeelist || [], [onloadData?.employeelist]);
     const earningDeductions = useMemo(() => onloadData?.earningdeductiontype || [], [onloadData?.earningdeductiontype]);
-
     return (
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -130,7 +120,6 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
                             />
                             {errors.HRME_Id && <FormError>{errors.HRME_Id.message}</FormError>}
                         </div>
-
                         {/* Head */}
                         <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='HRMED_Id'>
@@ -160,7 +149,6 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
                             />
                             {errors.HRMED_Id && <FormError>{errors.HRMED_Id.message}</FormError>}
                         </div>
-
                         {/* Increment Date */}
                         <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='HRESI_EffectiveDate'>
@@ -206,7 +194,6 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
                             />
                             {errors.HRESI_EffectiveDate && <FormError>{errors.HRESI_EffectiveDate.message}</FormError>}
                         </div>
-
                         {/* Increment Type */}
                         <div className='group flex flex-col gap-1.5'>
                             <Label>Increment Type</Label>
@@ -235,7 +222,6 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
                             />
                             {errors.HRESI_IncrementType && <FormError>{errors.HRESI_IncrementType.message}</FormError>}
                         </div>
-
                         {/* Percentage/Amount - Show based on selected type */}
                         {watch('HRESI_IncrementType') === 'Percentage' && (
                             <div className='group flex flex-col gap-1.5'>
@@ -253,7 +239,6 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
                                 />
                             </div>
                         )}
-
                         {watch('HRESI_IncrementType') === 'Amount' && (
                             <div className='group flex flex-col gap-1.5'>
                                 <Label htmlFor='HRESI_IncrementAmount'>
@@ -274,7 +259,6 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
                                 />
                             </div>
                         )}
-
                         {/* Arrear fields commented out - not in schema */}
                         {/* <InputNumber
                             label='Arrear Months'
@@ -283,7 +267,6 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
                             error={errors.HREIC_ArrearMonths?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         /> */}
-
                         {/* <div className='group flex flex-col gap-1.5'>
                             <div className='flex items-center space-x-3 rounded-md border p-4'>
                                 <Controller
@@ -299,7 +282,6 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
                             </div>
                             {errors.HREIC_ArrearApplicableFlg && <FormError>{errors.HREIC_ArrearApplicableFlg.message}</FormError>}
                         </div> */}
-
                         {/* <div className='group flex flex-col gap-1.5'>
                             <div className='flex items-center space-x-3 rounded-md border p-4'>
                                 <Controller
@@ -315,7 +297,6 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
                             </div>
                             {errors.HREIC_ArrearGivenFlg && <FormError>{errors.HREIC_ArrearGivenFlg.message}</FormError>}
                         </div> */}
-
                         {/* Remarks */}
                         <div className='group col-span-full flex flex-col gap-1.5'>
                             <Label htmlFor='HRESI_Remarks'>Remarks</Label>
@@ -328,10 +309,8 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
                             />
                         </div>
                     </div>
-
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
-
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-end'>
                     <Button

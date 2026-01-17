@@ -78,7 +78,7 @@ export default function UpdateMasterClassCategoryForm({ onSuccess, className = '
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <InputText
+                        {/* <InputText
                             label='Class Category Code'
                             required
                             id='fmcC_ClassCategoryCode'
@@ -93,7 +93,60 @@ export default function UpdateMasterClassCategoryForm({ onSuccess, className = '
                             {...register('fmcC_ClassCategoryName')}
                             error={errors.fmcC_ClassCategoryName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        /> */}
+
+
+                         <InputText
+                            label='Class Category Name'
+                            required
+                            id='fmcC_ClassCategoryName'
+                            onKeyDown={(e) => {
+                                const allowed = /^[A-Za-z]$/; 
+                                
+                                if (
+                                    e.key.length === 1 &&           
+                                    !allowed.test(e.key)            
+                                ) {
+                                    e.preventDefault();             
+                                }
+                            }}
+                            {...register('fmcC_ClassCategoryName', {
+                                required: 'Class Category Name is required',
+                                pattern: {
+                                    value: /^[A-Za-z]+$/,
+                                    message: 'Only letters allowed'
+                                }
+                            })}
+                            error={errors.fmcC_ClassCategoryName?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
+
+
+                         <InputText
+                            label='Class Category Code'
+                            required
+                            id='fmcC_ClassCategoryCode'
+                            onKeyDown={(e) => {
+                                const allowed = /^[A-Za-z]$/; 
+                                
+                                if (
+                                    e.key.length === 1 &&           
+                                    !allowed.test(e.key)            
+                                ) {
+                                    e.preventDefault();             
+                                }
+                            }}
+                            {...register('fmcC_ClassCategoryCode', {
+                                required: 'Class Category Code is required',
+                                pattern: {
+                                    value: /^[A-Za-z]+$/,
+                                    message: 'Only letters allowed'
+                                }
+                            })}
+                            error={errors.fmcC_ClassCategoryCode?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+                        
                     </div>
 
                     {/* Root Error */}

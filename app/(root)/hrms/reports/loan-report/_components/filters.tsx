@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
@@ -9,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import type { EmployeeDropdown } from '@/types/hrms/reports/loan-report';
 import { Search, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
-
 // Report filters
 export interface LoanFilters {
     reportScope: 'all' | 'individual';
@@ -20,7 +18,6 @@ export interface LoanFilters {
     month: string;
     year: string;
 }
-
 interface LoanReportFiltersProps {
     filters: LoanFilters;
     groupTypes: any[];
@@ -34,7 +31,6 @@ interface LoanReportFiltersProps {
     onSearch: () => void;
     onCancel: () => void;
 }
-
 export function LoanReportFilters({
     filters,
     groupTypes,
@@ -49,18 +45,15 @@ export function LoanReportFilters({
     onCancel
 }: LoanReportFiltersProps) {
     const [_currentYear, setCurrentYear] = useState<number | null>(null);
-
     useEffect(() => {
         setCurrentYear(new Date().getFullYear());
     }, []);
-
     const handleFilterChange = (key: keyof LoanFilters, value: any) => {
         onFilterChange({
             ...filters,
             [key]: value
         });
     };
-
     return (
         <CollapsibleSection
             defaultOpen={true}
@@ -87,7 +80,6 @@ export function LoanReportFilters({
                     </div>
                 </RadioGroup>
             </div>
-
             {/* Filter Sections */}
             <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
                 {/* Group Type Section */}
@@ -121,7 +113,6 @@ export function LoanReportFilters({
                         />
                     )}
                 </div>
-
                 {/* Department Section */}
                 <div className='space-y-2'>
                     <Label htmlFor='department' className='font-medium text-foreground text-sm'>
@@ -153,7 +144,6 @@ export function LoanReportFilters({
                         />
                     )}
                 </div>
-
                 {/* Designation Section */}
                 <div className='space-y-2'>
                     <Label htmlFor='designation' className='font-medium text-foreground text-sm'>
@@ -186,7 +176,6 @@ export function LoanReportFilters({
                     )}
                 </div>
             </div>
-
             {/* Employee Selection - Only show when Individual is selected */}
             {filters.reportScope === 'individual' && (
                 <div className='flex items-center justify-center pt-4'>
@@ -225,7 +214,6 @@ export function LoanReportFilters({
                     </div>
                 </div>
             )}
-
             {/* Additional Filters - Only show when All is selected */}
             {filters.reportScope === 'all' && (
                 <div className='flex items-center justify-center gap-6 pt-4'>
@@ -255,7 +243,6 @@ export function LoanReportFilters({
                             </Select>
                         )}
                     </div>
-
                     {/* Year Filter */}
                     <div className='space-y-2'>
                         <Label htmlFor='year' className='font-medium text-foreground text-sm'>
@@ -284,7 +271,6 @@ export function LoanReportFilters({
                     </div>
                 </div>
             )}
-
             {/* Action Buttons */}
             <div className='flex gap-2 pt-4'>
                 <Button

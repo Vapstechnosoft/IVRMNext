@@ -160,8 +160,8 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
             }
 
             const payload = {
-                FYCC_Id: 0, // For create always 0
-                MI_Id: 30, // Constant MI Id
+                FYCC_Id: 0,
+                MI_Id: 30,
                 FMCC_Id: Number(classCategory), // Selected class category ID
                 ASMAY_Id: Number(academicYear), // Selected academic year
                 ASMCL_ID: 0, // Always 0 as per your rules (single class will be in TempararyArrayList)
@@ -171,6 +171,8 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                 })),
                 user_id: 21602 // Static user id
             };
+
+            console.log('Payload:', payload);
 
             const response = await addOrUpdateMasterClassYearlyCategory(payload);
 

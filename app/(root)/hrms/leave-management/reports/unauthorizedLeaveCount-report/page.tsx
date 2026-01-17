@@ -1,11 +1,9 @@
 'use client';
-
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useMemo, useState } from 'react';
 import { type UnauthorizedLeaveCountRow, getUnauthorizedLeaveCountColumns } from './_components/columns';
 import { type UnauthorizedLeaveCountFilters as FiltersType, UnauthorizedLeaveCountFilters } from './_components/filters';
-
 export default function UnauthorizedLeaveCountReportPage() {
     const [rows, setRows] = useState<UnauthorizedLeaveCountRow[]>([]);
     const [filters, setFilters] = useState<FiltersType>({
@@ -22,16 +20,13 @@ export default function UnauthorizedLeaveCountReportPage() {
         fromDate: '',
         toDate: ''
     });
-
     const handleFilterChange = (key: keyof FiltersType, value: any) => {
         setFilters((prev) => ({ ...prev, [key]: value }));
     };
-
     const columns = useMemo(
         () => getUnauthorizedLeaveCountColumns({ mode: filters.mode, detailLevel: filters.detailLevel }),
         [filters.mode, filters.detailLevel]
     );
-
     const handleReport = () => {
         if (filters.detailLevel === 'Only Count') {
             setRows([
@@ -48,7 +43,6 @@ export default function UnauthorizedLeaveCountReportPage() {
             ]);
         }
     };
-
     const handleClear = () => {
         setFilters({
             mode: 'Company Wise',
@@ -66,7 +60,6 @@ export default function UnauthorizedLeaveCountReportPage() {
         });
         setRows([]);
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -76,7 +69,6 @@ export default function UnauthorizedLeaveCountReportPage() {
                     onReport={handleReport}
                     onCancel={handleClear}
                 />
-
                 <CollapsibleSection
                     title='Unauthorized Leave Report List'
                     description=''

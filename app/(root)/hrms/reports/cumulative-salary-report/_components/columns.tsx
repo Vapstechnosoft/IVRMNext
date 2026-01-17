@@ -1,40 +1,11 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import type { SalaryReportRecord } from '@/types/hrms/reports/cumulative-salary-report';
 import type { ColumnDef } from '@tanstack/react-table';
 
-// Department Salary Report data structure
-export interface DepartmentSalaryRecord {
-    id?: string;
-    employeeCode: string;
-    employeeName: string;
-    groupType: string;
-    department: string;
-    designation: string;
-    basicSalary: number;
-    allowances: number;
-    grossSalary: number;
-    pfContribution: number;
-    esiContribution: number;
-    incomeTax: number;
-    professionalTax: number;
-    otherDeductions: number;
-    totalDeductions: number;
-    netSalary: number;
-    overtimeAmount: number;
-    bonusAmount: number;
-    incrementAmount: number;
-    workingDays: number;
-    presentDays: number;
-    absentDays: number;
-    leavesTaken: number;
-    month: string;
-    year: string;
-}
-
-// Department Summary
-export interface DepartmentSummary {
-    department: string;
+// Cumulative Summary
+export interface CumulativeSummary {
+    Cumulative: string;
     totalEmployees: number;
     totalBasicSalary: number;
     totalGrossSalary: number;
@@ -46,7 +17,7 @@ export interface DepartmentSummary {
 }
 
 // Table columns for main salary records
-export const departmentSalaryColumns: ColumnDef<DepartmentSalaryRecord>[] = [
+export const CumulativeSalaryColumns: ColumnDef<SalaryReportRecord>[] = [
     {
         accessorKey: 'id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='SL.No.' />,
@@ -61,9 +32,9 @@ export const departmentSalaryColumns: ColumnDef<DepartmentSalaryRecord>[] = [
         size: 80
     },
     {
-        accessorKey: 'employeeCode',
+        accessorKey: 'HRME_EmployeeCode',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
-        cell: ({ row }) => <div className='font-medium'>{row.getValue('employeeCode')}</div>,
+        cell: ({ row }) => <div className='font-medium'>{row.getValue('HRME_EmployeeCode')}</div>,
         enableSorting: true,
         enableHiding: true
     },
@@ -75,13 +46,6 @@ export const departmentSalaryColumns: ColumnDef<DepartmentSalaryRecord>[] = [
         enableHiding: true
     },
     {
-        accessorKey: 'department',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Department' />,
-        cell: ({ row }) => <div className='font-medium text-sm'>{row.getValue('department')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
         accessorKey: 'designation',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Designation' />,
         cell: ({ row }) => <div className='text-sm'>{row.getValue('designation')}</div>,
@@ -89,23 +53,23 @@ export const departmentSalaryColumns: ColumnDef<DepartmentSalaryRecord>[] = [
         enableHiding: true
     },
     {
-        accessorKey: 'basicSalary',
+        accessorKey: 'basic',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Basic Salary' />,
-        cell: ({ row }) => <div>₹{(row.getValue('basicSalary') as number).toLocaleString()}</div>,
+        cell: ({ row }) => <div>₹{(row.getValue('basic') as number).toLocaleString()}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'grossSalary',
+        accessorKey: 'grossEarning',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Gross Salary' />,
-        cell: ({ row }) => <div>₹{(row.getValue('grossSalary') as number).toLocaleString()}</div>,
+        cell: ({ row }) => <div>₹{(row.getValue('grossEarning') as number).toLocaleString()}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'totalDeductions',
+        accessorKey: 'grossDeduction',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Total Deductions' />,
-        cell: ({ row }) => <div className='text-red-600'>₹{(row.getValue('totalDeductions') as number).toLocaleString()}</div>,
+        cell: ({ row }) => <div className='text-red-600'>₹{(row.getValue('grossDeduction') as number).toLocaleString()}</div>,
         enableSorting: true,
         enableHiding: true
     },
@@ -119,18 +83,18 @@ export const departmentSalaryColumns: ColumnDef<DepartmentSalaryRecord>[] = [
     {
         accessorKey: 'presentDays',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Present Days' />,
-        cell: ({ row }) => <div className='text-center'>{row.getValue('presentDays')}</div>,
+        cell: ({ row }) => <div className='text-center'>{row.original.leaveDedDays ? 30 - row.original.leaveDedDays : '-'}</div>,
         enableSorting: true,
         enableHiding: true
     }
 ];
 
-// Department summary columns
-export const departmentSummaryColumns: ColumnDef<DepartmentSummary>[] = [
+// Cumulative summary columns
+export const CumulativeSummaryColumns: ColumnDef<CumulativeSummary>[] = [
     {
-        accessorKey: 'department',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Department' />,
-        cell: ({ row }) => <div className='font-semibold'>{row.getValue('department')}</div>,
+        accessorKey: 'Cumulative',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Cumulative' />,
+        cell: ({ row }) => <div className='font-semibold'>{row.getValue('Cumulative')}</div>,
         enableSorting: true,
         enableHiding: false
     },

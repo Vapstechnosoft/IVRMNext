@@ -206,7 +206,6 @@ export default function EmployeeProfileReportPage() {
         setReportData([]);
         toast.info('Form has been reset');
     };
-
     const handlePrint = () => {
         window.print();
         toast.success('Print dialog opened');

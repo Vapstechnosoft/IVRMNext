@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError } from '@/components/ui/extension/field';
@@ -9,7 +8,6 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ChevronLeft, ChevronRight, Save, X } from 'lucide-react';
 import { type Control, Controller, type FieldErrors, type UseFormHandleSubmit, type UseFormWatch } from 'react-hook-form';
-
 interface CarryForwardFormProps {
     control: Control<any>;
     errors: FieldErrors<any>;
@@ -25,7 +23,6 @@ interface CarryForwardFormProps {
     onPrevious?: () => void;
     onNext?: () => void;
 }
-
 export function CarryForwardForm({
     control,
     errors,
@@ -42,11 +39,9 @@ export function CarryForwardForm({
     onNext
 }: CarryForwardFormProps) {
     const maxLeaveApplicableEnabled = watch('maxLeaveApplicableEnabled') ?? false;
-
     const onSubmitForm = handleSubmit((data) => {
         onSubmit(data);
     });
-
     return (
         <form onSubmit={handleSubmit(onSubmitForm)} className='space-y-6'>
             {/* Filters Section - Type, Department, Designation, Grade */}
@@ -72,7 +67,6 @@ export function CarryForwardForm({
                     />
                     {errors.type && <FormError>{String(errors.type.message)}</FormError>}
                 </div>
-
                 {/* Department */}
                 <div className='space-y-2'>
                     <Label className='font-medium text-sm'>
@@ -94,7 +88,6 @@ export function CarryForwardForm({
                     />
                     {errors.department && <FormError>{String(errors.department.message)}</FormError>}
                 </div>
-
                 {/* Designation */}
                 <div className='space-y-2'>
                     <Label className='font-medium text-sm'>
@@ -116,7 +109,6 @@ export function CarryForwardForm({
                     />
                     {errors.designation && <FormError>{String(errors.designation.message)}</FormError>}
                 </div>
-
                 {/* Grade */}
                 <div className='space-y-2'>
                     <Label className='font-medium text-sm'>Grade</Label>
@@ -135,7 +127,6 @@ export function CarryForwardForm({
                     />
                 </div>
             </div>
-
             {/* Leave Name and Number of Days */}
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                 <div>
@@ -163,7 +154,6 @@ export function CarryForwardForm({
                     />
                     {errors.leaveName && <FormError>{String(errors.leaveName.message)}</FormError>}
                 </div>
-
                 <div>
                     <Label htmlFor='no-of-days-input' className='font-medium text-sm'>
                         Number of Days <span className='text-red-500'>*</span>
@@ -186,7 +176,6 @@ export function CarryForwardForm({
                     {errors.noOfDays && <FormError>{String(errors.noOfDays.message)}</FormError>}
                 </div>
             </div>
-
             {/* Max Leave Applicable */}
             <div className='space-y-2'>
                 <div className='flex items-center space-x-2'>
@@ -201,7 +190,6 @@ export function CarryForwardForm({
                         Max Leave Applicable
                     </Label>
                 </div>
-
                 {maxLeaveApplicableEnabled && (
                     <div>
                         <Controller
@@ -223,7 +211,6 @@ export function CarryForwardForm({
                     </div>
                 )}
             </div>
-
             {/* Action Buttons */}
             <div className='flex justify-center gap-2 border-t pt-4'>
                 {onPrevious && (

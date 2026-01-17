@@ -4,11 +4,7 @@
 // 2. Import form from _components/checklist-form.tsx
 // 3. Extract column definitions and form to the respective files
 // 4. Update handlers to use the new structure
-
 'use client';
-
-import { useEffect, useMemo, useRef, useState } from 'react';
-
 import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -18,8 +14,8 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, X } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
-
 type ChecklistItem = {
     id: string;
     title: string;
@@ -30,14 +26,12 @@ type ChecklistItem = {
     isCompulsory: boolean;
     isActive: boolean;
 };
-
 type Approver = {
     id: string;
     company: string;
     department: string;
     designation: string;
 };
-
 type ChecklistFormData = {
     title: string;
     checklistType: string;
@@ -48,14 +42,12 @@ type ChecklistFormData = {
     isCompulsory: boolean;
     approvers: Approver[];
 };
-
 export default function ChecklistMasterPage() {
     const [items, setItems] = useState<ChecklistItem[]>([]);
     const [search, setSearch] = useState('');
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<ChecklistItem | null>(null);
     const formRef = useRef<HTMLDivElement>(null);
-
     const {
         register,
         handleSubmit,
@@ -70,9 +62,7 @@ export default function ChecklistMasterPage() {
             approvers: []
         }
     });
-
     const [approvers, setApprovers] = useState<Approver[]>([]);
-
     useEffect(() => {
         const seed: ChecklistItem[] = [
             {
@@ -88,7 +78,6 @@ export default function ChecklistMasterPage() {
         ];
         setItems(seed);
     }, []);
-
     const filtered = useMemo(() => {
         const q = search.trim().toLowerCase();
         if (!q) return items;
@@ -101,13 +90,11 @@ export default function ChecklistMasterPage() {
                 x.company.toLowerCase().includes(q)
         );
     }, [items, search]);
-
     const handleAddClick = () => {
         setEditingItem(null);
         reset();
         setIsFormOpen(true);
     };
-
     const handleEditClick = (item: ChecklistItem) => {
         setEditingItem(item);
         setValue('title', item.title);
@@ -120,14 +107,12 @@ export default function ChecklistMasterPage() {
         setApprovers([]);
         setIsFormOpen(true);
     };
-
     const handleFormClose = () => {
         setIsFormOpen(false);
         setEditingItem(null);
         setApprovers([]);
         reset();
     };
-
     const addApprover = () => {
         const newApprover: Approver = {
             id: Date.now().toString(),
@@ -137,21 +122,17 @@ export default function ChecklistMasterPage() {
         };
         setApprovers((prev) => [...prev, newApprover]);
     };
-
     const removeApprover = (id: string) => {
         setApprovers((prev) => prev.filter((approver) => approver.id !== id));
     };
-
     const updateApprover = (id: string, field: keyof Approver, value: string) => {
         setApprovers((prev) => prev.map((approver) => (approver.id === id ? { ...approver, [field]: value } : approver)));
     };
-
     const onSubmit = (data: ChecklistFormData) => {
         const itemData = {
             ...data,
             approvers: approvers
         };
-
         if (editingItem) {
             // Update existing item
             setItems((prev) => prev.map((item) => (item.id === editingItem.id ? { ...item, ...itemData, isActive: item.isActive } : item)));
@@ -166,7 +147,6 @@ export default function ChecklistMasterPage() {
         }
         handleFormClose();
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -187,7 +167,6 @@ export default function ChecklistMasterPage() {
                         Add New Checklist
                     </Button>
                 </div>
-
                 {/* Search and Filters */}
                 <div className='flex items-center justify-between gap-3'>
                     <Input
@@ -197,7 +176,6 @@ export default function ChecklistMasterPage() {
                         className='max-w-sm'
                     />
                 </div>
-
                 {/* Data Table */}
                 <div className='space-y-4'>
                     <GenericDataTable
@@ -261,7 +239,6 @@ export default function ChecklistMasterPage() {
                         isLoading={false}
                     />
                 </div>
-
                 {/* Add/Edit Form Section */}
                 {isFormOpen && (
                     <div ref={formRef} className='slide-in-from-top-4 animate-in duration-300'>
@@ -283,7 +260,6 @@ export default function ChecklistMasterPage() {
                                     className='-top-[4rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                     <X className='h-4 w-4 text-destructive' /> Close
                                 </Button>
-
                                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                                     <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                                         {/* Checklist Title */}
@@ -298,7 +274,6 @@ export default function ChecklistMasterPage() {
                                                 error={errors.title?.message}
                                             />
                                         </div>
-
                                         {/* Checklist Type */}
                                         <div className='space-y-2'>
                                             <label htmlFor='checklist-type-select' className='font-medium text-gray-700 text-sm'>
@@ -320,7 +295,6 @@ export default function ChecklistMasterPage() {
                                             </Select>
                                             {errors.checklistType && <p className='text-red-500 text-sm'>{errors.checklistType.message}</p>}
                                         </div>
-
                                         {/* Remark */}
                                         <div className='space-y-2 md:col-span-2'>
                                             <label htmlFor='remark-textarea' className='font-medium text-gray-700 text-sm'>
@@ -334,7 +308,6 @@ export default function ChecklistMasterPage() {
                                                 {...register('remark')}
                                             />
                                         </div>
-
                                         {/* Company */}
                                         <div className='space-y-2'>
                                             <label htmlFor='company-select' className='font-medium text-gray-700 text-sm'>
@@ -354,7 +327,6 @@ export default function ChecklistMasterPage() {
                                             </Select>
                                             {errors.company && <p className='text-red-500 text-sm'>{errors.company.message}</p>}
                                         </div>
-
                                         {/* Department */}
                                         <div className='space-y-2'>
                                             <label htmlFor='department-select' className='font-medium text-gray-700 text-sm'>
@@ -373,7 +345,6 @@ export default function ChecklistMasterPage() {
                                             </Select>
                                             {errors.department && <p className='text-red-500 text-sm'>{errors.department.message}</p>}
                                         </div>
-
                                         {/* Designation */}
                                         <div className='space-y-2'>
                                             <label htmlFor='designation-select' className='font-medium text-gray-700 text-sm'>
@@ -392,7 +363,6 @@ export default function ChecklistMasterPage() {
                                             </Select>
                                             {errors.designation && <p className='text-red-500 text-sm'>{errors.designation.message}</p>}
                                         </div>
-
                                         {/* Compulsory Flag */}
                                         <div className='space-y-2'>
                                             <div className='flex items-center space-x-2'>
@@ -407,7 +377,6 @@ export default function ChecklistMasterPage() {
                                             </div>
                                         </div>
                                     </div>
-
                                     {/* Approval Checklist Settings */}
                                     <div className='space-y-4'>
                                         <h3 className='font-semibold text-gray-800 text-lg'>APPROVAL CHICKLIST SETTINGS</h3>
@@ -514,7 +483,6 @@ export default function ChecklistMasterPage() {
                                             </table>
                                         </div>
                                     </div>
-
                                     {/* Form Actions */}
                                     <div className='flex justify-end gap-3 pt-4'>
                                         <Button
@@ -541,7 +509,6 @@ export default function ChecklistMasterPage() {
                         </CollapsibleSection>
                     </div>
                 )}
-
                 <div className='text-muted-foreground text-sm'>Need to configure approvers? Add them from the form in the next phase.</div>
             </div>
         </div>

@@ -202,7 +202,7 @@ export interface ICategoryClassMappingDetails {
     asmC_SectionName: string;
     asmC_MaxCapacity: number;
     asmC_Order: number;
-    asmC_ActiveFlag: boolean;
+    ecaC_ActiveFlag: boolean;
 }
 export interface ICoScholasticActivity {
     ecacT_Id: number;

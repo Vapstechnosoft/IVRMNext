@@ -1,74 +1,177 @@
 'use client';
-
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { FormError, Label } from '@/components/ui/extension/field';
-import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
+import { DateField } from '@/components/ui/dateField';
+import { Label } from '@/components/ui/extension/field';
+import { InputText } from '@/components/ui/extension/input-text';
+import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useEmployeeOnload, useSaveEmployee } from '@/hooks/hrms/useEmployee';
+import { useStateDropdown } from '@/hooks/hrms/useEmployeeRegister';
+import {
+    useBankDropdown,
+    useBloodGroupDropdown,
+    useCasteCategoryDropdown,
+    useCasteDropdown,
+    useContactTypeDropdown,
+    useCountryDropdown,
+    useCourseDropdown,
+    useDesignationDropdown,
+    useEmployeeTypeDropdown,
+    useGenderDropdown,
+    useGradeDropdown,
+    useGroupTypeDropdown,
+    useInstitutionDropdown,
+    useLeaveReasonDropdown,
+    useMaritalStatusDropdown,
+    usePaymentModeDropdown,
+    useReligionDropdown,
+    useSalaryTypeDropdown,
+    useSaveEmployee,
+    useSaveEmployeeExperience,
+    useSaveEmployeeQualification,
+    useScoreTypeDropdown,
+    useSpecializationDropdown,
+    useTeachingTypeDropdown
+} from '@/hooks/hrms/useEmployeeRegister';
+import { getIconByName } from '@/lib/lucide-icon-registry';
+import { cn } from '@/lib/utils';
+import { employeeRegisterSchemas } from '@/schemas/hrms/employee-register-schemas';
+import type { SavePersonalDetailsApiRequest } from '@/types/hrms/employee-register';
+import type {
+    IBankDropdown,
+    IBloodGroupDropdown,
+    ICasteCategoryDropdown,
+    ICasteDropdown,
+    IContactTypeDropdown,
+    ICountryDropdown,
+    ICourseDropdown,
+    IDesignationDropdown,
+    IEmployeeTypeDropdown,
+    IGenderDropdown,
+    IGradeDropdown,
+    IGroupTypeDropdown,
+    IInstitutionDropdown,
+    ILeaveReasonDropdown,
+    IMaritalStatusDropdown,
+    IPaymentModeDropdown,
+    IReligionDropdown,
+    ISalaryTypeDropdown,
+    IScoreTypeDropdown,
+    ISpecializationDropdown,
+    IStateDropdown,
+    ITeachingTypeDropdown
+} from '@/types/hrms/hrms-config/employee';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { Check, ChevronLeft, ChevronRight, Plus, Save, Trash2, Upload, X } from 'lucide-react';
+import type React from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
+import { toast } from 'sonner';
+import type { z } from 'zod';
+import {
+    employeeRegisterSteps,
+    mapFormDataToApiFormat,
+    mapFormDataToApiFormatWithoutAddress,
+    tabFieldMap
+} from './employee-register-helper';
+import { PayrollTab } from './payroll-tab';
 
-// Safe SelectItem wrapper that prevents empty string values - ABSOLUTE PROTECTION
-const SafeSelectItem = ({ value, children, ...props }: { value: any; children: React.ReactNode; [key: string]: any }) => {
-    // ABSOLUTE CHECK: If value is null, undefined, or empty string, don't render
+// Helper component for Qualification State Dropdown (needs to be separate component to use hooks)
+function QualificationStateDropdown({
+    control,
+    index,
+    countryId,
+    setValue,
+    fallbackStates = []
+}: {
+    control: any;
+    index: number;
+    countryId: string | null;
+    setValue?: any;
+    fallbackStates?: any[];
+}) {
+    const countryIdNum = countryId ? (Number.isNaN(Number(countryId)) ? null : Number(countryId)) : null;
+    const { data: fetchedStates = [], isLoading } = useStateDropdown(countryIdNum);
+    const availableStates: IStateDropdown[] = countryIdNum
+        ? Array.isArray(fetchedStates)
+            ? fetchedStates
+            : []
+        : (fallbackStates as IStateDropdown[]);
+    const prevCountryIdRef = useRef<string | null>(countryId);
+    useEffect(() => {
+        if (!setValue) return;
+        if (prevCountryIdRef.current !== countryId) {
+            prevCountryIdRef.current = countryId;
+            setValue(`qualificationDetails.${index}.qualificationState`, '', {
+                shouldValidate: false
+            });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [countryId, index, setValue]);
+    return (
+        <Controller
+            name={`qualificationDetails.${index}.qualificationState`}
+            control={control}
+            render={({ field }) => (
+                <div className='flex flex-col gap-1.5'>
+                    <Label>State*</Label>
+                    <Select onValueChange={field.onChange} value={field.value || ''}>
+                        <SelectTrigger className='h-9'>
+                            <SelectValue placeholder='Select State' />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {isLoading ? (
+                                <SelectItem value='loading' disabled>
+                                    Loading states...
+                                </SelectItem>
+                            ) : (
+                                availableStates
+                                    .filter((state: IStateDropdown) => {
+                                        return state.key != null && state.key !== undefined && state.key !== 0;
+                                    })
+                                    .map((state: IStateDropdown) => {
+                                        const key = state.key?.toString().trim();
+                                        if (!key || key === '') return null;
+                                        const value = state.value || String(state.key);
+                                        return (
+                                            <SelectItem key={`qual-state-${index}-${state.key}`} value={key} textValue={value}>
+                                                {value}
+                                            </SelectItem>
+                                        );
+                                    })
+                                    .filter(Boolean)
+                            )}
+                        </SelectContent>
+                    </Select>
+                </div>
+            )}
+        />
+    );
+}
+
+// Helper functions for SelectItem - prevents empty string values
+const SafeSelectItem = ({
+    value,
+    children,
+    ...props
+}: {
+    value: any;
+    children: React.ReactNode;
+    [key: string]: any;
+}) => {
     if (value == null || value === undefined || value === '') {
-        console.error('🔴 [SafeSelectItem - add-form] EMPTY VALUE DETECTED:', {
-            value,
-            valueType: typeof value,
-            props: Object.keys(props),
-            children: typeof children === 'string' ? children : 'ReactNode',
-            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
-        });
         return null;
     }
-
-    // Convert to string
     const strValue = String(value);
-
-    // ABSOLUTE CHECK: If string is empty or only whitespace, don't render
     if (strValue === '' || strValue.trim() === '' || strValue.length === 0) {
-        console.error('🔴 [SafeSelectItem - add-form] EMPTY STRING DETECTED:', {
-            originalValue: value,
-            strValue,
-            strValueLength: strValue.length,
-            trimmed: strValue.trim(),
-            props: Object.keys(props),
-            children: typeof children === 'string' ? children : 'ReactNode',
-            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
-        });
         return null;
     }
-
     const trimmedValue = strValue.trim();
-
-    // FINAL ABSOLUTE CHECK: If trimmed is empty, don't render
     if (trimmedValue === '' || trimmedValue.length === 0) {
-        console.error('🔴 [SafeSelectItem - add-form] EMPTY TRIMMED VALUE DETECTED:', {
-            originalValue: value,
-            strValue,
-            trimmedValue,
-            trimmedLength: trimmedValue.length,
-            props: Object.keys(props),
-            children: typeof children === 'string' ? children : 'ReactNode',
-            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
-        });
         return null;
     }
-
-    // FINAL FINAL CHECK: Double-check trimmedValue is not empty before rendering
-    if (!trimmedValue || trimmedValue === '' || trimmedValue.length === 0) {
-        console.error('🔴 [SafeSelectItem - add-form] FINAL CHECK FAILED - trimmedValue is empty:', {
-            originalValue: value,
-            strValue,
-            trimmedValue,
-            trimmedLength: trimmedValue?.length,
-            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
-        });
-        return null;
-    }
-
-    // Only render if we have a valid non-empty string
     return (
         <SelectItem {...props} value={trimmedValue}>
             {children}
@@ -76,647 +179,5072 @@ const SafeSelectItem = ({ value, children, ...props }: { value: any; children: R
     );
 };
 
-// Helper function to ensure SelectItem value is never empty string
-const ensureNonEmptyValue = (value: any): string | null => {
-    if (value == null) return null;
-    const str = String(value).trim();
-    return str !== '' ? str : null;
+// Helper function to render dropdown options with loading state
+const renderDropdownOptions = <T extends { key?: any; value?: any }>(
+    items: T[],
+    isLoading: boolean,
+    renderItem: (item: T) => React.ReactNode,
+    loadingText = 'Loading...'
+) => {
+    if (isLoading) {
+        return (
+            <SelectItem value='__loading__' disabled>
+                {loadingText}
+            </SelectItem>
+        );
+    }
+    if (items.length === 0) {
+        return (
+            <SelectItem value='__no_options__' disabled>
+                No options available
+            </SelectItem>
+        );
+    }
+    return items.map(renderItem).filter(Boolean);
 };
-import { Save } from 'lucide-react';
-import { useMemo } from 'react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
-import { toast } from 'sonner';
-import * as z from 'zod';
 
-const formSchema = z.object({
-    HRME_EmployeeFirstName: z.string().min(1, 'First name is required'),
-    HRME_EmployeeMiddleName: z.string().optional(),
-    HRME_EmployeeLastName: z.string().optional(),
-    HRME_EmployeeCode: z.string().min(1, 'Employee code is required'),
-    HRMET_Id: z.number().min(1, 'Please select employee type'),
-    HRMGT_Id: z.number().optional(),
-    HRMD_Id: z.number().optional(),
-    HRMDES_Id: z.number().optional(),
-    HRMG_Id: z.number().optional(),
-    HRME_DOB: z.string().optional(),
-    HRME_DOJ: z.string().optional(),
-    IVRMMG_Id: z.number().optional(),
-    IVRMMMS_Id: z.number().optional(),
-    ReligionId: z.number().optional(),
-    HRME_MobileNo: z.string().optional(),
-    HRME_EmailId: z.string().email().optional().or(z.literal('')),
-    HRME_FatherName: z.string().optional(),
-    HRME_MotherName: z.string().optional(),
-    HRME_BloodGroup: z.string().optional(),
-    HRME_PFApplicableFlag: z.boolean().optional(),
-    HRME_ESIApplicableFlag: z.boolean().optional(),
-    HRME_TechNonTeachingFlg: z.boolean().optional(),
-    HRME_ActiveFlag: z.boolean().optional()
-});
+// Type definition using imported schema
+type FormFields = z.infer<typeof employeeRegisterSchemas.add>;
 
-type FormFields = z.infer<typeof formSchema>;
+const steps = employeeRegisterSteps;
 
 interface AddEmployeeFormProps {
-    onSuccess: () => void;
+    onSuccess?: () => void;
     className?: string;
 }
 
-export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmployeeFormProps) {
-    const { data: onloadData } = useEmployeeOnload();
-    const { mutate: saveEmployee, isPending } = useSaveEmployee();
+/**
+ * Add Employee Form - Standalone form for adding new employees
+ * Matches the pattern from preadmission application-form add-form
+ * No edit logic - only add mode
+ */
+export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmployeeFormProps): React.ReactElement {
+    // Grade dropdown - API: /api/MasterDropDown/GetGradeList
+    const { data: gradeDropdownResponse, isLoading: isLoadingGrades } = useGradeDropdown();
+    // Extract data from response (handle ApiResponse wrapper if needed)
+    const gradeDropdown: IGradeDropdown[] = Array.isArray(gradeDropdownResponse)
+        ? gradeDropdownResponse
+        : (gradeDropdownResponse as any)?.data || [];
 
-    const {
-        control,
-        register,
-        handleSubmit,
-        reset,
-        formState: { errors, isSubmitting }
-    } = useForm<FormFields>({
-        resolver: zodResolver(formSchema),
-        mode: 'onChange',
-        defaultValues: {
-            HRME_EmployeeFirstName: '',
-            HRME_EmployeeMiddleName: '',
-            HRME_EmployeeLastName: '',
-            HRME_EmployeeCode: '',
-            HRMET_Id: 0,
-            HRMGT_Id: 0,
-            HRMD_Id: 0,
-            HRMDES_Id: 0,
-            HRMG_Id: 0,
-            IVRMMG_Id: 0,
-            IVRMMMS_Id: 0,
-            ReligionId: 0,
-            HRME_MobileNo: '',
-            HRME_EmailId: '',
-            HRME_FatherName: '',
-            HRME_MotherName: '',
-            HRME_BloodGroup: '',
-            HRME_PFApplicableFlag: false,
-            HRME_ESIApplicableFlag: false,
-            HRME_TechNonTeachingFlg: false,
-            HRME_ActiveFlag: true
+    // Group Type dropdown - API: /api/MasterDropDown/GroupType
+    const { data: groupTypeDropdownResponse, isLoading: isLoadingGroupTypes } = useGroupTypeDropdown();
+    // Extract data from response (handle ApiResponse wrapper if needed)
+    const groupTypeDropdown: IGroupTypeDropdown[] = Array.isArray(groupTypeDropdownResponse)
+        ? groupTypeDropdownResponse
+        : (groupTypeDropdownResponse as any)?.data || [];
+
+    // Employee Type dropdown - API: /api/MasterDropDown/GetEmployeeType
+    const { data: employeeTypeDropdownResponse, isLoading: isLoadingEmployeeTypes } = useEmployeeTypeDropdown();
+    // Extract data from response (handle ApiResponse wrapper if needed)
+    const employeeTypeDropdown: IEmployeeTypeDropdown[] = Array.isArray(employeeTypeDropdownResponse)
+        ? employeeTypeDropdownResponse
+        : (employeeTypeDropdownResponse as any)?.data || [];
+
+    // Institution dropdown - API: /api/MasterDropDown/GetInstitutionList
+    const { data: institutionDropdownResponse, isLoading: isLoadingInstitutions } = useInstitutionDropdown();
+    // Extract data from response (handle ApiResponse wrapper if needed)
+    const institutionDropdown: IInstitutionDropdown[] = Array.isArray(institutionDropdownResponse)
+        ? institutionDropdownResponse
+        : (institutionDropdownResponse as any)?.data || [];
+
+    // Designation dropdown - API: /api/MasterDropDown/GetDesignation
+    const { data: designationDropdownResponse, isLoading: isLoadingDesignations } = useDesignationDropdown();
+    // Extract data from response (handle ApiResponse wrapper if needed)
+    const designationDropdown: IDesignationDropdown[] = Array.isArray(designationDropdownResponse)
+        ? designationDropdownResponse
+        : (designationDropdownResponse as any)?.data || [];
+
+    // Gender dropdown - API: /api/MasterDropDown/GetGenderList
+    const { data: genderDropdownResponse, isLoading: isLoadingGenders } = useGenderDropdown();
+    const genderDropdown: IGenderDropdown[] = Array.isArray(genderDropdownResponse)
+        ? genderDropdownResponse
+        : (genderDropdownResponse as any)?.data || [];
+
+    // Marital Status dropdown - API: /api/MasterDropDown/GetMaritalStateList
+    const { data: maritalStatusDropdownResponse, isLoading: isLoadingMaritalStatuses } = useMaritalStatusDropdown();
+    const maritalStatusDropdown: IMaritalStatusDropdown[] = Array.isArray(maritalStatusDropdownResponse)
+        ? maritalStatusDropdownResponse
+        : (maritalStatusDropdownResponse as any)?.data || [];
+
+    // Religion dropdown - API: /api/MasterDropDown/GeAllReligionList
+    const { data: religionDropdownResponse, isLoading: isLoadingReligions } = useReligionDropdown();
+    const religionDropdown: IReligionDropdown[] = Array.isArray(religionDropdownResponse)
+        ? religionDropdownResponse
+        : (religionDropdownResponse as any)?.data || [];
+
+    // Caste Category dropdown - API: /api/MasterDropDown/GeAllCasteCategoriesList
+    const { data: casteCategoryDropdownResponse, isLoading: isLoadingCasteCategories } = useCasteCategoryDropdown();
+    const casteCategoryDropdown: ICasteCategoryDropdown[] = Array.isArray(casteCategoryDropdownResponse)
+        ? casteCategoryDropdownResponse
+        : (casteCategoryDropdownResponse as any)?.data || [];
+
+    // Caste dropdown - API: /api/MasterDropDown/GetAllCasteList
+    const { data: casteDropdownResponse, isLoading: isLoadingCastes } = useCasteDropdown();
+    const casteDropdown: ICasteDropdown[] = Array.isArray(casteDropdownResponse)
+        ? casteDropdownResponse
+        : (casteDropdownResponse as any)?.data || [];
+
+    // Payment Mode dropdown - API: /api/MasterDropDown/GetPaymentModeList
+    const { data: paymentModeDropdownResponse, isLoading: isLoadingPaymentModes } = usePaymentModeDropdown();
+    const paymentModeDropdown: IPaymentModeDropdown[] = Array.isArray(paymentModeDropdownResponse)
+        ? paymentModeDropdownResponse
+        : (paymentModeDropdownResponse as any)?.data || [];
+
+    // Bank dropdown - API: /api/MasterDropDown/GetBankList
+    const { data: bankDropdownResponse, isLoading: isLoadingBanks } = useBankDropdown();
+    const bankDropdown: IBankDropdown[] = Array.isArray(bankDropdownResponse)
+        ? bankDropdownResponse
+        : (bankDropdownResponse as any)?.data || [];
+
+    // Country dropdown - API: /api/MasterDropDown/GetCountryList
+    const { data: countryDropdownResponse, isLoading: isLoadingCountries } = useCountryDropdown();
+    const countryDropdown: ICountryDropdown[] = Array.isArray(countryDropdownResponse)
+        ? countryDropdownResponse
+        : (countryDropdownResponse as any)?.data || [];
+
+    // Specialization dropdown - API: /api/MasterDropDown/GetSpecialisationList
+    const { data: specializationDropdownResponse, isLoading: isLoadingSpecializations } = useSpecializationDropdown();
+    const specializationDropdown: ISpecializationDropdown[] = Array.isArray(specializationDropdownResponse)
+        ? specializationDropdownResponse
+        : (specializationDropdownResponse as any)?.data || [];
+
+    // Leave Reason dropdown - API: /api/MasterDropDown/GetLeaveReasonList
+    const { data: leaveReasonDropdownResponse, isLoading: isLoadingLeaveReasons } = useLeaveReasonDropdown();
+    const leaveReasonDropdown: ILeaveReasonDropdown[] = Array.isArray(leaveReasonDropdownResponse)
+        ? leaveReasonDropdownResponse
+        : (leaveReasonDropdownResponse as any)?.data || [];
+
+    // Blood Group dropdown - API: /api/MasterDropDown/GetBloodGroupList
+    const { data: bloodGroupDropdownResponse, isLoading: isLoadingBloodGroups } = useBloodGroupDropdown();
+    const bloodGroupDropdown: IBloodGroupDropdown[] = Array.isArray(bloodGroupDropdownResponse)
+        ? bloodGroupDropdownResponse
+        : (bloodGroupDropdownResponse as any)?.data || [];
+
+    // Salary Type dropdown - API: /api/MasterDropDown/GetSalaryTypeList
+    const { data: salaryTypeDropdownResponse, isLoading: isLoadingSalaryTypes } = useSalaryTypeDropdown();
+    const salaryTypeDropdown: ISalaryTypeDropdown[] = Array.isArray(salaryTypeDropdownResponse)
+        ? salaryTypeDropdownResponse
+        : (salaryTypeDropdownResponse as any)?.data || [];
+
+    // Teaching Type dropdown - API: /api/MasterDropDown/GetTeachingTypeList
+    const { data: teachingTypeDropdownResponse, isLoading: isLoadingTeachingTypes } = useTeachingTypeDropdown();
+    const teachingTypeDropdown: ITeachingTypeDropdown[] = Array.isArray(teachingTypeDropdownResponse)
+        ? teachingTypeDropdownResponse
+        : (teachingTypeDropdownResponse as any)?.data || [];
+
+    // Score Type dropdown - API: /api/MasterDropDown/ScoreTypeList
+    const { data: scoreTypeDropdownResponse, isLoading: isLoadingScoreTypes } = useScoreTypeDropdown();
+    const scoreTypeDropdown: IScoreTypeDropdown[] = Array.isArray(scoreTypeDropdownResponse)
+        ? scoreTypeDropdownResponse
+        : (scoreTypeDropdownResponse as any)?.data || [];
+
+    // Contact Type dropdown - API: /api/MasterDropDown/GetContactType
+    const { data: contactTypeDropdownResponse, isLoading: isLoadingContactTypes } = useContactTypeDropdown();
+    const contactTypeDropdown: IContactTypeDropdown[] = Array.isArray(contactTypeDropdownResponse)
+        ? contactTypeDropdownResponse
+        : (contactTypeDropdownResponse as any)?.data || [];
+
+    // Course dropdown - API: /api/MasterDropDown/GetCourseList
+    const { data: courseDropdownResponse, isLoading: isLoadingCourses } = useCourseDropdown();
+    const courseDropdown: ICourseDropdown[] = Array.isArray(courseDropdownResponse)
+        ? courseDropdownResponse
+        : (courseDropdownResponse as any)?.data || [];
+
+    // Options object - Multiple dropdowns are integrated, others will be added one by one as APIs are provided
+    const options = useMemo(() => {
+        return {
+            grades: gradeDropdown || [],
+            groupTypes: groupTypeDropdown || [],
+            empTypes: employeeTypeDropdown || [],
+            institutions: institutionDropdown || [],
+            designations: designationDropdown || [],
+            genders: genderDropdown || [],
+            maritalStatuses: maritalStatusDropdown || [],
+            religions: religionDropdown || [],
+            casteCategories: casteCategoryDropdown || [],
+            castes: casteDropdown || [],
+            modeOfPayment: paymentModeDropdown || [],
+            banks: bankDropdown || [],
+            departments: [],
+            countries: countryDropdown || [],
+            states: [],
+            courses: courseDropdown || [],
+            specialisations: specializationDropdown || [],
+            teachingNonTeaching: teachingTypeDropdown || [],
+            bloodGroups: bloodGroupDropdown || [],
+            salaryTypes: salaryTypeDropdown || [],
+            addressTypes: [],
+            phoneTypes: contactTypeDropdown || [],
+            contactTypes: contactTypeDropdown || [],
+            cgpaPercentageTypes: scoreTypeDropdown || [],
+            leavingReasons: leaveReasonDropdown || [],
+            earningList: [],
+            detectionList: [],
+            arrearList: [],
+            grossList: [],
+            documentList: [],
+            employeedetailList: []
+        };
+    }, [
+        gradeDropdown,
+        groupTypeDropdown,
+        employeeTypeDropdown,
+        institutionDropdown,
+        designationDropdown,
+        genderDropdown,
+        maritalStatusDropdown,
+        religionDropdown,
+        casteCategoryDropdown,
+        casteDropdown,
+        paymentModeDropdown,
+        bankDropdown,
+        countryDropdown,
+        courseDropdown,
+        specializationDropdown,
+        leaveReasonDropdown,
+        bloodGroupDropdown,
+        salaryTypeDropdown,
+        teachingTypeDropdown,
+        scoreTypeDropdown
+    ]);
+
+    // Loading states object for individual dropdowns
+    const dropdownLoadingStates = useMemo(() => {
+        return {
+            grades: isLoadingGrades,
+            groupTypes: isLoadingGroupTypes,
+            empTypes: isLoadingEmployeeTypes,
+            institutions: isLoadingInstitutions,
+            designations: isLoadingDesignations,
+            genders: isLoadingGenders,
+            maritalStatuses: isLoadingMaritalStatuses,
+            religions: isLoadingReligions,
+            casteCategories: isLoadingCasteCategories,
+            castes: isLoadingCastes,
+            modeOfPayment: isLoadingPaymentModes,
+            banks: isLoadingBanks,
+            countries: isLoadingCountries,
+            courses: isLoadingCourses,
+            specialisations: isLoadingSpecializations,
+            teachingNonTeaching: isLoadingTeachingTypes,
+            bloodGroups: isLoadingBloodGroups,
+            salaryTypes: isLoadingSalaryTypes,
+            cgpaPercentageTypes: isLoadingScoreTypes,
+            contactTypes: isLoadingContactTypes,
+            leavingReasons: isLoadingLeaveReasons
+        };
+    }, [
+        isLoadingGrades,
+        isLoadingGroupTypes,
+        isLoadingEmployeeTypes,
+        isLoadingInstitutions,
+        isLoadingDesignations,
+        isLoadingGenders,
+        isLoadingMaritalStatuses,
+        isLoadingReligions,
+        isLoadingCasteCategories,
+        isLoadingCastes,
+        isLoadingPaymentModes,
+        isLoadingBanks,
+        isLoadingCountries,
+        isLoadingCourses,
+        isLoadingSpecializations,
+        isLoadingTeachingTypes,
+        isLoadingBloodGroups,
+        isLoadingSalaryTypes,
+        isLoadingScoreTypes,
+        isLoadingContactTypes,
+        isLoadingLeaveReasons
+    ]);
+
+    const { mutate: saveEmployeeMutation, isPending } = useSaveEmployee();
+    const { mutate: saveQualificationDetails, isPending: isSavingQualification } = useSaveEmployeeQualification();
+    const { mutate: saveExperienceDetails, isPending: isSavingExperience } = useSaveEmployeeExperience();
+    const savePersonalDetails = saveEmployeeMutation;
+    const saveDocumentDetails = saveEmployeeMutation;
+    const saveMedicalDetails = saveEmployeeMutation;
+    const _saveBankDetails = saveEmployeeMutation;
+    const isSavingDocument = isPending;
+    const isSavingMedical = isPending;
+    const isSavingBank = isPending;
+
+    // Add form - no edit mode (removed isEditMode variable - not needed)
+    const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+    const [_photoFile, setPhotoFile] = useState<File | null>(null);
+    const [currentStep, setCurrentStep] = useState(1);
+    const [savedEmployeeId, setSavedEmployeeId] = useState<number | null>(null);
+
+    // Helper to get current tab key from step
+    const getCurrentTabKey = () => steps.find((s) => s.id === currentStep)?.tabKey || 'employee';
+
+    // Function to go to previous step
+    const prevStep = () => {
+        setCurrentStep((prev) => Math.max(prev - 1, 1));
+    };
+
+    // Function to go to next step
+    const nextStep = async () => {
+        const currentTabKey = getCurrentTabKey();
+        const currentTabFields = tabFieldMap[currentTabKey] || [];
+
+        console.log('🔍 [DEBUG] nextStep - Current Tab Key:', currentTabKey);
+        console.log('🔍 [DEBUG] nextStep - Current Step:', currentStep);
+        console.log('🔍 [DEBUG] nextStep - Fields to validate:', currentTabFields);
+
+        if (currentTabFields.length > 0) {
+            const isValid = await trigger(currentTabFields as any);
+            console.log('🔍 [DEBUG] nextStep - Validation result:', isValid);
+            if (!isValid) {
+                console.error('❌ [DEBUG] nextStep - Validation failed, not proceeding');
+                const formErrors = getValues();
+                console.error('❌ [DEBUG] nextStep - Form errors:', errors);
+                return;
+            }
         }
-    });
 
-    const onSubmit: SubmitHandler<FormFields> = async (data) => {
-        saveEmployee(
-            {
-                HRME_Id: 0,
-                MI_Id: HRMS_MI_ID,
-                ...data,
-                HRME_MobileNo: data.HRME_MobileNo ? Number(data.HRME_MobileNo) : undefined,
-                LogInUserId: 5
-            },
-            {
-                onSuccess: (response) => {
-                    if (response.success) {
-                        toast.success(response.message || 'Employee added successfully');
-                        reset();
-                        onSuccess();
+        const data = getValues();
+        const currentStepId = currentStep;
+        console.log('🔍 [DEBUG] nextStep - Proceeding with step ID:', currentStepId);
+
+        // For steps 1 and 2, we need to save data via API before moving to next step
+        if (currentStepId === 1) {
+            // Employee Information tab - call /api/EmployeeRegistration/SavePersonalDetails
+            // Save employee details without address (address fields will be null)
+            const payload = mapFormDataToApiFormatWithoutAddressLocal(data);
+            payload.hrmE_Id = 0; // New record
+
+            console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Form Data:', data);
+            console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Payload:', payload);
+            console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Employee ID:', payload.hrmE_Id);
+            console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Address Fields Check (should be null/empty):');
+            console.log('  - Contact Address:', {
+                street: payload.hrmE_LocStreet,
+                area: payload.hrmE_LocArea,
+                city: payload.hrmE_LocCity,
+                stateId: payload.hrmE_LocStateId,
+                countryId: payload.hrmE_LocCountryId,
+                pincode: payload.hrmE_LocPincode
+            });
+            console.log('  - Permanent Address:', {
+                street: payload.hrmE_PerStreet,
+                area: payload.hrmE_PerArea,
+                city: payload.hrmE_PerCity,
+                stateId: payload.hrmE_PerStateId,
+                countryId: payload.hrmE_PerCountryId,
+                pincode: payload.hrmE_PerPincode
+            });
+            console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Calling savePersonalDetails...');
+
+            savePersonalDetails(payload, {
+                onSuccess: (response: any) => {
+                    console.log('✅ [DEBUG] Tab 1 (Employee Information) - Save Success:', response);
+                    console.log('🔍 [DEBUG] Tab 1 - Full API Response:', JSON.stringify(response, null, 2));
+                    console.log('🔍 [DEBUG] Tab 1 - Response Success:', response?.success);
+                    console.log('🔍 [DEBUG] Tab 1 - Response Message:', response?.message);
+                    console.log('🔍 [DEBUG] Tab 1 - Response Data:', response?.data);
+
+                    // Verify request vs response - compare key fields
+                    const responseData = response?.data || {};
+                    const mismatches: string[] = [];
+                    const keyFields = [
+                        { req: 'hrmeT_Id', res: 'hrmeT_Id' },
+                        { req: 'hrmgT_Id', res: 'hrmgT_Id' },
+                        { req: 'hrmD_Id', res: 'hrmD_Id' },
+                        { req: 'hrmdeS_Id', res: 'hrmdeS_Id' },
+                        { req: 'hrmG_Id', res: 'hrmG_Id' },
+                        { req: 'hrmE_EmployeeFirstName', res: 'hrmE_EmployeeFirstName' },
+                        { req: 'hrmE_EmployeeMiddleName', res: 'hrmE_EmployeeMiddleName' },
+                        { req: 'hrmE_EmployeeLastName', res: 'hrmE_EmployeeLastName' },
+                        { req: 'hrmE_EmployeeCode', res: 'hrmE_EmployeeCode' },
+                        { req: 'hrmE_FatherName', res: 'hrmE_FatherName' },
+                        { req: 'hrmE_MotherName', res: 'hrmE_MotherName' },
+                        { req: 'religionId', res: 'religionId' },
+                        { req: 'casteCategoryId', res: 'casteCategoryId' },
+                        { req: 'casteId', res: 'casteId' },
+                        { req: 'hrmE_BloodGroup', res: 'hrmE_BloodGroup' },
+                        { req: 'hrmE_SalaryType', res: 'hrmE_SalaryType' },
+                        { req: 'hrmE_PaymentType', res: 'hrmE_PaymentType' },
+                        { req: 'hrmE_MobileNo', res: 'hrmE_MobileNo' },
+                        { req: 'hrmE_EmailId', res: 'hrmE_EmailId' },
+                        { req: 'hrmE_PANCardNo', res: 'hrmE_PANCardNo' },
+                        { req: 'hrmE_AadharCardNo', res: 'hrmE_AadharCardNo' },
+                        { req: 'hrmE_NationalSSN', res: 'hrmE_NationalSSN' },
+                        { req: 'hrmE_TechNonTeachingFlg', res: 'hrmE_TechNonTeachingFlg' },
+                        { req: 'ivrmmG_Id', res: 'ivrmmG_Id' },
+                        { req: 'ivrmmmS_Id', res: 'ivrmmmS_Id' }
+                    ];
+
+                    console.log('🔍 [DEBUG] Tab 1 - Request vs Response Comparison:');
+                    keyFields.forEach(({ req, res }) => {
+                        const reqValue = payload[req as keyof typeof payload];
+                        const resValue = responseData[res as keyof typeof responseData];
+                        const match =
+                            reqValue === resValue ||
+                            (reqValue == null && resValue == null) ||
+                            (reqValue === 0 && resValue === 0) ||
+                            (reqValue === false && resValue === false);
+                        if (!match) {
+                            mismatches.push(`${req}: Request="${reqValue}" vs Response="${resValue}"`);
+                        }
+                        console.log(`  ${match ? '✅' : '❌'} ${req}: ${reqValue} → ${resValue}`);
+                    });
+
+                    // Check date fields (format might differ)
+                    const dateFields = [
+                        { req: 'hrmE_DOB', res: 'hrmE_DOB' },
+                        { req: 'hrmE_DOJ', res: 'hrmE_DOJ' },
+                        { req: 'hrmE_doc', res: 'hrmE_doc' },
+                        { req: 'hrmE_ExpectedRetirementDate', res: 'hrmE_ExpectedRetirementDate' }
+                    ];
+
+                    console.log('🔍 [DEBUG] Tab 1 - Date Fields Comparison:');
+                    dateFields.forEach(({ req, res }) => {
+                        const reqValue = payload[req as keyof typeof payload];
+                        const resValue = responseData[res as keyof typeof responseData];
+                        if (reqValue && resValue) {
+                            const reqDate = new Date(String(reqValue)).toISOString().split('T')[0];
+                            const resDate = new Date(String(resValue)).toISOString().split('T')[0];
+                            const match = reqDate === resDate;
+                            if (!match) {
+                                mismatches.push(`${req}: Request="${reqValue}" vs Response="${resValue}"`);
+                            }
+                            console.log(`  ${match ? '✅' : '❌'} ${req}: ${reqDate} → ${resDate}`);
+                        } else {
+                            console.log(`  ⚠️ ${req}: ${reqValue} → ${resValue} (one or both null)`);
+                        }
+                    });
+
+                    // Check payroll fields
+                    const payrollFields = [
+                        { req: 'hrmE_PFApplicableFlag', res: 'hrmE_PFApplicableFlag' },
+                        { req: 'hrmE_PFMaxFlag', res: 'hrmE_PFMaxFlag' },
+                        { req: 'hrmE_PFFixedFlag', res: 'hrmE_PFFixedFlag' },
+                        { req: 'hrmE_PFAccNo', res: 'hrmE_PFAccNo' },
+                        { req: 'hrmE_UINumber', res: 'hrmE_UINumber' },
+                        { req: 'hrmE_ESIApplicableFlag', res: 'hrmE_ESIApplicableFlag' },
+                        { req: 'hrmE_ESIAccNo', res: 'hrmE_ESIAccNo' },
+                        { req: 'hrmE_GratuityAccNo', res: 'hrmE_GratuityAccNo' },
+                        { req: 'hrmE_EPFNotApplicableFlg', res: 'hrmE_EPFNotApplicableFlg' },
+                        { req: 'hrmE_FPFNotApplicableFlg', res: 'hrmE_FPFNotApplicableFlg' },
+                        { req: 'hrmE_PHDResearchGuideFlg', res: 'hrmE_PHDResearchGuideFlg' },
+                        { req: 'hrmE_RGRecognitionYear', res: 'hrmE_RGRecognitionYear' }
+                    ];
+
+                    console.log('🔍 [DEBUG] Tab 1 - Payroll Fields Comparison:');
+                    payrollFields.forEach(({ req, res }) => {
+                        const reqValue = payload[req as keyof typeof payload];
+                        const resValue = responseData[res as keyof typeof responseData];
+                        const match =
+                            reqValue === resValue ||
+                            (reqValue == null && resValue == null) ||
+                            (reqValue === 0 && resValue === 0) ||
+                            (reqValue === false && resValue === false);
+                        if (!match) {
+                            mismatches.push(`${req}: Request="${reqValue}" vs Response="${resValue}"`);
+                        }
+                        console.log(`  ${match ? '✅' : '❌'} ${req}: ${reqValue} → ${resValue}`);
+                    });
+
+                    // Summary
+                    if (mismatches.length > 0) {
+                        console.warn('⚠️ [DEBUG] Tab 1 - Found mismatches between request and response:');
+                        mismatches.forEach((m) => console.warn(`  - ${m}`));
                     } else {
-                        toast.error(response.message || 'Failed to add employee');
+                        console.log('✅ [DEBUG] Tab 1 - All key fields match between request and response!');
+                    }
+
+                    // Show API response message
+                    if (response?.success && response?.message) {
+                        toast.success(response.message);
+                    } else if (response?.message) {
+                        toast.info(response.message);
+                    } else if (response?.success === false) {
+                        console.warn('⚠️ [DEBUG] Tab 1 - API returned success: false');
+                        toast.warning('Employee saved but API returned success: false. Please verify the data was saved.');
+                    }
+
+                    // API returns hrmE_Id (lowercase) in response
+                    const employeeId = response?.data?.hrmE_Id || response?.data?.HRME_Id || response?.hrmE_Id || response?.HRME_Id || 0;
+                    console.log('🔍 [DEBUG] Tab 1 - Extracted Employee ID:', employeeId);
+
+                    if (employeeId && employeeId > 0) {
+                        setSavedEmployeeId(employeeId);
+                        console.log('✅ [DEBUG] Tab 1 - Employee ID saved to state:', employeeId);
+                        setCurrentStep(2);
+                    } else {
+                        console.error('❌ [DEBUG] Tab 1 - Failed to extract employee ID from response');
+                        toast.error('Failed to get employee ID from response');
                     }
                 },
                 onError: (error: any) => {
-                    toast.error(error.message || 'An error occurred');
+                    console.error('❌ [DEBUG] Tab 1 (Employee Information) - Save Error:', error);
+                    console.error('❌ [DEBUG] Tab 1 - Error Details:', JSON.stringify(error, null, 2));
+                    // Show API error message
+                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save employee details';
+                    toast.error(errorMessage);
+                }
+            });
+        } else if (currentStepId === 2) {
+            // Address Information tab - call same endpoint /api/EmployeeRegistration/SavePersonalDetails
+            // Update with address details using the hrmE_Id from step 1
+            if (!savedEmployeeId) {
+                toast.error('Please save Employee details first');
+                setCurrentStep(1);
+                return;
+            }
+            const payload = mapFormDataToApiFormatLocal(data);
+            payload.hrmE_Id = savedEmployeeId; // Use the ID from step 1
+
+            console.log('🔍 [DEBUG] Tab 2 (Address Information) - Form Data:', data);
+            console.log('🔍 [DEBUG] Tab 2 (Address Information) - Payload:', payload);
+            console.log('🔍 [DEBUG] Tab 2 (Address Information) - Employee ID:', savedEmployeeId);
+            console.log('🔍 [DEBUG] Tab 2 (Address Information) - Address Fields:');
+            console.log('  - Contact Address:', {
+                street: payload.hrmE_LocStreet,
+                area: payload.hrmE_LocArea,
+                city: payload.hrmE_LocCity,
+                stateId: payload.hrmE_LocStateId,
+                countryId: payload.hrmE_LocCountryId,
+                pincode: payload.hrmE_LocPincode
+            });
+            console.log('  - Permanent Address:', {
+                street: payload.hrmE_PerStreet,
+                area: payload.hrmE_PerArea,
+                city: payload.hrmE_PerCity,
+                stateId: payload.hrmE_PerStateId,
+                countryId: payload.hrmE_PerCountryId,
+                pincode: payload.hrmE_PerPincode
+            });
+            console.log('🔍 [DEBUG] Tab 2 (Address Information) - Calling savePersonalDetails...');
+
+            savePersonalDetails(payload, {
+                onSuccess: (response: any) => {
+                    console.log('✅ [DEBUG] Tab 2 (Address Information) - Save Success:', response);
+                    console.log('🔍 [DEBUG] Tab 2 - Full API Response:', JSON.stringify(response, null, 2));
+                    console.log('🔍 [DEBUG] Tab 2 - Response Success:', response?.success);
+                    console.log('🔍 [DEBUG] Tab 2 - Response Message:', response?.message);
+                    console.log('🔍 [DEBUG] Tab 2 - Response Data:', response?.data);
+
+                    // Verify address fields - CRITICAL CHECK
+                    const responseData = response?.data || {};
+                    const addressMismatches: string[] = [];
+
+                    console.log('🔍 [DEBUG] Tab 2 - Address Fields Comparison (CRITICAL):');
+
+                    // Contact Address Comparison
+                    const contactAddressFields = [
+                        { req: 'hrmE_LocStreet', res: 'hrmE_LocStreet' },
+                        { req: 'hrmE_LocArea', res: 'hrmE_LocArea' },
+                        { req: 'hrmE_LocCity', res: 'hrmE_LocCity' },
+                        { req: 'hrmE_LocStateId', res: 'hrmE_LocStateId' },
+                        { req: 'hrmE_LocCountryId', res: 'hrmE_LocCountryId' },
+                        { req: 'hrmE_LocPincode', res: 'hrmE_LocPincode' }
+                    ];
+
+                    console.log('📍 Contact Address:');
+                    contactAddressFields.forEach(({ req, res }) => {
+                        const reqValue = payload[req as keyof typeof payload];
+                        const resValue = responseData[res as keyof typeof responseData];
+                        const match =
+                            reqValue === resValue ||
+                            (reqValue == null && resValue == null) ||
+                            (reqValue === 0 && resValue === 0) ||
+                            (reqValue === '' && resValue == null);
+                        if (!match) {
+                            addressMismatches.push(`Contact ${req}: Sent="${reqValue}" but Received="${resValue}"`);
+                        }
+                        console.log(`  ${match ? '✅' : '❌'} ${req}: Sent="${reqValue}" → Received="${resValue}"`);
+                    });
+
+                    // Permanent Address Comparison
+                    const permanentAddressFields = [
+                        { req: 'hrmE_PerStreet', res: 'hrmE_PerStreet' },
+                        { req: 'hrmE_PerArea', res: 'hrmE_PerArea' },
+                        { req: 'hrmE_PerCity', res: 'hrmE_PerCity' },
+                        { req: 'hrmE_PerStateId', res: 'hrmE_PerStateId' },
+                        { req: 'hrmE_PerCountryId', res: 'hrmE_PerCountryId' },
+                        { req: 'hrmE_PerPincode', res: 'hrmE_PerPincode' }
+                    ];
+
+                    console.log('📍 Permanent Address:');
+                    permanentAddressFields.forEach(({ req, res }) => {
+                        const reqValue = payload[req as keyof typeof payload];
+                        const resValue = responseData[res as keyof typeof responseData];
+                        const match =
+                            reqValue === resValue ||
+                            (reqValue == null && resValue == null) ||
+                            (reqValue === 0 && resValue === 0) ||
+                            (reqValue === '' && resValue == null);
+                        if (!match) {
+                            addressMismatches.push(`Permanent ${req}: Sent="${reqValue}" but Received="${resValue}"`);
+                        }
+                        console.log(`  ${match ? '✅' : '❌'} ${req}: Sent="${reqValue}" → Received="${resValue}"`);
+                    });
+
+                    // Summary
+                    if (addressMismatches.length > 0) {
+                        console.error('❌ [DEBUG] Tab 2 - ADDRESS FIELDS NOT SAVED BY BACKEND!');
+                        console.error('❌ [DEBUG] Tab 2 - Mismatches found:');
+                        addressMismatches.forEach((m) => console.error(`  - ${m}`));
+                        console.error(
+                            '⚠️ [DEBUG] Tab 2 - This indicates a BACKEND ISSUE - address fields are being sent correctly but not saved.'
+                        );
+                        toast.warning('Address fields were sent but may not have been saved. Please verify in database.');
+                    } else {
+                        console.log('✅ [DEBUG] Tab 2 - All address fields match between request and response!');
+                    }
+
+                    // Verify other fields are still intact
+                    const otherFieldMismatches: string[] = [];
+                    const keyFields = [
+                        { req: 'hrmE_Id', res: 'hrmE_Id' },
+                        { req: 'hrmE_EmployeeFirstName', res: 'hrmE_EmployeeFirstName' },
+                        { req: 'hrmE_EmployeeCode', res: 'hrmE_EmployeeCode' },
+                        { req: 'hrmE_MobileNo', res: 'hrmE_MobileNo' },
+                        { req: 'hrmE_EmailId', res: 'hrmE_EmailId' }
+                    ];
+
+                    console.log('🔍 [DEBUG] Tab 2 - Other Key Fields Verification:');
+                    keyFields.forEach(({ req, res }) => {
+                        const reqValue = payload[req as keyof typeof payload];
+                        const resValue = responseData[res as keyof typeof responseData];
+                        const match = reqValue === resValue;
+                        if (!match) {
+                            otherFieldMismatches.push(`${req}: Request="${reqValue}" vs Response="${resValue}"`);
+                        }
+                        console.log(`  ${match ? '✅' : '❌'} ${req}: ${reqValue} → ${resValue}`);
+                    });
+
+                    if (otherFieldMismatches.length > 0) {
+                        console.warn('⚠️ [DEBUG] Tab 2 - Other field mismatches:', otherFieldMismatches);
+                    }
+
+                    // Show API response message
+                    if (response?.success && response?.message) {
+                        if (addressMismatches.length > 0) {
+                            toast.warning(`${response.message} - But address fields may not have been saved.`);
+                        } else {
+                            toast.success(response.message);
+                        }
+                    } else if (response?.message) {
+                        toast.info(response.message);
+                    } else if (response?.success === false) {
+                        console.warn('⚠️ [DEBUG] Tab 2 - API returned success: false');
+                        toast.warning('Address saved but API returned success: false. Please verify the data was saved.');
+                    }
+
+                    setCurrentStep(3);
+                },
+                onError: (error: any) => {
+                    console.error('❌ [DEBUG] Tab 2 (Address Information) - Save Error:', error);
+                    console.error('❌ [DEBUG] Tab 2 - Error Details:', JSON.stringify(error, null, 2));
+                    // Show API error message
+                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save address details';
+                    toast.error(errorMessage);
+                }
+            });
+        } else if (currentStepId === 3) {
+            // Qualification tab - save qualification details
+            console.log('🔍 [DEBUG] Tab 3 (Qualification) - Starting save process');
+            console.log('🔍 [DEBUG] Tab 3 (Qualification) - Employee ID:', savedEmployeeId);
+
+            if (!savedEmployeeId) {
+                console.error('❌ [DEBUG] Tab 3 - No employee ID found');
+                toast.error('Please save Employee and Address details first');
+                setCurrentStep(1);
+                return;
+            }
+
+            const qualificationList = data.qualificationDetails || [];
+            console.log('🔍 [DEBUG] Tab 3 (Qualification) - Form Data:', data);
+            console.log('🔍 [DEBUG] Tab 3 (Qualification) - Qualification List (Raw):', qualificationList);
+            console.log('🔍 [DEBUG] Tab 3 (Qualification) - Qualification Count:', qualificationList.length);
+
+            if (qualificationList.length === 0) {
+                console.error('❌ [DEBUG] Tab 3 - No qualifications found');
+                setError('qualificationDetails', {
+                    type: 'required',
+                    message: 'Please add at least one qualification'
+                });
+                return;
+            }
+
+            // Map qualification data to API format
+            const qualificationsPayload = qualificationList.map((qual: any, index: number) => {
+                const mapped = {
+                    HRME_Id: savedEmployeeId,
+                    HRMC_Id: Number(qual.course) || 0,
+                    HRMEQ_CollegeName: qual.college || '',
+                    HRMEQ_UniversityName: qual.university || '',
+                    HRMEQ_YearOfPassing: Number(qual.yearOfPassing) || 0,
+                    HRMEQ_CGPAOrPerFlag: qual.cgpaOrPercentage || 'CGPA',
+                    HRMEQ_CGPA: qual.cgpaOrPercentage === 'CGPA' ? qual.cgpa || '' : '',
+                    HRMEQ_Percentage: qual.cgpaOrPercentage === 'Percentage' ? qual.cgpa || '' : '',
+                    HRMEQ_CountryId: Number(qual.qualificationCountry) || 0,
+                    HRMEQ_StateId: Number(qual.qualificationState) || 0,
+                    HRMEQ_RegistrationNo: qual.registrationNo || '',
+                    HRMEQ_Result: qual.result || '',
+                    HRMEQ_AreaOfSpecialisation: qual.areaOfSpecialisation || qual.specialisation || '',
+                    HRMEQ_MedicalCouncil: qual.medicalCouncil || '',
+                    HRMEQ_PHDFlg: qual.phdFlag || false,
+                    HRMEQ_ThesisTitle: qual.thesisTitle || '',
+                    HRMEQ_RegistrationYear: Number(qual.registrationYear) || 0,
+                    HRMEQ_GuideName: qual.guideName || '',
+                    HRMEQ_Date: qual.qualifiedDate || ''
+                };
+                console.log(`🔍 [DEBUG] Tab 3 - Qualification #${index + 1} Mapping:`, {
+                    raw: qual,
+                    mapped: mapped
+                });
+                return mapped;
+            });
+
+            console.log('🔍 [DEBUG] Tab 3 (Qualification) - Payload:', qualificationsPayload);
+            console.log('🔍 [DEBUG] Tab 3 (Qualification) - Payload (JSON):', JSON.stringify(qualificationsPayload, null, 2));
+            console.log('🔍 [DEBUG] Tab 3 (Qualification) - Calling saveQualificationDetails...');
+
+            saveQualificationDetails(qualificationsPayload, {
+                onSuccess: (response: any) => {
+                    console.log('✅ [DEBUG] Tab 3 (Qualification) - Save Success:', response);
+                    console.log('🔍 [DEBUG] Tab 3 - Full API Response:', JSON.stringify(response, null, 2));
+                    console.log('🔍 [DEBUG] Tab 3 - Response Success:', response?.success);
+                    console.log('🔍 [DEBUG] Tab 3 - Response Message:', response?.message);
+                    console.log('🔍 [DEBUG] Tab 3 - Response Data:', response?.data);
+
+                    // Verify qualification data was saved
+                    if (response?.data && Array.isArray(response.data)) {
+                        console.log('🔍 [DEBUG] Tab 3 - Response contains qualification array, length:', response.data.length);
+                        console.log('🔍 [DEBUG] Tab 3 - Response Qualifications:', response.data);
+
+                        // Compare sent vs received
+                        if (response.data.length === qualificationsPayload.length) {
+                            console.log('✅ [DEBUG] Tab 3 - Qualification count matches!');
+                            qualificationsPayload.forEach((sent, index) => {
+                                const received = response.data[index];
+                                if (received) {
+                                    console.log(`🔍 [DEBUG] Tab 3 - Qualification #${index + 1} Comparison:`, {
+                                        sent: sent,
+                                        received: received
+                                    });
+
+                                    // Check key fields
+                                    const keyFields = [
+                                        'HRME_Id',
+                                        'HRMC_Id',
+                                        'HRMEQ_CollegeName',
+                                        'HRMEQ_UniversityName',
+                                        'HRMEQ_YearOfPassing'
+                                    ];
+                                    const mismatches: string[] = [];
+                                    keyFields.forEach((field) => {
+                                        if (sent[field as keyof typeof sent] !== received[field as keyof typeof received]) {
+                                            mismatches.push(
+                                                `${field}: Sent="${sent[field as keyof typeof sent]}" vs Received="${received[field as keyof typeof received]}"`
+                                            );
+                                        }
+                                    });
+
+                                    if (mismatches.length > 0) {
+                                        console.warn(`⚠️ [DEBUG] Tab 3 - Qualification #${index + 1} mismatches:`, mismatches);
+                                    } else {
+                                        console.log(`✅ [DEBUG] Tab 3 - Qualification #${index + 1} key fields match!`);
+                                    }
+                                }
+                            });
+                        } else {
+                            console.warn(
+                                `⚠️ [DEBUG] Tab 3 - Qualification count mismatch: Sent=${qualificationsPayload.length}, Received=${response.data.length}`
+                            );
+                        }
+                    } else {
+                        console.warn('⚠️ [DEBUG] Tab 3 - Response data is not an array or is missing');
+                    }
+
+                    // Show API response message
+                    if (response?.success && response?.message) {
+                        toast.success(response.message);
+                    } else if (response?.message) {
+                        toast.info(response.message);
+                    } else if (response?.success === false) {
+                        console.warn('⚠️ [DEBUG] Tab 3 - API returned success: false');
+                        toast.warning('Qualification saved but API returned success: false. Please verify the data was saved.');
+                    }
+
+                    setCurrentStep(4);
+                },
+                onError: (error: any) => {
+                    console.error('❌ [DEBUG] Tab 3 (Qualification) - Save Error:', error);
+                    console.error('❌ [DEBUG] Tab 3 - Error Details:', JSON.stringify(error, null, 2));
+                    console.error('❌ [DEBUG] Tab 3 - Error Response:', error?.response);
+                    console.error('❌ [DEBUG] Tab 3 - Error Message:', error?.message);
+                    // Show API error message
+                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save qualification details';
+                    toast.error(errorMessage);
+                }
+            });
+        } else if (currentStepId === 4) {
+            // Experience tab - save experience details
+            console.log('🔍 [DEBUG] Tab 4 (Experience) - nextStep function reached for Tab 4');
+            console.log('🔍 [DEBUG] Tab 4 (Experience) - Condition check: currentStepId === 4', currentStepId === 4);
+            console.log('🔍 [DEBUG] Tab 4 (Experience) - Starting save process');
+            console.log('🔍 [DEBUG] Tab 4 (Experience) - Employee ID:', savedEmployeeId);
+            console.log('🔍 [DEBUG] Tab 4 (Experience) - Current Step ID:', currentStepId);
+            console.log('🔍 [DEBUG] Tab 4 (Experience) - Type of currentStepId:', typeof currentStepId);
+
+            if (!savedEmployeeId) {
+                console.error('❌ [DEBUG] Tab 4 - No employee ID found');
+                toast.error('Please save Employee and Address details first');
+                setCurrentStep(1);
+                return;
+            }
+
+            const experienceList = data.experienceDetails || [];
+            console.log('🔍 [DEBUG] Tab 4 (Experience) - Form Data:', data);
+            console.log('🔍 [DEBUG] Tab 4 (Experience) - Experience List (Raw):', experienceList);
+            console.log('🔍 [DEBUG] Tab 4 (Experience) - Experience Count:', experienceList.length);
+
+            if (experienceList.length === 0) {
+                console.error('❌ [DEBUG] Tab 4 - No experiences found');
+                setError('experienceDetails', {
+                    type: 'required',
+                    message: 'Please add at least one experience'
+                });
+                return;
+            }
+
+            // Map experience data to API format (matching API request body format)
+            const experiencesPayload = experienceList.map((exp: any, index: number) => {
+                const mapped = {
+                    hrmeE_Id: 0, // New record
+                    hrmE_Id: savedEmployeeId,
+                    hrmeE_OrganisationName: exp.organisationName || '',
+                    hrmeE_OrganisationAddress: exp.organisationAddress || '',
+                    hrmeE_Department: exp.department || '',
+                    hrmeE_Designation: exp.designation || '',
+                    hrmeE_JoinDate: exp.joinDate ? new Date(exp.joinDate).toISOString() : '',
+                    hrmeE_ExitDate: exp.exitDate ? new Date(exp.exitDate).toISOString() : '',
+                    hrmeE_NoOfYears: Number(exp.noOfYears) || 0,
+                    hrmeE_NoOfMonths: Number(exp.noOfMonths) || 0,
+                    hrmeE_AnnualSalary: Number(exp.annualSalary) || 0,
+                    hrmeE_ReasonForLeaving: exp.reasonForLeaving || ''
+                };
+                console.log(`🔍 [DEBUG] Tab 4 - Experience #${index + 1} Mapping:`, {
+                    raw: exp,
+                    mapped: mapped
+                });
+                return mapped;
+            });
+
+            console.log('🔍 [DEBUG] Tab 4 (Experience) - Payload:', experiencesPayload);
+            console.log('🔍 [DEBUG] Tab 4 (Experience) - Payload (JSON):', JSON.stringify(experiencesPayload, null, 2));
+            console.log('🔍 [DEBUG] Tab 4 (Experience) - Calling saveExperienceDetails...');
+            console.log('🔍 [DEBUG] Tab 4 (Experience) - saveExperienceDetails function type:', typeof saveExperienceDetails);
+            console.log('🔍 [DEBUG] Tab 4 (Experience) - saveExperienceDetails function:', saveExperienceDetails);
+
+            if (!saveExperienceDetails) {
+                console.error('❌ [DEBUG] Tab 4 - saveExperienceDetails is not defined!');
+                toast.error('Experience save function is not available. Please refresh the page.');
+                return;
+            }
+
+            try {
+                saveExperienceDetails(experiencesPayload, {
+                    onSuccess: (response: any) => {
+                        console.log('✅ [DEBUG] Tab 4 (Experience) - Save Success:', response);
+                        console.log('🔍 [DEBUG] Tab 4 - Full API Response:', JSON.stringify(response, null, 2));
+                        console.log('🔍 [DEBUG] Tab 4 - Response Success:', response?.success);
+                        console.log('🔍 [DEBUG] Tab 4 - Response Message:', response?.message);
+                        console.log('🔍 [DEBUG] Tab 4 - Response Data:', response?.data);
+
+                        // Verify experience data was saved
+                        if (response?.data && Array.isArray(response.data)) {
+                            console.log('🔍 [DEBUG] Tab 4 - Response contains experience array, length:', response.data.length);
+                            console.log('🔍 [DEBUG] Tab 4 - Response Experiences:', response.data);
+
+                            // Compare sent vs received
+                            if (response.data.length === experiencesPayload.length) {
+                                console.log('✅ [DEBUG] Tab 4 - Experience count matches!');
+                                experiencesPayload.forEach((sent, index) => {
+                                    const received = response.data[index];
+                                    if (received) {
+                                        console.log(`🔍 [DEBUG] Tab 4 - Experience #${index + 1} Comparison:`, {
+                                            sent: sent,
+                                            received: received
+                                        });
+
+                                        // Check key fields
+                                        const keyFields = [
+                                            'hrmE_Id',
+                                            'hrmeE_OrganisationName',
+                                            'hrmeE_Department',
+                                            'hrmeE_Designation',
+                                            'hrmeE_NoOfYears'
+                                        ];
+                                        const mismatches: string[] = [];
+                                        keyFields.forEach((field) => {
+                                            if (sent[field as keyof typeof sent] !== received[field as keyof typeof received]) {
+                                                mismatches.push(
+                                                    `${field}: Sent="${sent[field as keyof typeof sent]}" vs Received="${received[field as keyof typeof received]}"`
+                                                );
+                                            }
+                                        });
+
+                                        if (mismatches.length > 0) {
+                                            console.warn(`⚠️ [DEBUG] Tab 4 - Experience #${index + 1} mismatches:`, mismatches);
+                                        } else {
+                                            console.log(`✅ [DEBUG] Tab 4 - Experience #${index + 1} key fields match!`);
+                                        }
+                                    }
+                                });
+                            } else {
+                                console.warn(
+                                    `⚠️ [DEBUG] Tab 4 - Experience count mismatch: Sent=${experiencesPayload.length}, Received=${response.data.length}`
+                                );
+                            }
+                        } else {
+                            console.warn('⚠️ [DEBUG] Tab 4 - Response data is not an array or is missing');
+                        }
+
+                        // Show API response message
+                        if (response?.success && response?.message) {
+                            toast.success(response.message);
+                        } else if (response?.message) {
+                            toast.info(response.message);
+                        } else if (response?.success === false) {
+                            console.warn('⚠️ [DEBUG] Tab 4 - API returned success: false');
+                            toast.warning('Experience saved but API returned success: false. Please verify the data was saved.');
+                        }
+
+                        setCurrentStep(5);
+                    },
+                    onError: (error: any) => {
+                        console.error('❌ [DEBUG] Tab 4 (Experience) - Save Error:', error);
+                        console.error('❌ [DEBUG] Tab 4 - Error Details:', JSON.stringify(error, null, 2));
+                        console.error('❌ [DEBUG] Tab 4 - Error Response:', error?.response);
+                        console.error('❌ [DEBUG] Tab 4 - Error Message:', error?.message);
+                        // Show API error message
+                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save experience details';
+                        toast.error(errorMessage);
+                    }
+                });
+            } catch (error) {
+                console.error('❌ [DEBUG] Tab 4 - Exception when calling saveExperienceDetails:', error);
+                toast.error('An error occurred while calling the save function');
+            }
+        } else {
+            // For other steps, just move to next step without API call
+            setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+        }
+    };
+
+    // Function to go to specific step
+    const _goToStep = (step: number) => {
+        setCurrentStep(step);
+    };
+
+    // Empty default values for add form (no old API mapping - endpoints not provided yet)
+    const formDefaultValues = useMemo(
+        () => ({
+            firstName: '',
+            middleName: '',
+            lastName: '',
+            employeeCode: '',
+            typeOfEmployment: '',
+            employeeGroup: '',
+            school: '',
+            designation: '',
+            gender: '',
+            maritalStatus: '',
+            religion: '',
+            casteCategory: '',
+            caste: '',
+            bloodGroup: '',
+            salaryType: '',
+            modeOfPayment: '',
+            contactCountry: '',
+            contactState: '',
+            permanentCountry: '',
+            permanentState: '',
+            sameAsCommunicationAddress: false,
+            qualificationDetails: [],
+            experienceDetails: [],
+            documentList: [],
+            mobileDetails: [{ mobileNo: '', type: 'Default' }],
+            emailDetails: [{ emailId: '', type: 'Default' }],
+            bankDetails: [],
+            dateOfBirth: '',
+            dateOfRetirement: ''
+        }),
+        []
+    );
+
+    const { control, register, handleSubmit, reset, watch, getValues, setValue, trigger, setError, clearErrors, formState } =
+        useForm<FormFields>({
+            resolver: zodResolver(employeeRegisterSchemas.add),
+            mode: 'onChange',
+            reValidateMode: 'onChange',
+            defaultValues: formDefaultValues
+        });
+
+    const { errors, isSubmitting } = formState;
+
+    // Watch for country changes
+    const contactCountry = useWatch({ control, name: 'contactCountry' });
+    const permanentCountry = useWatch({ control, name: 'permanentCountry' });
+    const dateOfBirth = useWatch({ control, name: 'dateOfBirth' });
+    const sameAsCommunicationAddress = useWatch({ control, name: 'sameAsCommunicationAddress' });
+    const contactAddress = useWatch({ control, name: 'contactAddress' });
+    const contactArea = useWatch({ control, name: 'contactArea' });
+    const contactState = useWatch({ control, name: 'contactState' });
+    const contactCity = useWatch({ control, name: 'contactCity' });
+    const contactPincode = useWatch({ control, name: 'contactPincode' });
+    const _permanentState = useWatch({ control, name: 'permanentState' });
+
+    // Convert country string to number for API call
+    const contactCountryId = contactCountry ? (Number.isNaN(Number(contactCountry)) ? null : Number(contactCountry)) : null;
+    const permanentCountryId = permanentCountry ? (Number.isNaN(Number(permanentCountry)) ? null : Number(permanentCountry)) : null;
+
+    // Fetch states for contact country
+    const { data: contactStates = [], isLoading: isLoadingContactStates } = useStateDropdown(contactCountryId);
+    // Fetch states for permanent country
+    const { data: permanentStates = [], isLoading: isLoadingPermanentStates } = useStateDropdown(permanentCountryId);
+
+    // Clear state when country changes
+    const prevContactCountryId = useRef<number | null>(contactCountryId);
+    const prevPermanentCountryId = useRef<number | null>(permanentCountryId);
+
+    useEffect(() => {
+        if (prevContactCountryId.current !== contactCountryId) {
+            setValue('contactState', '');
+            prevContactCountryId.current = contactCountryId;
+        }
+    }, [contactCountryId, setValue]);
+
+    useEffect(() => {
+        if (prevPermanentCountryId.current !== permanentCountryId) {
+            setValue('permanentState', '');
+            prevPermanentCountryId.current = permanentCountryId;
+        }
+    }, [permanentCountryId, setValue]);
+
+    // Use fetched states if country is selected, otherwise fall back to empty array
+    const availableContactStates: IStateDropdown[] = contactCountryId ? (Array.isArray(contactStates) ? contactStates : []) : [];
+    const availablePermanentStates: IStateDropdown[] = permanentCountryId ? (Array.isArray(permanentStates) ? permanentStates : []) : [];
+
+    // Copy communication address to permanent address when checkbox is checked
+    const prevSameAsAddress = useRef(sameAsCommunicationAddress);
+    const prevContactValues = useRef({
+        contactAddress,
+        contactArea,
+        contactCity,
+        contactState,
+        contactPincode,
+        contactCountry
+    });
+
+    useEffect(() => {
+        if (sameAsCommunicationAddress && prevSameAsAddress.current !== sameAsCommunicationAddress) {
+            setValue('permanentAddress', contactAddress || '');
+            setValue('permanentArea', contactArea || '');
+            setValue('permanentCity', contactCity || '');
+            setValue('permanentState', contactState || '');
+            setValue('permanentPincode', contactPincode || '');
+            setValue('permanentCountry', contactCountry || '');
+        }
+        prevSameAsAddress.current = sameAsCommunicationAddress;
+    }, [sameAsCommunicationAddress, contactAddress, contactArea, contactCity, contactState, contactPincode, contactCountry, setValue]);
+
+    useEffect(() => {
+        if (sameAsCommunicationAddress) {
+            const currentContactValues = {
+                contactAddress,
+                contactArea,
+                contactCity,
+                contactState,
+                contactPincode,
+                contactCountry
+            };
+            const hasChanged = Object.keys(currentContactValues).some(
+                (key) =>
+                    currentContactValues[key as keyof typeof currentContactValues] !==
+                    prevContactValues.current[key as keyof typeof prevContactValues.current]
+            );
+            if (hasChanged) {
+                setValue('permanentAddress', contactAddress || '');
+                setValue('permanentArea', contactArea || '');
+                setValue('permanentCity', contactCity || '');
+                setValue('permanentState', contactState || '');
+                setValue('permanentPincode', contactPincode || '');
+                setValue('permanentCountry', contactCountry || '');
+                prevContactValues.current = currentContactValues;
+            }
+        }
+    }, [sameAsCommunicationAddress, contactAddress, contactArea, contactCity, contactState, contactPincode, contactCountry, setValue]);
+
+    // Auto-calculate retirement date from DOB
+    useEffect(() => {
+        if (dateOfBirth) {
+            try {
+                const dob = new Date(dateOfBirth);
+                if (!Number.isNaN(dob.getTime())) {
+                    const retirementDate = new Date(dob);
+                    retirementDate.setFullYear(retirementDate.getFullYear() + 60);
+                    const formattedDate = format(retirementDate, 'yyyy-MM-dd');
+                    setValue('dateOfRetirement', formattedDate, { shouldValidate: false, shouldDirty: false });
+                }
+            } catch (_error) {
+                // Invalid date, ignore
+            }
+        }
+    }, [dateOfBirth, setValue]);
+
+    // Memoize bank options specifically to prevent Select recreation
+    const memoizedBankOptions = useMemo(() => {
+        if (!options?.banks) return [];
+        return (options.banks || [])
+            .filter((b: IBankDropdown) => {
+                return b.key != null && b.key !== undefined && b.key !== 0;
+            })
+            .map((b: IBankDropdown) => {
+                const key = b.key?.toString().trim();
+                if (!key || key === '') return null;
+                return {
+                    id: key,
+                    name: b.value || String(b.key),
+                    value: key
+                };
+            })
+            .filter(Boolean);
+    }, [options?.banks]);
+
+    // Watch documentList for file handling
+    const watchDocuments = watch('documentList');
+    // Watch for OtherDetailsTab conditional fields
+    const stopPension = useWatch({ control, name: 'stopPension' });
+    const employeeLeft = useWatch({ control, name: 'employeeLeft' });
+
+    // Helper function to calculate years and months between two dates
+    const calculateYearsAndMonths = (startDate: string | Date, endDate: string | Date) => {
+        const start = typeof startDate === 'string' ? new Date(startDate) : startDate;
+        const end = typeof endDate === 'string' ? new Date(endDate) : endDate;
+        if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) {
+            return { years: 0, months: 0 };
+        }
+        let years = end.getFullYear() - start.getFullYear();
+        let months = end.getMonth() - start.getMonth();
+        if (months < 0) {
+            years--;
+            months += 12;
+        }
+        if (end.getDate() < start.getDate()) {
+            months--;
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+        }
+        return { years: Math.max(0, years), months: Math.max(0, months) };
+    };
+
+    // Field arrays
+    const {
+        fields: mobileFields,
+        append: appendMobile,
+        remove: removeMobile
+    } = useFieldArray({
+        control,
+        name: 'mobileDetails'
+    });
+
+    const {
+        fields: emailFields,
+        append: appendEmail,
+        remove: removeEmail
+    } = useFieldArray({
+        control,
+        name: 'emailDetails'
+    });
+
+    const {
+        fields: bankFields,
+        append: appendBank,
+        remove: removeBank
+    } = useFieldArray({
+        control,
+        name: 'bankDetails'
+    });
+
+    const {
+        fields: qualificationFields,
+        append: appendQualification,
+        remove: removeQualification
+    } = useFieldArray({
+        control,
+        name: 'qualificationDetails'
+    });
+
+    const {
+        fields: experienceFields,
+        append: appendExperience,
+        remove: removeExperience
+    } = useFieldArray({
+        control,
+        name: 'experienceDetails'
+    });
+
+    const {
+        fields: documentFields,
+        append: appendDocument,
+        remove: removeDocument
+    } = useFieldArray({
+        control,
+        name: 'documentList'
+    });
+
+    // Map form data to API format - use helper functions
+    const mapFormDataToApiFormatLocal = (data: FormFields): SavePersonalDetailsApiRequest => {
+        return mapFormDataToApiFormat(data, savedEmployeeId || 0, selectedPhoto);
+    };
+
+    const mapFormDataToApiFormatWithoutAddressLocal = (data: FormFields): SavePersonalDetailsApiRequest => {
+        return mapFormDataToApiFormatWithoutAddress(data, 0, selectedPhoto);
+    };
+
+    // Custom submit handler
+    const onFormSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const currentTabKey = getCurrentTabKey();
+        const currentTabFields = tabFieldMap[currentTabKey] || [];
+
+        if (currentTabFields.length > 0) {
+            const isValid = await trigger(currentTabFields as any);
+            if (!isValid) {
+                const formErrors = formState.errors;
+                const errorMessages: string[] = [];
+                currentTabFields.forEach((field) => {
+                    const fieldError = formErrors[field as keyof typeof formErrors];
+                    if (fieldError) {
+                        const errorMsg = typeof fieldError === 'string' ? fieldError : fieldError?.message;
+                        if (errorMsg) {
+                            errorMessages.push(errorMsg);
+                        }
+                    }
+                });
+                if (errorMessages.length > 0) {
+                    toast.error(errorMessages[0]);
+                }
+                return;
+            }
+        }
+
+        const data = getValues();
+        const currentStepId = currentStep;
+
+        try {
+            if (currentStepId === 1) {
+                // Employee Information tab - call /api/EmployeeRegistration/SavePersonalDetails
+                // Save employee details without address (address fields will be null)
+                const payload = mapFormDataToApiFormatWithoutAddressLocal(data);
+                payload.hrmE_Id = 0; // New record
+                savePersonalDetails(payload, {
+                    onSuccess: (response: any) => {
+                        // Show API response message
+                        if (response?.success && response?.message) {
+                            toast.success(response.message);
+                        } else if (response?.message) {
+                            toast.info(response.message);
+                        }
+                        // API returns hrmE_Id (lowercase) in response
+                        const employeeId =
+                            response?.data?.hrmE_Id || response?.data?.HRME_Id || response?.hrmE_Id || response?.HRME_Id || 0;
+                        if (employeeId && employeeId > 0) {
+                            setSavedEmployeeId(employeeId);
+                            setCurrentStep(2);
+                        } else {
+                            toast.error('Failed to get employee ID from response');
+                        }
+                    },
+                    onError: (error: any) => {
+                        // Show API error message
+                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save employee details';
+                        toast.error(errorMessage);
+                    }
+                });
+            } else if (currentStepId === 2) {
+                // Address Information tab - call same endpoint /api/EmployeeRegistration/SavePersonalDetails
+                // Update with address details using the hrmE_Id from step 1
+                if (!savedEmployeeId) {
+                    toast.error('Please save Employee details first');
+                    setCurrentStep(1);
+                    return;
+                }
+                const payload = mapFormDataToApiFormatLocal(data);
+                payload.hrmE_Id = savedEmployeeId; // Use the ID from step 1
+                savePersonalDetails(payload, {
+                    onSuccess: (response: any) => {
+                        // Show API response message
+                        if (response?.success && response?.message) {
+                            toast.success(response.message);
+                        } else if (response?.message) {
+                            toast.info(response.message);
+                        }
+                        setCurrentStep(3);
+                    },
+                    onError: (error: any) => {
+                        // Show API error message
+                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save address details';
+                        toast.error(errorMessage);
+                    }
+                });
+            } else if (currentStepId === 3) {
+                // Qualification tab
+                console.log('🔍 [DEBUG] Tab 3 (Qualification) - Starting save process');
+                console.log('🔍 [DEBUG] Tab 3 (Qualification) - Employee ID:', savedEmployeeId);
+
+                if (!savedEmployeeId) {
+                    console.error('❌ [DEBUG] Tab 3 - No employee ID found');
+                    toast.error('Please save Employee and Address details first');
+                    setCurrentStep(1);
+                    return;
+                }
+
+                const qualificationList = data.qualificationDetails || [];
+                console.log('🔍 [DEBUG] Tab 3 (Qualification) - Form Data:', data);
+                console.log('🔍 [DEBUG] Tab 3 (Qualification) - Qualification List (Raw):', qualificationList);
+                console.log('🔍 [DEBUG] Tab 3 (Qualification) - Qualification Count:', qualificationList.length);
+
+                if (qualificationList.length === 0) {
+                    console.error('❌ [DEBUG] Tab 3 - No qualifications found');
+                    setError('qualificationDetails', {
+                        type: 'required',
+                        message: 'Please add at least one qualification'
+                    });
+                    return;
+                }
+
+                // Map qualification data to API format
+                const qualificationsPayload = qualificationList.map((qual: any, index: number) => {
+                    const mapped = {
+                        HRME_Id: savedEmployeeId,
+                        HRMC_Id: Number(qual.course) || 0,
+                        HRMEQ_CollegeName: qual.college || '',
+                        HRMEQ_UniversityName: qual.university || '',
+                        HRMEQ_YearOfPassing: Number(qual.yearOfPassing) || 0,
+                        HRMEQ_CGPAOrPerFlag: qual.cgpaOrPercentage || 'CGPA',
+                        HRMEQ_CGPA: qual.cgpaOrPercentage === 'CGPA' ? qual.cgpa || '' : '',
+                        HRMEQ_Percentage: qual.cgpaOrPercentage === 'Percentage' ? qual.cgpa || '' : '',
+                        HRMEQ_CountryId: Number(qual.qualificationCountry) || 0,
+                        HRMEQ_StateId: Number(qual.qualificationState) || 0,
+                        HRMEQ_RegistrationNo: qual.registrationNo || '',
+                        HRMEQ_Result: qual.result || '',
+                        HRMEQ_AreaOfSpecialisation: qual.areaOfSpecialisation || qual.specialisation || '',
+                        HRMEQ_MedicalCouncil: qual.medicalCouncil || '',
+                        HRMEQ_PHDFlg: qual.phdFlag || false,
+                        HRMEQ_ThesisTitle: qual.thesisTitle || '',
+                        HRMEQ_RegistrationYear: Number(qual.registrationYear) || 0,
+                        HRMEQ_GuideName: qual.guideName || '',
+                        HRMEQ_Date: qual.qualifiedDate || ''
+                    };
+                    console.log(`🔍 [DEBUG] Tab 3 - Qualification #${index + 1} Mapping:`, {
+                        raw: qual,
+                        mapped: mapped
+                    });
+                    return mapped;
+                });
+
+                console.log('🔍 [DEBUG] Tab 3 (Qualification) - Payload:', qualificationsPayload);
+                console.log('🔍 [DEBUG] Tab 3 (Qualification) - Payload (JSON):', JSON.stringify(qualificationsPayload, null, 2));
+                console.log('🔍 [DEBUG] Tab 3 (Qualification) - Calling saveQualificationDetails...');
+
+                saveQualificationDetails(qualificationsPayload, {
+                    onSuccess: (response: any) => {
+                        console.log('✅ [DEBUG] Tab 3 (Qualification) - Save Success:', response);
+                        console.log('🔍 [DEBUG] Tab 3 - Full API Response:', JSON.stringify(response, null, 2));
+                        console.log('🔍 [DEBUG] Tab 3 - Response Success:', response?.success);
+                        console.log('🔍 [DEBUG] Tab 3 - Response Message:', response?.message);
+                        console.log('🔍 [DEBUG] Tab 3 - Response Data:', response?.data);
+
+                        // Verify qualification data was saved
+                        if (response?.data && Array.isArray(response.data)) {
+                            console.log('🔍 [DEBUG] Tab 3 - Response contains qualification array, length:', response.data.length);
+                            console.log('🔍 [DEBUG] Tab 3 - Response Qualifications:', response.data);
+
+                            // Compare sent vs received
+                            if (response.data.length === qualificationsPayload.length) {
+                                console.log('✅ [DEBUG] Tab 3 - Qualification count matches!');
+                                qualificationsPayload.forEach((sent, index) => {
+                                    const received = response.data[index];
+                                    if (received) {
+                                        console.log(`🔍 [DEBUG] Tab 3 - Qualification #${index + 1} Comparison:`, {
+                                            sent: sent,
+                                            received: received
+                                        });
+
+                                        // Check key fields
+                                        const keyFields = [
+                                            'HRME_Id',
+                                            'HRMC_Id',
+                                            'HRMEQ_CollegeName',
+                                            'HRMEQ_UniversityName',
+                                            'HRMEQ_YearOfPassing'
+                                        ];
+                                        const mismatches: string[] = [];
+                                        keyFields.forEach((field) => {
+                                            if (sent[field as keyof typeof sent] !== received[field as keyof typeof received]) {
+                                                mismatches.push(
+                                                    `${field}: Sent="${sent[field as keyof typeof sent]}" vs Received="${received[field as keyof typeof received]}"`
+                                                );
+                                            }
+                                        });
+
+                                        if (mismatches.length > 0) {
+                                            console.warn(`⚠️ [DEBUG] Tab 3 - Qualification #${index + 1} mismatches:`, mismatches);
+                                        } else {
+                                            console.log(`✅ [DEBUG] Tab 3 - Qualification #${index + 1} key fields match!`);
+                                        }
+                                    }
+                                });
+                            } else {
+                                console.warn(
+                                    `⚠️ [DEBUG] Tab 3 - Qualification count mismatch: Sent=${qualificationsPayload.length}, Received=${response.data.length}`
+                                );
+                            }
+                        } else {
+                            console.warn('⚠️ [DEBUG] Tab 3 - Response data is not an array or is missing');
+                        }
+
+                        // Show API response message
+                        if (response?.success && response?.message) {
+                            toast.success(response.message);
+                        } else if (response?.message) {
+                            toast.info(response.message);
+                        } else if (response?.success === false) {
+                            console.warn('⚠️ [DEBUG] Tab 3 - API returned success: false');
+                            toast.warning('Qualification saved but API returned success: false. Please verify the data was saved.');
+                        }
+
+                        setCurrentStep(4);
+                    },
+                    onError: (error: any) => {
+                        console.error('❌ [DEBUG] Tab 3 (Qualification) - Save Error:', error);
+                        console.error('❌ [DEBUG] Tab 3 - Error Details:', JSON.stringify(error, null, 2));
+                        console.error('❌ [DEBUG] Tab 3 - Error Response:', error?.response);
+                        console.error('❌ [DEBUG] Tab 3 - Error Message:', error?.message);
+                        // Show API error message
+                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save qualification details';
+                        toast.error(errorMessage);
+                    }
+                });
+            } else if (currentStepId === 4) {
+                // Experience tab
+                console.log('🔍 [DEBUG] Tab 4 (Experience) - Starting save process');
+                console.log('🔍 [DEBUG] Tab 4 (Experience) - Employee ID:', savedEmployeeId);
+
+                if (!savedEmployeeId) {
+                    console.error('❌ [DEBUG] Tab 4 - No employee ID found');
+                    toast.error('Please save Employee and Address details first');
+                    setCurrentStep(1);
+                    return;
+                }
+
+                const experienceList = data.experienceDetails || [];
+                console.log('🔍 [DEBUG] Tab 4 (Experience) - Form Data:', data);
+                console.log('🔍 [DEBUG] Tab 4 (Experience) - Experience List (Raw):', experienceList);
+                console.log('🔍 [DEBUG] Tab 4 (Experience) - Experience Count:', experienceList.length);
+
+                if (experienceList.length === 0) {
+                    console.error('❌ [DEBUG] Tab 4 - No experiences found');
+                    setError('experienceDetails', {
+                        type: 'required',
+                        message: 'Please add at least one experience'
+                    });
+                    return;
+                }
+
+                // Map experience data to API format (matching API request body format)
+                const experiencesPayload = experienceList.map((exp: any, index: number) => {
+                    const mapped = {
+                        hrmeE_Id: 0, // New record
+                        hrmE_Id: savedEmployeeId,
+                        hrmeE_OrganisationName: exp.organisationName || '',
+                        hrmeE_OrganisationAddress: exp.organisationAddress || '',
+                        hrmeE_Department: exp.department || '',
+                        hrmeE_Designation: exp.designation || '',
+                        hrmeE_JoinDate: exp.joinDate ? new Date(exp.joinDate).toISOString() : '',
+                        hrmeE_ExitDate: exp.exitDate ? new Date(exp.exitDate).toISOString() : '',
+                        hrmeE_NoOfYears: Number(exp.noOfYears) || 0,
+                        hrmeE_NoOfMonths: Number(exp.noOfMonths) || 0,
+                        hrmeE_AnnualSalary: Number(exp.annualSalary) || 0,
+                        hrmeE_ReasonForLeaving: exp.reasonForLeaving || ''
+                    };
+                    console.log(`🔍 [DEBUG] Tab 4 - Experience #${index + 1} Mapping:`, {
+                        raw: exp,
+                        mapped: mapped
+                    });
+                    return mapped;
+                });
+
+                console.log('🔍 [DEBUG] Tab 4 (Experience) - Payload:', experiencesPayload);
+                console.log('🔍 [DEBUG] Tab 4 (Experience) - Payload (JSON):', JSON.stringify(experiencesPayload, null, 2));
+                console.log('🔍 [DEBUG] Tab 4 (Experience) - Calling saveExperienceDetails...');
+
+                saveExperienceDetails(experiencesPayload, {
+                    onSuccess: (response: any) => {
+                        console.log('✅ [DEBUG] Tab 4 (Experience) - Save Success:', response);
+                        console.log('🔍 [DEBUG] Tab 4 - Full API Response:', JSON.stringify(response, null, 2));
+                        console.log('🔍 [DEBUG] Tab 4 - Response Success:', response?.success);
+                        console.log('🔍 [DEBUG] Tab 4 - Response Message:', response?.message);
+                        console.log('🔍 [DEBUG] Tab 4 - Response Data:', response?.data);
+
+                        // Verify experience data was saved
+                        if (response?.data && Array.isArray(response.data)) {
+                            console.log('🔍 [DEBUG] Tab 4 - Response contains experience array, length:', response.data.length);
+                            console.log('🔍 [DEBUG] Tab 4 - Response Experiences:', response.data);
+
+                            // Compare sent vs received
+                            if (response.data.length === experiencesPayload.length) {
+                                console.log('✅ [DEBUG] Tab 4 - Experience count matches!');
+                                experiencesPayload.forEach((sent, index) => {
+                                    const received = response.data[index];
+                                    if (received) {
+                                        console.log(`🔍 [DEBUG] Tab 4 - Experience #${index + 1} Comparison:`, {
+                                            sent: sent,
+                                            received: received
+                                        });
+
+                                        // Check key fields
+                                        const keyFields = [
+                                            'hrmE_Id',
+                                            'hrmeE_OrganisationName',
+                                            'hrmeE_Department',
+                                            'hrmeE_Designation',
+                                            'hrmeE_NoOfYears'
+                                        ];
+                                        const mismatches: string[] = [];
+                                        keyFields.forEach((field) => {
+                                            if (sent[field as keyof typeof sent] !== received[field as keyof typeof received]) {
+                                                mismatches.push(
+                                                    `${field}: Sent="${sent[field as keyof typeof sent]}" vs Received="${received[field as keyof typeof received]}"`
+                                                );
+                                            }
+                                        });
+
+                                        if (mismatches.length > 0) {
+                                            console.warn(`⚠️ [DEBUG] Tab 4 - Experience #${index + 1} mismatches:`, mismatches);
+                                        } else {
+                                            console.log(`✅ [DEBUG] Tab 4 - Experience #${index + 1} key fields match!`);
+                                        }
+                                    }
+                                });
+                            } else {
+                                console.warn(
+                                    `⚠️ [DEBUG] Tab 4 - Experience count mismatch: Sent=${experiencesPayload.length}, Received=${response.data.length}`
+                                );
+                            }
+                        } else {
+                            console.warn('⚠️ [DEBUG] Tab 4 - Response data is not an array or is missing');
+                        }
+
+                        // Show API response message
+                        if (response?.success && response?.message) {
+                            toast.success(response.message);
+                        } else if (response?.message) {
+                            toast.info(response.message);
+                        } else if (response?.success === false) {
+                            console.warn('⚠️ [DEBUG] Tab 4 - API returned success: false');
+                            toast.warning('Experience saved but API returned success: false. Please verify the data was saved.');
+                        }
+
+                        setCurrentStep(5);
+                    },
+                    onError: (error: any) => {
+                        console.error('❌ [DEBUG] Tab 4 (Experience) - Save Error:', error);
+                        console.error('❌ [DEBUG] Tab 4 - Error Details:', JSON.stringify(error, null, 2));
+                        console.error('❌ [DEBUG] Tab 4 - Error Response:', error?.response);
+                        console.error('❌ [DEBUG] Tab 4 - Error Message:', error?.message);
+                        // Show API error message
+                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save experience details';
+                        toast.error(errorMessage);
+                    }
+                });
+            } else if (currentStepId === 5) {
+                // Document tab
+                if (!savedEmployeeId) {
+                    toast.error('Please save Employee and Address details first');
+                    setCurrentStep(1);
+                    return;
+                }
+                const documentList = data.documentList || [];
+                if (documentList.length === 0) {
+                    setError('documentList', {
+                        type: 'required',
+                        message: 'Please add at least one document'
+                    });
+                    return;
+                }
+                // Map form data to API format
+                const documentsPayload = documentList.map((doc: any) => {
+                    const documentName = doc.documentName || doc.name || '';
+                    const documentImageName = doc.document?.[0]?.name || doc.imageName || '';
+                    const documentDescription = doc.description || doc.documentDescription || '';
+                    return {
+                        CreatedDate: new Date().toISOString(),
+                        UpdatedDate: new Date().toISOString(),
+                        HRME_Id: savedEmployeeId,
+                        HRMEDS_DocumentName: documentName,
+                        HRMEDS_DucumentDescription: documentDescription,
+                        HRMEDS_DocumentImageName: documentImageName
+                    };
+                });
+                saveDocumentDetails(documentsPayload, {
+                    onSuccess: (response: any) => {
+                        // Show API response message
+                        if (response?.success && response?.message) {
+                            toast.success(response.message);
+                        } else if (response?.message) {
+                            toast.info(response.message);
+                        }
+                        setCurrentStep(6);
+                    },
+                    onError: (error: any) => {
+                        // Show API error message
+                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save document details';
+                        toast.error(errorMessage);
+                    }
+                });
+            } else if (currentStepId === 6) {
+                // Medical tab
+                if (!savedEmployeeId) {
+                    toast.error('Please save Employee and Address details first');
+                    setCurrentStep(1);
+                    return;
+                }
+                const payload = mapFormDataToApiFormatLocal(data);
+                payload.hrmE_Id = savedEmployeeId;
+                saveMedicalDetails(payload, {
+                    onSuccess: (response: any) => {
+                        // Show API response message
+                        if (response?.success && response?.message) {
+                            toast.success(response.message);
+                        } else if (response?.message) {
+                            toast.info(response.message);
+                        }
+                        setCurrentStep(7);
+                    },
+                    onError: (error: any) => {
+                        // Show API error message
+                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save medical details';
+                        toast.error(errorMessage);
+                    }
+                });
+            } else if (currentStepId === 7) {
+                // Other details tab
+                if (!savedEmployeeId) {
+                    toast.error('Please save Employee and Address details first');
+                    setCurrentStep(1);
+                    return;
+                }
+                const payload = mapFormDataToApiFormatLocal(data);
+                payload.hrmE_Id = savedEmployeeId;
+                savePersonalDetails(payload, {
+                    onSuccess: (response: any) => {
+                        // Show API response message
+                        if (response?.success && response?.message) {
+                            toast.success(response.message);
+                        } else if (response?.message) {
+                            toast.info(response.message);
+                        }
+                        setCurrentStep(8);
+                    },
+                    onError: (error: any) => {
+                        // Show API error message
+                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save other details';
+                        toast.error(errorMessage);
+                    }
+                });
+            } else if (currentStepId === 8) {
+                // Payroll tab - handled by PayrollTab component
+                toast.success('Employee registration completed!');
+                if (onSuccess) {
+                    onSuccess();
                 }
             }
-        );
+        } catch (error: any) {
+            toast.error(error.message || 'An error occurred');
+        }
     };
 
-    const handleReset = () => {
-        reset();
+    const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setPhotoFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setSelectedPhoto(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
     };
 
-    // Memoize arrays to prevent unnecessary re-renders
-    const employeeTypes = useMemo(() => onloadData?.data?.employeeTypedropdownlist || [], [onloadData?.data?.employeeTypedropdownlist]);
-    const groupTypes = useMemo(() => onloadData?.data?.groupTypedropdownlist || [], [onloadData?.data?.groupTypedropdownlist]);
-    const departments = useMemo(() => onloadData?.data?.departmentdropdownlist || [], [onloadData?.data?.departmentdropdownlist]);
-    const designations = useMemo(() => onloadData?.data?.designationdropdownlist || [], [onloadData?.data?.designationdropdownlist]);
-    const grades = useMemo(() => onloadData?.data?.gradedropdownlist || [], [onloadData?.data?.gradedropdownlist]);
-    const genders = useMemo(() => onloadData?.data?.genderdropdownlist || [], [onloadData?.data?.genderdropdownlist]);
-    const maritalStatuses = useMemo(() => onloadData?.data?.maritalStatusdropdownlist || [], [onloadData?.data?.maritalStatusdropdownlist]);
-    const religions = useMemo(() => onloadData?.data?.religiondropdownlist || [], [onloadData?.data?.religiondropdownlist]);
+    const isSubmittingAny =
+        isSubmitting || isSavingQualification || isSavingExperience || isSavingDocument || isSavingMedical || isSavingBank;
 
+    // Form UI - standalone add form (no edit mode references)
+    // Form renders immediately, dropdowns load in background and populate as data arrives
     return (
-        <div className={className}>
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-                {/* Basic Information */}
-                <div className='rounded-lg border p-4'>
-                    <h3 className='mb-4 font-semibold text-lg'>Basic Information</h3>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
-                        {/* Employee Code */}
-                        <HRMSInputText
-                            label='Employee Code'
-                            required
-                            id='HRME_EmployeeCode'
-                            placeholder='Enter employee code'
-                            {...register('HRME_EmployeeCode')}
-                            error={errors.HRME_EmployeeCode?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-
-                        {/* First Name */}
-                        <HRMSInputText
-                            label='First Name'
-                            required
-                            id='HRME_EmployeeFirstName'
-                            placeholder='Enter first name'
-                            {...register('HRME_EmployeeFirstName')}
-                            error={errors.HRME_EmployeeFirstName?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-
-                        {/* Middle Name */}
-                        <HRMSInputText
-                            label='Middle Name'
-                            id='HRME_EmployeeMiddleName'
-                            placeholder='Enter middle name'
-                            {...register('HRME_EmployeeMiddleName')}
-                            error={errors.HRME_EmployeeMiddleName?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-
-                        {/* Last Name */}
-                        <HRMSInputText
-                            label='Last Name'
-                            id='HRME_EmployeeLastName'
-                            placeholder='Enter last name'
-                            {...register('HRME_EmployeeLastName')}
-                            error={errors.HRME_EmployeeLastName?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-
-                        {/* Employee Type */}
-                        <div className='group flex flex-col gap-1.5'>
-                            <Label htmlFor='HRMET_Id'>
-                                Employee Type <span className='text-destructive'>*</span>
-                            </Label>
-                            <Controller
-                                name='HRMET_Id'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select
-                                        onValueChange={(value) => field.onChange(Number(value))}
-                                        value={field.value ? String(field.value) : ''}>
-                                        <SelectTrigger id='HRMET_Id' className='transition-colors focus:ring-2 focus:ring-primary/20'>
-                                            <SelectValue placeholder='Select employee type' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {employeeTypes
-                                                .filter((type: any) => {
-                                                    const typeId = type.HRMET_Id ?? type.hrmET_Id;
-                                                    return ensureNonEmptyValue(typeId) != null;
-                                                })
-                                                .map((type: any) => {
-                                                    const typeId = type.HRMET_Id ?? type.hrmET_Id;
-                                                    const typeIdStr = ensureNonEmptyValue(typeId);
-                                                    if (!typeIdStr) return null;
-                                                    return (
-                                                        <SafeSelectItem key={typeId} value={typeIdStr}>
-                                                            {type.HRMET_EmployeeType || type.hrmET_EmployeeType}
-                                                        </SafeSelectItem>
-                                                    );
-                                                })
-                                                .filter(Boolean)}
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                            {errors.HRMET_Id && <FormError>{errors.HRMET_Id.message}</FormError>}
+        <div className={cn('mx-auto w-full max-w-7xl px-4 py-2', className)}>
+            <form onSubmit={onFormSubmit} className='space-y-6'>
+                {/* Main Layout: Vertical Stepper + Form */}
+                <div className='flex flex-col gap-6 lg:flex-row'>
+                    {/* Stepper - Vertical on desktop, horizontal on mobile */}
+                    <div className='lg:w-50 lg:flex-shrink-0'>
+                        {/* Mobile: Horizontal Stepper */}
+                        <div className='block overflow-x-auto lg:hidden'>
+                            <div className='flex min-w-max items-center justify-between px-4'>
+                                {steps.map((step, index) => {
+                                    const IconComponent = getIconByName(step.icon);
+                                    const isDisabled = step.tabKey === 'payroll' && !savedEmployeeId;
+                                    return (
+                                        <div key={step.id} className='flex flex-1 items-center'>
+                                            <div className='flex flex-col items-center'>
+                                                <Button
+                                                    type='button'
+                                                    disabled={isSubmittingAny || isDisabled}
+                                                    className={cn(
+                                                        'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-all duration-300 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50',
+                                                        currentStep === step.id
+                                                            ? 'border-blue-600 bg-blue-600 text-white shadow-blue-200 shadow-lg'
+                                                            : currentStep > step.id
+                                                              ? 'border-green-500 bg-green-500 text-white'
+                                                              : 'border-gray-300 bg-white text-gray-400'
+                                                    )}>
+                                                    {currentStep > step.id ? (
+                                                        <Check className='h-5 w-5' />
+                                                    ) : (
+                                                        <span className='text-lg'>
+                                                            {IconComponent && <IconComponent className='h-5 w-5' />}
+                                                        </span>
+                                                    )}
+                                                </Button>
+                                                <p
+                                                    className={cn(
+                                                        'mt-1 text-nowrap text-center font-medium text-xs transition-colors',
+                                                        currentStep === step.id ? 'text-blue-600' : 'text-gray-500'
+                                                    )}>
+                                                    {step.name}
+                                                </p>
+                                            </div>
+                                            {index < steps.length - 1 && (
+                                                <div
+                                                    className={cn(
+                                                        'mx-2 h-0.5 flex-1 transition-all duration-300',
+                                                        currentStep > step.id ? 'bg-green-500' : 'bg-gray-300'
+                                                    )}
+                                                />
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
 
-                        {/* Group Type */}
-                        <div className='group flex flex-col gap-1.5'>
-                            <Label htmlFor='HRMGT_Id'>Group Type</Label>
-                            <Controller
-                                name='HRMGT_Id'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select
-                                        onValueChange={(value) => field.onChange(Number(value))}
-                                        value={field.value ? String(field.value) : ''}>
-                                        <SelectTrigger id='HRMGT_Id' className='transition-colors focus:ring-2 focus:ring-primary/20'>
-                                            <SelectValue placeholder='Select group type' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {groupTypes
-                                                .filter((group: any) => {
-                                                    const groupId = group.HRMGT_Id ?? group.hrmgT_Id;
-                                                    return ensureNonEmptyValue(groupId) != null;
-                                                })
-                                                .map((group: any) => {
-                                                    const groupId = group.HRMGT_Id ?? group.hrmgT_Id;
-                                                    const groupIdStr = ensureNonEmptyValue(groupId);
-                                                    if (!groupIdStr) return null;
-                                                    return (
-                                                        <SafeSelectItem key={groupId} value={groupIdStr}>
-                                                            {group.HRMGT_EmployeeGroupType || group.hrmgT_EmployeeGroupType}
-                                                        </SafeSelectItem>
-                                                    );
-                                                })
-                                                .filter(Boolean)}
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                            {errors.HRMGT_Id && <FormError>{errors.HRMGT_Id.message}</FormError>}
-                        </div>
-
-                        {/* Department */}
-                        <div className='group flex flex-col gap-1.5'>
-                            <Label htmlFor='HRMD_Id'>Department</Label>
-                            <Controller
-                                name='HRMD_Id'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select
-                                        onValueChange={(value) => field.onChange(Number(value))}
-                                        value={field.value ? String(field.value) : ''}>
-                                        <SelectTrigger id='HRMD_Id' className='transition-colors focus:ring-2 focus:ring-primary/20'>
-                                            <SelectValue placeholder='Select department' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {departments
-                                                .filter((dept: any) => {
-                                                    const deptId = dept.HRMD_Id ?? dept.hrmD_Id;
-                                                    return deptId != null && deptId !== '' && String(deptId).trim() !== '';
-                                                })
-                                                .map((dept: any) => {
-                                                    const deptId = dept.HRMD_Id ?? dept.hrmD_Id;
-                                                    const deptIdStr = String(deptId).trim();
-                                                    if (!deptIdStr || deptIdStr === '') return null;
-                                                    return (
-                                                        <SafeSelectItem key={deptId} value={deptIdStr}>
-                                                            {dept.HRMD_DepartmentName || dept.hrmD_DepartmentName}
-                                                        </SafeSelectItem>
-                                                    );
-                                                })
-                                                .filter(Boolean)}
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                            {errors.HRMD_Id && <FormError>{errors.HRMD_Id.message}</FormError>}
-                        </div>
-
-                        {/* Designation */}
-                        <div className='group flex flex-col gap-1.5'>
-                            <Label htmlFor='HRMDES_Id'>Designation</Label>
-                            <Controller
-                                name='HRMDES_Id'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select
-                                        onValueChange={(value) => field.onChange(Number(value))}
-                                        value={field.value ? String(field.value) : ''}>
-                                        <SelectTrigger id='HRMDES_Id' className='transition-colors focus:ring-2 focus:ring-primary/20'>
-                                            <SelectValue placeholder='Select designation' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {designations
-                                                .filter((desig: any) => {
-                                                    const desigId = desig.HRMDES_Id ?? desig.hrmdeS_Id;
-                                                    return ensureNonEmptyValue(desigId) != null;
-                                                })
-                                                .map((desig: any) => {
-                                                    const desigId = desig.HRMDES_Id ?? desig.hrmdeS_Id;
-                                                    const desigIdStr = ensureNonEmptyValue(desigId);
-                                                    if (!desigIdStr) return null;
-                                                    return (
-                                                        <SafeSelectItem key={desigId} value={desigIdStr}>
-                                                            {desig.HRMDES_DesignationName || desig.hrmdeS_DesignationName}
-                                                        </SafeSelectItem>
-                                                    );
-                                                })
-                                                .filter(Boolean)}
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                            {errors.HRMDES_Id && <FormError>{errors.HRMDES_Id.message}</FormError>}
-                        </div>
-
-                        {/* Grade */}
-                        <div className='group flex flex-col gap-1.5'>
-                            <Label htmlFor='HRMG_Id'>Grade</Label>
-                            <Controller
-                                name='HRMG_Id'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select
-                                        onValueChange={(value) => field.onChange(Number(value))}
-                                        value={field.value ? String(field.value) : ''}>
-                                        <SelectTrigger id='HRMG_Id' className='transition-colors focus:ring-2 focus:ring-primary/20'>
-                                            <SelectValue placeholder='Select grade' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {grades
-                                                .filter((grade: any) => {
-                                                    const gradeId = grade.HRMG_Id ?? grade.hrmG_Id;
-                                                    return ensureNonEmptyValue(gradeId) != null;
-                                                })
-                                                .map((grade: any) => {
-                                                    const gradeId = grade.HRMG_Id ?? grade.hrmG_Id;
-                                                    const gradeIdStr = ensureNonEmptyValue(gradeId);
-                                                    if (!gradeIdStr) return null;
-                                                    return (
-                                                        <SafeSelectItem key={gradeId} value={gradeIdStr}>
-                                                            {grade.HRMG_GradeName || grade.hrmG_GradeName}
-                                                        </SafeSelectItem>
-                                                    );
-                                                })
-                                                .filter(Boolean)}
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                            {errors.HRMG_Id && <FormError>{errors.HRMG_Id.message}</FormError>}
+                        {/* Desktop: Vertical Stepper */}
+                        <div className='hidden lg:block'>
+                            <div className='sticky top-4 space-y-2'>
+                                {steps.map((step, index) => {
+                                    const IconComponent = getIconByName(step.icon);
+                                    const isDisabled = step.tabKey === 'payroll' && !savedEmployeeId;
+                                    return (
+                                        <div key={step.id} className='flex items-start'>
+                                            <div className='flex flex-col items-center'>
+                                                <button
+                                                    type='button'
+                                                    onClick={() => setCurrentStep(step.id)}
+                                                    disabled={isSubmittingAny || isDisabled}
+                                                    className={cn(
+                                                        'flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-all duration-300 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50',
+                                                        currentStep === step.id
+                                                            ? 'border-secondary bg-secondary text-white shadow-blue-200 shadow-lg'
+                                                            : currentStep > step.id
+                                                              ? 'border-green-500 bg-green-500 text-white'
+                                                              : 'border-gray-300 bg-white text-gray-500'
+                                                    )}>
+                                                    {currentStep > step.id ? (
+                                                        <Check className='h-6 w-6' />
+                                                    ) : (
+                                                        <span className='text-lg'>
+                                                            {IconComponent && <IconComponent className='h-5 w-5' />}
+                                                        </span>
+                                                    )}
+                                                </button>
+                                                {index < steps.length - 1 && (
+                                                    <div
+                                                        className={cn(
+                                                            'my-2 h-16 w-0.5 transition-all duration-300',
+                                                            currentStep > step.id ? 'bg-green-500' : 'bg-gray-300'
+                                                        )}
+                                                    />
+                                                )}
+                                            </div>
+                                            <div className='ml-4 flex-1'>
+                                                <p
+                                                    className={cn(
+                                                        'font-medium text-sm transition-colors',
+                                                        currentStep === step.id ? 'text-primary' : 'text-gray-500'
+                                                    )}>
+                                                    {step.name}
+                                                </p>
+                                                <p className='text-gray-400 text-xs'>{step.description}</p>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Personal Details */}
-                <div className='rounded-lg border p-4'>
-                    <h3 className='mb-4 font-semibold text-lg'>Personal Details</h3>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
-                        {/* Date of Birth */}
-                        <HRMSInputText
-                            label='Date of Birth'
-                            type='date'
-                            id='HRME_DOB'
-                            {...register('HRME_DOB')}
-                            error={errors.HRME_DOB?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
+                    {/* Form Content */}
+                    <div className='min-w-0 flex-1 space-y-6'>
+                        <div className='overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm'>
+                            <div className='max-h-[calc(100vh-2rem)] overflow-y-auto p-6 md:p-8'>
+                                {/* Step 1: Employee Information */}
+                                {currentStep === 1 && (
+                                    <div className='space-y-6'>
+                                        <div>
+                                            <h2 className='font-bold text-2xl text-gray-900'>Employee Information</h2>
+                                            <p className='mt-1 text-gray-500 text-sm'>
+                                                Please provide the employee&apos;s basic information
+                                            </p>
+                                        </div>
+                                        <div className='space-y-6'>
+                                            {/* Main Form Fields in Two Columns */}
+                                            <div className='grid grid-cols-1 items-start gap-4 lg:grid-cols-2 lg:gap-6'>
+                                                {/* Left Column */}
+                                                <div className='space-y-4'>
+                                                    <InputText
+                                                        label='First Name'
+                                                        required
+                                                        id='firstName'
+                                                        maxLength={50}
+                                                        onKeyDown={(e) => {
+                                                            const allowedKeys = /^[a-zA-Z\s\-']$/;
+                                                            const controlKeys = [
+                                                                'Backspace',
+                                                                'Delete',
+                                                                'Tab',
+                                                                'Escape',
+                                                                'Enter',
+                                                                'ArrowLeft',
+                                                                'ArrowRight',
+                                                                'ArrowUp',
+                                                                'ArrowDown'
+                                                            ];
+                                                            if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                                                                return;
+                                                            }
+                                                            if (e.key === ' ' && (e.target as HTMLInputElement).value.endsWith(' ')) {
+                                                                e.preventDefault();
+                                                                return;
+                                                            }
+                                                            if (e.key === ' ' && (e.target as HTMLInputElement).selectionStart === 0) {
+                                                                e.preventDefault();
+                                                                return;
+                                                            }
+                                                            if (!allowedKeys.test(e.key)) {
+                                                                e.preventDefault();
+                                                            }
+                                                        }}
+                                                        {...register('firstName', {
+                                                            required: 'First Name is required'
+                                                        })}
+                                                        error={errors.firstName?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Middle Name'
+                                                        id='middleName'
+                                                        maxLength={50}
+                                                        onKeyDown={(e) => {
+                                                            const allowedKeys = /^[a-zA-Z\s\-']$/;
+                                                            const controlKeys = [
+                                                                'Backspace',
+                                                                'Delete',
+                                                                'Tab',
+                                                                'Escape',
+                                                                'Enter',
+                                                                'ArrowLeft',
+                                                                'ArrowRight',
+                                                                'ArrowUp',
+                                                                'ArrowDown'
+                                                            ];
+                                                            if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                                                                return;
+                                                            }
+                                                            if (e.key === ' ' && (e.target as HTMLInputElement).value.endsWith(' ')) {
+                                                                e.preventDefault();
+                                                                return;
+                                                            }
+                                                            if (e.key === ' ' && (e.target as HTMLInputElement).selectionStart === 0) {
+                                                                e.preventDefault();
+                                                                return;
+                                                            }
+                                                            if (!allowedKeys.test(e.key)) {
+                                                                e.preventDefault();
+                                                            }
+                                                        }}
+                                                        {...register('middleName')}
+                                                        error={errors.middleName?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Last Name'
+                                                        id='lastName'
+                                                        maxLength={50}
+                                                        onKeyDown={(e) => {
+                                                            const allowedKeys = /^[a-zA-Z\s\-']$/;
+                                                            const controlKeys = [
+                                                                'Backspace',
+                                                                'Delete',
+                                                                'Tab',
+                                                                'Escape',
+                                                                'Enter',
+                                                                'ArrowLeft',
+                                                                'ArrowRight',
+                                                                'ArrowUp',
+                                                                'ArrowDown'
+                                                            ];
+                                                            if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                                                                return;
+                                                            }
+                                                            if (e.key === ' ' && (e.target as HTMLInputElement).value.endsWith(' ')) {
+                                                                e.preventDefault();
+                                                                return;
+                                                            }
+                                                            if (e.key === ' ' && (e.target as HTMLInputElement).selectionStart === 0) {
+                                                                e.preventDefault();
+                                                                return;
+                                                            }
+                                                            if (!allowedKeys.test(e.key)) {
+                                                                e.preventDefault();
+                                                            }
+                                                        }}
+                                                        {...register('lastName')}
+                                                        error={errors.lastName?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Employee Code'
+                                                        required
+                                                        id='employeeCode'
+                                                        maxLength={20}
+                                                        {...register('employeeCode', {
+                                                            required: 'Employee code is required'
+                                                        })}
+                                                        error={errors.employeeCode?.message}
+                                                    />
+                                                    <InputText
+                                                        label="Father's Name *"
+                                                        id='fatherName'
+                                                        maxLength={50}
+                                                        onKeyDown={(e) => {
+                                                            const allowedKeys = /^[a-zA-Z\s\-']$/;
+                                                            const controlKeys = [
+                                                                'Backspace',
+                                                                'Delete',
+                                                                'Tab',
+                                                                'Escape',
+                                                                'Enter',
+                                                                'ArrowLeft',
+                                                                'ArrowRight',
+                                                                'ArrowUp',
+                                                                'ArrowDown'
+                                                            ];
+                                                            if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                                                                return;
+                                                            }
+                                                            if (e.key === ' ' && (e.target as HTMLInputElement).value.endsWith(' ')) {
+                                                                e.preventDefault();
+                                                                return;
+                                                            }
+                                                            if (e.key === ' ' && (e.target as HTMLInputElement).selectionStart === 0) {
+                                                                e.preventDefault();
+                                                                return;
+                                                            }
+                                                            if (!allowedKeys.test(e.key)) {
+                                                                e.preventDefault();
+                                                            }
+                                                        }}
+                                                        {...register('fatherName')}
+                                                        error={errors.fatherName?.message}
+                                                    />
+                                                    <InputText
+                                                        label="Mother's Name *"
+                                                        id='motherName'
+                                                        maxLength={50}
+                                                        onKeyDown={(e) => {
+                                                            const allowedKeys = /^[a-zA-Z\s\-']$/;
+                                                            const controlKeys = [
+                                                                'Backspace',
+                                                                'Delete',
+                                                                'Tab',
+                                                                'Escape',
+                                                                'Enter',
+                                                                'ArrowLeft',
+                                                                'ArrowRight',
+                                                                'ArrowUp',
+                                                                'ArrowDown'
+                                                            ];
+                                                            if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                                                                return;
+                                                            }
+                                                            if (e.key === ' ' && (e.target as HTMLInputElement).value.endsWith(' ')) {
+                                                                e.preventDefault();
+                                                                return;
+                                                            }
+                                                            if (e.key === ' ' && (e.target as HTMLInputElement).selectionStart === 0) {
+                                                                e.preventDefault();
+                                                                return;
+                                                            }
+                                                            if (!allowedKeys.test(e.key)) {
+                                                                e.preventDefault();
+                                                            }
+                                                        }}
+                                                        {...register('motherName')}
+                                                        error={errors.motherName?.message}
+                                                    />
+                                                    <Controller
+                                                        name='typeOfEmployment'
+                                                        control={control}
+                                                        render={({ field, fieldState }) => (
+                                                            <div className='flex flex-col gap-1.5'>
+                                                                <Label>
+                                                                    Type of Employment <span className='text-red-500'>*</span>
+                                                                </Label>
+                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                    <SelectTrigger
+                                                                        className={cn(
+                                                                            fieldState.error
+                                                                                ? 'border-destructive focus-visible:ring-destructive'
+                                                                                : 'border-input focus-visible:ring-ring'
+                                                                        )}>
+                                                                        <SelectValue placeholder='--Select--' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {dropdownLoadingStates.empTypes ? (
+                                                                            <SelectItem value='__loading__' disabled>
+                                                                                Loading employee types...
+                                                                            </SelectItem>
+                                                                        ) : (options?.empTypes || []).length === 0 ? (
+                                                                            <SelectItem value='__no_options__' disabled>
+                                                                                No options available
+                                                                            </SelectItem>
+                                                                        ) : (
+                                                                            (options?.empTypes || [])
+                                                                                .filter((et: IEmployeeTypeDropdown) => {
+                                                                                    return (
+                                                                                        et.key != null &&
+                                                                                        et.key !== undefined &&
+                                                                                        et.key !== 0
+                                                                                    );
+                                                                                })
+                                                                                .map((et: IEmployeeTypeDropdown) => {
+                                                                                    const val = et.key?.toString().trim();
+                                                                                    if (!val || val === '') return null;
+                                                                                    return (
+                                                                                        <SafeSelectItem key={et.key} value={val}>
+                                                                                            {et.value || String(et.key)}
+                                                                                        </SafeSelectItem>
+                                                                                    );
+                                                                                })
+                                                                                .filter(Boolean)
+                                                                        )}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                                {fieldState.error && (
+                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                        {fieldState.error.message}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    />
+                                                    <Controller
+                                                        name='employeeGroup'
+                                                        control={control}
+                                                        render={({ field, fieldState }) => (
+                                                            <div className='flex flex-col gap-1.5'>
+                                                                <Label>
+                                                                    Employee Group <span className='text-red-500'>*</span>
+                                                                </Label>
+                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                    <SelectTrigger
+                                                                        className={cn(
+                                                                            fieldState.error
+                                                                                ? 'border-destructive focus-visible:ring-destructive'
+                                                                                : 'border-input focus-visible:ring-ring'
+                                                                        )}>
+                                                                        <SelectValue placeholder='--Select--' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {dropdownLoadingStates.groupTypes ? (
+                                                                            <SelectItem value='__loading__' disabled>
+                                                                                Loading group types...
+                                                                            </SelectItem>
+                                                                        ) : (options?.groupTypes || []).length === 0 ? (
+                                                                            <SelectItem value='__no_options__' disabled>
+                                                                                No options available
+                                                                            </SelectItem>
+                                                                        ) : (
+                                                                            (options?.groupTypes || [])
+                                                                                .filter((gt: IGroupTypeDropdown) => {
+                                                                                    return (
+                                                                                        gt.key != null &&
+                                                                                        gt.key !== undefined &&
+                                                                                        gt.key !== 0
+                                                                                    );
+                                                                                })
+                                                                                .map((gt: IGroupTypeDropdown) => {
+                                                                                    const val = gt.key?.toString().trim();
+                                                                                    if (!val || val === '') return null;
+                                                                                    return (
+                                                                                        <SafeSelectItem key={gt.key} value={val}>
+                                                                                            {gt.value || String(gt.key)}
+                                                                                        </SafeSelectItem>
+                                                                                    );
+                                                                                })
+                                                                                .filter(Boolean)
+                                                                        )}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                                {fieldState.error && (
+                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                        {fieldState.error.message}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    />
+                                                    <Controller
+                                                        name='school'
+                                                        control={control}
+                                                        render={({ field, fieldState }) => (
+                                                            <div className='flex flex-col gap-1.5'>
+                                                                <Label>
+                                                                    School <span className='text-red-500'>*</span>
+                                                                </Label>
+                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                    <SelectTrigger
+                                                                        className={cn(
+                                                                            fieldState.error
+                                                                                ? 'border-destructive focus-visible:ring-destructive'
+                                                                                : 'border-input focus-visible:ring-ring'
+                                                                        )}>
+                                                                        <SelectValue placeholder='--Select--' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {dropdownLoadingStates.institutions ? (
+                                                                            <SelectItem value='__loading__' disabled>
+                                                                                Loading institutions...
+                                                                            </SelectItem>
+                                                                        ) : (options?.institutions || []).length === 0 ? (
+                                                                            <SelectItem value='__no_options__' disabled>
+                                                                                No options available
+                                                                            </SelectItem>
+                                                                        ) : (
+                                                                            (options?.institutions || [])
+                                                                                .filter((inst: IInstitutionDropdown) => {
+                                                                                    return (
+                                                                                        inst.key != null &&
+                                                                                        inst.key !== undefined &&
+                                                                                        inst.key !== 0
+                                                                                    );
+                                                                                })
+                                                                                .map((inst: IInstitutionDropdown) => {
+                                                                                    const val = inst.key?.toString().trim();
+                                                                                    if (!val || val === '') return null;
+                                                                                    return (
+                                                                                        <SafeSelectItem key={inst.key} value={val}>
+                                                                                            {inst.value || String(inst.key)}
+                                                                                        </SafeSelectItem>
+                                                                                    );
+                                                                                })
+                                                                                .filter(Boolean)
+                                                                        )}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                                {fieldState.error && (
+                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                        {fieldState.error.message}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    />
+                                                    <Controller
+                                                        name='designation'
+                                                        control={control}
+                                                        render={({ field, fieldState }) => (
+                                                            <div className='flex flex-col gap-1.5'>
+                                                                <Label>
+                                                                    Designation <span className='text-red-500'>*</span>
+                                                                </Label>
+                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                    <SelectTrigger
+                                                                        className={cn(
+                                                                            fieldState.error
+                                                                                ? 'border-destructive focus-visible:ring-destructive'
+                                                                                : 'border-input focus-visible:ring-ring'
+                                                                        )}>
+                                                                        <SelectValue placeholder='--Select--' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {(options?.designations || [])
+                                                                            .filter((dg: IDesignationDropdown) => {
+                                                                                return (
+                                                                                    dg.key != null && dg.key !== undefined && dg.key !== 0
+                                                                                );
+                                                                            })
+                                                                            .map((dg: IDesignationDropdown) => {
+                                                                                const val = dg.key?.toString().trim();
+                                                                                if (!val || val === '') return null;
+                                                                                return (
+                                                                                    <SafeSelectItem key={dg.key} value={val}>
+                                                                                        {dg.value || String(dg.key)}
+                                                                                    </SafeSelectItem>
+                                                                                );
+                                                                            })
+                                                                            .filter(Boolean)}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                                {fieldState.error && (
+                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                        {fieldState.error.message}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    />
+                                                    <InputText
+                                                        label='Subject Taught'
+                                                        id='subjectTaught'
+                                                        maxLength={50}
+                                                        placeholder='Enter subject taught'
+                                                        {...register('subjectTaught')}
+                                                        error={errors.subjectTaught?.message}
+                                                    />
+                                                    <Controller
+                                                        name='grade'
+                                                        control={control}
+                                                        render={({ field, fieldState }) => (
+                                                            <div className='flex flex-col gap-1.5'>
+                                                                <Label>
+                                                                    Grade <span className='text-red-500'>*</span>
+                                                                </Label>
+                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                    <SelectTrigger
+                                                                        className={cn(
+                                                                            fieldState.error
+                                                                                ? 'border-destructive focus-visible:ring-destructive'
+                                                                                : 'border-input focus-visible:ring-ring'
+                                                                        )}>
+                                                                        <SelectValue placeholder='--Select--' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {(options?.grades || [])
+                                                                            .filter((gr: IGradeDropdown) => {
+                                                                                return (
+                                                                                    gr.key != null && gr.key !== undefined && gr.key !== 0
+                                                                                );
+                                                                            })
+                                                                            .map((gr: IGradeDropdown) => {
+                                                                                const val = gr.key?.toString().trim();
+                                                                                if (!val || val === '') return null;
+                                                                                return (
+                                                                                    <SafeSelectItem key={gr.key} value={val}>
+                                                                                        {gr.value || String(gr.key)}
+                                                                                    </SafeSelectItem>
+                                                                                );
+                                                                            })
+                                                                            .filter(Boolean)}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                                {fieldState.error && (
+                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                        {fieldState.error.message}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    />
+                                                    <Controller
+                                                        name='dateOfJoining'
+                                                        control={control}
+                                                        render={({ field, fieldState }) => (
+                                                            <DateField
+                                                                field={field}
+                                                                fieldState={fieldState}
+                                                                label='Date Of Joining'
+                                                                placeholder='Pick date of joining'
+                                                            />
+                                                        )}
+                                                    />
+                                                    <Controller
+                                                        name='dateOfConfirmation'
+                                                        control={control}
+                                                        render={({ field, fieldState }) => (
+                                                            <DateField
+                                                                field={field}
+                                                                fieldState={fieldState}
+                                                                label='Date Of Confirmation'
+                                                                placeholder='Pick date of confirmation'
+                                                            />
+                                                        )}
+                                                    />
+                                                    <div className='space-y-3'>
+                                                        <Controller
+                                                            name='epf'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <div className='flex items-center space-x-2'>
+                                                                    <Checkbox
+                                                                        id='epf'
+                                                                        checked={!!field.value}
+                                                                        onCheckedChange={(v) => field.onChange(!!v)}
+                                                                    />
+                                                                    <Label htmlFor='epf'>EPF</Label>
+                                                                </div>
+                                                            )}
+                                                        />
+                                                        <Controller
+                                                            name='ppf'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <div className='flex items-center space-x-2'>
+                                                                    <Checkbox
+                                                                        id='ppf'
+                                                                        checked={!!field.value}
+                                                                        onCheckedChange={(v) => field.onChange(!!v)}
+                                                                    />
+                                                                    <Label htmlFor='ppf'>PPF</Label>
+                                                                </div>
+                                                            )}
+                                                        />
+                                                        <Controller
+                                                            name='phdResearchGuide'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <div className='flex items-center space-x-2'>
+                                                                    <Checkbox
+                                                                        id='phdResearchGuide'
+                                                                        checked={!!field.value}
+                                                                        onCheckedChange={(v) => field.onChange(!!v)}
+                                                                    />
+                                                                    <Label htmlFor='phdResearchGuide'>PHD Research Guide ?</Label>
+                                                                </div>
+                                                            )}
+                                                        />
+                                                    </div>
+                                                    {watch?.('phdResearchGuide') ? (
+                                                        <InputText
+                                                            label='Recognition Year'
+                                                            id='recognitionYear'
+                                                            maxLength={4}
+                                                            onKeyDown={(e) => {
+                                                                const controlKeys = [
+                                                                    'Backspace',
+                                                                    'Delete',
+                                                                    'Tab',
+                                                                    'Escape',
+                                                                    'Enter',
+                                                                    'ArrowLeft',
+                                                                    'ArrowRight',
+                                                                    'ArrowUp',
+                                                                    'ArrowDown'
+                                                                ];
+                                                                if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                                                                    return;
+                                                                }
+                                                                if (e.key === ' ') {
+                                                                    e.preventDefault();
+                                                                    return;
+                                                                }
+                                                                if (!/^[0-9]$/.test(e.key)) {
+                                                                    e.preventDefault();
+                                                                }
+                                                            }}
+                                                            {...register('recognitionYear')}
+                                                            error={errors.recognitionYear?.message}
+                                                        />
+                                                    ) : null}
+                                                    <Controller
+                                                        name='teachingNonTeaching'
+                                                        control={control}
+                                                        render={({ field, fieldState }) => (
+                                                            <div className='flex flex-col gap-1.5'>
+                                                                <Label>
+                                                                    Teaching/NonTeaching <span className='text-red-500'>*</span>
+                                                                </Label>
+                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                    <SelectTrigger
+                                                                        className={cn(
+                                                                            fieldState.error
+                                                                                ? 'border-destructive focus-visible:ring-destructive'
+                                                                                : 'border-input focus-visible:ring-ring'
+                                                                        )}>
+                                                                        <SelectValue placeholder='--Select--' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {(options?.teachingNonTeaching || [])
+                                                                            .filter((tt: ITeachingTypeDropdown) => {
+                                                                                return (
+                                                                                    tt.key != null &&
+                                                                                    tt.key !== '' &&
+                                                                                    String(tt.key).trim() !== ''
+                                                                                );
+                                                                            })
+                                                                            .map((tt: ITeachingTypeDropdown) => {
+                                                                                const val = tt.key?.toString().trim();
+                                                                                if (!val || val === '') return null;
+                                                                                return (
+                                                                                    <SafeSelectItem key={tt.key} value={val}>
+                                                                                        {tt.value || String(tt.key)}
+                                                                                    </SafeSelectItem>
+                                                                                );
+                                                                            })
+                                                                            .filter(Boolean)}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                                {fieldState.error && (
+                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                        {fieldState.error.message}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    />
+                                                    <Controller
+                                                        name='pfApplicable'
+                                                        control={control}
+                                                        render={({ field }) => (
+                                                            <div className='flex items-center space-x-2'>
+                                                                <Checkbox
+                                                                    id='pfApplicable'
+                                                                    checked={!!field.value}
+                                                                    onCheckedChange={(v) => field.onChange(!!v)}
+                                                                />
+                                                                <Label htmlFor='pfApplicable'>PF Applicable?</Label>
+                                                            </div>
+                                                        )}
+                                                    />
+                                                    {watch?.('pfApplicable') ? (
+                                                        <div className='space-y-4 border-blue-500 border-l-4 pl-4'>
+                                                            <div className='space-y-2'>
+                                                                <Controller
+                                                                    name='pfMaxAmount'
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <div className='flex items-center space-x-2'>
+                                                                            <Checkbox
+                                                                                id='pfMaxAmount'
+                                                                                checked={!!field.value}
+                                                                                onCheckedChange={(checked) => {
+                                                                                    field.onChange(!!checked);
+                                                                                    if (checked) {
+                                                                                        setValue('pfFixedAmount', false, {
+                                                                                            shouldValidate: false,
+                                                                                            shouldDirty: false
+                                                                                        });
+                                                                                    }
+                                                                                }}
+                                                                            />
+                                                                            <Label htmlFor='pfMaxAmount'>PF Max Amount</Label>
+                                                                        </div>
+                                                                    )}
+                                                                />
+                                                                <Controller
+                                                                    name='pfFixedAmount'
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <div className='flex items-center space-x-2'>
+                                                                            <Checkbox
+                                                                                id='pfFixedAmount'
+                                                                                checked={!!field.value}
+                                                                                onCheckedChange={(checked) => {
+                                                                                    field.onChange(!!checked);
+                                                                                    if (checked) {
+                                                                                        setValue('pfMaxAmount', false, {
+                                                                                            shouldValidate: false,
+                                                                                            shouldDirty: false
+                                                                                        });
+                                                                                    }
+                                                                                }}
+                                                                            />
+                                                                            <Label htmlFor='pfFixedAmount'>PF Fixed Amount</Label>
+                                                                        </div>
+                                                                    )}
+                                                                />
+                                                            </div>
+                                                            <InputText
+                                                                label='PF Acc No.'
+                                                                id='pfAccNo'
+                                                                maxLength={22}
+                                                                {...register('pfAccNo')}
+                                                                error={errors.pfAccNo?.message}
+                                                            />
+                                                            <InputText
+                                                                label='UAN Number'
+                                                                id='uanNumber'
+                                                                maxLength={12}
+                                                                {...register('uanNumber')}
+                                                                error={errors.uanNumber?.message}
+                                                            />
+                                                            <Controller
+                                                                name='pfDate'
+                                                                control={control}
+                                                                render={({ field, fieldState }) => (
+                                                                    <DateField
+                                                                        field={field}
+                                                                        fieldState={fieldState}
+                                                                        label='PF Date'
+                                                                        placeholder='Pick PF date'
+                                                                    />
+                                                                )}
+                                                            />
+                                                        </div>
+                                                    ) : null}
+                                                    <Controller
+                                                        name='esiApplicable'
+                                                        control={control}
+                                                        render={({ field }) => (
+                                                            <div className='flex items-center space-x-2'>
+                                                                <Checkbox
+                                                                    id='esiApplicable'
+                                                                    checked={!!field.value}
+                                                                    onCheckedChange={(v) => field.onChange(!!v)}
+                                                                />
+                                                                <Label htmlFor='esiApplicable'>ESI Applicable?</Label>
+                                                            </div>
+                                                        )}
+                                                    />
+                                                    {watch?.('esiApplicable') ? (
+                                                        <div className='space-y-4 border-green-500 border-l-4 pl-4'>
+                                                            <InputText
+                                                                label='ESI Acc No.'
+                                                                id='esiAccNo'
+                                                                maxLength={10}
+                                                                onKeyDown={(e) => {
+                                                                    const controlKeys = [
+                                                                        'Backspace',
+                                                                        'Delete',
+                                                                        'Tab',
+                                                                        'Escape',
+                                                                        'Enter',
+                                                                        'ArrowLeft',
+                                                                        'ArrowRight',
+                                                                        'ArrowUp',
+                                                                        'ArrowDown'
+                                                                    ];
+                                                                    if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                                                                        return;
+                                                                    }
+                                                                    if (e.key === ' ') {
+                                                                        e.preventDefault();
+                                                                        return;
+                                                                    }
+                                                                    if (!/^[0-9]$/.test(e.key)) {
+                                                                        e.preventDefault();
+                                                                    }
+                                                                }}
+                                                                {...register('esiAccNo')}
+                                                                error={errors.esiAccNo?.message}
+                                                            />
+                                                            <InputText
+                                                                label='Gratuity Acc No.'
+                                                                id='gratuityAccNo'
+                                                                maxLength={25}
+                                                                {...register('gratuityAccNo')}
+                                                                error={errors.gratuityAccNo?.message}
+                                                            />
+                                                            <Controller
+                                                                name='esiDate'
+                                                                control={control}
+                                                                render={({ field, fieldState }) => (
+                                                                    <DateField
+                                                                        field={field}
+                                                                        fieldState={fieldState}
+                                                                        label='ESI Date'
+                                                                        placeholder='Pick ESI date'
+                                                                    />
+                                                                )}
+                                                            />
+                                                        </div>
+                                                    ) : null}
+                                                    <InputText
+                                                        label='National SSN'
+                                                        id='nationalSSN'
+                                                        maxLength={9}
+                                                        onKeyDown={(e) => {
+                                                            const controlKeys = [
+                                                                'Backspace',
+                                                                'Delete',
+                                                                'Tab',
+                                                                'Escape',
+                                                                'Enter',
+                                                                'ArrowLeft',
+                                                                'ArrowRight',
+                                                                'ArrowUp',
+                                                                'ArrowDown'
+                                                            ];
+                                                            if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                                                                return;
+                                                            }
+                                                            if (e.key === ' ') {
+                                                                e.preventDefault();
+                                                                return;
+                                                            }
+                                                            if (!/^[0-9]$/.test(e.key)) {
+                                                                e.preventDefault();
+                                                            }
+                                                        }}
+                                                        {...register('nationalSSN')}
+                                                        error={errors.nationalSSN?.message}
+                                                    />
+                                                </div>
+                                                {/* Right Column */}
+                                                <div className='space-y-4'>
+                                                    <Controller
+                                                        name='religion'
+                                                        control={control}
+                                                        render={({ field, fieldState }) => (
+                                                            <div className='flex flex-col gap-1.5'>
+                                                                <Label>
+                                                                    Religion <span className='text-red-500'>*</span>
+                                                                </Label>
+                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                    <SelectTrigger
+                                                                        className={cn(
+                                                                            fieldState.error
+                                                                                ? 'border-destructive focus-visible:ring-destructive'
+                                                                                : 'border-input focus-visible:ring-ring'
+                                                                        )}>
+                                                                        <SelectValue placeholder='--Select--' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {(options?.religions || [])
+                                                                            .filter((rel: IReligionDropdown) => {
+                                                                                return (
+                                                                                    rel.key != null &&
+                                                                                    rel.key !== undefined &&
+                                                                                    rel.key !== 0
+                                                                                );
+                                                                            })
+                                                                            .map((rel: IReligionDropdown) => {
+                                                                                const val = rel.key?.toString().trim();
+                                                                                if (!val || val === '') return null;
+                                                                                return (
+                                                                                    <SafeSelectItem key={rel.key} value={val}>
+                                                                                        {rel.value || String(rel.key)}
+                                                                                    </SafeSelectItem>
+                                                                                );
+                                                                            })
+                                                                            .filter(Boolean)}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                                {fieldState.error && (
+                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                        {fieldState.error.message}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    />
+                                                    <Controller
+                                                        name='casteCategory'
+                                                        control={control}
+                                                        render={({ field, fieldState }) => (
+                                                            <div className='flex flex-col gap-1.5'>
+                                                                <Label>
+                                                                    Caste Category <span className='text-red-500'>*</span>
+                                                                </Label>
+                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                    <SelectTrigger
+                                                                        className={cn(
+                                                                            fieldState.error
+                                                                                ? 'border-destructive focus-visible:ring-destructive'
+                                                                                : 'border-input focus-visible:ring-ring'
+                                                                        )}>
+                                                                        <SelectValue placeholder='--Select--' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {(options?.casteCategories || [])
+                                                                            .filter((cc: ICasteCategoryDropdown) => {
+                                                                                return (
+                                                                                    cc.key != null && cc.key !== undefined && cc.key !== 0
+                                                                                );
+                                                                            })
+                                                                            .map((cc: ICasteCategoryDropdown) => {
+                                                                                const val = cc.key?.toString().trim();
+                                                                                if (!val || val === '') return null;
+                                                                                return (
+                                                                                    <SafeSelectItem key={cc.key} value={val}>
+                                                                                        {cc.value || String(cc.key)}
+                                                                                    </SafeSelectItem>
+                                                                                );
+                                                                            })
+                                                                            .filter(Boolean)}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            </div>
+                                                        )}
+                                                    />
+                                                    <Controller
+                                                        name='caste'
+                                                        control={control}
+                                                        render={({ field, fieldState }) => (
+                                                            <div className='flex flex-col gap-1.5'>
+                                                                <Label>
+                                                                    Caste <span className='text-red-500'>*</span>
+                                                                </Label>
+                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                    <SelectTrigger
+                                                                        className={cn(
+                                                                            fieldState.error
+                                                                                ? 'border-destructive focus-visible:ring-destructive'
+                                                                                : 'border-input focus-visible:ring-ring'
+                                                                        )}>
+                                                                        <SelectValue placeholder='Select Caste' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {(options?.castes || [])
+                                                                            .filter((c: ICasteDropdown) => {
+                                                                                return c.key != null && c.key !== undefined && c.key !== 0;
+                                                                            })
+                                                                            .map((c: ICasteDropdown) => {
+                                                                                const val = c.key?.toString().trim();
+                                                                                if (!val || val === '') return null;
+                                                                                return (
+                                                                                    <SafeSelectItem key={c.key} value={val}>
+                                                                                        {c.value || String(c.key)}
+                                                                                    </SafeSelectItem>
+                                                                                );
+                                                                            })
+                                                                            .filter(Boolean)}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                                {fieldState.error && (
+                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                        {fieldState.error.message}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    />
+                                                    <Controller
+                                                        name='dateOfBirth'
+                                                        control={control}
+                                                        render={({ field, fieldState }) => (
+                                                            <DateField
+                                                                field={field}
+                                                                fieldState={fieldState}
+                                                                label='Date Of Birth'
+                                                                placeholder='Pick date of birth'
+                                                            />
+                                                        )}
+                                                    />
+                                                    <Controller
+                                                        name='dateOfRetirement'
+                                                        control={control}
+                                                        render={({ field, fieldState }) => (
+                                                            <div className='mt-5 flex flex-col gap-1.5'>
+                                                                <Label htmlFor={field.name}>
+                                                                    Date of Retirement
+                                                                    <span className='ml-1 text-red-500'>*</span>
+                                                                </Label>
+                                                                <div className='flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-muted-foreground text-sm'>
+                                                                    {field.value
+                                                                        ? (() => {
+                                                                              try {
+                                                                                  const date = new Date(field.value);
+                                                                                  return date.toLocaleDateString('en-GB', {
+                                                                                      day: '2-digit',
+                                                                                      month: '2-digit',
+                                                                                      year: 'numeric'
+                                                                                  });
+                                                                              } catch {
+                                                                                  return field.value;
+                                                                              }
+                                                                          })()
+                                                                        : 'Pick date of retirement'}
+                                                                </div>
+                                                                {fieldState?.error && (
+                                                                    <div className='text-destructive text-sm'>
+                                                                        {fieldState.error.message}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    />
+                                                    <Controller
+                                                        name='gender'
+                                                        control={control}
+                                                        render={({ field, fieldState }) => (
+                                                            <div className='flex flex-col gap-1.5'>
+                                                                <Label>
+                                                                    Gender <span className='text-red-500'>*</span>
+                                                                </Label>
+                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                    <SelectTrigger
+                                                                        className={cn(
+                                                                            fieldState.error
+                                                                                ? 'border-destructive focus-visible:ring-destructive'
+                                                                                : 'border-input focus-visible:ring-ring'
+                                                                        )}>
+                                                                        <SelectValue placeholder='--Select--' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {(options?.genders || [])
+                                                                            .filter((g: IGenderDropdown) => {
+                                                                                return g.key != null && g.key !== undefined && g.key !== 0;
+                                                                            })
+                                                                            .map((g: IGenderDropdown) => {
+                                                                                const val = g.key?.toString().trim();
+                                                                                if (!val || val === '') return null;
+                                                                                return (
+                                                                                    <SafeSelectItem key={g.key} value={val}>
+                                                                                        {g.value || String(g.key)}
+                                                                                    </SafeSelectItem>
+                                                                                );
+                                                                            })
+                                                                            .filter(Boolean)}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                                {fieldState.error && (
+                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                        {fieldState.error.message}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    />
+                                                    <Controller
+                                                        name='maritalStatus'
+                                                        control={control}
+                                                        render={({ field, fieldState }) => (
+                                                            <div className='flex flex-col gap-1.5'>
+                                                                <Label>
+                                                                    Marital Status <span className='text-red-500'>*</span>
+                                                                </Label>
+                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                    <SelectTrigger
+                                                                        className={cn(
+                                                                            fieldState.error
+                                                                                ? 'border-destructive focus-visible:ring-destructive'
+                                                                                : 'border-input focus-visible:ring-ring'
+                                                                        )}>
+                                                                        <SelectValue placeholder='--Select--' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {(options?.maritalStatuses || [])
+                                                                            .filter((ms: IMaritalStatusDropdown) => {
+                                                                                return (
+                                                                                    ms.key != null && ms.key !== undefined && ms.key !== 0
+                                                                                );
+                                                                            })
+                                                                            .map((ms: IMaritalStatusDropdown) => {
+                                                                                const val = ms.key?.toString().trim();
+                                                                                if (!val || val === '') return null;
+                                                                                return (
+                                                                                    <SafeSelectItem key={ms.key} value={val}>
+                                                                                        {ms.value || String(ms.key)}
+                                                                                    </SafeSelectItem>
+                                                                                );
+                                                                            })
+                                                                            .filter(Boolean)}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            </div>
+                                                        )}
+                                                    />
+                                                    {/* Multiple Mobile Numbers */}
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label>
+                                                            Mobile No. <span className='text-red-500'>*</span>
+                                                        </Label>
+                                                        <div className='space-y-2'>
+                                                            {mobileFields.map((field, index) => (
+                                                                <div key={field.id} className='flex items-center gap-2'>
+                                                                    <Controller
+                                                                        name={`mobileDetails.${index}.type`}
+                                                                        control={control}
+                                                                        render={({ field }) => (
+                                                                            <Select
+                                                                                onValueChange={field.onChange}
+                                                                                value={field.value || undefined}>
+                                                                                <SelectTrigger className='w-28'>
+                                                                                    <SelectValue placeholder='Select' />
+                                                                                </SelectTrigger>
+                                                                                <SelectContent>
+                                                                                    {(options?.contactTypes || []).length === 0 ? (
+                                                                                        <SelectItem value='no-options' disabled>
+                                                                                            No options available
+                                                                                        </SelectItem>
+                                                                                    ) : (
+                                                                                        (options?.contactTypes || [])
+                                                                                            .filter((item: any) => {
+                                                                                                const key =
+                                                                                                    item.key || item.value || item.id;
+                                                                                                return (
+                                                                                                    key != null &&
+                                                                                                    key !== '' &&
+                                                                                                    String(key).trim() !== ''
+                                                                                                );
+                                                                                            })
+                                                                                            .map((item: any) => {
+                                                                                                const key = (
+                                                                                                    item.key ||
+                                                                                                    item.value ||
+                                                                                                    item.id
+                                                                                                )
+                                                                                                    ?.toString()
+                                                                                                    .trim();
+                                                                                                const value =
+                                                                                                    item.value ||
+                                                                                                    item.label ||
+                                                                                                    item.name ||
+                                                                                                    String(key);
+                                                                                                if (!key || key === '') return null;
+                                                                                                return (
+                                                                                                    <SafeSelectItem key={key} value={key}>
+                                                                                                        {value}
+                                                                                                    </SafeSelectItem>
+                                                                                                );
+                                                                                            })
+                                                                                            .filter(Boolean)
+                                                                                    )}
+                                                                                </SelectContent>
+                                                                            </Select>
+                                                                        )}
+                                                                    />
+                                                                    <InputText
+                                                                        placeholder='Enter mobile number'
+                                                                        maxLength={10}
+                                                                        {...register(`mobileDetails.${index}.mobileNo`)}
+                                                                        className='min-w-[200px] flex-1'
+                                                                    />
+                                                                    <Button
+                                                                        type='button'
+                                                                        variant='ghost'
+                                                                        size='sm'
+                                                                        className='h-9 w-9 p-0'
+                                                                        onClick={() => removeMobile(index)}>
+                                                                        <X className='h-4 w-4' />
+                                                                    </Button>
+                                                                </div>
+                                                            ))}
+                                                            <Button
+                                                                type='button'
+                                                                variant='outline'
+                                                                size='sm'
+                                                                className='w-full'
+                                                                onClick={() => appendMobile({ mobileNo: '', type: 'Default' })}>
+                                                                <Plus className='mr-1 h-4 w-4' /> Add Mobile
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                    {/* Multiple Email IDs */}
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label>Email -Id</Label>
+                                                        <div className='space-y-2'>
+                                                            {emailFields.map((field, index) => (
+                                                                <div key={field.id} className='flex items-center gap-2'>
+                                                                    <Controller
+                                                                        name={`emailDetails.${index}.type`}
+                                                                        control={control}
+                                                                        render={({ field }) => (
+                                                                            <Select
+                                                                                onValueChange={field.onChange}
+                                                                                value={field.value || undefined}>
+                                                                                <SelectTrigger className='w-28'>
+                                                                                    <SelectValue placeholder='Select' />
+                                                                                </SelectTrigger>
+                                                                                <SelectContent>
+                                                                                    {(options?.contactTypes || []).length === 0 ? (
+                                                                                        <SelectItem value='no-options' disabled>
+                                                                                            No options available
+                                                                                        </SelectItem>
+                                                                                    ) : (
+                                                                                        (options?.contactTypes || [])
+                                                                                            .filter((item: any) => {
+                                                                                                const key =
+                                                                                                    item.key || item.value || item.id;
+                                                                                                return (
+                                                                                                    key != null &&
+                                                                                                    key !== '' &&
+                                                                                                    String(key).trim() !== ''
+                                                                                                );
+                                                                                            })
+                                                                                            .map((item: any) => {
+                                                                                                const key = (
+                                                                                                    item.key ||
+                                                                                                    item.value ||
+                                                                                                    item.id
+                                                                                                )
+                                                                                                    ?.toString()
+                                                                                                    .trim();
+                                                                                                const value =
+                                                                                                    item.value ||
+                                                                                                    item.label ||
+                                                                                                    item.name ||
+                                                                                                    String(key);
+                                                                                                if (!key || key === '') return null;
+                                                                                                return (
+                                                                                                    <SafeSelectItem key={key} value={key}>
+                                                                                                        {value}
+                                                                                                    </SafeSelectItem>
+                                                                                                );
+                                                                                            })
+                                                                                            .filter(Boolean)
+                                                                                    )}
+                                                                                </SelectContent>
+                                                                            </Select>
+                                                                        )}
+                                                                    />
+                                                                    <InputText
+                                                                        type='email'
+                                                                        placeholder='Enter email address'
+                                                                        maxLength={100}
+                                                                        {...register(`emailDetails.${index}.emailId`)}
+                                                                        className='min-w-[200px] flex-1'
+                                                                    />
+                                                                    <Button
+                                                                        type='button'
+                                                                        variant='ghost'
+                                                                        size='sm'
+                                                                        className='h-9 w-9 p-0'
+                                                                        onClick={() => removeEmail(index)}>
+                                                                        <X className='h-4 w-4' />
+                                                                    </Button>
+                                                                </div>
+                                                            ))}
+                                                            <Button
+                                                                type='button'
+                                                                variant='outline'
+                                                                size='sm'
+                                                                className='w-full'
+                                                                onClick={() => appendEmail({ emailId: '', type: 'Default' })}>
+                                                                <Plus className='mr-1 h-4 w-4' /> Add Email
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                    <InputText
+                                                        label='Aadhaar No.'
+                                                        id='aadharNo'
+                                                        maxLength={12}
+                                                        onKeyDown={(e) => {
+                                                            const controlKeys = [
+                                                                'Backspace',
+                                                                'Delete',
+                                                                'Tab',
+                                                                'Escape',
+                                                                'Enter',
+                                                                'ArrowLeft',
+                                                                'ArrowRight',
+                                                                'ArrowUp',
+                                                                'ArrowDown'
+                                                            ];
+                                                            if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                                                                return;
+                                                            }
+                                                            if (e.key === ' ') {
+                                                                e.preventDefault();
+                                                                return;
+                                                            }
+                                                            if (!/^[0-9]$/.test(e.key)) {
+                                                                e.preventDefault();
+                                                            }
+                                                        }}
+                                                        {...register('aadharNo')}
+                                                        error={errors.aadharNo?.message}
+                                                    />
+                                                    <InputText
+                                                        label='PAN Card No.'
+                                                        id='panCardNo'
+                                                        maxLength={10}
+                                                        onKeyDown={(e) => {
+                                                            const controlKeys = [
+                                                                'Backspace',
+                                                                'Delete',
+                                                                'Tab',
+                                                                'Escape',
+                                                                'Enter',
+                                                                'ArrowLeft',
+                                                                'ArrowRight',
+                                                                'ArrowUp',
+                                                                'ArrowDown'
+                                                            ];
+                                                            if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                                                                return;
+                                                            }
+                                                            if (e.key === ' ') {
+                                                                e.preventDefault();
+                                                                return;
+                                                            }
+                                                        }}
+                                                        {...register('panCardNo')}
+                                                        error={errors.panCardNo?.message}
+                                                    />
+                                                    <Controller
+                                                        name='bloodGroup'
+                                                        control={control}
+                                                        render={({ field, fieldState }) => (
+                                                            <div className='flex flex-col gap-1.5'>
+                                                                <Label>Blood Group</Label>
+                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                    <SelectTrigger
+                                                                        className={cn(
+                                                                            fieldState.error
+                                                                                ? 'border-destructive focus-visible:ring-destructive'
+                                                                                : 'border-input focus-visible:ring-ring'
+                                                                        )}>
+                                                                        <SelectValue placeholder='--Select--' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {(options?.bloodGroups || [])
+                                                                            .filter((bg: IBloodGroupDropdown) => {
+                                                                                return (
+                                                                                    bg.key != null &&
+                                                                                    bg.key !== '' &&
+                                                                                    String(bg.key).trim() !== ''
+                                                                                );
+                                                                            })
+                                                                            .map((bg: IBloodGroupDropdown) => {
+                                                                                const val = bg.key?.toString().trim();
+                                                                                if (!val || val === '') return null;
+                                                                                return (
+                                                                                    <SafeSelectItem key={bg.key} value={val}>
+                                                                                        {bg.value || String(bg.key)}
+                                                                                    </SafeSelectItem>
+                                                                                );
+                                                                            })
+                                                                            .filter(Boolean)}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                                {fieldState.error && (
+                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                        {fieldState.error.message}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    />
+                                                    <Controller
+                                                        name='salaryType'
+                                                        control={control}
+                                                        render={({ field, fieldState }) => (
+                                                            <div className='flex flex-col gap-1.5'>
+                                                                <Label>Salary Type</Label>
+                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                    <SelectTrigger
+                                                                        className={cn(
+                                                                            fieldState.error
+                                                                                ? 'border-destructive focus-visible:ring-destructive'
+                                                                                : 'border-input focus-visible:ring-ring'
+                                                                        )}>
+                                                                        <SelectValue placeholder='--Select--' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {(options?.salaryTypes || [])
+                                                                            .filter((st: ISalaryTypeDropdown) => {
+                                                                                return (
+                                                                                    st.key != null &&
+                                                                                    st.key !== '' &&
+                                                                                    String(st.key).trim() !== ''
+                                                                                );
+                                                                            })
+                                                                            .map((st: ISalaryTypeDropdown) => {
+                                                                                const val = st.key?.toString().trim();
+                                                                                if (!val || val === '') return null;
+                                                                                return (
+                                                                                    <SafeSelectItem key={st.key} value={val}>
+                                                                                        {st.value || String(st.key)}
+                                                                                    </SafeSelectItem>
+                                                                                );
+                                                                            })
+                                                                            .filter(Boolean)}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                                {fieldState.error && (
+                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                        {fieldState.error.message}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    />
+                                                    <Controller
+                                                        name='modeOfPayment'
+                                                        control={control}
+                                                        render={({ field, fieldState }) => (
+                                                            <div className='flex flex-col gap-1.5'>
+                                                                <Label>
+                                                                    Mode of Payment <span className='text-red-500'>*</span>
+                                                                </Label>
+                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                    <SelectTrigger
+                                                                        className={cn(
+                                                                            fieldState.error
+                                                                                ? 'border-destructive focus-visible:ring-destructive'
+                                                                                : 'border-input focus-visible:ring-ring'
+                                                                        )}>
+                                                                        <SelectValue placeholder='--Select--' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {(options?.modeOfPayment || [])
+                                                                            .filter((pm: IPaymentModeDropdown) => {
+                                                                                return (
+                                                                                    pm.key != null &&
+                                                                                    pm.key !== '' &&
+                                                                                    String(pm.key).trim() !== ''
+                                                                                );
+                                                                            })
+                                                                            .map((pm: IPaymentModeDropdown) => {
+                                                                                const val = pm.key?.toString().trim();
+                                                                                if (!val || val === '') return null;
+                                                                                return (
+                                                                                    <SafeSelectItem key={pm.key} value={val}>
+                                                                                        {pm.value || String(pm.key)}
+                                                                                    </SafeSelectItem>
+                                                                                );
+                                                                            })
+                                                                            .filter(Boolean)}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                                {fieldState.error && (
+                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                        {fieldState.error.message}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    />
+                                                    {/* Employee Photo Upload */}
+                                                    <div className='space-y-2'>
+                                                        <Label>Upload Employee Photo</Label>
+                                                        <div className='rounded-lg border-2 border-gray-300 border-dashed p-4 text-center'>
+                                                            <div className='mx-auto mb-4 flex h-32 w-32 items-center justify-center overflow-hidden rounded-lg bg-gray-100'>
+                                                                {selectedPhoto ? (
+                                                                    <img
+                                                                        src={selectedPhoto}
+                                                                        alt='Employee Preview'
+                                                                        className='h-full w-full rounded-lg object-cover'
+                                                                    />
+                                                                ) : (
+                                                                    <Upload className='h-12 w-12 text-gray-400' />
+                                                                )}
+                                                            </div>
+                                                            <div className='space-y-2'>
+                                                                <input
+                                                                    type='file'
+                                                                    id='employeePhoto'
+                                                                    accept='image/*'
+                                                                    onChange={handlePhotoUpload}
+                                                                    className='hidden'
+                                                                />
+                                                                <Button
+                                                                    type='button'
+                                                                    variant='outline'
+                                                                    className='w-full bg-gray-100'
+                                                                    onClick={() => document.getElementById('employeePhoto')?.click()}>
+                                                                    {selectedPhoto ? 'Change Photo' : 'Upload Employee Photo'}
+                                                                </Button>
+                                                                {selectedPhoto && (
+                                                                    <Button
+                                                                        type='button'
+                                                                        size='sm'
+                                                                        className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
+                                                                        onClick={() => {
+                                                                            setSelectedPhoto(null);
+                                                                            setPhotoFile(null);
+                                                                            const fileInput = document.getElementById(
+                                                                                'employeePhoto'
+                                                                            ) as HTMLInputElement;
+                                                                            if (fileInput) fileInput.value = '';
+                                                                        }}>
+                                                                        Remove Photo
+                                                                    </Button>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {/* Bank Details - Conditional on Mode of Payment */}
+                                                    {watch('modeOfPayment') === 'Bank' ? (
+                                                        <div className='space-y-4'>
+                                                            <div className='rounded-md bg-gray-200 px-4 py-2'>
+                                                                <h3 className='font-semibold text-base text-gray-900 uppercase'>
+                                                                    EMPLOYEE BANK DETAILS:
+                                                                </h3>
+                                                            </div>
+                                                            <div className='rounded-lg border bg-card'>
+                                                                <div className='rounded-t-lg bg-gray-200 px-4 py-2 text-gray-900'>
+                                                                    <div className='grid grid-cols-5 gap-2 font-semibold text-sm'>
+                                                                        <div>Serial No.</div>
+                                                                        <div>Employer Bank Name</div>
+                                                                        <div>Bank Account No.</div>
+                                                                        <div>Account Type</div>
+                                                                        <div>Action</div>
+                                                                    </div>
+                                                                </div>
+                                                                <div className='space-y-2 p-4'>
+                                                                    {bankFields.map((field, index) => (
+                                                                        <div key={field.id} className='grid grid-cols-5 items-center gap-2'>
+                                                                            <div>{index + 1}</div>
+                                                                            <div>
+                                                                                <Controller
+                                                                                    name={`bankDetails.${index}.employerBankName`}
+                                                                                    control={control}
+                                                                                    render={({ field }) => (
+                                                                                        <Select
+                                                                                            onValueChange={field.onChange}
+                                                                                            value={field.value || ''}>
+                                                                                            <SelectTrigger>
+                                                                                                <SelectValue placeholder='--Select--' />
+                                                                                            </SelectTrigger>
+                                                                                            <SelectContent>
+                                                                                                {memoizedBankOptions.map((bank: any) => (
+                                                                                                    <SafeSelectItem
+                                                                                                        key={bank.id}
+                                                                                                        value={bank.value}>
+                                                                                                        {bank.name}
+                                                                                                    </SafeSelectItem>
+                                                                                                ))}
+                                                                                            </SelectContent>
+                                                                                        </Select>
+                                                                                    )}
+                                                                                />
+                                                                            </div>
+                                                                            <div>
+                                                                                <InputText
+                                                                                    placeholder='Bank Account No.'
+                                                                                    maxLength={14}
+                                                                                    onKeyDown={(e) => {
+                                                                                        const controlKeys = [
+                                                                                            'Backspace',
+                                                                                            'Delete',
+                                                                                            'Tab',
+                                                                                            'Escape',
+                                                                                            'Enter',
+                                                                                            'ArrowLeft',
+                                                                                            'ArrowRight',
+                                                                                            'ArrowUp',
+                                                                                            'ArrowDown'
+                                                                                        ];
+                                                                                        if (
+                                                                                            controlKeys.includes(e.key) ||
+                                                                                            e.ctrlKey ||
+                                                                                            e.metaKey
+                                                                                        ) {
+                                                                                            return;
+                                                                                        }
+                                                                                        if (e.key === ' ') {
+                                                                                            e.preventDefault();
+                                                                                            return;
+                                                                                        }
+                                                                                        if (!/^[0-9]$/.test(e.key)) {
+                                                                                            e.preventDefault();
+                                                                                        }
+                                                                                    }}
+                                                                                    {...register(`bankDetails.${index}.bankAccountNo`)}
+                                                                                    className='w-full'
+                                                                                />
+                                                                            </div>
+                                                                            <div>
+                                                                                <Controller
+                                                                                    name={`bankDetails.${index}.accountType`}
+                                                                                    control={control}
+                                                                                    render={({ field }) => (
+                                                                                        <Select
+                                                                                            onValueChange={field.onChange}
+                                                                                            value={field.value || undefined}>
+                                                                                            <SelectTrigger>
+                                                                                                <SelectValue placeholder='Select' />
+                                                                                            </SelectTrigger>
+                                                                                            <SelectContent>
+                                                                                                {(options?.contactTypes || []).length ===
+                                                                                                0 ? (
+                                                                                                    <SelectItem value='no-options' disabled>
+                                                                                                        No options available
+                                                                                                    </SelectItem>
+                                                                                                ) : (
+                                                                                                    (options?.contactTypes || [])
+                                                                                                        .filter((item: any) => {
+                                                                                                            const key =
+                                                                                                                item.key ||
+                                                                                                                item.value ||
+                                                                                                                item.id;
+                                                                                                            return (
+                                                                                                                key != null &&
+                                                                                                                key !== '' &&
+                                                                                                                String(key).trim() !== ''
+                                                                                                            );
+                                                                                                        })
+                                                                                                        .map((item: any) => {
+                                                                                                            const key = (
+                                                                                                                item.key ||
+                                                                                                                item.value ||
+                                                                                                                item.id
+                                                                                                            )
+                                                                                                                ?.toString()
+                                                                                                                .trim();
+                                                                                                            const value =
+                                                                                                                item.value ||
+                                                                                                                item.label ||
+                                                                                                                item.name ||
+                                                                                                                String(key);
+                                                                                                            if (!key || key === '')
+                                                                                                                return null;
+                                                                                                            return (
+                                                                                                                <SafeSelectItem
+                                                                                                                    key={key}
+                                                                                                                    value={key}>
+                                                                                                                    {value}
+                                                                                                                </SafeSelectItem>
+                                                                                                            );
+                                                                                                        })
+                                                                                                        .filter(Boolean)
+                                                                                                )}
+                                                                                            </SelectContent>
+                                                                                        </Select>
+                                                                                    )}
+                                                                                />
+                                                                            </div>
+                                                                            <div>
+                                                                                <Button
+                                                                                    type='button'
+                                                                                    variant='outline'
+                                                                                    size='sm'
+                                                                                    onClick={() => removeBank(index)}>
+                                                                                    <Trash2 className='h-4 w-4' />
+                                                                                </Button>
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
+                                                                    <Button
+                                                                        type='button'
+                                                                        variant='outline'
+                                                                        size='sm'
+                                                                        onClick={() =>
+                                                                            appendBank({
+                                                                                employerBankName: '',
+                                                                                bankAccountNo: '',
+                                                                                accountType: 'Default'
+                                                                            })
+                                                                        }>
+                                                                        <Plus className='mr-1 h-4 w-4' /> Add Bank Account
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ) : null}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
-                        {/* Date of Joining */}
-                        <HRMSInputText
-                            label='Date of Joining'
-                            type='date'
-                            id='HRME_DOJ'
-                            {...register('HRME_DOJ')}
-                            error={errors.HRME_DOJ?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
+                                {/* Step 2: Address Information */}
+                                {currentStep === 2 && (
+                                    <div className='space-y-6'>
+                                        <div>
+                                            <h2 className='font-bold text-2xl text-gray-900'>Address Information</h2>
+                                            <p className='mt-1 text-gray-500 text-sm'>Please provide the employee&apos;s address details</p>
+                                        </div>
+                                        <div className='space-y-6'>
+                                            {/* Contact Address */}
+                                            <div className='space-y-4'>
+                                                <div className='rounded-md border'>
+                                                    <div className='border-b bg-muted px-4 py-2'>
+                                                        <h3 className='font-semibold text-base text-gray-900 uppercase'>
+                                                            CONTACT ADDRESS:
+                                                        </h3>
+                                                    </div>
+                                                    <div className='p-4'>
+                                                        <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
+                                                            <InputText
+                                                                label='Address'
+                                                                id='contactAddress'
+                                                                maxLength={100}
+                                                                {...register('contactAddress')}
+                                                                error={errors.contactAddress?.message}
+                                                            />
+                                                            <InputText
+                                                                label='Area'
+                                                                id='contactArea'
+                                                                {...register('contactArea')}
+                                                                error={errors.contactArea?.message}
+                                                            />
+                                                            <div className='space-y-2'>
+                                                                <Controller
+                                                                    name='contactCountry'
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <>
+                                                                            <Label>Country</Label>
+                                                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                                                <SelectTrigger>
+                                                                                    <SelectValue placeholder='Select Country' />
+                                                                                </SelectTrigger>
+                                                                                <SelectContent>
+                                                                                    {(options?.countries || [])
+                                                                                        .filter((country: ICountryDropdown) => {
+                                                                                            return (
+                                                                                                country.key != null &&
+                                                                                                country.key !== undefined &&
+                                                                                                country.key !== 0
+                                                                                            );
+                                                                                        })
+                                                                                        .map((country: ICountryDropdown) => {
+                                                                                            const key = country.key?.toString().trim();
+                                                                                            if (!key || key === '') return null;
+                                                                                            // Remove "Country" prefix if present
+                                                                                            let displayValue =
+                                                                                                country.value || String(country.key);
+                                                                                            if (displayValue.startsWith('Country ')) {
+                                                                                                displayValue = displayValue.replace(
+                                                                                                    /^Country\s+/i,
+                                                                                                    ''
+                                                                                                );
+                                                                                            }
+                                                                                            return (
+                                                                                                <SafeSelectItem
+                                                                                                    key={country.key}
+                                                                                                    value={key}>
+                                                                                                    {displayValue}
+                                                                                                </SafeSelectItem>
+                                                                                            );
+                                                                                        })
+                                                                                        .filter(Boolean)}
+                                                                                </SelectContent>
+                                                                            </Select>
+                                                                        </>
+                                                                    )}
+                                                                />
+                                                            </div>
+                                                            <div className='space-y-2'>
+                                                                <Controller
+                                                                    name='contactState'
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <>
+                                                                            <Label>State</Label>
+                                                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                                                <SelectTrigger>
+                                                                                    <SelectValue placeholder='Select State' />
+                                                                                </SelectTrigger>
+                                                                                <SelectContent>
+                                                                                    {isLoadingContactStates ? (
+                                                                                        <SelectItem value='loading' disabled>
+                                                                                            Loading states...
+                                                                                        </SelectItem>
+                                                                                    ) : (
+                                                                                        availableContactStates
+                                                                                            .filter((state: IStateDropdown) => {
+                                                                                                return (
+                                                                                                    state.key != null &&
+                                                                                                    state.key !== undefined &&
+                                                                                                    state.key !== 0
+                                                                                                );
+                                                                                            })
+                                                                                            .map((state: IStateDropdown) => {
+                                                                                                const key = state.key?.toString().trim();
+                                                                                                if (!key || key === '') return null;
+                                                                                                const value =
+                                                                                                    state.value || String(state.key);
+                                                                                                return (
+                                                                                                    <SafeSelectItem
+                                                                                                        key={`contact-state-${state.key}`}
+                                                                                                        value={key}>
+                                                                                                        {value}
+                                                                                                    </SafeSelectItem>
+                                                                                                );
+                                                                                            })
+                                                                                            .filter(Boolean)
+                                                                                    )}
+                                                                                </SelectContent>
+                                                                            </Select>
+                                                                        </>
+                                                                    )}
+                                                                />
+                                                            </div>
+                                                            <InputText
+                                                                label='City'
+                                                                id='contactCity'
+                                                                {...register('contactCity')}
+                                                                error={errors.contactCity?.message}
+                                                            />
+                                                            <InputText
+                                                                label='Pincode'
+                                                                id='contactPincode'
+                                                                maxLength={10}
+                                                                onKeyDown={(e) => {
+                                                                    const controlKeys = [
+                                                                        'Backspace',
+                                                                        'Delete',
+                                                                        'Tab',
+                                                                        'Escape',
+                                                                        'Enter',
+                                                                        'ArrowLeft',
+                                                                        'ArrowRight',
+                                                                        'ArrowUp',
+                                                                        'ArrowDown'
+                                                                    ];
+                                                                    if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                                                                        return;
+                                                                    }
+                                                                    if (e.key === ' ') {
+                                                                        e.preventDefault();
+                                                                        return;
+                                                                    }
+                                                                    if (!/^[0-9]$/.test(e.key)) {
+                                                                        e.preventDefault();
+                                                                    }
+                                                                }}
+                                                                {...register('contactPincode')}
+                                                                error={errors.contactPincode?.message}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {/* Permanent Address */}
+                                            <div className='space-y-4'>
+                                                <div className='rounded-md border'>
+                                                    <div className='border-b bg-muted px-4 py-2'>
+                                                        <h3 className='font-semibold text-base text-gray-900 uppercase'>
+                                                            PERMANENT ADDRESS:
+                                                        </h3>
+                                                    </div>
+                                                    <div className='p-4'>
+                                                        <div className='mb-4 flex items-center space-x-2'>
+                                                            <Checkbox
+                                                                id='sameAsCommunicationAddress'
+                                                                checked={sameAsCommunicationAddress || false}
+                                                                onCheckedChange={(checked) => {
+                                                                    setValue('sameAsCommunicationAddress', !!checked);
+                                                                }}
+                                                            />
+                                                            <Label htmlFor='sameAsCommunicationAddress'>
+                                                                Same As Communication Address
+                                                            </Label>
+                                                        </div>
+                                                        <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
+                                                            <InputText
+                                                                label='Address'
+                                                                id='permanentAddress'
+                                                                maxLength={100}
+                                                                {...register('permanentAddress')}
+                                                                error={errors.permanentAddress?.message}
+                                                                disabled={sameAsCommunicationAddress}
+                                                            />
+                                                            <InputText
+                                                                label='Area'
+                                                                id='permanentArea'
+                                                                {...register('permanentArea')}
+                                                                error={errors.permanentArea?.message}
+                                                                disabled={sameAsCommunicationAddress}
+                                                            />
+                                                            <div className='space-y-2'>
+                                                                <Controller
+                                                                    name='permanentCountry'
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <>
+                                                                            <Label>Country</Label>
+                                                                            <Select
+                                                                                onValueChange={field.onChange}
+                                                                                value={field.value}
+                                                                                disabled={sameAsCommunicationAddress}>
+                                                                                <SelectTrigger>
+                                                                                    <SelectValue placeholder='Select Country' />
+                                                                                </SelectTrigger>
+                                                                                <SelectContent>
+                                                                                    {(options?.countries || [])
+                                                                                        .filter((country: ICountryDropdown) => {
+                                                                                            return (
+                                                                                                country.key != null &&
+                                                                                                country.key !== undefined &&
+                                                                                                country.key !== 0
+                                                                                            );
+                                                                                        })
+                                                                                        .map((country: ICountryDropdown) => {
+                                                                                            const key = country.key?.toString().trim();
+                                                                                            if (!key || key === '') return null;
+                                                                                            // Remove "Country" prefix if present
+                                                                                            let displayValue =
+                                                                                                country.value || String(country.key);
+                                                                                            if (displayValue.startsWith('Country ')) {
+                                                                                                displayValue = displayValue.replace(
+                                                                                                    /^Country\s+/i,
+                                                                                                    ''
+                                                                                                );
+                                                                                            }
+                                                                                            return (
+                                                                                                <SafeSelectItem
+                                                                                                    key={country.key}
+                                                                                                    value={key}>
+                                                                                                    {displayValue}
+                                                                                                </SafeSelectItem>
+                                                                                            );
+                                                                                        })
+                                                                                        .filter(Boolean)}
+                                                                                </SelectContent>
+                                                                            </Select>
+                                                                        </>
+                                                                    )}
+                                                                />
+                                                            </div>
+                                                            <div className='space-y-2'>
+                                                                <Controller
+                                                                    name='permanentState'
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <>
+                                                                            <Label>State</Label>
+                                                                            <Select
+                                                                                onValueChange={field.onChange}
+                                                                                value={field.value}
+                                                                                disabled={sameAsCommunicationAddress}>
+                                                                                <SelectTrigger>
+                                                                                    <SelectValue placeholder='Select State' />
+                                                                                </SelectTrigger>
+                                                                                <SelectContent>
+                                                                                    {isLoadingPermanentStates ? (
+                                                                                        <SelectItem value='loading' disabled>
+                                                                                            Loading states...
+                                                                                        </SelectItem>
+                                                                                    ) : (
+                                                                                        availablePermanentStates
+                                                                                            .filter((state: IStateDropdown) => {
+                                                                                                return (
+                                                                                                    state.key != null &&
+                                                                                                    state.key !== undefined &&
+                                                                                                    state.key !== 0
+                                                                                                );
+                                                                                            })
+                                                                                            .map((state: IStateDropdown) => {
+                                                                                                const key = state.key?.toString().trim();
+                                                                                                if (!key || key === '') return null;
+                                                                                                const value =
+                                                                                                    state.value || String(state.key);
+                                                                                                return (
+                                                                                                    <SafeSelectItem
+                                                                                                        key={`permanent-state-${state.key}`}
+                                                                                                        value={key}>
+                                                                                                        {value}
+                                                                                                    </SafeSelectItem>
+                                                                                                );
+                                                                                            })
+                                                                                            .filter(Boolean)
+                                                                                    )}
+                                                                                </SelectContent>
+                                                                            </Select>
+                                                                        </>
+                                                                    )}
+                                                                />
+                                                            </div>
+                                                            <InputText
+                                                                label='City'
+                                                                id='permanentCity'
+                                                                {...register('permanentCity')}
+                                                                error={errors.permanentCity?.message}
+                                                                disabled={sameAsCommunicationAddress}
+                                                            />
+                                                            <InputText
+                                                                label='Pincode'
+                                                                id='permanentPincode'
+                                                                maxLength={10}
+                                                                onKeyDown={(e) => {
+                                                                    const controlKeys = [
+                                                                        'Backspace',
+                                                                        'Delete',
+                                                                        'Tab',
+                                                                        'Escape',
+                                                                        'Enter',
+                                                                        'ArrowLeft',
+                                                                        'ArrowRight',
+                                                                        'ArrowUp',
+                                                                        'ArrowDown'
+                                                                    ];
+                                                                    if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                                                                        return;
+                                                                    }
+                                                                    if (e.key === ' ') {
+                                                                        e.preventDefault();
+                                                                        return;
+                                                                    }
+                                                                    if (!/^[0-9]$/.test(e.key)) {
+                                                                        e.preventDefault();
+                                                                    }
+                                                                }}
+                                                                {...register('permanentPincode')}
+                                                                error={errors.permanentPincode?.message}
+                                                                disabled={sameAsCommunicationAddress}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
-                        {/* Gender */}
-                        <div className='group flex flex-col gap-1.5'>
-                            <Label htmlFor='IVRMMG_Id'>Gender</Label>
-                            <Controller
-                                name='IVRMMG_Id'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select
-                                        onValueChange={(value) => field.onChange(Number(value))}
-                                        value={field.value ? String(field.value) : ''}>
-                                        <SelectTrigger id='IVRMMG_Id' className='transition-colors focus:ring-2 focus:ring-primary/20'>
-                                            <SelectValue placeholder='Select gender' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {genders
-                                                .filter((gender: any) => {
-                                                    const genderId = gender.IVRMMG_Id ?? gender.ivrmmmG_Id;
-                                                    return ensureNonEmptyValue(genderId) != null;
-                                                })
-                                                .map((gender: any) => {
-                                                    const genderId = gender.IVRMMG_Id ?? gender.ivrmmmG_Id;
-                                                    const genderIdStr = ensureNonEmptyValue(genderId);
-                                                    if (!genderIdStr) return null;
+                                {/* Step 3: Qualification */}
+                                {currentStep === 3 && (
+                                    <div className='space-y-6'>
+                                        <div>
+                                            <h2 className='font-bold text-2xl text-gray-900'>Qualification</h2>
+                                            <p className='mt-1 text-gray-500 text-sm'>
+                                                Please provide the employee&apos;s educational qualifications
+                                            </p>
+                                        </div>
+                                        <div className='space-y-4'>
+                                            <div className='rounded-md border'>
+                                                <div className='flex items-center justify-between border-b bg-muted px-4 py-2'>
+                                                    <h3 className='font-semibold text-base text-gray-900 uppercase'>
+                                                        EMPLOYEE QUALIFICATION DETAILS
+                                                    </h3>
+                                                    <Button
+                                                        type='button'
+                                                        className='h-7 w-auto rounded-md bg-secondary px-2.5 py-1.5 text-secondary-foreground text-xs shadow-sm hover:bg-secondary/80'
+                                                        onClick={() => {
+                                                            appendQualification({
+                                                                qualification: '',
+                                                                course: '',
+                                                                college: '',
+                                                                university: '',
+                                                                yearOfPassing: '',
+                                                                cgpaOrPercentage: 'CGPA',
+                                                                cgpa: '',
+                                                                qualificationCountry: '',
+                                                                qualificationState: '',
+                                                                registrationNo: '',
+                                                                result: '',
+                                                                areaOfSpecialisation: '',
+                                                                medicalCouncil: '',
+                                                                phdFlag: false,
+                                                                thesisTitle: '',
+                                                                registrationYear: '',
+                                                                guideName: '',
+                                                                qualifiedDate: ''
+                                                            });
+                                                        }}>
+                                                        <Plus className='mr-1 h-3.5 w-3.5' /> Add Qualification
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                            {qualificationFields.length === 0 && (
+                                                <div className='rounded-md border p-6 text-muted-foreground text-sm'>
+                                                    No qualifications added yet. Click "Add Qualification" to start.
+                                                </div>
+                                            )}
+                                            <div className='space-y-4'>
+                                                {qualificationFields.map((field, index) => {
+                                                    const qualificationDetails = watch('qualificationDetails') || [];
+                                                    const cgpaOrPercentage = qualificationDetails[index]?.cgpaOrPercentage || 'CGPA';
                                                     return (
-                                                        <SafeSelectItem key={genderId} value={genderIdStr}>
-                                                            {gender.IVRMMG_GenderName || gender.ivrmmmG_GenderName}
-                                                        </SafeSelectItem>
+                                                        <div key={field.id} className='rounded-lg border bg-card p-4 shadow-sm'>
+                                                            <div className='mb-4 flex items-center justify-between'>
+                                                                <div className='flex items-center gap-2'>
+                                                                    <Badge variant='secondary'>Serial NO. {index + 1}</Badge>
+                                                                    <div className='font-semibold'>Qualification #{index + 1}</div>
+                                                                </div>
+                                                                <Button
+                                                                    type='button'
+                                                                    className='h-7 w-auto rounded-md px-2.5 py-1.5 text-xs hover:bg-accent hover:text-accent-foreground'
+                                                                    onClick={() => removeQualification(index)}>
+                                                                    <Trash2 className='mr-1 h-3.5 w-3.5' /> Remove
+                                                                </Button>
+                                                            </div>
+                                                            <div className='space-y-4'>
+                                                                {/* Row 1: Qualification, Course */}
+                                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                                    <InputText
+                                                                        label='Qualification *'
+                                                                        id={`qualificationDetails.${index}.qualification`}
+                                                                        maxLength={50}
+                                                                        {...register(`qualificationDetails.${index}.qualification`)}
+                                                                    />
+                                                                    <Controller
+                                                                        name={`qualificationDetails.${index}.course`}
+                                                                        control={control}
+                                                                        render={({ field }) => {
+                                                                            const courses = options?.courses || [];
+                                                                            return (
+                                                                                <div className='flex flex-col gap-1.5'>
+                                                                                    <Label>Course *</Label>
+                                                                                    <Select
+                                                                                        onValueChange={field.onChange}
+                                                                                        value={field.value || ''}>
+                                                                                        <SelectTrigger className='h-9'>
+                                                                                            <SelectValue placeholder='Select Course' />
+                                                                                        </SelectTrigger>
+                                                                                        <SelectContent>
+                                                                                            {isLoadingCourses ? (
+                                                                                                <SelectItem value='loading' disabled>
+                                                                                                    Loading courses...
+                                                                                                </SelectItem>
+                                                                                            ) : courses.length === 0 ? (
+                                                                                                <SelectItem value='no-options' disabled>
+                                                                                                    No courses available
+                                                                                                </SelectItem>
+                                                                                            ) : (
+                                                                                                courses
+                                                                                                    .filter((course: ICourseDropdown) => {
+                                                                                                        return (
+                                                                                                            course.key != null &&
+                                                                                                            course.key !== undefined &&
+                                                                                                            course.key !== 0
+                                                                                                        );
+                                                                                                    })
+                                                                                                    .map((course: ICourseDropdown) => {
+                                                                                                        const key = course.key
+                                                                                                            ?.toString()
+                                                                                                            .trim();
+                                                                                                        if (!key || key === '') return null;
+                                                                                                        const value =
+                                                                                                            course.value ||
+                                                                                                            String(course.key);
+                                                                                                        return (
+                                                                                                            <SelectItem
+                                                                                                                key={course.key}
+                                                                                                                value={key}>
+                                                                                                                {value}
+                                                                                                            </SelectItem>
+                                                                                                        );
+                                                                                                    })
+                                                                                                    .filter(Boolean)
+                                                                                            )}
+                                                                                        </SelectContent>
+                                                                                    </Select>
+                                                                                </div>
+                                                                            );
+                                                                        }}
+                                                                    />
+                                                                </div>
+                                                                {/* Row 2: College, University */}
+                                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                                    <InputText
+                                                                        label='College *'
+                                                                        id={`qualificationDetails.${index}.college`}
+                                                                        maxLength={100}
+                                                                        {...register(`qualificationDetails.${index}.college`)}
+                                                                    />
+                                                                    <InputText
+                                                                        label='University *'
+                                                                        id={`qualificationDetails.${index}.university`}
+                                                                        maxLength={100}
+                                                                        {...register(`qualificationDetails.${index}.university`)}
+                                                                    />
+                                                                </div>
+                                                                {/* Row 3: Year Of Passing, Country, State */}
+                                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                                                                    <InputText
+                                                                        label='Year Of Passing *'
+                                                                        id={`qualificationDetails.${index}.yearOfPassing`}
+                                                                        maxLength={4}
+                                                                        onKeyDown={(e) => {
+                                                                            const controlKeys = [
+                                                                                'Backspace',
+                                                                                'Delete',
+                                                                                'Tab',
+                                                                                'Escape',
+                                                                                'Enter',
+                                                                                'ArrowLeft',
+                                                                                'ArrowRight',
+                                                                                'ArrowUp',
+                                                                                'ArrowDown'
+                                                                            ];
+                                                                            if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                                                                                return;
+                                                                            }
+                                                                            if (e.key === ' ') {
+                                                                                e.preventDefault();
+                                                                                return;
+                                                                            }
+                                                                            if (!/^[0-9]$/.test(e.key)) {
+                                                                                e.preventDefault();
+                                                                            }
+                                                                        }}
+                                                                        {...register(`qualificationDetails.${index}.yearOfPassing`)}
+                                                                    />
+                                                                    <Controller
+                                                                        name={`qualificationDetails.${index}.qualificationCountry`}
+                                                                        control={control}
+                                                                        render={({ field }) => (
+                                                                            <div className='flex flex-col gap-1.5'>
+                                                                                <Label>Country*</Label>
+                                                                                <Select
+                                                                                    onValueChange={(value) => {
+                                                                                        field.onChange(value);
+                                                                                        setValue(
+                                                                                            `qualificationDetails.${index}.qualificationState`,
+                                                                                            '',
+                                                                                            {
+                                                                                                shouldValidate: false
+                                                                                            }
+                                                                                        );
+                                                                                    }}
+                                                                                    value={field.value || ''}>
+                                                                                    <SelectTrigger className='h-9'>
+                                                                                        <SelectValue placeholder='Select Country' />
+                                                                                    </SelectTrigger>
+                                                                                    <SelectContent>
+                                                                                        {(options?.countries || [])
+                                                                                            .filter((country: ICountryDropdown) => {
+                                                                                                return (
+                                                                                                    country.key != null &&
+                                                                                                    country.key !== 0 &&
+                                                                                                    String(country.key).trim() !== ''
+                                                                                                );
+                                                                                            })
+                                                                                            .map((country: ICountryDropdown) => {
+                                                                                                const key = country.key?.toString().trim();
+                                                                                                if (!key || key === '') return null;
+                                                                                                // Remove "Country" prefix if present
+                                                                                                let displayValue =
+                                                                                                    country.value || String(country.key);
+                                                                                                if (displayValue.startsWith('Country ')) {
+                                                                                                    displayValue = displayValue.replace(
+                                                                                                        /^Country\s+/i,
+                                                                                                        ''
+                                                                                                    );
+                                                                                                }
+                                                                                                return (
+                                                                                                    <SafeSelectItem
+                                                                                                        key={country.key}
+                                                                                                        value={key}>
+                                                                                                        {displayValue}
+                                                                                                    </SafeSelectItem>
+                                                                                                );
+                                                                                            })
+                                                                                            .filter(Boolean)}
+                                                                                    </SelectContent>
+                                                                                </Select>
+                                                                            </div>
+                                                                        )}
+                                                                    />
+                                                                    <QualificationStateDropdown
+                                                                        control={control}
+                                                                        index={index}
+                                                                        countryId={
+                                                                            (watch('qualificationDetails') || [])[index]
+                                                                                ?.qualificationCountry || null
+                                                                        }
+                                                                        setValue={setValue}
+                                                                        fallbackStates={options?.states || []}
+                                                                    />
+                                                                </div>
+                                                                {/* Row 4: Registration No., Result */}
+                                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                                    <InputText
+                                                                        label='Registration No.'
+                                                                        id={`qualificationDetails.${index}.registrationNo`}
+                                                                        maxLength={50}
+                                                                        {...register(`qualificationDetails.${index}.registrationNo`)}
+                                                                    />
+                                                                    <InputText
+                                                                        label='Result *'
+                                                                        id={`qualificationDetails.${index}.result`}
+                                                                        maxLength={20}
+                                                                        {...register(`qualificationDetails.${index}.result`)}
+                                                                    />
+                                                                </div>
+                                                                {/* Row 5: CGPA Or Percentage dropdown */}
+                                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                                    <Controller
+                                                                        name={`qualificationDetails.${index}.cgpaOrPercentage`}
+                                                                        control={control}
+                                                                        render={({ field, fieldState }) => (
+                                                                            <div className='flex flex-col gap-1.5'>
+                                                                                <Label>CGPA Or Percentage *</Label>
+                                                                                <Select
+                                                                                    onValueChange={field.onChange}
+                                                                                    value={field.value || 'CGPA'}>
+                                                                                    <SelectTrigger
+                                                                                        className={cn(
+                                                                                            'h-9',
+                                                                                            fieldState.error
+                                                                                                ? 'border-destructive focus-visible:ring-destructive'
+                                                                                                : 'border-input focus-visible:ring-ring'
+                                                                                        )}>
+                                                                                        <SelectValue placeholder='Select' />
+                                                                                    </SelectTrigger>
+                                                                                    <SelectContent>
+                                                                                        {(options?.cgpaPercentageTypes || [])
+                                                                                            .filter((st: IScoreTypeDropdown) => {
+                                                                                                return (
+                                                                                                    st.key != null &&
+                                                                                                    st.key !== '' &&
+                                                                                                    String(st.key).trim() !== ''
+                                                                                                );
+                                                                                            })
+                                                                                            .map((st: IScoreTypeDropdown) => {
+                                                                                                const val = st.key?.toString().trim();
+                                                                                                if (!val || val === '') return null;
+                                                                                                return (
+                                                                                                    <SafeSelectItem
+                                                                                                        key={st.key}
+                                                                                                        value={val}>
+                                                                                                        {st.value || String(st.key)}
+                                                                                                    </SafeSelectItem>
+                                                                                                );
+                                                                                            })
+                                                                                            .filter(Boolean)}
+                                                                                    </SelectContent>
+                                                                                </Select>
+                                                                                {fieldState.error && (
+                                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                                        {fieldState.error.message}
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+                                                                        )}
+                                                                    />
+                                                                    <InputText
+                                                                        label={cgpaOrPercentage === 'Percentage' ? 'Percentage' : 'CGPA'}
+                                                                        id={`qualificationDetails.${index}.cgpa`}
+                                                                        maxLength={cgpaOrPercentage === 'Percentage' ? 3 : 4}
+                                                                        onKeyDown={(e) => {
+                                                                            const controlKeys = [
+                                                                                'Backspace',
+                                                                                'Delete',
+                                                                                'Tab',
+                                                                                'Escape',
+                                                                                'Enter',
+                                                                                'ArrowLeft',
+                                                                                'ArrowRight',
+                                                                                'ArrowUp',
+                                                                                'ArrowDown'
+                                                                            ];
+                                                                            if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                                                                                return;
+                                                                            }
+                                                                            if (e.key === ' ') {
+                                                                                e.preventDefault();
+                                                                                return;
+                                                                            }
+                                                                            if (cgpaOrPercentage === 'Percentage') {
+                                                                                if (!/^[0-9]$/.test(e.key)) {
+                                                                                    e.preventDefault();
+                                                                                }
+                                                                                return;
+                                                                            }
+                                                                            if (cgpaOrPercentage === 'CGPA') {
+                                                                                if (e.key === '.') {
+                                                                                    const target = e.target as HTMLInputElement;
+                                                                                    if (target.value.includes('.')) {
+                                                                                        e.preventDefault();
+                                                                                    }
+                                                                                } else if (!/^[0-9]$/.test(e.key)) {
+                                                                                    e.preventDefault();
+                                                                                }
+                                                                            }
+                                                                        }}
+                                                                        {...register(`qualificationDetails.${index}.cgpa`)}
+                                                                    />
+                                                                </div>
+                                                                {/* Row 6: Area Of Specialization */}
+                                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                                    <Controller
+                                                                        name={`qualificationDetails.${index}.areaOfSpecialisation`}
+                                                                        control={control}
+                                                                        render={({ field }) => {
+                                                                            const specialisations = options?.specialisations || [];
+                                                                            return (
+                                                                                <div className='flex flex-col gap-1.5'>
+                                                                                    <Label>Area Of Specialization*</Label>
+                                                                                    <Select
+                                                                                        onValueChange={field.onChange}
+                                                                                        value={field.value || ''}>
+                                                                                        <SelectTrigger className='h-9'>
+                                                                                            <SelectValue placeholder='Select' />
+                                                                                        </SelectTrigger>
+                                                                                        <SelectContent>
+                                                                                            {specialisations
+                                                                                                .filter((spec: ISpecializationDropdown) => {
+                                                                                                    return (
+                                                                                                        spec.key != null &&
+                                                                                                        spec.key !== undefined &&
+                                                                                                        spec.key !== 0
+                                                                                                    );
+                                                                                                })
+                                                                                                .map((spec: ISpecializationDropdown) => {
+                                                                                                    const key = spec.key?.toString().trim();
+                                                                                                    if (!key || key === '') return null;
+                                                                                                    const value =
+                                                                                                        spec.value || String(spec.key);
+                                                                                                    return (
+                                                                                                        <SafeSelectItem
+                                                                                                            key={spec.key}
+                                                                                                            value={key}>
+                                                                                                            {value}
+                                                                                                        </SafeSelectItem>
+                                                                                                    );
+                                                                                                })
+                                                                                                .filter(Boolean)}
+                                                                                        </SelectContent>
+                                                                                    </Select>
+                                                                                </div>
+                                                                            );
+                                                                        }}
+                                                                    />
+                                                                </div>
+                                                                {/* Row 7: PHD checkbox */}
+                                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                                    <div className='flex items-center space-x-2'>
+                                                                        <Controller
+                                                                            name={`qualificationDetails.${index}.phdFlag`}
+                                                                            control={control}
+                                                                            render={({ field }) => (
+                                                                                <div className='flex items-center space-x-2'>
+                                                                                    <Checkbox
+                                                                                        id={`qualificationDetails.${index}.phdFlag`}
+                                                                                        checked={field.value || false}
+                                                                                        onCheckedChange={field.onChange}
+                                                                                    />
+                                                                                    <Label
+                                                                                        htmlFor={`qualificationDetails.${index}.phdFlag`}
+                                                                                        className='cursor-pointer'>
+                                                                                        PHD
+                                                                                    </Label>
+                                                                                </div>
+                                                                            )}
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                                {/* Row 8: Thesis Title and Medical Council */}
+                                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                                    <InputText
+                                                                        label='Thesis Title'
+                                                                        id={`qualificationDetails.${index}.thesisTitle`}
+                                                                        maxLength={255}
+                                                                        {...register(`qualificationDetails.${index}.thesisTitle`)}
+                                                                    />
+                                                                    <InputText
+                                                                        label='Medical Council'
+                                                                        id={`qualificationDetails.${index}.medicalCouncil`}
+                                                                        maxLength={50}
+                                                                        {...register(`qualificationDetails.${index}.medicalCouncil`)}
+                                                                    />
+                                                                </div>
+                                                                {/* Row 9: Registration Year, Guide Name, Qualified Date */}
+                                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                                                                    <InputText
+                                                                        label='Registration Year'
+                                                                        id={`qualificationDetails.${index}.registrationYear`}
+                                                                        maxLength={4}
+                                                                        placeholder='Enter year (e.g., 2024)'
+                                                                        onKeyDown={(e) => {
+                                                                            const controlKeys = [
+                                                                                'Backspace',
+                                                                                'Delete',
+                                                                                'Tab',
+                                                                                'Escape',
+                                                                                'Enter',
+                                                                                'ArrowLeft',
+                                                                                'ArrowRight',
+                                                                                'ArrowUp',
+                                                                                'ArrowDown'
+                                                                            ];
+                                                                            if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                                                                                return;
+                                                                            }
+                                                                            if (e.key === ' ') {
+                                                                                e.preventDefault();
+                                                                                return;
+                                                                            }
+                                                                            if (!/^[0-9]$/.test(e.key)) {
+                                                                                e.preventDefault();
+                                                                            }
+                                                                        }}
+                                                                        {...register(`qualificationDetails.${index}.registrationYear`)}
+                                                                        error={
+                                                                            errors.qualificationDetails?.[index]?.registrationYear?.message
+                                                                        }
+                                                                    />
+                                                                    <InputText
+                                                                        label='Guide Name'
+                                                                        id={`qualificationDetails.${index}.guideName`}
+                                                                        maxLength={100}
+                                                                        {...register(`qualificationDetails.${index}.guideName`)}
+                                                                    />
+                                                                    <Controller
+                                                                        name={`qualificationDetails.${index}.qualifiedDate`}
+                                                                        control={control}
+                                                                        render={({ field, fieldState }) => (
+                                                                            <div className='flex flex-col gap-1.5 [&>div]:mt-0'>
+                                                                                <DateField
+                                                                                    field={field}
+                                                                                    fieldState={fieldState}
+                                                                                    label='Qualified Date'
+                                                                                    placeholder='Pick qualified date'
+                                                                                />
+                                                                            </div>
+                                                                        )}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     );
-                                                })
-                                                .filter(Boolean)}
-                                        </SelectContent>
-                                    </Select>
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
                                 )}
-                            />
-                            {errors.IVRMMG_Id && <FormError>{errors.IVRMMG_Id.message}</FormError>}
-                        </div>
 
-                        {/* Marital Status */}
-                        <div className='group flex flex-col gap-1.5'>
-                            <Label htmlFor='IVRMMMS_Id'>Marital Status</Label>
-                            <Controller
-                                name='IVRMMMS_Id'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select
-                                        onValueChange={(value) => field.onChange(Number(value))}
-                                        value={field.value ? String(field.value) : ''}>
-                                        <SelectTrigger id='IVRMMMS_Id' className='transition-colors focus:ring-2 focus:ring-primary/20'>
-                                            <SelectValue placeholder='Select marital status' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {maritalStatuses
-                                                .filter((status: any) => {
-                                                    const statusId = status.IVRMMMS_Id ?? status.ivrmmmsId;
-                                                    return ensureNonEmptyValue(statusId) != null;
-                                                })
-                                                .map((status: any) => {
-                                                    const statusId = status.IVRMMMS_Id ?? status.ivrmmmsId;
-                                                    const statusIdStr = ensureNonEmptyValue(statusId);
-                                                    if (!statusIdStr) return null;
+                                {/* Step 4: Experience */}
+                                {currentStep === 4 && (
+                                    <div className='space-y-6'>
+                                        <div>
+                                            <h2 className='font-bold text-2xl text-gray-900'>Experience</h2>
+                                            <p className='mt-1 text-gray-500 text-sm'>Please provide the employee&apos;s work experience</p>
+                                        </div>
+                                        <div className='space-y-4'>
+                                            <div className='rounded-md border'>
+                                                <div className='flex items-center justify-between border-b bg-muted px-4 py-2'>
+                                                    <h3 className='font-semibold text-base text-gray-900 uppercase'>
+                                                        PREVIOUS EMPLOYMENT DETAILS
+                                                    </h3>
+                                                    <Button
+                                                        type='button'
+                                                        className='h-7 w-auto rounded-md bg-secondary px-2.5 py-1.5 text-secondary-foreground text-xs shadow-sm hover:bg-secondary/80'
+                                                        onClick={() => appendExperience({} as any)}>
+                                                        <Plus className='mr-1 h-3.5 w-3.5' /> Add Experience
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                            {experienceFields.length === 0 && (
+                                                <div className='rounded-md border p-6 text-muted-foreground text-sm'>
+                                                    No experience added yet. Click "Add Experience" to start.
+                                                </div>
+                                            )}
+                                            <div className='space-y-4'>
+                                                {experienceFields.map((field, index) => (
+                                                    <div key={field.id} className='rounded-lg border bg-card p-4 shadow-sm'>
+                                                        <div className='mb-3 flex items-center justify-between'>
+                                                            <div className='font-semibold'>Experience #{index + 1}</div>
+                                                            <div className='flex gap-2'>
+                                                                <Badge variant='secondary'>Row {index + 1}</Badge>
+                                                                <Button
+                                                                    type='button'
+                                                                    className='h-7 w-auto rounded-md px-2.5 py-1.5 text-xs hover:bg-accent hover:text-accent-foreground'
+                                                                    onClick={() => removeExperience(index)}>
+                                                                    <Trash2 className='mr-1 h-3.5 w-3.5' /> Remove
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                        <div className='grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3'>
+                                                            <InputText
+                                                                label='Organisation Name'
+                                                                id={`experienceDetails.${index}.organisationName`}
+                                                                maxLength={255}
+                                                                {...register(`experienceDetails.${index}.organisationName`)}
+                                                            />
+                                                            <InputText
+                                                                label='Department'
+                                                                id={`experienceDetails.${index}.department`}
+                                                                maxLength={100}
+                                                                {...register(`experienceDetails.${index}.department`)}
+                                                            />
+                                                            <InputText
+                                                                label='Designation *'
+                                                                id={`experienceDetails.${index}.designation`}
+                                                                maxLength={100}
+                                                                {...register(`experienceDetails.${index}.designation`)}
+                                                            />
+                                                            <Controller
+                                                                name={`experienceDetails.${index}.joinDate`}
+                                                                control={control}
+                                                                render={({ field, fieldState }) => {
+                                                                    const experienceDetails = watch('experienceDetails') || [];
+                                                                    const exitDate = experienceDetails[index]?.exitDate;
+                                                                    return (
+                                                                        <div className='flex flex-col gap-1.5 [&>div]:mt-0'>
+                                                                            <DateField
+                                                                                field={{
+                                                                                    ...field,
+                                                                                    onChange: (value: any) => {
+                                                                                        field.onChange(value);
+                                                                                        if (value && exitDate) {
+                                                                                            const { years, months } =
+                                                                                                calculateYearsAndMonths(value, exitDate);
+                                                                                            setValue(
+                                                                                                `experienceDetails.${index}.noOfYears`,
+                                                                                                years.toString(),
+                                                                                                {
+                                                                                                    shouldValidate: false,
+                                                                                                    shouldDirty: false
+                                                                                                }
+                                                                                            );
+                                                                                            setValue(
+                                                                                                `experienceDetails.${index}.noOfMonths`,
+                                                                                                months.toString(),
+                                                                                                {
+                                                                                                    shouldValidate: false,
+                                                                                                    shouldDirty: false
+                                                                                                }
+                                                                                            );
+                                                                                        } else {
+                                                                                            setValue(
+                                                                                                `experienceDetails.${index}.noOfYears`,
+                                                                                                '',
+                                                                                                {
+                                                                                                    shouldValidate: false,
+                                                                                                    shouldDirty: false
+                                                                                                }
+                                                                                            );
+                                                                                            setValue(
+                                                                                                `experienceDetails.${index}.noOfMonths`,
+                                                                                                '',
+                                                                                                {
+                                                                                                    shouldValidate: false,
+                                                                                                    shouldDirty: false
+                                                                                                }
+                                                                                            );
+                                                                                        }
+                                                                                    }
+                                                                                }}
+                                                                                fieldState={fieldState}
+                                                                                label='Join Date'
+                                                                                placeholder='Pick join date'
+                                                                            />
+                                                                        </div>
+                                                                    );
+                                                                }}
+                                                            />
+                                                            <Controller
+                                                                name={`experienceDetails.${index}.exitDate`}
+                                                                control={control}
+                                                                render={({ field, fieldState }) => {
+                                                                    const experienceDetails = watch('experienceDetails') || [];
+                                                                    const joinDate = experienceDetails[index]?.joinDate;
+                                                                    return (
+                                                                        <div className='flex flex-col gap-1.5 [&>div]:mt-0'>
+                                                                            <DateField
+                                                                                field={{
+                                                                                    ...field,
+                                                                                    onChange: (value: any) => {
+                                                                                        field.onChange(value);
+                                                                                        if (value && joinDate) {
+                                                                                            const { years, months } =
+                                                                                                calculateYearsAndMonths(joinDate, value);
+                                                                                            setValue(
+                                                                                                `experienceDetails.${index}.noOfYears`,
+                                                                                                years.toString(),
+                                                                                                {
+                                                                                                    shouldValidate: false,
+                                                                                                    shouldDirty: false
+                                                                                                }
+                                                                                            );
+                                                                                            setValue(
+                                                                                                `experienceDetails.${index}.noOfMonths`,
+                                                                                                months.toString(),
+                                                                                                {
+                                                                                                    shouldValidate: false,
+                                                                                                    shouldDirty: false
+                                                                                                }
+                                                                                            );
+                                                                                        } else {
+                                                                                            setValue(
+                                                                                                `experienceDetails.${index}.noOfYears`,
+                                                                                                '',
+                                                                                                {
+                                                                                                    shouldValidate: false,
+                                                                                                    shouldDirty: false
+                                                                                                }
+                                                                                            );
+                                                                                            setValue(
+                                                                                                `experienceDetails.${index}.noOfMonths`,
+                                                                                                '',
+                                                                                                {
+                                                                                                    shouldValidate: false,
+                                                                                                    shouldDirty: false
+                                                                                                }
+                                                                                            );
+                                                                                        }
+                                                                                    }
+                                                                                }}
+                                                                                fieldState={fieldState}
+                                                                                label='Exit Date'
+                                                                                placeholder='Pick exit date'
+                                                                            />
+                                                                        </div>
+                                                                    );
+                                                                }}
+                                                            />
+                                                            <InputText
+                                                                label='No. Of Years'
+                                                                id={`experienceDetails.${index}.noOfYears`}
+                                                                {...register(`experienceDetails.${index}.noOfYears`)}
+                                                                disabled
+                                                                className='[&>input]:cursor-not-allowed [&>input]:bg-muted [&>input]:opacity-70'
+                                                            />
+                                                            <InputText
+                                                                label='No. Of Months'
+                                                                id={`experienceDetails.${index}.noOfMonths`}
+                                                                {...register(`experienceDetails.${index}.noOfMonths`)}
+                                                                disabled
+                                                                className='[&>input]:cursor-not-allowed [&>input]:bg-muted [&>input]:opacity-70'
+                                                            />
+                                                            <InputText
+                                                                label='Annual Salary'
+                                                                id={`experienceDetails.${index}.annualSalary`}
+                                                                maxLength={15}
+                                                                {...register(`experienceDetails.${index}.annualSalary`)}
+                                                            />
+                                                            <div className='md:col-span-2 lg:col-span-3'>
+                                                                <InputTextarea
+                                                                    label='Organisation Address'
+                                                                    id={`experienceDetails.${index}.organisationAddress`}
+                                                                    maxLength={500}
+                                                                    minHeight={60}
+                                                                    {...register(`experienceDetails.${index}.organisationAddress`)}
+                                                                    error={errors.experienceDetails?.[index]?.organisationAddress?.message}
+                                                                    placeholder='Enter organisation address...'
+                                                                />
+                                                            </div>
+                                                            <div className='md:col-span-2 lg:col-span-3'>
+                                                                <InputTextarea
+                                                                    label='Reason For Leaving'
+                                                                    id={`experienceDetails.${index}.reasonForLeaving`}
+                                                                    maxLength={500}
+                                                                    minHeight={60}
+                                                                    {...register(`experienceDetails.${index}.reasonForLeaving`)}
+                                                                    error={errors.experienceDetails?.[index]?.reasonForLeaving?.message}
+                                                                    placeholder='Enter reason for leaving...'
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Step 5: Document Upload */}
+                                {currentStep === 5 && (
+                                    <div className='space-y-6'>
+                                        <div>
+                                            <h2 className='font-bold text-2xl text-gray-900'>Document Upload</h2>
+                                            <p className='mt-1 text-gray-500 text-sm'>Please upload required documents</p>
+                                        </div>
+                                        <div className='space-y-4'>
+                                            <div className='rounded-md border'>
+                                                <div className='flex items-center justify-between border-b bg-muted px-4 py-2'>
+                                                    <h3 className='font-semibold text-base text-gray-900 uppercase'>
+                                                        DOCUMENT UPLOAD DETAILS [ONLY JPEG,DOCX,DOC,PDF FILES (0-2MB)]
+                                                    </h3>
+                                                    <Button
+                                                        type='button'
+                                                        className='h-7 w-auto rounded-md bg-secondary px-2.5 py-1.5 text-secondary-foreground text-xs shadow-sm hover:bg-secondary/80'
+                                                        onClick={() => appendDocument({} as any)}>
+                                                        <Plus className='mr-1 h-3.5 w-3.5' /> Add Document
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                            {documentFields.length === 0 && (
+                                                <div className='rounded-md border p-6 text-muted-foreground text-sm'>
+                                                    No documents added yet. Click "Add Document" to start.
+                                                </div>
+                                            )}
+                                            <div className='space-y-4'>
+                                                {documentFields.map((field, index) => {
+                                                    const selectedFile = watchDocuments?.[index]?.document?.[0];
+                                                    const fileName = selectedFile?.name;
+                                                    const displayFileName = fileName || '';
                                                     return (
-                                                        <SafeSelectItem key={statusId} value={statusIdStr}>
-                                                            {status.IVRMMMS_MaritalStatus || status.ivrmmms_MaritalStatus}
-                                                        </SafeSelectItem>
+                                                        <div key={field.id} className='rounded-lg border bg-card p-4 shadow-sm'>
+                                                            <div className='mb-3 flex items-center justify-between'>
+                                                                <div className='font-semibold'>Document #{index + 1}</div>
+                                                                <div className='flex gap-2'>
+                                                                    <Badge variant='secondary'>Row {index + 1}</Badge>
+                                                                    <Button
+                                                                        type='button'
+                                                                        className='h-7 w-auto rounded-md px-2.5 py-1.5 text-xs hover:bg-accent hover:text-accent-foreground'
+                                                                        onClick={() => removeDocument(index)}>
+                                                                        <Trash2 className='mr-1 h-3.5 w-3.5' /> Remove
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                            <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
+                                                                <InputText
+                                                                    label='Document Name *'
+                                                                    id={`documentList.${index}.documentName`}
+                                                                    maxLength={255}
+                                                                    {...register(`documentList.${index}.documentName`)}
+                                                                    placeholder='Enter document name'
+                                                                    error={errors.documentList?.[index]?.documentName?.message}
+                                                                />
+                                                                <InputText
+                                                                    label='Description *'
+                                                                    id={`documentList.${index}.documentDescription`}
+                                                                    maxLength={400}
+                                                                    {...register(`documentList.${index}.documentDescription`)}
+                                                                    placeholder='Enter description'
+                                                                    error={errors.documentList?.[index]?.documentDescription?.message}
+                                                                />
+                                                                <div className='space-y-2 md:col-span-2'>
+                                                                    <Label>Upload Document</Label>
+                                                                    <div className='flex items-center gap-2'>
+                                                                        <input
+                                                                            type='file'
+                                                                            id={`documentList.${index}.document`}
+                                                                            accept='.jpeg,.jpg,.docx,.doc,.pdf'
+                                                                            {...register(`documentList.${index}.document`)}
+                                                                            className='hidden'
+                                                                        />
+                                                                        <Button
+                                                                            type='button'
+                                                                            variant='outline'
+                                                                            size='sm'
+                                                                            className='w-fit'
+                                                                            onClick={() =>
+                                                                                document
+                                                                                    .getElementById(`documentList.${index}.document`)
+                                                                                    ?.click()
+                                                                            }>
+                                                                            <Upload className='mr-1 h-4 w-4' /> Choose File
+                                                                        </Button>
+                                                                        {displayFileName && (
+                                                                            <div className='flex items-center gap-2 rounded-md bg-muted px-3 py-2'>
+                                                                                <span className='text-muted-foreground text-sm'>
+                                                                                    Selected:
+                                                                                </span>
+                                                                                <span className='max-w-xs truncate font-medium text-sm'>
+                                                                                    {displayFileName}
+                                                                                </span>
+                                                                                {selectedFile && (
+                                                                                    <Badge variant='secondary' className='ml-2'>
+                                                                                        {(selectedFile.size / 1024).toFixed(2)} KB
+                                                                                    </Badge>
+                                                                                )}
+                                                                            </div>
+                                                                        )}
+                                                                        {!displayFileName && (
+                                                                            <span className='text-muted-foreground text-sm'>
+                                                                                No file selected
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     );
-                                                })
-                                                .filter(Boolean)}
-                                        </SelectContent>
-                                    </Select>
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
                                 )}
-                            />
-                            {errors.IVRMMMS_Id && <FormError>{errors.IVRMMMS_Id.message}</FormError>}
-                        </div>
 
-                        {/* Religion */}
-                        <div className='group flex flex-col gap-1.5'>
-                            <Label htmlFor='ReligionId'>Religion</Label>
-                            <Controller
-                                name='ReligionId'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select
-                                        onValueChange={(value) => field.onChange(Number(value))}
-                                        value={field.value ? String(field.value) : ''}>
-                                        <SelectTrigger id='ReligionId' className='transition-colors focus:ring-2 focus:ring-primary/20'>
-                                            <SelectValue placeholder='Select religion' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {religions
-                                                .filter((religion: any) => {
-                                                    const religionId = religion.IVRMMR_Id ?? religion.religionId;
-                                                    return ensureNonEmptyValue(religionId) != null;
-                                                })
-                                                .map((religion: any) => {
-                                                    const religionId = religion.IVRMMR_Id ?? religion.religionId;
-                                                    const religionIdStr = ensureNonEmptyValue(religionId);
-                                                    if (!religionIdStr) return null;
-                                                    return (
-                                                        <SafeSelectItem key={religionId} value={religionIdStr}>
-                                                            {religion.IVRMMR_Name || religion.religionName}
-                                                        </SafeSelectItem>
-                                                    );
-                                                })
-                                                .filter(Boolean)}
-                                        </SelectContent>
-                                    </Select>
+                                {/* Step 6: Medical Record */}
+                                {currentStep === 6 && (
+                                    <div className='space-y-6'>
+                                        <div>
+                                            <h2 className='font-bold text-2xl text-gray-900'>Medical Record</h2>
+                                            <p className='mt-1 text-gray-500 text-sm'>
+                                                Please provide the employee&apos;s health information
+                                            </p>
+                                        </div>
+                                        <div className='space-y-4'>
+                                            <div className='rounded-md border'>
+                                                <div className='border-b bg-muted px-4 py-2'>
+                                                    <h3 className='font-semibold text-base text-gray-900 uppercase'>MEDICAL RECORD</h3>
+                                                </div>
+                                            </div>
+                                            <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
+                                                <div className='grid grid-cols-2 gap-4'>
+                                                    <InputText
+                                                        label="Employee's Height"
+                                                        id='employeeHeight'
+                                                        placeholder='Height (e.g., 175.50)'
+                                                        maxLength={6}
+                                                        onKeyDown={(e) => {
+                                                            const controlKeys = [
+                                                                'Backspace',
+                                                                'Delete',
+                                                                'Tab',
+                                                                'Escape',
+                                                                'Enter',
+                                                                'ArrowLeft',
+                                                                'ArrowRight',
+                                                                'ArrowUp',
+                                                                'ArrowDown'
+                                                            ];
+                                                            if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                                                                return;
+                                                            }
+                                                            if (e.key === ' ') {
+                                                                e.preventDefault();
+                                                                return;
+                                                            }
+                                                            if (e.key === '.') {
+                                                                const target = e.target as HTMLInputElement;
+                                                                if (target.value.includes('.')) {
+                                                                    e.preventDefault();
+                                                                    return;
+                                                                }
+                                                            } else if (!/^[0-9]$/.test(e.key)) {
+                                                                e.preventDefault();
+                                                            }
+                                                        }}
+                                                        {...register('employeeHeight')}
+                                                        error={errors.employeeHeight?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Unit of measure (Height)'
+                                                        id='employeeHeightUnit'
+                                                        placeholder='Unit of measure'
+                                                        maxLength={10}
+                                                        {...register('employeeHeightUnit')}
+                                                        error={errors.employeeHeightUnit?.message}
+                                                    />
+                                                </div>
+                                                <InputText
+                                                    label='Eye Sight Issue'
+                                                    id='eyeSightIssue'
+                                                    maxLength={255}
+                                                    {...register('eyeSightIssue')}
+                                                    error={errors.eyeSightIssue?.message}
+                                                />
+                                                <div className='grid grid-cols-2 gap-4'>
+                                                    <InputText
+                                                        label="Employee's Weight"
+                                                        id='employeeWeight'
+                                                        placeholder='Weight (e.g., 75.50)'
+                                                        maxLength={6}
+                                                        onKeyDown={(e) => {
+                                                            const controlKeys = [
+                                                                'Backspace',
+                                                                'Delete',
+                                                                'Tab',
+                                                                'Escape',
+                                                                'Enter',
+                                                                'ArrowLeft',
+                                                                'ArrowRight',
+                                                                'ArrowUp',
+                                                                'ArrowDown'
+                                                            ];
+                                                            if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                                                                return;
+                                                            }
+                                                            if (e.key === ' ') {
+                                                                e.preventDefault();
+                                                                return;
+                                                            }
+                                                            if (e.key === '.') {
+                                                                const target = e.target as HTMLInputElement;
+                                                                if (target.value.includes('.')) {
+                                                                    e.preventDefault();
+                                                                    return;
+                                                                }
+                                                            } else if (!/^[0-9]$/.test(e.key)) {
+                                                                e.preventDefault();
+                                                            }
+                                                        }}
+                                                        {...register('employeeWeight')}
+                                                        error={errors.employeeWeight?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Unit of measure (Weight)'
+                                                        id='employeeWeightUnit'
+                                                        placeholder='Unit of measure'
+                                                        maxLength={10}
+                                                        {...register('employeeWeightUnit')}
+                                                        error={errors.employeeWeightUnit?.message}
+                                                    />
+                                                </div>
+                                                <InputText
+                                                    label='Any Health Issue'
+                                                    id='anyHealthIssue'
+                                                    maxLength={500}
+                                                    {...register('anyHealthIssue')}
+                                                    error={errors.anyHealthIssue?.message}
+                                                />
+                                            </div>
+                                            <InputTextarea
+                                                label='Identification Mark'
+                                                id='identificationMark'
+                                                maxLength={255}
+                                                minHeight={80}
+                                                {...register('identificationMark')}
+                                                error={errors.identificationMark?.message}
+                                                placeholder='Enter identification mark details...'
+                                            />
+                                        </div>
+                                    </div>
                                 )}
-                            />
-                            {errors.ReligionId && <FormError>{errors.ReligionId.message}</FormError>}
+
+                                {/* Step 7: Other Details */}
+                                {currentStep === 7 && (
+                                    <div className='space-y-6'>
+                                        <div>
+                                            <h2 className='font-bold text-2xl text-gray-900'>Other Details</h2>
+                                            <p className='mt-1 text-gray-500 text-sm'>Please provide additional information</p>
+                                        </div>
+                                        <div className='space-y-4'>
+                                            <div className='rounded-md border'>
+                                                <div className='border-b bg-muted px-4 py-2'>
+                                                    <h3 className='font-semibold text-base text-gray-900 uppercase'>OTHER DETAILS</h3>
+                                                </div>
+                                            </div>
+                                            <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
+                                                <div className='space-y-1.5'>
+                                                    <InputText
+                                                        label='Biometric Code'
+                                                        id='biometricCode'
+                                                        maxLength={50}
+                                                        {...register('biometricCode')}
+                                                        error={errors.biometricCode?.message}
+                                                    />
+                                                    <InputText
+                                                        label='RF card ID'
+                                                        id='rfCardId'
+                                                        maxLength={50}
+                                                        {...register('rfCardId')}
+                                                        error={errors.rfCardId?.message}
+                                                    />
+                                                    <InputText
+                                                        label='MS Teams UserName'
+                                                        id='msTeamsUserName'
+                                                        maxLength={100}
+                                                        {...register('msTeamsUserName')}
+                                                        error={errors.msTeamsUserName?.message}
+                                                    />
+                                                    <InputText
+                                                        label='MS Teams Password'
+                                                        id='msTeamsPassword'
+                                                        type='password'
+                                                        maxLength={255}
+                                                        {...register('msTeamsPassword')}
+                                                        error={errors.msTeamsPassword?.message}
+                                                    />
+                                                </div>
+                                                <div className='space-y-4'>
+                                                    <div className='space-y-2'>
+                                                        <Label className='mb-2 block'>Options</Label>
+                                                        <div className='space-y-3'>
+                                                            <Controller
+                                                                name='punchRelaxation'
+                                                                control={control}
+                                                                render={({ field }) => (
+                                                                    <div className='flex items-center space-x-2'>
+                                                                        <Checkbox
+                                                                            id='punchRelaxation'
+                                                                            checked={!!field.value}
+                                                                            onCheckedChange={(v) => field.onChange(!!v)}
+                                                                        />
+                                                                        <Label
+                                                                            htmlFor='punchRelaxation'
+                                                                            className='cursor-pointer leading-none'>
+                                                                            Punch Relaxation ?
+                                                                        </Label>
+                                                                    </div>
+                                                                )}
+                                                            />
+                                                            <Controller
+                                                                name='stopPension'
+                                                                control={control}
+                                                                render={({ field }) => (
+                                                                    <div className='flex items-center space-x-2'>
+                                                                        <Checkbox
+                                                                            id='stopPension'
+                                                                            checked={!!field.value}
+                                                                            onCheckedChange={(v) => field.onChange(!!v)}
+                                                                        />
+                                                                        <Label
+                                                                            htmlFor='stopPension'
+                                                                            className='cursor-pointer leading-none'>
+                                                                            Stop Pension ?
+                                                                        </Label>
+                                                                    </div>
+                                                                )}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    {stopPension && (
+                                                        <Controller
+                                                            name='dateOfStopPension'
+                                                            control={control}
+                                                            render={({ field, fieldState }) => (
+                                                                <DateField
+                                                                    field={field}
+                                                                    fieldState={fieldState}
+                                                                    label='Date of Stop Pension'
+                                                                    placeholder='Pick date of stop pension'
+                                                                />
+                                                            )}
+                                                        />
+                                                    )}
+                                                    <Controller
+                                                        name='employeeLeft'
+                                                        control={control}
+                                                        render={({ field }) => (
+                                                            <div className='flex items-center space-x-2'>
+                                                                <Checkbox
+                                                                    id='employeeLeft'
+                                                                    checked={!!field.value}
+                                                                    onCheckedChange={(v) => field.onChange(!!v)}
+                                                                />
+                                                                <Label htmlFor='employeeLeft' className='cursor-pointer leading-none'>
+                                                                    Employee Left ?
+                                                                </Label>
+                                                            </div>
+                                                        )}
+                                                    />
+                                                </div>
+                                            </div>
+                                            {employeeLeft && (
+                                                <div className='w-[50%] rounded-lg border bg-muted/50 p-4'>
+                                                    <div className='space-y-2 md:col-span-2'>
+                                                        <Controller
+                                                            name='lastWorkingDay'
+                                                            control={control}
+                                                            render={({ field, fieldState }) => (
+                                                                <DateField
+                                                                    field={field}
+                                                                    fieldState={fieldState}
+                                                                    label='Last Working day'
+                                                                    placeholder='Pick last working day'
+                                                                />
+                                                            )}
+                                                        />
+                                                        <Controller
+                                                            name='reasonForLeaving'
+                                                            control={control}
+                                                            render={({ field }) => {
+                                                                const leavingReasons = options?.leavingReasons || [];
+                                                                return (
+                                                                    <div className='space-y-2 md:col-span-2 '>
+                                                                        <Label>Reason for Leaving *</Label>
+                                                                        <Select onValueChange={field.onChange} value={field.value || ''}>
+                                                                            <SelectTrigger
+                                                                                className={cn(
+                                                                                    errors.reasonForLeaving
+                                                                                        ? 'border-destructive focus-visible:ring-destructive'
+                                                                                        : 'border-input focus-visible:ring-ring'
+                                                                                )}>
+                                                                                <SelectValue placeholder='Select reason for leaving' />
+                                                                            </SelectTrigger>
+                                                                            <SelectContent>
+                                                                                {leavingReasons
+                                                                                    .filter((reason: ILeaveReasonDropdown) => {
+                                                                                        return (
+                                                                                            reason.key != null &&
+                                                                                            reason.key !== undefined &&
+                                                                                            reason.key !== 0
+                                                                                        );
+                                                                                    })
+                                                                                    .map((reason: ILeaveReasonDropdown) => {
+                                                                                        const key = reason.key?.toString().trim();
+                                                                                        if (!key || key === '') return null;
+                                                                                        const value = reason.value || String(reason.key);
+                                                                                        return (
+                                                                                            <SafeSelectItem key={reason.key} value={key}>
+                                                                                                {value}
+                                                                                            </SafeSelectItem>
+                                                                                        );
+                                                                                    })
+                                                                                    .filter(Boolean)}
+                                                                            </SelectContent>
+                                                                        </Select>
+                                                                        {errors.reasonForLeaving && (
+                                                                            <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                                {errors.reasonForLeaving.message}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                );
+                                                            }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Step 8: Payroll */}
+                                {currentStep === 8 && (
+                                    <div className='space-y-6'>
+                                        <div>
+                                            <h2 className='font-bold text-2xl text-gray-900'>Payroll</h2>
+                                            <p className='mt-1 text-gray-500 text-sm'>Please configure salary and deductions</p>
+                                        </div>
+                                        {savedEmployeeId && watch('employeeCode') ? (
+                                            <PayrollTab
+                                                employeeId={savedEmployeeId}
+                                                employeeCode={watch('employeeCode')}
+                                                grossList={[]}
+                                                earningList={[]}
+                                                detectionList={[]}
+                                                arrearList={[]}
+                                                onSuccess={onSuccess}
+                                            />
+                                        ) : (
+                                            <div className='rounded-md border p-6 text-center text-muted-foreground'>
+                                                Payroll tab will be available after saving employee details.
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Navigation Footer */}
+                            <div className='flex items-center justify-between border-t bg-gray-50 px-6 py-4 md:px-8'>
+                                <Button
+                                    type='button'
+                                    variant='outline'
+                                    onClick={() => {
+                                        reset();
+                                        setCurrentStep(1);
+                                    }}
+                                    disabled={isSubmittingAny}
+                                    className='w-fit transition-all duration-200 hover:scale-105'>
+                                    Reset Form
+                                </Button>
+
+                                <div className='flex gap-3'>
+                                    {currentStep > 1 && (
+                                        <Button type='button' variant='outline' onClick={prevStep} disabled={isSubmittingAny}>
+                                            <ChevronLeft className='mr-2 h-4 w-4' />
+                                            Previous
+                                        </Button>
+                                    )}
+
+                                    {currentStep < steps.length ? (
+                                        <Button type='button' onClick={nextStep} disabled={isSubmittingAny}>
+                                            Next
+                                            <ChevronRight className='ml-2 h-4 w-4' />
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            type='button'
+                                            onClick={onFormSubmit}
+                                            disabled={isSubmittingAny}
+                                            className='min-w-[160px] transition-all duration-200 hover:scale-105'>
+                                            {isSubmittingAny ? (
+                                                <span>Saving...</span>
+                                            ) : (
+                                                <>
+                                                    <Save className='mr-2 h-4 w-4' />
+                                                    Submit Employee
+                                                </>
+                                            )}
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
                         </div>
-
-                        {/* Blood Group */}
-                        <HRMSInputText
-                            label='Blood Group'
-                            id='HRME_BloodGroup'
-                            placeholder='Enter blood group'
-                            {...register('HRME_BloodGroup')}
-                            error={errors.HRME_BloodGroup?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-
-                        {/* Father Name */}
-                        <HRMSInputText
-                            label='Father Name'
-                            id='HRME_FatherName'
-                            placeholder='Enter father name'
-                            {...register('HRME_FatherName')}
-                            error={errors.HRME_FatherName?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-
-                        {/* Mother Name */}
-                        <HRMSInputText
-                            label='Mother Name'
-                            id='HRME_MotherName'
-                            placeholder='Enter mother name'
-                            {...register('HRME_MotherName')}
-                            error={errors.HRME_MotherName?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
                     </div>
-                </div>
-
-                {/* Contact Details */}
-                <div className='rounded-lg border p-4'>
-                    <h3 className='mb-4 font-semibold text-lg'>Contact Details</h3>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        {/* Mobile Number */}
-                        <HRMSInputText
-                            label='Mobile Number'
-                            type='tel'
-                            id='HRME_MobileNo'
-                            placeholder='Enter mobile number'
-                            {...register('HRME_MobileNo')}
-                            error={errors.HRME_MobileNo?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-
-                        {/* Email ID */}
-                        <HRMSInputText
-                            label='Email ID'
-                            type='email'
-                            id='HRME_EmailId'
-                            placeholder='Enter email address'
-                            {...register('HRME_EmailId')}
-                            error={errors.HRME_EmailId?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                    </div>
-                </div>
-
-                {/* Flags */}
-                <div className='rounded-lg border p-4'>
-                    <h3 className='mb-4 font-semibold text-lg'>Additional Information</h3>
-                    <div className='space-y-4'>
-                        {/* PF Applicable */}
-                        <div className='flex items-center space-x-3'>
-                            <Controller
-                                name='HRME_PFApplicableFlag'
-                                control={control}
-                                render={({ field }) => (
-                                    <Checkbox id='HRME_PFApplicableFlag' checked={field.value} onCheckedChange={field.onChange} />
-                                )}
-                            />
-                            <Label htmlFor='HRME_PFApplicableFlag' className='cursor-pointer font-normal'>
-                                PF Applicable
-                            </Label>
-                        </div>
-
-                        {/* ESI Applicable */}
-                        <div className='flex items-center space-x-3'>
-                            <Controller
-                                name='HRME_ESIApplicableFlag'
-                                control={control}
-                                render={({ field }) => (
-                                    <Checkbox id='HRME_ESIApplicableFlag' checked={field.value} onCheckedChange={field.onChange} />
-                                )}
-                            />
-                            <Label htmlFor='HRME_ESIApplicableFlag' className='cursor-pointer font-normal'>
-                                ESI Applicable
-                            </Label>
-                        </div>
-
-                        {/* Teaching Staff */}
-                        <div className='flex items-center space-x-3'>
-                            <Controller
-                                name='HRME_TechNonTeachingFlg'
-                                control={control}
-                                render={({ field }) => (
-                                    <Checkbox id='HRME_TechNonTeachingFlg' checked={field.value} onCheckedChange={field.onChange} />
-                                )}
-                            />
-                            <Label htmlFor='HRME_TechNonTeachingFlg' className='cursor-pointer font-normal'>
-                                Teaching Staff
-                            </Label>
-                        </div>
-
-                        {/* Active */}
-                        <div className='flex items-center space-x-3'>
-                            <Controller
-                                name='HRME_ActiveFlag'
-                                control={control}
-                                render={({ field }) => (
-                                    <Checkbox id='HRME_ActiveFlag' checked={field.value} onCheckedChange={field.onChange} />
-                                )}
-                            />
-                            <Label htmlFor='HRME_ActiveFlag' className='cursor-pointer font-normal'>
-                                Active
-                            </Label>
-                        </div>
-                    </div>
-                </div>
-
-                {errors.root && <FormError>{errors.root.message}</FormError>}
-
-                {/* Action Buttons */}
-                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
-                    <Button
-                        type='button'
-                        variant='outline'
-                        onClick={handleReset}
-                        disabled={isSubmitting || isPending}
-                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                        Reset
-                    </Button>
-                    <Button
-                        type='submit'
-                        disabled={isSubmitting || isPending}
-                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
-                        isLoading={isSubmitting || isPending}
-                        loadingText='Saving...'>
-                        <div className='flex items-center'>
-                            <Save className='mr-2 h-4 w-4' />
-                            Save Employee
-                        </div>
-                    </Button>
                 </div>
             </form>
         </div>

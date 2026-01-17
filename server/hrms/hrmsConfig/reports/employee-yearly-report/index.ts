@@ -1,13 +1,11 @@
 'use server';
-
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type {
+    EmployeeYearlyReportGetDataResponse,
     EmployeeYearlyReportOnloadRequest,
-    EmployeeYearlyReportOnloadResponse,
-    EmployeeYearlyReportGetDataResponse
+    EmployeeYearlyReportOnloadResponse
 } from '@/types/hrms/reports/employee-yearly-report';
-
 /**
  * Get onload data for employee yearly report
  * This endpoint returns filter dropdowns (types/group types)
@@ -19,7 +17,6 @@ export async function getEmployeeYearlyReportOnload(
     UserRole = ''
 ): Promise<ApiResponse<EmployeeYearlyReportOnloadResponse>> {
     const url = '/api/EmployeeYearlyReportFacade/getdata';
-    
     // Build request body
     const requestBody: EmployeeYearlyReportOnloadRequest = {
         page: 1,
@@ -33,14 +30,11 @@ export async function getEmployeeYearlyReportOnload(
         loginUserId: LoginUserId,
         userRole: UserRole
     };
-    
     const response = await api.post<EmployeeYearlyReportGetDataResponse>('hrmsfrontoffice', url, requestBody);
-    
     // The backend returns data in ApiResponse format
     // Structure: { success: true, message: "OK", data: { types: [...] }, total: 0, page: 1, page_size: 10 }
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         const responseData = response.data;
-        
         if (responseData) {
             const data = responseData as any;
             return {
@@ -52,7 +46,6 @@ export async function getEmployeeYearlyReportOnload(
             };
         }
     }
-    
     // Return empty data if response structure is unexpected
     return {
         success: false,
@@ -62,7 +55,6 @@ export async function getEmployeeYearlyReportOnload(
         }
     };
 }
-
 /**
  * Get employee yearly report data with pagination, search, and sort
  * TODO: Replace this with the actual search endpoint once provided
@@ -89,7 +81,6 @@ export async function getEmployeeYearlyReportList(
 ): Promise<ApiResponse<any>> {
     // TODO: Replace this URL with the actual search endpoint
     const url = '/api/EmployeeYearlyReportFacade/search'; // PLACEHOLDER - update when search endpoint is provided
-    
     // Build request body with pagination, search, sort, and filter params
     const requestBody: any = {
         page: searchParams?.page || 1,
@@ -103,7 +94,6 @@ export async function getEmployeeYearlyReportList(
         loginUserId: filterParams?.LoginUserId || 0,
         userRole: filterParams?.UserRole || ''
     };
-    
     // Add filter parameters
     if (filterParams?.typeIdList && filterParams.typeIdList.length > 0) {
         requestBody.typeIdList = filterParams.typeIdList;
@@ -132,10 +122,8 @@ export async function getEmployeeYearlyReportList(
     if (filterParams?.mode && filterParams.mode.length > 0) {
         requestBody.mode = filterParams.mode;
     }
-    
     // TODO: Uncomment and update when search endpoint is available
     // const response = await api.post<any>('hrmsfrontoffice', url, requestBody);
-    
     // For now, return empty response until search endpoint is provided
     return {
         success: false,
@@ -148,4 +136,12 @@ export async function getEmployeeYearlyReportList(
         }
     };
 }
-
+/**
+ * Get employee yearly report data
+ * POST /api/EmployeeYearlyReportFacade/search
+ */
+export async function getEmployeeYearlyReport(data: any, searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'searchableColumns');
+    const url = `/api/EmployeeYearlyReportFacade/search?${urlParams}`;
+    return await api.post<any>('hrmsfrontoffice', url, data);
+}

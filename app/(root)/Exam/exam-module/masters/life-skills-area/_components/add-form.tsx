@@ -81,7 +81,6 @@ export default function AddLifeSkillAreaForm({ onSuccess, className = '' }: AddL
 
                 <div className='space-y-4'>
                     <div className='mt-4'>
-                        <h3 className='mb-2 font-semibold text-sm'>Skill Areas</h3>
                         {subAreas.map((_, index) => (
                             <div
                                 key={index}

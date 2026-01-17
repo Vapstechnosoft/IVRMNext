@@ -1,10 +1,8 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2 } from 'lucide-react';
-
 export interface QualificationDetail {
     id: number;
     qualification: string;
@@ -12,7 +10,6 @@ export interface QualificationDetail {
     year: string;
     percentage: string;
 }
-
 export interface ExperienceDetail {
     id: number;
     company: string;
@@ -21,7 +18,6 @@ export interface ExperienceDetail {
     to: string;
     experience: string;
 }
-
 export interface FamilyDetail {
     id: number;
     name: string;
@@ -29,7 +25,6 @@ export interface FamilyDetail {
     occupation: string;
     contactNo: string;
 }
-
 export interface LanguageDetail {
     id: number;
     language: string;
@@ -37,14 +32,12 @@ export interface LanguageDetail {
     write: boolean;
     speak: boolean;
 }
-
 export interface DocumentDetail {
     id: number;
     documentType: string;
     fileName: string;
     filePath: string;
 }
-
 export interface Candidate {
     id: number;
     // Personal Details
@@ -63,7 +56,6 @@ export interface Candidate {
     applicationDate: string;
     interviewDate: string;
     dateOfBirth: string;
-
     // Additional Details
     nationality: string;
     religion: string;
@@ -80,7 +72,6 @@ export interface Candidate {
     remark?: string;
     consultency?: string;
     resumeCV?: string;
-
     // Address
     localAddressLine1: string;
     localAddressLine2?: string;
@@ -91,32 +82,23 @@ export interface Candidate {
     permanentPlace: string;
     permanentPincode: string;
     sameAsLocalAddress: boolean;
-
     // Qualifications
     qualifications: QualificationDetail[];
-
     // Experience
     experiences: ExperienceDetail[];
-
     // Family
     familyMembers: FamilyDetail[];
-
     // Languages
     languages: LanguageDetail[];
-
     // Documents
     documents: DocumentDetail[];
-
     status: string;
-
     createdAt: string;
 }
-
 interface CandidateColumnsProps {
     onEdit: (row: Candidate) => void;
     onDelete: (row: Candidate) => void;
 }
-
 export const getCandidateColumns = ({ onEdit, onDelete }: CandidateColumnsProps): ColumnDef<Candidate>[] => [
     {
         id: 'sl',
@@ -165,7 +147,6 @@ export const getCandidateColumns = ({ onEdit, onDelete }: CandidateColumnsProps)
         }
     }
 ];
-
 export const candidateColumns = getCandidateColumns({
     onEdit: () => {},
     onDelete: () => {}

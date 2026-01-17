@@ -48,6 +48,9 @@ export default function AddMasterClassCategoryForm({ onSuccess, className = '' }
                 fmcC_ActiveFlag: true
             };
 
+            const js = JSON.stringify(payload);
+            console.log('Payload JSON:', js);
+
             const response = await addOrUpdateMasterClassCategory(payload);
 
             if (response.success) {
@@ -78,6 +81,7 @@ export default function AddMasterClassCategoryForm({ onSuccess, className = '' }
                             error={errors.fmcC_ClassCategoryName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
+
                         <InputText
                             label='Class Category Code'
                             required

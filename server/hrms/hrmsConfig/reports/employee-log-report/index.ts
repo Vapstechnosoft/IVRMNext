@@ -1,11 +1,9 @@
-'use server';
-
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type {
+    EmployeeLogReportGetDataResponse,
     EmployeeLogReportOnloadRequest,
-    EmployeeLogReportOnloadResponse,
-    EmployeeLogReportGetDataResponse
+    EmployeeLogReportOnloadResponse
 } from '@/types/hrms/reports/employee-log-report';
 
 /**
@@ -19,7 +17,7 @@ export async function getEmployeeLogReportOnload(
     UserRole = ''
 ): Promise<ApiResponse<EmployeeLogReportOnloadResponse>> {
     const url = '/api/EmployeeLogReportFacade/getdata';
-    
+
     // Build request body
     const requestBody: EmployeeLogReportOnloadRequest = {
         page: 1,
@@ -33,28 +31,25 @@ export async function getEmployeeLogReportOnload(
         loginUserId: LoginUserId,
         userRole: UserRole
     };
-    
+
     const response = await api.post<EmployeeLogReportGetDataResponse>('hrmsfrontoffice', url, requestBody);
-    
+
     // The backend returns data in ApiResponse format
-    // Structure: { success: true, message: "OK", data: { types: [...], months: null, years: null }, total: 0, page: 1, page_size: 10 }
+    // Structure: { success: true, message: "OK", data: { types: [...] }, total: 0, page: 1, page_size: 10 }
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         const responseData = response.data;
-        
+
         if (responseData) {
-            const data = responseData as any;
+            // The data property of EmployeeLogReportGetDataResponse is EmployeeLogReportOnloadResponse
+            // But sometimes the API structure might be slightly different, so we ensure we return the inner data
             return {
                 success: response.success,
                 message: response.message || 'Data loaded successfully',
-                data: {
-                    types: data.types || [],
-                    months: data.months || null,
-                    years: data.years || null
-                }
+                data: responseData.data
             };
         }
     }
-    
+
     // Return empty data if response structure is unexpected
     return {
         success: false,
@@ -79,7 +74,6 @@ export async function getEmployeeLogReportList(
         LoginUserId?: number;
         UserRole?: string;
         is_export?: boolean;
-        // Filter parameters for log report
         typeIdList?: number[];
         departmentIdList?: number[];
         designationIdList?: number[];
@@ -89,15 +83,14 @@ export async function getEmployeeLogReportList(
         codeOrName?: 'Code' | 'Name';
         dateMode?: 'Date' | 'Monthly' | 'From Date';
         date?: string;
-        month?: string;
         fromDate?: string;
         toDate?: string;
-        metric?: 'Punch Time' | 'Late In' | 'Early Out';
+        month?: string;
+        year?: string;
     }
 ): Promise<ApiResponse<any>> {
-    // TODO: Replace this URL with the actual search endpoint
-    const url = '/api/EmployeeLogReportFacade/search'; // PLACEHOLDER - update when search endpoint is provided
-    
+    const url = '/api/EmployeeLogReportFacade/search';
+
     // Build request body with pagination, search, sort, and filter params
     const requestBody: any = {
         page: searchParams?.page || 1,
@@ -111,7 +104,7 @@ export async function getEmployeeLogReportList(
         loginUserId: filterParams?.LoginUserId || 0,
         userRole: filterParams?.UserRole || ''
     };
-    
+
     // Add filter parameters
     if (filterParams?.typeIdList && filterParams.typeIdList.length > 0) {
         requestBody.typeIdList = filterParams.typeIdList;
@@ -140,22 +133,22 @@ export async function getEmployeeLogReportList(
     if (filterParams?.date) {
         requestBody.date = filterParams.date;
     }
-    if (filterParams?.month) {
-        requestBody.month = filterParams.month;
-    }
     if (filterParams?.fromDate) {
         requestBody.fromDate = filterParams.fromDate;
     }
     if (filterParams?.toDate) {
         requestBody.toDate = filterParams.toDate;
     }
-    if (filterParams?.metric) {
-        requestBody.metric = filterParams.metric;
+    if (filterParams?.month) {
+        requestBody.month = filterParams.month;
     }
-    
+    if (filterParams?.year) {
+        requestBody.year = filterParams.year;
+    }
+
     // TODO: Uncomment and update when search endpoint is available
     // const response = await api.post<any>('hrmsfrontoffice', url, requestBody);
-    
+
     // For now, return empty response until search endpoint is provided
     return {
         success: false,
@@ -169,3 +162,12 @@ export async function getEmployeeLogReportList(
     };
 }
 
+/**
+ * Get employee log report data (Legacy/Alternative)
+ * POST /api/EmployeeLogReportFacade/search
+ */
+export async function getEmployeeLogReport(data: any, searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'searchableColumns');
+    const url = `/api/EmployeeLogReportFacade/search?${urlParams}`;
+    return await api.post<any>('hrmsfrontoffice', url, data);
+}

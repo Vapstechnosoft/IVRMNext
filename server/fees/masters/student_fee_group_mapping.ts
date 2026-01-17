@@ -4,10 +4,11 @@ import type { ApiSearchparams } from '@/types';
 import type {
     IMasterAdmClassCategoryMappingList,
     IMasterClassYearlyList,
+    IMasterFeeBusAreaList,
     IMasterFeeBusRoutingMappingList,
     IMasterFeeCasteCategoryMappingList,
+    IMasterFeeClassCategoryList,
     IMasterFeeClassDropDownList,
-    IMasterFeeGroupHeadMappinList,
     IMasterFeeGroupList,
     IMasterFeeHeadList,
     IMasterFeeInstallmentList,
@@ -17,8 +18,17 @@ import type {
     StudentFeeGroupSummaryById
 } from '@/types/fees/masters/masters';
 
+// export async function getStudentFeeGroupMapping(searchParams?: ApiSearchparams) {
+//     const urlParams = getSearchParamsUrl(searchParams ?? {});
+//     const url = `/StudentFeeGroupMappingFacade/getalldetails?${urlParams}`;
+//     return await api.get<IMasterStudentFeeGroupMappingList[]>('fees', url);
+// }
+
 export async function getStudentFeeGroupMapping(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'amsT_FirstName,amsT_MiddleName,amsT_LastName,asmcL_ClassName,asmC_SectionName,amsT_Mobile,fmG_GroupName'
+    );
     const url = `/StudentFeeGroupMappingFacade/getalldetails?${urlParams}`;
     return await api.get<IMasterStudentFeeGroupMappingList[]>('fees', url);
 }
@@ -29,18 +39,18 @@ export async function deleteStudentFeeGroupMapping(AMST_Id: number, FMG_Id: numb
 }
 
 export async function getStudentFeeGroupMappingAcademicYearDropdown() {
-    const url = '/fee_class_category/academicyearlist/30';
+    const url = '/fee_class_category/academicyearlist';
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }
 
 export async function getAdmClassCategorydropdown() {
-    const url = '/StudentFeeGroupMappingFacade/getAdmissionCategories?MI_Id=30';
+    const url = '/StudentFeeGroupMappingFacade/getAdmissionCategories';
     return await api.get<IMasterAdmClassCategoryMappingList[]>('fees', url);
 }
 
 export async function getFeeClassCategorydropdown() {
-    const url = '/StudentFeeGroupMappingFacade/getAdmissionCategories?MI_Id=30';
-    return await api.get<IMasterAdmClassCategoryMappingList[]>('fees', url);
+    const url = '/StudentFeeGroupMappingFacade/get-fee-class-category';
+    return await api.get<IMasterFeeClassCategoryList[]>('fees', url);
 }
 
 export async function getclassdropdown() {
@@ -54,43 +64,55 @@ export async function getSectionropdown() {
 }
 
 export async function getFeeBusRoutingdropdown() {
-    const url = 'StudentFeeGroupMappingFacade/getBusRoutes?MI_Id=30';
+    const url = '/StudentFeeGroupMappingFacade/getBusRoutes';
     return await api.get<IMasterFeeBusRoutingMappingList[]>('fees', url);
 }
 
+export async function getFeeBusAreadropdown() {
+    const url = '/StudentFeeGroupMappingFacade/get-bus-arealist';
+    return await api.get<IMasterFeeBusAreaList[]>('fees', url);
+}
+
 export async function getFeeCasteCategorydropdown() {
-    const url = 'StudentFeeGroupMappingFacade/getCasteList';
+    const url = '/StudentFeeGroupMappingFacade/getCasteList';
     return await api.get<IMasterFeeCasteCategoryMappingList[]>('fees', url);
 }
 
-export async function getStudentClassMapping(academicYear: number, searchParams?: ApiSearchparams) {
+export async function getStudentClassMapping(
+    academicYear: number,
+    classId: number,
+    sectionId: number,
+    admCategoryId: number,
+    radioFilter: string,
+    searchParams?: ApiSearchparams
+) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/StudentFeeGroupMappingFacade/getStudentClassMapping?MIId=30&AcademicYearId=${academicYear}&${urlParams}`;
+    const url = `/StudentFeeGroupMappingFacade/getStudentClassMapping?AcademicYearId=${academicYear}&ClassId=${classId}&SectionId=${sectionId}&AdmissionCategoryId=${admCategoryId}&RadioFilter=${radioFilter}&${urlParams}`;
     return await api.get<IMasterStudentClassMappingList[]>('fees', url);
 }
 
-export async function getStudentFeeGroupList() {
-    const url = '/StudentFeeGroupMappingFacade/getGroupMappingList?asmay_id=231';
+export async function getStudentFeeGroupList(academicYear: number) {
+    const url = `/StudentFeeGroupMappingFacade/getGroupMappingList?asmay_id=${academicYear}`;
     return await api.get<IMasterFeeGroupList[]>('fees', url);
 }
 
-export async function getStudentFeeHeadList(groupId: any) {
-    const url = '/StudentFeeGroupMappingFacade/getHeadMappingList?asmay_id=231';
+export async function getStudentFeeHeadList(groupId: any, academicYear: number) {
+    const url = `/StudentFeeGroupMappingFacade/getHeadMappingList?asmay_id=${academicYear}`;
     return await api.post<IMasterFeeHeadList[]>('fees', url, groupId);
 }
 
-export async function getStudentFeeInstallmentList(groupId: any) {
-    const url = '/StudentFeeGroupMappingFacade/getInstallmentMappingList?asmay_id=231';
+export async function getStudentFeeInstallmentList(groupId: any, academicYear: number) {
+    const url = `/StudentFeeGroupMappingFacade/getInstallmentMappingList?asmay_id=${academicYear}`;
     return await api.post<IMasterFeeInstallmentList[]>('fees', url, groupId);
 }
 
-export async function getStudentFeeGeoupHeadMapping() {
-    const url = '/StudentFeeGroupMappingFacade/getFeeMappingSummaryById?MI_Id=30&ASMAY_Id=231';
-    return await api.get<IMasterFeeGroupHeadMappinList[]>('fees', url);
-}
+// export async function getStudentFeeGeoupHeadMapping() {
+//     const url = '/StudentFeeGroupMappingFacade/getFeeMappingSummaryById?MI_Id=30&ASMAY_Id=231';
+//     return await api.get<IMasterFeeGroupHeadMappinList[]>('fees', url);
+// }
 
 export async function getStudentFeeSummaryById(academicId: number, studentId: number): Promise<StudentFeeGroupSummaryById[]> {
-    const url = `/StudentFeeGroupMappingFacade/getFeeMappingSummaryById?MI_Id=30&ASMAY_Id=${academicId}&AMST_Id=${studentId}`;
+    const url = `/StudentFeeGroupMappingFacade/getFeeMappingSummaryById?ASMAY_Id=${academicId}&AMST_Id=${studentId}`;
     const response = await api.get<any>('fees', url);
     return response.data?.feeGroups ?? [];
 }

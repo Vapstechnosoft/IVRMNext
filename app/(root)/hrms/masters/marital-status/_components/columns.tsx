@@ -3,14 +3,11 @@
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterMaritalStatus } from '@/hooks/hrms/useMasters';
-import type { MaritalStatusDetail, MasterMaritalStatusResponse } from '@/types/hrms/master-marital-status';
+import type { IMasterMaritalStatusList } from '@/types/hrms/hrms-config/master';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
-import { toast } from 'sonner';
 
-export const columns: ColumnDef<MaritalStatusDetail>[] = [
+export const columns: ColumnDef<IMasterMaritalStatusList>[] = [
     {
         id: 'slNo',
         header: () => <div className='text-center font-medium'>Sl No</div>,
@@ -24,7 +21,7 @@ export const columns: ColumnDef<MaritalStatusDetail>[] = [
         size: 60
     },
     {
-        accessorKey: 'IVRMMMS_MaritalStatus',
+        accessorKey: 'ivrmmmS_MaritalStatus',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Marital Status' />
     },
     {
@@ -35,41 +32,21 @@ export const columns: ColumnDef<MaritalStatusDetail>[] = [
     }
 ];
 
-function ActionButtonsCell({ rowData }: { rowData: MaritalStatusDetail }) {
-    const { openEditForm } = useFormContext<MasterMaritalStatusResponse>();
-    const { toggleMutation } = useMasterMaritalStatus(HRMS_MI_ID);
+function ActionButtonsCell({ rowData }: { rowData: IMasterMaritalStatusList }) {
+    const { openEditForm, openToggleForm } = useFormContext<IMasterMaritalStatusList>();
 
     const handleEdit = useCallback(
-        (data: MaritalStatusDetail) => {
+        (data: IMasterMaritalStatusList) => {
             openEditForm(data as any);
         },
         [openEditForm]
     );
 
     const handleToggle = useCallback(
-        async (data: MaritalStatusDetail, newState: boolean) => {
-            try {
-                const response = await toggleMutation.mutateAsync({
-                    IVRMMMS_Id: data.IVRMMMS_Id,
-                    IVRMMMS_ActiveFlag: newState
-                });
-
-                // Check the response success status
-                if (response?.success) {
-                    toast.success(response.message || `Marital Status ${newState ? 'activated' : 'deactivated'} successfully`);
-                } else {
-                    // Show the error message from the API response
-                    const errorMessage = response?.message || `Failed to ${newState ? 'activate' : 'deactivate'} marital status`;
-                    toast.error(errorMessage);
-                }
-            } catch (error: any) {
-                // Handle actual errors (network errors, etc.)
-                const errorMessage =
-                    error?.response?.data?.message || error?.message || `Failed to ${newState ? 'activate' : 'deactivate'} marital status`;
-                toast.error(errorMessage);
-            }
+        (data: IMasterMaritalStatusList) => {
+            openToggleForm(data);
         },
-        [toggleMutation]
+        [openToggleForm]
     );
 
     return (
@@ -78,7 +55,7 @@ function ActionButtonsCell({ rowData }: { rowData: MaritalStatusDetail }) {
             buttons={{ edit: true, toggle: true, delete: false }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            toggleConditionKey='IVRMMMS_ActiveFlag'
+            toggleConditionKey='ivrmmmS_ActiveFlag'
         />
     );
 }

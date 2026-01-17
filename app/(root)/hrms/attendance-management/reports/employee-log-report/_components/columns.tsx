@@ -1,22 +1,23 @@
 'use client';
-
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
+import { format } from 'date-fns';
 
-export interface LogRow extends BaseEntity {
-    type: string;
-    department: string;
-    designation: string;
-    employeeCode: string;
-    employeeName: string;
-    date: string;
-    punchTime?: string;
-    lateIn?: string;
-    earlyOut?: string;
+const formatDate = (date: unknown): string => {
+    if (typeof date !== 'string') return 'N/A';
+    if (!date) return 'N/A';
+    return format(new Date(date), 'dd-MM-yyyy');
+};
+
+export interface LogRow {
+    user_id?: number;
+    user_name?: string;
+    email?: string;
+    phone_number?: string;
+    entry_date?: string;
+    [key: string]: any;
 }
-
 export const logReportColumns: ColumnDef<LogRow>[] = [
     {
         id: 'select',
@@ -35,46 +36,46 @@ export const logReportColumns: ColumnDef<LogRow>[] = [
         size: 24
     },
     {
-        id: 'sl',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' />,
+        accessorKey: 'user_id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div className='font-medium'>{continuousIndex}</div>;
+            return <div className='w-full pl-6'>{continuousIndex}</div>;
         },
-        enableSorting: false
+        enableSorting: true,
+        enableHiding: false
     },
     {
-        accessorKey: 'employeeName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />
+        accessorKey: 'user_name',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
+        cell: ({ row }) => <div>{row.getValue('user_name')}</div>,
+        enableSorting: true,
+        enableHiding: true
     },
     {
-        accessorKey: 'employeeCode',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Code' />
+        accessorKey: 'email',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Email-Id' />,
+        cell: ({ row }) => <div>{row.getValue('email')}</div>,
+        enableSorting: true,
+        enableHiding: true
     },
     {
-        accessorKey: 'date',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Date' />
+        accessorKey: 'phone_number',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Mobile Number' />,
+        cell: ({ row }) => <div>{row.getValue('phone_number')}</div>,
+        enableSorting: true,
+        enableHiding: true
     },
     {
-        accessorKey: 'punchTime',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Punch Time' />
-    },
-    {
-        accessorKey: 'lateIn',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Late In' />
-    },
-    {
-        accessorKey: 'earlyOut',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Early Out' />
-    },
-    {
-        accessorKey: 'department',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Department' />
-    },
-    {
-        accessorKey: 'designation',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Designation' />
+        accessorKey: 'entry_date',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Date' />,
+        cell: ({ row }) => {
+            const date = row.getValue('entry_date');
+            return <div>{formatDate(date)}</div>;
+        },
+        enableSorting: true,
+        enableHiding: true
     }
 ];

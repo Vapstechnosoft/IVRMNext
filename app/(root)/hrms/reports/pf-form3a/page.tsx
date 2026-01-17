@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -125,17 +124,14 @@ export default function DepartmentSalaryReportPage() {
         setSelectedYear('');
         toast.info('Form has been reset');
     };
-
     const handleCancel = () => {
         setReportData(null);
         setSelectedEmployee('');
         setSelectedYear('');
     };
-
     const handlePrint = () => {
         window.print();
     };
-
     return (
         <div className='min-h-screen p-8'>
             <div className='container space-y-4 p-1'>

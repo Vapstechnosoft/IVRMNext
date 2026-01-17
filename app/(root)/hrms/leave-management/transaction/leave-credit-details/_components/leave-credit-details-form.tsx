@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError } from '@/components/ui/extension/field';
@@ -14,7 +13,6 @@ import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { CarryForwardForm } from './carry-forward-form';
 import type { LeaveCreditDetail } from './columns';
 import { EncashmentForm } from './encashment-form';
-
 interface LeaveCreditDetailsFormProps {
     activeTab: string;
     onSubmit: (data: LeaveCreditDetail) => void;
@@ -28,7 +26,6 @@ interface LeaveCreditDetailsFormProps {
     leaveNames?: Array<{ id: number; name: string }>;
     encashmentScheduleOptions?: Array<{ id: number; name: string }>;
 }
-
 const MONTHS_ARRAY = [
     'January',
     'February',
@@ -43,7 +40,6 @@ const MONTHS_ARRAY = [
     'November',
     'December'
 ];
-
 // TODO: Replace with actual API calls - these are placeholder data structures
 const defaultTypes: Array<{ id: number; name: string }> = [];
 const defaultDepartments: Array<{ id: number; name: string }> = [];
@@ -51,7 +47,6 @@ const defaultDesignations: Array<{ id: number; name: string }> = [];
 const defaultGrades: Array<{ id: number; name: string }> = [];
 const defaultLeaveNames: Array<{ id: number; name: string }> = [];
 const defaultEncashmentScheduleOptions: Array<{ id: number; name: string }> = [];
-
 export function LeaveCreditDetailsForm({
     activeTab: initialActiveTab,
     onSubmit,
@@ -65,7 +60,6 @@ export function LeaveCreditDetailsForm({
     encashmentScheduleOptions = defaultEncashmentScheduleOptions
 }: LeaveCreditDetailsFormProps) {
     const [activeTab, setActiveTab] = useState(initialActiveTab);
-
     const {
         control,
         handleSubmit,
@@ -120,10 +114,8 @@ export function LeaveCreditDetailsForm({
             )
         }
     });
-
     const leaveCreditMonthWise: boolean = watch('leaveCreditMonthWise') ?? false;
     const creditMonths = watch('creditMonths') || [];
-
     const handleMonthToggle = (month: string, checked: boolean) => {
         const currentMonths = creditMonths;
         if (checked) {
@@ -135,7 +127,6 @@ export function LeaveCreditDetailsForm({
             );
         }
     };
-
     const handleAllMonthsToggle = (checked: boolean) => {
         if (checked) {
             setValue('creditMonths', MONTHS_ARRAY);
@@ -143,13 +134,10 @@ export function LeaveCreditDetailsForm({
             setValue('creditMonths', []);
         }
     };
-
     const allMonthsSelected: boolean = creditMonths.length === MONTHS_ARRAY.length;
-
     const onSubmitForm: SubmitHandler<any> = (data) => {
         onSubmit(data);
     };
-
     return (
         <Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
             <TabsList className='grid w-full grid-cols-3'>
@@ -157,7 +145,6 @@ export function LeaveCreditDetailsForm({
                 <TabsTrigger value='Carry Forward'>Carry Forward</TabsTrigger>
                 <TabsTrigger value='Encashment'>Encashment</TabsTrigger>
             </TabsList>
-
             <TabsContent value='Leave Credit' className='mt-4'>
                 <form onSubmit={handleSubmit(onSubmitForm)} className='space-y-6'>
                     {/* Filters Section */}
@@ -183,7 +170,6 @@ export function LeaveCreditDetailsForm({
                             />
                             {errors.type && <FormError>{errors.type.message}</FormError>}
                         </div>
-
                         {/* Department */}
                         <div className='space-y-2'>
                             <Label className='font-medium text-sm'>
@@ -205,7 +191,6 @@ export function LeaveCreditDetailsForm({
                             />
                             {errors.department && <FormError>{errors.department.message}</FormError>}
                         </div>
-
                         {/* Designation */}
                         <div className='space-y-2'>
                             <Label className='font-medium text-sm'>
@@ -227,7 +212,6 @@ export function LeaveCreditDetailsForm({
                             />
                             {errors.designation && <FormError>{errors.designation.message}</FormError>}
                         </div>
-
                         {/* Grade */}
                         <div className='space-y-2'>
                             <Label className='font-medium text-sm'>Grade</Label>
@@ -246,7 +230,6 @@ export function LeaveCreditDetailsForm({
                             />
                         </div>
                     </div>
-
                     {/* Leave Property Fields */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <div>
@@ -274,7 +257,6 @@ export function LeaveCreditDetailsForm({
                             />
                             {errors.leaveName && <FormError>{errors.leaveName.message}</FormError>}
                         </div>
-
                         <div>
                             <Label htmlFor='leave-code-input' className='font-medium text-sm'>
                                 Leave code:
@@ -292,7 +274,6 @@ export function LeaveCreditDetailsForm({
                                 )}
                             />
                         </div>
-
                         <div>
                             <Label htmlFor='no-of-days-input' className='font-medium text-sm'>
                                 No of Days <span className='text-red-500'>*</span>
@@ -314,7 +295,6 @@ export function LeaveCreditDetailsForm({
                             />
                             {errors.noOfDays && <FormError>{errors.noOfDays.message}</FormError>}
                         </div>
-
                         <div>
                             <Label htmlFor='max-leave-applicable-input' className='font-medium text-sm'>
                                 Max Leave Applicable <span className='text-red-500'>*</span>
@@ -337,7 +317,6 @@ export function LeaveCreditDetailsForm({
                             {errors.maxLeaveApplicable && <FormError>{errors.maxLeaveApplicable.message}</FormError>}
                         </div>
                     </div>
-
                     {/* Credit Month Selection */}
                     <div className='space-y-2'>
                         <div className='flex items-center space-x-2'>
@@ -352,7 +331,6 @@ export function LeaveCreditDetailsForm({
                                 Credit Month
                             </Label>
                         </div>
-
                         {leaveCreditMonthWise && (
                             <div className='max-h-[240px] space-y-2 overflow-y-auto rounded-md border p-3'>
                                 <div className='flex items-center space-x-2 border-b pb-2'>
@@ -378,7 +356,6 @@ export function LeaveCreditDetailsForm({
                             </div>
                         )}
                     </div>
-
                     {/* Action Buttons */}
                     <div className='flex justify-center gap-2 border-t pt-4'>
                         <Button type='button' variant='default' onClick={() => setActiveTab('Carry Forward')} className='min-w-[120px]'>
@@ -392,7 +369,6 @@ export function LeaveCreditDetailsForm({
                     </div>
                 </form>
             </TabsContent>
-
             <TabsContent value='Carry Forward' className='mt-4'>
                 <CarryForwardForm
                     control={control}
@@ -410,7 +386,6 @@ export function LeaveCreditDetailsForm({
                     onNext={() => setActiveTab('Encashment')}
                 />
             </TabsContent>
-
             <TabsContent value='Encashment' className='mt-4'>
                 <EncashmentForm
                     control={control}

@@ -22,8 +22,13 @@ import { toast } from 'sonner';
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof cumulativereportSchema.addOrUpdate> & {
-    applicableFlag: boolean;
-    nonApplicableFlag: boolean;
+    Left_Flag: boolean;
+    Deactive_Flag: boolean;
+    applicable: boolean;
+    nonapplicable: boolean;
+    classrank: boolean;
+    sectionrank: boolean;
+    attendancedispaly: boolean;
     page_size: number;
 };
 
@@ -44,8 +49,13 @@ export default function CumulativeReportForm({
             asmS_Id: 0,
             emE_Id: 0,
             studentList: [],
-            applicableFlag: true,
-            nonApplicableFlag: true,
+            Left_Flag: false,
+            Deactive_Flag: false,
+            applicable: true,
+            nonapplicable: true,
+            classrank: false,
+            sectionrank: false,
+            attendancedispaly: false,
             page_size: 10
         }
     });
@@ -119,6 +129,20 @@ export default function CumulativeReportForm({
         })();
     }, [selectedYear, selectedClass, setValue]);
 
+    // ---------- Load Exams ----------
+    useEffect(() => {
+        if (!selectedYear || !selectedClass || !selectedSection) return;
+        (async () => {
+            try {
+                const { data } = await getExamsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, selectedSection);
+                setExams(Array.isArray(data) ? data : []);
+                setValue('emE_Id', 0);
+            } catch {
+                toast.error('Failed to load exams');
+            }
+        })();
+    }, [selectedYear, selectedClass, selectedSection, setValue]);
+
     // ---------- Load Students ----------
     useEffect(() => {
         if (!selectedYear || !selectedClass || !selectedSection) return;
@@ -141,20 +165,6 @@ export default function CumulativeReportForm({
         })();
     }, [selectedYear, selectedClass, selectedSection, setValue]);
 
-    // ---------- Load Exams ----------
-    useEffect(() => {
-        if (!selectedYear || !selectedClass || !selectedSection) return;
-        (async () => {
-            try {
-                const { data } = await getExamsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, selectedSection);
-                setExams(Array.isArray(data) ? data : []);
-                setValue('emE_Id', 0);
-            } catch {
-                toast.error('Failed to load exams');
-            }
-        })();
-    }, [selectedYear, selectedClass, selectedSection, setValue]);
-
     // ---------- Submit ----------
     const onSubmit = async (data: FormFields) => {
         if (!hasStudentsSelected) {
@@ -169,8 +179,13 @@ export default function CumulativeReportForm({
             asmS_Id: data.asmS_Id,
             emE_Id: data.emE_Id,
             amsT_Ids: data.studentList.map((s) => s.amsT_Id).join(','),
-            applicableFlag: data.applicableFlag,
-            nonApplicableFlag: data.nonApplicableFlag
+            Left_Flag: data.Left_Flag,
+            Deactive_Flag: data.Deactive_Flag,
+            applicableFlag: data.applicable,
+            nonApplicableFlag: data.nonapplicable,
+            classrank: data.classrank,
+            sectionrank: data.sectionrank,
+            attendancedispaly: data.attendancedispaly
             //page_size: data.page_size
         };
         onSuccess?.(payload, apiSearchParams || { page: 1, page_size: 10 });
@@ -356,24 +371,72 @@ export default function CumulativeReportForm({
                         </div>
 
                         {/* Flags */}
-                        <div className='mt-6 flex flex-wrap items-center gap-6'>
-                            <Label className='flex cursor-pointer items-center gap-2'>
-                                <Controller
-                                    control={control}
-                                    name='applicableFlag'
-                                    render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} />}
-                                />
-                                <span className='text-sm'>Display Only Applicable</span>
-                            </Label>
+                        {/* ALL CHECKBOXES FROM ORIGINAL HTML */}
+                        <div className='mt-8 space-y-4'>
+                            <div className='flex flex-wrap items-center gap-6'>
+                                <Label className='flex cursor-pointer items-center gap-2'>
+                                    <Controller
+                                        control={control}
+                                        name='Left_Flag'
+                                        render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} />}
+                                    />
+                                    <span>Include Left Students</span>
+                                </Label>
 
-                            <Label className='flex cursor-pointer items-center gap-2'>
-                                <Controller
-                                    control={control}
-                                    name='nonApplicableFlag'
-                                    render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} />}
-                                />
-                                <span className='text-sm'>Display Only Non-Applicable</span>
-                            </Label>
+                                <Label className='flex cursor-pointer items-center gap-2'>
+                                    <Controller
+                                        control={control}
+                                        name='Deactive_Flag'
+                                        render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} />}
+                                    />
+                                    <span>Include Deactive Students</span>
+                                </Label>
+
+                                <Label className='flex cursor-pointer items-center gap-2'>
+                                    <Controller
+                                        control={control}
+                                        name='applicableFlag'
+                                        render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} />}
+                                    />
+                                    <span className='text-sm'>Display Only Applicable</span>
+                                </Label>
+
+                                <Label className='flex cursor-pointer items-center gap-2'>
+                                    <Controller
+                                        control={control}
+                                        name='nonApplicableFlag'
+                                        render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} />}
+                                    />
+                                    <span className='text-sm'>Display Only Non-Applicable</span>
+                                </Label>
+
+                                <Label className='flex cursor-pointer items-center gap-2'>
+                                    <Controller
+                                        control={control}
+                                        name='classrank'
+                                        render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} />}
+                                    />
+                                    <span>Display Class Rank</span>
+                                </Label>
+
+                                <Label className='flex cursor-pointer items-center gap-2'>
+                                    <Controller
+                                        control={control}
+                                        name='sectionrank'
+                                        render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} />}
+                                    />
+                                    <span>Display Section Rank</span>
+                                </Label>
+
+                                <Label className='flex cursor-pointer items-center gap-2'>
+                                    <Controller
+                                        control={control}
+                                        name='attendancedispaly'
+                                        render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} />}
+                                    />
+                                    <span>Not Display Attendance</span>
+                                </Label>
+                            </div>
                         </div>
 
                         <hr className='my-6 border-gray-300' />

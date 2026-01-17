@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
@@ -9,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { X } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveCredit } from './columns';
-
 interface LeaveCreditFormProps {
     editingCredit: LeaveCredit | null;
     activeTab: string;
@@ -17,7 +15,6 @@ interface LeaveCreditFormProps {
     onSubmit: (data: LeaveCredit) => void;
     onCancel: () => void;
 }
-
 const typeOptions = [
     { label: 'VKS', value: 'VKS' },
     { label: 'Permanent', value: 'Permanent' },
@@ -42,7 +39,6 @@ const designationOptions = [
     { label: 'Sr HR Executive', value: 'Sr HR Executive' },
     { label: 'Manager HR', value: 'Manager HR' }
 ];
-
 export function LeaveCreditForm({ editingCredit, activeTab, onTabChange, onSubmit, onCancel }: LeaveCreditFormProps) {
     const {
         register,
@@ -63,11 +59,9 @@ export function LeaveCreditForm({ editingCredit, activeTab, onTabChange, onSubmi
             designation: []
         }
     });
-
     const handleFormSubmit: SubmitHandler<LeaveCredit> = (data) => {
         onSubmit(data);
     };
-
     return (
         <Tabs value={activeTab} onValueChange={onTabChange} className='w-full'>
             <TabsList className='grid w-full grid-cols-4'>
@@ -76,7 +70,6 @@ export function LeaveCreditForm({ editingCredit, activeTab, onTabChange, onSubmi
                 <TabsTrigger value='Leave Deduction'>Leave Deduction</TabsTrigger>
                 <TabsTrigger value='Leave CarryForward'>Leave CarryForward</TabsTrigger>
             </TabsList>
-
             <TabsContent value='Leave Credit' className='space-y-4'>
                 <form onSubmit={handleSubmit(handleFormSubmit)} className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
@@ -98,7 +91,6 @@ export function LeaveCreditForm({ editingCredit, activeTab, onTabChange, onSubmi
                                 )}
                             />
                         </div>
-
                         <div>
                             <label htmlFor='department-multiselect' className='mb-2 block font-medium text-sm'>
                                 Department
@@ -117,7 +109,6 @@ export function LeaveCreditForm({ editingCredit, activeTab, onTabChange, onSubmi
                                 )}
                             />
                         </div>
-
                         <div>
                             <label htmlFor='designation-multiselect' className='mb-2 block font-medium text-sm'>
                                 Designation
@@ -137,7 +128,6 @@ export function LeaveCreditForm({ editingCredit, activeTab, onTabChange, onSubmi
                             />
                         </div>
                     </div>
-
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <div>
                             <label htmlFor='leave-year-select' className='font-medium text-sm'>
@@ -159,7 +149,6 @@ export function LeaveCreditForm({ editingCredit, activeTab, onTabChange, onSubmi
                             </Select>
                             {errors.leaveYear && <FormError>{errors.leaveYear.message}</FormError>}
                         </div>
-
                         <div>
                             <label htmlFor='leave-name-select' className='font-medium text-sm'>
                                 Leave Name *
@@ -186,14 +175,12 @@ export function LeaveCreditForm({ editingCredit, activeTab, onTabChange, onSubmi
                             />
                             {errors.leaveName && <FormError>{errors.leaveName.message}</FormError>}
                         </div>
-
                         <div>
                             <label htmlFor='employee-name-input' className='font-medium text-sm'>
                                 Employee Name
                             </label>
                             <InputText id='employee-name-input' {...register('employeeName')} placeholder='Enter employee name' />
                         </div>
-
                         <div>
                             <label htmlFor='leave-credit-input' className='font-medium text-sm'>
                                 Leave Transfer
@@ -206,7 +193,6 @@ export function LeaveCreditForm({ editingCredit, activeTab, onTabChange, onSubmi
                                 step='0.5'
                             />
                         </div>
-
                         <div>
                             <label htmlFor='leave-balance-input' className='font-medium text-sm'>
                                 Leave Balance
@@ -220,7 +206,6 @@ export function LeaveCreditForm({ editingCredit, activeTab, onTabChange, onSubmi
                             />
                         </div>
                     </div>
-
                     <div className='flex gap-2'>
                         <Button type='submit' variant='default'>
                             {editingCredit ? 'Update' : 'Save'}
@@ -232,15 +217,12 @@ export function LeaveCreditForm({ editingCredit, activeTab, onTabChange, onSubmi
                     </div>
                 </form>
             </TabsContent>
-
             <TabsContent value='Leave Addition' className='space-y-4'>
                 <div className='py-8 text-center text-gray-500'>Leave Addition functionality will be implemented here</div>
             </TabsContent>
-
             <TabsContent value='Leave Deduction' className='space-y-4'>
                 <div className='py-8 text-center text-gray-500'>Leave Deduction functionality will be implemented here</div>
             </TabsContent>
-
             <TabsContent value='Leave CarryForward' className='space-y-4'>
                 <div className='py-8 text-center text-gray-500'>Leave CarryForward functionality will be implemented here</div>
             </TabsContent>

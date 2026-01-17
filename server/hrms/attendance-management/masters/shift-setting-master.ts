@@ -1,216 +1,40 @@
 'use server';
 
-import { api } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type {
-    ShiftSettingMasterGetDataResponse,
-    ShiftSettingMasterGetDataResponseData
-} from '@/types/hrms/attendance-management/shift-setting-master';
+import type { IMasterShiftSettingList } from '@/types/hrms/attendance-management/masters';
 
 /**
- * Helper function to convert searchParams from URL (strings) to proper types
+ * Get Shift Setting Master list with search, sort, and pagination
+ * GET /api/ShiftSettingMasterFacade/getdata
  */
-function normalizeSearchParams(searchParams?: ApiSearchparams | Record<string, string | string[] | undefined>): ApiSearchparams {
-    if (!searchParams) return {};
-    
-    // Helper to get first value if array, or the value itself
-    const getValue = (value: string | string[] | number | undefined, defaultValue: string | number): string | number => {
-        if (value === undefined) return defaultValue;
-        if (typeof value === 'number') return value;
-        if (Array.isArray(value)) return value[0] || defaultValue;
-        return value;
-    };
-    
-    return {
-        page: typeof getValue(searchParams.page, 1) === 'string' ? parseInt(getValue(searchParams.page, 1) as string, 10) || 1 : (getValue(searchParams.page, 1) as number) || 1,
-        page_size: typeof getValue(searchParams.page_size, 10) === 'string' ? parseInt(getValue(searchParams.page_size, 10) as string, 10) || 10 : (getValue(searchParams.page_size, 10) as number) || 10,
-        search_query: (getValue(searchParams.search_query, '') as string) || '',
-        search_column: (getValue(searchParams.search_column, '') as string) || '',
-        sort_column: (getValue(searchParams.sort_column, '') as string) || '',
-        sort_direction: (getValue(searchParams.sort_direction, '') as string) || ''
-    };
+export async function getShiftSettingMaster(searchParams?: ApiSearchparams) {
+    const searchableColumns = 'foms_ShiftName';
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, searchableColumns);
+    const url = `/api/ShiftSettingMasterFacade/getdata?${urlParams}`;
+    return await api.get<IMasterShiftSettingList[]>('hrmsfrontoffice', url);
 }
 
 /**
- * Get shift setting master data from API
- * Following the preadmission module pattern - returns API response directly
+ * Save or Update Shift Setting Master record
+ * POST /api/ShiftSettingMasterFacade/savedetail
  */
-export async function getShiftSettingMaster(searchParams?: ApiSearchparams | Record<string, string | string[] | undefined>) {
-    // Normalize searchParams (convert strings to proper types)
-    const normalizedParams = normalizeSearchParams(searchParams);
-    
-    const requestBody = {
-        page: normalizedParams.page || 1,
-        page_size: normalizedParams.page_size || 10,
-        search_query: normalizedParams.search_query || '',
-        search_column: normalizedParams.search_column || '',
-        sort_column: normalizedParams.sort_column || '',
-        sort_direction: normalizedParams.sort_direction || '',
-        is_export: false,
-        miid: 30,
-        loginUserId: 0,
-        userRole: ''
-    };
-
-    const url = '/api/ShiftSettingMasterFacade/getdata';
-    
-    try {
-        const response = await api.post<ShiftSettingMasterGetDataResponseData>('hrmsfrontoffice', url, requestBody);
-        
-        // API response structure:
-        // {
-        //   "success": true,
-        //   "message": "OK",
-        //   "data": {
-        //     "types": [...],
-        //     "report_list": [...]
-        //   },
-        //   "total": 0,
-        //   "page": 1,
-        //   "page_size": 10
-        // }
-        
-        // Extract the data structure
-        const actualData: ShiftSettingMasterGetDataResponseData = response?.data || {
-            types: [],
-            report_list: []
-        };
-        
-        // Extract pagination info from response
-        const responseTotal = typeof response?.total === 'number' ? response.total : (actualData?.report_list?.length || 0);
-        const responsePage = typeof response?.page === 'number' ? response.page : (normalizedParams.page || 1);
-        const responsePageSize = typeof response?.page_size === 'number' 
-            ? response.page_size 
-            : (typeof response?.page_Size === 'number' 
-                ? response.page_Size 
-                : (normalizedParams.page_size || 10));
-        
-        const responseData: ShiftSettingMasterGetDataResponse = {
-            success: response?.success ?? true,
-            message: response?.message || 'Shift setting master data retrieved successfully',
-            data: actualData,
-            total: responseTotal,
-            page: responsePage,
-            page_size: responsePageSize
-        };
-        
-        return responseData;
-    } catch (error: any) {
-        console.error('Failed to fetch shift setting master data:', error);
-        
-        // Return error response in expected format
-        return {
-            success: false,
-            message: error?.response?.data?.msg || error?.message || 'Failed to fetch shift setting master data',
-            data: {
-                types: [],
-                report_list: []
-            },
-            total: 0,
-            page: normalizedParams.page || 1,
-            page_size: normalizedParams.page_size || 10
-        };
-    }
-}
-
-/**
- * Save or update shift setting master
- */
-export async function addOrUpdateShiftSettingMaster(data: {
-    id?: number;
-    shiftName: string;
-    shiftStartTime: string;
-    shiftEndTime: string;
-    lunchStartTime: string;
-    lunchEndTime: string;
-    totalWorkingHours: string;
-    halfDayWorkingHours: string;
-    lunchHours: string;
-    delayPerShift: string;
-    earlyPerShift: string;
-    isActive: boolean;
-}) {
-    const isEdit = data.id && data.id > 0;
-    
-    // Use exact API field names as per user's specification
-    const requestBody = {
-        FOMS_Id: data.id || 0,
-        MI_Id: 30,
-        FOMS_ShiftName: data.shiftName || '',
-        FOMS_ActiveFlg: data.isActive ?? true,
-        FOMST_Id: 0, // Shift timing ID (0 for new, or existing ID for update - not available in form data)
-        FOHWDT_Id: 0, // Holiday/weekend type ID (not in form data)
-        FOMST_FDWHrMin: data.totalWorkingHours || '', // Full Day Working Hours
-        FOMST_HDWHrMin: data.halfDayWorkingHours || '', // Half Day Working Hours
-        FOMST_IHalfLoginTime: data.shiftStartTime || '', // First Half Login Time
-        FOMST_IHalfLogoutTime: data.lunchStartTime || '', // First Half Logout Time
-        FOMST_IIHalfLoginTime: data.lunchEndTime || '', // Second Half Login Time
-        FOMST_IIHalfLogoutTime: data.shiftEndTime || '', // Second Half Logout Time
-        FOMST_DelayPerShiftHrMin: data.delayPerShift || '',
-        FOMST_EarlyPerShiftHrMin: data.earlyPerShift || '',
-        FOMST_LunchHoursDuration: data.lunchHours || '',
-        FOMST_BlockAttendance: '',
-        FOMST_FixTimings: '',
-        returnvalue: '',
-        filldata: [],
-        filltype: [],
-        FOHTWD_HolidayWDType: ''
-    };
-
+export async function addOrUpdateShiftSettingMaster(data: any) {
     const url = '/api/ShiftSettingMasterFacade/savedetail';
-    
-    try {
-        const response = await api.post<any>('hrmsfrontoffice', url, requestBody);
-        
-        // Transform response to match expected format
-        const responseData = response as any;
-        
-        // Check for success indicators
-        const returnval = responseData?.returnval || responseData?.returnvalue;
-        const returnvalBool = returnval === true || returnval === 'true' || returnval === 1 || returnval === '1';
-        const hasSuccessField = 'success' in responseData && responseData.success === true;
-        // Check both uppercase and lowercase field names for saved ID
-        const savedId = responseData?.FOMS_Id || responseData?.FOMST_Id || responseData?.fomS_Id || responseData?.fomsT_Id || 0;
-        
-        // Multiple ways to determine success
-        const isSuccess = returnvalBool || hasSuccessField || responseData?.success === true || savedId > 0;
-        
-        // Extract error message from response if available
-        const apiErrorMessage = responseData?.message || 
-                               responseData?.msg || 
-                               responseData?.errorMessage || 
-                               responseData?.error ||
-                               (responseData?.errors && Array.isArray(responseData.errors) 
-                                   ? responseData.errors.map((e: any) => e.message || e).join(', ')
-                                   : null);
-        
-        // Determine message
-        const message = isSuccess 
-            ? (isEdit ? 'Shift setting updated successfully' : 'Shift setting created successfully')
-            : (apiErrorMessage || 'Failed to save shift setting');
-        
-        return {
-            success: isSuccess,
-            message: message,
-            data: responseData
-        };
-    } catch (error: any) {
-        console.error('Failed to save shift setting master:', error);
-        
-        return {
-            success: false,
-            message: error?.response?.data?.msg || error?.message || 'Failed to save shift setting',
-            data: error?.response?.data
-        };
-    }
+    return await api.post<any>('hrmsfrontoffice', url, data);
 }
 
-// TODO: Implement delete API endpoint when available
+/**
+ * Toggle Shift Setting Master record (activate/deactivate)
+ * PUT /api/ShiftSettingMasterFacade/toggle/{id}
+ */
+export async function toggleShiftSettingMaster(id: number) {
+    const url = `/api/ShiftSettingMasterFacade/toggle/${id}`;
+    return await api.put<IMasterShiftSettingList>('hrmsfrontoffice', url);
+}
+
+// DELETE
 export async function deleteShiftSettingMaster(id: number) {
-    // Placeholder - to be implemented when delete API endpoint is available
-    return {
-        success: false,
-        message: 'Delete functionality not yet implemented - API endpoint required'
-    };
+    const url = `/api/ShiftSettingMasterFacade/delete/${id}`;
+    return await api.delete<any>('hrmsfrontoffice', url);
 }
-

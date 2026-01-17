@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
 import { useConcessionCategoryGroupHeadmappingdata } from '@/hooks/fees/useMasters';
-import { type masterConcessionCategorygroupHeadMappingSchema, masterConcessionDetailsSchema } from '@/schemas/fees/masters';
+import { masterConcessionCategorygroupHeadMappingSchema } from '@/schemas/fees/masters';
 import { toggleConcessionCategoryGroupHeadMapping } from '@/server/fees/masters/concession_category_head_group_mapping';
 import type { IConcessionCategoryGroupHeadMappingList } from '@/types/fees/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -32,7 +32,7 @@ export default function ToggleFeesConcessionCategoryGroupHeadmappingDetails({
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(masterConcessionDetailsSchema.delete),
+        resolver: zodResolver(masterConcessionCategorygroupHeadMappingSchema.delete),
         mode: 'onChange'
     });
 
@@ -43,7 +43,7 @@ export default function ToggleFeesConcessionCategoryGroupHeadmappingDetails({
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleConcessionCategoryGroupHeadMapping(30, Number(rowData.fmaccG_Id), Number(rowData.fmcC_Id));
+            const response = await toggleConcessionCategoryGroupHeadMapping(Number(rowData.fmaccG_Id));
 
             if (response.success) {
                 toast.success(response.message);

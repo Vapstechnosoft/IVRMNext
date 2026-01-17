@@ -1,5 +1,4 @@
 'use client';
-
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
 import { getOnlineLeave, saveOnlineLeave } from '@/server/hrms/leave-management/apply-leave';
@@ -7,7 +6,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import type { ApplyLeave, LeaveHistoryRow } from '@/app/(root)/hrms/leave-management/apply-leave/_components/columns';
 import type { FrmToDatesItem, SaveOnlineLeaveRequest } from '@/types/hrms/leave-management/apply-leave';
-
 /**
  * Map API response to LeaveHistoryRow format
  */
@@ -15,7 +13,6 @@ function mapApiDataToLeaveHistory(apiData: any): LeaveHistoryRow | null {
     if (!apiData) {
         return null;
     }
-
     return {
         leaveType: apiData.HRML_LeaveName || apiData.leaveType || apiData.LeaveType || '',
         fromDate: apiData.HRELAP_FromDate || apiData.fromDate || apiData.FromDate || '',
@@ -27,7 +24,6 @@ function mapApiDataToLeaveHistory(apiData: any): LeaveHistoryRow | null {
         document: apiData.HRELAP_SupportingDocument || apiData.document || ''
     };
 }
-
 /**
  * Map frontend ApplyLeave format to API request format
  */
@@ -53,7 +49,6 @@ function mapApplyLeaveToApiData(
         UserId: 0, // Will be set from session
         approvaluser_array: []
     };
-
     return {
         MI_Id: HRMS_MI_ID,
         UserId: 0, // Will be set from session
@@ -64,13 +59,11 @@ function mapApplyLeaveToApiData(
         HRELT_SupportingDocument: data.file?.[0]?.name || ''
     };
 }
-
 /**
  * Hook to fetch online leave applications/history
  */
 export function useLeaveHistory(request?: { MI_Id?: number; UserId?: number }) {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.APPLY_LEAVE, request?.MI_Id, request?.UserId],
@@ -80,17 +73,13 @@ export function useLeaveHistory(request?: { MI_Id?: number; UserId?: number }) {
                         MI_Id: request?.MI_Id || HRMS_MI_ID,
                         UserId: request?.UserId || 0
                     });
-
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch leave history');
                     }
-
                     // Extract leave history from response
                     // The API might return list in online_leave, GridviewDetails, or other fields
                     let leaveHistory: LeaveHistoryRow[] = [];
-                    
                     const data = response.data;
-                    
                     // Check different possible locations for the leave list
                     if (data.online_leave && Array.isArray(data.online_leave)) {
                         leaveHistory = data.online_leave
@@ -109,7 +98,6 @@ export function useLeaveHistory(request?: { MI_Id?: number; UserId?: number }) {
                             .map((item: any) => mapApiDataToLeaveHistory(item))
                             .filter((item: LeaveHistoryRow | null): item is LeaveHistoryRow => item !== null);
                     }
-
                     return {
                         success: true,
                         data: leaveHistory,
@@ -128,13 +116,11 @@ export function useLeaveHistory(request?: { MI_Id?: number; UserId?: number }) {
         }
     };
 }
-
 /**
  * Hook to apply for leave
  */
 export function useApplyLeave() {
     const queryClient = useQueryClient();
-
     return useMutation<
         { success: boolean; message: string },
         Error,
@@ -144,13 +130,10 @@ export function useApplyLeave() {
             try {
                 // Map frontend data to API format
                 const apiRequest = mapApplyLeaveToApiData(data, HRME_Id);
-                
                 const response = await saveOnlineLeave(apiRequest);
-                
                 if (!response.success) {
                     throw new Error(response.message || 'Failed to apply leave');
                 }
-
                 return {
                     success: true,
                     message: response.message || 'Leave applied successfully'
@@ -175,4 +158,3 @@ export function useApplyLeave() {
         }
     });
 }
-

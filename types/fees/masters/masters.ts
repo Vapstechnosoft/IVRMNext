@@ -214,24 +214,24 @@ export interface IMasterpaymentGatewayDropdownList {
     impG_PGName: string;
 }
 
-export interface IMasterGroupWiseAutoReciptList {
-    feeGroupslist: any;
-    asmaY_Id: any;
-    asmcL_Id: number;
-    fmcC_Id: any;
-    fyccC_Id: number;
-    asmaY_Year: string;
-    fmcC_ClassCategoryName: string;
-    asmcL_ClassName: string;
-    prefix: string;
-    suffix: string;
-    startingNumber: string;
-    groups: string;
-    autoGroupName: string;
-    address: string;
-    receiptTemplateFormat: string;
-    fycC_ActiveFlag: boolean;
-}
+// export interface IMasterGroupWiseAutoReciptList {
+//     feeGroupslist: any;
+//     asmaY_Id: any;
+//     asmcL_Id: number;
+//     fmcC_Id: any;
+//     fyccC_Id: number;
+//     asmaY_Year: string;
+//     fmcC_ClassCategoryName: string;
+//     asmcL_ClassName: string;
+//     prefix: string;
+//     suffix: string;
+//     startingNumber: string;
+//     groups: string;
+//     autoGroupName: string;
+//     address: string;
+//     receiptTemplateFormat: string;
+//     fycC_ActiveFlag: boolean;
+// }
 
 //used rebate settings
 export interface IMasterYearlyRebateSettingsList {
@@ -261,6 +261,9 @@ export interface IMasterFeePrevilegeList {
     ifp_FeePrevilegeName: string;
     ifp_Description: string;
     ifp_ActiveFlag: boolean;
+    ivrmR_Id: number;
+    fmG_Id: number;
+    fmH_Id: number;
 }
 
 export interface IAcademicYearDropDown {
@@ -523,6 +526,7 @@ export interface IMasterGroupWiseAutoReciptList {
     academicyear: string;
     fgaR_Id: number;
     fgaR_Starting_No: number;
+    feeGroupslist: IGroupOption[];
 }
 
 export interface IConcessionCategoryDropdownList {
@@ -627,6 +631,10 @@ export interface IMasterStudentFeeGroupMappingList {
     fmG_GroupName: string;
     fmG_Id: number;
     fmsG_Id: number;
+    asmaY_Id: number;
+    mI_Id: number;
+    amsT_MiddleName: string;
+    amsT_LastName: string;
 }
 export interface IMasterFeeClassDropDownList {
     asmcL_Id: number;
@@ -770,4 +778,43 @@ export interface MasterFeeOtherStudentType {
     fmosT_StudentMobileNo: number;
     fmosT_StudentEmailId: string;
     fmosT_ActiveFlag: boolean;
+}
+
+export interface IFeeHeadsListSetOrder {
+    fmH_Id: number;
+    mI_Id: number;
+    fmH_FeeName: string;
+    fmH_Flag: string;
+    fmH_ActiveFlag: boolean;
+    fmH_Order: number;
+    fmH_SpecialFeeFlag: boolean;
+    fmH_PDAFlag: boolean;
+    fmH_RefundFlag: boolean;
+}
+
+export interface IMasterFeeClassCategoryList {
+    fmcC_Id: number;
+    fmcC_ClassCategoryName: string;
+}
+
+export interface IMasterFeeBusAreaList {
+    trmA_Id: number;
+    trmA_AreaName: string;
+}
+
+export interface IGroupOption {
+    fmG_Id: number;
+    fmG_GroupName: string;
+}
+
+export interface IinstitutionDetails {
+    mI_Id: number;
+    mI_Logo: string;
+    mI_Name: string;
+}
+
+export interface IMasterGroupsOnYear {
+    fmG_Id: number;
+    fyG_Id: string;
+    fmG_GroupName: string;
 }
