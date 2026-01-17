@@ -1058,6 +1058,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     // Prevent multiple final submissions by showing submitting state
     const [submittingFinal, setSubmittingFinal] = useState(false);
 
+    // Track when currently saving step data to prevent multiple submissions
+    const [isSavingStep, setIsSavingStep] = useState(false);
+
     // Parent photos & signatures for Step 6 (store selected File objects)
     const [fatherPhoto, setFatherPhoto] = useState<{ path?: string; isUploading?: boolean; file?: File } | null>(null);
     const [_fatherPhotoError, setFatherPhotoError] = useState<string | null>(null);
@@ -1700,6 +1703,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     };
 
     const nextStep = async () => {
+        // Prevent multiple simultaneous calls
+        if (isSavingStep) return;
+
         try {
             console.debug('[Admission] nextStep invoked, currentStep=', currentStep);
         } catch (e) {
@@ -1828,9 +1834,20 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
             const isValid = await trigger(fieldsToValidate.length > 0 ? fieldsToValidate : []);
 
+            // Check if there are any validation errors on the current form state
+            if (!isValid) {
+                console.debug('[Admission] Validation errors detected, aborting API call', { isValid, errors: Object.keys(errors) });
+                toast.error('Please fix all errors before proceeding');
+                return;
+            }
+
+            // Set saving state to prevent multiple submissions
+            setIsSavingStep(true);
+
             if (currentStep === 3) {
                 if (!isValid) {
                     setShowStep3Errors(true);
+                    setIsSavingStep(false);
                     return;
                 }
                 setShowStep3Errors(false);
@@ -1845,16 +1862,19 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     const res = await saveThirdTab();
                     if (!res?.success) {
                         toast.error(res?.message || 'Failed to save step 3 (immediate)');
+                        setIsSavingStep(false);
                         return;
                     }
                 } catch (err) {
                     console.error('[Admission] immediate saveThirdTab threw error:', err);
                     toast.error('Failed to save step 3');
+                    setIsSavingStep(false);
                     return;
                 }
 
                 setHandledStep3(true);
                 setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+                setIsSavingStep(false);
                 return;
             }
 
@@ -1889,14 +1909,17 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     if (!res?.success) {
                         console.error('Failed saving step 5 response (auto):', res);
                         toast.error(res?.message || 'Failed to save step 5');
+                        setIsSavingStep(false);
                         return;
                     }
                     toast.success('Step 5 saved');
                     setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+                    setIsSavingStep(false);
                     return;
                 } catch (error) {
                     console.error('Failed saving step 5 (auto)', error);
                     toast.error('Failed to save step 5');
+                    setIsSavingStep(false);
                     return;
                 }
             }
@@ -2001,15 +2024,18 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     // console.log('[Admission] early saveFourthTab response:', res);
                     if (!res?.success) {
                         toast.error(res?.message || 'Failed to save step 4 ');
+                        setIsSavingStep(false);
                         return;
                     }
                     toast.success('Step 4 saved ');
                     // console.log('[Admission] early handler incrementing step');
                     setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+                    setIsSavingStep(false);
                     return;
                 } catch (err) {
                     console.error('[Admission] Step4 handler error:', err);
                     toast.error('Failed to save step 4');
+                    setIsSavingStep(false);
                     return;
                 }
             }
@@ -2019,6 +2045,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 if (!studentPhoto?.amsT_Photoname) {
                     toast.error('Please upload student photo');
                     setCurrentStep(1);
+                    setIsSavingStep(false);
                     return;
                 }
 
@@ -2027,6 +2054,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     const emis = String(getValues('amsT_BPLCardNo') ?? '').trim();
                     if (!emis) {
                         toast.error('EMIS / BPL / STS No. is required');
+                        setIsSavingStep(false);
                         return;
                     }
                 }
@@ -2044,6 +2072,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     const missing = requiredEcsFields.filter((f) => !String(getValues(f as any) ?? '').trim());
                     if (missing.length > 0) {
                         toast.error('Please fill all ECS account details');
+                        setIsSavingStep(false);
                         return;
                     }
                 }
@@ -2057,6 +2086,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     console.debug('[Admission] saveFirstTab response (auto):', res);
                     if (!res?.success) {
                         toast.error(res?.message || 'Failed to save step 1');
+                        setIsSavingStep(false);
                         return;
                     }
 
@@ -2090,6 +2120,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                             // No change to photo — skip calling the photo API
                             toast.success('Photo saved');
                             setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+                            setIsSavingStep(false);
                             return;
                         }
 
@@ -2106,6 +2137,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         console.debug('[Admission] saveStudentPhotoApi response:', photoRes);
                         if (!photoRes?.success) {
                             toast.error(photoRes?.message || 'Failed to save student photo');
+                            setIsSavingStep(false);
                             return;
                         }
 
@@ -2114,15 +2146,18 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
                         toast.success('Step 1 saved');
                         setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+                        setIsSavingStep(false);
                         return;
                     } catch (photoErr) {
                         console.error('Failed uploading student photo after save:', photoErr);
                         toast.error('Failed to upload student photo');
+                        setIsSavingStep(false);
                         return;
                     }
                 } catch (err) {
                     console.error('[Admission] saveFirstTab error:', err);
                     toast.error('Failed to save step 1');
+                    setIsSavingStep(false);
                     return;
                 }
             }
@@ -2136,6 +2171,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         type: 'manual',
                         message: `Pin code must be ${conZipLength} digits`
                     });
+                    setIsSavingStep(false);
                     return;
                 }
 
@@ -2146,6 +2182,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                             type: 'manual',
                             message: `Pin code must be ${perZipLength} digits`
                         });
+                        setIsSavingStep(false);
                         return;
                     }
                 }
@@ -2193,13 +2230,16 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     console.debug('[Admission] saveSecondTab response:', res);
                     if (!res?.success) {
                         toast.error(res?.message || 'Failed to save step 2');
+                        setIsSavingStep(false);
                         return;
                     }
                     toast.success('Step 2 saved');
                     setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+                    setIsSavingStep(false);
                 } catch (error) {
                     console.error('Failed saving step 2', error);
                     toast.error('Failed to save step 2');
+                    setIsSavingStep(false);
                     return;
                 }
             }
@@ -8709,9 +8749,18 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                 <ChevronRight className='ml-2 h-4 w-4' />
                                             </Button>
                                         ) : (
-                                            <Button type='button' onClick={nextStep} disabled={isSubmitting}>
-                                                Next
-                                                <ChevronRight className='ml-2 h-4 w-4' />
+                                            <Button type='button' onClick={nextStep} disabled={isSavingStep || isSubmitting}>
+                                                {isSavingStep ? (
+                                                    <>
+                                                        <Spinner className='mr-2 h-4 w-4' size='sm' />
+                                                        Saving...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        Next
+                                                        <ChevronRight className='ml-2 h-4 w-4' />
+                                                    </>
+                                                )}
                                             </Button>
                                         )
                                     ) : (
