@@ -180,7 +180,7 @@ export default function PfForm6A({
                                 <td className='border border-black px-3 text-right'>₹{totals.epfDiff.toLocaleString('en-IN')}</td>
                                 <td className='border border-black px-3 text-right'>₹{totals.pensionFund.toLocaleString('en-IN')}</td>
                                 <td className='border border-black px-3 text-right' />
-                                <td className='border border-black px-3 text-center'></td>
+
                                 <td className='border border-black' />
                             </tr>
                         </>
