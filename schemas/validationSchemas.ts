@@ -49,6 +49,29 @@ export function createOptionalNumberOnlyStringSchema(field: string, min: number,
         .or(z.literal('')); // empty allowed
 }
 
+//for percentaige allow with dot
+
+export function createOptionalNumberOnlyPrecentageSchema(field: string, min: number, max: number) {
+    return z
+        .union([
+            z.literal(''),
+            z
+                .string()
+                // ❗ Allow only digits and dot
+                .regex(/^[0-9.]+$/, {
+                    message: `${field} must contain only numbers and dots`
+                })
+                // ❗ Min / Max length (before refine)
+                .min(min, { message: `${field} must have at least ${min} characters` })
+                .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
+                // ❗ No leading or trailing spaces
+                .refine((value) => value.trim() === value, {
+                    message: `${field} cannot have leading or trailing spaces`
+                })
+        ])
+        .optional();
+}
+
 export function createNumberOnlyStringSchema(field: string, min: number, max: number) {
     return z
         .string()
@@ -152,14 +175,19 @@ export function createStringOnlySchema(field: string, min: number, max: number) 
 
 export function createStringOnlyOptionalSchema(field: string, min: number, max: number) {
     return z
-        .string()
-        .trim()
-        .regex(/^[A-Za-z\s]+$/, { message: `${field} must contain only letters` })
-        .min(min, { message: `Minimum ${min} characters required for ${field}` })
-        .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
-        .optional()
-        .or(z.literal(''));
+        .union([
+            z.literal(''),
+            z
+                .string()
+                .regex(/^(?!\s).*(?<!\s)$/, {
+                    message: `${field} must not start or end with spaces`
+                })
+                .min(min, { message: `Minimum ${min} characters required for ${field}` })
+                .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
+        ])
+        .optional();
 }
+
 //allow comma
 
 export function createStringOnlyOptionalallowComma(field: string, min: number, max: number) {
@@ -173,6 +201,21 @@ export function createStringOnlyOptionalallowComma(field: string, min: number, m
         .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
         .optional()
         .or(z.literal(''));
+}
+
+export function createAlphaNumericWithCommaTrailingSpaceOptional(field: string, min: number, max: number) {
+    return z
+        .union([
+            z.literal(''),
+            z
+                .string()
+                .regex(/^(?!\s)[A-Za-z0-9,\s]+(?<!\s)$/, {
+                    message: `${field} must not start or end with spaces and may contain only letters, numbers`
+                })
+                .min(min, { message: `Minimum ${min} characters required for ${field}` })
+                .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
+        ])
+        .optional();
 }
 
 export function createAlphanumericSchema(field: string, min: number, max: number, optional = false) {
@@ -243,36 +286,26 @@ export function createCustomStringSchema(field: string, min: number, max: number
         })
         .refine((val) => !/^[0-9]+$/.test(val), { message: `${field} cannot be only numbers` });
 }
-
 export function createOptionalAlphaNumericSchema(field: string, min: number, max: number) {
-    return (
-        z
-            .string()
-            .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
+    return z
+        .union([
+            z.literal(''),
+            z
+                .string()
+                // ❗ Length rules first
+                .min(min, { message: `${field} must have at least ${min} characters` })
+                .max(max, { message: `${field} must not exceed ${max} characters` })
+                // ❗ Letters, numbers, spaces INSIDE only
+                .regex(/^(?!\s)[A-Za-z0-9 ]+(?<!\s)$/, {
+                    message: `${field} may contain letters, numbers, and spaces (no leading or trailing spaces)`
+                })
 
-            // ❗ Allow ONLY alphabets & numbers
-            .regex(/^[A-Za-z0-9]*$/, {
-                message: `${field} can contain only letters and numbers`
-            })
-
-            // ❗ No leading or trailing spaces
-            .refine((value: string) => value.length === 0 || value.trim() === value, {
-                message: `${field} cannot have leading or trailing spaces`
-            })
-
-            // ❗ Must contain at least one alphabet if not empty
-            .refine((value: string) => value.length === 0 || /[A-Za-z]/.test(value), {
-                message: `${field} must contain at least one letter`
-            })
-
-            // ❗ Minimum length when not empty
-            .refine((value: string) => value.length === 0 || value.length >= min, {
-                message: `${field} must have at least ${min} characters or be empty.`
-            })
-
-            .optional()
-            .or(z.literal(''))
-    );
+                // ❗ Must contain at least one letter
+                .refine((value) => /[A-Za-z]/.test(value), {
+                    message: `${field} must contain at least one letter`
+                })
+        ])
+        .optional();
 }
 
 //pancard schema

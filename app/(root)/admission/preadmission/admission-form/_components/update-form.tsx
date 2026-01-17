@@ -1936,6 +1936,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
                     const siblingsSource = formData.siblings || [];
                     const siblingsList = (Array.isArray(siblingsSource) ? siblingsSource : []).map((s: any) => ({
+                        amsts_Id: s?.amsts_Id ?? s?.id ?? '',
                         name: s.pasrS_SiblingsName || s.name || s.siblingName || '',
                         classId: Number(s.pasrS_SiblingsClass || s.classId || s.pasrS_SiblingsClassId) || 0,
                         relation: s.relation || s.relationShip || ''
@@ -1943,6 +1944,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
                     const previousSchoolSource = formData.previousSchools || [];
                     const previousSchools = (Array.isArray(previousSchoolSource) ? previousSchoolSource : []).map((school: any) => ({
+                        amstpS_Id: school?.amstpS_Id ?? school?.id ?? '',
                         schoolName: school.pasrpS_PrvSchoolName || school.schoolName || school.pasrS_SchoolName || '',
                         schoolType: school.schoolType || (school.pasrpS_schoolType ? String(school.pasrpS_schoolType) : '') || '',
                         class: String(school.pasrpS_PreviousClass || school.classId || ''),

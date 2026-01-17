@@ -2,11 +2,13 @@ import { z } from 'zod';
 import {
     createAllAllowedOptional,
     createAllAllowedRequired,
+    createAlphaNumericWithCommaTrailingSpaceOptional,
     createAlphanumericSchema,
     createAlphanumericSchemaPanCard,
     createEmailSchema,
     createNumberOnlyStringSchema,
     createOptionalAlphaNumericSchema,
+    createOptionalNumberOnlyPrecentageSchema,
     createOptionalNumberOnlyStringSchema,
     createOptionalStringSchema,
     createOptionalStringWithLettersSchema,
@@ -179,7 +181,7 @@ export const studentAdmissionFormSchema = {
             healthMedicalDetails: HealthMedicalDetailsSchema.optional(),
 
             // Residential Address
-            amsT_ConStreet: createOptionalAlphaNumericSchema('Street', 1, 100),
+            amsT_ConStreet: createAlphaNumericWithCommaTrailingSpaceOptional('Street', 1, 100),
             amsT_ConArea: createOptionalAlphaNumericSchema('Area', 1, 100),
             amsT_ConCountry: z.string().optional(),
             amsT_ConState: z.coerce.number().int().optional(),
@@ -190,7 +192,7 @@ export const studentAdmissionFormSchema = {
                 .transform((val) => (val === undefined || val === null || val === '' ? undefined : String(val))),
 
             // Permanent Address
-            amsT_PerStreet: createOptionalAlphaNumericSchema('Street', 1, 100),
+            amsT_PerStreet: createAlphaNumericWithCommaTrailingSpaceOptional('Street', 1, 100),
             amsT_PerArea: createOptionalAlphaNumericSchema('Area', 1, 100),
             amsT_PerCountry: z.string().optional(),
             amsT_PerState: z.coerce.number().int().optional(),
@@ -400,7 +402,7 @@ export const studentAdmissionFormSchema = {
 
                         schoolTypeId: z.number({ required_error: 'School Type is required' }).min(1, 'School Type is required').optional(),
                         classId: z.number({ required_error: 'Class is required' }).min(1, 'Class is required').optional(),
-                        percentage: createOptionalNumberOnlyStringSchema('Percentage', 1, 10),
+                        percentage: createOptionalNumberOnlyPrecentageSchema('Percentage', 1, 10),
                         grade: createOptionalNumberOnlyStringSchema('Grade', 1, 10),
                         passedYear: z.number({ required_error: 'Passed Year is required' }).min(1900, 'Invalid year').optional(),
                         countryId: z.number({ required_error: 'Country is required' }).min(1, 'Country is required').optional(),
