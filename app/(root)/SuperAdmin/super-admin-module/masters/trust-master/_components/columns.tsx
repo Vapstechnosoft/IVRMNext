@@ -2,8 +2,37 @@
 
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { activateDeactivateTrustMaster } from '@/server/super-admin/super-admin-module/masters/trust-master';
 import type { ITrustMaster } from '@/types/super-admin/super-admin-module/trust-masters';
 import type { ColumnDef } from '@tanstack/react-table';
+import { toast } from 'sonner';
+
+import { useQueryClient } from '@tanstack/react-query';
+
+const TrustMasterActionCell = ({ row }: { row: any }) => {
+    const queryClient = useQueryClient();
+
+    return (
+        <ActionButtons
+            rowData={row.original}
+            buttons={{ edit: false, toggle: true, delete: false }}
+            toggleConditionKey='mO_ActiveFlag'
+            onToggle={async (data, checked) => {
+                try {
+                    const response = await activateDeactivateTrustMaster(data.mO_Id);
+                    if (response.success) {
+                        toast.success(response.message || 'Trust details updated successfully');
+                        queryClient.invalidateQueries({ queryKey: ['trust_master_data'] });
+                    } else {
+                        toast.error(response.message || 'Failed to update Trust Status');
+                    }
+                } catch (error) {
+                    toast.error('Something went wrong');
+                }
+            }}
+        />
+    );
+};
 
 export const TrustMasterColumns: ColumnDef<ITrustMaster>[] = [
     {
@@ -32,16 +61,8 @@ export const TrustMasterColumns: ColumnDef<ITrustMaster>[] = [
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Edit/Activate/Deactivate' className='text-center' />,
-        cell: ({ row }) => (
-            <ActionButtons
-                rowData={row.original}
-                buttons={{ edit: true, toggle: true, delete: false }}
-                toggleConditionKey='mO_ActiveFlag'
-                onEdit={(data) => console.log('Edit', data)}
-                onToggle={(data, checked) => console.log('Toggle', data, checked)}
-            />
-        ),
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Activate/Deactivate' className='text-center' />,
+        cell: ({ row }) => <TrustMasterActionCell row={row} />,
         enableSorting: false
     }
 ];

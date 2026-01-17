@@ -24,6 +24,7 @@ export const trustMasterSchema = {
         mO_Address1: createStringSchema('Address1', 6, 40),
         mO_Address2: createStringSchema('Address2', 6, 40),
         mO_Address3: createStringSchema('Address3', 6, 40),
+        mO_Landmark: createStringSchema('Landmark', 3, 40).optional(),
         ivrmmC_Id: z.number({ required_error: 'Select Country' }).min(1, 'Select Country'),
         ivrmmS_Id: z.number({ required_error: 'Select State' }).min(1, 'Select State'),
         ivrmmcT_Name: createStringOnlySchema('City', 1, 40),
@@ -31,10 +32,14 @@ export const trustMasterSchema = {
         mO_Website: z.string().optional(),
         mO_FaxNo: z.string().optional(), // Angular had pattern check but not specified
         mT_Domain_name: z.string().min(1, 'Enter Domain Name'),
+        mT_Currency: z.string().min(1, 'Select Currency').optional(),
 
         // Dynamic arrays
         phones: z.array(phoneSchema).optional(), // Optional initially? Angular shows required.
         mobiles: z.array(mobileSchema).optional(),
-        emails: z.array(emailSchema).optional()
+        emails: z.array(emailSchema).optional(),
+        mO_AboutInstitute: z.string().optional(),
+        mO_ContactDetails: z.string().optional(),
+        mO_Logo: z.string().optional()
     })
 };

@@ -11,8 +11,9 @@ import { LoopIcon, PlusIcon, TrashIcon } from '@radix-ui/react-icons';
 import { Plus, Save, Trash2 } from 'lucide-react';
 import React from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
-import { states } from '@/app/(root)/SuperAdmin/super-admin-module/common';
-import { type CountryDropdown, getCountryDropdown } from '@/server/super-admin/super-admin-module/masters/institution-facade';
+import { useQueryClient } from '@tanstack/react-query';
+
+import { getCountryList, getStateList, saveTrustMaster } from '@/server/super-admin/super-admin-module/masters/trust-master';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -40,23 +41,31 @@ export default function AddTrustMasterForm({ onSuccess, className = '' }: AddTru
             mO_Address1: '',
             mO_Address2: '',
             mO_Address3: '',
+            mO_Landmark: '',
             ivrmmcT_Name: '',
             mO_Pincode: '',
             mT_Domain_name: '',
+            mT_Currency: 'INR', // Default currency
             phones: [{ mopN_PhoneNo: '', moP_Flag: '' }],
             mobiles: [{ momN_MobileNo: '', moM_Flag: '' }],
             emails: [{ moE_EmailId: '', moE_Flag: '' }]
         }
     });
 
-    const [countryList, setCountryList] = React.useState<CountryDropdown[]>([]);
+    const queryClient = useQueryClient();
+
+
+
+    const [countryList, setCountryList] = React.useState<any[]>([]);
+    const [stateList, setStateList] = React.useState<any[]>([]);
     const [loadingCountries, setLoadingCountries] = React.useState(false);
+    const [loadingStates, setLoadingStates] = React.useState(false);
 
     React.useEffect(() => {
         const fetchCountries = async () => {
             setLoadingCountries(true);
             try {
-                const response = await getCountryDropdown();
+                const response = await getCountryList();
                 if (response.success && response.data) {
                     setCountryList(response.data);
                 }
@@ -68,7 +77,23 @@ export default function AddTrustMasterForm({ onSuccess, className = '' }: AddTru
             }
         };
 
+        const fetchStates = async () => {
+            setLoadingStates(true);
+            try {
+                const response = await getStateList();
+                if (response.success && response.data) {
+                    setStateList(response.data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch states', error);
+                toast.error('Failed to load states');
+            } finally {
+                setLoadingStates(false);
+            }
+        };
+
         fetchCountries();
+        fetchStates();
     }, []);
 
     const { fields: phoneFields, append: appendPhone, remove: removePhone } = useFieldArray({
@@ -89,16 +114,31 @@ export default function AddTrustMasterForm({ onSuccess, className = '' }: AddTru
     const onSubmit = async (data: FormFields) => {
         try {
             console.log('Form Data:', data);
-            // Simulate API call
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            toast.success('Trust Master added successfully (Simulation)');
-            reset();
-            onSuccess?.();
 
-            // Real implementation would be:
-            // const response = await addTrustMaster(data);
-            // if (response.success) { ... }
+            // Transform data to match API payload
+            const payload = {
+                ...data,
+                mO_Id: data.mO_Id || 0,
+                mO_Pincode: Number(data.mO_Pincode),
+                phones: data.phones?.map(p => ({ ...p, mopN_Id: 0, mopN_PhoneNo: Number(p.mopN_PhoneNo) })) || [],
+                mobiles: data.mobiles?.map(m => ({ ...m, momN_Id: 0, momN_MobileNo: Number(m.momN_MobileNo) })) || [],
+                emails: data.emails?.map(e => ({ ...e, moE_Id: 0 })) || [],
+                mO_AboutInstitute: data.mO_AboutInstitute || '',
+                mO_ContactDetails: data.mO_ContactDetails || '',
+                mO_Logo: data.mO_Logo || ''
+            };
+
+            const response = await saveTrustMaster(payload);
+            if (response.success) {
+                toast.success('Trust Master saved successfully');
+                reset();
+                queryClient.invalidateQueries({ queryKey: ['trust_master_data'] });
+                onSuccess?.();
+            } else {
+                toast.error(response.message || 'Failed to save Trust Master');
+            }
         } catch (error: any) {
+            console.error('Save Error:', error);
             toast.error(error.message || 'Something went wrong');
         }
     };
@@ -138,6 +178,7 @@ export default function AddTrustMasterForm({ onSuccess, className = '' }: AddTru
                         <InputTextarea label='Address1' required maxLength={40} {...register('mO_Address1')} error={errors.mO_Address1?.message} />
                         <InputTextarea label='Address2' required maxLength={40} {...register('mO_Address2')} error={errors.mO_Address2?.message} />
                         <InputTextarea label='Address3' required maxLength={40} {...register('mO_Address3')} error={errors.mO_Address3?.message} />
+                        <InputText label='Landmark' {...register('mO_Landmark')} error={errors.mO_Landmark?.message} />
 
                         <div className='flex flex-col gap-1.5'>
                             <Label>Country <span className='ml-1 text-red-500'>*</span></Label>
@@ -183,7 +224,7 @@ export default function AddTrustMasterForm({ onSuccess, className = '' }: AddTru
                                             <SelectValue placeholder='Select State' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {states.map((s) => (
+                                            {stateList.map((s) => (
                                                 <SelectItem key={s.ivrmmS_Id} value={String(s.ivrmmS_Id)}>
                                                     {s.ivrmmS_Name}
                                                 </SelectItem>
@@ -329,7 +370,26 @@ export default function AddTrustMasterForm({ onSuccess, className = '' }: AddTru
                         </div>
 
                         <InputText label='Fax' {...register('mO_FaxNo')} error={errors.mO_FaxNo?.message} />
+
                         <InputText label='Domain Name' required {...register('mT_Domain_name')} error={errors.mT_Domain_name?.message} />
+                        <div className='flex flex-col gap-1.5'>
+                            <Label>Currency</Label>
+                            <Controller
+                                control={control}
+                                name='mT_Currency'
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger><SelectValue placeholder='Select Currency' /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value='INR'>INR</SelectItem>
+                                            <SelectItem value='USD'>USD</SelectItem>
+                                            <SelectItem value='EUR'>EUR</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.mT_Currency && <FormError>{errors.mT_Currency.message}</FormError>}
+                        </div>
                     </div>
                 </div>
 
