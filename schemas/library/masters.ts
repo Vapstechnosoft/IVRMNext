@@ -259,7 +259,8 @@ export const masterSubjectSchema = {
             .regex(/^[a-zA-Z0-9\s-]*$/, 'Invalid Subject No'),
         lmS_Id: z.number().nonnegative().optional(), // optional when creating new record
         lmS_ParentId: z.number().optional(),
-        lmS_ActiveFlg: z.boolean().optional()
+        lmS_ActiveFlg: z.boolean().optional(),
+        lmS_SubjectName: z.string()
     }),
     delete: z.object({
         lmS_Id: deleteIdSchema('lmS_Id')

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { createNumberOnlyStringSchema, createOptionalStringSchema, createStringOnlySchema, deleteIdSchema } from '../validationSchemas';
 
 // Member type and book type enums
 export const memberTypeSchema = z.enum(['std', 'stf', 'dep', 'gst']);
@@ -148,3 +149,98 @@ export type StudentFilterValues = z.infer<typeof studentFilterSchema>;
 export type StaffFilterValues = z.infer<typeof staffFilterSchema>;
 export type GuestFormValues = z.infer<typeof guestFormSchema>;
 export type SearchFilterValues = z.infer<typeof searchFilterSchema>;
+
+export const lostBookSchema = {
+    // Schema for adding or updating lost book records
+    addOrUpdate: z
+        .object({
+            // Required fields
+            LMBANO_Id: deleteIdSchema('LMBANO_Id'),
+            LMBANO_AmountCollected: createNumberOnlyStringSchema('Price', 1, 22),
+            LMBANO_ModeOfPayment: z.enum(['Cash', 'Bank'], {
+                required_error: 'Mode of payment is required',
+                invalid_type_error: 'Mode of payment must be either Cash or Bank'
+            }),
+            LMBANO_AvialableStatus: z.enum(['lost', 'damaged'], {
+                required_error: 'Book status is required',
+                invalid_type_error: 'Book status must be either lost or damaged'
+            }),
+
+            // Date field with validation
+            LMBANO_LostDamagedDate: z
+                .string()
+                .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (yyyy-MM-dd)')
+                .refine((dateStr) => {
+                    const date = new Date(dateStr);
+                    return !Number.isNaN(date.getTime()) && date <= new Date();
+                }, 'Date cannot be in the future'),
+
+            // Optional fields
+            LMBANO_LostDamagedReason: createOptionalStringSchema('damage reason', 0, 300),
+            AuthorId: z.number().int().positive().optional(),
+            AuthorName: createStringOnlySchema('Author name', 1, 2).optional(),
+
+            // System fields
+            CreatedBy: z.number().int().positive().optional(),
+            ModifiedBy: z.number().int().positive().optional()
+        })
+        .passthrough(),
+
+    // .refine(
+    //     (data) => {
+    //         // Validate that price is positive
+    //         return parseFloat(data.LMBANO_AmountCollected) > 0;
+    //     },
+    //     {
+    //         message: 'Price must be greater than 0',
+    //         path: ['LMBANO_AmountCollected']
+    //     }
+    // )
+    // Schema for deleting lost book records
+    delete: z.object({
+        LMBANO_Id: deleteIdSchema('LMBANO_Id')
+    }),
+
+    // Schema for searching/filtering lost books
+    search: z.object({
+        mi_Id: z.number().int().positive().optional(),
+        asmaY_Id: z.number().int().positive().optional(),
+        asmcL_Id: z.number().int().positive().optional(),
+        searchTerm: createOptionalStringSchema('search term', 0, 300),
+        status: z.enum(['all', 'lost', 'damaged', 'pending', 'resolved']).optional(),
+        fromDate: z
+            .string()
+            .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (yyyy-MM-dd)')
+            .optional(),
+        toDate: z
+            .string()
+            .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (yyyy-MM-dd)')
+            .optional(),
+        page: z.number().int().positive().default(1),
+        pageSize: z.number().int().positive().max(100).default(10)
+    }),
+
+    // Schema for updating status only
+    updateStatus: z.object({
+        LMBANO_Id: deleteIdSchema('LMBANO_Id'),
+        LMBANO_AvialableStatus: z.enum(['lost', 'damaged', 'resolved', 'replaced'], {
+            required_error: 'Book status is required'
+        }),
+        Remarks: createOptionalStringSchema('remarks', 0, 300)
+    }),
+
+    // Schema for dropdown data
+    dropdown: z.object({
+        category: z.enum(['book', 'nonbook'], {
+            required_error: 'Category is required'
+        }),
+        type: z.enum(['issue', 'ref'], {
+            required_error: 'Type is required'
+        })
+    }),
+
+    // Schema for book selection
+    bookSelect: z.object({
+        bookId: deleteIdSchema('bookId')
+    })
+} as const;

@@ -469,6 +469,8 @@ export const LIBRARY_QUERY_KEYS = {
     MASTER_SUBJECT_LIST_DATA: 'master_library_subject_data',
     LIBRARY_MASTER_SUBJECT_DROPDOWNDATADETAILS: 'library_master_subject_dropdowndetails',
 
+    // Lost Books
     LIBRARY_LOST_BOOK_GRID: 'library_lost_book_grid',
-    LIBRARY_ACADEMIC_YEAR_DROPDOWN: 'library_academic_year_dropdown'
+    LIBRARY_ACADEMIC_YEAR_DROPDOWN: 'library_academic_year_dropdown',
+    LIBRARY_LOST_BOOK_LIST: 'library_lost_book_list'
 };

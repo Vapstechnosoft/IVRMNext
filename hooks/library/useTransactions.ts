@@ -1,7 +1,8 @@
 'use client';
 import { LIBRARY_QUERY_KEYS } from '@/constants/query-keys';
-import { getConcessionAcademicDropdownData, getConcessionStudentConcessionGrid } from '@/server/library/transactions/FeeConcession';
+import { getConcessionAcademicDropdownData } from '@/server/library/transactions/FeeConcession';
 import { getBookTransactionDetails } from '@/server/library/transactions/book-return';
+import { getLostBookList } from '@/server/library/transactions/lost-book';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -47,18 +48,17 @@ export const useBookReturn = (searchParams: ApiSearchparams = {}) => {
 //     });
 // };
 
-export const useLostBookGrid = (mi_Id: number, asmaY_Id: number, asmcL_Id: number, searchParams?: ApiSearchparams) => {
+export const useLostBookList = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [LIBRARY_QUERY_KEYS.LIBRARY_LOST_BOOK_GRID, mi_Id, asmaY_Id, asmcL_Id, searchParams ?? {}],
-            queryFn: () => getConcessionStudentConcessionGrid(mi_Id, asmaY_Id, asmcL_Id, searchParams),
-            staleTime: 0,
-            enabled: !!mi_Id && !!asmaY_Id
+            queryKey: [LIBRARY_QUERY_KEYS.LIBRARY_LOST_BOOK_GRID, searchParams ?? {}],
+            queryFn: () => getLostBookList(searchParams),
+            staleTime: 0
         }),
         refetchAll: () => {
-            queryClient.invalidateQueries({
+            return queryClient.invalidateQueries({
                 queryKey: [LIBRARY_QUERY_KEYS.LIBRARY_LOST_BOOK_GRID],
                 exact: false
             });

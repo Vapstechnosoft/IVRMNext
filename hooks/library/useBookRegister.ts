@@ -16,7 +16,7 @@ export function useBookRegister(searchParams?: ApiSearchparams) {
     return {
         ...useQuery({
             queryKey: [LIBRARY_QUERY_KEYS.BOOK_REGISTER, searchParams ?? {}],
-            queryFn: async () => getBookRegisterList(searchParams),
+            queryFn: async () => getBookRegisterList({ IVRMUL_Id: 1, searchParams }),
             staleTime: 0
         }),
         refetchAll: () => {
