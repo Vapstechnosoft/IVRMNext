@@ -59,13 +59,13 @@ export default function AddMasterConcessionDetailsForm({ onSuccess, termname = '
         try {
             const { fmcC_Id, fmccD_PerOrAmtFlag, fmccD_FromNoSibblings, fmccD_ToNoSibblings, fmccD_PerOrAmt } = data;
             const payload = {
-                mI_Id: 30,
+                // mI_Id: 30,
                 fmcC_Id: fmcC_Id,
                 fmccD_PerOrAmtFlag: fmccD_PerOrAmtFlag,
                 fmccD_FromNoSibblings: fmccD_FromNoSibblings,
                 fmccD_ToNoSibblings: fmccD_ToNoSibblings,
-                fmccD_PerOrAmt: fmccD_PerOrAmt,
-                fmccD_CreatedBy: 21602
+                fmccD_PerOrAmt: fmccD_PerOrAmt
+                // fmccD_CreatedBy: 21602
             };
 
             const response = await addOrUpdateMasterConcessionDetails(payload);

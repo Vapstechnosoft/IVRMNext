@@ -105,7 +105,7 @@ export default function AddSpecialFeeHeadFormForm({ onSuccess, termname = '' }: 
             const { fmsfH_Name } = data;
             const payload = {
                 fmsfH_Name: fmsfH_Name,
-                mI_Id: 30,
+                // mI_Id: 30,
                 tempararyArrayList: selectedHeadsItems.map((item) => ({
                     fmH_ID: Number(item.fmH_Id) // <-- Correct key format
                 }))

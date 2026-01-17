@@ -137,9 +137,17 @@ export default function UpdateFeeTermsHeadDueDateForm({ onSuccess, termname = ''
             toast.error('No grid data found to update');
             return;
         }
+        const hasMissingDates = gridData.some(
+            (item) => !item.fmtfhdD_FromDate || !item.fmtfhdD_ToDate || !item.fmtfhdD_ApplicableDate || !item.fmtfhdD_DueDate
+        );
+
+        if (hasMissingDates) {
+            toast.error('Please select all the required date details');
+            return;
+        }
 
         const payload = {
-            mI_Id: 30,
+            // mI_Id: 30,
             term_year_id: selectedAcademicYear ?? 0,
             // fmT_Id: selectedTerm ?? 0,
             // fmH_Id: selectedHead ?? 0,

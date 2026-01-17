@@ -84,8 +84,8 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         const payload = {
-            user_id: 20612,
-            mi_id: 30,
+            // user_id: 20612,
+            // mi_id: 30,
             fpgD_Id: selectedRow.fpgD_Id,
             fpgD_SaltKey: data.fpgD_SaltKey,
             fpgD_MerchantId: data.fpgD_MerchantId,

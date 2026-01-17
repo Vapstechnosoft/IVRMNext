@@ -55,7 +55,7 @@ export default function UpdateMasterConcessionForm({ onSuccess, fineslab = '', s
         try {
             const { fmcC_ConcessionName, fmcC_ConcessionApplLimit } = data;
             const payload = {
-                mI_Id: 30,
+                // mI_Id: 30,
                 fmcC_Id: row.fmcC_Id,
                 fmcC_ConcessionName: fmcC_ConcessionName,
                 fmcC_ConcessionApplLimit: fmcC_ConcessionApplLimit.toString()

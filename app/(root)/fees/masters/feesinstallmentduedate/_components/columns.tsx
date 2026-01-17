@@ -79,7 +79,9 @@ function formatDate(dateString: string) {
     const day = String(date.getDate()).padStart(2, '0'); // DD
     const year = date.getFullYear(); // YYYY
 
-    return `${month}/${day}/${year}`;
+    //return `${month}/${day}/${year}`;
+
+    return `${day}/${month}/${year}`;
 }
 
 function ActionButtonsCell({

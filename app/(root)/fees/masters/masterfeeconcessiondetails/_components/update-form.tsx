@@ -47,7 +47,15 @@ export default function UpdateMasterConcessionDetailsForm({
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterConcessionDetailsSchema.addOrUpdate),
-        mode: 'onChange'
+        //mode: 'onChange'
+        mode: 'onBlur', // Use onBlur for better performance
+        defaultValues: {
+            fmcC_Id: row?.fmcC_Id ?? undefined,
+            fmccD_PerOrAmtFlag: row?.fmccD_PerOrAmtFlag ?? undefined,
+            fmccD_FromNoSibblings: row?.fmccD_FromNoSibblings ? Number(row.fmccD_FromNoSibblings) : undefined,
+            fmccD_ToNoSibblings: row?.fmccD_ToNoSibblings ? Number(row.fmccD_ToNoSibblings) : undefined,
+            fmccD_PerOrAmt: row?.fmccD_PerOrAmt ? Number(row.fmccD_PerOrAmt) : undefined
+        }
     });
 
     function OnReset() {
@@ -76,14 +84,14 @@ export default function UpdateMasterConcessionDetailsForm({
         try {
             const { fmcC_Id, fmccD_PerOrAmtFlag, fmccD_FromNoSibblings, fmccD_ToNoSibblings, fmccD_PerOrAmt } = data;
             const payload = {
-                mI_Id: 30,
+                // mI_Id: 30,
                 fmcC_Id: fmcC_Id,
                 fmccD_Id: row.fmccD_Id,
                 fmccD_PerOrAmtFlag: fmccD_PerOrAmtFlag,
                 fmccD_FromNoSibblings: fmccD_FromNoSibblings,
                 fmccD_ToNoSibblings: fmccD_ToNoSibblings,
-                fmccD_PerOrAmt: fmccD_PerOrAmt,
-                fmccD_CreatedBy: 21602
+                fmccD_PerOrAmt: fmccD_PerOrAmt
+                // fmccD_CreatedBy: 21602
             };
 
             console.log('payload', payload);

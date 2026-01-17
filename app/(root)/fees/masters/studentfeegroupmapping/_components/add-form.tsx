@@ -491,7 +491,7 @@ function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFeeGroupMappingFi
             }));
 
             return {
-                mI_Id: Number(getValues('mI_Id')),
+                // mI_Id: Number(getValues('mI_Id')),
                 asmaY_Id: asmaY_Id,
                 // userId: 1001,
                 studentMappings

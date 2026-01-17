@@ -127,7 +127,7 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
         const fetchStudents = async () => {
             setLoadingStudents(true);
             try {
-                const studentsArray = await getPreadmissionStudentDropdownData(studentSearch, admissionType);
+                const studentsArray = await getPreadmissionStudentDropdownData(studentSearch, admissionType, Number(selectedAcademicYear));
                 setStudents(studentsArray || []);
             } catch (error) {
                 console.error('Failed to fetch students:', error);
@@ -301,9 +301,9 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
                 fyP_Tot_Waived_Amt: 0,
                 grp_count: selectedTransactions.length,
                 head_installments: headInstallments,
-                mI_Id: 30,
-                pasR_Id: selectedStudent?.amsT_Id ?? 0,
-                userId: 0
+                // mI_Id: 30,
+                pasR_Id: selectedStudent?.amsT_Id ?? 0
+                // userId: 0
             };
 
             const loadingToast = toast.loading('Saving transaction...');
