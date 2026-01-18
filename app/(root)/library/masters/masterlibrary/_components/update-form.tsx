@@ -80,7 +80,7 @@ export default function UpdateMasterLibraryForm({ onSuccess, className = '', sel
                             required
                             id='lmaL_LibraryName'
                             onKeyDown={(e) => {
-                                const allowed = /^[A-Za-z]$/;
+                                const allowed = /^[A-Za-z ]$/;
 
                                 if (e.key.length === 1 && !allowed.test(e.key)) {
                                     e.preventDefault();
@@ -89,8 +89,8 @@ export default function UpdateMasterLibraryForm({ onSuccess, className = '', sel
                             {...register('lmaL_LibraryName', {
                                 required: 'Library Name is required',
                                 pattern: {
-                                    value: /^[A-Za-z]+$/,
-                                    message: 'Only letters allowed'
+                                    value: /^[A-Za-z ]+$/,
+                                    message: 'Only letters and spaces allowed'
                                 }
                             })}
                             error={errors.lmaL_LibraryName?.message}

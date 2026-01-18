@@ -156,7 +156,6 @@ function FormSections({ refetch }: { refetch: () => void }) {
                      }}
                 />
             )} */}
-
             {/* Toggle Form */}
             {isToggleFormOpen && selectedRow && <ToggleMasterLanguageForm rowData={selectedRow} onClose={closeToggleForm} />}
 

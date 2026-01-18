@@ -93,7 +93,6 @@ function FormSections({ refetch }: { refetch: () => void }) {
         selectedRow,
         closeAddForm,
         closeToggleForm,
-
         closeEditForm,
         addFormRef,
         editFormRef
@@ -142,20 +141,8 @@ function FormSections({ refetch }: { refetch: () => void }) {
                 </div>
             )}
 
-            {/* Delete Form */}
-            {/* {isDeleteFormOpen && selectedRow && (
-                <DeleteMasterLibraryForm
-                    rowData={selectedRow}
-                    onClose={closeDeleteForm}
-                     onSuccess={() => {
-                         handleSuccess();
-                         closeDeleteForm();
-                     }}
-                />
-            )} */}
-
-            {/* Toggle Form */}
-            {isToggleFormOpen && selectedRow && <ToggleMasterLibraryForm rowData={selectedRow} onClose={closeToggleForm} />}
+            {/* Toggle Form */}            
+              {isToggleFormOpen && selectedRow && <ToggleMasterLibraryForm rowData={selectedRow} onClose={closeToggleForm} />}
 
             {/* Edit Form */}
 

@@ -1,11 +1,11 @@
-// _components/columns.tsx
+//_components/columns.tsx
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { ActionButtons } from '@/components/ui/form/action-buttons';
-import { useFormContext } from '@/components/ui/form/form-provider';
-import type { IFeeConcessionStudentConcessionGrid } from '@/types/fees/transactions/transactions';
+//import { ActionButtons } from '@/components/ui/form/action-buttons';
+//import { useFormContext } from '@/components/ui/form/form-provider';
+import type { ILostBookGrid } from '@/types/library/transactions/transactions';
 import type { ColumnDef } from '@tanstack/react-table';
 
-export const concessionColumns: ColumnDef<IFeeConcessionStudentConcessionGrid>[] = [
+export const LostBookColumns: ColumnDef<ILostBookGrid>[] = [
     {
         accessorKey: 'slno',
         header: ({ column }) => <DataTableColumnHeader column={column} title='S.No' />,
@@ -57,7 +57,7 @@ export const concessionColumns: ColumnDef<IFeeConcessionStudentConcessionGrid>[]
     },
     {
         accessorKey: 'fsC_ConcessionAmount',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Status Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Status ' />,
         cell: ({ row }) => {
             const amount = row.original.fsC_ConcessionAmount || 0;
             return <div>₹{amount.toLocaleString('en-IN')}</div>;
@@ -65,26 +65,36 @@ export const concessionColumns: ColumnDef<IFeeConcessionStudentConcessionGrid>[]
         size: 140
     },
     {
-        id: 'actions',
-        header: () => <div className='text-center'>Actions</div>,
-        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
-        enableSorting: false,
-        size: 100,
-        meta: { align: 'center' }
+        accessorKey: 'fsC_ConcessionAmount',
+        header: ({ column }) => <DataTableColumnHeader column={column} title=' Name' />,
+        cell: ({ row }) => {
+            const amount = row.original.fsC_ConcessionAmount || 0;
+            return <div>₹{amount.toLocaleString('en-IN')}</div>;
+        },
+        size: 140
     }
+    // ,
+    // {
+    //     id: 'actions',
+    //     header: () => <div className='text-center'>Actions</div>,
+    //     cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
+    //     enableSorting: false,
+    //     size: 100,
+    //     meta: { align: 'center' }
+    // }
 ];
 
 // _components/columns.tsx
 
-const ActionButtonsCell = ({ rowData }: { rowData: IFeeConcessionStudentConcessionGrid }) => {
-    const { openEditForm, openDeleteForm } = useFormContext<IFeeConcessionStudentConcessionGrid>();
+// const ActionButtonsCell = ({ rowData }: { rowData: IFeeConcessionStudentConcessionGrid }) => {
+//     const { openEditForm, openDeleteForm } = useFormContext<IFeeConcessionStudentConcessionGrid>();
 
-    const handleEdit = () => openEditForm(rowData);
-    const handleDelete = () => openDeleteForm(rowData);
+//     const handleEdit = () => openEditForm(rowData);
+//     const handleDelete = () => openDeleteForm(rowData);
 
-    return (
-        <div className='flex justify-center gap-1'>
-            <ActionButtons rowData={rowData} buttons={{ edit: true, delete: true }} onEdit={handleEdit} onDelete={handleDelete} />
-        </div>
-    );
-};
+//     return (
+//         <div className='flex justify-center gap-1'>
+//             <ActionButtons rowData={rowData} buttons={{ edit: true, delete: true }} onEdit={handleEdit} onDelete={handleDelete} />
+//         </div>
+//     );
+// };

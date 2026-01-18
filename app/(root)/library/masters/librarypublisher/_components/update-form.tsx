@@ -3,10 +3,10 @@
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-import { useMasterLibrary } from '@/hooks/library/useMasters';
-import { masterLibrarySchema } from '@/schemas/library/masters';
-import { addOrUpdateMasterLibrary } from '@/server/library/masters/master_library';
-import type { IMasterLibraryList } from '@/types/library/masters/masters';
+import { useMasterPublisherList } from '@/hooks/library/useMasters';
+import { masterPublisherSchema } from '@/schemas/library/masters';
+import { addOrUpdateMasterPublisher } from '@/server/library/masters/master_publisher';
+import type { IMasterPublisherList } from '@/types/library/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
@@ -14,16 +14,16 @@ import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-type FormFields = z.infer<typeof masterLibrarySchema.addOrUpdate>;
+type FormFields = z.infer<typeof masterPublisherSchema.addOrUpdate>;
 
-interface UpdateMasterClassFormProps {
+interface UpdateMasterPublisherFormProps {
     onSuccess?: () => void;
     className?: string;
-    selectedRow: IMasterLibraryList;
+    selectedRow: IMasterPublisherList;
 }
 
-export default function UpdateMasterClassForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterClassFormProps) {
-    const { refetchAll } = useMasterLibrary();
+export default function UpdateMasterPublisherForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterPublisherFormProps) {
+    const { refetchAll } = useMasterPublisherList();
 
     const {
         register,
@@ -31,30 +31,37 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(masterLibrarySchema.addOrUpdate),
+        resolver: zodResolver(masterPublisherSchema.addOrUpdate),
         mode: 'onChange'
     });
 
     useEffect(() => {
         if (row) {
             reset({
-                lmaL_Id: row.lmaL_Id,
-                lmaL_LibraryName: row.lmaL_LibraryName
+                lmP_Id: row.lmP_Id,
+                lmP_PublisherName: row.lmP_PublisherName,
+                lmP_EMailId: row.lmP_EMailId,
+                lmP_MobileNo: row.lmP_MobileNo,
+                lmP_Address: row.lmP_Address,
+                lmP_PhoneNo: row.lmP_PhoneNo
             });
         }
     }, [row, reset]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const { lmaL_LibraryName } = data;
+            const { lmP_PublisherName } = data;
 
             const payload = {
-                mI_Id: 30,
-                lmaL_Id: row.lmaL_Id,
-                lmaL_LibraryName: lmaL_LibraryName
+                lmP_Id: row.lmP_Id,
+                lmP_PublisherName: lmP_PublisherName,
+                lmP_EMailId: data.lmP_EMailId,
+                lmP_MobileNo: data.lmP_MobileNo,
+                lmP_Address: data.lmP_Address,
+                lmP_PhoneNo: data.lmP_PhoneNo
             };
 
-            const response = await addOrUpdateMasterLibrary(payload);
+            const response = await addOrUpdateMasterPublisher(payload);
 
             if (response.success) {
                 toast.success(response.message || 'Master Library updated successfully');
@@ -75,46 +82,51 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        {/* <InputText
-                            label='Class Category Code'
-                            required
-                            id='fmcC_ClassCategoryCode'
-                            {...register('fmcC_ClassCategoryCode')}
-                            error={errors.fmcC_ClassCategoryCode?.message}
+                        <InputText
+                            label='Publisher Name'
+                            {...register('lmP_PublisherName', {})}
+                            error={errors.lmP_PublisherName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                         <InputText
-                            label='Class Category Name'
-                            required
-                            id='fmcC_ClassCategoryName'
-                            {...register('fmcC_ClassCategoryName')}
-                            error={errors.fmcC_ClassCategoryName?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        /> */}
-
-                        <InputText
-                            label='Class Category Name'
-                            required
-                            id='fmcC_ClassCategoryName'
-                            onKeyDown={(e) => {
-                                const allowed = /^[A-Za-z]$/;
-
-                                if (e.key.length === 1 && !allowed.test(e.key)) {
-                                    e.preventDefault();
-                                }
-                            }}
-                            {...register('lmaL_LibraryName', {
-                                required: 'Library Name is required',
-                                pattern: {
-                                    value: /^[A-Za-z]+$/,
-                                    message: 'Only letters allowed'
-                                }
-                            })}
-                            error={errors.lmaL_LibraryName?.message}
+                            label='Email Id'
+                            {...register('lmP_EMailId', {})}
+                            error={errors.lmP_EMailId?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>
+                    {/* Root Error */}
+                    {errors.root && <FormError>{errors.root.message}</FormError>}
+                </div>
 
+                <div className='space-y-4'>
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                        <InputText
+                            label='Mobile No'
+                            {...register('lmP_MobileNo', {})}
+                            error={errors.lmP_MobileNo?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+                        <InputText
+                            label='Address'
+                            {...register('lmP_Address', {})}
+                            error={errors.lmP_Address?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+                    </div>
+                    {/* Root Error */}
+                    {errors.root && <FormError>{errors.root.message}</FormError>}
+                </div>
+
+                <div className='space-y-4'>
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                        <InputText
+                            label='Phone No'
+                            {...register('lmP_PhoneNo', {})}
+                            error={errors.lmP_PhoneNo?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+                    </div>
                     {/* Root Error */}
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
@@ -137,7 +149,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Update Class Category
+                            Update Master Publisher
                         </div>
                     </Button>
                 </div>

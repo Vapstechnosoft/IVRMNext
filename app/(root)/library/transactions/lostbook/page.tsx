@@ -7,14 +7,13 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useFeeConcessionStudentConcessionGrid, useconcessionacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
+import { useLibraryacademicyerdropdowndatafee, useLostBookGrid } from '@/hooks/library/useTransactions';
+import type { ILostBookGrid } from '@/types/library/transactions/transactions';
 import { Plus, X } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-
-import type { IFeeConcessionStudentConcessionGrid } from '@/types/fees/transactions/transactions';
 import AddFeeConcessionForm from './_components/add-form';
-import { concessionColumns } from './_components/columns';
+import { LostBookColumns } from './_components/columns';
 import DeleteFeeConcessionForm from './_components/delete-form';
 
 export default function FeeConcessionPage() {
@@ -26,7 +25,7 @@ export default function FeeConcessionPage() {
     const [selectedAsmaY_Id, setSelectedAsmaY_Id] = useState<number | null>(null);
     const [asmcL_Id] = useState<number>(0);
 
-    const { data: academicYearResponse, isLoading: loadingYears } = useconcessionacademicyerdropdowndatafee(MI_ID);
+    const { data: academicYearResponse, isLoading: loadingYears } = useLibraryacademicyerdropdowndatafee(MI_ID);
 
     const academicYears = useMemo(() => {
         const raw = academicYearResponse?.data ?? [];
@@ -53,9 +52,9 @@ export default function FeeConcessionPage() {
         isLoading,
         refetch,
         refetchAll
-    } = useFeeConcessionStudentConcessionGrid(MI_ID, selectedAsmaY_Id ?? 0, asmcL_Id, apiSearchParams as any);
+    } = useLostBookGrid(MI_ID, selectedAsmaY_Id ?? 0, asmcL_Id, apiSearchParams as any);
 
-    const tableData: IFeeConcessionStudentConcessionGrid[] = response?.data ?? [];
+    const tableData: ILostBookGrid[] = response?.data ?? [];
     const totalRecords = response?.total ?? 0;
 
     const handleAcademicYearChange = (value: string) => {
@@ -64,7 +63,7 @@ export default function FeeConcessionPage() {
     };
 
     return (
-        <FormProvider<IFeeConcessionStudentConcessionGrid>>
+        <FormProvider<ILostBookGrid>>
             <PageContent
                 academicYears={academicYears}
                 loadingYears={loadingYears}
@@ -99,7 +98,7 @@ function PageContent({
     loadingYears: boolean;
     selectedAsmaY_Id: number | null;
     onAcademicYearChange: (value: string) => void;
-    tableData: IFeeConcessionStudentConcessionGrid[];
+    tableData: ILostBookGrid[];
     totalRecords: number;
     isLoading: boolean;
     refetchAll: () => void;
@@ -107,7 +106,7 @@ function PageContent({
     router: ReturnType<typeof useRouter>;
     pathname: string;
 }) {
-    const { openAddForm } = useFormContext<IFeeConcessionStudentConcessionGrid>();
+    const { openAddForm } = useFormContext<ILostBookGrid>();
 
     const tableProps = useDataTableProps({
         data: tableData,
@@ -153,9 +152,9 @@ function PageContent({
                 </div>
 
                 <CollapsibleSection defaultOpen={true} variant='default' size='lg' className='rounded-xl border bg-white shadow-xl'>
-                    <GenericDataTable<IFeeConcessionStudentConcessionGrid>
+                    <GenericDataTable<ILostBookGrid>
                         {...tableProps}
-                        columns={concessionColumns}
+                        columns={LostBookColumns}
                         isLoading={isLoading}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading concessions...'
@@ -183,7 +182,7 @@ function FormSections({ refetch, selectedAsmaY_Id }: { refetch: () => void; sele
         closeDeleteForm,
         addFormRef,
         editFormRef
-    } = useFormContext<IFeeConcessionStudentConcessionGrid>();
+    } = useFormContext<ILostBookGrid>();
 
     const isAnyFormOpen = isAddFormOpen || isEditFormOpen;
 

@@ -84,7 +84,13 @@ export default function AddMasterVendorForm({ onSuccess, className = '' }: AddMa
                         error={errors.lmV_VendorName?.message}
                     />
 
-                    <InputText label='Email Id' id='lmV_EMailId' {...register('lmV_EMailId')} error={errors.lmV_EMailId?.message} />
+                    <InputText
+                     label='Email Id'
+                     id='lmV_EMailId'
+                      {...register('lmV_EMailId')}
+                       error={errors.lmV_EMailId?.message} />
+
+
                 </div>
 
                 {/* Row 2 */}

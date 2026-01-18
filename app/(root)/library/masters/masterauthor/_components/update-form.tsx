@@ -4,9 +4,9 @@ import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterLibrary } from '@/hooks/library/useMasters';
-import { masterLibrarySchema } from '@/schemas/library/masters';
-import { addOrUpdateMasterLibrary } from '@/server/library/masters/master_library';
-import type { IMasterLibraryList } from '@/types/library/masters/masters';
+import { masterAuthorSchema } from '@/schemas/library/masters';
+import { addOrUpdateMasterAuthor } from '@/server/library/masters/master_author';
+import type { IMasterAuthorList } from '@/types/library/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
@@ -14,15 +14,15 @@ import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-type FormFields = z.infer<typeof masterLibrarySchema.addOrUpdate>;
+type FormFields = z.infer<typeof masterAuthorSchema.addOrUpdate>;
 
-interface UpdateMasterClassFormProps {
+interface UpdateMasterAuthorFormProps {
     onSuccess?: () => void;
     className?: string;
-    selectedRow: IMasterLibraryList;
+    selectedRow: IMasterAuthorList;
 }
 
-export default function UpdateMasterClassForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterClassFormProps) {
+export default function UpdateMasterAuthorForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterAuthorFormProps) {
     const { refetchAll } = useMasterLibrary();
 
     const {
@@ -31,37 +31,60 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(masterLibrarySchema.addOrUpdate),
+        resolver: zodResolver(masterAuthorSchema.addOrUpdate),
         mode: 'onChange'
     });
 
     useEffect(() => {
         if (row) {
             reset({
-                lmaL_Id: row.lmaL_Id,
-                lmaL_LibraryName: row.lmaL_LibraryName
+                lmaU_Id: row.lmaU_Id,
+                lmaU_AuthorFirstName: row.lmaU_AuthorFirstName,
+                lmaU_AuthorMiddleName: row.lmaU_AuthorMiddleName,
+                lmaU_AuthorLastName: row.lmaU_AuthorLastName,
+                lmaU_MobileNo: row.lmaU_MobileNo,
+                lmaU_Address: row.lmaU_Address,
+                lmaU_EmailId: row.lmaU_EmailId,
+                lmaU_PhoneNo: row.lmaU_PhoneNo,
+                lmaU_ActiveFlg: row.lmaU_ActiveFlg
             });
         }
     }, [row, reset]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const { lmaL_LibraryName } = data;
+            const {
+                lmaU_AuthorFirstName,
+                lmaU_AuthorMiddleName,
+                lmaU_AuthorLastName,
+                lmaU_MobileNo,
+                lmaU_Address,
+                lmaU_EmailId,
+                lmaU_PhoneNo,
+                lmaU_ActiveFlg
+            } = data;
 
             const payload = {
                 mI_Id: 30,
-                lmaL_Id: row.lmaL_Id,
-                lmaL_LibraryName: lmaL_LibraryName
+                lmaU_Id: row.lmaU_Id,
+                lmaU_AuthorFirstName,
+                lmaU_AuthorMiddleName,
+                lmaU_AuthorLastName,
+                lmaU_MobileNo,
+                lmaU_Address,
+                lmaU_EmailId,
+                lmaU_PhoneNo,
+                lmaU_ActiveFlg
             };
 
-            const response = await addOrUpdateMasterLibrary(payload);
+            const response = await addOrUpdateMasterAuthor(payload);
 
             if (response.success) {
-                toast.success(response.message || 'Master Library updated successfully');
+                toast.success(response.message || 'Master Author updated successfully');
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response.message || 'Failed to update Master Library');
+                toast.error(response.message || 'Failed to update Master Author');
             }
         } catch (error: any) {
             toast.error(error?.message || 'Something went wrong');
@@ -75,42 +98,10 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        {/* <InputText
-                            label='Class Category Code'
-                            required
-                            id='fmcC_ClassCategoryCode'
-                            {...register('fmcC_ClassCategoryCode')}
-                            error={errors.fmcC_ClassCategoryCode?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
                         <InputText
-                            label='Class Category Name'
-                            required
-                            id='fmcC_ClassCategoryName'
-                            {...register('fmcC_ClassCategoryName')}
-                            error={errors.fmcC_ClassCategoryName?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        /> */}
-
-                        <InputText
-                            label='Class Category Name'
-                            required
-                            id='fmcC_ClassCategoryName'
-                            onKeyDown={(e) => {
-                                const allowed = /^[A-Za-z]$/;
-
-                                if (e.key.length === 1 && !allowed.test(e.key)) {
-                                    e.preventDefault();
-                                }
-                            }}
-                            {...register('lmaL_LibraryName', {
-                                required: 'Library Name is required',
-                                pattern: {
-                                    value: /^[A-Za-z]+$/,
-                                    message: 'Only letters allowed'
-                                }
-                            })}
-                            error={errors.lmaL_LibraryName?.message}
+                            label='FirstName'
+                            {...register('lmaU_AuthorFirstName', {})}
+                            error={errors.lmaU_AuthorFirstName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>
@@ -137,7 +128,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Update Class Category
+                            Update Master Author
                         </div>
                     </Button>
                 </div>

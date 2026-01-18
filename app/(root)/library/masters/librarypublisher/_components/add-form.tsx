@@ -8,7 +8,7 @@ import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { useMasterLibrary } from '@/hooks/library/useMasters';
 
 import { masterPublisherSchema } from '@/schemas/library/masters';
-import { addOrUpdateMasterLibrary } from '@/server/library/masters/master_library';
+import { addOrUpdateMasterPublisher } from '@/server/library/masters/master_publisher';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
@@ -45,7 +45,7 @@ export default function AddMasterPublisherForm({ onSuccess, className = '' }: Ad
                 lmP_PublisherName: lmP_PublisherName
             };
 
-            const response = await addOrUpdateMasterLibrary(payload);
+            const response = await addOrUpdateMasterPublisher(payload);
 
             if (response.success) {
                 toast.success(response.message);
@@ -151,7 +151,7 @@ export default function AddMasterPublisherForm({ onSuccess, className = '' }: Ad
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Master Library
+                            Save Master Publisher
                         </div>
                     </Button>
                 </div>

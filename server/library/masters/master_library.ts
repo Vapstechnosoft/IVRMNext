@@ -15,8 +15,8 @@ export async function addOrUpdateMasterLibrary(data: any) {
     return await api.post<any>('library', url, data);
 }
 
-export async function toggleMasterLibrary(id: number) {
-    const url = `/MasterLibrary/deactivate/${id}`;
+export async function toggleMasterLibrary(LMAL_Id: number) {
+    const url = `/MasterLibrary/toggle-master-library/${LMAL_Id}`;
     return await api.put('library', url);
 }
 

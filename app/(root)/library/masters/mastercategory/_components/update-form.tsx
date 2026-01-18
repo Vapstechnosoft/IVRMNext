@@ -4,9 +4,9 @@ import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterLibrary } from '@/hooks/library/useMasters';
-import { masterLibrarySchema } from '@/schemas/library/masters';
+import { masterCategorySchema } from '@/schemas/library/masters';
 import { addOrUpdateMasterLibrary } from '@/server/library/masters/master_library';
-import type { IMasterLibraryList } from '@/types/library/masters/masters';
+import type { IMasterCategoryList } from '@/types/library/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
@@ -14,12 +14,12 @@ import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-type FormFields = z.infer<typeof masterLibrarySchema.addOrUpdate>;
+type FormFields = z.infer<typeof masterCategorySchema.addOrUpdate>;
 
 interface UpdateMasterClassFormProps {
     onSuccess?: () => void;
     className?: string;
-    selectedRow: IMasterLibraryList;
+    selectedRow: IMasterCategoryList;
 }
 
 export default function UpdateMasterClassForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterClassFormProps) {
@@ -31,27 +31,27 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(masterLibrarySchema.addOrUpdate),
+        resolver: zodResolver(masterCategorySchema.addOrUpdate),
         mode: 'onChange'
     });
 
     useEffect(() => {
         if (row) {
             reset({
-                lmaL_Id: row.lmaL_Id,
-                lmaL_LibraryName: row.lmaL_LibraryName
+                lmC_Id: row.lmC_Id,
+                lmC_CategoryName: row.lmC_CategoryName
             });
         }
     }, [row, reset]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const { lmaL_LibraryName } = data;
+            const { lmC_CategoryName } = data;
 
             const payload = {
                 mI_Id: 30,
-                lmaL_Id: row.lmaL_Id,
-                lmaL_LibraryName: lmaL_LibraryName
+                lmC_Id: row.lmC_Id,
+                lmC_CategoryName: lmC_CategoryName
             };
 
             const response = await addOrUpdateMasterLibrary(payload);
@@ -103,14 +103,14 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                     e.preventDefault();
                                 }
                             }}
-                            {...register('lmaL_LibraryName', {
-                                required: 'Library Name is required',
+                            {...register('lmC_CategoryName', {
+                                required: 'Category Name is required',
                                 pattern: {
                                     value: /^[A-Za-z]+$/,
                                     message: 'Only letters allowed'
                                 }
                             })}
-                            error={errors.lmaL_LibraryName?.message}
+                            error={errors.lmC_CategoryName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>

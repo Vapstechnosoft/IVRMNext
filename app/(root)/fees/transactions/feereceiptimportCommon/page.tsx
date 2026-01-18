@@ -1,22 +1,16 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/extension/field';
-import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { FormProvider } from '@/components/ui/form/form-provider';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useFeeRefundableList, useopeningacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
-import { saveBankCopyData } from '@/server/fees/trasactions/fee_bankpaymentimport';
+import { useopeningacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
+import { savefeeReceiptimportCommon } from '@/server/fees/reports/feeReceiptimportCommon';
 import type { IFeeReceiptImportDelate } from '@/types/fees/transactions/transactions';
 import { Search, Upload, X } from 'lucide-react';
-import { use, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
-
-type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
-type ImportedExcelData = {
-    [key: string]: any;
-}[];
 
 type ProcessedData = {
     FYP_Date: any;
@@ -24,15 +18,14 @@ type ProcessedData = {
     Student_Name: string;
     FYP_Tot_Amount: number;
     FYP_Bank_Or_Cash: string;
+    FYP_TranscationId: string;
+    Termname: string;
 }[];
 
-export default function feeReceiptimportCommon(props: { searchParams: SearchParams }) {
-    const searchParams = use(props.searchParams);
+export default function feeReceiptimportCommon() {
     const [isReportGenerated, setIsReportGenerated] = useState(false);
     const [selectedAsmayId, setSelectedAsmayId] = useState<number | null>(null);
-    const [selectedDate, setSelectedDate] = useState<string>('');
     const [excelFile, setExcelFile] = useState<File | null>(null);
-    const [importedData, setImportedData] = useState<ImportedExcelData>([]);
     const [processedData, setProcessedData] = useState<ProcessedData>([]);
     const [filteredData, setFilteredData] = useState<ProcessedData>([]);
     const [excelSheets, setExcelSheets] = useState<string[]>([]);
@@ -41,8 +34,10 @@ export default function feeReceiptimportCommon(props: { searchParams: SearchPara
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [filename, setFilename] = useState<string>('');
     const [isSaving, setIsSaving] = useState(false);
+    const [parsingError, setParsingError] = useState<string>('');
 
-    const { data: response, isLoading, error } = useFeeRefundableList(Number(selectedAsmayId), searchParams);
+    const [requiredColumnsMissing, setRequiredColumnsMissing] = useState<string[]>([]);
+
     const { data: academicYearData, isLoading: loadingYears } = useopeningacademicyerdropdowndatafee();
 
     useEffect(() => {
@@ -51,209 +46,313 @@ export default function feeReceiptimportCommon(props: { searchParams: SearchPara
         }
     }, [loadingYears, academicYearData, selectedAsmayId]);
 
-    // Process Excel data using Angular logic
-    // const processExcelData = (data: any[], headers: string[]) => {
-    //     const datanew: ProcessedData = [];
+    // Check if required columns are present
+    const checkRequiredColumns = (headers: string[]): string[] => {
+        const requiredColumns = ['FYP_Date', 'AMST_AdmNo', 'Student_Name', 'FYP_Tot_Amount'];
+        const missingColumns: string[] = [];
 
-    //     for (let i = 0; i < data.length; i++) {
-    //         // Check if NARRATION exists and contains "#"
-    //         if (data[i].NARRATION?.includes('#')) {
-    //             const split = data[i].NARRATION.split('#');
+        for (const requiredCol of requiredColumns) {
+            const exactMatch = headers.some((h) => h && typeof h === 'string' && h.trim() === requiredCol);
 
-    //             // Check if split has more than 2 elements (Angular logic)
-    //             if (split.length > 2) {
-    //                 // Extract data according to Angular logic
-    //                 const admissionNumber = split[1].slice(2); // Remove first 2 characters
-    //                 const studentName = split[2];
+            const closeMatch = headers.some(
+                (h) =>
+                    h && typeof h === 'string' && h.toLowerCase().replace(/[_\s]/g, '') === requiredCol.toLowerCase().replace(/[_\s]/g, '')
+            );
 
-    //                 // Process DEPOSIT amount - remove commas and convert to number
-    //                 let depositAmount = 0;
-    //                 if (data[i].DEPOSIT) {
-    //                     const depositStr = String(data[i].DEPOSIT).split(',').join('');
-    //                     depositAmount = Number(depositStr) || 0;
-    //                 }
-
-    //                 datanew.push({
-    //                     FYP_Date: data[i].undefined || data[i].Date || data[i].DATE || '',
-    //                     AMST_AdmNo: admissionNumber,
-    //                     Student_Name: studentName,
-    //                     FYP_Tot_Amount: depositAmount,
-    //                     FYP_Bank_Or_Cash: 'C' // Hardcoded as "C" per Angular logic
-    //                 });
-    //             }
-    //         }
-    //     }
-
-    //     // Sort by FYP_Tot_Amount in descending order (Angular logic)
-    //     datanew.sort((a, b) => b.FYP_Tot_Amount - a.FYP_Tot_Amount);
-
-    //     return datanew;
-    // };
-    // Process Excel data using Angular logic
-    const processExcelData = (data: any[], headers: string[]) => {
-        const datanew: ProcessedData = [];
-
-        for (let i = 0; i < data.length; i++) {
-            // Check if NARRATION exists and contains "#"
-            if (data[i].NARRATION?.includes('#')) {
-                const split = data[i].NARRATION.split('#');
-
-                // Check if split has more than 2 elements (Angular logic)
-                if (split.length > 2) {
-                    // Extract data according to Angular logic
-                    const admissionNumber = split[1].slice(2); // Remove first 2 characters
-                    const studentName = split[2];
-
-                    // Process DEPOSIT amount - remove commas and convert to number
-                    let depositAmount = 0;
-                    if (data[i].DEPOSIT) {
-                        const depositStr = String(data[i].DEPOSIT).split(',').join('');
-                        depositAmount = Number(depositStr) || 0;
-                    }
-
-                    // Get the date - try multiple possible column names
-                    let dateValue = '';
-
-                    // First, try to find date in the row object
-                    if (data[i].__EMPTY || data[i].__EMPTY_1 || data[i]['']) {
-                        // For Excel files without proper headers, dates might be in __EMPTY columns
-                        dateValue = data[i].__EMPTY || data[i].__EMPTY_1 || data[i][''] || '';
-                    } else if (data[i].Date || data[i].DATE) {
-                        // Try common date column names
-                        dateValue = data[i].Date || data[i].DATE || '';
-                    } else if (headers[0] && data[i][headers[0]]) {
-                        // Try the first column header
-                        dateValue = data[i][headers[0]] || '';
-                    } else {
-                        // Check all properties in the row for a date-like value
-                        for (const key in data[i]) {
-                            const value = data[i][key];
-                            if (typeof value === 'string' && value.match(/\d{1,2}\/\d{1,2}\/\d{4}/)) {
-                                dateValue = value;
-                                break;
-                            }
-                        }
-                    }
-
-                    datanew.push({
-                        FYP_Date: dateValue,
-                        AMST_AdmNo: admissionNumber,
-                        Student_Name: studentName,
-                        FYP_Tot_Amount: depositAmount,
-                        FYP_Bank_Or_Cash: 'C' // Hardcoded as "C" per Angular logic
-                    });
-                }
+            if (!exactMatch && !closeMatch) {
+                missingColumns.push(requiredCol);
             }
         }
 
-        // Sort by FYP_Tot_Amount in descending order (Angular logic)
-        datanew.sort((a, b) => b.FYP_Tot_Amount - a.FYP_Tot_Amount);
-
-        return datanew;
+        return missingColumns;
     };
-    // Handle Excel file upload
-    const selectFileForUpload = (input: HTMLInputElement) => {
+
+    // Process Excel data based on file format
+    const processExcelData = (data: any[], headers: string[]): ProcessedData => {
+        const processedRows: ProcessedData = [];
+        setParsingError('');
+        setRequiredColumnsMissing([]);
+
+        if (!data || data.length === 0) {
+            setParsingError('No data found in Excel sheet');
+            return processedRows;
+        }
+
+        const missingColumns = checkRequiredColumns(headers);
+        if (missingColumns.length > 0) {
+            setRequiredColumnsMissing(missingColumns);
+            setParsingError(`Missing required columns: ${missingColumns.join(', ')}`);
+            toast.error(`Missing required columns: ${missingColumns.join(', ')}`);
+            return processedRows;
+        }
+
+        for (let i = 0; i < data.length; i++) {
+            const row = data[i];
+            try {
+                let admissionNumber = '';
+                let studentName = '';
+                let depositAmount = 0;
+                let dateValue = '';
+                let transactionId = '';
+                let termName = '';
+                let bankOrCash = 'C'; // Default to 'C'
+
+                const admKey = headers.find(
+                    (h) =>
+                        h &&
+                        typeof h === 'string' &&
+                        (h === 'AMST_AdmNo' ||
+                            h === 'Admission No' ||
+                            h.toLowerCase().includes('admno') ||
+                            h.toLowerCase().includes('admission'))
+                );
+
+                if (admKey && row[admKey] !== undefined && row[admKey] !== null && row[admKey] !== '') {
+                    admissionNumber = String(row[admKey]).trim();
+                }
+
+                // Find student name
+                const nameKey = headers.find(
+                    (h) =>
+                        h && typeof h === 'string' && (h === 'Student_Name' || h === 'Student Name' || h.toLowerCase().includes('student'))
+                );
+
+                if (nameKey && row[nameKey] !== undefined && row[nameKey] !== null && row[nameKey] !== '') {
+                    studentName = String(row[nameKey]).trim();
+                }
+
+                // Find amount
+                const amountKey = headers.find(
+                    (h) => h && typeof h === 'string' && (h === 'FYP_Tot_Amount' || h === 'Amount' || h.toLowerCase().includes('amount'))
+                );
+
+                if (amountKey && row[amountKey] !== undefined && row[amountKey] !== null && row[amountKey] !== '') {
+                    const amountStr = String(row[amountKey]).replace(/,/g, '');
+                    const parsedAmount = Number.parseFloat(amountStr);
+                    if (!Number.isNaN(parsedAmount) && parsedAmount > 0) {
+                        depositAmount = parsedAmount;
+                    }
+                }
+
+                // Find date
+                const dateKey = headers.find(
+                    (h) => h && typeof h === 'string' && (h === 'FYP_Date' || h === 'Date' || h.toLowerCase().includes('date'))
+                );
+
+                if (dateKey && row[dateKey] !== undefined && row[dateKey] !== null && row[dateKey] !== '') {
+                    dateValue = String(row[dateKey]);
+                }
+
+                // Find transaction ID
+                const transKey = headers.find(
+                    (h) =>
+                        h &&
+                        typeof h === 'string' &&
+                        (h === 'FYP_TranscationId' || h === 'Transaction ID' || h.toLowerCase().includes('transaction'))
+                );
+
+                if (transKey && row[transKey] !== undefined && row[transKey] !== null && row[transKey] !== '') {
+                    transactionId = String(row[transKey]).trim();
+                }
+
+                const termKey = headers.find(
+                    (h) =>
+                        h &&
+                        typeof h === 'string' &&
+                        (h === 'Termname' || h === 'Term Name' || h.toLowerCase().includes('term') || h === 'TERMNAME')
+                );
+
+                if (termKey && row[termKey] !== undefined && row[termKey] !== null && row[termKey] !== '') {
+                    termName = String(row[termKey]).trim();
+                }
+
+                // Find bank/cash mode
+                const modeKey = headers.find(
+                    (h) =>
+                        h &&
+                        typeof h === 'string' &&
+                        (h === 'FYP_Bank_Or_Cash' || h === 'Mode' || h.toLowerCase().includes('bank') || h.toLowerCase().includes('cash'))
+                );
+
+                if (modeKey && row[modeKey] !== undefined && row[modeKey] !== null && row[modeKey] !== '') {
+                    const mode = String(row[modeKey]).toUpperCase();
+                    bankOrCash = mode;
+                }
+
+                // Validate that we have the minimum required data
+                if (admissionNumber && studentName && depositAmount > 0) {
+                    processedRows.push({
+                        FYP_Date: dateValue || new Date().toLocaleDateString(),
+                        AMST_AdmNo: admissionNumber,
+                        Student_Name: studentName,
+                        FYP_Tot_Amount: depositAmount,
+                        FYP_Bank_Or_Cash: bankOrCash || 'C',
+                        FYP_TranscationId: transactionId || '',
+                        Termname: termName || ''
+                    });
+                }
+            } catch (error) {
+                console.error(`Error processing row ${i + 1}:`, error, row);
+            }
+        }
+
+        // Sort by amount in descending order
+        //processedRows.sort((a, b) => b.FYP_Tot_Amount - a.FYP_Tot_Amount);
+
+        if (processedRows.length === 0) {
+            setParsingError('No valid data found. Please check your Excel file format.');
+        }
+
+        return processedRows;
+    };
+
+    const selectFileForUpload = async (input: HTMLInputElement) => {
+        setParsingError('');
+        setRequiredColumnsMissing([]);
+
         if (!input.files || !input.files[0]) {
             clearImportedData();
+            toast.error('No file selected');
             return;
         }
 
         const file = input.files[0];
+        const validExtensions = ['.xlsx', '.xls', '.csv', '.xlsm'];
+        const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
 
-        // Check if file is Excel type
-        if (
-            file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-            file.type === 'application/vnd.ms-excel' ||
-            file.name.endsWith('.xlsx') ||
-            file.name.endsWith('.xls')
-        ) {
-            setExcelFile(file);
-            setFilename(file.name);
+        if (!validExtensions.includes(fileExtension)) {
+            toast.error(`Please select a valid Excel file (${validExtensions.join(', ')})`);
+            input.value = '';
+            clearImportedData();
+            return;
+        }
 
+        setExcelFile(file);
+        setFilename(file.name);
+
+        try {
             const reader = new FileReader();
-            reader.onload = (e) => {
+
+            reader.onload = async (e) => {
                 try {
                     const data = e.target?.result;
-                    const workbook = XLSX.read(data, { type: 'binary' });
+                    if (!data) {
+                        throw new Error('Failed to read file');
+                    }
+
+                    const arrayBuffer =
+                        data instanceof ArrayBuffer
+                            ? data
+                            : typeof data === 'string'
+                              ? new TextEncoder().encode(data).buffer
+                              : new Uint8Array(data as ArrayBuffer).buffer;
+
+                    const workbook = XLSX.read(arrayBuffer, {
+                        type: 'array',
+                        cellDates: true,
+                        cellNF: false,
+                        cellText: false
+                    });
 
                     const sheets = workbook.SheetNames;
                     setExcelSheets(sheets);
 
-                    if (sheets.length > 0) {
-                        setSelectedSheet(sheets[0]);
-                        loadSheetData(workbook, sheets[0]);
+                    if (sheets.length === 0) {
+                        throw new Error('No sheets found in Excel file');
                     }
 
-                    toast.success(`File "${file.name}" loaded successfully`);
+                    setSelectedSheet(sheets[0]);
+                    loadSheetData(workbook, sheets[0]);
+
+                    toast.success(`"${file.name}" loaded successfully`);
                 } catch (error) {
-                    toast.error('Error reading Excel file');
-                    console.error('Excel read error:', error);
+                    console.error('Error reading Excel file:', error);
+                    toast.error(`Error reading Excel file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                    clearImportedData();
                 }
             };
-            reader.readAsBinaryString(file);
-        } else {
-            toast.error('Please select a valid Excel file (.xlsx, .xls)');
-            setFilename(file.name);
-            if (input) {
-                input.value = '';
-            }
+
+            reader.onerror = () => {
+                toast.error('Error reading file');
+                clearImportedData();
+            };
+
+            reader.readAsArrayBuffer(file);
+        } catch (error) {
+            console.error('File processing error:', error);
+            toast.error('Error processing file');
             clearImportedData();
         }
     };
 
-    // Load data from selected sheet
     const loadSheetData = (workbook: XLSX.WorkBook, sheetName: string) => {
         try {
             const worksheet = workbook.Sheets[sheetName];
 
-            // Get headers from first row
-            const headerNames = XLSX.utils.sheet_to_json(worksheet, { header: 1 })[0] as string[];
+            if (!worksheet) {
+                throw new Error(`Sheet "${sheetName}" not found`);
+            }
 
-            // Convert sheet to JSON with headers
-            const rawData = XLSX.utils.sheet_to_json(worksheet);
+            const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
+            const headerRow: any[] = [];
+            for (let col = range.s.c; col <= range.e.c; col++) {
+                const cellAddress = XLSX.utils.encode_cell({ r: range.s.r, c: col });
+                const cell = worksheet[cellAddress];
+                headerRow.push(cell ? String(cell.v).trim() : `Column${col + 1}`);
+            }
+
+            // Convert sheet to JSON
+            const rawData = XLSX.utils.sheet_to_json(worksheet, {
+                header: headerRow,
+                defval: '',
+                raw: false,
+                dateNF: 'yyyy-mm-dd'
+            });
 
             if (rawData.length === 0) {
                 toast.error('Excel Sheet is Empty');
-                setImportedData([]);
                 setProcessedData([]);
                 setFilteredData([]);
                 setTableHeaders([]);
+                setParsingError('Sheet is empty');
                 return;
             }
 
-            // Set processed data using Angular logic
-            const processed = processExcelData(rawData, headerNames);
+            // Process the data
+            const processed = processExcelData(rawData, headerRow);
             setProcessedData(processed);
             setFilteredData(processed);
 
-            // Set table headers for display (processed data headers)
-            const processedHeaders = ['SLNO', 'FYP_Date', 'AMST_AdmNo', 'Student_Name', 'FYP_Tot_Amount', 'FYP_Bank_Or_Cash'];
+            const processedHeaders = [
+                'SLNO',
+                'FYP_Date',
+                'AMST_AdmNo',
+                'Student_Name',
+                'FYP_Tot_Amount',
+                'FYP_Bank_Or_Cash',
+                'FYP_TranscationId',
+                'Termname'
+            ];
             setTableHeaders(processedHeaders);
 
-            // Also store raw imported data
-            const formattedData = rawData.map((row: any, index: number) => {
-                const obj: { [key: string]: any } = { SLNO: index + 1 };
-                headerNames.forEach((header, idx) => {
-                    if (header && header.trim() !== '') {
-                        obj[header] = row[header] || '';
-                    }
-                });
-                return obj;
-            });
-
-            setImportedData(formattedData);
-
-            //toast.success(`Processed ${processed.length} valid records from "${sheetName}"`);
+            if (processed.length > 0) {
+                toast.success(`Processed ${processed.length} valid records from "${sheetName}"`);
+            } else if (parsingError) {
+                toast.error(parsingError);
+            }
         } catch (error) {
-            toast.error('Error loading sheet data');
-            console.error('Sheet load error:', error);
+            console.error('Error loading sheet data:', error);
+            toast.error(`Error loading sheet: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            setProcessedData([]);
+            setFilteredData([]);
+            setTableHeaders([]);
+            setParsingError(`Failed to load sheet: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     };
 
     // Clear all imported data
     const clearImportedData = () => {
         setExcelFile(null);
-        setImportedData([]);
         setProcessedData([]);
         setFilteredData([]);
         setExcelSheets([]);
@@ -261,6 +360,9 @@ export default function feeReceiptimportCommon(props: { searchParams: SearchPara
         setTableHeaders([]);
         setSearchQuery('');
         setFilename('');
+        setParsingError('');
+        setIsReportGenerated(false);
+        setRequiredColumnsMissing([]);
     };
 
     // Handle search functionality on processed data
@@ -282,183 +384,134 @@ export default function feeReceiptimportCommon(props: { searchParams: SearchPara
         if (excelFile) {
             const reader = new FileReader();
             reader.onload = (e) => {
-                const data = e.target?.result;
-                const workbook = XLSX.read(data, { type: 'binary' });
-                loadSheetData(workbook, sheetName);
+                try {
+                    const data = e.target?.result;
+                    if (data) {
+                        const arrayBuffer = data instanceof ArrayBuffer ? data : new Uint8Array(data as unknown as ArrayBuffer).buffer;
+                        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                        loadSheetData(workbook, sheetName);
+                    }
+                } catch (error) {
+                    console.error('Error switching sheets:', error);
+                    toast.error('Error loading sheet');
+                }
             };
-            reader.readAsBinaryString(excelFile);
+            reader.readAsArrayBuffer(excelFile);
         }
     };
 
     const handleReportClick = async () => {
-        setIsSaving(true); // Start loading
+        setIsSaving(true);
+
         if (!selectedAsmayId) {
             toast.error('Please select an Academic Year');
+            setIsSaving(false);
             return;
         }
 
         if (!excelFile) {
             toast.error('Please select an Excel file');
+            setIsSaving(false);
             return;
         }
 
         if (processedData.length === 0) {
-            toast.error('No valid data found in the Excel file');
+            toast.error('No valid data found to save');
+            setIsSaving(false);
             return;
         }
 
-        // const formatDateForAPI = (dateString: string) => {
-        //     if (!dateString) return '';
+        if (requiredColumnsMissing.length > 0) {
+            toast.error(`Missing required columns: ${requiredColumnsMissing.join(', ')}`);
+            setIsSaving(false);
+            return;
+        }
 
-        //     try {
-        //         // If date is already in YYYY/MM/DD format, return as is
-        //         if (dateString.match(/^\d{4}\/\d{2}\/\d{2}$/)) {
-        //             return dateString;
-        //         }
-
-        //         // If date is in DD/MM/YYYY format, convert it
-        //         if (dateString.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
-        //             const parts = dateString.split('/');
-        //             if (parts.length === 3) {
-        //                 const day = parts[0].padStart(2, '0');
-        //                 const month = parts[1].padStart(2, '0');
-        //                 const year = parts[2];
-        //                 return `${year}/${month}/${day}`;
-        //             }
-        //         }
-
-        //         // Try to parse as Date object
-        //         const date = new Date(dateString);
-        //         if (!Number.isNaN(date.getTime())) {
-        //             const year = date.getFullYear();
-        //             const month = String(date.getMonth() + 1).padStart(2, '0');
-        //             const day = String(date.getDate()).padStart(2, '0');
-        //             return `${year}/${month}/${day}`;
-        //         }
-
-        //         return dateString; // Return original if we can't parse it
-        //     } catch (error) {
-        //         console.error('Error formatting date:', error);
-        //         return dateString;
-        //     }
-        // };
         const formatDateForAPI = (dateString: string) => {
             if (!dateString) return '';
 
             try {
-                // If date is already in ISO format, return as is
-                if (dateString.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)) {
-                    return dateString;
-                }
-
-                // If date is in DD/MM/YYYY format, convert to Date object
-                if (dateString.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
+                let date: Date;
+                if (dateString.includes('T') && dateString.includes('Z')) {
+                    date = new Date(dateString);
+                } else if (dateString.match(/^\d{1,2}[\/\.]\d{1,2}[\/\.]\d{4}/)) {
+                    const separator = dateString.includes('/') ? '/' : '.';
+                    const parts = dateString.split(separator);
+                    date = new Date(`${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}T00:00:00.000Z`);
+                } else if (dateString.match(/^\d{4}\/\d{1,2}\/\d{1,2}/)) {
                     const parts = dateString.split('/');
-                    if (parts.length === 3) {
-                        const day = parts[0].padStart(2, '0');
-                        const month = parts[1].padStart(2, '0');
-                        const year = parts[2];
-                        // Create date object (note: month is 0-indexed in JS)
-                        const date = new Date(`${year}-${month}-${day}T00:00:00.000Z`);
-                        return date.toISOString();
+                    date = new Date(`${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}T00:00:00.000Z`);
+                } else if (dateString.match(/^\d{4}-\d{1,2}-\d{1,2}/)) {
+                    date = new Date(`${dateString}T00:00:00.000Z`);
+                } else if (!Number.isNaN(Number(dateString)) && Number(dateString) > 25569) {
+                    const excelDate = Number(dateString);
+                    const dateObj = new Date((excelDate - 25569) * 86400 * 1000);
+                    if (!Number.isNaN(dateObj.getTime())) {
+                        date = dateObj;
+                    } else {
+                        date = new Date(dateString);
                     }
+                } else {
+                    date = new Date(dateString);
                 }
 
-                // If date is in YYYY/MM/DD format, convert to Date object
-                if (dateString.match(/^\d{4}\/\d{2}\/\d{2}$/)) {
-                    const parts = dateString.split('/');
-                    if (parts.length === 3) {
-                        const year = parts[0];
-                        const month = parts[1];
-                        const day = parts[2];
-                        const date = new Date(`${year}-${month}-${day}T00:00:00.000Z`);
-                        return date.toISOString();
-                    }
-                }
-
-                // Try to parse as Date object for any other format
-                const date = new Date(dateString);
                 if (Number.isNaN(date.getTime())) {
-                    return date.toISOString();
+                    console.warn(`Invalid date format: ${dateString}, using current date`);
+                    return new Date().toISOString();
                 }
 
-                // If all else fails, try to create a date from the string with time component
-                const dateWithTime = new Date(dateString + 'T00:00:00.000Z');
-                if (Number.isNaN(dateWithTime.getTime())) {
-                    return dateWithTime.toISOString();
-                }
-
-                return dateString; // Return original if we can't parse it
+                return date.toISOString();
             } catch (error) {
-                console.error('Error formatting date:', error);
-                return dateString;
+                console.error('Error formatting date:', error, dateString);
+                return new Date().toISOString();
             }
         };
 
         try {
-            // Prepare data in the required format
             const feeReceiptimport = processedData.map((item) => ({
                 amsT_AdmNo: item.AMST_AdmNo,
-                fyP_Date: formatDateForAPI(item.FYP_Date), // Need to format date properly
+                fyP_Date: formatDateForAPI(item.FYP_Date),
                 fyP_Tot_Amount: item.FYP_Tot_Amount,
-                fyP_Bank_Or_Cash: item.FYP_Bank_Or_Cash
+                fyP_Bank_Or_Cash: item.FYP_Bank_Or_Cash,
+                fyP_TransactionId: item.FYP_TranscationId,
+                termname: item.Termname
             }));
 
-            // Create the final payload
             const payload = {
                 asmaY_Id: selectedAsmayId,
-                feeReceiptimport: feeReceiptimport
+                feeReceiptimportCommon: feeReceiptimport
             };
-            const js = JSON.stringify(payload);
-            console.log('Payload to be sent:', js); // For debugging
 
-            const response = await saveBankCopyData(payload);
+            const response = await savefeeReceiptimportCommon(payload);
 
             if (response) {
-                // Check returnval first (false means success based on your response)
-                if (response.returnval === false) {
-                    // Build success message with counts
+                if (response.returnval === true) {
                     const successMessage = `Data saved successfully! 
-                Saved: ${response.suscnt || 0}, 
-                Duplicates: ${response.dupcnt || 0}, 
-                Failed: ${response.failcnt || 0}`;
-
+                    Saved: ${response.suscnt || 0}, 
+                    Duplicates: ${response.dupcnt || 0}, 
+                    Failed: ${response.failcnt || 0}`;
                     toast.success(successMessage);
-                    // setIsSaving(false);
-                    // setIsReportGenerated(false);
-                    // clearImportedData();
-                    // Additional success details if needed
-                    if (response.fyP_Receipt_No) {
-                        console.log('Receipt Number:', response.fyP_Receipt_No);
-                    }
-                    if (response.fmG_Id) {
-                        console.log('Fee Master Group ID:', response.fmG_Id);
-                    }
                     setTimeout(() => {
+                        clearImportedData();
                         window.location.reload();
-                    }, 1000);
+                    }, 2000);
                 } else {
-                    // If returnval is true or not false, show error
                     toast.error('Failed to save data. Please try again.');
                 }
             } else {
                 toast.error('No response received from server');
             }
-            // setTimeout(() => {
-            //     window.location.reload();
-            // }, 1000);
         } catch (error) {
-            toast.error('Error processing data');
-            console.error('Processing error:', error);
+            console.error('Error saving data:', error);
+            toast.error(`Error saving data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        } finally {
+            setIsSaving(false);
         }
     };
 
-    // Helper function to format date from DD/MM/YYYY to YYYY/MM/DD
-
     const handleResetClick = () => {
-        setIsReportGenerated(false);
         clearImportedData();
-        window.location.reload();
+        toast.info('Form reset successfully');
     };
 
     const handleRemoveFile = () => {
@@ -470,21 +523,16 @@ export default function feeReceiptimportCommon(props: { searchParams: SearchPara
         <>
             <FormProvider<IFeeReceiptImportDelate>>
                 <FeesReceiptImportBankCopyPageContent
-                    isLoading={isLoading}
-                    error={error}
                     selectedAsmayId={selectedAsmayId}
                     setSelectedAsmayId={setSelectedAsmayId}
                     academicYearData={academicYearData}
                     loadingYears={loadingYears}
                     isReportGenerated={isReportGenerated}
-                    selectedDate={selectedDate}
-                    setSelectedDate={setSelectedDate}
                     onSave={handleReportClick}
                     onResetClick={handleResetClick}
                     onRemoveFile={handleRemoveFile}
                     excelFile={excelFile}
                     onFileUpload={selectFileForUpload}
-                    importedData={importedData}
                     processedData={processedData}
                     filteredData={filteredData}
                     excelSheets={excelSheets}
@@ -495,6 +543,10 @@ export default function feeReceiptimportCommon(props: { searchParams: SearchPara
                     setSearchQuery={setSearchQuery}
                     filename={filename}
                     isSaving={isSaving}
+                    parsingError={parsingError}
+                    requiredColumnsMissing={requiredColumnsMissing}
+                    isLoading={false}
+                    error={undefined}
                 />
             </FormProvider>
         </>
@@ -502,21 +554,16 @@ export default function feeReceiptimportCommon(props: { searchParams: SearchPara
 }
 
 function FeesReceiptImportBankCopyPageContent({
-    isLoading,
-    error,
     academicYearData,
     loadingYears,
     selectedAsmayId,
     setSelectedAsmayId,
     isReportGenerated,
-    selectedDate,
-    setSelectedDate,
     onSave,
     onResetClick,
     onRemoveFile,
     excelFile,
     onFileUpload,
-    importedData,
     processedData,
     filteredData,
     excelSheets,
@@ -526,7 +573,9 @@ function FeesReceiptImportBankCopyPageContent({
     searchQuery,
     setSearchQuery,
     filename,
-    isSaving
+    isSaving,
+    parsingError,
+    requiredColumnsMissing
 }: {
     isLoading: boolean;
     error: any;
@@ -535,14 +584,11 @@ function FeesReceiptImportBankCopyPageContent({
     setSelectedAsmayId: (id: number | null) => void;
     loadingYears: boolean;
     isReportGenerated: boolean;
-    selectedDate: string;
-    setSelectedDate: (date: string) => void;
     onSave: () => void;
     onResetClick: () => void;
     onRemoveFile: () => void;
     excelFile: File | null;
     onFileUpload: (input: HTMLInputElement) => void;
-    importedData: ImportedExcelData;
     processedData: ProcessedData;
     filteredData: ProcessedData;
     excelSheets: string[];
@@ -553,8 +599,10 @@ function FeesReceiptImportBankCopyPageContent({
     setSearchQuery: (query: string) => void;
     filename: string;
     isSaving: boolean;
+    parsingError: string;
+    requiredColumnsMissing: string[];
 }) {
-    const { openAddForm } = useFormContext<IFeeReceiptImportDelate>();
+    //   const { openAddForm } = useFormContext<IFeeReceiptImportDelate>();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -568,29 +616,35 @@ function FeesReceiptImportBankCopyPageContent({
         onRemoveFile();
     };
 
-    // Check if we should show processed table content
     const shouldShowTableContent = processedData.length > 0;
 
     return (
         <div className='min-h-screen bg-gray-50'>
             <div className='container space-y-6 p-4'>
-                {/* DATA IMPORT SECTION */}
                 <div className='rounded-lg border bg-white shadow-sm'>
-                    {/* Header */}
                     <div className='border-b p-4 text-center'>
                         <p className='mt-1 font-bold text-green-600 text-sm'>**Kindly Select Only One Excel Sheet To Import</p>
                     </div>
 
-                    {/* Content */}
                     <div className='p-6'>
-                        {/* IMPORTED DATA FROM EXCEL heading */}
                         <div className='mb-4'>
                             <h2 className='font-semibold text-base text-gray-700'>IMPORTED DATA FROM EXCEL</h2>
+                            {requiredColumnsMissing.length > 0 && (
+                                <div className='mt-2 rounded-md bg-red-50 p-3'>
+                                    <p className='font-medium text-red-700 text-sm'>Missing Required Columns:</p>
+                                    <ul className='mt-1 list-disc pl-4 text-red-600 text-sm'>
+                                        {requiredColumnsMissing.map((col, index) => (
+                                            <li key={index}>{col}</li>
+                                        ))}
+                                    </ul>
+                                    <p className='mt-1 text-red-600 text-sm'>
+                                        Required columns: FYP_Date, AMST_AdmNo, Student_Name, FYP_Tot_Amount
+                                    </p>
+                                </div>
+                            )}
                         </div>
 
-                        {/* Form row with Academic Year and File Upload */}
                         <div className='mb-6 grid grid-cols-2 gap-6'>
-                            {/* Academic Year Column */}
                             <div>
                                 <div className='flex items-center gap-2'>
                                     <Label className='whitespace-nowrap font-medium'>
@@ -618,14 +672,14 @@ function FeesReceiptImportBankCopyPageContent({
                             <div>
                                 <div className='flex items-center gap-2'>
                                     <Label className='whitespace-nowrap font-medium'>
-                                        Choose File<span className='text-red-500'>*</span>
+                                        Choose Excel File<span className='text-red-500'>*</span>
                                     </Label>
                                     <div className='flex flex-col gap-2'>
                                         <div className='flex items-center gap-2'>
                                             <input
                                                 ref={fileInputRef}
                                                 type='file'
-                                                accept='.xlsx,.xls,.csv'
+                                                accept='.xlsx,.xls,.csv,.xlsm'
                                                 onChange={handleFileChange}
                                                 className='hidden'
                                                 id='excel-file-input'
@@ -650,10 +704,12 @@ function FeesReceiptImportBankCopyPageContent({
                                             )}
                                         </div>
                                         {filename && (
-                                            <p className='text-green-600 text-sm'>
-                                                Selected: {filename}
-                                                {excelSheets.length > 0 && ` (${excelSheets.length} sheet(s))`}
-                                            </p>
+                                            <div className='text-sm'>
+                                                <p className='text-green-600'>Selected: {filename}</p>
+                                                {excelSheets.length > 0 && (
+                                                    <p className='text-blue-600'>{excelSheets.length} sheet(s) available</p>
+                                                )}
+                                            </div>
                                         )}
                                     </div>
                                 </div>
@@ -706,7 +762,7 @@ function FeesReceiptImportBankCopyPageContent({
                                                 {tableHeaders.map((header, index) => (
                                                     <th
                                                         key={index}
-                                                        className='px-6 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider'>
+                                                        className='px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider'>
                                                         {header}
                                                     </th>
                                                 ))}
@@ -714,7 +770,7 @@ function FeesReceiptImportBankCopyPageContent({
                                         ) : (
                                             <tr>
                                                 <th
-                                                    colSpan={6}
+                                                    colSpan={8}
                                                     className='px-6 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider'>
                                                     No Data Processed
                                                 </th>
@@ -726,23 +782,32 @@ function FeesReceiptImportBankCopyPageContent({
                                             filteredData.length > 0 ? (
                                                 filteredData.map((row, rowIndex) => (
                                                     <tr key={rowIndex} className='hover:bg-gray-50'>
-                                                        <td className='whitespace-nowrap px-6 py-3 text-gray-900 text-sm'>
+                                                        <td className='whitespace-nowrap px-4 py-3 text-gray-900 text-sm'>
                                                             {rowIndex + 1}
                                                         </td>
-                                                        <td className='whitespace-nowrap px-6 py-3 text-gray-900 text-sm'>
+                                                        <td className='whitespace-nowrap px-4 py-3 text-gray-900 text-sm'>
                                                             {row.FYP_Date || '-'}
                                                         </td>
-                                                        <td className='whitespace-nowrap px-6 py-3 text-gray-900 text-sm'>
+                                                        <td className='whitespace-nowrap px-4 py-3 text-gray-900 text-sm'>
                                                             {row.AMST_AdmNo || '-'}
                                                         </td>
-                                                        <td className='whitespace-nowrap px-6 py-3 text-gray-900 text-sm'>
+                                                        <td className='whitespace-nowrap px-4 py-3 text-gray-900 text-sm'>
                                                             {row.Student_Name || '-'}
                                                         </td>
-                                                        <td className='whitespace-nowrap px-6 py-3 text-gray-900 text-sm'>
-                                                            {row.FYP_Tot_Amount.toLocaleString()}
+                                                        <td className='whitespace-nowrap px-4 py-3 text-gray-900 text-sm'>
+                                                            {row.FYP_Tot_Amount.toLocaleString('en-IN', {
+                                                                minimumFractionDigits: 2,
+                                                                maximumFractionDigits: 2
+                                                            })}
                                                         </td>
-                                                        <td className='whitespace-nowrap px-6 py-3 text-gray-900 text-sm'>
-                                                            {row.FYP_Bank_Or_Cash || '-'}
+                                                        <td className='whitespace-nowrap px-4 py-3 text-gray-900 text-sm'>
+                                                            {row.FYP_Bank_Or_Cash || 'C'}
+                                                        </td>
+                                                        <td className='whitespace-nowrap px-4 py-3 text-gray-900 text-sm'>
+                                                            {row.FYP_TranscationId || '-'}
+                                                        </td>
+                                                        <td className='whitespace-nowrap px-4 py-3 text-gray-900 text-sm'>
+                                                            {row.Termname || '-'}
                                                         </td>
                                                     </tr>
                                                 ))
@@ -755,10 +820,12 @@ function FeesReceiptImportBankCopyPageContent({
                                             )
                                         ) : (
                                             <tr>
-                                                <td colSpan={6} className='px-6 py-24 text-center text-gray-500 text-sm'>
+                                                <td colSpan={8} className='px-6 py-24 text-center text-gray-500 text-sm'>
                                                     {excelFile
-                                                        ? 'Processing Excel file...'
-                                                        : 'Please select an Excel file to import and process data'}
+                                                        ? parsingError
+                                                            ? parsingError
+                                                            : 'Processing Excel file...'
+                                                        : 'Please select an Excel file (.xlsx, .xls, .csv) to import'}
                                                 </td>
                                             </tr>
                                         )}
@@ -766,39 +833,8 @@ function FeesReceiptImportBankCopyPageContent({
                                 </table>
                             </div>
                         </div>
-
-                        {/* Summary Information */}
-                        {/* {shouldShowTableContent && (
-                            <div className='mb-6 rounded-lg border bg-blue-50 p-4'>
-                                <div className='grid grid-cols-3 gap-4'>
-                                    <div className='text-center'>
-                                        <p className='font-medium text-gray-600 text-sm'>Total Records</p>
-                                        <p className='font-bold text-blue-700 text-lg'>{processedData.length}</p>
-                                    </div>
-                                    <div className='text-center'>
-                                        <p className='font-medium text-gray-600 text-sm'>Total Amount</p>
-                                        <p className='font-bold text-green-700 text-lg'>
-                                            {processedData.reduce((sum, row) => sum + row.FYP_Tot_Amount, 0).toLocaleString()}
-                                        </p>
-                                    </div>
-                                    <div className='text-center'>
-                                        <p className='font-medium text-gray-600 text-sm'>Records Found</p>
-                                        <p className='font-bold text-purple-700 text-lg'>{filteredData.length}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        )} */}
-
-                        {/* Buttons Section */}
                         <div className='mt-6 flex flex-col items-center justify-center gap-4 rounded-lg border bg-white p-6 shadow-sm'>
                             <div className='flex items-center gap-4'>
-                                {/* <Button
-                                    type='button'
-                                    onClick={onSave}
-                                    disabled={!shouldShowTableContent}
-                                    className='shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                                    {isReportGenerated ? 'Update' : 'Save'}
-                                </Button> */}
                                 <Button
                                     type='button'
                                     onClick={onSave}
@@ -806,22 +842,19 @@ function FeesReceiptImportBankCopyPageContent({
                                     className='shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100'>
                                     {isSaving ? (
                                         <>
-                                            {/* <span className="animate-spin mr-2">⏳</span> */}
+                                            <span className='mr-2'>⏳</span>
                                             Saving...
                                         </>
                                     ) : isReportGenerated ? (
                                         'Update'
                                     ) : (
-                                        'Save'
+                                        'Save Data'
                                     )}
                                 </Button>
-                                <Button variant='outline' onClick={onResetClick} type='button'>
+                                <Button variant='outline' onClick={onResetClick} type='button' disabled={isSaving}>
                                     Reset
                                 </Button>
                             </div>
-                            {isReportGenerated && (
-                                <p className='font-medium text-green-600 text-sm'>✓ Data processed and validated successfully</p>
-                            )}
                         </div>
                     </div>
                 </div>

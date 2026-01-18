@@ -78,18 +78,11 @@ export default function UpdateMasterLanguageForm({ onSuccess, className = '', se
                             label='Language Name'
                             required
                             id='lmL_LanguageName'
-                            onKeyDown={(e) => {
-                                const allowed = /^[A-Za-z]$/;
-
-                                if (e.key.length === 1 && !allowed.test(e.key)) {
-                                    e.preventDefault();
-                                }
-                            }}
                             {...register('lmL_LanguageName', {
                                 required: 'Language Name is required',
                                 pattern: {
-                                    value: /^[A-Za-z]+$/,
-                                    message: 'Only letters allowed'
+                                    value: /^[A-Za-z ]+$/,
+                                    message: 'Only letters and spaces allowed'
                                 }
                             })}
                             error={errors.lmL_LanguageName?.message}

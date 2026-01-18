@@ -508,6 +508,83 @@ export async function getUserAccessibleModules() {
                                     ]
                                 }
                             ]
+                        },
+                         {
+                            id: 3,
+                            name: 'Upload',
+                            icon: 'Upload',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Transactions',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 221,
+                                            name: 'Upload ClassWork',
+                                            icon: 'BookOpen',
+                                            url: '/upload/transactions/ivrm-classwork',
+                                            title: 'Upload ClassWork',
+                                            description: 'Manage ClassWork'
+                                        },
+                                        {
+                                            id: 222,
+                                            name: 'Verify Class Work',
+                                            icon: 'BookOpen',
+                                            url: '/upload/transactions/verify-classwork',
+                                            title: 'Verify Class Work',
+                                            description: 'Verify and Enter Class Work Marks'
+                                        },
+                                        {
+                                            id: 223,
+                                            name: 'IVRM HomeWork',
+                                            icon: 'BookOpen',
+                                            url: '/upload/transactions/ivrm-homework',
+                                            title: 'Upload HomeWork',
+                                            description: 'Manage IVRM HomeWork'
+                                        },
+                                        {
+                                            id: 224,
+                                            name: 'HomeWork Marks Update',
+                                            icon: 'BookOpen',
+                                            url: '/upload/transactions/homework-marks-update',
+                                            title: 'Verify HomeWork',
+                                            description: 'Verify HomeWork Marks'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Reports',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'ClassWork Upload Report',
+                                            icon: 'FileText',
+                                            url: '/upload/reports/classwork-upload-report',
+                                            title: 'ClassWork Upload Report',
+                                            description: 'ClassWork Upload Report Details'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'HomeWork Upload Report',
+                                            icon: 'FileText',
+                                            url: '/upload/reports/homework-upload-report',
+                                            title: 'HomeWork Upload Report',
+                                            description: 'HomeWork Upload Report Details'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'NoticeBoard Report',
+                                            icon: 'FileText',
+                                            url: '/upload/reports/noticeboard-report',
+                                            title: 'NoticeBoard Report',
+                                            description: 'NoticeBoard Report Details'
+                                        }
+                                    ]
+                                }
+                            ]
                         }
                     ]
                 },
@@ -2474,6 +2551,7 @@ export async function getUserAccessibleModules() {
                         // }
                     ]
                 },
+                 
                 {
                     id: 5,
                     name: 'IFrame',
@@ -2733,7 +2811,7 @@ export async function getUserAccessibleModules() {
                 },
                 {
                     id: 7,
-                    name: 'Library Management',
+                    name: 'Library',
                     icon: 'BookOpen',
                     menu: [
                         {
@@ -3010,7 +3088,110 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
+                },             
+                {
+                    id: 8,
+                    name: 'Hostel Management',
+                    icon: 'Home',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Master',
+                            icon: 'Settings',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Masters',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Facility',
+                                            icon: 'Wifi',
+                                            url: '/hostel/hostel-management/masters/master-facility',
+                                            title: 'Master Facility',
+                                            description: 'Manage Hostel Facilities'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Master Hostel',
+                                            icon: 'Building',
+                                            url: '/hostel/hostel-management/masters/master-hostel',
+                                            title: 'Master Hostel',
+                                            description: 'Manage Hostel Details'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Master Mess Category',
+                                            icon: 'Home',
+                                            url: '/hostel/hostel-management/masters/master-mess-category',
+                                            title: 'Master Mess Category',
+                                            description: 'Manage Mess Category Mapping'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Master Floor',
+                                            icon: 'Layers',
+                                            url: '/hostel/hostel-management/masters/master-floor',
+                                            title: 'Master Floor',
+                                            description: 'Manage Floor Details'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Master Room',
+                                            icon: 'Home',
+                                            url: '/hostel/hostel-management/masters/master-room',
+                                            title: 'Master Room',
+                                            description: 'Manage Room Details'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Master Bed',
+                                            icon: 'Home',
+                                            url: '/hostel/hostel-management/masters/master-bed',
+                                            title: 'Master Bed',
+                                            description: 'Manage Bed Details'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Master Mess',
+                                            icon: 'Home',
+                                            url: '/hostel/hostel-management/masters/master-mess',
+                                            title: 'Master Mess',
+                                            description: 'Manage Mess Details'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Mess Menu',
+                                            icon: 'Home',
+                                            url: '/hostel/hostel-management/masters/mess-menu',
+                                            title: 'Mess Menu',
+                                            description: 'Manage Mess Menu Details'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'Room Category',
+                                            icon: 'Home',
+                                            url: '/hostel/hostel-management/masters/room-category',
+                                            title: 'Room Category',
+                                            description: 'Manage Room Categories'
+                                        },
+                                        {
+                                            id: 10,
+                                            name: 'Room Tariff',
+                                            icon: 'Home',
+                                            url: '/hostel/hostel-management/masters/room-tariff',
+                                            title: 'Room Tariff',
+                                            description: 'Manage Room Tariffs'
+                                        },
+
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
                 }
+
             ]
         };
     } else {

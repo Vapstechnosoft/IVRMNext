@@ -56,7 +56,7 @@ export default function DeleteFeeConcessionForm({ rowData, onClose, onSuccess }:
     const studentName = [rowData.studentName].filter(Boolean).join(' ');
 
     return (
-        <AdaptiveDialog title='Delete Opening Balance' isOpen={true} onClose={closeDialog}>
+        <AdaptiveDialog title='Toggle Lost Book Transaction' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <p>

@@ -2,7 +2,7 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { IMasterSubjectList } from '@/types/library/masters/masters';
+import type { IMasterSubjectList, IParentSubjectDropdownList } from '@/types/library/masters/masters';
 
 export async function getMasterSubjectList(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'lmS_SubjectName');
@@ -23,4 +23,9 @@ export async function toggleMasterSubject(id: number) {
 export async function deleteMasterSubject(id: number) {
     const url = `/MasterSubject/Delete?id=${id}`;
     return await api.delete('library', url);
+}
+
+export async function getparentsubjectdropdown() {
+    const url = '/MasterSubject/parent-subject-dropdown';
+    return await api.get<IParentSubjectDropdownList[]>('library', url);
 }

@@ -10,17 +10,16 @@ import type { IMasterLibraryList } from '@/types/library/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import type { z } from 'zod';
 
-type FormFields = {
-    lmaL_Id?: number | string;
-};
+type FormFields = z.infer<typeof masterLibrarySchema.delete>;
 
-interface ToggleMasterLibraryFormProps {
+interface toggleMasterLibraryFormProps {
     rowData: IMasterLibraryList;
     onClose: () => void;
 }
 
-export default function ToggleMasterLibraryForm({ rowData, onClose }: ToggleMasterLibraryFormProps) {
+export default function ToggleMasterLibraryForm({ rowData, onClose }: toggleMasterLibraryFormProps) {
     const { refetchAll } = useMasterLibrary();
     const isActive = rowData.lmaL_ActiveFlag;
 
@@ -39,30 +38,27 @@ export default function ToggleMasterLibraryForm({ rowData, onClose }: ToggleMast
         reset();
     }
 
-    const onSubmit: SubmitHandler<FormFields> = async () => {
+    const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleMasterLibrary(rowData.lmaL_Id);
+            const response = await toggleMasterLibrary(Number(rowData.lmaL_Id));
 
             if (response.success) {
-                toast.success(response.message || 'Status updated successfully');
+                toast.success(response.message);
                 refetchAll();
                 closeDialog();
             } else {
-                toast.error(response.message || 'Failed to update status');
+                toast.error(response.message);
             }
         } catch (error: any) {
-            toast.error(error?.message || 'Something went wrong');
+            toast.error(error.message);
         }
     };
 
     return (
-        <AdaptiveDialog title='Toggle Master Library Status' isOpen={true} onClose={closeDialog}>
+        <AdaptiveDialog title='Toggle Library Master' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    {/* Register as number so zod validation receives a number (not a string) */}
-                    {/* <input type='hidden' {...register('lmaL_Id', { valueAsNumber: true })} value={rowData.lmaL_Id as any} /> */}
-                    <input type='hidden' {...register('lmaL_Id')} />
-
+                    <input type='hidden' {...register('lmaL_Id')} defaultValue={rowData.lmaL_Id} />
                     <p>
                         Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.lmaL_LibraryName}</strong>?
                     </p>
