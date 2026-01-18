@@ -67,7 +67,7 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
                         const data = (res.breaktimelistedit as any[])[0];
 
                         // Prefill basic fields
-                        setValue('asmaY_Id', data.asmaY_Id);
+                        setValue('asmay_id', data.asmaY_Id);
                         setValue('ttmC_Id', data.ttmC_Id);
                         setValue('ttmB_BreakName', data.ttmB_BreakName);
                         setValue('ttmB_AfterPeriod', data.ttmB_AfterPeriod);
@@ -99,23 +99,23 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
                         if (classRes?.classbycategory) {
                             setClassList(classRes.classbycategory as any[]);
 
-                            const selectedClassIds = (res.breaktimelistedit as any[]).map((r: any) => r.asmcL_Id);
-                            const uniqueClassIds = Array.from(new Set(selectedClassIds));
+                            const selectedcalssids = (res.breaktimelistedit as any[]).map((r: any) => r.asmcL_Id);
+                            const uniquecalssids = Array.from(new Set(selectedcalssids));
 
                             const selectedObjs = (classRes.classbycategory as any[])
-                                .filter((c: any) => uniqueClassIds.includes(c.asmcL_Id))
+                                .filter((c: any) => uniquecalssids.includes(c.asmcL_Id))
                                 .map((c: any) => ({ asmcL_Id: c.asmcL_Id, asmcL_ClassName: c.asmcL_ClassName }));
 
-                            setValue('classIds', selectedObjs);
+                            // setValue('calssids', selectedObjs);
                         }
 
                         // Set Selected Days
-                        const selectedDayIds = (res.breaktimelistedit as any[]).map((r: any) => r.ttmD_Id);
-                        const uniqueDayIds = Array.from(new Set(selectedDayIds));
+                        const selecteddayids = (res.breaktimelistedit as any[]).map((r: any) => r.ttmD_Id);
+                        const uniquedayids = Array.from(new Set(selecteddayids));
                         const selectedDayObjs = dayList
-                            .filter((d: any) => uniqueDayIds.includes(d.ttmD_Id))
+                            .filter((d: any) => uniquedayids.includes(d.ttmD_Id))
                             .map((d: any) => ({ ttmD_Id: d.ttmD_Id, ttmD_DayName: d.ttmD_DayName }));
-                        setValue('dayIds', selectedDayObjs);
+                        //setValue('dayids', selectedDayObjs);
 
                         setIsLoadingData(false);
                     }
@@ -129,8 +129,8 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
     }, [selectedRow]);
 
     const watchedCategory = watch('ttmC_Id');
-    const watchedAcademicYear = watch('asmaY_Id');
-    const watchedClasses = watch('classIds');
+    const watchedAcademicYear = watch('asmay_id');
+    const watchedClasses = watch('calssids') as any[];
     const watchedAfterPeriod = watch('ttmB_AfterPeriod');
 
     // Logic for Max Periods
@@ -138,11 +138,11 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
         const fetchMaxPeriods = async () => {
             if (watchedClasses && watchedClasses.length > 0) {
                 try {
-                    const classId = watchedClasses[watchedClasses.length - 1].asmcL_Id;
+                    const classId = watchedClasses[watchedClasses.length - 1].asmcL_Id.toString();
                     const count = watchedClasses.length;
-                    const res = await getMaximumPeriodsCount({ classid: classId, classidscount: count });
-                    if (res?.classidscountreturn) {
-                        setMaxPeriods(res.classidscountreturn as number);
+                    const res = await getMaximumPeriodsCount({ classid: classId, calssidscount: count });
+                    if (res?.calssidscountreturn) {
+                        setMaxPeriods(res.calssidscountreturn as number);
                     }
                 } catch (err) {
                     console.error('Error fetching max periods', err);
@@ -169,10 +169,10 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
         try {
             const payload = {
                 TTMB_Id: selectedRow.ttmB_Id,
-                ASMAY_Id: data.asmaY_Id,
+                ASMAY_Id: data.asmay_id,
                 TTMC_Id: data.ttmC_Id,
-                ArrayClassList: data.classIds,
-                ArrayDayList: data.dayIds,
+                ArrayClassList: data.calssids,
+                ArrayDayList: data.dayids,
                 TTMB_BreakName: data.ttmB_BreakName,
                 TTMB_BreakStartTime: data.ttmB_BreakStartTime,
                 TTMB_BreakEndTime: data.ttmB_BreakEndTime,
@@ -208,7 +208,7 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
                             </Label>
                             <Controller
                                 control={control}
-                                name='asmaY_Id'
+                                name='asmay_id'
                                 render={({ field }) => (
                                     <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                         <SelectTrigger>
@@ -232,7 +232,7 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
                             </Label>
                             <Controller
                                 control={control}
-                                name='classIds'
+                                name='calssids'
                                 render={({ field }) => (
                                     <MultiSelect
                                         options={classList.map((c: any) => ({ label: c.asmcL_ClassName, value: c.asmcL_Id.toString() }))}
@@ -245,7 +245,7 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
                                                         ? { asmcL_Id: found.asmcL_Id, asmcL_ClassName: found.asmcL_ClassName }
                                                         : null;
                                                 })
-                                                .filter((x) => x);
+                                                .filter((x) => x) as any[];
                                             field.onChange(selectedObjs);
                                         }}
                                         placeholder='Select Classes'
@@ -315,7 +315,7 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
                             </Label>
                             <Controller
                                 control={control}
-                                name='dayIds'
+                                name='dayids'
                                 render={({ field }) => (
                                     <MultiSelect
                                         options={dayList.map((d: any) => ({ label: d.ttmD_DayName, value: d.ttmD_Id.toString() }))}
