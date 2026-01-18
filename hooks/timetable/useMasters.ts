@@ -13,6 +13,7 @@ import {
     getAcademicYearDropDropDownMasterDayClasswise,
     getCategoryDropDownMasterDayClasswise,
     getClassDropDownMasterDayClasswise,
+    getDayDropDownMasterDayClasswise,
     getMasterDayClassWiseDetails
 } from '@/server/timetable/masters/masterdayclasswise';
 import { getMasterPeriodDetails } from '@/server/timetable/masters/masterperiod';
@@ -396,6 +397,24 @@ export const useClassDropDownMasterDayClasswise = (searchParams?: ApiSearchparam
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [TIMETABLE_QUERY_KEYS.CLASS_DROPDOWN_MASTERDAYCLASSWISE]
+            });
+        }
+    };
+};
+
+export const useDayDropDownMasterDayClasswise = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.DAYS_DROPDOWN_MASTERDAYCLASSWISE, searchParams ?? {}],
+            queryFn: async () => getDayDropDownMasterDayClasswise(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.DAYS_DROPDOWN_MASTERDAYCLASSWISE]
             });
         }
     };

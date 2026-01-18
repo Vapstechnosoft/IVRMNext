@@ -422,3 +422,14 @@ export interface ClassDropDownDataTT {
     createdDate: string;
     updatedDate: string;
 }
+
+export interface DaysDropDownDataTT {
+    ttmD_Id: number;
+    mI_Id: number;
+    ttmD_DayName: string;
+    ttmD_DayCode: string;
+    order_Id: number;
+    ttmD_ActiveFlag: boolean;
+    createdDate: string;
+    updatedDate: string;
+}

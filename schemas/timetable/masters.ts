@@ -17,7 +17,7 @@ export const masterDayClasswiseSchema = {
         asmay_id: number().min(1, 'Please select Academic Year'),
         ttmC_Id: number().min(1, 'Please select Category'),
         calssids: z.array(z.string()).nonempty('Please select at least one Class'),
-        ttmD_Id: z.array(z.string()).nonempty('Please select at least one Day')
+        dayids: z.array(z.string()).nonempty('Please select at least one Day')
     }),
     delete: z.object({
         ttmdC_Id: deleteIdSchema('ttmdC_Id')
@@ -84,24 +84,10 @@ export const categoryClassMappingSchema = {
 
 export const breakTimeSettingsSchema = {
     addOrUpdate: z.object({
-        asmaY_Id: z.number().min(1, 'Academic Year is required'),
-        ttmC_Id: z.number().min(1, 'Category is required'),
-        classIds: z
-            .array(
-                z.object({
-                    asmcL_Id: z.number(),
-                    asmcL_ClassName: z.string()
-                })
-            )
-            .min(1, 'Select at least one class'),
-        dayIds: z
-            .array(
-                z.object({
-                    ttmD_Id: z.number(),
-                    ttmD_DayName: z.string()
-                })
-            )
-            .min(1, 'Select at least one day'),
+        asmay_id: number().min(1, 'Please select Academic Year'),
+        ttmC_Id: number().min(1, 'Please select Category'),
+        calssids: z.array(z.string()).nonempty('Please select at least one Class'),
+        dayids: z.array(z.string()).nonempty('Please select at least one Day'),
         ttmB_BreakName: z.string().min(3, 'Break Name must be at least 3 characters'),
         ttmB_BreakStartTime: z.date({ required_error: 'Start Time is required' }),
         ttmB_BreakEndTime: z.date({ required_error: 'End Time is required' }),
