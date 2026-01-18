@@ -242,6 +242,7 @@ export const masterClassCategorySchema = {
 
 export const masterSubjectSchema = {
     addOrUpdate: z.object({
+        lmS_SubjectName: z.string().optional(),
         ismS_Id: z.string().min(1, 'Please Select Parent Subject'),
         lmS_Level: z.string().regex(/^\d{1,25}$/, 'Enter only numeric value'),
         lmS_ClassNo: z
