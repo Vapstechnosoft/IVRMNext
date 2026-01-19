@@ -37,7 +37,8 @@ export async function getConcessionClassesDropdownData(mi_Id: number) {
 }
 
 export async function getConcessionCategoryDropdownData(mi_Id: number) {
-    const url = 'FeeConcessionFacade/getfeeconcessioncategories';
+    //const url = 'FeeConcessionFacade/getfeeconcessioncategories';
+    const url = 'FeeConcessionFacade/getadmconcessioncategories';
     return await api.get<IFeeConcessionCategoryDropDownList[]>('fees', url);
 }
 

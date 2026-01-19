@@ -796,8 +796,8 @@ export const masterTermPeriodSchema = {
 
 export const masterStudentFeeGroupMappingSchema = {
     addOrUpdate: z.object({
-        mI_Id: z.string().min(1, { message: 'Institution is required' }),
-        institutionName: z.string().min(1, { message: 'Institution Name is required' }),
+        mI_Id: z.string().optional(),
+        institutionName: z.string().optional(),
         asmaY_Id: z.number({ message: 'Academic Year is required' }),
         feeClassCategory: z.string().optional(),
         classCategory: z.string().optional(),
