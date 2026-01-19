@@ -509,7 +509,7 @@ export async function getUserAccessibleModules() {
                                 }
                             ]
                         },
-                         {
+                        {
                             id: 3,
                             name: 'Upload',
                             icon: 'Upload',
@@ -652,11 +652,12 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 26,
-                                            name: 'Master Fee Concession',
+                                            // name: 'Master Fee Concession',
+                                            name: 'Concession Category',
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/masterfeeconcession',
-                                            title: 'Fee Master Concession',
-                                            description: 'Manage Master Fee Concession Details'
+                                            title: 'Concession Category',
+                                            description: 'Manage Concession Category Details'
                                         },
 
                                         {
@@ -2551,7 +2552,7 @@ export async function getUserAccessibleModules() {
                         // }
                     ]
                 },
-                 
+
                 {
                     id: 5,
                     name: 'IFrame',
@@ -3088,7 +3089,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                },             
+                },
                 {
                     id: 8,
                     name: 'Hostel Management',
@@ -3183,8 +3184,7 @@ export async function getUserAccessibleModules() {
                                             url: '/hostel/hostel-management/masters/room-tariff',
                                             title: 'Room Tariff',
                                             description: 'Manage Room Tariffs'
-                                        },
-
+                                        }
                                     ]
                                 }
                             ]
@@ -3362,8 +3362,6 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 }
-
-
             ]
         };
     } else {

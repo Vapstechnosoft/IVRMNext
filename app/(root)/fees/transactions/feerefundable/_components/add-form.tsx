@@ -1131,7 +1131,9 @@ export default function AddFeeRefundableForm({
                 {headLoading && <div className='mt-6 text-center font-semibold text-blue-600'>Loading head details...</div>}
 
                 {!headLoading && headError && <div className='mt-6 text-center font-semibold text-red-600'>{headError}</div>}
-
+                {!headLoading && headData.length === 0 && (
+                    <div className='mt-6 text-center font-semibold text-blue-600'> head details not found...</div>
+                )}
                 {!headLoading && headData.length > 0 && (
                     <div className='mt-6 space-y-5 rounded border bg-white p-5 shadow'>
                         {/* HEADER */}
@@ -1440,7 +1442,7 @@ export default function AddFeeRefundableForm({
                         className='w-full transition-all duration-200 hover:scale-105 sm:w-auto'>
                         {isSubmitting ? 'Saving...' : 'Save Master Fee Refundable'}
                         <Save className='mr-2 h-5 w-5' />
-                        Save
+                        {/* Save */}
                     </Button>
                 </div>
             </form>

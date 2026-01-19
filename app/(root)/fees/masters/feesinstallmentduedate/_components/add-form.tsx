@@ -164,8 +164,9 @@ export default function AddMasterInstallmentDueDateForm({ onSuccess }: AddMaster
             const response = await saveInstallmentDueDate(_payload);
 
             if (response?.success) {
-                toast.success(response.message || 'Saved successfully');
+                toast.success(response.message);
                 handleReset();
+                onSuccess?.();
                 refetchAll();
             } else {
                 toast.error(response?.message || 'Save failed');
