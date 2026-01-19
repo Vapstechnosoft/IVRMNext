@@ -213,6 +213,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     const [savedAmsTId, setSavedAmsTId] = useState<number | null>(null);
     const _isInitializingRef = useRef(false);
     const _initialPincodesRef = useRef<{ con?: string; per?: string } | null>(null);
+    const _siblingPopulatedRef = useRef(false);
 
     const getAmsTIdToUse = () => savedAmsTId ?? (Number(getValues('amsT_Id' as any) ?? 0) || 0);
 
@@ -878,6 +879,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                             }));
                             console.debug('[UpdateAdmission] Normalized siblings:', normalizedSibs);
                             replaceSibling(normalizedSibs as any[]);
+                            _siblingPopulatedRef.current = true;
                         } catch (e) {
                             console.error('Error normalizing siblings', e);
                             setValue('siblings' as any, siblingSource);
@@ -2830,8 +2832,19 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     useEffect(() => {
         // Do not append default rows while we're initializing from payload
         if (_isInitializingRef.current) return;
+
+        // Do not add guardian if we don't have one yet
         if (guardianFields.length === 0) addGuardian();
-        if (siblingFields.length === 0) addSibling();
+
+        // Do not add sibling if we just populated from data, or if we already have siblings
+        if (siblingFields.length === 0 && !_siblingPopulatedRef.current) {
+            addSibling();
+        }
+
+        // Reset the flag after handling
+        if (_siblingPopulatedRef.current) {
+            _siblingPopulatedRef.current = false;
+        }
         // re-run if arrays change or initialization state changes
     }, [guardianFields.length, siblingFields.length, _isInitializingRef.current]);
 
