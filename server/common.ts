@@ -3191,7 +3191,7 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
-                 {
+                {
                     id: 9,
                     name: 'SP',
                     icon: 'Users',
@@ -3359,10 +3359,32 @@ export async function getUserAccessibleModules() {
                                     ]
                                 }
                             ]
+                        },
+                        {
+                            id: 7,
+                            name: 'FEEDBACK',
+                            icon: 'Calendar',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'COE',
+                                    icon: 'Calendar',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Feedback College Parent Transaction',
+                                            icon: 'MessageSquare',
+                                            url: '/StudentPortal/student-dashboard/Feedback/Transaction/FeedbackCollegeParentTransaction',
+                                            title: 'Feedback College Parent Transaction',
+                                            description: 'Provide Feedback'
+                                        }
+                                    ]
+                                }
+                            ]
                         }
                     ]
                 },
-               {
+                {
                     id: 10,
                     name: 'I',
                     icon: 'Users',
@@ -3510,7 +3532,7 @@ export async function getUserAccessibleModules() {
                     ]
                 },
 
-                  {
+                {
                     id: 11,
                     name: 'S',
                     icon: 'Trophy',
@@ -3697,7 +3719,7 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
-                 {
+                {
                     id: 12,
                     name: 'Alumni',
                     icon: 'Users',
@@ -3798,7 +3820,7 @@ export async function getUserAccessibleModules() {
                     ]
                 },
 
- {
+                {
                     id: 13,
                     name: 'Super Admin',
                     icon: 'Settings',
@@ -3881,7 +3903,6 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 }
-               
             ]
         };
     } else {
