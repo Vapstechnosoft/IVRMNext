@@ -1,892 +1,314 @@
-// file: _components/add-form.tsx
+// app/dashboard/transaction/lostbook/_components/add-form.tsx
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useState } from 'react';
+import { type SubmitHandler, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import type { z } from 'zod';
+
+import { useLostBookList } from '@/hooks/library/useTransactions';
+import { lostBookSchema } from '@/schemas/library/transactions';
+import { getAuthorNameDropdown, getBookListDropdown, saveLostBookRecord } from '@/server/library/transactions/lost-book';
+
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command'; // Add this import for Combobox
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { useFormContext as useGlobalFormContext } from '@/components/ui/form/form-provider';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { MultiSelect } from '@/components/ui/multi-select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'; // Add this for Combobox
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import {
-    useFeeConcessionAdmissionNo,
-    useFeeConcessionCategoryDropdowndata,
-    useFeeConcessionCategoryFeeConcessionDropdowndata,
-    useFeeConcessionClassDropdowndata,
-    useFeeConcessionConfigSet,
-    useFeeConcessionEdit,
-    useFeeConcessionHeadDetailsList,
-    useFeeConcessionStudentData,
-    useFeeConcessionStudentList,
-    useFeeConcessionTermDropdowndata,
-    useconcessionacademicyerdropdowndatafee
-} from '@/hooks/fees/useTrasactions';
-import { saveFeeHead } from '@/server/fees/trasactions/FeeConcession';
-import type { ColumnDef } from '@tanstack/react-table';
-import { Save, X } from 'lucide-react';
-import { useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { toast } from 'sonner';
+import { Textarea } from '@/components/ui/textarea';
+import { format } from 'date-fns';
+import { Loader2, Save, X } from 'lucide-react';
 
-const MI_ID = 30;
+type FormFields = z.infer<typeof lostBookSchema.addOrUpdate>;
 
-interface StudentRow {
-    amst_Id: number;
-    amsT_FirstName: string;
-    amsT_MiddleName: string;
-    amsT_LastName: string;
-    registrationNo: string;
-    admNo: string;
-    rollNo: number;
-    checked: boolean;
-}
-
-interface HeadRow {
-    slno: number;
-    fmH_Id: number;
-    fmG_Id?: number;
-    ftI_Id?: number;
-    fmH_FeeName: string;
-    ftI_Name: string;
-    fmA_Amount: number;
-    type: 'Amount' | 'Percentage' | '';
-    concessionValue: number;
-    remarks: string;
-    checked: boolean;
-}
-
-type AddFeeConcessionFormProps = {
+interface AddLostBookFormProps {
     onSuccess?: () => void;
-    pageAcademicYear?: number | null;
-};
+    onCancel?: () => void;
+    className?: string;
+}
 
-export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: AddFeeConcessionFormProps) {
-    const { control, watch, reset, setValue } = useForm();
-    const { isEditFormOpen, selectedRow } = useGlobalFormContext<any>();
+export default function AddLostBookForm({ onSuccess, onCancel, className = '' }: AddLostBookFormProps) {
+    const { refetchAll } = useLostBookList();
 
-    const [selectionType, setSelectionType] = useState<
-        'classwise' | 'categorywise' | 'leftstudent' | 'feecategorywise' | 'Admissionnosearch' | 'Staff' | 'Others'
-    >('classwise');
+    const [loading, setLoading] = useState(false);
+    const [bookOptions, setBookOptions] = useState<any[]>([]);
+    const [authorOptions, setAuthorOptions] = useState<{ id: number; name: string }[]>([]);
 
-    const [studentSearch, setStudentSearch] = useState('');
-    const [headSearch, setHeadSearch] = useState('');
-    const [students, setStudents] = useState<StudentRow[]>([]);
-    const [heads, setHeads] = useState<HeadRow[]>([]);
-    const [saving, setSaving] = useState(false);
-    const [selectedStudentAmstId, setSelectedStudentAmstId] = useState<number>(0);
-    const searchParams = useSearchParams();
-    const academicYearId = watch('academicYearId');
-    const classId = watch('classId');
-    const categoryId = watch('categoryId');
-    const feeCategoryId = watch('feeCategoryId');
-    const termIds: string[] = watch('termIds') || [];
-    const admissionNo = watch('admissionNo'); // selected adm no from dropdown
+    // Add state for book category and type filters
+    const [bookCategory, setBookCategory] = useState<'book' | 'nonbook'>('book');
+    const [bookType, setBookType] = useState<'issue' | 'ref'>('issue');
 
-    const { data: configSetData } = useFeeConcessionConfigSet(Number(academicYearId || 0));
-    const configSettings = configSetData?.data?.[0];
-    const groupOrTermFlg = configSettings?.fmC_GroupOrTermFlg;
-    const enableStaffTrans = configSettings?.fmC_EableStaffTrans === 1;
-    const enableOtherStudentTrans = configSettings?.fmC_EableOtherStudentTrans === 1;
-
-    const { data: academicYears, isLoading: loadingAY } = useconcessionacademicyerdropdowndatafee(MI_ID);
-    const { data: terms, isLoading: loadingTerms } = useFeeConcessionTermDropdowndata(String(groupOrTermFlg), Number(academicYearId || 0));
-    const { data: classes, isLoading: loadingClasses } = useFeeConcessionClassDropdowndata(MI_ID);
-    const { data: categories, isLoading: loadingCategories } = useFeeConcessionCategoryDropdowndata(MI_ID);
-    const { data: feeConcessionCategories, isLoading: loadingfeeConcessionCategories } =
-        useFeeConcessionCategoryFeeConcessionDropdowndata();
-    const selectedAmstIdFromAdm = selectedStudentAmstId;
-    const apiSearchParams = searchParams ? Object.fromEntries(searchParams.entries()) : {};
-
-    const hasFilterId =
-        selectionType === 'classwise' || selectionType === 'leftstudent'
-            ? !!classId
-            : selectionType === 'categorywise'
-              ? !!categoryId
-              : selectionType === 'feecategorywise'
-                ? !!feeCategoryId
-                : selectionType === 'Admissionnosearch'
-                  ? !!admissionNo
-                  : false;
-
-    const shouldFetchStudentsNormally = !!academicYearId && hasFilterId && selectionType !== 'Admissionnosearch';
-
-    const studentQuery = useFeeConcessionStudentList(
-        String(selectionType || ''),
-        Number(academicYearId || 0),
-        Number(classId || 0),
-        Number(categoryId || 0),
-        Number(feeCategoryId || 0),
-        apiSearchParams as any
-    );
-
-    const normalizeArray = (resp: any): any[] => {
-        if (!resp) return [];
-        if (Array.isArray(resp)) return resp;
-        if (resp.data && Array.isArray(resp.data)) return resp.data;
-        if (resp.result && Array.isArray(resp.result)) return resp.result;
-        if (typeof resp === 'object') {
-            for (const v of Object.values(resp)) {
-                if (Array.isArray(v)) return v;
-            }
+    const {
+        register,
+        handleSubmit,
+        reset,
+        setValue,
+        formState: { errors, isSubmitting }
+    } = useForm<FormFields>({
+        resolver: zodResolver(lostBookSchema.addOrUpdate),
+        mode: 'onChange',
+        defaultValues: {
+            LMBANO_AvialableStatus: 'lost',
+            LMBANO_LostDamagedDate: format(new Date(), 'yyyy-MM-dd'),
+            LMBANO_LostDamagedReason: '',
+            LMBANO_ModeOfPayment: undefined
         }
-        return [];
+    });
+
+    // Load book options when category or type changes
+    useEffect(() => {
+        loadBookOptions();
+    }, [bookCategory, bookType]);
+
+    const loadBookOptions = async () => {
+        try {
+            const response = await getBookListDropdown(bookCategory, bookType);
+            if (response.success && Array.isArray(response.data)) {
+                setBookOptions(response.data);
+                // Clear selected book when filters change
+                setValue('LMBANO_Id', undefined as any);
+                setAuthorOptions([]);
+            }
+        } catch (error) {
+            console.error('Failed to load book options:', error);
+            toast.error('Failed to load book options');
+        }
     };
 
-    useEffect(() => {
-        if (pageAcademicYear && !watch('academicYearId')) {
-            setValue('academicYearId', Number(pageAcademicYear));
-        }
-    }, [pageAcademicYear, setValue, watch]);
-
-    // Normal student fetch (non-Admissionnosearch modes)
-    useEffect(() => {
-        if (isEditFormOpen || selectionType === 'Admissionnosearch') return;
-
-        const rows = normalizeArray(studentQuery.data);
-        if (rows.length > 0 && shouldFetchStudentsNormally) {
-            const mapped = rows.map((s: any) => ({
-                amst_Id: s.amsT_Id ?? s.AMST_Id ?? 0,
-                amsT_FirstName: s.amsT_FirstName ?? '',
-                amsT_MiddleName: s.amsT_MiddleName ?? '',
-                amsT_LastName: s.amsT_LastName ?? '',
-                registrationNo: s.amsT_RegistrationNo ?? '—',
-                admNo: s.amsT_AdmNo ?? '—',
-                rollNo: s.amaY_RollNo ?? 0,
-                checked: false
-            }));
-            setStudents(mapped);
-            setStudentSearch('');
-        } else {
-            setStudents([]);
-        }
-    }, [studentQuery.data, shouldFetchStudentsNormally, isEditFormOpen, selectionType]);
-
-    // New: Fetch full student data when admissionNo is selected
-    const { data: singleStudentData } = useFeeConcessionStudentData(
-        Number(academicYearId || 0),
-        selectedAmstIdFromAdm,
-        apiSearchParams as any
-    );
-
-    // Admissionnosearch mode: load single student
-    useEffect(() => {
-        if (selectionType !== 'Admissionnosearch' || !singleStudentData || isEditFormOpen) return;
-
-        const rows = normalizeArray(singleStudentData);
-        if (rows.length > 0) {
-            const s = rows[0];
-            const studentRow: StudentRow = {
-                amst_Id: s.amsT_Id ?? 0,
-                amsT_FirstName: s.amsT_FirstName ?? '',
-                amsT_MiddleName: s.amsT_MiddleName ?? '',
-                amsT_LastName: s.amsT_LastName ?? '',
-                registrationNo: s.amsT_RegistrationNo ?? '—',
-                admNo: s.amsT_AdmNo ?? '—',
-                rollNo: s.amaY_RollNo ?? 0,
-                checked: true
-            };
-            setStudents([studentRow]);
-        } else {
-            setStudents([]);
-        }
-    }, [singleStudentData, selectionType, isEditFormOpen]);
-
-    const selectedStudent = students.find((s) => s.checked);
-    const selectedAmsT_Id = selectedStudent?.amst_Id || 0;
-
-    const shouldShowHeads = students.length > 0 && (termIds.length > 0 || isEditFormOpen);
-
-    const selectedTermIds: number[] = Array.from(new Set(termIds.map(Number).filter((id) => id > 0)));
-
-    const headQuery = useFeeConcessionHeadDetailsList(
-        Number(academicYearId || 0),
-        selectedAmsT_Id,
-        selectedTermIds,
-        String(groupOrTermFlg),
-        apiSearchParams
-    );
-
-    useEffect(() => {
-        if (isEditFormOpen) return;
-
-        const rows = normalizeArray(headQuery.data);
-        if (rows.length > 0 && shouldShowHeads) {
-            const mappedHeads = rows.map((h: any, i: number) => ({
-                slno: i + 1,
-                fmH_Id: h.fmH_Id ?? 0,
-                fmG_Id: h.fmG_Id ?? 0,
-                ftI_Id: h.ftI_Id ?? 0,
-                fmH_FeeName: h.fmH_FeeName ?? '',
-                ftI_Name: h.ftI_Name ?? 'Yearly',
-                fmA_Amount: h.fmA_Amount ?? 0,
-                type: '' as 'Amount' | 'Percentage' | '',
-                concessionValue: 0,
-                remarks: '',
-                checked: false
-            }));
-            setHeads(mappedHeads);
-            setHeadSearch('');
-        } else {
-            setHeads([]);
-        }
-    }, [headQuery.data, shouldShowHeads, isEditFormOpen]);
-
-    useEffect(() => {
-        setStudents([]);
-        setHeads([]);
-        setStudentSearch('');
-        setHeadSearch('');
-        setValue('classId', undefined);
-        setValue('categoryId', undefined);
-        setValue('feeCategoryId', undefined);
-        setValue('admissionNo', undefined);
-        setValue('termIds', []);
-        setSelectedStudentAmstId(0);
-    }, [selectionType, setValue]);
-
-    const filteredStudents = useMemo(
-        () =>
-            students.filter((s) => {
-                const fullName = `${s.amsT_FirstName} ${s.amsT_MiddleName} ${s.amsT_LastName}`.trim().toLowerCase();
-                const search = studentSearch.toLowerCase();
-                return fullName.includes(search) || s.admNo.toLowerCase().includes(search);
-            }),
-        [students, studentSearch]
-    );
-
-    const filteredHeads = useMemo(
-        () =>
-            heads.filter((h) => {
-                const search = headSearch.toLowerCase();
-                return h.fmH_FeeName.toLowerCase().includes(search) || (h.ftI_Name || '').toLowerCase().includes(search);
-            }),
-        [heads, headSearch]
-    );
-
-    const toggleStudent = (amst_Id: number) => {
-        setStudents((prev) => prev.map((s) => ({ ...s, checked: s.amst_Id === amst_Id })));
-    };
-
-    const studentColumns: ColumnDef<StudentRow>[] = [
-        {
-            id: 'select',
-            header: () => <div className='w-10' />,
-            cell: ({ row }) => <Checkbox checked={row.original.checked} onCheckedChange={() => toggleStudent(row.original.amst_Id)} />,
-            size: 50
-        },
-        {
-            accessorKey: 'slno',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
-            cell: ({ row, table }) => {
-                const index = table.getSortedRowModel().rows.findIndex((r) => r.id === row.id);
-                return <div className='pl-6'>{index + 1}</div>;
-            }
-        },
-        { accessorKey: 'admNo', header: 'Adm No', size: 140 },
-        { accessorKey: 'registrationNo', header: 'Reg No', size: 140 },
-        {
-            accessorFn: (row) => `${row.amsT_FirstName} ${row.amsT_MiddleName} ${row.amsT_LastName}`.trim(),
-            id: 'fullName',
-            header: 'Student Name'
-        },
-        {
-            accessorKey: 'rollNo',
-            header: 'Roll No',
-            size: 80,
-            cell: ({ row }) => <div className='text-center'>{row.original.rollNo || '-'}</div>
-        }
-    ];
-
-    const headColumns: ColumnDef<HeadRow>[] = [
-        {
-            accessorKey: 'slno',
-            header: 'S.No',
-            size: 70,
-            cell: ({ row }) => <div className='text-center'>{row.original.slno}</div>
-        },
-        {
-            id: 'select',
-            header: () => <></>,
-            cell: ({ row }) => (
-                <Checkbox
-                    checked={row.original.checked}
-                    onCheckedChange={(checked) => {
-                        setHeads((prev) => prev.map((item, idx) => (idx === row.index ? { ...item, checked: !!checked } : item)));
-                    }}
-                />
-            ),
-            size: 60
-        },
-        { accessorKey: 'fmH_FeeName', header: 'Fee Head', size: 300 },
-        { accessorKey: 'ftI_Name', header: 'Installment', size: 160 },
-        {
-            id: 'type',
-            header: 'Type',
-            size: 160,
-            cell: ({ row }) => (
-                <Select
-                    value={row.original.type || ''}
-                    onValueChange={(value) => {
-                        setHeads((prev) =>
-                            prev.map((item, idx) =>
-                                idx === row.index ? { ...item, type: value as 'Amount' | 'Percentage', concessionValue: 0 } : item
-                            )
-                        );
-                    }}>
-                    <SelectTrigger className='h-9'>
-                        <SelectValue placeholder='Select' />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value='Amount'>Amount</SelectItem>
-                        <SelectItem value='Percentage'>Percentage</SelectItem>
-                    </SelectContent>
-                </Select>
-            )
-        },
-        {
-            accessorKey: 'fmA_Amount',
-            header: 'Amount',
-            size: 140,
-            cell: ({ row }) => <div className='pr-3 text-right font-medium'>{row.original.fmA_Amount.toLocaleString()}</div>
-        },
-        {
-            id: 'concession',
-            header: 'Concession',
-            size: 200,
-            cell: ({ row }) => (
-                <Input
-                    type='number'
-                    min='0'
-                    max={row.original.type === 'Percentage' ? 100 : undefined}
-                    placeholder={row.original.type === 'Percentage' ? '0-100' : '0'}
-                    className='text-right'
-                    value={row.original.concessionValue ?? ''}
-                    onChange={(e) => {
-                        const inputVal = e.target.value;
-                        const val = inputVal === '' ? 0 : Number(inputVal);
-
-                        setHeads((prev) => prev.map((item, idx) => (idx === row.index ? { ...item, concessionValue: val } : item)));
-                    }}
-                />
-            )
-        },
-        {
-            id: 'remarks',
-            header: 'Remarks',
-            size: 280,
-            cell: ({ row }) => (
-                <Input
-                    placeholder='Optional'
-                    value={row.original.remarks || ''}
-                    onChange={(e) => {
-                        setHeads((prev) => prev.map((item, idx) => (idx === row.index ? { ...item, remarks: e.target.value } : item)));
-                    }}
-                />
-            )
-        }
-    ];
-
-    const editAsmaY = Number(selectedRow?.asmaY_Id ?? selectedRow?.asmaYId ?? selectedRow?.ASMAY_Id ?? pageAcademicYear ?? 0);
-    const editFsciId = Number(selectedRow?.fscI_ID ?? selectedRow?.fscIId ?? selectedRow?.fsciId ?? selectedRow?.fsC_Id ?? 0);
-    const { data: editResponse } = useFeeConcessionEdit(editAsmaY, editFsciId, apiSearchParams as any);
-
-    useEffect(() => {
-        if (!isEditFormOpen || !editResponse) return;
-
-        const rows = normalizeArray(editResponse);
-        if (rows.length === 0) return;
-
-        const firstRow = rows[0];
-
-        const ayId = Number(firstRow.asmaY_Id ?? firstRow.ASMAY_Id ?? editAsmaY ?? 0);
-        if (ayId > 0) setValue('academicYearId', ayId);
-
-        let newSelectionType: typeof selectionType = 'Admissionnosearch';
-
-        if (firstRow.asmcL_ID || firstRow.asmcL_Id || firstRow.classname) {
-            newSelectionType = 'classwise';
-            setValue('classId', Number(firstRow.asmcL_ID ?? firstRow.asmcL_Id ?? 0));
-        } else if (firstRow.fmcC_Id || firstRow.fmcCId) {
-            setValue('feeCategoryId', String(firstRow.fmcC_Id ?? firstRow.fmcCId ?? ''));
-        } else if (firstRow.amsT_AdmNo) {
-            newSelectionType = 'Admissionnosearch';
-            setValue('admissionNo', String(firstRow.amsT_AdmNo));
-        }
-
-        setSelectionType(newSelectionType);
-
-        const termIdsFromData = Array.from(new Set(rows.map((r: any) => r.fmT_Id ?? r.fmG_Id ?? r.ftI_Id).filter(Boolean))).map(String);
-
-        if (termIdsFromData.length > 0) {
-            setValue('termIds', termIdsFromData);
-        }
-
-        const studentEntry: StudentRow = {
-            amst_Id: Number(firstRow.amst_Id ?? firstRow.AMST_Id ?? 0),
-            amsT_FirstName: firstRow.amsT_FirstName ?? '',
-            amsT_MiddleName: firstRow.amsT_MiddleName ?? '',
-            amsT_LastName: firstRow.amsT_LastName ?? '',
-            registrationNo: firstRow.amsT_RegistrationNo ?? '—',
-            admNo: firstRow.amsT_AdmNo ?? '—',
-            rollNo: firstRow.amaY_RollNo ?? 0,
-            checked: true
-        };
-        setStudents([studentEntry]);
-
-        const mappedHeads: HeadRow[] = rows.map((r: any, i: number) => ({
-            slno: i + 1,
-            fmH_Id: Number(r.fmH_Id ?? 0),
-            fmG_Id: Number(r.fmG_Id ?? 0),
-            ftI_Id: Number(r.ftI_Id ?? 0),
-            fmH_FeeName: r.fmH_FeeName ?? '',
-            ftI_Name: r.ftI_Name ?? 'Yearly',
-            fmA_Amount: Number(r.fmA_Amount ?? 0),
-            type: (r.fsC_ConcessionType || '').toLowerCase() === 'percentage' ? 'Percentage' : ('Amount' as any),
-            concessionValue: Number(r.fscI_ConcessionAmount ?? 0),
-            remarks: r.fsC_ConcessionReason ?? '',
-            checked: true
-        }));
-
-        setHeads(mappedHeads);
-    }, [isEditFormOpen, editResponse, setValue, editAsmaY]);
-
-    const onSubmit = async () => {
-        const selectedStudent = students.find((s) => s.checked);
-        if (!selectedStudent) return toast.error('Please select a student');
-
-        if (!termIds.length && !isEditFormOpen) return toast.error('Select Term');
-
-        if (heads.length === 0) return toast.error('No fee heads loaded');
-
-        const selectedHeads = heads.filter((h) => h.checked && h.concessionValue > 0);
-        if (selectedHeads.length === 0) return toast.error('Please apply concession on at least one head');
+    const handleBookSelect = async (bookId: number) => {
+        // Set the book ID in the form
+        setValue('LMBANO_Id', bookId.toString());
 
         try {
-            setSaving(true);
+            const response = await getAuthorNameDropdown(bookId);
 
-            const SaveTempData = [{ AMST_Id: selectedStudent.amst_Id }];
-
-            const SaveTempData1 = selectedHeads.map((h) => ({
-                FMG_Id: h.fmG_Id || 0,
-                FMH_Id: h.fmH_Id,
-                FTI_Id: h.ftI_Id || 0,
-                FSC_ConcessionReason: h.remarks || '',
-                FSCI_ConcessionAmount: h.concessionValue
-            }));
-
-            const payload: any = {
-                ASMAY_Id: Number(academicYearId),
-                SaveTempData,
-                SaveTempData1
-            };
-
-            if (isEditFormOpen && selectedRow) {
-                payload.FSC_Id = Number(selectedRow?.FSC_Id ?? selectedRow?.fsc_Id ?? selectedRow?.fsC_Id ?? 0);
-                payload.FSCI_ID = Number(selectedRow?.FSCI_ID ?? selectedRow?.fsci_Id ?? selectedRow?.fscI_ID ?? selectedRow?.fscIId ?? 0);
-            } else {
-                payload.RadioBtnValue = selectionType;
-                payload.SaveTempData1 = SaveTempData1.map((item) => {
-                    const head = heads.find((h) => h.fmH_Id === item.FMH_Id);
-                    return {
-                        ...item,
-                        FSC_ConcessionType: head?.type === 'Percentage' ? 'Percentage' : 'Amount'
-                    };
-                });
+            if (response.success && Array.isArray(response.data)) {
+                setAuthorOptions(response.data);
             }
-
-            const response = await saveFeeHead(payload);
-
-            const message =
-                response?.data?.message ||
-                response?.message ||
-                (isEditFormOpen ? 'Fee Concession Updated Successfully!' : 'Fee Concession Saved Successfully!');
-
-            toast.success(message);
-
-            reset();
-            setStudents([]);
-            setHeads([]);
-            setStudentSearch('');
-            setHeadSearch('');
-            onSuccess?.();
-        } catch (err: any) {
-            const errorMessage = err?.response?.data?.message || err?.response?.data?.error || err?.message || 'Failed to save concession';
-
-            toast.error(errorMessage);
-        } finally {
-            setSaving(false);
+        } catch (error) {
+            console.error('Failed to load authors:', error);
+            toast.error('Failed to load author information');
         }
     };
 
-    const showTermField = selectionType === 'Admissionnosearch' ? !!academicYearId && !!admissionNo : !!academicYearId && hasFilterId;
-    const showStudentTable = students.length > 0 && (termIds.length > 0 || isEditFormOpen);
+    const onSubmit: SubmitHandler<FormFields> = async (data) => {
+        try {
+            setLoading(true);
 
-    const radioOptions = [
-        { value: 'classwise', label: 'Book' },
-        { value: 'categorywise', label: 'Non Book' },
+            // Add user ID and other required fields
+            const submitData = {
+                ...data
+            };
 
-        ...(enableStaffTrans ? [{ value: 'Staff', label: 'Staff' }] : []),
-        ...(enableOtherStudentTrans ? [{ value: 'Others', label: 'Others' }] : [])
-    ];
+            const response = await saveLostBookRecord(submitData);
 
-    const radioIssueReferenceOptions = [
-        { value: 'classwise', label: 'Issue' },
-        { value: 'categorywise', label: 'Reference' },
+            if (response.success) {
+                toast.success('Lost book record saved successfully');
+                reset();
+                setAuthorOptions([]);
+                refetchAll();
+                onSuccess?.();
+            } else {
+                toast.error(response.message || 'Failed to save record');
+            }
+        } catch (error: any) {
+            toast.error(error.message || 'An error occurred');
+        } finally {
+            setLoading(false);
+        }
+    };
 
-        ...(enableStaffTrans ? [{ value: 'Staff', label: 'Staff' }] : []),
-        ...(enableOtherStudentTrans ? [{ value: 'Others', label: 'Others' }] : [])
-    ];
+    const handleReset = () => {
+        reset({
+            LMBANO_AvialableStatus: 'lost',
+            LMBANO_LostDamagedDate: format(new Date(), 'yyyy-MM-dd'),
+            LMBANO_LostDamagedReason: '',
+            LMBANO_ModeOfPayment: undefined
+        });
+        setAuthorOptions([]);
+        setBookCategory('book');
+        setBookType('issue');
+    };
 
     return (
-        <div className='mx-auto max-w-7xl space-y-8 p-4 md:p-6'>
-            <Card className='overflow-hidden border-2 border-blue-100 pb-9 shadow-xl'>
-                <CardContent className='p-4'>
-                    <div className='flex justify-center'>
-                        <RadioGroup
-                            value={selectionType}
-                            onValueChange={(v) => setSelectionType(v as any)}
-                            className='flex flex-wrap justify-center gap-4 rounded-2xl p-4'>
-                            {radioOptions.map((item) => (
-                                <div key={item.value} className='flex items-center space-x-4'>
-                                    <RadioGroupItem value={item.value} id={item.value} className='h-6 w-6 border-2' />
-                                    <Label
-                                        htmlFor={item.value}
-                                        className='cursor-pointer font-semibold text-gray-800 text-sm transition-all'>
-                                        {item.label}
-                                    </Label>
-                                </div>
-                            ))}
-                        </RadioGroup>
+        <form onSubmit={handleSubmit(onSubmit)} className={`space-y-6 p-4 ${className}`}>
+            <div className='mb-6 text-center'>
+                <h2 className='font-bold text-2xl'>LOST BOOK</h2>
+            </div>
+
+            {/* Book Category Selection - BOOK/NON-BOOK */}
+            <div className='space-y-4'>
+                <Label className='font-semibold text-lg'>Book Category</Label>
+                <RadioGroup
+                    value={bookCategory}
+                    onValueChange={(value: 'book' | 'nonbook') => setBookCategory(value)}
+                    className='flex space-x-4'>
+                    <div className='flex items-center space-x-2'>
+                        <RadioGroupItem value='book' id='book-category' />
+                        <Label htmlFor='book-category'>BOOK</Label>
                     </div>
-
-                    <div className='flex justify-center'>
-                        <RadioGroup
-                            value={selectionType}
-                            onValueChange={(v) => setSelectionType(v as any)}
-                            className='flex flex-wrap justify-center gap-4 rounded-2xl p-4'>
-                            {radioIssueReferenceOptions.map((item) => (
-                                <div key={item.value} className='flex items-center space-x-4'>
-                                    <RadioGroupItem value={item.value} id={item.value} className='h-6 w-6 border-2' />
-                                    <Label
-                                        htmlFor={item.value}
-                                        className='cursor-pointer font-semibold text-gray-800 text-sm transition-all'>
-                                        {item.label}
-                                    </Label>
-                                </div>
-                            ))}
-                        </RadioGroup>
+                    <div className='flex items-center space-x-2'>
+                        <RadioGroupItem value='nonbook' id='nonbook-category' />
+                        <Label htmlFor='nonbook-category'>NON-BOOK</Label>
                     </div>
-                </CardContent>
-                <CardContent className='space-y-6 pt-6'>
-                    <div className='grid gap-6 md:grid-cols-2'>
-                        <div className='flex flex-col gap-2'>
-                            <Label className='font-medium'>
-                                Academic Year <span className='text-red-500'>*</span>
-                            </Label>
-                            <Controller
-                                control={control}
-                                name='academicYearId'
-                                render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value?.toString()}>
-                                        <SelectTrigger className='h-12'>
-                                            <SelectValue placeholder={loadingAY ? 'Loading...' : 'Select Academic Year'} />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {academicYears?.data?.map((ay: any) => (
-                                                <SelectItem key={ay.asmaY_Id} value={String(ay.asmaY_Id)}>
-                                                    {ay.asmaY_Year}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                        </div>
+                </RadioGroup>
+            </div>
 
-                        {(selectionType === 'classwise' || selectionType === 'leftstudent') && (
-                            <div className='flex flex-col gap-2'>
-                                <Label className='font-medium'>
-                                    Class <span className='text-red-500'>*</span>
-                                </Label>
-                                <Controller
-                                    control={control}
-                                    name='classId'
-                                    render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value?.toString()}>
-                                            <SelectTrigger className='h-12'>
-                                                <SelectValue placeholder={loadingClasses ? 'Loading...' : 'Select Class'} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {classes?.data?.map((cls: any) => (
-                                                    <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>
-                                                        {cls.asmcL_ClassName}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    )}
-                                />
-                            </div>
-                        )}
-
-                        {selectionType === 'categorywise' && (
-                            <div className='flex flex-col gap-2'>
-                                <Label className='font-medium'>
-                                    Category <span className='text-red-500'>*</span>
-                                </Label>
-                                <Controller
-                                    control={control}
-                                    name='categoryId'
-                                    render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value?.toString()}>
-                                            <SelectTrigger className='h-12'>
-                                                <SelectValue placeholder={loadingCategories ? 'Loading...' : 'Select Category'} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {categories?.data?.map((cat: any) => (
-                                                    <SelectItem key={cat.fmcC_Id} value={String(cat.fmcC_Id)}>
-                                                        {cat.fmcC_ConcessionName}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    )}
-                                />
-                            </div>
-                        )}
-
-                        {selectionType === 'feecategorywise' && (
-                            <div className='flex flex-col gap-2'>
-                                <Label className='font-medium'>
-                                    Fee Concession Category <span className='text-red-500'>*</span>
-                                </Label>
-                                <Controller
-                                    control={control}
-                                    name='feeCategoryId'
-                                    render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value?.toString()}>
-                                            <SelectTrigger className='h-12'>
-                                                <SelectValue
-                                                    placeholder={loadingfeeConcessionCategories ? 'Loading...' : 'Select Category'}
-                                                />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {feeConcessionCategories?.data?.map((cat: any) => (
-                                                    <SelectItem key={cat.fmcC_Id} value={String(cat.fmcC_Id)}>
-                                                        {cat.fmcC_ConcessionName}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    )}
-                                />
-                            </div>
-                        )}
-
-                        {selectionType === 'Admissionnosearch' && (
-                            <div className='flex flex-col gap-2'>
-                                <Label className='font-medium'>
-                                    Admission No <span className='text-red-500'>*</span>
-                                </Label>
-                                <Controller
-                                    control={control}
-                                    name='admissionNo'
-                                    render={({ field }) => {
-                                        const [searchQuery, setSearchQuery] = useState('');
-                                        const [open, setOpen] = useState(false);
-
-                                        // Search on every keystroke (even 1 character)
-                                        const { data: admissionNoData, isLoading: loadingAdmNo } = useFeeConcessionAdmissionNo(
-                                            Number(academicYearId || 0),
-                                            searchQuery,
-                                            apiSearchParams as any
-                                        );
-
-                                        const admissionOptions = useMemo(() => {
-                                            let items: any[] = [];
-                                            const raw = admissionNoData?.data || admissionNoData;
-
-                                            if (Array.isArray(raw)) {
-                                                items = raw;
-                                            } else if (raw && typeof raw === 'object' && 'amsT_AdmNo' in raw) {
-                                                items = [raw];
-                                            }
-
-                                            return items.map((item: any) => ({
-                                                value: String(item.amsT_AdmNo ?? ''),
-                                                label: String(item.amsT_AdmNo ?? ''),
-                                                amst_Id: Number(item.amst_Id ?? 0)
-                                            }));
-                                        }, [admissionNoData]);
-
-                                        return (
-                                            <Popover open={open} onOpenChange={setOpen}>
-                                                <PopoverTrigger asChild>
-                                                    <Button
-                                                        variant='outline'
-                                                        // role="combobox"
-                                                        aria-expanded={open}
-                                                        className='h-12 w-full justify-between text-left font-normal'>
-                                                        {field.value
-                                                            ? field.value
-                                                            : loadingAdmNo
-                                                              ? 'Searching...'
-                                                              : 'Search Admission No...'}
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className='w-full p-0' align='start'>
-                                                    <Command>
-                                                        <CommandInput
-                                                            placeholder='Type to search admission no...'
-                                                            value={searchQuery}
-                                                            onValueChange={(value) => {
-                                                                setSearchQuery(value);
-                                                                // Keep dropdown open while typing
-                                                                if (value.length > 0) setOpen(true);
-                                                            }}
-                                                            // Optional: auto-focus and open on click
-                                                            autoFocus
-                                                        />
-                                                        <CommandEmpty>
-                                                            {searchQuery ? 'No results found' : 'Start typing to search'}
-                                                        </CommandEmpty>
-                                                        <CommandGroup className='max-h-48 overflow-auto'>
-                                                            {/* ← This makes it scrollable and fixed height */}
-                                                            {admissionOptions.map((opt) => (
-                                                                <CommandItem
-                                                                    key={opt.value}
-                                                                    onSelect={() => {
-                                                                        field.onChange(opt.value);
-                                                                        setSelectedStudentAmstId(opt.amst_Id);
-                                                                        setOpen(false);
-                                                                        setSearchQuery(opt.label); // Show selected value in input
-                                                                    }}>
-                                                                    {opt.label}
-                                                                </CommandItem>
-                                                            ))}
-                                                        </CommandGroup>
-                                                    </Command>
-                                                </PopoverContent>
-                                            </Popover>
-                                        );
-                                    }}
-                                />
-                            </div>
-                        )}
-
-                        {showTermField && (
-                            <div className='flex flex-col gap-2'>
-                                <Label className='font-medium'>
-                                    Term Name <span className='text-red-500'>*</span>
-                                </Label>
-                                <Controller
-                                    control={control}
-                                    name='termIds'
-                                    render={({ field }) => (
-                                        <MultiSelect
-                                            options={
-                                                terms?.data?.map((t: any) => ({ label: t.fmG_GroupName, value: String(t.fmG_Id) })) || []
-                                            }
-                                            onValueChange={field.onChange}
-                                            defaultValue={field.value || []}
-                                            placeholder={loadingTerms ? 'Loading...' : 'Select Terms'}
-                                            className='h-12'
-                                        />
-                                    )}
-                                />
-                            </div>
-                        )}
+            {/* Book Type Selection - ISSUE/REFERENCE */}
+            <div className='space-y-4'>
+                <Label className='font-semibold text-lg'>Book Type</Label>
+                <RadioGroup value={bookType} onValueChange={(value: 'issue' | 'ref') => setBookType(value)} className='flex space-x-4'>
+                    <div className='flex items-center space-x-2'>
+                        <RadioGroupItem value='issue' id='issue-type' />
+                        <Label htmlFor='issue-type'>ISSUE</Label>
                     </div>
-                </CardContent>
-            </Card>
+                    <div className='flex items-center space-x-2'>
+                        <RadioGroupItem value='ref' id='ref-type' />
+                        <Label htmlFor='ref-type'>REFERENCE</Label>
+                    </div>
+                </RadioGroup>
+            </div>
 
-            {showStudentTable && (
-                <Card className='shadow-xl'>
-                    <CardHeader className='text-black'>
-                        <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                            <CardTitle className='text-2xl'>Student List ({selectedStudent ? 1 : 0} selected)</CardTitle>
-                            <Input
-                                placeholder='Search by name or admission no...'
-                                value={studentSearch}
-                                onChange={(e) => setStudentSearch(e.target.value)}
-                                className='h-10 w-full sm:max-w-sm'
-                            />
-                        </div>
-                    </CardHeader>
-                    <CardContent className='p-6'>
-                        <div className='overflow-hidden rounded-lg border bg-white'>
-                            <GenericDataTable
-                                columns={studentColumns}
-                                data={filteredStudents}
-                                isLoading={studentQuery.isLoading || (selectionType === 'Admissionnosearch' && !singleStudentData)}
-                                totalItems={filteredStudents.length}
-                                isPaginationRequired={false}
-                                isSearchRequired={false}
-                            />
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
+            {/* Book Selection */}
+            <div className='space-y-4'>
+                <Label htmlFor='LMBANO_Id'>
+                    Book Title: <span className='text-red-500'>*</span>
+                </Label>
+                <Select onValueChange={(value) => handleBookSelect(Number.parseInt(value))}>
+                    <SelectTrigger>
+                        <SelectValue placeholder={`Select ${bookCategory === 'book' ? 'book' : 'non-book'}...`} />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {bookOptions.length > 0 ? (
+                            bookOptions.map((book) => (
+                                <SelectItem key={book.lmbanO_Id} value={book.lmbanO_Id.toString()}>
+                                    {book.lmbanO_AccessionNo} :: {book.lmB_BookTitle}
+                                </SelectItem>
+                            ))
+                        ) : (
+                            <div className='p-2 text-center text-gray-500'>
+                                No {bookCategory === 'book' ? 'books' : 'non-books'} available
+                            </div>
+                        )}
+                    </SelectContent>
+                </Select>
+                {errors.LMBANO_Id && <p className='text-red-500 text-sm'>{errors.LMBANO_Id.message}</p>}
+            </div>
 
-            {shouldShowHeads && (
-                <Card className='shadow-xl'>
-                    <CardHeader className='text-black'>
-                        <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                            <CardTitle className='text-2xl'>Fee Head List</CardTitle>
-                            <Input
-                                placeholder='Search fee head or installment...'
-                                value={headSearch}
-                                onChange={(e) => setHeadSearch(e.target.value)}
-                                className='h-10 w-full sm:max-w-sm'
-                            />
-                        </div>
-                    </CardHeader>
-                    <CardContent className='p-6'>
-                        <div className='overflow-hidden rounded-lg border bg-white'>
-                            <GenericDataTable
-                                columns={headColumns}
-                                data={filteredHeads}
-                                isLoading={headQuery.isLoading}
-                                totalItems={filteredHeads.length}
-                                isPaginationRequired={false}
-                                isSearchRequired={false}
-                            />
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
+            {/* Author Name */}
+            <div className='space-y-4'>
+                <Label htmlFor='AuthorId'>Author Name:</Label>
+                <Select disabled={authorOptions.length === 0}>
+                    <SelectTrigger>
+                        <SelectValue placeholder={authorOptions.length === 0 ? 'Select book first' : 'Select author...'} />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {authorOptions.map((author) => (
+                            <SelectItem key={author.id} value={author.id.toString()}>
+                                {author.name}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
 
-            <div className='flex flex-col-reverse gap-4 border-t pt-6 sm:flex-row sm:justify-start'>
-                <Button
-                    size='lg'
-                    variant='outline'
-                    onClick={() => {
-                        reset();
-                        setStudents([]);
-                        setHeads([]);
-                        setStudentSearch('');
-                        setHeadSearch('');
-                    }}
-                    className='w-full transition-all duration-200 hover:scale-105 sm:w-auto'>
-                    <X className='mr-2 h-5 w-5' /> Cancel
+            {/* Lost Date */}
+            <div className='space-y-4'>
+                <Label htmlFor='LMBANO_LostDamagedDate'>
+                    Lost Date: <span className='text-red-500'>*</span>
+                </Label>
+                <Input id='LMBANO_LostDamagedDate' type='date' {...register('LMBANO_LostDamagedDate')} className='w-full' />
+                {errors.LMBANO_LostDamagedDate && <p className='text-red-500 text-sm'>{errors.LMBANO_LostDamagedDate.message}</p>}
+            </div>
+
+            {/* Price */}
+            <div className='space-y-4'>
+                <Label htmlFor='LMBANO_AmountCollected'>
+                    Price: <span className='text-red-500'>*</span>
+                </Label>
+                <Input id='LMBANO_AmountCollected' placeholder='Enter Lost/Damage Price' {...register('LMBANO_AmountCollected')} />
+                {errors.LMBANO_AmountCollected && <p className='text-red-500 text-sm'>{errors.LMBANO_AmountCollected.message}</p>}
+            </div>
+
+            {/* Mode of Payment */}
+            <div className='space-y-4'>
+                <Label className='font-semibold text-lg'>
+                    Mode Of Payment: <span className='text-red-500'>*</span>
+                </Label>
+                <RadioGroup
+                    onValueChange={(value) => setValue('LMBANO_ModeOfPayment', value as 'Cash' | 'Bank')}
+                    className='flex space-x-6'>
+                    <div className='flex items-center space-x-2'>
+                        <RadioGroupItem value='Cash' id='cash' />
+                        <Label htmlFor='cash'>Cash</Label>
+                    </div>
+                    <div className='flex items-center space-x-2'>
+                        <RadioGroupItem value='Bank' id='bank' />
+                        <Label htmlFor='bank'>Bank</Label>
+                    </div>
+                </RadioGroup>
+                {errors.LMBANO_ModeOfPayment && <p className='text-red-500 text-sm'>{errors.LMBANO_ModeOfPayment.message}</p>}
+            </div>
+
+            {/* Delete Reason */}
+            <div className='space-y-4'>
+                <Label htmlFor='LMBANO_LostDamagedReason'>Delete Reason:</Label>
+                <Textarea
+                    id='LMBANO_LostDamagedReason'
+                    placeholder='Enter the Remarks'
+                    {...register('LMBANO_LostDamagedReason')}
+                    rows={3}
+                />
+                {errors.LMBANO_LostDamagedReason && <p className='text-red-500 text-sm'>{errors.LMBANO_LostDamagedReason.message}</p>}
+            </div>
+
+            {/* Book Status */}
+            <div className='space-y-4'>
+                <Label className='font-semibold text-lg'>
+                    Book Status: <span className='text-red-500'>*</span>
+                </Label>
+                <RadioGroup
+                    defaultValue='lost'
+                    onValueChange={(value) => setValue('LMBANO_AvialableStatus', value as 'lost' | 'damaged')}
+                    className='flex space-x-6'>
+                    <div className='flex items-center space-x-2'>
+                        <RadioGroupItem value='lost' id='lost' />
+                        <Label htmlFor='lost'>Lost</Label>
+                    </div>
+                    <div className='flex items-center space-x-2'>
+                        <RadioGroupItem value='damaged' id='damaged' />
+                        <Label htmlFor='damaged'>Damaged</Label>
+                    </div>
+                </RadioGroup>
+                {errors.LMBANO_AvialableStatus && <p className='text-red-500 text-sm'>{errors.LMBANO_AvialableStatus.message}</p>}
+            </div>
+
+            {/* Buttons */}
+            <div className='flex justify-end space-x-4 pt-6'>
+                {onCancel && (
+                    <Button type='button' variant='outline' onClick={onCancel} className='flex items-center gap-2'>
+                        <X className='h-4 w-4' />
+                        CANCEL
+                    </Button>
+                )}
+                <Button type='button' variant='outline' onClick={handleReset} className='flex items-center gap-2'>
+                    RESET
                 </Button>
-                <Button
-                    size='lg'
-                    onClick={onSubmit}
-                    disabled={saving || !selectedStudent}
-                    isLoading={saving}
-                    className='w-full transition-all duration-200 hover:scale-105 sm:w-auto'>
-                    <Save className='mr-2 h-5 w-5' />
-                    Save Concession
+                <Button type='submit' disabled={isSubmitting || loading} className='flex items-center gap-2'>
+                    {isSubmitting || loading ? (
+                        <>
+                            <Loader2 className='h-4 w-4 animate-spin' />
+                            SAVING...
+                        </>
+                    ) : (
+                        <>
+                            <Save className='h-4 w-4' />
+                            SAVE
+                        </>
+                    )}
                 </Button>
             </div>
-        </div>
+        </form>
     );
 }
