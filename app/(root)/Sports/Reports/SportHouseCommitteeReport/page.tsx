@@ -1,0 +1,153 @@
+'use client';
+
+import React, { useState } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { sportHouseCommitteeReportSchema, type SportHouseCommitteeReportFormData } from './schema';
+import { useSportHouseCommitteeReport } from '@/hooks/sports/useSportHouseCommitteeReport';
+import { DataTable } from '@/components/ui/data-table/data-table';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Loader2 } from 'lucide-react';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { toast } from 'sonner';
+
+export default function SportHouseCommitteeReportPage() {
+    const { initialData, reportData } = useSportHouseCommitteeReport();
+    const [reportGenerated, setReportGenerated] = useState(false);
+
+    const {
+        control,
+        handleSubmit,
+        reset,
+        formState: { errors },
+    } = useForm<SportHouseCommitteeReportFormData>({
+        resolver: zodResolver(sportHouseCommitteeReportSchema),
+        defaultValues: {
+            asmaY_Id: undefined,
+            spccmH_Id: [],
+        },
+    });
+
+    const onSubmit = (data: SportHouseCommitteeReportFormData) => {
+        reportData.mutate(data);
+        setReportGenerated(true);
+    };
+
+    const columns = [
+        { accessorKey: 'id', header: 'SL. No.', cell: ({ row }: any) => <div>{row.index + 1}</div> },
+        { accessorKey: 'spccmhD_DesignationName', header: 'House Designation Name' },
+        { accessorKey: 'spccmH_HouseName', header: 'House Name' },
+        { accessorKey: 'studentname', header: 'Student Name' },
+        { accessorKey: 'amsT_AdmNo', header: 'Adm No.' },
+        { accessorKey: 'asmcL_ClassName', header: 'Class' },
+        { accessorKey: 'asmC_SectionName', header: 'Section' },
+        { accessorKey: 'spccmhC_ContactNo', header: 'Contact No' },
+        { accessorKey: 'spccmhC_EmailId', header: 'Email Id' },
+    ];
+
+    if (initialData.isLoading) {
+        return <div className="flex justify-center items-center h-full"><Loader2 className="animate-spin" /></div>;
+    }
+
+    const academicYears = initialData.data?.data?.academicYears || [];
+    const houses = initialData.data?.data?.houses || [];
+
+    const houseOptions = houses.map(h => ({
+        label: h.label,
+        value: h.id.toString(), // MultiSelect usually expects string values
+    }));
+
+    return (
+        <div className="space-y-6">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle>House Committee Report</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label>Academic Year <span className="text-red-500">*</span></Label>
+                                <Controller
+                                    control={control}
+                                    name="asmaY_Id"
+                                    render={({ field }) => (
+                                        <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="--Select Year--" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {academicYears.map((year) => (
+                                                    <SelectItem key={year.id} value={year.id.toString()}>
+                                                        {year.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
+                                {errors.asmaY_Id && <span className="text-sm text-destructive">{errors.asmaY_Id.message}</span>}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label>House Name <span className="text-red-500">*</span></Label>
+                                <Controller
+                                    control={control}
+                                    name="spccmH_Id"
+                                    render={({ field }) => (
+                                        <MultiSelect
+                                            options={houseOptions}
+                                            onValueChange={(vals) => field.onChange(vals.map(Number))}
+                                            defaultValue={field.value?.map(String) || []}
+                                            placeholder="Select House"
+                                            variant="default"
+                                            maxCount={3}
+                                        />
+                                    )}
+                                />
+                                {errors.spccmH_Id && <span className="text-sm text-destructive">{errors.spccmH_Id.message}</span>}
+                            </div>
+                        </div>
+
+                        <div className="flex justify-center space-x-2">
+                            <Button type="submit" disabled={reportData.isPending}>
+                                {reportData.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Report
+                            </Button>
+                            <Button type="button" variant="destructive" onClick={() => {
+                                reset();
+                                setReportGenerated(false);
+                            }}>
+                                Cancel
+                            </Button>
+                        </div>
+                    </form>
+                </CardContent>
+            </Card>
+
+            {reportGenerated && reportData.data?.data && (
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle>Report Details</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <DataTable
+                            columns={columns}
+                            data={reportData.data.data}
+                            totalItems={reportData.data.data.length}
+                            manualPagination={false}
+                        />
+                        <div className="flex justify-end space-x-2 mt-4">
+                            <Button onClick={() => window.print()}>Print</Button>
+                            {/* Excel export would typically be handled by a library or server endpoint */}
+                            <Button variant="outline" onClick={() => toast.info("Excel export implementation pending")}>Excel</Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+        </div>
+    );
+}

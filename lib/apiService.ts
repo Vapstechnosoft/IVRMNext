@@ -28,7 +28,7 @@ import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios';
 
 
 export type ApiBaseUrlKey = 'default' | 'preadmission' | 'admission' | 'fees' | 'exam' | 'hrms' | 'hrmsfrontoffice' | 'hmslms' | 'library'
-    | 'timetable' | 'inventory';
+    | 'timetable' | 'inventory'| 'sports';
 
 class ApiService {
     private instances: Map<string, AxiosInstance>;
@@ -49,7 +49,8 @@ class ApiService {
             hmslms: process.env.NEXT_PUBLIC_HRMS_LMS_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             library: process.env.NEXT_PUBLIC_LIBRARY_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             timetable: process.env.NEXT_PUBLIC_TIMETABLE_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
-            inventory: process.env.NEXT_PUBLIC_INVENTORY_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || ''
+            inventory: process.env.NEXT_PUBLIC_INVENTORY_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            sports: process.env.NEXT_PUBLIC_SPORTS_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || ''
         };
 
         // Debug: Log base URLs in development
