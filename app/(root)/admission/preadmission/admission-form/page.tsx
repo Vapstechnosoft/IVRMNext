@@ -41,8 +41,7 @@ function StudentApplicationPageContent({
     response,
     isLoading,
     error,
-    refetch,
-    masterConfig
+    refetch
 }: {
     response: any;
     isLoading: boolean;
@@ -96,7 +95,6 @@ function StudentApplicationPageContent({
                             onCloseSuccessDialog();
                             refetch();
                         }}
-                        fee_required={masterConfig?.data?.ispaC_ApplFeeFlag}
                     />
                 )}
                 {/* Forms */}

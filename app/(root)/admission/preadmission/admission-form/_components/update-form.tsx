@@ -2868,10 +2868,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         }
     }, [previousSchoolFields.length, appendPreviousSchool]);
 
-    // const updatePreviousSchool = (field: string, value: string) => {
-    //     setPreviousSchool({ ...previousSchool, [field]: value });
-    // };
-
     // Store selected document files locally until final submit (no immediate API calls)
     const _handleDocumentUpload = async (amsmD_Id: number, file: File, documentName: string) => {
         // Restrict file size and types

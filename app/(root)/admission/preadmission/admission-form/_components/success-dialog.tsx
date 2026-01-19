@@ -7,14 +7,12 @@ export default function ApplicationFormSuccessDialog({
     isOpen,
     onClose,
     title = 'Application Submitted Successfully',
-    message = 'Successfully submitted application form',
-    fee_required = false
+    message = 'Successfully submitted application form'
 }: {
     isOpen: boolean;
     onClose: () => void;
     title?: string;
     message?: string;
-    fee_required?: boolean;
 }) {
     return (
         <div className='flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4'>
