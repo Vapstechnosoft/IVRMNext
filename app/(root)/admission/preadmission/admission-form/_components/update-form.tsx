@@ -730,6 +730,14 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     } catch (_e) {
                         //ignore
                     }
+
+                    // Mother education / qualification mapping
+                    try {
+                        const med = payload.motherQualification ?? payload.motherEducation ?? payload.MotherEducation ?? '';
+                        if (med !== undefined && med !== null) setValue('motherQualification' as any, String(med));
+                    } catch (_e) {
+                        //ignore
+                    }
                 } catch (_e) {
                     // ignore
                 }
