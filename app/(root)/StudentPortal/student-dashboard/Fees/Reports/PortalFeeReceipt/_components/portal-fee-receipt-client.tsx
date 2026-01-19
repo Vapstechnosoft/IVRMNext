@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { useRef, useState } from 'react';
-import { useReactToPrint } from 'react-to-print';
+//import { useReactToPrint } from 'react-to-print';
 import { getReceiptDetails, getReceipts } from '../actions';
 import type { AcademicYear, FeeReceipt, ReceiptDetailsResponse } from '../types';
 
@@ -53,10 +53,10 @@ export default function PortalFeeReceiptClient({ initialYears }: PortalFeeReceip
         }
     };
 
-    const handlePrint = useReactToPrint({
-        contentRef: componentRef,
-        documentTitle: 'Fee Receipt'
-    });
+    // const handlePrint = useReactToPrint({
+    //     contentRef: componentRef,
+    //     documentTitle: 'Fee Receipt'
+    // });
 
     const handleDownload = () => {
         if (componentRef.current) {
@@ -135,9 +135,9 @@ export default function PortalFeeReceiptClient({ initialYears }: PortalFeeReceip
                         </div>
 
                         <div className='flex items-end space-x-2'>
-                            <Button onClick={handlePrint} disabled={!receiptData}>
+                            {/* <Button onClick={handlePrint} disabled={!receiptData}>
                                 Print
-                            </Button>
+                            </Button> */}
                             <Button onClick={handleDownload} disabled={!receiptData}>
                                 Download
                             </Button>
