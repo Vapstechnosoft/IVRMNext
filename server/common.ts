@@ -2541,20 +2541,36 @@ export async function getUserAccessibleModules() {
                                             url: '/StudentPortal/student-dashboard/EnrolledStudents/Transaction/OnlineTransferCertificate',
                                             title: 'Online Transfer Certificate',
                                             description: 'Apply for Transfer Certificate'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Attendance Details',
-                                            icon: 'ClipboardList',
-                                            url: '/StudentPortal/student-dashboard/EnrolledStudents/Transaction/AttendanceDetails',
-                                            title: 'Attendance Details',
                                         }
                                     ]
                                 }
                             ]
                         },
+
                         {
                             id: 2,
+                            name: 'Admission',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 2,
+                                    name: 'Admission',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 40001,
+                                            name: 'Attendance Details',
+                                            icon: 'ClipboardList',
+                                            url: '/StudentPortal/student-dashboard/EnrolledStudents/Transaction/AttendanceDetails',
+                                            title: 'Attendance Details'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+
+                        {
+                            id: 3,
                             name: 'Interaction',
                             icon: 'MessageSquare',
                             sub_menu: [
@@ -2576,7 +2592,7 @@ export async function getUserAccessibleModules() {
                             ]
                         },
                         {
-                            id: 3,
+                            id: 4,
                             name: 'Exam',
                             icon: 'BookOpen',
                             sub_menu: [
@@ -2598,7 +2614,7 @@ export async function getUserAccessibleModules() {
                             ]
                         },
                         {
-                            id: 4,
+                            id: 5,
                             name: 'Fees',
                             icon: 'Banknote',
                             sub_menu: [
@@ -2643,7 +2659,7 @@ export async function getUserAccessibleModules() {
                             ]
                         },
                         {
-                            id: 5,
+                            id: 6,
                             name: 'COE',
                             icon: 'Calendar',
                             sub_menu: [
