@@ -303,7 +303,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         payload.siblings = Array.isArray(payload.siblings)
             ? payload.siblings.map((s: any) => ({
                   ...s,
-                  amsts_Id: s?.amsts_Id ?? s?.id ?? ''
+                  amsts_Id: Number(s?.amsts_Id ?? s?.id ?? 0)
               }))
             : [];
         // Normalize guardian array to ensure guardian_Id is preserved
@@ -871,7 +871,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     if (siblingSource.length > 0) {
                         try {
                             const normalizedSibs = siblingSource.map((s: any) => ({
-                                amsts_Id: s?.amsts_Id ?? s?.id ?? '',
+                                amsts_Id: Number(s?.amsts_Id ?? s?.id ?? 0),
                                 name: s.name ?? s.pasrS_SiblingsName ?? s.siblingName ?? '',
                                 classId: Number(s.classId ?? s.pasrS_SiblingsClass ?? s.pasrS_SiblingsClassId ?? 0) || 0,
                                 relation: s.relation ?? s.relationShip ?? ''
@@ -1959,7 +1959,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
                     const siblingsSource = formData.siblings || [];
                     const siblingsList = (Array.isArray(siblingsSource) ? siblingsSource : []).map((s: any) => ({
-                        amsts_Id: s?.amsts_Id ?? s?.id ?? '',
+                        amsts_Id: Number(s?.amsts_Id ?? s?.id ?? 0),
                         name: s.pasrS_SiblingsName || s.name || s.siblingName || '',
                         classId: Number(s.pasrS_SiblingsClass || s.classId || s.pasrS_SiblingsClassId) || 0,
                         relation: s.relation || s.relationShip || ''
@@ -1967,10 +1967,10 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
                     const previousSchoolSource = formData.previousSchools || [];
                     const previousSchools = (Array.isArray(previousSchoolSource) ? previousSchoolSource : []).map((school: any) => ({
-                        amstpS_Id: school?.amstpS_Id ?? school?.id ?? '',
+                        amstpS_Id: school?.amstpS_Id ?? school?.id ?? 0,
                         schoolName: school.pasrpS_PrvSchoolName || school.schoolName || school.pasrS_SchoolName || '',
                         schoolType: school.schoolType || (school.pasrpS_schoolType ? String(school.pasrpS_schoolType) : '') || '',
-                        class: String(school.pasrpS_PreviousClass || school.classId || ''),
+                        class: String(school.pasrpS_PreviousClass || school.classId || school.class || ''),
                         percentage: school.pasrpS_PreviousPer || school.percentage || '',
                         grade: school.pasrpS_PreviousGrade || school.grade || '',
                         passedYear: (school.pasrpS_LeftYear ?? school.passedYear) ? Number(school.pasrpS_LeftYear ?? school.passedYear) : 0,
@@ -2460,6 +2460,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
                         const siblingsSource = formData.siblings || [];
                         const siblingsList = (Array.isArray(siblingsSource) ? siblingsSource : []).map((s: any) => ({
+                            amsts_Id: Number(s?.amsts_Id ?? s?.id ?? 0),
                             name: s.pasrS_SiblingsName || s.name || s.siblingName || '',
                             classId: Number(s.pasrS_SiblingsClass || s.classId || s.pasrS_SiblingsClassId) || 0,
                             relation: s.relation || s.relationShip || ''
@@ -4294,11 +4295,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                         <div key={field.id} className='flex w-full flex-col gap-1'>
                                                             <div className='flex items-center gap-2'>
                                                                 <div className='flex-1'>
-                                                                    {idx === 0 && (
-                                                                        <Label htmlFor={String(field.id)}>
-                                                                            Email <span className='text-red-500'>*</span>
-                                                                        </Label>
-                                                                    )}
+                                                                    {idx === 0 && <Label htmlFor={String(field.id)}>Email</Label>}
                                                                     <InputText
                                                                         {...register(fieldName)}
                                                                         id={String(field.id)}

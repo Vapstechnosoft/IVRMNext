@@ -7,6 +7,7 @@ import {
     createAlphanumericSchemaPanCard,
     createEmailSchema,
     createNumberOnlyStringSchema,
+    createOptionalAlphaNumericAllowBothSchema,
     createOptionalAlphaNumericSchema,
     createOptionalNumberOnlyPrecentageSchema,
     createOptionalNumberOnlyStringSchema,
@@ -410,7 +411,7 @@ export const studentAdmissionFormSchema = {
                         address: createOptionalStringWithLettersSchema('School Address', 1, 200),
                         leftReason: createStringOnlyOptionalSchema('Reason for Leaving', 1, 150),
                         medium: createStringOnlyOptionalSchema('Previous School Medium', 1, 100),
-                        tcNumber: createOptionalAlphaNumericSchema('TC Number', 1, 50),
+                        tcNumber: createOptionalAlphaNumericAllowBothSchema('TC Number', 1, 50),
                         tcDate: z.preprocess(
                             (val) =>
                                 val && (typeof val === 'string' || typeof val === 'number' || val instanceof Date) ? new Date(val) : null,

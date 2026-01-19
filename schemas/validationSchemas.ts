@@ -308,6 +308,24 @@ export function createOptionalAlphaNumericSchema(field: string, min: number, max
         .optional();
 }
 
+export function createOptionalAlphaNumericAllowBothSchema(field: string, min: number, max: number) {
+    return z
+        .union([
+            z.literal(''),
+            z
+                .string()
+                // Length rules
+                .min(min, { message: `${field} must have at least ${min} characters` })
+                .max(max, { message: `${field} must not exceed ${max} characters` })
+
+                // Letters, numbers, spaces inside only (no leading/trailing space)
+                .regex(/^(?!\s)[A-Za-z0-9 ]+(?<!\s)$/, {
+                    message: `${field} may contain letters, numbers, and spaces (no leading or trailing spaces)`
+                })
+        ])
+        .optional();
+}
+
 //pancard schema
 
 export function createAlphanumericSchemaPanCard(field: string, optional = false) {

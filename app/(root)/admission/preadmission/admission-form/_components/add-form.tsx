@@ -1995,12 +1995,13 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             const guardianValues = getValues(`guardian.${index}` as any) as any;
 
             const formData = new FormData();
-            formData.append('Guardian_Id', String(0));
+
             const resolvedAmsId = Number(getValues('amsT_Id' as any) || savedAmsTId || guardianValues?.AMST_Id || 0) || 0;
-            formData.append('AMST_Id', String(resolvedAmsId));
+            formData.append('AMST_Id', String(resolvedAmsId || '25611'));
             formData.append('MI_Id', String(guardianValues?.MI_Id ?? '30'));
             formData.append('GuardianName', guardianValues?.guardianName || '');
-            formData.append('GuardianPhone', guardianValues?.guardianPhone || '');
+            formData.append('GuardianPhone', (guardianValues?.guardianPhone || '').replace(/\D/g, ''));
+
             formData.append('GuardianEmail', guardianValues?.guardianEmail || '');
             formData.append('GuardianAddress', guardianValues?.guardianAddress || '');
             // Guardian Photo (binary)

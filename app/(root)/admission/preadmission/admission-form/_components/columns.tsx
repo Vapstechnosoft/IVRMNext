@@ -249,7 +249,7 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
                                     []
                                 ).map((s: any) => ({
                                     ...s,
-                                    amsts_Id: s?.amsts_Id ?? s?.id ?? ''
+                                    amsts_Id: s?.amstS_Id ?? s?.amsts_Id ?? s?.id ?? 0
                                 })),
                                 guardian: (src.guardians || src.guardian || src.guardiansDetails || []).map((g: any) => ({
                                     ...g,
@@ -316,7 +316,7 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
                                 })),
                                 siblings: (resp?.siblings || resp?.student_siblings || []).map((s: any) => ({
                                     ...s,
-                                    amsts_Id: s?.amsts_Id ?? s?.id ?? ''
+                                    amsts_Id: s?.amstS_Id ?? s?.amsts_Id ?? s?.id ?? 0
                                 })),
                                 guardian: (resp?.guardian || resp?.guardians || []).map((g: any) => ({
                                     ...g,
