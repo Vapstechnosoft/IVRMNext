@@ -1,69 +1,80 @@
 'use client';
 
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import type { IClassWork } from '@/schemas/upload/transactions/ivrm-classwork.schema';
-import { deleteClassWork } from '@/server/upload/transactions/ivrm-classwork/server-action';
-import { useState } from 'react';
-import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
+import { FormError } from '@/components/ui/extension/field';
+import { ClassWorkUploadedList } from '@/hooks/upload/transactions/useClassWork';
+import { classWorkSchema } from '@/schemas/upload/transactions/ivrm-classwork.schema';
+import { toggleUploadClassWork } from '@/server/upload/transactions/ivrm-classwork/server-action';
 
+import type { IClassWorkDetails } from '@/types/upload/reports/classwork-upload-report';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { type SubmitHandler, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import type { z } from 'zod';
+type FormFields = z.infer<typeof classWorkSchema.addOrUpdate>;
 interface ToggleClassWorkFormProps {
-    rowData: IClassWork;
+    rowData: IClassWorkDetails;
     onClose: () => void;
 }
 
 export default function ToggleClassWorkForm({ rowData, onClose }: ToggleClassWorkFormProps) {
-    const [isLoading, setIsLoading] = useState(false);
+    const payload = {
+        asmaY_Id: 176
+    };
+    const { refetchAll } = ClassWorkUploadedList(payload);
 
-    const handleConfirm = async () => {
-        if (!rowData.icW_Id) return;
-        setIsLoading(true);
+    const {
+        handleSubmit,
+        reset,
+        formState: { errors, isSubmitting }
+    } = useForm<FormFields>({
+        resolver: zodResolver(classWorkSchema.addOrUpdate),
+        mode: 'onChange',
+        defaultValues: {}
+    });
+
+    function closeDialog() {
+        onClose();
+        reset();
+    }
+
+    const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const result = await deleteClassWork(rowData.icW_Id);
-            if (result.success) {
-                toast.success(result.message);
-                onClose();
+            const response = await toggleUploadClassWork(Number(rowData.icW_Id));
+            if (response.success) {
+                toast.success(response.message);
+                refetchAll();
+                closeDialog();
             } else {
-                toast.error(result.message);
+                toast.error(response.message);
             }
-        } catch (error) {
-            toast.error('Failed to change status');
-        } finally {
-            setIsLoading(false);
+        } catch (error: any) {
+            toast.error(error.message);
         }
     };
 
     return (
-        <AlertDialog open={true} onOpenChange={onClose}>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        This will {rowData.icW_ActiveFlag ? 'deactivate' : 'activate'} the ClassWork record.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel disabled={isLoading} onClick={onClose}>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                        disabled={isLoading}
-                        onClick={(e) => {
-                            e.preventDefault();
-                            handleConfirm();
-                        }}
-                        className={rowData.icW_ActiveFlag ? 'bg-destructive hover:bg-destructive/90' : 'bg-green-600 hover:bg-green-700'}
-                    >
-                        {isLoading ? 'Processing...' : (rowData.icW_ActiveFlag ? 'Deactivate' : 'Activate')}
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
+        <AdaptiveDialog title='Class Work Upload Status' isOpen={true} onClose={closeDialog}>
+            <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
+                <AdaptiveBody className='flex flex-col gap-5'>
+                    <input type='hidden' defaultValue={rowData.icW_Id} />
+                    <p>
+                        Are you sure you want to {rowData.icW_ActiveFlag ? 'deactivate' : 'activate'} <strong>{rowData.icW_Content}</strong>
+                        ?
+                    </p>
+
+                    <FormError>{errors.root?.message}</FormError>
+                </AdaptiveBody>
+                <AdaptiveFooter>
+                    <Button variant='secondary' onClick={closeDialog} type='button'>
+                        Cancel
+                    </Button>
+                    <Button type='submit' isLoading={isSubmitting} variant={rowData.icW_ActiveFlag ? 'destructive' : 'default'}>
+                        {rowData.icW_ActiveFlag ? 'Deactivate' : 'Activate'}
+                    </Button>
+                </AdaptiveFooter>
+            </form>
+        </AdaptiveDialog>
     );
 }

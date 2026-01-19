@@ -1,6 +1,27 @@
+import { PORTAL_QUERY_KEYS } from '@/constants/query-keys';
+import { GetHomeWorkUploadedList } from '@/server/upload/transactions/ivrm-classwork/server-action';
 import { fetchInitialData } from '@/server/upload/transactions/ivrm-homework/server-action';
+import type { ApiSearchparams } from '@/types';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+
+export const HomeWorkUploadedList = (payload: any, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PORTAL_QUERY_KEYS.HOME_WORK_UPLOADED, searchParams ?? {}],
+            queryFn: async () => GetHomeWorkUploadedList(payload, searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [PORTAL_QUERY_KEYS.HOME_WORK_UPLOADED]
+            });
+        }
+    };
+};
 
 export const useHomeWork = (params?: any) => {
     const [data, setData] = useState<{

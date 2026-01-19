@@ -7,14 +7,13 @@ export const INVENTORY_QUERY_KEYS = {
     INV_MASTER_STORE: 'INV_MASTER_STORE',
     INV_MASTER_SUPPLIER: 'INV_MASTER_SUPPLIER',
     INV_MASTER_TAX: 'INV_MASTER_TAX',
-    INV_MASTER_GROUP: 'INV_MASTER_GROUP',
+    INV_MASTER_GROUP: 'INV_MASTER_GROUP'
 };
 
 export const SUPER_ADMIN_QUERY_KEYS = {
     SUPER_ADMIN_MASTER: 'super_admin_master',
     SUPER_ADMIN_MASTER_ORDER: 'super_admin_master_order'
 };
-
 
 export const ADMISSION_QUERY_KEYS = {
     MASTER_CLASS: 'master_class',
@@ -487,4 +486,8 @@ export const LIBRARY_QUERY_KEYS = {
     LIBRARY_LOST_BOOK_GRID: 'library_lost_book_grid',
     LIBRARY_ACADEMIC_YEAR_DROPDOWN: 'library_academic_year_dropdown',
     LIBRARY_LOST_BOOK_LIST: 'library_lost_book_list'
+};
+export const PORTAL_QUERY_KEYS = {
+    CLASS_WORK_UPLOADED: 'class_work_uploaded',
+    HOME_WORK_UPLOADED: 'home_work_uploaded'
 };

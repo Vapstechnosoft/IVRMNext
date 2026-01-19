@@ -1,37 +1,21 @@
-import { fetchInitialData } from '@/server/upload/transactions/ivrm-classwork/server-action';
-import { useCallback, useEffect, useState } from 'react';
-import { toast } from 'sonner';
+import { PORTAL_QUERY_KEYS } from '@/constants/query-keys';
+import { GetClassWorkUploadedList } from '@/server/upload/transactions/ivrm-classwork/server-action';
+import type { ApiSearchparams } from '@/types';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
-export const useClassWork = (searchParams: { [key: string]: string | string[] | undefined }) => {
-    const [data, setData] = useState<{
-        yearlist: any[];
-        classlist: any[];
-        classwork: any[];
-    } | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<any>(null);
-
-    const fetchData = useCallback(async () => {
-        setIsLoading(true);
-        try {
-            const result = await fetchInitialData();
-            setData(result);
-        } catch (err) {
-            setError(err);
-            toast.error('Failed to load initial data');
-        } finally {
-            setIsLoading(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+export const ClassWorkUploadedList = (payload: any, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
 
     return {
-        data,
-        isLoading,
-        error,
-        refetchAll: fetchData
+        ...useQuery({
+            queryKey: [PORTAL_QUERY_KEYS.CLASS_WORK_UPLOADED, searchParams ?? {}],
+            queryFn: async () => GetClassWorkUploadedList(payload, searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [PORTAL_QUERY_KEYS.CLASS_WORK_UPLOADED]
+            });
+        }
     };
 };

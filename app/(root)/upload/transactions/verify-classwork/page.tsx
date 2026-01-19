@@ -1,20 +1,22 @@
 'use client';
 
-import { Suspense, useEffect } from 'react';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import type { IClassWork } from '@/schemas/upload/transactions/ivrm-classwork.schema';
 import { Loader2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
-import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { useClassWork } from '@/hooks/upload/transactions/useClassWork';
-import type { IClassWork } from '@/schemas/upload/transactions/ivrm-classwork.schema';
-import { verifyClassWorkColumns } from './_components/columns';
+import { Suspense, useEffect } from 'react';
 import MarksEntryForm from './_components/marks-entry-form';
 import SearchForm from './_components/search-form';
 
 export default function VerifyClassWorkPage() {
     return (
-        <Suspense fallback={<div className='flex h-full items-center justify-center'><Loader2 className='h-8 w-8 animate-spin' /></div>}>
+        <Suspense
+            fallback={
+                <div className='flex h-full items-center justify-center'>
+                    <Loader2 className='h-8 w-8 animate-spin' />
+                </div>
+            }>
             <FormProvider<IClassWork>>
                 <VerifyClassWorkContent />
             </FormProvider>
@@ -33,32 +35,24 @@ function VerifyClassWorkContent() {
         subject: searchParams.get('subject') || undefined
     };
 
-    const { data, isLoading, error, refetchAll } = useClassWork(params);
+    // const { data, isLoading, error, refetchAll } = useClassWork(params);
     const { openDetailsView, closeDetailsView } = useFormContext<IClassWork>();
 
     const hasSearchFilters = params.year && params.class && params.section && params.subject;
 
     useEffect(() => {
-        if (hasSearchFilters && data?.classwork && data.classwork.length > 0) {
-            openDetailsView(data.classwork[0]);
-        } else {
-            closeDetailsView();
-        }
-    }, [data, hasSearchFilters, openDetailsView, closeDetailsView]);
+        // if (hasSearchFilters && data?.classwork && data.classwork.length > 0) {
+        //     openDetailsView(data.classwork[0]);
+        // } else {
+        //     closeDetailsView();
+        // }
+    }, [hasSearchFilters, openDetailsView, closeDetailsView]);
 
     return (
         <div className='container min-h-screen space-y-4 p-1'>
-            <CollapsibleSection
-                title='CLASSWORK MARKS UPDATE'
-                defaultOpen={true}
-                variant='default'
-                size='lg'
-                className='shadow-lg'>
+            <CollapsibleSection title='CLASSWORK MARKS UPDATE' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                 <div className='space-y-4'>
-                    <SearchForm
-                        yearList={data?.yearlist || []}
-                        classList={data?.classlist || []}
-                    />
+                    <SearchForm yearList={[]} classList={[]} />
                 </div>
             </CollapsibleSection>
 
