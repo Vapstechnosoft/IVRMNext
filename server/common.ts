@@ -3796,8 +3796,91 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                }
+                },
 
+ {
+                    id: 13,
+                    name: 'Super Admin',
+                    icon: 'Settings',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Super Admin Module',
+                            icon: 'Settings',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Master Trust',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Trust',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/masters/trust-master',
+                                            title: 'Master Trust',
+                                            description: 'Manage Master Trust Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Institution',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Institution',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/institution/master-institution',
+                                            title: 'Master Institution',
+                                            description: 'Manage Master Institution'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Institution Subscription',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/institution/institution-subscription',
+                                            title: 'Institution Subscription',
+                                            description: 'Manage Institution Subscription'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Auto Mapping',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/institution/auto-mapping',
+                                            title: 'Auto Mapping',
+                                            description: 'Manage Institution Auto Mapping'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'General Setting',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'General Setting Wizard',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/wizard',
+                                            title: 'General Setting Wizard',
+                                            description: 'General Setting Wizard'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Modules',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/module',
+                                            title: 'Modules',
+                                            description: 'Manage Master Modules'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
                
             ]
         };

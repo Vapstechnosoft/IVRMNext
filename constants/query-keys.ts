@@ -2,12 +2,20 @@ export const QUERY_KEYS = {
     USER_ACCESSIBLE_MODULES: 'user_accessible_modules',
     USER_NOTIFICATION: 'user_notification'
 };
+
 export const INVENTORY_QUERY_KEYS = {
     INV_MASTER_STORE: 'INV_MASTER_STORE',
     INV_MASTER_SUPPLIER: 'INV_MASTER_SUPPLIER',
     INV_MASTER_TAX: 'INV_MASTER_TAX',
     INV_MASTER_GROUP: 'INV_MASTER_GROUP',
 };
+
+export const SUPER_ADMIN_QUERY_KEYS = {
+    SUPER_ADMIN_MASTER: 'super_admin_master',
+    SUPER_ADMIN_MASTER_ORDER: 'super_admin_master_order'
+};
+
+
 export const ADMISSION_QUERY_KEYS = {
     MASTER_CLASS: 'master_class',
     MASTER_CATEGORY: 'master_category',
