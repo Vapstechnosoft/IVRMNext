@@ -27,11 +27,11 @@ export async function getAttendanceLoadData(data: any) {
     // Assumption: The backend API path follows the pattern /api/[Controller]/[Action]
     // or /api/StudentPortal/[Controller]/[Action]
     // Based on legacy code: "AttendanceDetails/getloaddata"
-    const url = `/api/AttendanceDetails/getloaddata`;
+    const url = '/api/AttendanceDetails/getloaddata';
     return await api.post<any>('default', url, data);
 }
 
 export async function getAttendanceData(data: { ASMAY_Id: number }) {
-    const url = `/api/AttendanceDetails/getAttdata`;
+    const url = '/api/AttendanceDetails/getAttdata';
     return await api.post<any>('default', url, data);
 }

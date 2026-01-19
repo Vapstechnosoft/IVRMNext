@@ -26,10 +26,22 @@ import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios';
 
 // Define available API base URLs
 
-
-
-export type ApiBaseUrlKey = 'default' | 'preadmission' | 'admission' | 'fees' | 'exam' | 'hrms' | 'hrmsfrontoffice' | 'hmslms' | 'library'| 'timetable' | 'inventory'| 'sports'|'alumni'| 'sadmin';
-
+export type ApiBaseUrlKey =
+    | 'default'
+    | 'preadmission'
+    | 'admission'
+    | 'fees'
+    | 'exam'
+    | 'hrms'
+    | 'hrmsfrontoffice'
+    | 'hmslms'
+    | 'library'
+    | 'timetable'
+    | 'inventory'
+    | 'sports'
+    | 'alumni'
+    | 'sadmin'
+    | 'portal';
 
 class ApiService {
     private instances: Map<string, AxiosInstance>;
@@ -54,8 +66,8 @@ class ApiService {
             inventory: process.env.NEXT_PUBLIC_INVENTORY_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             sports: process.env.NEXT_PUBLIC_SPORTS_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             alumni: process.env.NEXT_PUBLIC_ALUMNI_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
-            sadmin: process.env.NEXT_PUBLIC_SADMIN_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || ''
-
+            sadmin: process.env.NEXT_PUBLIC_SADMIN_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            portal: process.env.NEXT_PUBLIC_PORTAL_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || ''
         };
 
         // Debug: info base URLs in development
