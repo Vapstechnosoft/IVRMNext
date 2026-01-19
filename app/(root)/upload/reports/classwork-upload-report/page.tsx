@@ -1,16 +1,16 @@
 'use client';
 
 import { useDataTableProps } from '@/components/ui/data-table/generic-data-table';
-import { GenericDataTable } from '@/components/ui/view-data-table/view-generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { useEffect, useState } from 'react';
+import { GenericDataTable } from '@/components/ui/view-data-table/view-generic-data-table';
+import { getReportData, viewAttachmentData } from '@/server/upload/reports/classwork-upload-report';
+import type { ApiSearchparams } from '@/types';
 import type { IClassWorkReport } from '@/types/upload/reports/classwork-upload-report';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import ClassWorkReportForm from './_components/add-form';
 import { getColumns } from './_components/columns';
 import { ViewAttachmentModal } from './_components/view-attachment-modal';
-import { getReportData, viewAttachmentData } from '@/server/upload/reports/classwork-upload-report';
-import { toast } from 'sonner';
-import type { ApiSearchparams } from '@/types';
 
 export default function ClassWorkUploadReportPage() {
     const [reportData, setReportData] = useState<IClassWorkReport[]>([]);
@@ -33,12 +33,12 @@ export default function ClassWorkUploadReportPage() {
         setIsLoading(true);
         try {
             const res = await getReportData({ ...payload, ...sParams });
-            if (res.data && res.data.classreportlist) {
-                setReportData(res.data.classreportlist);
-            } else {
-                setReportData([]);
-                toast.info('No records found');
-            }
+            // if (res.data && res.data.classreportlist) {
+            //     setReportData(res.data.classreportlist);
+            // } else {
+            //     setReportData([]);
+            //     toast.info('No records found');
+            // }
         } catch (error) {
             console.error('Error fetching report:', error);
             toast.error('Failed to fetch report');
@@ -58,16 +58,16 @@ export default function ClassWorkUploadReportPage() {
             const payload = {
                 ICW_Id: item.icW_Id,
                 ASMAY_Id: 0,
-                Temp: 0,
+                Temp: 0
             };
 
             const res = await viewAttachmentData(payload);
-            if (res.data && res.data.attachementlist && res.data.attachementlist.length > 0) {
-                setModalAttachments(res.data.attachementlist);
-                setIsModalOpen(true);
-            } else {
-                toast.info('No attachments details found.');
-            }
+            // if (res.data && res.data.attachementlist && res.data.attachementlist.length > 0) {
+            //     setModalAttachments(res.data.attachementlist);
+            //     setIsModalOpen(true);
+            // } else {
+            //     toast.info('No attachments details found.');
+            // }
         } catch (error) {
             console.error('Error fetching attachments:', error);
             toast.error('Failed to fetch attachments');
@@ -101,12 +101,7 @@ export default function ClassWorkUploadReportPage() {
                 </CollapsibleSection>
             )}
 
-            <ViewAttachmentModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                attachments={modalAttachments}
-            />
+            <ViewAttachmentModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} attachments={modalAttachments} />
         </div>
     );
 }
-

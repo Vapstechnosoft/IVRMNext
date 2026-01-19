@@ -8,131 +8,219 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import { useClassDropdownDropdown, useFeeSectionListDefaulterreport } from '@/hooks/fees/useReports';
+import { ClassWorkUploadedList } from '@/hooks/upload/transactions/useClassWork';
 import { cn } from '@/lib/utils';
-import { classWorkSchema, type IClassWork } from '@/schemas/upload/transactions/ivrm-classwork.schema';
-import { fetchSections, fetchSubjects, saveClassWork } from '@/server/upload/transactions/ivrm-classwork/server-action';
+import { classWorkSchema } from '@/schemas/upload/transactions/ivrm-classwork.schema';
+import {
+    getClassDropDownByAcademicYearlist,
+    getSectionsDropDownByAcademicYearandClasslist
+} from '@/server/exam/exam-module/reports/cumulative-report';
+import {
+    getSubjectsDropDownByAcademicYearandClassandSectionlist,
+    uploadClassWork
+} from '@/server/upload/transactions/ivrm-classwork/server-action';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Controller, FormProvider, useFieldArray, useForm, useWatch } from 'react-hook-form';
+import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
+import type { z } from 'zod';
 
 interface AddClassWorkFormProps {
     onSuccess: () => void;
-    yearList: any[];
     classList: any[];
 }
 
-export default function AddClassWorkForm({ onSuccess, yearList, classList }: AddClassWorkFormProps) {
+type FormFields = z.infer<typeof classWorkSchema.addOrUpdate>;
+
+export default function AddClassWorkForm({ onSuccess, classList }: AddClassWorkFormProps) {
     const [sections, setSections] = useState<any[]>([]);
-    const [subjects, setSubjects] = useState<any[]>([]);
+    const [subjects, setSubjects] = useState<{ ismS_Id: number }[]>([]);
     const [showUrlSection, setShowUrlSection] = useState(false);
 
-    const methods = useForm<IClassWork>({
-        resolver: zodResolver(classWorkSchema),
-        defaultValues: {
-            icW_ActiveFlag: true,
-            icW_Assignment: false,
-            icW_TeachingAid: false,
-            icW_Evaluation: false,
-            hm_section_list: [],
-            ICW_FilePath_Array: [{ icW_FilePath: '', FileName: '' }],
-            ICW_Attachment_Array: []
-        }
-    });
-
-    const { control, handleSubmit, formState: { isSubmitting }, setValue } = methods;
-    const selectedClass = useWatch({ control, name: 'asmcL_Id' });
-    const selectedSections = useWatch({ control, name: 'hm_section_list' });
-
-    // Arrays for Files and URLs
-    const { fields: fileFields, append: appendFile, remove: removeFile } = useFieldArray({
+    const {
+        handleSubmit,
+        reset,
+        setValue,
         control,
-        name: 'ICW_FilePath_Array'
+        watch,
+        formState: { errors, isSubmitting }
+    } = useForm<FormFields>({
+        resolver: zodResolver(classWorkSchema.addOrUpdate),
+        mode: 'onChange',
+        defaultValues: {}
     });
-
-    const { fields: urlFields, append: appendUrl, remove: removeUrl } = useFieldArray({
-        control,
-        name: 'ICW_Attachment_Array'
-    });
-
-    // Handle File Selection (Mock implementation for file path since we don't have real upload server yet)
-    // In a real scenario, this would upload to server and get a path. 
-    // For now, we mimic the behavior or just store the filename for display.
-    const handleFileChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            // Logic to handle file upload would go here.
-            // For now, we just update the model with a fake path or the filename.
-            setValue(`ICW_FilePath_Array.${index}.FileName`, file.name);
-            setValue(`ICW_FilePath_Array.${index}.icW_FilePath`, URL.createObjectURL(file));
-        }
+    const payload = {
+        asmaY_Id: 176
     };
+    const { refetchAll } = ClassWorkUploadedList(payload);
+    const { data: academicResponse } = useAcademicYearDropdown();
+    const { data: classData } = useClassDropdownDropdown();
+    const { data: sectionListResponse } = useFeeSectionListDefaulterreport();
+    const [classes, setClasses] = useState<any[]>([]);
+    const [isclassesLoading, setIsClassesLoading] = useState(false);
+    const selectedClass = useWatch({ control, name: 'asmcL_Id' });
+    const selectedSections = useWatch({
+        control,
+        name: 'hm_section_list'
+    });
+    const selectedYear = useWatch({ control, name: 'asmaY_Id' });
 
-    // Toggle URL Section
+    useEffect(() => {
+        if (!selectedYear || selectedYear === 0) {
+            setClasses([]);
+            setSections([]);
+            return;
+        }
+        setIsClassesLoading(true);
+        (async () => {
+            try {
+                const { data } = await getClassDropDownByAcademicYearlist(selectedYear);
+                setClasses(Array.isArray(data) ? data : []);
+            } catch {
+                toast.error('Failed to load classes');
+                setClasses([]);
+            }
+        })();
+        setIsClassesLoading(false);
+    }, [selectedYear, setValue]);
+
+    useEffect(() => {
+        if (!selectedYear || !selectedClass || selectedClass === 0) {
+            setSections([]);
+            return;
+        }
+        (async () => {
+            try {
+                const { data } = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass);
+                setSections(Array.isArray(data) ? data : []);
+            } catch {
+                toast.error('Failed to load sections');
+                setSections([]);
+            }
+        })();
+    }, [selectedYear, selectedClass, setValue]);
+
+    useEffect(() => {
+        if (!selectedYear || !selectedClass || !selectedSections?.length) return;
+        let mounted = true;
+        (async () => {
+            try {
+                const payload = {
+                    asmaY_Id: selectedYear,
+                    asmcL_Id: selectedClass,
+                    hm_section_list: selectedSections
+                };
+                const { data } = await getSubjectsDropDownByAcademicYearandClassandSectionlist(payload);
+                if (!mounted) return;
+                setSubjects(Array.isArray(data) ? data : []);
+                setValue('ismS_Id', 0);
+            } catch (error) {
+                console.error('Error fetching subjects:', error);
+                toast.error('Failed to load subjects');
+            }
+        })();
+        return () => {
+            mounted = false;
+        };
+    }, [selectedYear, selectedClass, selectedSections, setValue]);
+
     const handleUrlCheckboxChange = (checked: boolean) => {
         setShowUrlSection(checked);
-        if (checked && urlFields.length === 0) {
-            appendUrl({ ICW_FilePath: '', FileName: '' });
-        } else if (!checked) {
-            setValue('ICW_Attachment_Array', []);
-        }
+        // if (checked && urlFields.length === 0) {
+        //     appendUrl({ ICW_FilePath: '', FileName: '' });
+        // } else if (!checked) {
+        //     setValue('ICW_Attachment_Array', []);
+        // }
     };
 
-    // Fetch Sections when Class changes
-    useEffect(() => {
-        const loadSections = async () => {
-            if (selectedClass) {
-                try {
-                    const result = await fetchSections(selectedClass);
-                    setSections(result.sectionlist || []);
-                    if (!sections.length) {
-                        // Only reset if we are fetching new sections
-                    }
-                } catch (error) {
-                    toast.error('Failed to load sections');
-                }
-            } else {
-                setSections([]);
-                setSubjects([]);
-            }
-        };
-        loadSections();
-    }, [selectedClass]);
-
-    // Fetch Subjects when Sections change
-    useEffect(() => {
-        const loadSubjects = async () => {
-            if (selectedClass && selectedSections && selectedSections.length > 0) {
-                try {
-                    const result = await fetchSubjects(selectedClass, selectedSections);
-                    setSubjects(result.subjectlist || []);
-                } catch (error) {
-                    toast.error('Failed to load subjects');
-                }
-            } else {
-                setSubjects([]);
-            }
-        };
-        loadSubjects();
-    }, [selectedClass, selectedSections]);
-
-    const onSubmit = async (data: IClassWork) => {
+    const onSubmit = async (data: FormFields) => {
         try {
-            const result = await saveClassWork(data);
-            if (result.success) {
-                toast.success(result.message);
-                onSuccess();
+            const payload2 = {
+                icW_Id: 0,
+                mI_Id: 0,
+                icW_Topic: data.icW_Topic,
+                icW_SubTopic: data.icW_SubTopic,
+                icW_Content: data.icW_Content,
+                icW_TeachingAid: 0,
+                icW_FromDate: data.icW_FromDate,
+                icW_ToDate: data.icW_ToDate,
+                icW_Evaluation: '',
+                icW_Attachment: '',
+                icwatT_Attachment: '',
+                icwatT_FileName: '',
+                asmaY_Id: data.asmaY_Id,
+                login_Id: 0,
+                asmcL_Id: data.asmcL_Id,
+                ismS_Id: data.ismS_Id,
+                amsT_MobileNo: 0,
+                amsT_AppDownloadedDeviceId: '',
+                icW_Assignment: '',
+                asmS_Id: 0,
+                asmC_SectionName: '',
+                asmC_Order: 0,
+                ismS_SubjectCode: '',
+                ismS_SubjectName: '',
+                amsT_Id: 0,
+                asmcL_ClassName: '',
+                asmcL_Order: 0,
+                ismS_order: 0,
+                hm_section_list: data.hm_section_list,
+                icW_FilePath_Array: [],
+                devicelist12: []
+            };
+            const payload = {
+                icW_Id: 0,
+                mI_Id: 0,
+                icW_Topic: data.icW_Topic,
+                icW_SubTopic: data.icW_SubTopic,
+                icW_Content: data.icW_Content,
+                icW_TeachingAid: 0,
+                icW_FromDate: data.icW_FromDate,
+                icW_ToDate: data.icW_ToDate,
+                icW_Evaluation: 'string',
+                icW_Attachment: 'string',
+                icwatT_Attachment: 'string',
+                icwatT_FileName: 'string',
+                asmaY_Id: data.asmaY_Id,
+                login_Id: 0,
+                asmcL_Id: data.asmcL_Id,
+                ismS_Id: data.ismS_Id,
+                icW_Assignment: '',
+                asmS_Id: selectedSections,
+                hm_section_list: data.hm_section_list,
+                icW_FilePath_Array: [
+                    {
+                        icW_FilePath: 'string',
+                        fileName: 'string'
+                    }
+                ],
+                devicelist12: ['string']
+            };
+            const response = await uploadClassWork(payload2);
+            console.log('payload', payload2);
+            if (response?.success) {
+                toast.success(response.message || 'Saved successfully');
+                handleReset();
+                onSuccess?.();
+                refetchAll();
             } else {
-                toast.error(result.message);
+                toast.error(response?.message || 'Save failed');
             }
-        } catch (error) {
-            toast.error('An error occurred while saving');
+        } catch (err: any) {
+            console.error('API Error:', err);
+            toast.error(err?.message || 'Something went wrong');
         }
     };
 
-    const { fields: sectionFields, append: appendSection, remove: removeSection } = useFieldArray({
+    const {
+        fields: sectionFields,
+        append: appendSection,
+        remove: removeSection
+    } = useFieldArray({
         control,
         name: 'hm_section_list'
     });
@@ -146,234 +234,263 @@ export default function AddClassWorkForm({ onSuccess, yearList, classList }: Add
         }
     };
 
+    const handleReset = () => {
+        reset();
+    };
+
     return (
         <div className='flex w-full flex-col gap-6'>
-            <FormProvider {...methods}>
-                <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md'>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
-                        {/* Academic Year */}
-                        <Controller
-                            control={control}
-                            name='asmaY_Id'
-                            render={({ field, fieldState }) => (
-                                <div>
-                                    <Label>Academic Year <span className='text-red-500'>*</span></Label>
-                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder='Select Year' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {yearList.map((year: any) => (
-                                                <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
-                                                    {year.asmaY_Year}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                </div>
-                            )}
-                        />
+            <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md'>
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
+                    {/* Academic Year */}
+                    <Controller
+                        control={control}
+                        name='asmaY_Id'
+                        render={({ field, fieldState }) => (
+                            <div>
+                                <Label>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </Label>
+                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select Year' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {academicResponse?.data?.map((year: any) => (
+                                            <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
+                                                {year.asmaY_Year}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                            </div>
+                        )}
+                    />
 
-                        {/* Class */}
-                        <Controller
-                            control={control}
-                            name='asmcL_Id'
-                            render={({ field, fieldState }) => (
-                                <div>
-                                    <Label>Class <span className='text-red-500'>*</span></Label>
-                                    <Select
-                                        onValueChange={(val) => {
-                                            field.onChange(Number(val));
-                                            setValue('hm_section_list', []);
-                                            setSubjects([]);
-                                        }}
-                                        value={field.value?.toString()}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder='Select Class' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {classList.map((cls: any) => (
+                    {/* Class */}
+                    <Controller
+                        control={control}
+                        name='asmcL_Id'
+                        render={({ field, fieldState }) => (
+                            <div>
+                                <Label>
+                                    Class <span className='text-red-500'>*</span>
+                                </Label>
+                                <Select
+                                    onValueChange={(val) => {
+                                        field.onChange(Number(val));
+                                        setValue('hm_section_list', []);
+                                        setSubjects([]);
+                                    }}
+                                    value={field.value?.toString()}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select Class' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {isclassesLoading ? (
+                                            <SelectItem value='loading' disabled>
+                                                Loading...
+                                            </SelectItem>
+                                        ) : (
+                                            classes?.map((cls: any) => (
                                                 <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>
                                                     {cls.asmcL_ClassName}
                                                 </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                </div>
-                            )}
-                        />
-
-                        {/* Sections (Multi-Select) */}
-                        <div className='flex flex-col space-y-3 rounded-md border p-4'>
-                            <Label>Sections <span className='text-red-500'>*</span></Label>
-                            <div className='grid grid-cols-2 gap-2'>
-                                {sections.map((sec) => (
-                                    <div key={sec.asmS_Id} className='flex items-center space-x-2'>
-                                        <Checkbox
-                                            checked={selectedSections?.some((x: any) => x.asmS_Id === sec.asmS_Id)}
-                                            onCheckedChange={(checked) => handleSectionChange(sec.asmS_Id, checked as boolean)}
-                                        />
-                                        <span className='text-sm'>{sec.asmC_SectionName}</span>
-                                    </div>
-                                ))}
+                                            ))
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                             </div>
-                            {methods.formState.errors.hm_section_list && <FormError>{methods.formState.errors.hm_section_list.message}</FormError>}
-                        </div>
+                        )}
+                    />
 
+                    <Controller
+                        name='hm_section_list'
+                        control={control}
+                        render={({ field, fieldState }) => (
+                            <div className='flex flex-col gap-3 sm:flex-row'>
+                                <Label className='w-32 font-medium'>
+                                    Section <span className='text-red-500'>*</span>
+                                </Label>
 
-                        {/* Subject */}
-                        <Controller
-                            control={control}
-                            name='ismS_Id'
-                            render={({ field, fieldState }) => (
-                                <div>
-                                    <Label>Subject <span className='text-red-500'>*</span></Label>
-                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder='Select Subject' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {subjects.map((sub: any) => (
-                                                <SelectItem key={sub.ismS_Id} value={sub.ismS_Id.toString()}>
-                                                    {sub.ismS_SubjectName}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                <div className='flex-1'>
+                                    <div className='grid grid-cols-1 gap-2 sm:grid-cols-2'>
+                                        {sections.map((s) => {
+                                            const checked = field.value?.some((x: any) => x.asmS_Id === s.asmS_Id) ?? false;
+
+                                            return (
+                                                <label key={s.asmS_Id} className='flex cursor-pointer items-center gap-2'>
+                                                    <input
+                                                        type='checkbox'
+                                                        disabled={!selectedClass || selectedClass === 0}
+                                                        checked={checked}
+                                                        onChange={(e) => {
+                                                            const current = field.value || [];
+
+                                                            if (e.target.checked) {
+                                                                field.onChange([...current, { asmS_Id: s.asmS_Id }]);
+                                                            } else {
+                                                                field.onChange(current.filter((x: any) => x.asmS_Id !== s.asmS_Id));
+                                                            }
+                                                        }}
+                                                    />
+                                                    <span>{s.asmC_SectionName}</span>
+                                                </label>
+                                            );
+                                        })}
+                                    </div>
+
                                     {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                 </div>
-                            )}
-                        />
+                            </div>
+                        )}
+                    />
 
-                        {/* Topic */}
-                        <Controller
-                            control={control}
-                            name='icW_Topic'
-                            render={({ field, fieldState }) => (
-                                <div>
-                                    <Label>Topic <span className='text-red-500'>*</span></Label>
-                                    <Input placeholder='Enter Topic' {...field} />
-                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                </div>
-                            )}
-                        />
+                    {/* Subject */}
+                    <Controller
+                        control={control}
+                        name='ismS_Id'
+                        render={({ field, fieldState }) => (
+                            <div>
+                                <Label>
+                                    Subject <span className='text-red-500'>*</span>
+                                </Label>
+                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select Subject' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {subjects.map((sub: any) => (
+                                            <SelectItem key={sub.ismS_Id} value={sub.ismS_Id.toString()}>
+                                                {sub.ismS_SubjectName}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                            </div>
+                        )}
+                    />
 
-                        {/* Sub Topic */}
-                        <Controller
-                            control={control}
-                            name='icW_SubTopic'
-                            render={({ field, fieldState }) => (
-                                <div>
-                                    <Label>Sub Topic <span className='text-red-500'>*</span></Label>
-                                    <Input placeholder='Enter Sub Topic' {...field} />
-                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                </div>
-                            )}
-                        />
+                    {/* Topic */}
+                    <Controller
+                        control={control}
+                        name='icW_Topic'
+                        render={({ field, fieldState }) => (
+                            <div>
+                                <Label>
+                                    Topic <span className='text-red-500'>*</span>
+                                </Label>
+                                <Input placeholder='Enter Topic' {...field} />
+                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                            </div>
+                        )}
+                    />
 
-                        {/* Start Date */}
-                        <Controller
-                            control={control}
-                            name='icW_FromDate'
-                            render={({ field, fieldState }) => (
-                                <div className='flex flex-col'>
-                                    <Label>Start Date <span className='text-red-500'>*</span></Label>
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                variant={'outline'}
-                                                className={cn(
-                                                    'w-full pl-3 text-left font-normal',
-                                                    !field.value && 'text-muted-foreground'
-                                                )}
-                                            >
-                                                {field.value ? (
-                                                    format(field.value, 'PPP')
-                                                ) : (
-                                                    <span>Pick a date</span>
-                                                )}
-                                                <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className='w-auto p-0' align='start'>
-                                            <Calendar
-                                                mode='single'
-                                                selected={field.value}
-                                                onSelect={field.onChange}
-                                                disabled={(date) =>
-                                                    date < new Date('1900-01-01')
-                                                }
-                                                initialFocus
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
-                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                </div>
-                            )}
-                        />
+                    {/* Sub Topic */}
+                    <Controller
+                        control={control}
+                        name='icW_SubTopic'
+                        render={({ field, fieldState }) => (
+                            <div>
+                                <Label>
+                                    Sub Topic <span className='text-red-500'>*</span>
+                                </Label>
+                                <Input placeholder='Enter Sub Topic' {...field} />
+                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                            </div>
+                        )}
+                    />
 
-                        {/* End Date */}
-                        <Controller
-                            control={control}
-                            name='icW_ToDate'
-                            render={({ field, fieldState }) => (
-                                <div className='flex flex-col'>
-                                    <Label>End Date <span className='text-red-500'>*</span></Label>
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                variant={'outline'}
-                                                className={cn(
-                                                    'w-full pl-3 text-left font-normal',
-                                                    !field.value && 'text-muted-foreground'
-                                                )}
-                                            >
-                                                {field.value ? (
-                                                    format(field.value, 'PPP')
-                                                ) : (
-                                                    <span>Pick a date</span>
-                                                )}
-                                                <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className='w-auto p-0' align='start'>
-                                            <Calendar
-                                                mode='single'
-                                                selected={field.value}
-                                                onSelect={field.onChange}
-                                                disabled={(date) =>
-                                                    date < new Date('1900-01-01')
-                                                }
-                                                initialFocus
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
-                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                </div>
-                            )}
-                        />
-                    </div>
+                    {/* Start Date */}
+                    <Controller
+                        control={control}
+                        name='icW_FromDate'
+                        render={({ field, fieldState }) => (
+                            <div className='flex flex-col'>
+                                <Label>
+                                    Start Date <span className='text-red-500'>*</span>
+                                </Label>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant={'outline'}
+                                            className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
+                                            {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                                            <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className='w-auto p-0' align='start'>
+                                        <Calendar
+                                            mode='single'
+                                            selected={field.value}
+                                            onSelect={field.onChange}
+                                            disabled={(date) => date < new Date('1900-01-01')}
+                                            initialFocus
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                            </div>
+                        )}
+                    />
 
-                    {/* Content */}
-                    <div className='grid grid-cols-1'>
-                        <Controller
-                            control={control}
-                            name='icW_Content'
-                            render={({ field, fieldState }) => (
-                                <div>
-                                    <Label>Content <span className='text-red-500'>*</span></Label>
-                                    <Textarea placeholder='Enter Content' {...field} rows={3} />
-                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                </div>
-                            )}
-                        />
-                    </div>
+                    {/* End Date */}
+                    <Controller
+                        control={control}
+                        name='icW_ToDate'
+                        render={({ field, fieldState }) => (
+                            <div className='flex flex-col'>
+                                <Label>
+                                    End Date <span className='text-red-500'>*</span>
+                                </Label>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant={'outline'}
+                                            className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
+                                            {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                                            <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className='w-auto p-0' align='start'>
+                                        <Calendar
+                                            mode='single'
+                                            selected={field.value}
+                                            onSelect={field.onChange}
+                                            disabled={(date) => date < new Date('1900-01-01')}
+                                            initialFocus
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                            </div>
+                        )}
+                    />
+                </div>
 
-                    {/* File Upload Section */}
-                    <div className='space-y-4 rounded-md border p-4'>
+                {/* Content */}
+                <div className='grid grid-cols-1'>
+                    <Controller
+                        control={control}
+                        name='icW_Content'
+                        render={({ field, fieldState }) => (
+                            <div>
+                                <Label>
+                                    Content <span className='text-red-500'>*</span>
+                                </Label>
+                                <Textarea placeholder='Enter Content' {...field} rows={3} />
+                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                            </div>
+                        )}
+                    />
+                    l
+                </div>
+
+                {/* File Upload Section */}
+                {/* <div className='space-y-4 rounded-md border p-4'>
                         <h3 className='text-lg font-semibold'>Attachments</h3>
                         <div className='overflow-x-auto'>
                             <table className='w-full table-auto border-collaspe border text-left text-sm'>
@@ -412,7 +529,7 @@ export default function AddClassWorkForm({ onSuccess, yearList, classList }: Add
                                                     size='sm'
                                                     className='text-primary'
                                                     onClick={() => {
-                                                        const filePath = methods.getValues(`ICW_FilePath_Array.${index}.icW_FilePath`);
+                                                        const filePath = control._getWatch(`ICW_FilePath_Array.${index}.icW_FilePath`);
                                                         if (filePath) window.open(filePath, '_blank');
                                                         else toast.error("No file uploaded to view");
                                                     }}
@@ -452,19 +569,19 @@ export default function AddClassWorkForm({ onSuccess, yearList, classList }: Add
                         <p className='text-sm text-green-700'>
                             <span className='font-bold text-red-500'>Accept File:</span> jpg, jpeg, png, doc, ppt, excel, mp3, mp4, wmv, pdf
                         </p>
-                    </div>
+                    </div> */}
 
-                    {/* URL Section */}
-                    <div className='flex items-center space-x-2'>
-                        <Checkbox
-                            id='checklink'
-                            checked={showUrlSection}
-                            onCheckedChange={(checked) => handleUrlCheckboxChange(checked as boolean)}
-                        />
-                        <Label htmlFor='checklink'>If URL</Label>
-                    </div>
+                {/* URL Section */}
+                <div className='flex items-center space-x-2'>
+                    <Checkbox
+                        id='checklink'
+                        checked={showUrlSection}
+                        onCheckedChange={(checked) => handleUrlCheckboxChange(checked as boolean)}
+                    />
+                    <Label htmlFor='checklink'>If URL</Label>
+                </div>
 
-                    {showUrlSection && (
+                {/* {showUrlSection && (
                         <div className='space-y-4 rounded-md border p-4'>
                             <h3 className='text-lg font-semibold'>URL Details</h3>
                             <div className='overflow-x-auto'>
@@ -497,7 +614,9 @@ export default function AddClassWorkForm({ onSuccess, yearList, classList }: Add
                                                         size='sm'
                                                         className='text-primary'
                                                         onClick={() => {
-                                                            const url = methods.getValues(`ICW_Attachment_Array.${index}.ICW_FilePath`);
+                                                            //const url = methods.getValues(`ICW_Attachment_Array.${index}.ICW_FilePath`);
+
+                                                             const url = watch(`ICW_Attachment_Array.${index}.ICW_FilePath`);
                                                             if (url) window.open(url, '_blank');
                                                             else toast.error("No URL provided");
                                                         }}
@@ -535,11 +654,10 @@ export default function AddClassWorkForm({ onSuccess, yearList, classList }: Add
                                 </table>
                             </div>
                         </div>
-                    )}
+                    )} */}
 
-
-                    {/* Checkboxes */}
-                    <div className='flex flex-wrap gap-6'>
+                {/* Checkboxes */}
+                {/* <div className='flex flex-wrap gap-6'>
                         <Controller
                             control={control}
                             name='icW_Assignment'
@@ -579,55 +697,70 @@ export default function AddClassWorkForm({ onSuccess, yearList, classList }: Add
                                 </div>
                             )}
                         />
-                    </div>
+                    </div> */}
 
-                    <div className='flex justify-end gap-2'>
-                        <Button type='submit' disabled={isSubmitting}>
-                            {isSubmitting ? 'Saving...' : 'Save'}
-                        </Button>
-                    </div>
-                </form>
-            </FormProvider>
+                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
+                    <Button
+                        type='button'
+                        variant='outline'
+                        onClick={handleReset}
+                        disabled={isSubmitting}
+                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                        Reset
+                    </Button>
+                    <Button
+                        type='submit'
+                        disabled={isSubmitting}
+                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                        isLoading={isSubmitting}
+                        loadingText='Saving...'>
+                        <div className='flex items-center'>
+                            <Save className=' h-4 w-4' />
+                            Save
+                        </div>
+                    </Button>
+                </div>
+            </form>
         </div>
     );
 }
 
 // Helper icons
-function PlusIcon(props: any) {
-    return (
-        <svg
-            {...props}
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <path d="M5 12h14" />
-            <path d="M12 5v14" />
-        </svg>
-    )
-}
+// function PlusIcon(props: any) {
+//     return (
+//         <svg
+//             {...props}
+//             xmlns="http://www.w3.org/2000/svg"
+//             width="24"
+//             height="24"
+//             viewBox="0 0 24 24"
+//             fill="none"
+//             stroke="currentColor"
+//             strokeWidth="2"
+//             strokeLinecap="round"
+//             strokeLinejoin="round"
+//         >
+//             <path d="M5 12h14" />
+//             <path d="M12 5v14" />
+//         </svg>
+//     )
+// }
 
-function MinusIcon(props: any) {
-    return (
-        <svg
-            {...props}
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <path d="M5 12h14" />
-        </svg>
-    )
-}
+// function MinusIcon(props: any) {
+//     return (
+//         <svg
+//             {...props}
+//             xmlns="http://www.w3.org/2000/svg"
+//             width="24"
+//             height="24"
+//             viewBox="0 0 24 24"
+//             fill="none"
+//             stroke="currentColor"
+//             strokeWidth="2"
+//             strokeLinecap="round"
+//             strokeLinejoin="round"
+//         >
+//             <path d="M5 12h14" />
+//         </svg>
+//     )
+// }

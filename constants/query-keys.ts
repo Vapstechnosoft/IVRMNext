@@ -444,3 +444,8 @@ export const HRMS_QUERY_KEYS = {
     APPLY_LEAVE: 'leave_apply_leave',
     LEAVE_APPROVAL: 'leave_leave_approval'
 };
+
+export const PORTAL_QUERY_KEYS = {
+    CLASS_WORK_UPLOADED: 'class_work_uploaded',
+    HOME_WORK_UPLOADED: 'home_work_uploaded'
+};

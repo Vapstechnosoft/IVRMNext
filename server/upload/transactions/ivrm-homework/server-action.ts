@@ -1,10 +1,10 @@
 'use server';
 
-import type { IHomeWork, IHomeWorkMarks, IHomeWorkMarksSearch } from '@/schemas/upload/transactions/ivrm-homework.schema';
+import type { IHomeWork, IHomeWorkMarksSearch } from '@/schemas/upload/transactions/ivrm-homework.schema';
 import { revalidatePath } from 'next/cache';
 
 // Mock data store
-let homeWorkData: any[] = [
+const homeWorkData: any[] = [
     {
         ihW_Id: 1,
         asmaY_Id: 1,
@@ -44,15 +44,15 @@ export async function fetchInitialData() {
 }
 
 export async function fetchClasses(yearId: number) {
-     await new Promise((resolve) => setTimeout(resolve, 300));
-     return {
-         classlist: [
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    return {
+        classlist: [
             { asmcL_Id: 1, asmcL_ClassName: 'Class I' },
             { asmcL_Id: 2, asmcL_ClassName: 'Class II' },
             { asmcL_Id: 3, asmcL_ClassName: 'Class X' }
-         ],
-         class_gridlist: homeWorkData.filter(h => h.asmaY_Id === yearId)
-     };
+        ],
+        class_gridlist: homeWorkData.filter((h) => h.asmaY_Id === yearId)
+    };
 }
 
 export async function fetchSections(classId: number, yearId: number) {
@@ -85,7 +85,7 @@ export async function saveHomeWork(data: IHomeWork) {
             }
             return { success: false, message: 'Record not found', dulicate: false };
         } else {
-            const newId = (homeWorkData.length > 0 ? Math.max(...homeWorkData.map(t => t.ihW_Id || 0)) : 0) + 1;
+            const newId = (homeWorkData.length > 0 ? Math.max(...homeWorkData.map((t) => t.ihW_Id || 0)) : 0) + 1;
             homeWorkData.push({ ...data, ihW_Id: newId, ihW_ActiveFlag: true, filesCount: data.ihW_FilePath_Array?.length || 0 });
             revalidatePath('/upload/transactions/ivrm-homework');
             return { success: true, message: 'Homework saved successfully', dulicate: false };
@@ -120,12 +120,17 @@ export async function fetchHomeWorkMarksList(params: IHomeWorkMarksSearch) {
         IHWUPL_StaffUpload: '',
         FileName: '',
         checkedvalue: i % 2 === 0,
-        studentUploads: i % 3 === 0 ? [{
-            ihwupl_Id: 700 + i,
-            ihwupl_FileName: 'hw_solution.png',
-            ihwupl_Attachment: 'https://example.com/hw_solution.png',
-            ihwupl_Date: '2023-10-26'
-        }] : []
+        studentUploads:
+            i % 3 === 0
+                ? [
+                      {
+                          ihwupl_Id: 700 + i,
+                          ihwupl_FileName: 'hw_solution.png',
+                          ihwupl_Attachment: 'https://example.com/hw_solution.png',
+                          ihwupl_Date: '2023-10-26'
+                      }
+                  ]
+                : []
     }));
     return { gethomework_list: students };
 }
@@ -137,21 +142,21 @@ export async function saveHomeWorkMarks(data: any) {
 }
 
 export async function fetchStudentUploads(AMST_Id: number, ihW_Id: number, IHWUPL_Id: number) {
-     await new Promise((resolve) => setTimeout(resolve, 300));
-     return {
-         viewstudentupload: [
-             {
-                 ihwupL_Id: IHWUPL_Id,
-                 ihwuplatT_StaffUpload: '',
-                 ihwuplatT_StaffRemarks: '',
-                 ihwuplatT_FileName: '',
-                 student_attachment_list: [
-                     {
-                         ihwuplatT_Attachment: 'https://example.com/file1.pdf',
-                         ihwuplatT_FileName: 'homework_part1.pdf'
-                     }
-                 ]
-             }
-         ]
-     };
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    return {
+        viewstudentupload: [
+            {
+                ihwupL_Id: IHWUPL_Id,
+                ihwuplatT_StaffUpload: '',
+                ihwuplatT_StaffRemarks: '',
+                ihwuplatT_FileName: '',
+                student_attachment_list: [
+                    {
+                        ihwuplatT_Attachment: 'https://example.com/file1.pdf',
+                        ihwuplatT_FileName: 'homework_part1.pdf'
+                    }
+                ]
+            }
+        ]
+    };
 }
