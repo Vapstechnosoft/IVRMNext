@@ -3237,11 +3237,18 @@ export async function getUserAccessibleModules() {
                                     name: 'Admission',
                                     icon: 'Database',
                                     pages: [
+                                        // {
+                                        //     id: 40001,
+                                        //     name: 'Attendance Details',
+                                        //     icon: 'ClipboardList',
+                                        //     url: '/StudentPortal/student-dashboard/EnrolledStudents/Transaction/AttendanceDetails',
+                                        //     title: 'Attendance Details'
+                                        // },
                                         {
                                             id: 40001,
                                             name: 'Attendance Details',
                                             icon: 'ClipboardList',
-                                            url: '/StudentPortal/student-dashboard/EnrolledStudents/Transaction/AttendanceDetails',
+                                            url: '/StudentPortal/masters/attendance-details',
                                             title: 'Attendance Details'
                                         }
                                     ]
