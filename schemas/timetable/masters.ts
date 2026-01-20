@@ -91,28 +91,37 @@ export const breakTimeSettingsSchema = {
         ttmB_BreakName: z.string().min(3, 'Break Name must be at least 3 characters'),
         ttmB_BreakStartTime: z.date({ required_error: 'Start Time is required' }),
         ttmB_BreakEndTime: z.date({ required_error: 'End Time is required' }),
-        ttmB_AfterPeriod: z.coerce.number().min(1, 'After Period is required')
+        ttmB_AfterPeriod: z.number().min(1, 'After Period is required'),
+        arraybeforeperiodsList: z.array(z.number()).optional(),
+        arrayafterperiodsList: z.array(z.number()).optional()
     })
 };
 
 export const masterPeriodSchema = {
     save: z.object({
-        noOfPeriods: z.coerce.number().min(1, 'Enter at least 1 period').max(20, 'Max 20 periods allowed')
+        periodname: number().min(1, 'Please select Academic Year'),
+        periodorder: number().min(1, 'Please enter Period Order'),
+        dayids: z.array(z.string()).nonempty('Please select at least one Day'),
+        noOfPeriods: z.number().min(1, 'Enter at least 1 period').max(20, 'Max 20 periods allowed'),
+        half: z.string().optional()
     })
 };
 
 export const masterPeriodClassSchema = {
     save: z.object({
-        asmaY_Id: z.number().min(1, 'Academic Year is required'),
-        ttmC_Id: z.number().min(1, 'Category is required'),
-        classIds: z
-            .array(
-                z.object({
-                    asmcL_Id: z.number(),
-                    asmcL_ClassName: z.string()
-                })
-            )
-            .min(1, 'Select at least one Class'),
+        // asmaY_Id: z.number().min(1, 'Academic Year is required'),
+        // ttmC_Id: z.number().min(1, 'Category is required'),
+        // classIds: z
+        //     .array(
+        //         z.object({
+        //             asmcL_Id: z.number(),
+        //             asmcL_ClassName: z.string()
+        //         })
+        //     )
+        //     .min(1, 'Select at least one Class'),
+        asmay_id: number().min(1, 'Please select Academic Year'),
+        ttmC_Id: number().min(1, 'Please select Category'),
+        calssids: z.array(z.string()).nonempty('Please select at least one Class'),
         noOfPeriods: z.coerce.number().min(1, 'Enter at least 1 period')
     })
 };
