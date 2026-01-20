@@ -449,6 +449,7 @@ export default function StudentSubjectMappingTable({
                         <tr>
                             <TableHeaderCell rowSpan={2}>Sl No</TableHeaderCell>
                             <TableHeaderCell rowSpan={2}>Student Details</TableHeaderCell>
+                            <TableHeaderCell rowSpan={2}></TableHeaderCell>
 
                             {subjects.map((sub) => (
                                 <TableHeaderCell key={`subject-header-${sub.id}`}>
