@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
-import { columns, printTable, exportToExcel } from './_components/columns';
-import ReportForm from './_components/report-form';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useStudentEligibleReport } from '@/hooks/sports/useStudentEligibleReport';
-import { IStudentEligibleReportDetail } from '@/types/sports/reports/student-eligible-report';
+import type { IStudentEligibleReportDetail } from '@/types/sports/reports/student-eligible-report';
+import { useEffect, useState } from 'react';
+import { columns, exportToExcel, printTable } from './_components/columns';
+import ReportForm from './_components/report-form';
 
 export default function StudentEligibleReportPage() {
     const { data: loadGridData, isLoading, error } = useStudentEligibleReport();
@@ -34,9 +34,9 @@ export default function StudentEligibleReportPage() {
         const rows = data.map((item: any) => ({
             'Adm. No.': item.adm_no,
             'Student Name': item.studentname,
-            'Class': item.classname,
-            'Section': item.sectionname,
-            'Age': item.pasR_Age,
+            Class: item.classname,
+            Section: item.sectionname,
+            Age: item.pasR_Age,
             'Father Name': item.amsT_FatherName,
             'Mother Name': item.amsT_MotherName
         }));
@@ -48,12 +48,12 @@ export default function StudentEligibleReportPage() {
         const rows = data.map((item: any) => ({
             'Adm. No.': item.adm_no,
             'Student Name': item.studentname,
-            'Class': item.classname,
-            'Section': item.sectionname,
-            'Age': item.pasR_Age,
+            Class: item.classname,
+            Section: item.sectionname,
+            Age: item.pasR_Age,
             'Father Name': item.amsT_FatherName,
             'Mother Name': item.amsT_MotherName,
-            'Address': item.address
+            Address: item.address
         }));
         exportToExcel(rows, 'Student_Eligible_Report');
     };
@@ -63,16 +63,11 @@ export default function StudentEligibleReportPage() {
     return (
         <div className='min-h-screen'>
             <div className='container space-y-6 p-4'>
-                <div className='flex justify-between items-center'>
-                    <h2 className="text-2xl font-bold tracking-tight">Student Eligible Report</h2>
+                <div className='flex items-center justify-between'>
+                    <h2 className='font-bold text-2xl tracking-tight'>Student Eligible Report</h2>
                 </div>
 
-                <CollapsibleSection
-                    title='Report Filters'
-                    defaultOpen={true}
-                    variant='default'
-                    className='shadow-lg'
-                >
+                <CollapsibleSection title='Report Filters' defaultOpen={true} variant='default' className='shadow-lg'>
                     <ReportForm
                         onReport={handleReport}
                         onReset={handleReset}
@@ -83,18 +78,17 @@ export default function StudentEligibleReportPage() {
                 </CollapsibleSection>
 
                 <CollapsibleSection
-                    title="STUDENT ELIGIBLE REPORT LIST"
+                    title='STUDENT ELIGIBLE REPORT LIST'
                     defaultOpen={true}
                     variant='default'
                     size='lg'
-                    className='shadow-lg'
-                >
+                    className='shadow-lg'>
                     <GenericDataTable<IStudentEligibleReportDetail>
                         {...tableProps}
                         columns={columns}
                         isLoading={isLoading}
                         error={error}
-                        manualPagination={false}
+                        // manualPagination={false}
                         showViewOptions={true}
                         loadingMessage='Loading report data...'
                         noDataTitle='No Records Found'
