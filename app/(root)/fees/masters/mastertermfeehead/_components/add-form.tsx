@@ -64,7 +64,7 @@ export default function AddFeeTermsHeadFormForm({ onSuccess, termname = '' }: Fe
 
             const payload = {
                 FMT_Id: fmT_Id,
-                mI_Id: 30,
+                // mI_Id: 30,
                 feeHeadList: selectedHeadsItems.map((item) => ({
                     fmH_Id: Number(item.fmH_Id)
                 })),

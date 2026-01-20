@@ -83,7 +83,7 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
         isLoading: masterHeadNameLoading,
         refetch: refetchHeadNames
     } = useHeadsByGroupAndAcademicYear(Number(academicYear), Number(group));
-
+    console.log('masterHeadName', masterHeadName);
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const [academicYearOptions, setAcademicYearOptions] = useState<DropdownOption[]>([]);
     const [roleOptions, setRoleOptions] = useState<DropdownOption[]>([]);
@@ -162,10 +162,23 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
 
     useEffect(() => {
         if (masterHeadName?.data && Array.isArray(masterHeadName.data)) {
-            const opts = masterHeadName.data.map((h: any) => ({
-                value: h.fmH_Id.toString(),
-                label: h.fmH_FeeName
-            }));
+            // const opts = masterHeadName.data.map((h: any) => ({
+            //     value: h.fmH_Id.toString(),
+            //     label: h.fmH_FeeName
+            // }));
+            // setHeadOptions(opts);
+            const opts = Array.from(
+                new Map(
+                    masterHeadName.data.map((h: any) => [
+                        h.fmH_Id, // unique key
+                        {
+                            value: h.fmH_Id.toString(),
+                            label: h.fmH_FeeName
+                        }
+                    ])
+                ).values()
+            );
+
             setHeadOptions(opts);
         } else {
             setHeadOptions([]);
@@ -191,10 +204,16 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
 
     //const filteredHeadOptions = headOptions.filter((h) => h.label.toLowerCase().includes(headSearchTerm.toLowerCase()));
 
-    const filteredHeadOptions = headOptions.filter((h) =>
-        (h.label ?? '').toString().toLowerCase().includes(headSearchTerm.trim().toLowerCase())
-    );
+    // const filteredHeadOptions = headOptions.filter((h) =>
+    //     (h.label ?? '').toString().toLowerCase().includes(headSearchTerm.trim().toLowerCase())
+    // );
 
+    const filteredHeadOptions = headOptions.filter((h) => {
+        const label = (h.label ?? '').toString().trim();
+        const searchTerm = headSearchTerm.trim();
+
+        return label.toLowerCase().includes(searchTerm.toLowerCase());
+    });
     const filteredUsers = userOptions.filter((u) => u.normalizedUserName.toLowerCase().includes(userSearch.toLowerCase()));
 
     const toggleHead = (id: string) => {
@@ -266,7 +285,7 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
             const payload = {
                 asmaY_Id: Number(selectedAcademicYear.value),
                 fmG_ID: Number(selectedGroup.value),
-                mI_Id: 30,
+                // mI_Id: 30,
                 UserId: Number(selectedRole.value),
                 grouphead: data.heads.map((h) => ({ FMH_Id: Number(h) })),
                 username: data.users.map((u) => ({ UserId: Number(u) }))
@@ -369,7 +388,7 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
                                         disabled={!academicYear || !group}
                                     />
 
-                                    {headOptions.length > 0 && (
+                                    {headOptions.length > 0 && filteredHeadOptions.length > 0 && (
                                         <div
                                             onClick={selectAllHeads}
                                             className={cn(

@@ -54,7 +54,15 @@ export const FeeTransactionWaivedOff: ColumnDef<feeTransactionWaivedOffGrid>[] =
     {
         accessorKey: 'fswO_Date',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Date' />,
-        cell: ({ row }) => <div>{formatDate(row.getValue('fswO_Date'))}</div>
+        cell: ({ row }) => (
+            <div>
+                {new Date(row.getValue('fswO_Date')).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                })}
+            </div>
+        )
     },
 
     {

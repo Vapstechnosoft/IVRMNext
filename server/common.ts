@@ -575,11 +575,12 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 26,
-                                            name: 'Master Fee Concession',
+                                            // name: 'Master Fee Concession',
+                                            name: 'Concession Category',
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/masterfeeconcession',
-                                            title: 'Fee Master Concession',
-                                            description: 'Manage Master Fee Concession Details'
+                                            title: 'Concession Category',
+                                            description: 'Manage Concession Category Details'
                                         },
 
                                         {
@@ -863,6 +864,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Fee Receipt Import',
                                             description: 'Manage Fee Receipt Import'
                                         },
+                                        //  {
+                                        //     id: 516645,
+                                        //     name: 'Fee Receipt Import Common',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/transactions/feereceiptimportCommon',
+                                        //     title: 'Fee Receipt Import Common',
+                                        //     description: 'Manage Fee Receipt Import Common'
+                                        // },
                                         {
                                             id: 517,
                                             name: 'Bank Payment Import',
@@ -888,11 +897,11 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 10011,
-                                            name: 'Fee Defaulter report',
+                                            name: 'Yearly Fee Defaulter report',
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/feereports/feedefaulterreport',
-                                            title: 'Fee Defaulter Report',
-                                            description: 'Fee Defaulter Report'
+                                            title: 'Yearly Fee Defaulter Report',
+                                            description: 'Yearly Fee Defaulter Report'
                                         },
                                         {
                                             id: 10012,

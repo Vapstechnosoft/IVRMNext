@@ -114,6 +114,7 @@ export const FEES_QUERY_KEYS = {
 
     FEE_MASTER_CONCESSION: 'masterfeeconcession',
     FEE_MASTER_TERMS: 'feemasterterms',
+    FEE_MASTER_TERMS_DROPDOWN_GROUPHEADMAPPING: 'feemastertermsdropdowngroupheadmapping',
     FEE_MASTER_TERMS_HEAD: 'mastertermfeehead',
     TERM_DROP_DOWN_DATA: 'Terms_Drop_down_data',
     MASTER_HEADS_DROP_DOWN: 'masterHeadsDropdown',
@@ -197,6 +198,7 @@ export const FEES_QUERY_KEYS = {
     FEE_COMPANY_GROUP_MAPPING_GROUP_DROPDOWN: 'fee_company_group_mapping_group_dropdown',
     FEE_COMPANY_GROUPMAPPING_GROUP_DROPDOWN: 'fee_company_groupmapping_group_dropdown',
     FEE_STUDENT_UPDATE_TRANSACTION: 'fee_student_update_transaction',
+    FEE_STUDENT_CURRENT_ACADEMIC_DETAILS: 'fee_student_current_academic_details',
 
     FEE_DEFAULTER_REPORT: 'fee_defaulter_report',
     FEE_GROUP_DEFAULTER: 'fee_group_defaulter_report',

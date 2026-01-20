@@ -86,6 +86,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
     const [headList, setHeadList] = useState<feeTransactionWaivedOffHead[]>([]);
     const [headListLoading, setHeadListLoading] = useState(false);
     const [headListError, setHeadListError] = useState<any>(null);
+    const [dateopen, setDateOpen] = useState(false);
     const [uploadedLogo, setUploadedLogo] = useState<{
         document_Path: string;
         documentName: string;
@@ -100,7 +101,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                 setValue('academicYear', firstId || 0);
             }
         }
-    }, [academicYears, reset]);
+    }, [academicYears]);
 
     const { data: classdata, isLoading: classloading, error: classerror } = useClassdropdowndatafee();
 
@@ -322,10 +323,11 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
 
     const handleReset = () => {
         reset();
-        setAcademicYear(null);
+        setValue('academicYear', asmay_Id);
         setclassWise(null);
         setsectionWise(null);
         setstudentWise(null);
+        setStudentDetails([]);
         setSelectedDate(undefined);
         setRefundableType('Refundable');
         setFineWaiveOff(false);
@@ -334,6 +336,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
         setRemarks('');
         setgrouplist([]);
         setSelectedGroups([]);
+        setTableProps([]);
         // setHeadList([]);
         setSelectedHead([]);
         setPhotoFile(null);
@@ -559,10 +562,22 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                                                     <SelectItem value='nodata' disabled>
                                                         No Results
                                                     </SelectItem>
+                                                ) : // studentDetails?.map((item: any) => (
+                                                //     <SelectItem key={item.amsT_Id} value={item.amsT_Id.toString()}>
+                                                //         {item.studentName} :{item.amsT_RegistrationNo}
+                                                //     </SelectItem>
+                                                // ))
+
+                                                nameType === 'NameReg.No' ? (
+                                                    studentDetails?.map((item: any) => (
+                                                        <SelectItem key={item.amsT_Id} value={item.amsT_Id.toString()}>
+                                                            {item.studentName} :{item.amsT_RegistrationNo}
+                                                        </SelectItem>
+                                                    ))
                                                 ) : (
                                                     studentDetails?.map((item: any) => (
                                                         <SelectItem key={item.amsT_Id} value={item.amsT_Id.toString()}>
-                                                            {item.studentName}
+                                                            {item.amsT_RegistrationNo} :{item.studentName}
                                                         </SelectItem>
                                                     ))
                                                 )}
@@ -607,7 +622,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                                 name='date'
                                 control={control}
                                 render={({ field }) => (
-                                    <Popover>
+                                    <Popover open={dateopen} onOpenChange={setDateOpen}>
                                         <PopoverTrigger asChild>
                                             <Button variant='outline' className='w-full justify-start text-left font-normal'>
                                                 <CalendarIcon className='mr-2 h-4 w-4' />
@@ -619,8 +634,14 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                                             <Calendar
                                                 mode='single'
                                                 selected={field.value}
-                                                onSelect={(date) => field.onChange(date)}
+                                                onSelect={(date) => {
+                                                    field.onChange(date);
+                                                    setDateOpen(false);
+                                                }}
                                                 initialFocus
+                                                disabled={(date) => {
+                                                    return date < new Date(new Date().setHours(0, 0, 0, 0));
+                                                }}
                                             />
                                         </PopoverContent>
                                     </Popover>
@@ -665,18 +686,44 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                             control={control}
                             defaultValue={[]}
                             render={({ field }) => {
+                                const [searchTerm, setSearchTerm] = useState('');
+                                const filteredGroups = groupList.filter((grp) =>
+                                    grp.fmG_GroupName?.toLowerCase().includes(searchTerm.toLowerCase())
+                                );
                                 return (
                                     <div>
                                         <Label htmlFor='feeGroupIds' className='inline-flex cursor-pointer items-center space-x-2'>
                                             Group List:<span className='ml-1 text-red-500'>*</span>
                                         </Label>
                                         <div className='group flex flex-col gap-1.5 md:col-span-2'>
+                                            {/* Search Input */}
+                                            <div className='relative mb-2'>
+                                                <input
+                                                    type='text'
+                                                    placeholder='Search groups...'
+                                                    value={searchTerm}
+                                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                                    className='w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500'
+                                                />
+                                                {searchTerm && (
+                                                    <button
+                                                        type='button'
+                                                        onClick={() => setSearchTerm('')}
+                                                        className='-translate-y-1/2 absolute top-1/2 right-2 text-gray-400 hover:text-gray-600'>
+                                                        ✕
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            {/* Groups List */}
                                             <div className='min-h-[40px] rounded-md border bg-white px-3 py-2'>
                                                 <div className='flex max-h-40 flex-col gap-2 overflow-y-auto'>
                                                     {groupListLoading ? (
-                                                        <span className='text-gray-400 text-sm'>Loading Groups...</span>
-                                                    ) : groupList.length > 0 ? (
-                                                        groupList.map((grp) => {
+                                                        <div className='flex items-center justify-center py-4'>
+                                                            <span className='text-gray-400 text-sm'>Loading Groups...</span>
+                                                        </div>
+                                                    ) : filteredGroups.length > 0 ? (
+                                                        filteredGroups.map((grp) => {
                                                             const optVal = Number(grp.fmG_Id);
                                                             return (
                                                                 <label
@@ -701,14 +748,33 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                                                             );
                                                         })
                                                     ) : groupListError ? (
-                                                        <span className='text-gray-400 text-sm'>Error loading</span>
+                                                        <div className='flex items-center justify-center py-4'>
+                                                            <span className='text-gray-400 text-sm'>Error loading groups</span>
+                                                        </div>
+                                                    ) : searchTerm ? (
+                                                        <div className='flex items-center justify-center py-4'>
+                                                            <span className='text-gray-400 text-sm'>
+                                                                No groups found for "{searchTerm}"
+                                                            </span>
+                                                        </div>
                                                     ) : (
-                                                        <span className='text-gray-400 text-sm'>No Results or Select a Student </span>
+                                                        <div className='flex items-center justify-center py-4'>
+                                                            <span className='text-gray-400 text-sm'>No groups available</span>
+                                                        </div>
                                                     )}
                                                 </div>
+
+                                                {/* Show selected count */}
                                                 {selectedGroups.length > 0 && (
-                                                    <div className='mt-2 text-blue-600 text-sm'>
-                                                        {selectedGroups.length} Group(s) selected
+                                                    <div className='mt-2 flex items-center justify-between border-t pt-2'>
+                                                        <span className='text-blue-600 text-sm'>
+                                                            {selectedGroups.length} Group(s) selected
+                                                        </span>
+                                                        {searchTerm && filteredGroups.length > 0 && (
+                                                            <span className='text-gray-500 text-xs'>
+                                                                Showing {filteredGroups.length} of {groupList.length}
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
@@ -757,9 +823,9 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                                     Upload Photo
                                 </Button>
 
-                                {photoFile && (
+                                {uploadedLogo?.document_Path && (
                                     <div className='mt-2 flex items-center gap-3'>
-                                        <div className='text-gray-600 text-sm'>{photoFile.name}</div>
+                                        <div className='text-gray-600 text-sm'>{photoFile?.name}</div>
 
                                         <Button type='button' variant='secondary' onClick={() => setIsViewing(true)} className='px-3'>
                                             View
@@ -771,6 +837,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                                             onClick={() => {
                                                 setPhotoFile(null);
                                                 setPhotoPreview(null);
+                                                setUploadedLogo(null);
                                                 if (fileInputRef.current) fileInputRef.current.value = '';
                                             }}>
                                             <Trash className='text-red-600' />

@@ -24,7 +24,7 @@ interface FeeGroup {
 
 // Save Payload Interface
 interface SaveGroupGroupingPayload {
-    mI_Id: number;
+    mI_Id?: number;
     fmgG_Id: number;
     fmgG_GroupName: string;
     fmgG_GroupCode: string;
@@ -74,7 +74,7 @@ export default function AddMasterGroupGrouping({ onSuccess, className = '' }: Ad
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload: SaveGroupGroupingPayload = {
-                mI_Id: 30, // Hardcoded
+                // mI_Id: 30, // Hardcoded
                 fmgG_Id: 0, // Always 0 for new entries
                 fmgG_GroupName: data.fmgG_GroupName || '',
                 fmgG_GroupCode: data.fmgG_GroupCode || '',

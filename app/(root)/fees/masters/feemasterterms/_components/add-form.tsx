@@ -42,7 +42,7 @@ export default function AddAddFeeTermsForm({ onSuccess, feeterms = '' }: AddFeeT
             const { fmT_Name, fmT_IncludeArrearFeeFlg } = data;
 
             const payload = {
-                mi_id: 30,
+                // mi_id: 30,
                 fmT_Name,
                 fmT_IncludeArrearFeeFlg,
                 fmfS_ActiveFlag: true

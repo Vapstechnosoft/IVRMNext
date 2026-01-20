@@ -40,7 +40,7 @@ export default function ToggleMasterFeesConfigForm({ rowData, onClose }: ToggleM
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleMasterfeeconfig(30, Number(rowData.fmC_Id));
+            const response = await toggleMasterfeeconfig(Number(rowData.fmC_Id));
 
             if (response.success) {
                 toast.success(response.message);
