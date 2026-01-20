@@ -256,7 +256,6 @@ function StudentSubjectMappingContent() {
                 Deactive_Flag: form.Deactive_Flag ?? true,
                 EMG_Id: FIXED_EMG_ID
             };
-            console.log('params **', params);
             const response = await getStudentsForSubjectMapping(params);
             const success = response?.success ?? false;
             const data = Array.isArray(response?.data) ? response?.data : [];
@@ -524,13 +523,15 @@ function StudentSubjectMappingContent() {
                                                         <SelectItem value='loading' disabled>
                                                             Loading...
                                                         </SelectItem>
-                                                    ) : (
-                                                        sections.map((s) => (
-                                                            <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
-                                                                {s.asmC_SectionName}
-                                                            </SelectItem>
-                                                        ))
-                                                    )}
+                                                    ) :
+                                                        !watchedClass ? (<SelectItem value='error' disabled>Select Class</SelectItem>) :
+                                                            sections.length === 0 ? (<SelectItem value='error' disabled>No sections found</SelectItem>) : (
+                                                                sections.map((s) => (
+                                                                    <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
+                                                                        {s.asmC_SectionName}
+                                                                    </SelectItem>
+                                                                ))
+                                                            )}
                                                 </SelectContent>
                                             </Select>
                                             {fieldState.error && <p className='mt-1 text-red-500 text-xs'>{fieldState.error.message}</p>}
@@ -620,8 +621,6 @@ function StudentSubjectMappingContent() {
                                 variant='outline'
                                 size='lg'
                                 onClick={() => {
-                                    // Full reset but keep academic year (common UX)
-                                    const curYear = getValues('asmaY_Id');
                                     reset({
                                         asmaY_Id: undefined,
                                         asmcL_Id: undefined,
