@@ -15,7 +15,7 @@ import { addOrUpdateExamTermAndExamMapping } from '@/server/exam/exam-module/exa
 import { getCategoryDropDownByAcademicYearlist } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AlertTriangle, Trash2 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { AwaitedReactNode, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useEffect, useRef, useState } from 'react';
 import { Controller, FormProvider, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -549,7 +549,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                                         Error Loading Grades
                                                     </SelectItem>
                                                 ) : (
-                                                    masterGrade?.data?.map((item) => (
+                                                    Array.isArray(masterGrade?.data) && masterGrade?.data?.map((item: { emgR_Id: number; emgR_GradeName: string }) => (
                                                         <SelectItem key={item.emgR_Id} value={item.emgR_Id.toString()}>
                                                             {item.emgR_GradeName}
                                                         </SelectItem>
