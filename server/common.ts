@@ -3384,6 +3384,14 @@ export async function getUserAccessibleModules() {
                                             url: '/StudentPortal/student-dashboard/Feedback/Transaction/FeedbackCollegeParentTransaction',
                                             title: 'Feedback College Parent Transaction',
                                             description: 'Provide Feedback'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Student Feedback',
+                                            icon: 'MessageSquare',
+                                            url: '/StudentPortal/feedback/studentfeedback',
+                                            title: 'Student Feedback Details',
+                                            description: 'Provide Feedback'
                                         }
                                     ]
                                 }

@@ -30,3 +30,19 @@ export interface IApiResponse<T> {
     page: number | null;
     page_size: number | null;
 }
+
+export interface IStudentFeedbackList {
+    asgfE_Id: number;
+    mI_Id: string;
+    amsT_Id: number;
+    asmaY_Id: number;
+    asmcL_Id: number;
+    asmS_Id: number;
+    asgfE_FeedBack: string;
+    asgfE_FeedbackDate: string;
+    asgfE_ActiveFlag: boolean;
+    asgfE_CreatedBy: number;
+    asgfE_UpdatedBy: number;
+    createdDate: string;
+    updatedDate: string;
+}

@@ -1,11 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
+import { PORTAL_QUERY_KEYS } from '@/constants/query-keys';
 import { type AttendanceDetailsSchema, attendanceDetailsSchema } from '@/schemas/student-portal/masters/attendance-details.schema';
-import { getAttendanceData, getAttendanceInitialData } from '@/server/student-portal/masters/attendance-details';
+import { getAttendanceData, getAttendanceInitialData, getStudentFeedbackList } from '@/server/student-portal/masters/attendance-details';
 import type { IApiResponse, IAttendanceYear } from '@/types/student-portal/masters/attendance-details';
+
+import type { ApiSearchparams } from '@/types';
 
 export function useAttendanceDetails() {
     const form = useForm<AttendanceDetailsSchema>({
@@ -39,3 +42,19 @@ export function useAttendanceDetails() {
         getAttendanceData
     };
 }
+
+export const useFeedBackList = (AMST_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PORTAL_QUERY_KEYS.STUDENT_PORTAL_FEEDBACK, searchParams ?? {}],
+            queryFn: async () => getStudentFeedbackList(AMST_Id, searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () =>
+            queryClient.invalidateQueries({
+                queryKey: [PORTAL_QUERY_KEYS.STUDENT_PORTAL_FEEDBACK]
+            })
+    };
+};
