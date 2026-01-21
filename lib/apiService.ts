@@ -105,9 +105,22 @@ class ApiService {
         instance.interceptors.request.use(
             async (config) => {
                 try {
-                    const session = await auth();
-                    if (session?.token) {
-                        config.headers.Authorization = `Bearer ${session.token}`;
+                    let token: string | undefined;
+
+                    if (typeof window !== 'undefined') {
+                        // Dynamically import to avoid server-side issues if needed, or rely on distinct imports
+                        const { getSession } = await import('next-auth/react');
+                        const session = await getSession();
+                        token = session?.token as string | undefined;
+                    } else {
+                        try {
+                            const session = await auth();
+                            token = session?.token;
+                        } catch (error) {}
+                    }
+
+                    if (token) {
+                        config.headers.Authorization = `Bearer ${token}`;
                     }
                     return config;
                 } catch (error) {
@@ -124,10 +137,14 @@ class ApiService {
             async (error) => {
                 if (error.response?.status === 401) {
                     try {
-                        await signOut();
-                        // Only redirect in browser environment
                         if (typeof window !== 'undefined') {
+                            // Client-side sign out
+                            const { signOut: clientSignOut } = await import('next-auth/react');
+                            await clientSignOut();
                             window.location.href = '/sign-in';
+                        } else {
+                            // Server-side sign out
+                            await signOut();
                         }
                     } catch (refreshError) {
                         console.error('Error refreshing session:', refreshError);
