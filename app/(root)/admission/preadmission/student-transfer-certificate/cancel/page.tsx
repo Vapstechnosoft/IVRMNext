@@ -161,15 +161,22 @@ export default function StudentTCCancelPage() {
                     if (mappedData.length === 0) {
                         toast.info('No TC Cancel details found for this student.');
                     }
-                    setTableData(mappedData);
+
+                    if (Array.isArray(mappedData)) {
+                        setTableData(mappedData);
+                    } else {
+                        setTableData([]);
+                    }
                 } catch (error) {
                     console.error('Error processing TC details:', error);
                     toast.error('An error occurred while processing data.');
+                    setTableData([]);
                 }
             },
             onError: (error) => {
                 console.error('Search error:', error);
                 toast.error('Failed to fetch TC Cancel details.');
+                setTableData([]);
             }
         });
     };
