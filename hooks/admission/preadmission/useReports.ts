@@ -25,13 +25,24 @@ import {
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
-export const useStudentCountReport = (searchParams?: ApiSearchparams) => {
+export const useStudentCountReport = (filterPayload?: any, searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [PREADMISSION_QUERY_KEYS.STUDENT_COUNT_REPORT, searchParams ?? {}],
-            queryFn: async () => addOrUpdateStudentCountReport(searchParams),
+            queryKey: [PREADMISSION_QUERY_KEYS.STUDENT_COUNT_REPORT, filterPayload ?? {}, searchParams ?? {}],
+            queryFn: async () =>
+                addOrUpdateStudentCountReport(
+                    filterPayload || {
+                        report_type: 1,
+                        type: 'between',
+                        from_date: new Date().toISOString(),
+                        to_date: new Date().toISOString(),
+                        asmay_id: 0,
+                        asmcl_id: 0
+                    },
+                    searchParams
+                ),
             staleTime: 0
         }),
         refetchAll: () => {
