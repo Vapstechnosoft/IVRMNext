@@ -5,7 +5,12 @@ import { toast } from 'sonner';
 
 import { PORTAL_QUERY_KEYS } from '@/constants/query-keys';
 import { type AttendanceDetailsSchema, attendanceDetailsSchema } from '@/schemas/student-portal/masters/attendance-details.schema';
-import { getAttendanceData, getAttendanceInitialData, getStudentFeedbackList } from '@/server/student-portal/masters/attendance-details';
+import {
+    getAttendanceData,
+    getAttendanceInitialData,
+    getCOEList,
+    getStudentFeedbackList
+} from '@/server/student-portal/masters/attendance-details';
 import type { IApiResponse, IAttendanceYear } from '@/types/student-portal/masters/attendance-details';
 
 import type { ApiSearchparams } from '@/types';
@@ -55,6 +60,22 @@ export const useFeedBackList = (AMST_Id: number, searchParams?: ApiSearchparams)
         refetchAll: () =>
             queryClient.invalidateQueries({
                 queryKey: [PORTAL_QUERY_KEYS.STUDENT_PORTAL_FEEDBACK]
+            })
+    };
+};
+
+export const useCOEList = (amst_id: number, asmay_id: number, asmcl_id: number, month_id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PORTAL_QUERY_KEYS.COE_LIST, searchParams ?? {}],
+            queryFn: async () => getCOEList(amst_id, asmay_id, asmcl_id, month_id, searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () =>
+            queryClient.invalidateQueries({
+                queryKey: [PORTAL_QUERY_KEYS.COE_LIST]
             })
     };
 };

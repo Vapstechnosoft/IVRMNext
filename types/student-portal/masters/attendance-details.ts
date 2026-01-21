@@ -46,3 +46,23 @@ export interface IStudentFeedbackList {
     createdDate: string;
     updatedDate: string;
 }
+export interface ICOEData {
+    coemE_Id?: number;
+    coemE_EventName: string;
+    coemE_EventDesc: string;
+    coeE_Id?: number;
+    coeE_EStartDate: string;
+    coeE_EEndDate: string;
+    coeE_EStartTime: string;
+    coeE_EEndTime: string;
+    mI_Id: number;
+    asmaY_Id: number;
+    amscL_Id: number;
+    amsT_Id: number;
+}
+
+export interface IAcademicYear {
+    id: number;
+    name: string;
+    order?: number;
+}

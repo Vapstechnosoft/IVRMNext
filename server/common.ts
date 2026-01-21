@@ -3355,11 +3355,19 @@ export async function getUserAccessibleModules() {
                                     name: 'COE',
                                     icon: 'Calendar',
                                     pages: [
+                                        // {
+                                        //     id: 1,
+                                        //     name: 'Calendar of Events',
+                                        //     icon: 'Calendar',
+                                        //     url: '/StudentPortal/student-dashboard/COE/COE',
+                                        //     title: 'Calendar of Events',
+                                        //     description: 'View Calendar of Events'
+                                        // },
                                         {
                                             id: 1,
                                             name: 'Calendar of Events',
                                             icon: 'Calendar',
-                                            url: '/StudentPortal/student-dashboard/COE/COE',
+                                            url: '/StudentPortal/coe/',
                                             title: 'Calendar of Events',
                                             description: 'View Calendar of Events'
                                         }

@@ -491,5 +491,6 @@ export const PORTAL_QUERY_KEYS = {
     CLASS_WORK_UPLOADED: 'class_work_uploaded',
     HOME_WORK_UPLOADED: 'home_work_uploaded',
 
-    STUDENT_PORTAL_FEEDBACK: 'student_portal_feedback'
+    STUDENT_PORTAL_FEEDBACK: 'student_portal_feedback',
+    COE_LIST: 'coe_list'
 };
