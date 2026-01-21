@@ -3,65 +3,34 @@
 import { Button } from '@/components/ui/button';
 import type { DataTableRef } from '@/components/ui/data-table/data-table';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
-import { Label } from '@/components/ui/extension/field';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
 import {
     useActivePreadmissionDetails,
-    usePreadmissionAdmissionStatusDropdown,
-    usePreadmissionClassDropdown
+    usePreadmissionClassDropdown,
+    useadmissionSectionDropdown
 } from '@/hooks/admission/preadmission/useTransactions';
 import { cn } from '@/lib/utils';
 
 import { useStudentTcReport } from '@/hooks/admission/preadmission/useReports';
+import { StudentTcDetailsSchema } from '@/schemas/admission/preadmission/reports';
 import { getExcelStudentTcReport } from '@/server/admission/preadmission/reports/month_end_report';
-import type { IStudentYearlyAttendenceReportList } from '@/types/admission/preadmission/reports';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, FileText, RotateCcw, Search, Square } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { use, useRef, useState } from 'react';
+import { use, useMemo, useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { StudentTcReportColumns } from './_components/columns';
+import type { z } from 'zod';
+import { getMasterAdmissionReportColumns } from './_components/columns';
+// import { getMasterAdmissionReportColumns } from "./_components/columns";
+import { ColumnValue } from './_components/columnvalue';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
-// Column ID mapping for API payload
-const COLUMN_ID_MAP: Record<string, string> = {
-    'Student Name': 'AMST_FirstName',
-    'Registration No.': 'AMST_RegistrationNo',
-    'TC No.': 'AMST_Id',
-    'Leaving Class': 'ASTC_ASMCL_ID',
-    'Admission Class Name': 'ASTC_TCDate',
-
-    'Leaving Reason': 'ASTC_LeavingReason',
-    Remark: 'ASTC_Remarks',
-    'Adm. No.': 'AMST_AdmNo',
-    Section: 'ASMCL_SectionName',
-    'Date Of Admission': 'AMST_DateOfAdmission',
-    'Left Date': 'ASTC_LeftDate',
-    'Issue Date': 'ASTC_IssueDate',
-
-    'Father Name': 'AMST_FatherName',
-    'Mother Name': 'AMST_MotherName',
-    'Contact No.': 'AMST_MobileNo',
-    'Email ID': 'AMST_EmailId',
-    'Date Of Birth': 'AMST_DOB',
-
-    Caste: 'AMST_Caste',
-    'Caste Category': 'AMST_CasteCategory',
-    Religion: 'AMST_Religion',
-    Place: 'AMST_Place',
-
-    'Permanent Address': 'AMST_PermanentAddress',
-    'Present Address': 'AMST_PresentAddress',
-
-    'Government ID': 'AMST_GovtId',
-    'STS No.': 'AMST_STSNo',
-    'Application Date': 'AMST_ApplicationDate',
-    'Govt Adm No.': 'AMST_GovtAdmNo'
-};
+type FormFields = z.infer<typeof StudentTcDetailsSchema>;
 
 export default function StudentTcReportPage(props: {
     searchParams: SearchParams;
@@ -75,6 +44,21 @@ export default function StudentTcReportPage(props: {
     const handleResetSelection = () => {
         tableRef.current?.resetSelection();
     };
+    const {
+        setValue,
+        watch,
+        formState: { errors }
+    } = useForm<FormFields>({
+        resolver: zodResolver(StudentTcDetailsSchema),
+        defaultValues: {
+            ASMAY_Id: 0,
+            AllOrInd: 'all',
+            ASMCL_Id: [],
+            ASMC_Id: [],
+            TempararyArrayheadList: []
+        }
+    });
+    const selectedFields = watch('TempararyArrayheadList') || [];
 
     const handleFilterChange = (filterType: 'class' | 'status' | 'academic_year', value: number) => {
         if (filterType === 'class') {
@@ -91,7 +75,7 @@ export default function StudentTcReportPage(props: {
         router.replace(`${pathname}?${params.toString()}`);
     };
 
-    const { data: activePreadmission, isLoading: activePreadmissionDeLoading } = useActivePreadmissionDetails();
+    const { data: _activePreadmission, isLoading: activePreadmissionDeLoading } = useActivePreadmissionDetails();
 
     const { data: academicYearOptions, isLoading: academicYearLoading, isError: academicYearError } = useAcademicYearDropdown();
 
@@ -101,56 +85,28 @@ export default function StudentTcReportPage(props: {
         isError: preadmissionClassError
     } = usePreadmissionClassDropdown();
 
-    const {
-        data: admissionStatus,
-        isLoading: admissionStatusLoading,
-        isError: admissionStatusError
-    } = usePreadmissionAdmissionStatusDropdown();
-
     const [academicYearId, setAcademicYearId] = useState<number>(0);
     const [classId, setClassId] = useState<number>(0);
     const [statusId, setStatusId] = useState<number>(0);
     const [showTable, setShowTable] = useState(false);
+    const [fieldSearch, setFieldSearch] = useState('');
 
     const [viewMode, setViewMode] = useState<'all' | 'indi'>('all');
     const [tcType, setTcType] = useState<'TTC' | 'PTC'>('PTC');
+    const {
+        data: preadmissionSection,
+        isLoading: preadmissionSectionLoading,
+        isError: preadmissionSectionError
+    } = useadmissionSectionDropdown(classId);
 
-    const availableColumns = [
-        'Student Name',
-        'Registration No.',
-        'TC No.',
-        'Leaving Class',
-        'Admission Class Name',
-        'Leaving Reason',
-        'Remark',
-        'Adm. No.',
-        'Section',
-        'Date Of Admission',
-        'Left Date',
-        'Issue Date',
-        'Father Name',
-        'Mother Name',
-        'Contact No.',
-        'Email ID',
-        'Date Of Birth',
-        'Caste',
-        'Caste Category',
-        'Religion',
-        'Place',
-        'Permanent Address',
-        'Present Address',
-        'Government ID',
-        'STS No.',
-        'Application Date',
-        'Govt Adm No.'
-    ];
-
-    const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
-    const [columnsSearch, setColumnsSearch] = useState('');
-
-    const [selectedStudents, setSelectedStudents] = useState<IStudentYearlyAttendenceReportList[]>([]);
-
-    const [, setIsStatusDialogOpen] = useState<boolean>(false);
+    const filteredFields = useMemo(() => {
+        return ColumnValue.filter((field) => field.columnName.toLowerCase().includes(fieldSearch.toLowerCase()));
+    }, [fieldSearch]);
+    const handleFieldToggle = (fieldId: string) => {
+        const current = selectedFields || [];
+        const updated = current.includes(fieldId) ? current.filter((f) => f !== fieldId) : [...current, fieldId];
+        setValue('TempararyArrayheadList', updated, { shouldValidate: true });
+    };
 
     // Build API payload based on current state
     const buildApiPayload = () => {
@@ -159,9 +115,12 @@ export default function StudentTcReportPage(props: {
             AllOrInd: viewMode,
             ASMCL_Id: viewMode === 'indi' ? classId : 0,
             ASMC_Id: viewMode === 'indi' ? statusId : 0,
-            TempararyArrayheadList: selectedColumns.map((col) => ({
-                columnID: COLUMN_ID_MAP[col] || col
-            })),
+            tempararyArrayheadList: selectedFields.map((id: string) => {
+                const _field = ColumnValue.find((f) => f.columnID === id);
+                return {
+                    columnID: id
+                };
+            }),
             PermOrTemp: tcType,
             AMC_Id: 0
         };
@@ -171,15 +130,25 @@ export default function StudentTcReportPage(props: {
     const tablePayload = buildApiPayload();
 
     const { data, isLoading, error, refetch } = useStudentTcReport(tablePayload, searchParams, false);
-    console.log('Student TC Report Data:', data);
+
+    const columns = useMemo(() => getMasterAdmissionReportColumns(selectedFields as string[]), [selectedFields]);
+
     const tableProps = useDataTableProps({
         data: data?.data || [],
         searchParams,
         totalRecords: data?.totalRecords || 0
     });
 
-    const handleSelectStudent = (selectedRows: IStudentYearlyAttendenceReportList[]) => {
-        setSelectedStudents(selectedRows);
+    const handleSelectAllFields = () => {
+        if (selectedFields.length === filteredFields.length) {
+            setValue('TempararyArrayheadList', [], { shouldValidate: true });
+        } else {
+            setValue(
+                'TempararyArrayheadList',
+                filteredFields.map((f) => f.columnID),
+                { shouldValidate: true }
+            );
+        }
     };
 
     const requestData = {
@@ -204,7 +173,7 @@ export default function StudentTcReportPage(props: {
                 return;
             }
 
-            if (selectedColumns.length === 0) {
+            if (selectedFields.length === 0) {
                 toast.error('Please select at least one column');
                 return;
             }
@@ -233,8 +202,6 @@ export default function StudentTcReportPage(props: {
         setStatusId(0);
         setViewMode('all');
         setTcType('PTC');
-        setSelectedColumns([]);
-        setSelectedStudents([]);
         handleResetSelection();
 
         // Reset URL params
@@ -273,7 +240,7 @@ export default function StudentTcReportPage(props: {
     return (
         <div className='min-h-screen'>
             {/* Header */}
-            <div className='mb-3 flex w-fit flex-col gap-4 rounded-xl border p-4 shadow-xl'>
+            <div className='mb-3 flex w-full flex-col gap-4 rounded-xl border p-4 shadow-xl'>
                 {/* Filter Options */}
                 <div className='flex flex-wrap justify-start gap-6'>
                     {/* View Mode Radio Buttons */}
@@ -372,18 +339,18 @@ export default function StudentTcReportPage(props: {
                                         <SelectItem key={0} value={'0'}>
                                             All
                                         </SelectItem>
-                                        {admissionStatusLoading ? (
+                                        {preadmissionSectionLoading ? (
                                             <SelectItem value='loading' disabled>
                                                 Loading...
                                             </SelectItem>
-                                        ) : admissionStatusError ? (
+                                        ) : preadmissionSectionError ? (
                                             <SelectItem value='error' disabled>
                                                 Error loading
                                             </SelectItem>
                                         ) : (
-                                            admissionStatus?.data?.map((item) => (
-                                                <SelectItem key={item.pamsT_Id} value={item.pamsT_Id.toString()}>
-                                                    {item.pamsT_Status}
+                                            preadmissionSection?.data?.map((item: any) => (
+                                                <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>
+                                                    {item.asmC_SectionName}
                                                 </SelectItem>
                                             ))
                                         )}
@@ -424,82 +391,59 @@ export default function StudentTcReportPage(props: {
                     </div>
 
                     {/* Columns Checklist using Popover */}
-                    <div className='flex w-full flex-col gap-2 sm:w-72'>
-                        <Label className='mb-1 font-semibold'>Columns</Label>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button type='button' variant='outline' className='w-full justify-between'>
-                                    {selectedColumns.length ? `${selectedColumns.length} selected` : 'Select Columns'}
-                                </Button>
-                            </PopoverTrigger>
-
-                            <PopoverContent className='w-[260px] p-2 sm:w-[300px]'>
-                                {/* Search Input */}
-                                <div className='relative mb-2'>
-                                    <Search className='absolute top-2.5 left-2 h-4 w-4 text-gray-400' />
-                                    <Input
-                                        placeholder='search here...'
-                                        value={columnsSearch}
-                                        onChange={(e) => setColumnsSearch(e.target.value)}
-                                        className='h-8 pl-8 text-sm'
-                                    />
-                                </div>
-
-                                <div className='max-h-[260px] overflow-y-auto rounded-md border p-1'>
-                                    {/* Select All option */}
-                                    <div
-                                        onClick={() => {
-                                            const isAllSelected = selectedColumns.length === availableColumns.length;
-                                            setSelectedColumns(isAllSelected ? [] : [...availableColumns]);
-                                        }}
-                                        className={cn(
-                                            'mb-2 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm transition-all',
-                                            selectedColumns.length === availableColumns.length
-                                                ? 'border-primary bg-primary/5 text-primary'
-                                                : 'border-gray-200 hover:border-primary/40'
-                                        )}>
-                                        {selectedColumns.length === availableColumns.length ? (
-                                            <CheckSquare className='h-4 w-4 text-primary' />
-                                        ) : (
-                                            <Square className='h-4 w-4 text-gray-400' />
-                                        )}
-                                        <span>Select All</span>
-                                    </div>
-
-                                    {/* Individual column items */}
-                                    {availableColumns
-                                        .filter((c) => c.toLowerCase().includes(columnsSearch.toLowerCase().trim()))
-                                        .map((col) => {
-                                            const isSelected = selectedColumns.includes(col);
-                                            return (
-                                                <div
-                                                    key={col}
-                                                    onClick={() => {
-                                                        if (isSelected) {
-                                                            setSelectedColumns((prev) => prev.filter((c) => c !== col));
-                                                        } else {
-                                                            setSelectedColumns((prev) => [...prev, col]);
-                                                        }
-                                                    }}
-                                                    className={cn(
-                                                        'mb-1 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm transition-all',
-                                                        isSelected
-                                                            ? 'border-primary bg-primary/5'
-                                                            : 'border-gray-200 hover:border-primary/40'
-                                                    )}>
-                                                    {isSelected ? (
-                                                        <CheckSquare className='h-4 w-4 text-primary' />
-                                                    ) : (
-                                                        <Square className='h-4 w-4 text-gray-400' />
-                                                    )}
-                                                    <span>{col}</span>
-                                                </div>
-                                            );
-                                        })}
-                                </div>
-                            </PopoverContent>
-                        </Popover>
+                </div>
+                <div className='w-1/3 space-y-3'>
+                    <div className='relative'>
+                        <Search className='absolute top-2.5 left-3 h-4 w-4 text-gray-400' />
+                        <input
+                            type='text'
+                            placeholder='Search fields...'
+                            value={fieldSearch}
+                            onChange={(e) => setFieldSearch(e.target.value)}
+                            className='w-full rounded-md border border-gray-300 py-2 pr-3 pl-10 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary'
+                        />
                     </div>
+
+                    <div
+                        onClick={handleSelectAllFields}
+                        className={cn(
+                            'flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 font-medium text-sm transition-all',
+                            selectedFields.length === filteredFields.length && filteredFields.length > 0
+                                ? 'border-primary bg-primary/5 text-primary'
+                                : 'border-gray-300 hover:border-primary/40'
+                        )}>
+                        {selectedFields.length === filteredFields.length && filteredFields.length > 0 ? (
+                            <CheckSquare className='h-4 w-4 text-primary' />
+                        ) : (
+                            <Square className='h-4 w-4 text-gray-400' />
+                        )}
+                        <span>Select All</span>
+                    </div>
+
+                    <div className='max-h-60 space-y-1 overflow-y-auto rounded-md border border-gray-300 p-2'>
+                        {filteredFields.map((field) => {
+                            const selected = selectedFields.includes(field.columnID);
+                            return (
+                                <div
+                                    key={field.columnID}
+                                    onClick={() => handleFieldToggle(field.columnID)}
+                                    className={cn(
+                                        'flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm transition-all',
+                                        selected
+                                            ? 'border-primary bg-primary/5 text-primary'
+                                            : 'border-gray-200 hover:border-primary/40 hover:bg-gray-50'
+                                    )}>
+                                    {selected ? (
+                                        <CheckSquare className='h-4 w-4 text-primary' />
+                                    ) : (
+                                        <Square className='h-4 w-4 text-gray-400' />
+                                    )}
+                                    <span>{field.columnName}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                    {errors.TempararyArrayheadList && <FormError>{errors.TempararyArrayheadList.message}</FormError>}
                 </div>
                 <div className='flex flex-col gap-3 sm:flex-row sm:justify-center'>
                     <Button type='button' onClick={handleReport} className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'>
@@ -525,19 +469,10 @@ export default function StudentTcReportPage(props: {
                         variant='default'
                         size='lg'
                         className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                        {selectedStudents.length > 0 && (
-                            <div className='flex w-full justify-end'>
-                                <Button onClick={() => setIsStatusDialogOpen(true)} variant='default' className='h-8 w-fit gap-2'>
-                                    <CheckSquare className='h-4 w-4' />
-                                    Update Status ({selectedStudents.length})
-                                </Button>
-                            </div>
-                        )}
-
-                        <GenericDataTable<IStudentYearlyAttendenceReportList>
+                        <GenericDataTable
                             {...tableProps}
                             ref={tableRef}
-                            columns={StudentTcReportColumns}
+                            columns={columns}
                             isLoading={activePreadmissionDeLoading || isLoading}
                             error={error}
                             showViewOptions={false}
@@ -545,7 +480,6 @@ export default function StudentTcReportPage(props: {
                             noDataTitle='No Data Found'
                             noDataDescription='No preadmission admissions found.'
                             errorTitle='Error Loading Preadmission Admissions'
-                            onRowSelectionChange={handleSelectStudent}
                         />
                     </CollapsibleSection>
                 )}
