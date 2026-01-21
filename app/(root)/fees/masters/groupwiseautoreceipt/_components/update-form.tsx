@@ -168,6 +168,24 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
         setValue('receiptTemplateFormat', selectedRow.fgaR_Template_Name || '');
     }, [selectedRow, academicYearOptions, setValue]);
 
+    // useEffect(() => {
+    //     if (!selectedRow?.feeGroupslist || groupOptions.length === 0) return;
+
+    //     const preSelectedGroupIds = selectedRow.feeGroupslist
+    //         .map((group: any) => {
+    //             const matched = groupOptions.find((opt) => opt.fmG_GroupName === group.fmG_GroupName);
+    //             return matched ? matched.fmG_Id.toString() : null;
+    //         })
+    //         .filter((id: string | null): id is string => id !== null);
+
+    //     if (preSelectedGroupIds.length > 0) {
+    //         setSelectedGroups(preSelectedGroupIds);
+    //         setValue('groups', preSelectedGroupIds, { shouldValidate: hasSubmitted });
+    //     }
+    // }, [selectedRow, groupOptions, setValue, hasSubmitted]);
+
+    const filteredGroupOptions = groupOptions.filter((option) => option.fmG_GroupName.toLowerCase().includes(searchTerm.toLowerCase()));
+
     useEffect(() => {
         if (!selectedRow?.feeGroupslist || groupOptions.length === 0) return;
 
@@ -180,35 +198,85 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
 
         if (preSelectedGroupIds.length > 0) {
             setSelectedGroups(preSelectedGroupIds);
-            setValue('groups', preSelectedGroupIds, { shouldValidate: hasSubmitted });
+            setValue('groups', preSelectedGroupIds, {
+                shouldValidate: true,
+                shouldDirty: true
+            });
         }
-    }, [selectedRow, groupOptions, setValue, hasSubmitted]);
+    }, [selectedRow, groupOptions, setValue]);
 
-    const filteredGroupOptions = groupOptions.filter((option) => option.fmG_GroupName.toLowerCase().includes(searchTerm.toLowerCase()));
+    // const handleGroupChange = (value: string) => {
+    //     const currentGroups = groupsValue || [];
+    //     let updatedGroups: string[];
+    //     if (currentGroups.includes(value)) {
+    //         updatedGroups = currentGroups.filter((c) => c !== value);
+    //     } else {
+    //         updatedGroups = [...currentGroups, value];
+    //     }
+    //     setSelectedGroups(updatedGroups);
+    //     setValue('groups', updatedGroups, { shouldValidate: hasSubmitted });
+    // };
 
     const handleGroupChange = (value: string) => {
-        const currentGroups = groupsValue || [];
-        let updatedGroups: string[];
-        if (currentGroups.includes(value)) {
-            updatedGroups = currentGroups.filter((c) => c !== value);
-        } else {
-            updatedGroups = [...currentGroups, value];
-        }
-        setSelectedGroups(updatedGroups);
-        setValue('groups', updatedGroups, { shouldValidate: hasSubmitted });
+        // Create a new array based on current selectedGroups state
+        const newSelectedGroups = selectedGroups.includes(value)
+            ? selectedGroups.filter((id) => id !== value) // Remove if already selected
+            : [...selectedGroups, value]; // Add if not selected
+
+        // Update both state and form value
+        setSelectedGroups(newSelectedGroups);
+        setValue('groups', newSelectedGroups, {
+            shouldValidate: true,
+            shouldDirty: true
+        });
     };
 
+    // const handleSelectAll = () => {
+    //     const currentGroups = groupsValue || [];
+    //     if (currentGroups.length === groupOptions.length) {
+    //         setSelectedGroups([]);
+    //         setValue('groups', [], { shouldValidate: hasSubmitted });
+    //     } else {
+    //         const allValues = groupOptions.map((opt) => opt.fmG_Id.toString());
+    //         setSelectedGroups(allValues);
+    //         setValue('groups', allValues, { shouldValidate: hasSubmitted });
+    //     }
+    // };
+
     const handleSelectAll = () => {
-        const currentGroups = groupsValue || [];
-        if (currentGroups.length === groupOptions.length) {
-            setSelectedGroups([]);
-            setValue('groups', [], { shouldValidate: hasSubmitted });
-        } else {
-            const allValues = groupOptions.map((opt) => opt.fmG_Id.toString());
-            setSelectedGroups(allValues);
-            setValue('groups', allValues, { shouldValidate: hasSubmitted });
-        }
+        if (groupOptions.length === 0) return;
+
+        const newSelectedGroups =
+            selectedGroups.length === groupOptions.length
+                ? [] // Deselect all if all are selected
+                : groupOptions.map((opt) => opt.fmG_Id.toString()); // Select all
+
+        setSelectedGroups(newSelectedGroups);
+        setValue('groups', newSelectedGroups, {
+            shouldValidate: true,
+            shouldDirty: true
+        });
     };
+
+    // In your useEffect that pre-fills groups:
+    useEffect(() => {
+        if (!selectedRow?.feeGroupslist || groupOptions.length === 0) return;
+
+        const preSelectedGroupIds = selectedRow.feeGroupslist
+            .map((group: any) => {
+                const matched = groupOptions.find((opt) => opt.fmG_GroupName === group.fmG_GroupName);
+                return matched ? matched.fmG_Id.toString() : null;
+            })
+            .filter((id: string | null): id is string => id !== null);
+
+        if (preSelectedGroupIds.length > 0) {
+            setSelectedGroups(preSelectedGroupIds);
+            setValue('groups', preSelectedGroupIds, {
+                shouldValidate: true,
+                shouldDirty: true
+            });
+        }
+    }, [selectedRow, groupOptions, setValue]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
@@ -230,6 +298,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                 fgaR_Template_Name: receiptTemplateFormat || ''
             };
 
+            console.log('auto receipt payload', JSON.stringify(payload));
             const response = await addOrUpdateMasterFeeMasterGroupwiseAutoReceipt(payload);
 
             if (response.success) {
@@ -425,8 +494,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                 </div>
                             )}
 
-                            {/* Group Selection */}
-                            <div className='lg:col-span-2'>
+                            {/* <div className='lg:col-span-2'>
                                 <Label>
                                     Select Groups <span className='text-red-500'>*</span>
                                 </Label>
@@ -487,6 +555,78 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                     </div>
                                     <div className='mt-1 text-gray-500 text-xs'>
                                         {groupsValue?.length || 0} of {groupOptions.length} groups selected
+                                    </div>
+                                </div>
+                                {hasSubmitted && errors.groups && <FormError>{errors.groups.message}</FormError>}
+                            </div> */}
+
+                            {/* Group Selection */}
+                            <div className='lg:col-span-2'>
+                                <Label>
+                                    Select Groups <span className='text-red-500'>*</span>
+                                </Label>
+                                <div className='mt-2 rounded-md border border-gray-300 bg-white p-3'>
+                                    <InputText
+                                        placeholder='Search Groups...'
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className='mb-3 transition-colors focus:ring-2 focus:ring-primary/20'
+                                    />
+
+                                    {/* Select All Checkbox */}
+                                    <div
+                                        onClick={handleSelectAll}
+                                        className={cn(
+                                            'mb-2 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm transition-all',
+                                            selectedGroups.length === groupOptions.length && groupOptions.length > 0
+                                                ? 'border-primary bg-primary/5 text-primary'
+                                                : 'border-gray-300 hover:border-primary/40'
+                                        )}>
+                                        {selectedGroups.length === groupOptions.length && groupOptions.length > 0 ? (
+                                            <CheckSquare className='h-4 w-4 text-primary' />
+                                        ) : (
+                                            <Square className='h-4 w-4 text-gray-400' />
+                                        )}
+                                        <span>Select All</span>
+                                    </div>
+
+                                    {/* Groups List */}
+                                    <div className='mt-2 max-h-40 overflow-y-auto rounded-md border border-gray-300 p-1'>
+                                        {loadingGroupData && (
+                                            <div className='py-4 text-center text-gray-500 text-sm'>Loading groups...</div>
+                                        )}
+                                        {!loadingGroupData && filteredGroupOptions.length === 0 && (
+                                            <div className='py-4 text-center text-gray-500 text-sm'>
+                                                {academicYear ? 'No groups found' : 'Please select an academic year first'}
+                                            </div>
+                                        )}
+                                        {filteredGroupOptions.map((option) => {
+                                            const value = option.fmG_Id.toString();
+                                            const selected = selectedGroups.includes(value); // Use selectedGroups state
+                                            return (
+                                                <div
+                                                    key={option.fmG_Id}
+                                                    onClick={() => handleGroupChange(value)}
+                                                    className={cn(
+                                                        'mb-1 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm transition-all',
+                                                        selected
+                                                            ? 'border-primary bg-primary/5 text-primary'
+                                                            : 'border-gray-300 hover:border-primary/40'
+                                                    )}>
+                                                    {selected ? (
+                                                        <CheckSquare className='h-4 w-4 text-primary' />
+                                                    ) : (
+                                                        <Square className='h-4 w-4 text-gray-400' />
+                                                    )}
+                                                    <span>{option.fmG_GroupName}</span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {/* Selection Count */}
+                                    <div className='mt-1 text-gray-500 text-xs'>
+                                        {selectedGroups.length || 0} of {groupOptions.length} groups selected
                                     </div>
                                 </div>
                                 {hasSubmitted && errors.groups && <FormError>{errors.groups.message}</FormError>}

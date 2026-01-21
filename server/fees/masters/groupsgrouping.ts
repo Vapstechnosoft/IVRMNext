@@ -5,13 +5,13 @@ import type { IMasterGroupsGrouping, IMasterGroupsOnYear } from '@/types/fees/ma
 
 export async function getFeeGroup(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/FeeGroupGroupingFacade/feegroups/30?${urlParams}`;
+    const url = `/FeeGroupGroupingFacade/feegroups?${urlParams}`;
     return await api.get<IMasterGroupsGrouping[]>('fees', url);
 }
 
 export async function getFeeGroupGrouping(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'fmgG_GroupName,fmgG_GroupCode,selectedFeeGroups');
-    const url = `/FeeGroupGroupingFacade/getallfeegroups/30?${urlParams}`;
+    const url = `/FeeGroupGroupingFacade/getallfeegroups?${urlParams}`;
     return await api.get<IMasterGroupsGrouping[]>('fees', url);
 }
 

@@ -8,8 +8,7 @@ export default function TBSReportSchoolExcel({ reportData }: { reportData: any }
     const exportToExcel = () => {
         if (!reportData || !reportData.getstudentdetails) return;
 
-        const { getstudentdetails, getstudentmarksdetails, getstudentwisesubjectlist, getgroupexamdetails, getstudentwisetermwisedetails } =
-            reportData;
+        const { getstudentdetails, getstudentmarksdetails, getgroupexamdetails, getstudentwisetermwisedetails } = reportData;
 
         // Create headers
         const headers = ['Sl No', 'Student Name', 'Class', 'Section', 'Adm No'];
@@ -47,7 +46,7 @@ export default function TBSReportSchoolExcel({ reportData }: { reportData: any }
 
         // Basic styling
         XLSX.utils.book_append_sheet(wb, ws, 'Report Card');
-        XLSX.writeFile(wb, `TBS_Report_Card_${new Date().getTime()}.xlsx`);
+        XLSX.writeFile(wb, `TBS_Report_Card_${Date.now()}.xlsx`);
     };
 
     return (

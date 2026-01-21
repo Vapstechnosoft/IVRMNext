@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMasterGrade } from '@/hooks/exam/exammodule/usemasters';
+import { useMasterGradeDropdownList } from '@/hooks/exam/exammodule/usemasters';
 import { gradeSlabReportSchema } from '@/schemas/exam/exam-module/reports';
 import { getReportDetails } from '@/server/exam/exam-module/reports/grade-slab-report';
 import type { IMasterGrade } from '@/types/exam/exam-module/masters';
@@ -26,7 +26,7 @@ interface ReportFormProps {
 export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onReset }) => {
     const [grades, setGrades] = useState<any[]>([]);
     const [initialLoading, setInitialLoading] = useState(true);
-    const { data: gradeData, error: gradeError } = useMasterGrade();
+    const { data: gradeData, error: gradeError } = useMasterGradeDropdownList();
 
     const methods = useForm<FormFields>({
         resolver: zodResolver(gradeSlabReportSchema.addOrUpdate),

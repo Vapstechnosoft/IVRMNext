@@ -40,7 +40,7 @@ export default function ToggleFeesConcessionDetails({ rowData, onClose }: Toggle
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleMasterConcessionDetails(30, Number(rowData.fmccD_Id), Number(rowData.fmcC_Id));
+            const response = await toggleMasterConcessionDetails(Number(rowData.fmccD_Id), Number(rowData.fmcC_Id));
 
             if (response.success) {
                 toast.success(response.message);

@@ -1,4 +1,3 @@
-// app/promotional-setting/_components/add-form.tsx
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -9,58 +8,61 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import {
+    addOrUpdatePromotionSettings,
     getExamSubjectsByCategoryId,
     getPromotionCategoryByAcademicYear
 } from '@/server/exam/exam-module/exam-mapping/promotional-setting';
 import { Eye } from 'lucide-react';
-import type React from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { ViewExamsModal } from './group-mapped-exam-model';
 import { ViewGroupsModal } from './group-mapping-model';
 
 /**
- * Types used in the file
+ * Types
  */
 export type GroupItem = {
     id: number;
-    groupName: string;
-    displayName: string;
-    percentage: number;
-    marks: number;
-    maxOff: number;
-    bestOff: number;
-    order: number;
-    roundOffFlag: boolean;
-    exams: { id: number; name: string; marks: number; conversionRequired: boolean }[];
+    EMPSG_Id?: number;
+    EMPSG_GroupName: string;
+    EMPSG_DisplayName: string;
+    EMPSG_PercentValue: number;
+    EMPSG_MarksValue: number;
+    EMPSG_MaxOff: number;
+    EMPSG_BestOff: number;
+    EMPSG_Order: number;
+    EMPSG_RoundOffFlag: boolean;
+    Exm_M_Prom_Subj_Group_Exams_master: Array<{
+        emE_Id: number;
+        emE_ExamName: string;
+        EMPSGE_ForMaxMarkrs: number;
+        EMPSGE_ConvertionReqOrNot: boolean;
+    }>;
 };
 
 export type SubjectRow = {
     ismS_Id: number;
     ismS_SubjectName: string;
-    ismS_SubjectCode?: string | null;
-    ismS_Max_Marks?: number | null;
-    ismS_Min_Marks?: number | null;
-    ismS_OrderFlag?: number | null;
-    // Additional fields for form handling
-    convertFor?: number | null;
-    applyToResult?: boolean;
-    grade?: string | null;
+    ismS_SubjectCode: string | null;
+    EMPS_MaxMarks: number | null;
+    EMPS_MinMarks: number | null;
+    EMPS_ConvertForMarks: number | null;
+    EMPS_AppToResultFlg: boolean;
+    EMGR_Id: string | null;
+    EMPS_Id?: number;
+    EMPS_SubjOrder?: number;
+    pro_exams_group_list?: GroupItem[];
+    checkedvalue?: boolean;
 };
 
-type ExamSubject = {
-    ismS_Id: number;
-    ismS_SubjectName: string;
-    ismS_SubjectCode?: string | null;
-    ismS_Max_Marks?: number | null;
-    ismS_Min_Marks?: number | null;
-    ismS_OrderFlag?: number | null;
-    emaP_PromotionId?: number;
-    emaP_MaxMarks?: number | null;
-    emaP_MinMarks?: number | null;
-    emaP_ConvertFor?: number | null;
-    emaP_ApplyToResult?: boolean;
-    emaP_Grade?: string | null;
+type ExamItem = {
+    emE_Id: number;
+    emE_ExamName: string;
+    emE_ExamCode?: string;
+    checked?: boolean;
+    ForMaxMarkrs?: number;
+    ForMaxMarkrs_Temp?: number;
+    ConvertionReqOrNot?: boolean;
 };
 
 type PromotionCategory = {
@@ -68,246 +70,410 @@ type PromotionCategory = {
     emcA_CategoryName: string;
 };
 
-type PromotionCategoryResponse = {
-    data: PromotionCategory[];
-    status: boolean;
-    message: string;
+type GradeItem = {
+    emgR_Id: string;
+    emgR_GradeName: string;
+};
+
+type PromotionPayload = {
+    EMP_Id: number;
+    ASMAY_Id: number;
+    EYC_Id: number;
+    EMGR_Id: string | null;
+    EMP_PassToIndSubjectFlg: boolean;
+    EMP_PassToOverallFlag: boolean;
+    EMP_MarksPerFlg: 'M' | 'P' | 'T' | 'F';
+    EMP_BestOfApplicableFlg: boolean;
+    EMP_BestOf: number | null;
+    pro_subjects_list: Array<{
+        ismS_Id: number;
+        EMPS_MaxMarks: number;
+        EMPS_MinMarks: number;
+        EMPS_ConvertForMarks: number;
+        EMPS_AppToResultFlg: boolean;
+        EMGR_Id: string;
+        EMPS_SubjOrder?: number;
+        pro_exams_group_list?: GroupItem[];
+    }>;
 };
 
 /**
- * Modal component
- */
-type ModalProps = {
-    open: boolean;
-    title?: string;
-    onClose: () => void;
-    children?: React.ReactNode;
-};
-
-function SimpleModal({ open, title, onClose, children }: ModalProps) {
-    if (!open) return null;
-    return (
-        <div className='fixed inset-0 z-60 flex items-center justify-center bg-black/50 p-4'>
-            <div className='w-full max-w-2xl rounded bg-white p-6 shadow-lg'>
-                <div className='mb-4 flex items-center justify-between'>
-                    <h3 className='font-semibold text-lg'>{title}</h3>
-                    <button type='button' onClick={onClose} aria-label='Close modal' className='rounded p-1 hover:bg-gray-100'>
-                        ×
-                    </button>
-                </div>
-                <div>{children}</div>
-            </div>
-        </div>
-    );
-}
-
-const INITIAL_GROUPS: GroupItem[] = [];
-
-/**
- * Main component - AddPromotionalSettingForm
+ * Main component
  */
 export default function AddPromotionalSettingForm() {
-    // top-level form state
+    // Form state
     const [selectedYear, setSelectedYear] = useState<number>(0);
-    const [categories, setCategories] = useState<PromotionCategory[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
-    const [grade, setGrade] = useState<string | null>(null);
+    const [selectedGrade, setSelectedGrade] = useState<string | null>(null);
 
-    // table and selection state
+    // Toggle states
+    const [passToIndividual, setPassToIndividual] = useState<boolean>(false);
+    const [passToOverall, setPassToOverall] = useState<boolean>(false);
+    const [bestApplicable, setBestApplicable] = useState<boolean>(false);
+    const [bestOff, setBestOff] = useState<number | null>(null);
+
+    // Mode state
+    const [promotionType, setPromotionType] = useState<'M' | 'P' | 'T' | 'F'>('P');
+
+    // Data state
+    const [categories, setCategories] = useState<PromotionCategory[]>([]);
+    const [grades, setGrades] = useState<GradeItem[]>([
+        { emgR_Id: '1', emgR_GradeName: 'Grade 1' },
+        { emgR_Id: '2', emgR_GradeName: 'Grade 2' },
+        { emgR_Id: '3', emgR_GradeName: 'Grade 3' },
+        { emgR_Id: '4', emgR_GradeName: 'Grade 4' },
+        { emgR_Id: '5', emgR_GradeName: 'Grade 5' }
+    ]);
     const [subjects, setSubjects] = useState<SubjectRow[]>([]);
-    const [selectedSubjects, setSelectedSubjects] = useState<Record<number, boolean>>({});
+    const [exams, setExams] = useState<ExamItem[]>([]);
 
-    // header-level "apply to all" controls
-    const [headerMaxMarks, setHeaderMaxMarks] = useState<number | ''>('');
-    const [headerMinMarks, setHeaderMinMarks] = useState<number | ''>('');
-    const [headerConvertFor, setHeaderConvertFor] = useState<number | ''>('');
+    // UI state
+    const [selectAll, setSelectAll] = useState<boolean>(false);
+    const [headerMaxMarks, setHeaderMaxMarks] = useState<string>('');
+    const [headerMinMarks, setHeaderMinMarks] = useState<string>('');
+    const [headerConvertMarks, setHeaderConvertMarks] = useState<string>('');
     const [headerApplyToResult, setHeaderApplyToResult] = useState<boolean>(true);
-    const [headerGrade, setHeaderGrade] = useState<string | ''>('');
+    const [headerGrade, setHeaderGrade] = useState<string>('__none');
 
-    // UI state and modals
+    // Modal state
     const [activeSubject, setActiveSubject] = useState<SubjectRow | null>(null);
-    const [groups, setGroups] = useState<GroupItem[]>(INITIAL_GROUPS);
     const [isGroupsOpen, setIsGroupsOpen] = useState(false);
     const [isExamsOpen, setIsExamsOpen] = useState(false);
     const [activeGroup, setActiveGroup] = useState<GroupItem | null>(null);
-    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
 
-    // display mode: marks | percentage | total | final
-    const [displayMode, setDisplayMode] = useState<'marks' | 'percentage' | 'total' | 'final'>('marks');
+    // Loading
+    const { data: academicYear, isLoading: academicYearLoading } = useAcademicYearDropdown();
 
-    // load categories when year changes
+    // Load categories when year changes
     useEffect(() => {
         if (!selectedYear) return;
 
         const loadCategories = async () => {
             try {
                 const response = await getPromotionCategoryByAcademicYear(selectedYear, 0, 0);
-
                 const safeCats = Array.isArray(response?.data) ? response.data : [];
-                console.log('Loaded categories:', safeCats);
                 setCategories(safeCats);
                 setSelectedCategory(null);
                 setSubjects([]);
-                setSelectedSubjects({});
             } catch (error) {
                 console.error('Error loading categories:', error);
-                setCategories([]);
+                toast.error('Failed to load categories');
             }
         };
 
         loadCategories();
     }, [selectedYear]);
 
-    // load subjects when category changes
-    useEffect(() => {
-        if (!selectedCategory) {
-            setSubjects([]);
-            setSelectedSubjects({});
-            return;
-        }
+    // Load subjects when category changes
+    const loadSubjects = useCallback(async (categoryId: number) => {
+        try {
+            const response = await getExamSubjectsByCategoryId(categoryId);
+            const payload = response.data as {
+                subjectlist?: any[];
+                examlist?: ExamItem[];
+            };
 
-        const loadSubjects = async () => {
-            try {
-                const examSubjects = await getExamSubjectsByCategoryId(selectedCategory);
-                console.log('API Response subjects:', examSubjects);
-
-                const safeSubjects: SubjectRow[] = Array.isArray(examSubjects)
-                    ? examSubjects.map((subject: ExamSubject) => ({
+            const subjectsData = Array.isArray(payload.subjectlist)
+                ? payload.subjectlist.map(
+                      (subject: any): SubjectRow => ({
                           ismS_Id: subject.ismS_Id,
                           ismS_SubjectName: subject.ismS_SubjectName,
                           ismS_SubjectCode: subject.ismS_SubjectCode || null,
-                          ismS_Max_Marks: subject.ismS_Max_Marks || subject.emaP_MaxMarks || null,
-                          ismS_Min_Marks: subject.ismS_Min_Marks || subject.emaP_MinMarks || null,
-                          ismS_OrderFlag: subject.ismS_OrderFlag || null,
-                          convertFor: subject.emaP_ConvertFor || null,
-                          applyToResult: subject.emaP_ApplyToResult || false,
-                          grade: subject.emaP_Grade || null
-                      }))
-                    : [];
+                          EMPS_MaxMarks: subject.empS_MaxMarks || subject.ismS_Max_Marks || null,
+                          EMPS_MinMarks: subject.empS_MinMarks || subject.ismS_Min_Marks || null,
+                          EMPS_ConvertForMarks: subject.empS_ConvertForMarks || null,
+                          EMPS_AppToResultFlg: subject.empS_AppToResultFlg ?? true,
+                          EMGR_Id: subject.emgR_Id || null,
+                          EMPS_Id: subject.empS_Id,
+                          checkedvalue: false
+                      })
+                  )
+                : [];
 
-                console.log('Processed subjects:', safeSubjects);
-                setSubjects(safeSubjects);
-                setSelectedSubjects({});
-            } catch (error) {
-                console.error('Error loading subjects:', error);
-                setSubjects([]);
-            }
-        };
+            const examsData = Array.isArray(payload.examlist)
+                ? payload.examlist.map(
+                      (exam: any): ExamItem => ({
+                          emE_Id: exam.emE_Id,
+                          emE_ExamName: exam.emE_ExamName,
+                          emE_ExamCode: exam.emE_ExamCode,
+                          checked: false,
+                          ForMaxMarkrs: 0,
+                          ForMaxMarkrs_Temp: 0,
+                          ConvertionReqOrNot: false
+                      })
+                  )
+                : [];
 
-        loadSubjects();
-    }, [selectedCategory]);
+            setSubjects(subjectsData);
+            setExams(examsData);
 
-    // apply header values to all rows when header controls change
-    useEffect(() => {
-        // Apply only when there are subjects
-        if (!subjects.length) return;
-        setSubjects((prev) =>
-            prev.map((s) => ({
-                ...s,
-                ismS_Max_Marks: headerMaxMarks === '' ? s.ismS_Max_Marks : Number(headerMaxMarks),
-                ismS_Min_Marks: headerMinMarks === '' ? s.ismS_Min_Marks : Number(headerMinMarks),
-                convertFor: headerConvertFor === '' ? s.convertFor : Number(headerConvertFor),
-                applyToResult: headerApplyToResult,
-                grade: headerGrade === '' ? s.grade : headerGrade
-            }))
-        );
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [headerMaxMarks, headerMinMarks, headerConvertFor, headerApplyToResult, headerGrade]);
-
-    const isTableVisible = useMemo(
-        () => displayMode !== 'final' && !!selectedCategory && subjects.length > 0,
-        [displayMode, selectedCategory, subjects]
-    );
-
-    // selection helpers
-    const toggleSubject = useCallback((id: number) => {
-        setSelectedSubjects((prev) => ({ ...prev, [id]: !prev[id] }));
+            // Reset header inputs
+            setHeaderMaxMarks('');
+            setHeaderMinMarks('');
+            setHeaderConvertMarks('');
+            setHeaderGrade('__none');
+        } catch (error) {
+            console.error('Error loading subjects:', error);
+            toast.error('Failed to load subjects and exams');
+        }
     }, []);
 
-    const toggleSelectAll = useCallback(() => {
-        const allSelected = subjects.length > 0 && subjects.every((s) => !!selectedSubjects[s.ismS_Id]);
-        if (allSelected) {
-            // clear all
-            setSelectedSubjects({});
+    useEffect(() => {
+        if (selectedCategory) {
+            loadSubjects(selectedCategory);
+        }
+    }, [selectedCategory, loadSubjects]);
+
+    // Toggle all subjects
+    const toggleAllSubjects = () => {
+        const newSelectAll = !selectAll;
+        setSelectAll(newSelectAll);
+
+        setSubjects((prev) =>
+            prev.map((subject) => ({
+                ...subject,
+                checkedvalue: newSelectAll
+            }))
+        );
+    };
+
+    // Toggle individual subject
+    const toggleSubject = (subjectId: number) => {
+        setSubjects((prev) =>
+            prev.map((subject) => (subject.ismS_Id === subjectId ? { ...subject, checkedvalue: !subject.checkedvalue } : subject))
+        );
+
+        // Update selectAll based on new state
+        const updatedSubjects = subjects.map((subject) =>
+            subject.ismS_Id === subjectId ? { ...subject, checkedvalue: !subject.checkedvalue } : subject
+        );
+
+        const allSelected = updatedSubjects.every((s) => s.checkedvalue);
+        setSelectAll(allSelected);
+    };
+
+    // Apply header values to selected subjects
+    const applyHeaderValues = () => {
+        setSubjects((prev) =>
+            prev.map((subject) => {
+                if (!subject.checkedvalue) return subject;
+
+                const updatedSubject = { ...subject };
+
+                if (headerMaxMarks !== '') {
+                    const maxMarks = Number.parseFloat(headerMaxMarks);
+                    if (!Number.isNaN(maxMarks)) {
+                        updatedSubject.EMPS_MaxMarks = maxMarks;
+                    }
+                }
+
+                if (headerMinMarks !== '') {
+                    const minMarks = Number.parseFloat(headerMinMarks);
+                    if (!Number.isNaN(minMarks)) {
+                        updatedSubject.EMPS_MinMarks = minMarks;
+                    }
+                }
+
+                if (headerConvertMarks !== '') {
+                    const convertMarks = Number.parseFloat(headerConvertMarks);
+                    if (!Number.isNaN(convertMarks)) {
+                        updatedSubject.EMPS_ConvertForMarks = convertMarks;
+                    }
+                }
+
+                if (headerGrade !== '__none') {
+                    updatedSubject.EMGR_Id = headerGrade === '__keep' ? subject.EMGR_Id : headerGrade;
+                }
+
+                updatedSubject.EMPS_AppToResultFlg = headerApplyToResult;
+
+                return updatedSubject;
+            })
+        );
+
+        toast.info('Applied header values to selected subjects');
+    };
+
+    // Open group modal for a subject
+    const openGroupModal = (subject: SubjectRow) => {
+        // Check if required fields are filled
+        if (!subject.EMPS_MaxMarks || !subject.EMPS_MinMarks || !subject.EMPS_ConvertForMarks) {
+            toast.error('Please fill Max Marks, Min Marks, and Converted Marks first');
             return;
         }
 
-        // build map in a simple for..of (avoid assignment-in-expression lint)
-        const obj: Record<number, boolean> = {};
-        for (const s of subjects) {
-            obj[s.ismS_Id] = true;
-        }
-        setSelectedSubjects(obj);
-    }, [subjects, selectedSubjects]);
-
-    // open group modal
-    const openGroupModal = (subject: SubjectRow) => {
         setActiveSubject(subject);
         setIsGroupsOpen(true);
     };
 
-    // add group
-    const addGroupToSubject = (group: GroupItem) => {
-        setGroups((prev) => [...prev, group]);
-        toast.success('Group added');
+    // Update subject groups - This is the missing onAddGroup function
+    const updateSubjectGroups = (groups: GroupItem[]) => {
+        if (!activeSubject) return;
+
+        console.log('Updating groups for subject:', activeSubject.ismS_SubjectName, groups);
+
+        setSubjects((prev) =>
+            prev.map((subject) => (subject.ismS_Id === activeSubject.ismS_Id ? { ...subject, pro_exams_group_list: groups } : subject))
+        );
+
+        // Also update activeSubject to reflect changes
+        setActiveSubject((prev) => (prev ? { ...prev, pro_exams_group_list: groups } : null));
+
+        toast.success(`Groups updated for ${activeSubject.ismS_SubjectName}`);
     };
 
+    // Add a single group to a subject
+    const addGroupToSubject = (group: GroupItem) => {
+        if (!activeSubject) return;
+
+        const currentGroups = activeSubject.pro_exams_group_list || [];
+        const updatedGroups = [...currentGroups, group];
+
+        console.log('Adding group to subject:', activeSubject.ismS_SubjectName, group);
+
+        setSubjects((prev) =>
+            prev.map((subject) =>
+                subject.ismS_Id === activeSubject.ismS_Id ? { ...subject, pro_exams_group_list: updatedGroups } : subject
+            )
+        );
+
+        // Update activeSubject to reflect changes
+        setActiveSubject((prev) => (prev ? { ...prev, pro_exams_group_list: updatedGroups } : null));
+
+        toast.success(`Group "${group.EMPSG_GroupName}" added to ${activeSubject.ismS_SubjectName}`);
+    };
+
+    // Open exams modal
     const openExamsModal = (group: GroupItem) => {
         setActiveGroup(group);
         setIsExamsOpen(true);
     };
 
-    const handleSave = () => {
-        const selected = subjects.filter((s) => selectedSubjects[s.ismS_Id]);
-        const payload = {
-            year: selectedYear,
-            category: selectedCategory,
-            grade,
-            selectedSubjects: selected,
-            groups
+    // Build payload for save
+    const buildPayload = (): PromotionPayload => {
+        const selectedSubjects = subjects
+            .filter((subject) => subject.checkedvalue)
+            .map((subject) => ({
+                ismS_Id: subject.ismS_Id,
+                EMPS_MaxMarks: subject.EMPS_MaxMarks || 0,
+                EMPS_MinMarks: subject.EMPS_MinMarks || 0,
+                EMPS_ConvertForMarks: subject.EMPS_ConvertForMarks || 0,
+                EMPS_AppToResultFlg: subject.EMPS_AppToResultFlg,
+                EMGR_Id: subject.EMGR_Id || grades[0]?.emgR_Id || '',
+                EMPS_SubjOrder: subject.EMPS_SubjOrder || 1,
+                pro_exams_group_list: subject.pro_exams_group_list || []
+            }));
+
+        return {
+            EMP_Id: 0, // New record
+            ASMAY_Id: selectedYear,
+            EYC_Id: selectedCategory || 0,
+            EMGR_Id: selectedGrade,
+            EMP_PassToIndSubjectFlg: passToIndividual,
+            EMP_PassToOverallFlag: passToOverall,
+            EMP_MarksPerFlg: promotionType,
+            EMP_BestOfApplicableFlg: bestApplicable,
+            EMP_BestOf: bestApplicable ? bestOff : null,
+            pro_subjects_list: selectedSubjects
         };
-        console.info('Payload (demo):', payload);
-        toast.success('Saved (demo). Check console for payload');
     };
 
+    // Handle save
+    const handleSave = async () => {
+        // Validate required fields
+        if (!selectedYear) {
+            toast.error('Please select Academic Year');
+            return;
+        }
+
+        if (!selectedCategory) {
+            toast.error('Please select Category');
+            return;
+        }
+
+        if (!selectedGrade) {
+            toast.error('Please select Grade');
+            return;
+        }
+
+        if (bestApplicable && (!bestOff || bestOff <= 0)) {
+            toast.error('Please enter Best Off value');
+            return;
+        }
+
+        // Check if any subject is selected
+        const selectedSubjects = subjects.filter((s) => s.checkedvalue);
+        if (selectedSubjects.length === 0) {
+            toast.error('Please select at least one subject');
+            return;
+        }
+
+        // Validate selected subjects
+        const invalidSubjects = selectedSubjects.filter((subject) => {
+            if (promotionType !== 'F') {
+                return !subject.EMPS_MaxMarks || !subject.EMPS_MinMarks || !subject.EMPS_ConvertForMarks;
+            }
+            return false;
+        });
+
+        if (invalidSubjects.length > 0) {
+            toast.error('Please fill all marks fields for selected subjects');
+            return;
+        }
+
+        // Check groups for Marks/Percentage mode
+        if (promotionType === 'M' || promotionType === 'P') {
+            const subjectsWithoutGroups = selectedSubjects.filter(
+                (subject) => !subject.pro_exams_group_list || subject.pro_exams_group_list.length === 0
+            );
+
+            if (subjectsWithoutGroups.length > 0) {
+                const subjectNames = subjectsWithoutGroups.map((s) => s.ismS_SubjectName).join(', ');
+                toast.error(`Please add groups for subjects: ${subjectNames}`);
+                return;
+            }
+        }
+
+        const payload = buildPayload();
+        console.log('Save payload:', JSON.stringify(payload, null, 2));
+        const response = await addOrUpdatePromotionSettings(payload);
+        if (response.success) {
+            toast.success(response.message || 'Promotion Setting saved successfully');
+        } else {
+            toast.error(response.message || 'Failed to save Promotion Setting');
+        }
+    };
+
+    // Handle reset
     const handleReset = () => {
         setSelectedYear(0);
         setSelectedCategory(null);
+        setSelectedGrade(null);
         setSubjects([]);
-        setSelectedSubjects({});
-        setGroups([]);
-        setGrade(null);
-        setHeaderMaxMarks('');
-        setHeaderMinMarks('');
-        setHeaderConvertFor('');
-        setHeaderApplyToResult(true);
-        setHeaderGrade('');
-        toast.info('Reset done');
+        setSelectAll(false);
+        setPassToIndividual(false);
+        setPassToOverall(false);
+        setBestApplicable(false);
+        setBestOff(null);
+        setPromotionType('P');
+        toast.info('Form reset');
     };
 
-    // header-level input handlers that also apply to rows immediately:
-    const onHeaderMaxMarksChange = (val: string) => {
-        const num = val === '' ? '' : Number(val);
-        setHeaderMaxMarks(num === '' ? '' : num);
-    };
-    const onHeaderMinMarksChange = (val: string) => {
-        const num = val === '' ? '' : Number(val);
-        setHeaderMinMarks(num === '' ? '' : num);
-    };
-    const onHeaderConvertForChange = (val: string) => {
-        const num = val === '' ? '' : Number(val);
-        setHeaderConvertFor(num === '' ? '' : num);
-    };
+    // Check if table should be visible
+    const isTableVisible = promotionType !== 'F' && selectedCategory && subjects.length > 0;
 
-    // small utility for safe select item value
-    const safeValue = (v: any) => String(v ?? '');
+    // Calculate total percentage for all groups in a subject (for validation)
+    const getSubjectTotalPercentage = useCallback((subject: SubjectRow) => {
+        if (!subject.pro_exams_group_list) return 0;
+        return subject.pro_exams_group_list.reduce((total, group) => total + group.EMPSG_PercentValue, 0);
+    }, []);
 
     return (
         <div>
             <CollapsibleSection defaultOpen>
-                {/* TOP WRAPPER — 2 columns on desktop, 1 column on mobile */}
+                {/* TOP SECTION - 2 columns */}
                 <div className='mb-6 grid grid-cols-1 gap-6 md:grid-cols-2'>
-                    {/* LEFT SIDE — Academic Year, Category, Grade */}
+                    {/* LEFT SIDE - Dropdowns */}
                     <div className='space-y-4'>
                         {/* Academic Year */}
                         <div>
@@ -318,12 +484,8 @@ export default function AddPromotionalSettingForm() {
                                 </SelectTrigger>
                                 <SelectContent>
                                     {academicYearLoading ? (
-                                        <SelectItem value='loading' disabled>
+                                        <SelectItem value='__loading' disabled>
                                             Loading Academic Year...
-                                        </SelectItem>
-                                    ) : academicYearError ? (
-                                        <SelectItem value='error' disabled>
-                                            Error loading Academic Year
                                         </SelectItem>
                                     ) : (
                                         academicYear?.data?.map((item: any) => (
@@ -346,378 +508,453 @@ export default function AddPromotionalSettingForm() {
                                     <SelectValue placeholder='Select Category' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {categories.length === 0 ? (
-                                        <SelectItem value='__none' disabled>
-                                            No Categories
+                                    <SelectItem value='__none' disabled>
+                                        --Select--
+                                    </SelectItem>
+                                    {categories.map((c) => (
+                                        <SelectItem key={c.eyC_Id} value={c.eyC_Id.toString()}>
+                                            {c.emcA_CategoryName}
                                         </SelectItem>
-                                    ) : (
-                                        categories.map((c) => (
-                                            <SelectItem key={c.eyC_Id} value={safeValue(c.eyC_Id)}>
-                                                {c.emcA_CategoryName}
-                                            </SelectItem>
-                                        ))
-                                    )}
+                                    ))}
                                 </SelectContent>
                             </Select>
                         </div>
 
                         {/* Grade */}
                         <div>
-                            <Label>Grade</Label>
-                            <Select value={grade ?? '__keep'} onValueChange={(v) => setGrade(v && v !== '__keep' ? v : null)}>
+                            <Label>Grade *</Label>
+                            <Select
+                                value={selectedGrade || '__none'}
+                                onValueChange={(v) => setSelectedGrade(v && v !== '__none' ? v : null)}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder='--Select--' />
+                                    <SelectValue placeholder='Select Grade' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value='__keep'>— Keep existing —</SelectItem>
-                                    <SelectItem value='Grade 6'>Grade 6</SelectItem>
-                                    <SelectItem value='Grade 7'>Grade 7</SelectItem>
-                                    <SelectItem value='Grade 8'>Grade 8</SelectItem>
+                                    <SelectItem value='__none' disabled>
+                                        --Select--
+                                    </SelectItem>
+                                    {grades.map((grade) => (
+                                        <SelectItem key={grade.emgR_Id} value={grade.emgR_Id}>
+                                            {grade.emgR_GradeName}
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                         </div>
                     </div>
 
-                    {/* RIGHT SIDE — Radio Buttons + Checkboxes */}
-                    <div className='mt-6 space-y-4'>
-                        {/* RADIO BUTTONS */}
-                        <div className='flex flex-wrap items-center gap-6'>
-                            <div className='flex items-center gap-2'>
-                                <input
-                                    id='modeMarks'
-                                    type='radio'
-                                    name='displayMode'
-                                    checked={displayMode === 'marks'}
-                                    onChange={() => setDisplayMode('marks')}
-                                    className='h-4 w-4'
-                                />
-                                <label htmlFor='modeMarks' className='cursor-pointer text-sm'>
-                                    Marks
+                    {/* RIGHT SIDE - Radio buttons and checkboxes */}
+                    <div className='space-y-6'>
+                        {/* Radio buttons for promotion type */}
+                        <div className='rounded-lg border p-4'>
+                            <div className='mb-2 font-medium text-sm'>Promotion Type *</div>
+                            <div className='flex flex-wrap gap-4'>
+                                <label className='flex items-center space-x-2'>
+                                    <input
+                                        type='radio'
+                                        checked={promotionType === 'M'}
+                                        onChange={() => {
+                                            setPromotionType('M');
+                                            toast.info('Marks mode selected. Please configure groups for selected subjects.');
+                                        }}
+                                        className='h-4 w-4'
+                                    />
+                                    <span className='text-sm'>Marks</span>
                                 </label>
-                            </div>
-
-                            <div className='flex items-center gap-2'>
-                                <input
-                                    id='modePercentage'
-                                    type='radio'
-                                    name='displayMode'
-                                    checked={displayMode === 'percentage'}
-                                    onChange={() => setDisplayMode('percentage')}
-                                    className='h-4 w-4'
-                                />
-                                <label htmlFor='modePercentage' className='cursor-pointer text-sm'>
-                                    Percentage
+                                <label className='flex items-center space-x-2'>
+                                    <input
+                                        type='radio'
+                                        checked={promotionType === 'P'}
+                                        onChange={() => {
+                                            setPromotionType('P');
+                                            toast.info('Percentage mode selected. Please configure groups for selected subjects.');
+                                        }}
+                                        className='h-4 w-4'
+                                    />
+                                    <span className='text-sm'>Percentage</span>
                                 </label>
-                            </div>
-
-                            <div className='flex items-center gap-2'>
-                                <input
-                                    id='modeTotal'
-                                    type='radio'
-                                    name='displayMode'
-                                    checked={displayMode === 'total'}
-                                    onChange={() => setDisplayMode('total')}
-                                    className='h-4 w-4'
-                                />
-                                <label htmlFor='modeTotal' className='cursor-pointer text-sm'>
-                                    Total
+                                <label className='flex items-center space-x-2'>
+                                    <input
+                                        type='radio'
+                                        checked={promotionType === 'T'}
+                                        onChange={() => {
+                                            setPromotionType('T');
+                                            toast.info('Total mode selected. Groups not required.');
+                                        }}
+                                        className='h-4 w-4'
+                                    />
+                                    <span className='text-sm'>Total</span>
                                 </label>
-                            </div>
-
-                            <div className='flex items-center gap-2'>
-                                <input
-                                    id='modeFinal'
-                                    type='radio'
-                                    name='displayMode'
-                                    checked={displayMode === 'final'}
-                                    onChange={() => setDisplayMode('final')}
-                                    className='h-4 w-4'
-                                />
-                                <label htmlFor='modeFinal' className='cursor-pointer text-sm'>
-                                    Final Exam
+                                <label className='flex items-center space-x-2'>
+                                    <input
+                                        type='radio'
+                                        checked={promotionType === 'F'}
+                                        onChange={() => {
+                                            setPromotionType('F');
+                                            toast.info('Final Exam mode selected. No subject configuration needed.');
+                                        }}
+                                        className='h-4 w-4'
+                                    />
+                                    <span className='text-sm'>Final Exam</span>
                                 </label>
                             </div>
                         </div>
 
-                        {/* CHECKBOXES */}
-                        <div className='flex flex-wrap items-center gap-4'>
-                            <div className='flex items-center gap-2'>
-                                <Checkbox id='passIndividual' checked={false} onCheckedChange={() => {}} />
-                                <label htmlFor='passIndividual' className='text-sm'>
-                                    Pass to Individual Subjects
-                                </label>
-                            </div>
-
-                            <div className='flex items-center gap-2'>
-                                <Checkbox id='passOverall' checked={false} onCheckedChange={() => {}} />
-                                <label htmlFor='passOverall' className='text-sm'>
-                                    Pass to OverAll Subjects
-                                </label>
+                        {/* Checkboxes */}
+                        <div className='rounded-lg border p-4'>
+                            <div className='mb-2 font-medium text-sm'>Options</div>
+                            <div className='space-y-3'>
+                                <div className='flex items-center space-x-2'>
+                                    <Checkbox
+                                        id='passIndividual'
+                                        checked={passToIndividual}
+                                        onCheckedChange={(checked) => setPassToIndividual(checked as boolean)}
+                                    />
+                                    <label htmlFor='passIndividual' className='text-sm'>
+                                        Pass to Individual Subjects
+                                    </label>
+                                </div>
+                                <div className='flex items-center space-x-2'>
+                                    <Checkbox
+                                        id='passOverall'
+                                        checked={passToOverall}
+                                        onCheckedChange={(checked) => setPassToOverall(checked as boolean)}
+                                    />
+                                    <label htmlFor='passOverall' className='text-sm'>
+                                        Pass to Overall Subjects
+                                    </label>
+                                </div>
+                                <div className='flex items-center space-x-2'>
+                                    <Checkbox
+                                        id='bestApplicable'
+                                        checked={bestApplicable}
+                                        onCheckedChange={(checked) => {
+                                            setBestApplicable(checked as boolean);
+                                            if (!checked) setBestOff(null);
+                                        }}
+                                    />
+                                    <label htmlFor='bestApplicable' className='text-sm'>
+                                        Best Applicable
+                                    </label>
+                                </div>
+                                {bestApplicable && (
+                                    <div className='ml-6 flex items-center space-x-2'>
+                                        <Label htmlFor='bestOff' className='w-20'>
+                                            Best Off:
+                                        </Label>
+                                        <Input
+                                            id='bestOff'
+                                            type='number'
+                                            value={bestOff || ''}
+                                            onChange={(e) => {
+                                                const value = e.target.value ? Number.parseInt(e.target.value) : null;
+                                                if (value && value <= 0) {
+                                                    toast.error('Best Off must be greater than 0');
+                                                    return;
+                                                }
+                                                setBestOff(value);
+                                            }}
+                                            className='w-32'
+                                            min='1'
+                                            max='99'
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* subjects table */}
-                {!isTableVisible ? (
-                    <div className='py-10 text-center text-gray-500'>
-                        {displayMode === 'final' ? 'Table hidden for Final Exam mode' : 'Select Category to display subjects'}
-                    </div>
-                ) : (
-                    <div className='overflow-x-auto rounded border'>
-                        <table className='min-w-full border-collapse'>
-                            <thead className='bg-gray-200'>
-                                <tr className='text-sm'>
-                                    {/* SLNO */}
-                                    <th className='w-12 px-3 py-2 text-center'>SLNO</th>
-
-                                    {/* Select All */}
-                                    <th className='w-12 px-3 py-2 text-center'>
-                                        <div className='flex flex-col items-center gap-1'>
-                                            <span>Select</span>
+                {/* SUBJECTS TABLE */}
+                {isTableVisible ? (
+                    <div className='mb-6 overflow-x-auto rounded-lg border'>
+                        <table className='w-full'>
+                            <thead className='bg-gray-50'>
+                                <tr>
+                                    <th className='w-12 p-3 text-center'>
+                                        <div className='flex flex-col items-center'>
+                                            <span className='text-xs'>SLNO</span>
+                                        </div>
+                                    </th>
+                                    <th className='w-12 p-3 text-center'>
+                                        <div className='flex flex-col items-center'>
+                                            <span className='text-xs'>Select</span>
+                                            <Checkbox checked={selectAll} onCheckedChange={toggleAllSubjects} />
+                                        </div>
+                                    </th>
+                                    <th className='p-3'>
+                                        <div className='text-xs'>Subject Name (Code)</div>
+                                    </th>
+                                    <th className='w-40 p-3'>
+                                        <div className='flex flex-col items-center'>
+                                            <span className='text-xs'>Max Marks</span>
+                                            <Input
+                                                type='number'
+                                                value={headerMaxMarks}
+                                                onChange={(e) => {
+                                                    const value = e.target.value;
+                                                    if (value && Number.parseFloat(value) > 1000) {
+                                                        toast.error('Max Marks cannot exceed 1000');
+                                                        return;
+                                                    }
+                                                    setHeaderMaxMarks(value);
+                                                }}
+                                                placeholder='All'
+                                                className='h-8 text-sm'
+                                            />
+                                        </div>
+                                    </th>
+                                    <th className='w-40 p-3'>
+                                        <div className='flex flex-col items-center'>
+                                            <span className='text-xs'>Min Marks</span>
+                                            <Input
+                                                type='number'
+                                                value={headerMinMarks}
+                                                onChange={(e) => setHeaderMinMarks(e.target.value)}
+                                                placeholder='All'
+                                                className='h-8 text-sm'
+                                                disabled={!headerMaxMarks}
+                                            />
+                                        </div>
+                                    </th>
+                                    <th className='w-40 p-3'>
+                                        <div className='flex flex-col items-center'>
+                                            <span className='text-xs'>Convert Marks For</span>
+                                            <Input
+                                                type='number'
+                                                value={headerConvertMarks}
+                                                onChange={(e) => setHeaderConvertMarks(e.target.value)}
+                                                placeholder='All'
+                                                className='h-8 text-sm'
+                                                disabled={!headerMaxMarks}
+                                            />
+                                        </div>
+                                    </th>
+                                    <th className='w-32 p-3'>
+                                        <div className='flex flex-col items-center'>
+                                            <span className='text-xs'>Apply to Result</span>
                                             <Checkbox
-                                                id='selectAll'
-                                                checked={subjects.length > 0 && subjects.every((s) => !!selectedSubjects[s.ismS_Id])}
-                                                onCheckedChange={() => toggleSelectAll()}
-                                            />
-                                        </div>
-                                    </th>
-
-                                    {/* Subject Name */}
-                                    <th className='px-3 py-2'>Subject Name (Code)</th>
-
-                                    {/* Max Marks */}
-                                    <th className='w-40 px-3 py-2 text-center'>
-                                        <div className='flex flex-col items-center gap-1'>
-                                            <span>Max.Marks</span>
-                                            <Input
-                                                id='headerMax'
-                                                type='number'
-                                                value={headerMaxMarks === '' ? '' : String(headerMaxMarks)}
-                                                onChange={(e) => onHeaderMaxMarksChange(e.target.value)}
-                                                placeholder='All'
-                                                className='h-7 bg-white text-black text-xs'
-                                            />
-                                        </div>
-                                    </th>
-
-                                    {/* Min Marks */}
-                                    <th className='w-40 px-3 py-2 text-center'>
-                                        <div className='flex flex-col items-center gap-1'>
-                                            <span>Min.Marks</span>
-                                            <Input
-                                                id='headerMin'
-                                                type='number'
-                                                value={headerMinMarks === '' ? '' : String(headerMinMarks)}
-                                                onChange={(e) => onHeaderMinMarksChange(e.target.value)}
-                                                placeholder='All'
-                                                className='h-7 bg-white text-black text-xs'
-                                            />
-                                        </div>
-                                    </th>
-
-                                    {/* Convert For */}
-                                    <th className='w-40 px-3 py-2 text-center'>
-                                        <div className='flex flex-col items-center gap-1'>
-                                            <span>Convert For</span>
-                                            <Input
-                                                id='headerConvertFor'
-                                                type='number'
-                                                value={headerConvertFor === '' ? '' : String(headerConvertFor)}
-                                                onChange={(e) => onHeaderConvertForChange(e.target.value)}
-                                                placeholder='All'
-                                                className='h-7 bg-white text-black text-xs'
-                                            />
-                                        </div>
-                                    </th>
-
-                                    {/* Apply to Result */}
-                                    <th className='w-32 px-3 py-2 text-center'>
-                                        <div className='flex flex-col items-center gap-1'>
-                                            <span>Apply to Result</span>
-                                            <Checkbox
-                                                id='headerApplyToResult'
                                                 checked={headerApplyToResult}
-                                                onCheckedChange={(c) => setHeaderApplyToResult(!!c)}
+                                                onCheckedChange={(checked) => setHeaderApplyToResult(checked as boolean)}
                                             />
                                         </div>
                                     </th>
-
-                                    {/* Grade */}
-                                    <th className='w-32 px-3 py-2 text-center'>
-                                        <div className='flex flex-col items-center gap-1'>
-                                            <span>Grade</span>
-                                            <Select
-                                                value={headerGrade ?? '__keep'}
-                                                onValueChange={(v) => setHeaderGrade(v && v !== '__keep' ? v : '')}>
-                                                <SelectTrigger className='h-7 bg-white text-black text-xs'>
+                                    <th className='w-40 p-3'>
+                                        <div className='flex flex-col items-center'>
+                                            <span className='text-xs'>Grade</span>
+                                            <Select value={headerGrade} onValueChange={setHeaderGrade}>
+                                                <SelectTrigger className='h-8 text-sm'>
                                                     <SelectValue placeholder='All' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value='__keep'>— Keep —</SelectItem>
-                                                    <SelectItem value='50 Grade'>50 Grade</SelectItem>
-                                                    <SelectItem value='Pass/Fail'>Pass / Fail</SelectItem>
+                                                    <SelectItem value='__keep'>— Keep existing —</SelectItem>
+                                                    {grades.map((grade) => (
+                                                        <SelectItem key={grade.emgR_Id} value={grade.emgR_Id}>
+                                                            {grade.emgR_GradeName}
+                                                        </SelectItem>
+                                                    ))}
                                                 </SelectContent>
                                             </Select>
                                         </div>
                                     </th>
-
-                                    {/* Action */}
-                                    {displayMode !== 'total' && <th className='w-20 px-3 py-2 text-center'>Actions</th>}
+                                    {(promotionType === 'M' || promotionType === 'P') && (
+                                        <th className='w-20 p-3 text-center'>
+                                            <div className='text-xs'>Action</div>
+                                        </th>
+                                    )}
                                 </tr>
                             </thead>
-
                             <tbody>
-                                {subjects.map((s, idx) => (
-                                    <tr
-                                        key={s.ismS_Id}
-                                        className={`text-sm transition-colors duration-150 ${idx % 2 ? 'bg-gray-50' : 'bg-white'} hover:bg-accent/90`}>
-                                        {/* SL No */}
-                                        <td className='px-3 py-2 text-center align-middle'>{idx + 1}</td>
+                                {subjects.map((subject, index) => {
+                                    const totalPercentage = getSubjectTotalPercentage(subject);
+                                    const hasGroups = subject.pro_exams_group_list && subject.pro_exams_group_list.length > 0;
 
-                                        {/* Row Checkbox */}
-                                        <td className='px-3 py-2 text-center align-middle'>
-                                            <div className='flex items-center justify-center'>
+                                    return (
+                                        <tr key={subject.ismS_Id} className={`border-t hover:bg-gray-50 ${hasGroups ? 'bg-green-50' : ''}`}>
+                                            <td className='p-3 text-center'>{index + 1}</td>
+                                            <td className='p-3 text-center'>
                                                 <Checkbox
-                                                    id={`subSelect_${s.ismS_Id}`}
-                                                    checked={!!selectedSubjects[s.ismS_Id]}
-                                                    onCheckedChange={() => toggleSubject(s.ismS_Id)}
+                                                    checked={!!subject.checkedvalue}
+                                                    onCheckedChange={() => toggleSubject(subject.ismS_Id)}
                                                 />
-                                            </div>
-                                        </td>
-
-                                        {/* Subject Name */}
-                                        <td className='px-3 py-2 align-middle font-medium'>
-                                            {s.ismS_SubjectName}
-                                            {s.ismS_SubjectCode && <span className='text-gray-500 text-xs'> ({s.ismS_SubjectCode})</span>}
-                                        </td>
-
-                                        {/* Max Marks - editable per row */}
-                                        <td className='px-3 py-1 align-middle'>
-                                            <Input
-                                                id={`maxMarks_${s.ismS_Id}`}
-                                                type='number'
-                                                value={s.ismS_Max_Marks ?? ''}
-                                                onChange={(e) => {
-                                                    const val = e.target.value === '' ? null : Number(e.target.value);
-                                                    setSubjects((prev) =>
-                                                        prev.map((x) => (x.ismS_Id === s.ismS_Id ? { ...x, ismS_Max_Marks: val } : x))
-                                                    );
-                                                }}
-                                                placeholder='Enter...'
-                                                className='text-sm'
-                                            />
-                                        </td>
-
-                                        {/* Min Marks */}
-                                        <td className='px-3 py-1 align-middle'>
-                                            <Input
-                                                id={`minMarks_${s.ismS_Id}`}
-                                                type='number'
-                                                value={s.ismS_Min_Marks ?? ''}
-                                                onChange={(e) => {
-                                                    const val = e.target.value === '' ? null : Number(e.target.value);
-                                                    setSubjects((prev) =>
-                                                        prev.map((x) => (x.ismS_Id === s.ismS_Id ? { ...x, ismS_Min_Marks: val } : x))
-                                                    );
-                                                }}
-                                                placeholder='Enter...'
-                                                className='text-sm'
-                                            />
-                                        </td>
-
-                                        {/* Convert For */}
-                                        <td className='px-3 py-1 align-middle'>
-                                            <Input
-                                                id={`convFor_${s.ismS_Id}`}
-                                                type='number'
-                                                value={s.convertFor ?? ''}
-                                                onChange={(e) => {
-                                                    const val = e.target.value === '' ? null : Number(e.target.value);
-                                                    setSubjects((prev) =>
-                                                        prev.map((x) => (x.ismS_Id === s.ismS_Id ? { ...x, convertFor: val } : x))
-                                                    );
-                                                }}
-                                                placeholder='Enter...'
-                                                className='text-sm'
-                                            />
-                                        </td>
-
-                                        {/* Apply to Result checkbox */}
-                                        <td className='px-3 py-2 text-center align-middle'>
-                                            <div className='flex items-center justify-center'>
-                                                <Checkbox
-                                                    id={`applyRes_${s.ismS_Id}`}
-                                                    checked={!!s.applyToResult}
-                                                    onCheckedChange={(c) => {
+                                            </td>
+                                            <td className='p-3'>
+                                                <div className='flex items-center gap-2'>
+                                                    <span>{subject.ismS_SubjectName}</span>
+                                                    {subject.ismS_SubjectCode && (
+                                                        <span className='text-gray-500 text-sm'>({subject.ismS_SubjectCode})</span>
+                                                    )}
+                                                    {hasGroups && (
+                                                        <span className='ml-2 rounded-full bg-green-100 px-2 py-1 text-green-800 text-xs'>
+                                                            {subject.pro_exams_group_list?.length || 0} groups
+                                                            {promotionType === 'P' && ` (${totalPercentage}%)`}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className='p-3'>
+                                                <Input
+                                                    type='number'
+                                                    value={subject.EMPS_MaxMarks || ''}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value ? Number.parseFloat(e.target.value) : null;
+                                                        if (value && value > 1000) {
+                                                            toast.error('Max Marks cannot exceed 1000');
+                                                            return;
+                                                        }
                                                         setSubjects((prev) =>
-                                                            prev.map((x) => (x.ismS_Id === s.ismS_Id ? { ...x, applyToResult: !!c } : x))
+                                                            prev.map((s) =>
+                                                                s.ismS_Id === subject.ismS_Id ? { ...s, EMPS_MaxMarks: value } : s
+                                                            )
+                                                        );
+                                                    }}
+                                                    className='h-8 text-sm'
+                                                />
+                                            </td>
+                                            <td className='p-3'>
+                                                <Input
+                                                    type='number'
+                                                    value={subject.EMPS_MinMarks || ''}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value ? Number.parseFloat(e.target.value) : null;
+                                                        if (value && subject.EMPS_MaxMarks && value > subject.EMPS_MaxMarks) {
+                                                            toast.error('Min Marks cannot exceed Max Marks');
+                                                            return;
+                                                        }
+                                                        setSubjects((prev) =>
+                                                            prev.map((s) =>
+                                                                s.ismS_Id === subject.ismS_Id ? { ...s, EMPS_MinMarks: value } : s
+                                                            )
+                                                        );
+                                                    }}
+                                                    className='h-8 text-sm'
+                                                    disabled={!subject.EMPS_MaxMarks}
+                                                />
+                                            </td>
+                                            <td className='p-3'>
+                                                <Input
+                                                    type='number'
+                                                    value={subject.EMPS_ConvertForMarks || ''}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value ? Number.parseFloat(e.target.value) : null;
+                                                        if (value && value > 1000) {
+                                                            toast.error('Converted Marks cannot exceed 1000');
+                                                            return;
+                                                        }
+                                                        if (value && subject.EMPS_MinMarks && value < subject.EMPS_MinMarks) {
+                                                            toast.error('Converted Marks cannot be less than Min Marks');
+                                                            return;
+                                                        }
+                                                        setSubjects((prev) =>
+                                                            prev.map((s) =>
+                                                                s.ismS_Id === subject.ismS_Id ? { ...s, EMPS_ConvertForMarks: value } : s
+                                                            )
+                                                        );
+                                                    }}
+                                                    className='h-8 text-sm'
+                                                    disabled={!subject.EMPS_MaxMarks}
+                                                />
+                                            </td>
+                                            <td className='p-3 text-center'>
+                                                <Checkbox
+                                                    checked={subject.EMPS_AppToResultFlg}
+                                                    onCheckedChange={(checked) => {
+                                                        setSubjects((prev) =>
+                                                            prev.map((s) =>
+                                                                s.ismS_Id === subject.ismS_Id
+                                                                    ? { ...s, EMPS_AppToResultFlg: checked as boolean }
+                                                                    : s
+                                                            )
                                                         );
                                                     }}
                                                 />
-                                            </div>
-                                        </td>
-
-                                        {/* Grade */}
-                                        <td className='px-3 py-1 align-middle'>
-                                            <Select
-                                                value={s.grade ?? '__keep'}
-                                                onValueChange={(v) =>
-                                                    setSubjects((prev) =>
-                                                        prev.map((x) =>
-                                                            x.ismS_Id === s.ismS_Id ? { ...x, grade: v && v !== '__keep' ? v : null } : x
-                                                        )
-                                                    )
-                                                }>
-                                                <SelectTrigger className='h-8 text-sm'>
-                                                    <SelectValue placeholder='--Select--' />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value='__keep'>— Keep existing —</SelectItem>
-                                                    <SelectItem value='50 Grade'>50 Grade</SelectItem>
-                                                    <SelectItem value='Pass/Fail'>Pass / Fail</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </td>
-
-                                        {/* Action: Eye (hidden when displayMode === 'total') */}
-                                        {displayMode !== 'total' && (
-                                            <td className='px-3 py-2 text-center align-middle'>
-                                                <Button variant='ghost' size='icon' onClick={() => openGroupModal(s)} title='Group Mapping'>
-                                                    <Eye className='h-4 w-4 text-blue-600' />
-                                                </Button>
                                             </td>
-                                        )}
-                                    </tr>
-                                ))}
+                                            <td className='p-3'>
+                                                <Select
+                                                    value={subject.EMGR_Id || '__none'}
+                                                    onValueChange={(value) => {
+                                                        setSubjects((prev) =>
+                                                            prev.map((s) =>
+                                                                s.ismS_Id === subject.ismS_Id
+                                                                    ? { ...s, EMGR_Id: value === '__none' ? null : value }
+                                                                    : s
+                                                            )
+                                                        );
+                                                    }}>
+                                                    <SelectTrigger className='h-8 text-sm'>
+                                                        <SelectValue placeholder='--Select--' />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value='__none'>--Select--</SelectItem>
+                                                        {grades.map((grade) => (
+                                                            <SelectItem key={grade.emgR_Id} value={grade.emgR_Id}>
+                                                                {grade.emgR_GradeName}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </td>
+                                            {(promotionType === 'M' || promotionType === 'P') && (
+                                                <td className='p-3 text-center'>
+                                                    <Button
+                                                        variant='ghost'
+                                                        size='sm'
+                                                        onClick={() => openGroupModal(subject)}
+                                                        title='View/Edit Groups'
+                                                        className={hasGroups ? 'text-green-600 hover:text-green-800' : ''}>
+                                                        <Eye className='h-4 w-4' />
+                                                    </Button>
+                                                </td>
+                                            )}
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
+
+                        {/* Apply Header Values Button */}
+                        <div className='border-t p-3'>
+                            <Button
+                                onClick={applyHeaderValues}
+                                variant='outline'
+                                size='sm'
+                                disabled={subjects.filter((s) => s.checkedvalue).length === 0}>
+                                Apply Header Values to Selected Rows
+                            </Button>
+                        </div>
+                    </div>
+                ) : (
+                    <div className='mb-6 rounded-lg border p-8 text-center text-gray-500'>
+                        {promotionType === 'F' ? 'Table hidden for Final Exam mode' : 'Select Category to display subjects'}
                     </div>
                 )}
 
-                {/* Save / Cancel */}
-                <div className='mt-4 flex gap-3'>
-                    <Button type='button' onClick={handleSave}>
-                        Save
-                    </Button>
-                    <Button type='button' variant='outline' onClick={handleReset}>
+                {/* ACTION BUTTONS */}
+                <div className='flex justify-center space-x-4'>
+                    <Button onClick={handleSave}>Save</Button>
+                    <Button onClick={handleReset} variant='outline'>
                         Cancel
                     </Button>
                 </div>
             </CollapsibleSection>
+
+            {/* MODALS */}
             {isGroupsOpen && activeSubject && (
                 <ViewGroupsModal
                     subject={activeSubject}
+                    exams={exams}
+                    //existingGroups={activeSubject.pro_exams_group_list || []}
                     onClose={() => {
                         setIsGroupsOpen(false);
                         setActiveSubject(null);
                     }}
-                    onAddGroup={(g) => addGroupToSubject(g)}
-                    groups={groups}
-                    onOpenExams={(g) => openExamsModal(g)}
+                    onSave={updateSubjectGroups}
+                    onAddGroup={addGroupToSubject}
+                    onOpenExams={openExamsModal} //promotionType={promotionType}
                 />
-            )}{' '}
-            {isExamsOpen && activeGroup && (
+            )}
+
+            {isExamsOpen && activeGroup && activeSubject !== null && (
                 <ViewExamsModal
                     group={activeGroup}
                     onClose={() => {

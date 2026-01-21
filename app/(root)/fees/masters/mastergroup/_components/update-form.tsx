@@ -66,16 +66,16 @@ export default function UpdateMasterGroupForm({ onSuccess, selectedRow: row }: U
         try {
             const { fmG_Remarks, fmG_Id, transportHostelType, studentType, fmG_CompulsoryFlag, fmG_GroupName } = data;
 
-            const mI_Id = 30;
+            // const mI_Id = 30;
 
             const payload = {
                 fmG_Id: fmG_Id || 0,
-                mI_Id,
+                // mI_Id,
                 fmG_GroupName: fmG_GroupName,
                 fmG_Remarks: fmG_Remarks || '',
                 fmG_CompulsoryFlag: fmG_CompulsoryFlag ? '1' : '0',
                 fmG_ActiceFlag: true,
-                user_id: 21602,
+                // user_id: 21602,
                 returnval: false,
                 ivrmR_Id: 0,
                 is_Active: true,

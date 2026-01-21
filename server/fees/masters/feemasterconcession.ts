@@ -6,7 +6,7 @@ import type { IMasterConcessionList } from '@/types/fees/masters';
 
 export async function getMasterConcession(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'fmcC_ConcessionName,fmcC_ConcessionApplLimit');
-    const url = `FeeMasterConcession/FeeMasterConcessionList/30?${urlParams}`;
+    const url = `FeeMasterConcession/FeeMasterConcessionList?${urlParams}`;
     return await api.get<IMasterConcessionList[]>('fees', url);
 }
 
@@ -16,11 +16,11 @@ export async function addOrUpdateMasterConcession(data: any) {
 }
 
 export async function toggleMasterConcession(mi_id: number, id: number) {
-    const url = `FeeMasterConcession/ToggleConcession/${id}/30`;
+    const url = `FeeMasterConcession/ToggleConcession/${id}`;
     return await api.put('fees', url);
 }
 
 export async function deleteMasterConcession(id: number) {
-    const url = `/FeeMasterConcession/DeleteConcession/${id}/30`;
+    const url = `/FeeMasterConcession/DeleteConcession/${id}`;
     return await api.delete('fees', url);
 }

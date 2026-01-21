@@ -3223,7 +3223,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                             <label
                                                                                 htmlFor={`document-${document.amsmD_Id}`}
                                                                                 className={cn(
-                                                                                    'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-3 text-center transition-all hover:border-primary hover:bg-gray-50',
+                                                                                    'flex w-48 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-3 text-center transition-all hover:border-primary hover:bg-gray-50',
                                                                                     isUploading
                                                                                         ? 'border-blue-300 bg-blue-50'
                                                                                         : 'border-gray-300 bg-white'

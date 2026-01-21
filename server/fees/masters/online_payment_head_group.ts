@@ -10,33 +10,33 @@ export async function getAcademicYearDropdown() {
 }
 
 export async function getOnlinePaymentHeadGroupInstallment(academicYears?: number) {
-    const url = `/OnlinePaymentHeadGroupMapping/fee_installment_yearlly_drop_down_list/30/${academicYears}`;
+    const url = `/OnlinePaymentHeadGroupMapping/fee_installment_yearlly_drop_down_list/${academicYears}`;
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }
 
 export async function getInstituteDropDownList() {
-    const url = '/OnlinePaymentHeadGroupMapping/get_institution_name/30';
+    const url = '/OnlinePaymentHeadGroupMapping/get_institution_name/';
 
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }
 export async function getClassDropDownList(academicYears?: number) {
-    const url = `/OnlinePaymentHeadGroupMapping/class_drop_down_list/30/${academicYears}`;
+    const url = `/OnlinePaymentHeadGroupMapping/class_drop_down_list/${academicYears}`;
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }
 
 export async function getSubMerchantDropDownList(academicYears?: number) {
-    const url = `/OnlinePaymentHeadGroupMapping/sub_merchant_drop_down_list/30/${academicYears}`;
+    const url = `/OnlinePaymentHeadGroupMapping/sub_merchant_drop_down_list/${academicYears}`;
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }
 
 export async function getGroupNameDropDownList(academicYears?: number) {
-    const url = `/OnlinePaymentHeadGroupMapping/groupName_drop_down_list/30/${academicYears}`;
+    const url = `/OnlinePaymentHeadGroupMapping/groupName_drop_down_list/${academicYears}`;
 
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }
 
 export async function getHeadNameDropDownList(academicYears?: number, groupName?: number) {
-    const url = `/OnlinePaymentHeadGroupMapping/headname_drop_down_list/30/${academicYears}/${groupName}`;
+    const url = `/OnlinePaymentHeadGroupMapping/headname_drop_down_list/${academicYears}/${groupName}`;
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }
 
