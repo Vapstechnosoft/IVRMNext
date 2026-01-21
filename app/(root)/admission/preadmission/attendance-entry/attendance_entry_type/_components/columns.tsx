@@ -4,7 +4,7 @@ import { ActionButtons } from '@/components/ui/form/action-buttons';
 import type { IAttendanceEntryTypeList } from '@/types/admission/preadmission/attendance_entry';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
-import { useEditContext } from '../page';
+import { useEditContext } from '../entry-type-context';
 
 export const entryTypeColumns: ColumnDef<IAttendanceEntryTypeList>[] = [
     {

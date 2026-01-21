@@ -14,20 +14,10 @@ import { saveAttendanceEntryType, updateAttendanceEntryType } from '@/server/adm
 import type { IAttendanceEntryTypeList } from '@/types/admission/preadmission/attendance_entry';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loader2, Save, X } from 'lucide-react';
-import { createContext, use, useContext, useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { entryTypeColumns } from './_components/columns';
-
-// Create context for edit functionality
-const EditContext = createContext<{
-    setEditingRecord: (record: IAttendanceEntryTypeList | null) => void;
-} | null>(null);
-
-export const useEditContext = () => {
-    const context = useContext(EditContext);
-    if (!context) throw new Error('useEditContext must be used within EditContext.Provider');
-    return context;
-};
+import { EditContext } from './entry-type-context';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
