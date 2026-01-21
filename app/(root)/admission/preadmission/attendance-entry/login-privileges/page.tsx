@@ -36,16 +36,30 @@ function LoginPrivilegePageContent() {
 
     // Sync initial data
     useEffect(() => {
-        if (initialData) {
-            const data = Array.isArray(initialData) ? initialData : (initialData as any)?.loginPData || (initialData as any)?.data || [];
-            setTableData(data);
-            setShowList(true);
+        try {
+            if (initialData) {
+                // Robust extraction
+                let data: any[] = [];
+                if (Array.isArray(initialData)) {
+                    data = initialData;
+                } else {
+                    const candidate = (initialData as any)?.loginPData || (initialData as any)?.data;
+                    if (Array.isArray(candidate)) {
+                        data = candidate;
+                    }
+                }
+                setTableData(data);
+                setShowList(true);
+            }
+        } catch (error) {
+            console.error('Error setting initial data:', error);
+            setTableData([]);
         }
     }, [initialData]);
 
     const tableProps = {
-        data: tableData,
-        totalItems: tableData.length,
+        data: tableData || [],
+        totalItems: tableData?.length || 0,
         isLoading,
         error: null,
         success: true
@@ -125,8 +139,8 @@ function PrivilegeForm({ createPrivilege, refetch, isSearching, onSearchSuccess 
     const staffList = Array.isArray((staffData as any)?.employeeList)
         ? (staffData as any)?.employeeList
         : Array.isArray((staffData as any)?.data?.employeeList)
-            ? (staffData as any)?.data?.employeeList
-            : [];
+          ? (staffData as any)?.data?.employeeList
+          : [];
 
     // Removed unused classes/sections derivations if strictly relying on search results
 
