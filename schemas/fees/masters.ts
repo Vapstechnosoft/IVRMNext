@@ -46,7 +46,7 @@ export const masterModeOfPaymentSchema = {
 };
 export const paymentgatewaydetailsSchema = {
     addOrUpdate: z.object({
-        institution_Name: z.string().min(1, 'Institution Name is required'),
+        institution_Name: z.string().optional(),
         fpgD_MerchantId: z.string().min(1, 'Merchant ID is required'),
         fpgD_SaltKey: z.string().min(1, 'Salt Key is required'),
         //fpgD_Image: z.string().min(1, 'Image is required'),
