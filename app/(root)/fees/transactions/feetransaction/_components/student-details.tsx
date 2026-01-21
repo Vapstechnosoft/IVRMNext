@@ -1,4 +1,3 @@
-// app/components/StudentProfileModal.tsx
 'use client';
 import { Button } from '@/components/ui/button';
 import { useFeeStudentCurrentAcademicDetails } from '@/hooks/fees/useTrasactions';
@@ -84,18 +83,27 @@ interface classTeacherDetailsFromFeeTransaction {
     classteacher: string;
 }
 
+interface feeDetailsFromFeeTransaction {
+    amsT_Id: number;
+    yearlyCharges: number;
+    concession: number;
+    payable: number;
+    paidAmount: number;
+    outstanding: number;
+    classSection: string;
+    asmcL_Id: number;
+    asmS_Id: number;
+    asmaY_Id: number;
+    asmay_year: string;
+}
+
 const tabs = [
     { id: 'academic', label: 'Academic Details' },
     { id: 'parents', label: 'Parents Details' },
     { id: 'attendance', label: 'Attendance Details' },
     { id: 'subject', label: 'Subject Details' },
-    { id: 'fee', label: 'Fee Detail' }
-];
-
-const academicYears = [
-    { year: '2025-2026', isCurrent: true },
-    { year: '2024-2025', isCurrent: false },
-    { year: '2023-2024', isCurrent: false }
+    { id: 'fee', label: 'Fee Details' },
+    { id: 'library', label: 'Library Details' }
 ];
 
 export default function StudentProfileModal({ isOpen, onClose, asmay_Id, amst_Id }: StudentProfileModalProps): JSX.Element | null {
@@ -105,58 +113,54 @@ export default function StudentProfileModal({ isOpen, onClose, asmay_Id, amst_Id
     const [parentDetails, setParentDetails] = useState<ParentDetailsFromFeeTransaction[]>([]);
     const [attendanceDetails, setAttendanceDetails] = useState<AttendanceDetailsFromFeeTransaction[]>([]);
     const [subjectDetails, setSubjectDetails] = useState<SubjectDetailsFromFeeTransaction[]>([]);
-    const [classTeacherDetails, setClassTeacherDetails] = useState<classTeacherDetailsFromFeeTransaction[]>([]);
+    const [feeDetails, setFeeDetails] = useState<feeDetailsFromFeeTransaction[]>([]);
+    const [_classTeacherDetails, setClassTeacherDetails] = useState<classTeacherDetailsFromFeeTransaction[]>([]);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [isRefetching, setIsRefetching] = useState(false);
 
-    const { data: response, isLoading: isApiLoading, error: apiError } = useFeeStudentCurrentAcademicDetails(amst_Id, asmay_Id);
-
-    const [fetchTrigger, setFetchTrigger] = useState(0);
+    const { data: response, isLoading: isApiLoading, error: apiError, refetchAll } = useFeeStudentCurrentAcademicDetails(amst_Id, asmay_Id);
 
     useEffect(() => {
-        if (amst_Id && asmay_Id) {
-            // Increment trigger to force re-fetch
-            setFetchTrigger((prev) => prev + 1);
-        }
-    }, [amst_Id, asmay_Id]);
+        const fetchData = async () => {
+            if (!isOpen || !amst_Id || !asmay_Id) return;
+
+            setIsRefetching(true);
+            try {
+                await refetchAll();
+            } catch (error) {
+                console.error('Error fetching student data:', error);
+            } finally {
+                setIsRefetching(false);
+            }
+        };
+
+        fetchData();
+    }, [isOpen, amst_Id, asmay_Id]);
 
     useEffect(() => {
         const processStudentData = () => {
             setIsProcessing(true);
-
+            if (isApiLoading) {
+                setIsProcessing(false);
+                return;
+            }
             try {
                 if (response?.studJoinedDetails) {
-                    const parsedData = JSON.parse(JSON.stringify(response.studJoinedDetails));
-                    const academicData = JSON.parse(JSON.stringify(response.studentacAdemicYeardetails));
-                    const parentData = JSON.parse(JSON.stringify(response.studentdetails));
-                    const attendanceData = JSON.parse(JSON.stringify(response.viewstudentattendancetails));
-                    const subjectData = JSON.parse(JSON.stringify(response.viewstudentsubjectdetails));
-                    const classTeacherData = JSON.parse(JSON.stringify(response.classteacher_lists));
-                    console.log('subjectData', subjectData);
+                    const parsedData = JSON.parse(JSON.stringify(response.studJoinedDetails || []));
+                    const academicData = JSON.parse(JSON.stringify(response.studentacAdemicYeardetails || []));
+                    const parentData = JSON.parse(JSON.stringify(response.studentdetails || []));
+                    const attendanceData = JSON.parse(JSON.stringify(response.viewstudentattendancetails || []));
+                    const subjectData = JSON.parse(JSON.stringify(response.viewstudentsubjectdetails || []));
+                    const classTeacherData = JSON.parse(JSON.stringify(response.classteacher_lists || []));
+                    const viewFeeDetails = JSON.parse(JSON.stringify(response.viewFeeDetails || []));
 
-                    if (Array.isArray(parsedData) && parsedData.length > 0) {
-                        setStudentJoinedDetails(parsedData);
-                    } else {
-                        console.warn('No valid student data found:', parsedData);
-                        setStudentJoinedDetails([]);
-                    }
-                    if (Array.isArray(academicData) && academicData.length > 0) {
-                        setAcademicDetails(academicData);
-                    }
-                    if (Array.isArray(parentData) && parentData.length > 0) {
-                        setParentDetails(parentData);
-                    }
-                    if (Array.isArray(parentData) && parentData.length > 0) {
-                        setParentDetails(parentData);
-                    }
-                    if (Array.isArray(attendanceData) && attendanceData.length > 0) {
-                        setAttendanceDetails(attendanceData);
-                    }
-                    if (Array.isArray(subjectData) && subjectData.length > 0) {
-                        setSubjectDetails(subjectData);
-                    }
-                    if (Array.isArray(classTeacherData) && classTeacherData.length > 0) {
-                        setClassTeacherDetails(classTeacherData);
-                    }
+                    setStudentJoinedDetails(parsedData);
+                    setAcademicDetails(academicData);
+                    setParentDetails(parentData);
+                    setAttendanceDetails(attendanceData);
+                    setSubjectDetails(subjectData);
+                    setClassTeacherDetails(classTeacherData);
+                    setFeeDetails(viewFeeDetails);
                 } else {
                     setStudentJoinedDetails([]);
                     setAcademicDetails([]);
@@ -164,6 +168,7 @@ export default function StudentProfileModal({ isOpen, onClose, asmay_Id, amst_Id
                     setAttendanceDetails([]);
                     setSubjectDetails([]);
                     setClassTeacherDetails([]);
+                    setFeeDetails([]);
                 }
             } catch (error) {
                 console.error('Error processing student data:', error);
@@ -173,6 +178,7 @@ export default function StudentProfileModal({ isOpen, onClose, asmay_Id, amst_Id
                 setAttendanceDetails([]);
                 setSubjectDetails([]);
                 setClassTeacherDetails([]);
+                setFeeDetails([]);
             } finally {
                 setIsProcessing(false);
             }
@@ -180,15 +186,8 @@ export default function StudentProfileModal({ isOpen, onClose, asmay_Id, amst_Id
 
         if (response !== undefined) {
             processStudentData();
-        } else {
-            setStudentJoinedDetails([]);
-            setAcademicDetails([]);
-            setParentDetails([]);
-            setAttendanceDetails([]);
-            setSubjectDetails([]);
-            setClassTeacherDetails([]);
         }
-    }, [response, asmay_Id, amst_Id, fetchTrigger]);
+    }, [response, isApiLoading]);
 
     useEffect(() => {
         const handleEscape = (e: KeyboardEvent) => {
@@ -198,7 +197,20 @@ export default function StudentProfileModal({ isOpen, onClose, asmay_Id, amst_Id
         return () => document.removeEventListener('keydown', handleEscape);
     }, [onClose]);
 
-    const isLoading = isApiLoading || isProcessing;
+    useEffect(() => {
+        if (!isOpen) {
+            setStudentJoinedDetails([]);
+            setAcademicDetails([]);
+            setParentDetails([]);
+            setAttendanceDetails([]);
+            setSubjectDetails([]);
+            setClassTeacherDetails([]);
+            setFeeDetails([]);
+            setActiveTab('academic');
+        }
+    }, [isOpen]);
+
+    const isLoading = isApiLoading || isProcessing || isRefetching;
 
     if (isOpen && isLoading) {
         return (
@@ -248,10 +260,8 @@ export default function StudentProfileModal({ isOpen, onClose, asmay_Id, amst_Id
         );
     }
 
-    // Get the first student safely
     const firstStudent = studentJoinedDetails[0] || {};
 
-    // Format date if needed
     const formatDate = (dateString?: string) => {
         if (!dateString) return 'Not available';
         try {
@@ -261,6 +271,15 @@ export default function StudentProfileModal({ isOpen, onClose, asmay_Id, amst_Id
         }
     };
 
+    const formatCurrency = (amount: number) => {
+        return new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(amount);
+    };
+
     const renderTabContent = () => {
         switch (activeTab) {
             case 'academic':
@@ -268,26 +287,30 @@ export default function StudentProfileModal({ isOpen, onClose, asmay_Id, amst_Id
                     <div className='space-y-4'>
                         <h3 className='font-semibold text-lg text-primary'>Academic Years</h3>
                         <div className='space-y-3'>
-                            {academicDetails.map((item, idx) => (
-                                <div key={idx} className='rounded-lg border border-gray-200 p-4'>
-                                    <div className='flex items-center justify-between'>
-                                        <span className='font-medium'>{item.asmaY_Year}</span>
-                                        {item.status_Flag && (
-                                            <span className='rounded-full bg-green-100 px-3 py-1 font-medium text-green-800 text-xs'>
-                                                CURRENT YEAR
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className='mt-2 space-y-1 text-sm'>
-                                        <div>
-                                            <strong>Class / Section :</strong> {item.asmcL_ClassName} / {item.asmC_SectionName}
+                            {academicDetails.length > 0 ? (
+                                academicDetails.map((item, idx) => (
+                                    <div key={idx} className='rounded-lg border border-gray-200 p-4'>
+                                        <div className='flex items-center justify-between'>
+                                            <span className='font-medium'>{item.asmaY_Year}</span>
+                                            {item.status_Flag && (
+                                                <span className='rounded-full bg-green-100 px-3 py-1 font-medium text-green-800 text-xs'>
+                                                    CURRENT YEAR
+                                                </span>
+                                            )}
                                         </div>
-                                        <div>
-                                            <strong>Roll No. :</strong> {item.amaY_RollNo}
+                                        <div className='mt-2 space-y-1 text-sm'>
+                                            <div>
+                                                <strong>Class / Section :</strong> {item.asmcL_ClassName} / {item.asmC_SectionName}
+                                            </div>
+                                            <div>
+                                                <strong>Roll No. :</strong> {item.amaY_RollNo}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))
+                            ) : (
+                                <p className='text-gray-500'>No academic details available</p>
+                            )}
                         </div>
                     </div>
                 );
@@ -367,34 +390,38 @@ export default function StudentProfileModal({ isOpen, onClose, asmay_Id, amst_Id
                 return (
                     <div className='space-y-4'>
                         <h3 className='font-semibold text-lg text-primary'>Attendance Records</h3>
-                        <div className='space-y-3'>
-                            {attendanceDetails.map((item, idx) => (
-                                <div key={idx} className='rounded-lg border border-gray-200 p-4'>
-                                    <div className='flex items-center justify-between'>
-                                        <span className='font-medium'>{item.asmaY_Year}</span>
-                                        {item.statuS_FLAG && (
-                                            <span className='rounded-full bg-blue-100 px-3 py-1 font-medium text-blue-800 text-xs'>
-                                                CURRENT
-                                            </span>
-                                        )}
+                        {attendanceDetails.length > 0 ? (
+                            <div className='space-y-3'>
+                                {attendanceDetails.map((item, idx) => (
+                                    <div key={idx} className='rounded-lg border border-gray-200 p-4'>
+                                        <div className='flex items-center justify-between'>
+                                            <span className='font-medium'>{item.asmaY_Year}</span>
+                                            {item.statuS_FLAG && (
+                                                <span className='rounded-full bg-blue-100 px-3 py-1 font-medium text-blue-800 text-xs'>
+                                                    CURRENT
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className='mt-3 grid grid-cols-2 gap-4 md:grid-cols-4'>
+                                            <div className='text-center'>
+                                                <div className='font-bold text-2xl text-green-600'>{item.percentage}</div>
+                                                <div className='text-gray-500 text-xs'>Attendance</div>
+                                            </div>
+                                            <div className='text-center'>
+                                                <div className='font-bold text-2xl text-gray-700'>{item.presentdays}</div>
+                                                <div className='text-gray-500 text-xs'>Days Present</div>
+                                            </div>
+                                            <div className='text-center'>
+                                                <div className='font-bold text-2xl text-red-600'>{item.workingdays}</div>
+                                                <div className='text-gray-500 text-xs'>Working Days</div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className='mt-3 grid grid-cols-2 gap-4 md:grid-cols-4'>
-                                        <div className='text-center'>
-                                            <div className='font-bold text-2xl text-green-600'>{item.percentage}</div>
-                                            <div className='text-gray-500 text-xs'>Attendance</div>
-                                        </div>
-                                        <div className='text-center'>
-                                            <div className='font-bold text-2xl text-gray-700'>{item.presentdays}</div>
-                                            <div className='text-gray-500 text-xs'>Days Present</div>
-                                        </div>
-                                        <div className='text-center'>
-                                            <div className='font-bold text-2xl text-red-600'>{item.workingdays}</div>
-                                            <div className='text-gray-500 text-xs'>Working Days</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className='text-gray-500'>No attendance details available</p>
+                        )}
                     </div>
                 );
 
@@ -402,63 +429,100 @@ export default function StudentProfileModal({ isOpen, onClose, asmay_Id, amst_Id
                 return (
                     <div className='space-y-4'>
                         <h3 className='font-semibold text-lg text-primary'>Subject Details</h3>
-                        <div className='rounded-lg border border-gray-200 p-4'>
-                            <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
-                                {subjectDetails.map((item, idx) => (
-                                    <div
-                                        key={idx}
-                                        className='flex items-center justify-between rounded border border-gray-100 bg-gray-50 p-3'>
-                                        <div>
-                                            <span className='font-medium text-blue-800'>{item.ismS_SubjectName}</span>
+                        {subjectDetails.length > 0 ? (
+                            <div className='rounded-lg border border-gray-200 p-4'>
+                                <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
+                                    {subjectDetails.map((item, idx) => (
+                                        <div
+                                            key={idx}
+                                            className='flex items-center justify-between rounded border border-gray-100 bg-gray-50 p-3'>
+                                            <div className='flex items-center gap-2'>
+                                                <span className='font-medium text-blue-800'>{item.ismS_SubjectName}</span>
+                                                {item.estsU_ElecetiveFlag && (
+                                                    <span className='rounded-full bg-purple-100 px-2 py-0.5 font-medium text-purple-800 text-xs'>
+                                                        Elective
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        ) : (
+                            <p className='text-gray-500'>No subject details available</p>
+                        )}
                     </div>
                 );
 
             case 'fee':
                 return (
                     <div className='space-y-4'>
-                        <h3 className='font-semibold text-lg text-primary'>Fee Details</h3>
-                        {academicYears.map((item, idx) => (
-                            <div key={idx} className='rounded-lg border border-gray-200 p-4'>
-                                <div className='flex items-center justify-between'>
-                                    <span className='font-medium'>{item.year}</span>
-                                    <span
-                                        className={`rounded-full px-3 py-1 font-medium text-xs ${item.isCurrent ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                                        {item.isCurrent ? 'Current' : 'Completed'}
-                                    </span>
-                                </div>
-                                <div className='mt-3 space-y-2'>
-                                    <div className='flex justify-between'>
-                                        <span>Tuition Fee:</span>
-                                        <span className='font-medium'>₹25,000</span>
-                                    </div>
-                                    <div className='flex justify-between'>
-                                        <span>Transport Fee:</span>
-                                        <span className='font-medium'>₹5,000</span>
-                                    </div>
-                                    <div className='flex justify-between'>
-                                        <span>Other Charges:</span>
-                                        <span className='font-medium'>₹2,500</span>
-                                    </div>
-                                    <div className='border-t pt-2'>
-                                        <div className='flex justify-between font-bold'>
-                                            <span>Total:</span>
-                                            <span>₹32,500</span>
+                        <h3 className='font-semibold text-lg text-primary'>Over All Fee Details</h3>
+                        {feeDetails.length > 0 ? (
+                            <div className='overflow-x-auto'>
+                                <table className='w-full border-collapse text-sm'>
+                                    <thead className='bg-primary text-white'>
+                                        <tr>
+                                            <th className='border px-2 py-2'>Sl No</th>
+                                            <th className='border px-2 py-2'>Year</th>
+                                            <th className='border px-2 py-2'>Class:Section</th>
+                                            <th className='border px-2 py-2'>Yearly Charges</th>
+                                            <th className='border px-2 py-2'>Concession</th>
+                                            <th className='border px-2 py-2'>Payable</th>
+                                            <th className='border px-2 py-2'>Paid Amount</th>
+                                            <th className='border px-2 py-2'>Outstanding</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {feeDetails.map((row, index) => (
+                                            <tr key={row.asmaY_Id ?? index}>
+                                                <td className='border px-2 py-2 text-center'>{index + 1}</td>
+                                                <td className='border px-2 py-2'>{row.asmay_year}</td>
+                                                <td className='border px-2 py-2'>{row.classSection}</td>
+                                                <td className='border px-2 py-2 text-center'>{formatCurrency(row.yearlyCharges)}</td>
+                                                <td className='border px-2 py-2 text-center'>{formatCurrency(row.concession)}</td>
+                                                <td className='border px-2 py-2 text-center'>{formatCurrency(row.payable)}</td>
+                                                <td className='border px-2 py-2 text-center'>{formatCurrency(row.paidAmount)}</td>
+                                                <td className='border px-2 py-2 text-center'>{formatCurrency(row.outstanding)}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <div className='rounded-lg border border-gray-200 p-8 text-center'>
+                                <p className='text-gray-500'>No fee details available for this student</p>
+                                <p className='mt-2 text-gray-400 text-sm'>Check if the student has any fee records</p>
+                            </div>
+                        )}
+                    </div>
+                );
+            case 'library':
+                return (
+                    <div className='space-y-4'>
+                        <h3 className='font-semibold text-lg text-primary'>Library Details</h3>
+                        {subjectDetails.length > 0 ? (
+                            <div className='rounded-lg border border-gray-200 p-4'>
+                                <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
+                                    {subjectDetails.map((item, idx) => (
+                                        <div
+                                            key={idx}
+                                            className='flex items-center justify-between rounded border border-gray-100 bg-gray-50 p-3'>
+                                            <div className='flex items-center gap-2'>
+                                                <span className='font-medium text-blue-800'>{item.ismS_SubjectName}</span>
+                                                {item.estsU_ElecetiveFlag && (
+                                                    <span className='rounded-full bg-purple-100 px-2 py-0.5 font-medium text-purple-800 text-xs'>
+                                                        Elective
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className='flex justify-between text-sm'>
-                                        <span>Status:</span>
-                                        <span className={`font-medium ${item.isCurrent ? 'text-amber-600' : 'text-green-600'}`}>
-                                            {item.isCurrent ? 'Partially Paid' : 'Fully Paid'}
-                                        </span>
-                                    </div>
+                                    ))}
                                 </div>
                             </div>
-                        ))}
+                        ) : (
+                            <p className='text-gray-500'>No Library details available</p>
+                        )}
                     </div>
                 );
 
@@ -570,7 +634,7 @@ export default function StudentProfileModal({ isOpen, onClose, asmay_Id, amst_Id
                                 ))}
                             </nav>
                         </div>
-                        <div className='flex-1 overflow-y-auto p-6'>
+                        <div className='flex-1 overflow-auto p-6'>
                             {studentJoinedDetails.length > 0 ? (
                                 renderTabContent()
                             ) : (
