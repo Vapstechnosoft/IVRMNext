@@ -61,7 +61,8 @@ export const ADMISSION_QUERY_KEYS = {
     ATTENDANCE_ABSENT_REPORT: 'attendance_absent_report',
     ATTENDANCE_REPORT: 'attendance_report',
     STUDENT_ATTENDANCE_REPORT: 'student_attendance_report',
-    DATE_OF_BIRTH_REPORT: 'date_of_birth_report'
+    DATE_OF_BIRTH_REPORT: 'date_of_birth_report',
+    STUDENT_ATTENDANCE_SEARCH: 'student_attendance_search'
 };
 
 export const PREADMISSION_QUERY_KEYS = {
