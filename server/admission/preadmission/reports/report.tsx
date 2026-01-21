@@ -29,7 +29,7 @@ export async function getExcelMonthEndReport(data: {
 }
 
 export async function getPreAdmissionMonthEndReport(data: any, searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, ',ivrmmR_Name');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'Name');
     const url = `/PreAdmissionMonthEndReport/GetPreAdmissionMonthEndReport?Year=${data.year}&Month=${data.month}&Amay=${data.ASMAY_Id}&${urlParams}`;
     return await api.post<any>('admission', url, data);
 }
