@@ -21,8 +21,8 @@ export interface ApiArrayResponse<T> extends Partial<PaginationData> {
     [key: string]: unknown;
 }
 // biome-ignore lint/style/useNodejsImportProtocol: <explanation>
-import https from 'https';
-import { signOut } from '@/lib/auth';
+import https from 'https'; // Add this import
+import { auth, signOut } from '@/lib/auth';
 import type { ApiSearchparams } from '@/types';
 import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios';
 
@@ -105,22 +105,9 @@ class ApiService {
         instance.interceptors.request.use(
             async (config) => {
                 try {
-                    let token: string | undefined;
-
-                    if (typeof window !== 'undefined') {
-                        // Client-side: use getSession from next-auth/react
-                        const { getSession } = await import('next-auth/react');
-                        const session = await getSession();
-                        token = session?.token;
-                    } else {
-                        // Server-side: use auth from @/lib/auth
-                        const { auth } = await import('@/lib/auth');
-                        const session = await auth();
-                        token = session?.token;
-                    }
-
-                    if (token) {
-                        config.headers.Authorization = `Bearer ${token}`;
+                    const session = await auth();
+                    if (session?.token) {
+                        config.headers.Authorization = `Bearer ${session.token}`;
                     }
                     return config;
                 } catch (error) {
