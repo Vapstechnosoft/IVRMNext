@@ -141,7 +141,7 @@ export default function UpdateSpecalFeeHeadForm({ onSuccess, termname = '', sele
             const payload = {
                 fmsfhfH_Id: row.fmsfhfH_Id,
                 fmsfH_Name: fmsfH_Name,
-
+                fmsfH_Id: row.fmsfH_Id,
                 tempararyArrayList: selectedHeadsItems.map((item) => ({
                     fmH_ID: Number(item.fmH_Id)
                 }))

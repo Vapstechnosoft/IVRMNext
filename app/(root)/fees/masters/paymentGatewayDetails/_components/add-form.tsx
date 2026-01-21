@@ -164,7 +164,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                             onKeyDown={(e) => {
                                 // Block minus, plus, special chars used in number inputs
-                                if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                                if (['-', '+', ' '].includes(e.key)) {
                                     e.preventDefault();
                                 }
 
@@ -190,7 +190,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                                 onKeyDown={(e) => {
                                     // Block minus, plus, special chars used in number inputs
-                                    if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                                    if (['-', '+', ' '].includes(e.key)) {
                                         e.preventDefault();
                                     }
 
@@ -304,7 +304,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                             onKeyDown={(e) => {
                                 // Block minus, plus, special chars used in number inputs
-                                if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                                if (['-', '+', ' '].includes(e.key)) {
                                     e.preventDefault();
                                 }
 
@@ -328,7 +328,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                             onKeyDown={(e) => {
                                 // Block minus, plus, special chars used in number inputs
-                                if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                                if (['-', '+', ' '].includes(e.key)) {
                                     e.preventDefault();
                                 }
 
@@ -447,7 +447,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                                             }`}
                                             onKeyDown={(e) => {
                                                 // Block minus, plus, special chars used in number inputs
-                                                if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                                                if (['-', '+', ' '].includes(e.key)) {
                                                     e.preventDefault();
                                                 }
 

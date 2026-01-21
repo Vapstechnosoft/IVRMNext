@@ -27,6 +27,6 @@ export async function toggleMasterConcessionDetails(fmccD_Id: number, fmccid: nu
 }
 
 export async function getconcessioncategorydropdown() {
-    const url = 'FeeConcessionFacade/getfeeconcessioncategories/30';
+    const url = 'FeeConcessionFacade/getfeeconcessioncategories';
     return await api.get<IConcessionCategoryDropdownList[]>('fees', url);
 }
