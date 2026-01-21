@@ -5,7 +5,9 @@ import { Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus } from 'lucide-react';
+import { getFineslabDetails } from '@/server/fees/trasactions/feeAmountEntry';
+import type { IAmountEntryFineSlabDetails } from '@/types/fees/transactions/transactions';
+import { AlertCircle, Plus } from 'lucide-react';
 // components/fees/FineSlabModal.tsx
 import { useEffect, useState } from 'react';
 
@@ -36,6 +38,9 @@ interface FineSlabModalProps {
     academicYearId: number;
     selectionType: string; // 'stud', 'stfoth', 'stfothamt'
     onSave: (regularSlabs: FineSlab[], ecsSlabs: FineSlab[]) => void;
+    // You might also want to pass existing selected slabs to pre-select them
+    existingRegularSlabs?: FineSlab[];
+    existingEcsSlabs?: FineSlab[];
 }
 
 export default function FineSlabModal({
@@ -47,7 +52,9 @@ export default function FineSlabModal({
     categoryId,
     academicYearId,
     selectionType,
-    onSave
+    onSave,
+    existingRegularSlabs = [],
+    existingEcsSlabs = []
 }: FineSlabModalProps) {
     const [showRegularSlab, setShowRegularSlab] = useState(false);
     const [showEcsSlab, setShowEcsSlab] = useState(false);
@@ -56,6 +63,7 @@ export default function FineSlabModal({
     const [loading, setLoading] = useState(false);
     const [selectedRegular, setSelectedRegular] = useState<number[]>([]);
     const [selectedEcs, setSelectedEcs] = useState<number[]>([]);
+    const [validationError, setValidationError] = useState<string>('');
 
     const fineTypeOptions = [
         { value: 'Per Day', label: 'Per Day' },
@@ -69,38 +77,105 @@ export default function FineSlabModal({
         }
     }, [isOpen, headId, installmentId]);
 
+    // Initialize with existing selected slabs - DON'T auto-check checkboxes
+    useEffect(() => {
+        if (existingRegularSlabs.length > 0) {
+            const regularIds = existingRegularSlabs.map((slab) => slab.fmfS_Id);
+            setSelectedRegular(regularIds);
+        }
+
+        if (existingEcsSlabs.length > 0) {
+            const ecsIds = existingEcsSlabs.map((slab) => slab.fmfS_Id);
+            setSelectedEcs(ecsIds);
+        }
+    }, [existingRegularSlabs, existingEcsSlabs]);
+
     const fetchFineSlabs = async () => {
         setLoading(true);
         try {
-            // This would be your API call - you'll need to implement this
-            const response = await fetchFineSlabDetails({
-                fmG_Id: feeGroupId,
-                fmcC_Id: categoryId,
-                asmaY_Id: academicYearId,
-                fmH_Id: headId,
-                ftI_Id: installmentId,
-                selectiontype: selectionType
-            });
-
-            if (response.regularSlabs) {
-                setRegularSlabs(response.regularSlabs);
-                setShowRegularSlab(response.regularSlabs.length > 0);
-
-                // Initialize selected regular slabs
-                const selected = response.regularSlabs.filter((slab) => slab.isSelected).map((slab) => slab.fmfS_Id);
-                setSelectedRegular(selected);
+            // Call API based on selection type
+            let response: IAmountEntryFineSlabDetails;
+            if (selectionType === 'stud') {
+                // For students, fetch both regular and ECS slabs
+                response = (await getFineslabDetails('R', 'E')) as unknown as IAmountEntryFineSlabDetails;
+            } else {
+                // For non-students (stfoth, stfothamt), fetch only regular slabs
+                response = (await getFineslabDetails('R')) as unknown as IAmountEntryFineSlabDetails;
             }
 
-            if (response.ecsSlabs) {
-                setEcsSlabs(response.ecsSlabs);
-                setShowEcsSlab(response.ecsSlabs.length > 0);
+            if (response?.data) {
+                // Transform API response to match your interface
+                const regularData: FineSlab[] = response.data.fillslab.map((slab) => ({
+                    fmfS_Id: slab.fmfS_Id,
+                    fmfS_FineType: slab.fmfS_FineType,
+                    fmfS_FromDay: slab.fmfS_FromDay,
+                    fmfS_ToDay: slab.fmfS_ToDay,
+                    fmfS_ECSFlag: slab.fmfS_ECSFlag,
+                    isSelected: false, // Don't auto-select
+                    FTFS_FineType: '',
+                    ftfS_Amount: ''
+                }));
 
-                // Initialize selected ECS slabs
-                const selected = response.ecsSlabs.filter((slab) => slab.isSelected).map((slab) => slab.fmfS_Id);
-                setSelectedEcs(selected);
+                const ecsData: FineSlab[] = response.data.fillslabecs.map((slab) => ({
+                    fmfS_Id: slab.fmfS_Id,
+                    fmfS_FineType: slab.fmfS_FineType,
+                    fmfS_FromDay: slab.fmfS_FromDay,
+                    fmfS_ToDay: slab.fmfS_ToDay,
+                    fmfS_ECSFlag: slab.fmfS_ECSFlag,
+                    isSelected: false, // Don't auto-select
+                    FTFSE_FineType: '',
+                    ftfsE_Amount: ''
+                }));
+
+                setRegularSlabs(regularData);
+                setEcsSlabs(ecsData);
+
+                // DON'T auto-show sections - let user decide
+                setShowRegularSlab(false);
+                setShowEcsSlab(false);
+
+                // Only pre-fill data if we have existing slabs
+                if (existingRegularSlabs.length > 0) {
+                    const updatedRegular = regularData.map((slab) => {
+                        const existing = existingRegularSlabs.find((existing) => existing.fmfS_Id === slab.fmfS_Id);
+                        if (existing) {
+                            return {
+                                ...slab,
+                                FTFS_FineType: existing.FTFS_FineType || '',
+                                ftfS_Amount: existing.ftfS_Amount || '',
+                                isSelected: true
+                            };
+                        }
+                        return slab;
+                    });
+                    setRegularSlabs(updatedRegular);
+                    setShowRegularSlab(true);
+                }
+
+                if (existingEcsSlabs.length > 0 && selectionType === 'stud') {
+                    const updatedEcs = ecsData.map((slab) => {
+                        const existing = existingEcsSlabs.find((existing) => existing.fmfS_Id === slab.fmfS_Id);
+                        if (existing) {
+                            return {
+                                ...slab,
+                                FTFSE_FineType: existing.FTFSE_FineType || '',
+                                ftfsE_Amount: existing.ftfsE_Amount || '',
+                                isSelected: true
+                            };
+                        }
+                        return slab;
+                    });
+                    setEcsSlabs(updatedEcs);
+                    setShowEcsSlab(true);
+                }
+
+                // Update selected arrays only if we have existing data
+                setSelectedRegular(existingRegularSlabs.map((slab) => slab.fmfS_Id));
+                setSelectedEcs(existingEcsSlabs.map((slab) => slab.fmfS_Id));
             }
         } catch (error) {
             console.error('Error fetching fine slabs:', error);
+            // Handle error state if needed
         } finally {
             setLoading(false);
         }
@@ -125,6 +200,7 @@ export default function FineSlabModal({
     };
 
     const handleFineTypeChange = (index: number, value: string, isEcs = false) => {
+        setValidationError('');
         if (isEcs) {
             const updated = [...ecsSlabs];
             updated[index].FTFSE_FineType = value;
@@ -137,6 +213,7 @@ export default function FineSlabModal({
     };
 
     const handleAmountChange = (index: number, value: string, isEcs = false) => {
+        setValidationError('');
         if (isEcs) {
             const updated = [...ecsSlabs];
             updated[index].ftfsE_Amount = value;
@@ -148,32 +225,75 @@ export default function FineSlabModal({
         }
     };
 
+    const validateSelectedSlabs = () => {
+        // Check regular slabs
+        for (const slab of regularSlabs) {
+            if (selectedRegular.includes(slab.fmfS_Id)) {
+                if (!slab.FTFS_FineType || slab.FTFS_FineType.trim() === '') {
+                    return `Please select Type for "${slab.fmfS_FineType}" in Regular Slab`;
+                }
+                if (!slab.ftfS_Amount || slab.ftfS_Amount.trim() === '' || Number.parseFloat(slab.ftfS_Amount) <= 0) {
+                    return `Please enter valid Amount (> 0) for "${slab.fmfS_FineType}" in Regular Slab`;
+                }
+            }
+        }
+
+        // Check ECS slabs
+        for (const slab of ecsSlabs) {
+            if (selectedEcs.includes(slab.fmfS_Id)) {
+                if (!slab.FTFSE_FineType || slab.FTFSE_FineType.trim() === '') {
+                    return `Please select Type for "${slab.fmfS_FineType}" in ECS Slab`;
+                }
+                if (!slab.ftfsE_Amount || slab.ftfsE_Amount.trim() === '' || Number.parseFloat(slab.ftfsE_Amount) <= 0) {
+                    return `Please enter valid Amount (> 0) for "${slab.fmfS_FineType}" in ECS Slab`;
+                }
+            }
+        }
+
+        return '';
+    };
+
     const handleAddToCart = () => {
-        // Filter selected slabs and mark them
+        // Validate that all selected rows have Type and Amount
+        const error = validateSelectedSlabs();
+        if (error) {
+            setValidationError(error);
+            return;
+        }
+
+        // Prepare selected slabs with additional info
         const selectedRegularSlabs = regularSlabs
+            .filter((slab) => selectedRegular.includes(slab.fmfS_Id))
             .map((slab) => ({
                 ...slab,
-                isSelected: selectedRegular.includes(slab.fmfS_Id),
+                isSelected: true,
                 fmH_Id: headId,
-                ftI_Id: installmentId
-            }))
-            .filter((slab) => slab.isSelected);
+                ftI_Id: installmentId,
+                fmG_Id: feeGroupId,
+                fmcC_Id: categoryId,
+                asmaY_Id: academicYearId
+            }));
 
         const selectedEcsSlabs = ecsSlabs
+            .filter((slab) => selectedEcs.includes(slab.fmfS_Id))
             .map((slab) => ({
                 ...slab,
-                isSelected: selectedEcs.includes(slab.fmfS_Id),
+                isSelected: true,
                 fmH_Id: headId,
-                ftI_Id: installmentId
-            }))
-            .filter((slab) => slab.isSelected);
+                ftI_Id: installmentId,
+                fmG_Id: feeGroupId,
+                fmcC_Id: categoryId,
+                asmaY_Id: academicYearId
+            }));
 
         // Call parent save function
         onSave(selectedRegularSlabs, selectedEcsSlabs);
+        setValidationError('');
         onClose();
     };
 
     const handleCheckboxTypeChange = (type: 'regular' | 'ecs', checked: boolean) => {
+        setValidationError('');
         if (type === 'regular') {
             setShowRegularSlab(checked);
             if (!checked) {
@@ -187,16 +307,28 @@ export default function FineSlabModal({
         }
     };
 
+    // Reset state when modal closes
+    const handleClose = () => {
+        setRegularSlabs([]);
+        setEcsSlabs([]);
+        setSelectedRegular([]);
+        setSelectedEcs([]);
+        setShowRegularSlab(false);
+        setShowEcsSlab(false);
+        setValidationError('');
+        onClose();
+    };
+
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className='max-h-[90vh] max-w-6xl overflow-y-auto'>
+        <Dialog open={isOpen} onOpenChange={handleClose}>
+            <DialogContent className='max-h-[90vh] max-w-[95vw] overflow-y-auto'>
                 <DialogHeader>
-                    <DialogTitle className='rounded-t-lg bg-primary p-4 text-white'>Fee Slab Details</DialogTitle>
+                    <DialogTitle className='rounded-t-lg bg-primary p-4 text-white'>Fine Slab Details</DialogTitle>
                 </DialogHeader>
 
-                <div className='p-4'>
+                <div className='p-6'>
                     {/* Type Selection */}
-                    <div className='mb-6 rounded-lg bg-gray-50 p-4 text-center'>
+                    <div className='mb-8 rounded-lg bg-gray-50 p-4 text-center'>
                         <div className='flex justify-center gap-6'>
                             <Label className='flex items-center space-x-2'>
                                 <Checkbox
@@ -217,57 +349,73 @@ export default function FineSlabModal({
                         </div>
                     </div>
 
+                    {/* Validation Error */}
+                    {validationError && (
+                        <div className='mb-6 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-red-700'>
+                            <AlertCircle className='h-5 w-5 flex-shrink-0' />
+                            <span className='font-medium text-sm'>{validationError}</span>
+                        </div>
+                    )}
+
                     {/* Regular Slab */}
                     {showRegularSlab && (
                         <div className='mb-8 overflow-hidden rounded-lg border'>
                             <div className='flex items-center justify-between bg-primary p-4 text-white'>
                                 <h3 className='font-semibold text-lg'>Regular Slab</h3>
+                                <span className='text-sm'>{selectedRegular.length} selected</span>
                             </div>
-                            <div className='p-4'>
+                            <div className='p-6'>
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHead>SLNO</TableHead>
-                                            <TableHead>Select</TableHead>
-                                            <TableHead>Slab Name</TableHead>
-                                            <TableHead>From</TableHead>
-                                            <TableHead>To</TableHead>
-                                            <TableHead>Type</TableHead>
-                                            <TableHead>Amount</TableHead>
+                                            <TableHead className='w-[80px] text-center'>SLNO</TableHead>
+                                            <TableHead className='w-[100px] text-center'>Select</TableHead>
+                                            <TableHead className='min-w-[200px] px-8'>Slab Name</TableHead>
+                                            <TableHead className='w-[150px] text-center'>From Day</TableHead>
+                                            <TableHead className='w-[150px] text-center'>To Day</TableHead>
+                                            <TableHead className='min-w-[250px] px-8'>Type</TableHead>
+                                            <TableHead className='min-w-[250px] px-8'>Amount</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {loading ? (
                                             <TableRow>
-                                                <TableCell colSpan={7} className='py-4 text-center'>
-                                                    Loading...
+                                                <TableCell colSpan={7} className='py-8 text-center'>
+                                                    <div className='flex justify-center'>
+                                                        <div className='h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent' />
+                                                    </div>
                                                 </TableCell>
                                             </TableRow>
                                         ) : regularSlabs.length === 0 ? (
                                             <TableRow>
-                                                <TableCell colSpan={7} className='py-4 text-center'>
-                                                    No regular slabs found
+                                                <TableCell colSpan={7} className='py-4 text-center text-gray-500'>
+                                                    No regular slabs available
                                                 </TableCell>
                                             </TableRow>
                                         ) : (
                                             regularSlabs.map((slab, index) => (
-                                                <TableRow key={slab.fmfS_Id}>
-                                                    <TableCell>{index + 1}</TableCell>
-                                                    <TableCell>
+                                                <TableRow
+                                                    key={slab.fmfS_Id}
+                                                    className={selectedRegular.includes(slab.fmfS_Id) ? 'bg-blue-50' : ''}>
+                                                    <TableCell className='p-3 text-center align-middle'>{index + 1}</TableCell>
+                                                    <TableCell className='p-3 text-center align-middle'>
                                                         <Checkbox
                                                             checked={selectedRegular.includes(slab.fmfS_Id)}
                                                             onCheckedChange={() => handleRegularCheckboxChange(slab.fmfS_Id)}
                                                         />
                                                     </TableCell>
-                                                    <TableCell>{slab.fmfS_FineType}</TableCell>
-                                                    <TableCell>{slab.fmfS_FromDay}</TableCell>
-                                                    <TableCell>{slab.fmfS_ToDay}</TableCell>
-                                                    <TableCell>
+                                                    <TableCell className='px-8 py-3 align-middle font-medium'>
+                                                        {slab.fmfS_FineType}
+                                                    </TableCell>
+                                                    <TableCell className='p-3 text-center align-middle'>{slab.fmfS_FromDay}</TableCell>
+                                                    <TableCell className='p-3 text-center align-middle'>{slab.fmfS_ToDay}</TableCell>
+                                                    <TableCell className='px-8 py-3 align-middle'>
                                                         <Select
                                                             value={slab.FTFS_FineType || ''}
                                                             onValueChange={(value) => handleFineTypeChange(index, value)}>
-                                                            <SelectTrigger className='w-full'>
-                                                                <SelectValue placeholder='Select' />
+                                                            <SelectTrigger
+                                                                className={`w-full ${selectedRegular.includes(slab.fmfS_Id) && (!slab.FTFS_FineType || slab.FTFS_FineType.trim() === '') ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}>
+                                                                <SelectValue placeholder='Select Type' />
                                                             </SelectTrigger>
                                                             <SelectContent>
                                                                 {fineTypeOptions.map((option) => (
@@ -278,12 +426,13 @@ export default function FineSlabModal({
                                                             </SelectContent>
                                                         </Select>
                                                     </TableCell>
-                                                    <TableCell>
+                                                    <TableCell className='px-8 py-3 align-middle'>
                                                         <InputText
-                                                            type='text'
+                                                            type='number'
                                                             value={slab.ftfS_Amount || ''}
                                                             onChange={(e) => handleAmountChange(index, e.target.value)}
-                                                            placeholder='Enter Amount'
+                                                            placeholder='0.00'
+                                                            className={`w-full text-right ${selectedRegular.includes(slab.fmfS_Id) && (!slab.ftfS_Amount || Number.parseFloat(slab.ftfS_Amount) <= 0) ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
                                                         />
                                                     </TableCell>
                                                 </TableRow>
@@ -300,52 +449,60 @@ export default function FineSlabModal({
                         <div className='overflow-hidden rounded-lg border'>
                             <div className='flex items-center justify-between bg-primary p-4 text-white'>
                                 <h3 className='font-semibold text-lg'>ECS Slab</h3>
+                                <span className='text-sm'>{selectedEcs.length} selected</span>
                             </div>
-                            <div className='p-4'>
+                            <div className='p-6'>
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHead>SLNO</TableHead>
-                                            <TableHead>Select</TableHead>
-                                            <TableHead>Slab Name</TableHead>
-                                            <TableHead>From</TableHead>
-                                            <TableHead>To</TableHead>
-                                            <TableHead>Type</TableHead>
-                                            <TableHead>Amount</TableHead>
+                                            <TableHead className='w-[80px] text-center'>SLNO</TableHead>
+                                            <TableHead className='w-[100px] text-center'>Select</TableHead>
+                                            <TableHead className='min-w-[200px] px-8'>Slab Name</TableHead>
+                                            <TableHead className='w-[150px] text-center'>From Day</TableHead>
+                                            <TableHead className='w-[150px] text-center'>To Day</TableHead>
+                                            <TableHead className='min-w-[250px] px-8'>Type</TableHead>
+                                            <TableHead className='min-w-[250px] px-8'>Amount</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {loading ? (
                                             <TableRow>
-                                                <TableCell colSpan={7} className='py-4 text-center'>
-                                                    Loading...
+                                                <TableCell colSpan={7} className='py-8 text-center'>
+                                                    <div className='flex justify-center'>
+                                                        <div className='h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent' />
+                                                    </div>
                                                 </TableCell>
                                             </TableRow>
                                         ) : ecsSlabs.length === 0 ? (
                                             <TableRow>
-                                                <TableCell colSpan={7} className='py-4 text-center'>
-                                                    No ECS slabs found
+                                                <TableCell colSpan={7} className='py-4 text-center text-gray-500'>
+                                                    No ECS slabs available
                                                 </TableCell>
                                             </TableRow>
                                         ) : (
                                             ecsSlabs.map((slab, index) => (
-                                                <TableRow key={slab.fmfS_Id}>
-                                                    <TableCell>{index + 1}</TableCell>
-                                                    <TableCell>
+                                                <TableRow
+                                                    key={slab.fmfS_Id}
+                                                    className={selectedEcs.includes(slab.fmfS_Id) ? 'bg-blue-50' : ''}>
+                                                    <TableCell className='p-3 text-center align-middle'>{index + 1}</TableCell>
+                                                    <TableCell className='p-3 text-center align-middle'>
                                                         <Checkbox
                                                             checked={selectedEcs.includes(slab.fmfS_Id)}
                                                             onCheckedChange={() => handleEcsCheckboxChange(slab.fmfS_Id)}
                                                         />
                                                     </TableCell>
-                                                    <TableCell>{slab.fmfS_FineType}</TableCell>
-                                                    <TableCell>{slab.fmfS_FromDay}</TableCell>
-                                                    <TableCell>{slab.fmfS_ToDay}</TableCell>
-                                                    <TableCell>
+                                                    <TableCell className='px-8 py-3 align-middle font-medium'>
+                                                        {slab.fmfS_FineType}
+                                                    </TableCell>
+                                                    <TableCell className='p-3 text-center align-middle'>{slab.fmfS_FromDay}</TableCell>
+                                                    <TableCell className='p-3 text-center align-middle'>{slab.fmfS_ToDay}</TableCell>
+                                                    <TableCell className='px-8 py-3 align-middle'>
                                                         <Select
                                                             value={slab.FTFSE_FineType || ''}
                                                             onValueChange={(value) => handleFineTypeChange(index, value, true)}>
-                                                            <SelectTrigger className='w-full'>
-                                                                <SelectValue placeholder='Select' />
+                                                            <SelectTrigger
+                                                                className={`w-full ${selectedEcs.includes(slab.fmfS_Id) && (!slab.FTFSE_FineType || slab.FTFSE_FineType.trim() === '') ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}>
+                                                                <SelectValue placeholder='Select Type' />
                                                             </SelectTrigger>
                                                             <SelectContent>
                                                                 {fineTypeOptions.map((option) => (
@@ -356,12 +513,13 @@ export default function FineSlabModal({
                                                             </SelectContent>
                                                         </Select>
                                                     </TableCell>
-                                                    <TableCell>
+                                                    <TableCell className='px-8 py-3 align-middle'>
                                                         <InputText
-                                                            type='text'
+                                                            type='number'
                                                             value={slab.ftfsE_Amount || ''}
                                                             onChange={(e) => handleAmountChange(index, e.target.value, true)}
-                                                            placeholder='Enter Amount'
+                                                            placeholder='0.00'
+                                                            className={`w-full text-right ${selectedEcs.includes(slab.fmfS_Id) && (!slab.ftfsE_Amount || Number.parseFloat(slab.ftfsE_Amount) <= 0) ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
                                                         />
                                                     </TableCell>
                                                 </TableRow>
@@ -374,25 +532,16 @@ export default function FineSlabModal({
                     )}
                 </div>
 
-                <DialogFooter>
-                    <Button variant='outline' onClick={onClose}>
+                <DialogFooter className='px-6 pb-6'>
+                    <Button variant='outline' onClick={handleClose}>
                         Cancel
                     </Button>
-                    <Button onClick={handleAddToCart} className='gap-2'>
+                    <Button onClick={handleAddToCart} className='gap-2' disabled={selectedRegular.length === 0 && selectedEcs.length === 0}>
                         <Plus className='h-4 w-4' />
-                        Add to Cart
+                        Add to Cart ({selectedRegular.length + selectedEcs.length})
                     </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
     );
-}
-
-// API function (you'll need to implement this)
-async function fetchFineSlabDetails(params: any): Promise<{ regularSlabs: FineSlab[]; ecsSlabs: FineSlab[] }> {
-    // Implement your API call here
-    // Example:
-    // const response = await apiService.create("FeeAmountEntry/getgroupmappedheads/", params);
-    // return response;
-    return { regularSlabs: [], ecsSlabs: [] };
 }

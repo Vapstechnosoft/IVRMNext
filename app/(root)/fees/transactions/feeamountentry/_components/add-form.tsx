@@ -529,6 +529,11 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
                                                             });
                                                         }
                                                     }}
+                                                    disabled={
+                                                        row.fyghM_FineApplicableFlag === null ||
+                                                        row.fyghM_FineApplicableFlag === undefined ||
+                                                        row.fyghM_FineApplicableFlag === 'N'
+                                                    }
                                                 />
                                             </div>
                                         </td>
