@@ -187,7 +187,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
             }
 
             try {
-                const response = await getGroupListCategory(30, Number(academicYear), {}); // mi_id = 30
+                const response = await getGroupListCategory(Number(academicYear), {}); // mi_id = 30
 
                 if (response?.data && Array.isArray(response.data)) {
                     const options = response.data.map((item: any) => ({
@@ -301,15 +301,15 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
 
             const payload = {
                 FYCC_Id: fycC_Idrow, // For update
-                MI_Id: 30, // Constant MI Id
+                // MI_Id: 30, // Constant MI Id
                 FMCC_Id: Number(classCategory), // Selected class category ID
                 ASMAY_Id: Number(academicYear), // Selected academic year
                 ASMCL_ID: 0, // Always 0 as per your rules (single class will be in TempararyArrayList)
                 FYCC_ActiveFlag: true,
                 ClassList: classes.map((clsId) => ({
                     ASMCL_ID: Number(clsId)
-                })),
-                user_id: 21602 // Static user id
+                }))
+                // user_id: 21602 // Static user id
             };
 
             //    const payload = {

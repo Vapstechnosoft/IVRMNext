@@ -334,11 +334,11 @@ export interface INarration {
 
 export interface IFeeThirdPartyTransactionStudentDetails {
     mI_Id: number;
-    amsT_Id: number;
+    amsT_Id?: number;
     asmaY_Id: number;
-    amsT_FirstName: string;
-    amsT_MiddleName: string;
-    amsT_LastName: string;
+    amsT_FirstName?: string;
+    amsT_MiddleName?: string;
+    amsT_LastName?: string;
     returnval: boolean;
     fmH_Id: number;
     fyptP_Towards: string;

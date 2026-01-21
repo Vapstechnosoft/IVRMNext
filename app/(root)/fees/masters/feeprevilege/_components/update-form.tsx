@@ -46,8 +46,6 @@ export default function UpdateFeePrivilegeForm({ onSuccess, selectedRow, classNa
     const [isInitializing, setIsInitializing] = useState(false);
     const queryClient = useQueryClient();
 
-    console.log('selectedRow in update form:', selectedRow);
-
     const {
         control,
         handleSubmit,
@@ -76,8 +74,6 @@ export default function UpdateFeePrivilegeForm({ onSuccess, selectedRow, classNa
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
 
     const { data: rolesData, isLoading: loadingRoles, error: rolesError } = useRolesDropdown();
-
-    console.log('roles in update form:', rolesData);
 
     const {
         data: groupData,
@@ -141,11 +137,11 @@ export default function UpdateFeePrivilegeForm({ onSuccess, selectedRow, classNa
 
             try {
                 // Set basic values from selected row
-                //const academicYearId = selectedRow.asmaY_Id?.toString() ?? '';
+                const academicYearId = selectedRow.asmaY_Id?.toString() ?? '';
                 const groupId = selectedRow.fmG_Id?.toString() ?? '';
                 const roleId = selectedRow.ivrmR_Id?.toString() ?? '';
 
-                const academicYearId = '231';
+                //  const academicYearId = '231';
 
                 // Set form values
                 setValue('academicYear', academicYearId);
@@ -247,10 +243,22 @@ export default function UpdateFeePrivilegeForm({ onSuccess, selectedRow, classNa
 
     useEffect(() => {
         if (masterHeadName?.data && Array.isArray(masterHeadName.data)) {
-            const opts = masterHeadName.data.map((h: any) => ({
-                value: h.fmH_Id.toString(),
-                label: h.fmH_FeeName
-            }));
+            // const opts = masterHeadName.data.map((h: any) => ({
+            //     value: h.fmH_Id.toString(),
+            //     label: h.fmH_FeeName
+            // }));
+            const opts = Array.from(
+                new Map(
+                    masterHeadName.data.map((h: any) => [
+                        h.fmH_Id, // unique key
+                        {
+                            value: h.fmH_Id.toString(),
+                            label: h.fmH_FeeName
+                        }
+                    ])
+                ).values()
+            );
+
             setHeadOptions(opts);
         } else {
             setHeadOptions([]);
@@ -308,25 +316,95 @@ export default function UpdateFeePrivilegeForm({ onSuccess, selectedRow, classNa
         }
     };
 
+    // const handleReset = () => {
+    //     if (selectedRow) {
+    //         const academicYearId = selectedRow.asmaY_Id?.toString() ?? '';
+    //         const groupId = selectedRow.fmG_Id?.toString() ?? '';
+    //         const roleId = selectedRow.ivrmrT_Id?.toString() ?? '';
+
+    //         reset({
+    //             academicYear: academicYearId,
+    //             group: groupId,
+    //             roles: roleId,
+    //             heads: selectedRow.heads || [],
+    //             users: selectedRow.users || []
+    //         });
+    //     }
+    //     setUserSearch('');
+    //     setHeadSearchTerm('');
+    //     setHasSubmitted(false);
+    // };
+
     const handleReset = () => {
         if (selectedRow) {
+            // Extract values from selectedRow - ensure they are arrays
             const academicYearId = selectedRow.asmaY_Id?.toString() ?? '';
             const groupId = selectedRow.fmG_Id?.toString() ?? '';
-            const roleId = selectedRow.ivrmrT_Id?.toString() ?? '';
+            const roleId = selectedRow.ivrmR_Id?.toString() ?? '';
 
+            // Handle heads - check different possible locations
+            let headsArray: string[] = [];
+            if (selectedRow.heads && Array.isArray(selectedRow.heads)) {
+                // If heads is already an array
+                headsArray = selectedRow.heads.map((h: any) => h.toString());
+            } else if (selectedRow.fmH_Id) {
+                // If single head ID exists
+                headsArray = [selectedRow.fmH_Id.toString()];
+            } else if (selectedRow.fmH_Id?.toString()) {
+                // Check as string
+                headsArray = [selectedRow.fmH_Id.toString()];
+            }
+
+            // Handle users - check different possible locations
+            let usersArray: string[] = [];
+            if (selectedRow.users && Array.isArray(selectedRow.users)) {
+                // If users is already an array
+                usersArray = selectedRow.users.map((u: any) => u.toString());
+            } else if (selectedRow.user_Id) {
+                // If single user ID exists
+                usersArray = [selectedRow.user_Id.toString()];
+            } else if (selectedRow.user_Id?.toString()) {
+                // Check as string
+                usersArray = [selectedRow.user_Id.toString()];
+            }
+
+            // Reset form
+            reset(
+                {
+                    academicYear: academicYearId,
+                    group: groupId,
+                    roles: roleId,
+                    heads: headsArray,
+                    users: usersArray
+                },
+                {
+                    keepDirty: false,
+                    keepErrors: false,
+                    keepTouched: false,
+                    keepIsSubmitted: false,
+                    keepSubmitCount: false
+                }
+            );
+
+            // Also force update the watched values immediately
+            setValue('heads', headsArray, { shouldValidate: true });
+            setValue('users', usersArray, { shouldValidate: true });
+        } else {
+            // Reset to empty if no selectedRow
             reset({
-                academicYear: academicYearId,
-                group: groupId,
-                roles: roleId,
-                heads: selectedRow.heads || [],
-                users: selectedRow.users || []
+                academicYear: '',
+                group: '',
+                heads: [],
+                roles: '',
+                users: []
             });
         }
+
+        // Clear search fields
         setUserSearch('');
         setHeadSearchTerm('');
         setHasSubmitted(false);
     };
-
     const onSubmit = async (data: FormFields) => {
         try {
             const selectedAcademicYear = academicYearOptions.find((year) => year.value === data.academicYear);
@@ -354,14 +432,11 @@ export default function UpdateFeePrivilegeForm({ onSuccess, selectedRow, classNa
                 fgL_Id: Number(selectedRow?.fgL_Id),
                 asmaY_Id: Number(selectedAcademicYear.value),
                 fmG_ID: Number(selectedGroup.value),
-                mI_Id: 30,
+                // mI_Id: 30,
                 UserId: Number(selectedRole.value),
                 grouphead: data.heads.map((h) => ({ FMH_Id: Number(h) })),
                 username: data.users.map((u) => ({ UserId: Number(u) }))
             };
-
-            const payloadjsdata = JSON.stringify(payload);
-            console.log('payloadjsdata', payloadjsdata);
 
             const res = await addOrUpdateFeePrivilege(payload);
             if (res) {

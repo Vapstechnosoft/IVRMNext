@@ -58,6 +58,8 @@ export default function UpdateFeeTransactionWaiveOffForm({
         setValue,
         control,
         watch,
+        trigger,
+        getValues,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(feeTransactionWaivedOffSchema.addOrUpdate),
@@ -66,10 +68,19 @@ export default function UpdateFeeTransactionWaiveOffForm({
             academicYear: 0,
             class: 0,
             section: 0,
-            student: selectedRow.amsT_Id,
-            remarks: ''
+            student: 0,
+            remarks: '',
+            date: undefined,
+            uploadedPhotoPath: '',
+            feeGroupIds: [] // Initialize as empty array, not undefined
         }
     });
+
+    // Add this useEffect to log form state
+    useEffect(() => {
+        console.log('📝 Form initialized with values:', getValues());
+        console.log('Selected Row:', selectedRow);
+    }, [getValues, selectedRow]);
 
     const { refetchAll } = useFeeTransactionWaivedOffGrid();
 
@@ -100,6 +111,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
     const [headList, setHeadList] = useState<feeTransactionWaivedOffHead[]>([]);
     const [headListLoading, setHeadListLoading] = useState(false);
     const [headListError, setHeadListError] = useState<any>(null);
+    const [dateopen, setDateOpen] = useState(false);
     const [uploadedLogo, setUploadedLogo] = useState<{
         document_Path: string;
         documentName: string;
@@ -357,6 +369,34 @@ export default function UpdateFeeTransactionWaiveOffForm({
         }
     };
 
+    useEffect(() => {
+        if (!selectedRow) return;
+
+        console.log('Initializing form with selectedRow:', selectedRow);
+
+        setAcademicYear(selectedRow.asmaY_Id);
+        setclassWise(selectedRow.asmcL_Id);
+        setsectionWise(selectedRow.asmS_Id);
+        setstudentWise(selectedRow.amsT_Id);
+        setRemarks(selectedRow.fswO_WaivedOffRemarks);
+
+        // Set feeGroupIds
+        const initialFeeGroupIds = selectedRow.fmG_Id ? [selectedRow.fmG_Id] : [];
+        setSelectedGroups(initialFeeGroupIds);
+
+        reset({
+            academicYear: selectedRow.asmaY_Id,
+            class: selectedRow.asmcL_Id,
+            section: selectedRow.asmS_Id,
+            student: selectedRow.amsT_Id,
+            remarks: selectedRow.fswO_WaivedOffRemarks,
+            date: new Date(selectedRow.fswO_Date),
+            uploadedPhotoPath: '',
+            feeGroupIds: initialFeeGroupIds // Make sure this is set
+        });
+
+        console.log('Form initialized with feeGroupIds:', initialFeeGroupIds);
+    }, [selectedRow, reset, setValue]);
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const f = e.target.files?.[0];
 
@@ -687,7 +727,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
                                 name='date'
                                 control={control}
                                 render={({ field }) => (
-                                    <Popover>
+                                    <Popover open={dateopen} onOpenChange={setDateOpen}>
                                         <PopoverTrigger asChild>
                                             <Button variant='outline' className='w-full justify-start text-left font-normal'>
                                                 <CalendarIcon className='mr-2 h-4 w-4' />
@@ -699,8 +739,14 @@ export default function UpdateFeeTransactionWaiveOffForm({
                                             <Calendar
                                                 mode='single'
                                                 selected={field.value}
-                                                onSelect={(date) => field.onChange(date)}
+                                                onSelect={(date) => {
+                                                    field.onChange(date);
+                                                    setDateOpen(false);
+                                                }}
                                                 initialFocus
+                                                disabled={(date) => {
+                                                    return date < new Date(new Date().setHours(0, 0, 0, 0));
+                                                }}
                                             />
                                         </PopoverContent>
                                     </Popover>
@@ -742,59 +788,111 @@ export default function UpdateFeeTransactionWaiveOffForm({
                                 </label>
                             </div>
                         </div>
-                        <div>
-                            <label htmlFor='grouplist' className='inline-flex cursor-pointer items-center space-x-2'>
-                                Group List:<span className='ml-1 text-red-500'>*</span>
-                            </label>
-                            <div className='group flex flex-col gap-1.5 md:col-span-2'>
-                                <div className='min-h-[40px] rounded-md border bg-white px-3 py-2'>
-                                    {/* <input
-                    type="text"
-                    placeholder="Search Group Name"
-                    className="mb-2 w-full rounded border px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={groupSearch}
-                    onChange={(e) => setGroupSearch(e.target.value)}
-                  /> */}
-                                    <div className='flex max-h-40 flex-col gap-2 overflow-y-auto'>
-                                        {groupListLoading ? (
-                                            <span className='text-gray-400 text-sm'>Loading Groups...</span>
-                                        ) : groupList.length > 0 ? (
-                                            groupList.map((grp) => {
-                                                const optVal = Number(grp.fmG_Id);
-                                                return (
-                                                    <label
-                                                        key={grp.fmG_Id}
-                                                        className='flex cursor-pointer items-center rounded p-1 hover:bg-gray-50'>
-                                                        <input
-                                                            type='checkbox'
-                                                            value={grp.fmG_Id}
-                                                            checked={selectedGroups.includes(optVal)}
-                                                            disabled={true}
-                                                            onChange={async (e) => {
-                                                                const checked = e.target.checked;
-                                                                const newSelected = checked
-                                                                    ? [...selectedGroups, optVal]
-                                                                    : selectedGroups.filter((p) => p !== optVal);
-                                                                setSelectedGroups(newSelected);
-                                                            }}
-                                                            className='mr-2 h-4 w-4 accent-blue-600'
-                                                        />
-                                                        <span className='truncate'>{grp.fmG_GroupName}</span>
-                                                    </label>
-                                                );
-                                            })
-                                        ) : groupListError ? (
-                                            <span className='text-gray-400 text-sm'>Error loading</span>
-                                        ) : (
-                                            <span className='text-gray-400 text-sm'>No Results or Select a Student </span>
-                                        )}
+
+                        <Controller
+                            name='feeGroupIds'
+                            control={control}
+                            defaultValue={[]}
+                            render={({ field }) => {
+                                const [searchTerm, setSearchTerm] = useState('');
+                                const filteredGroups = groupList.filter((grp) =>
+                                    grp.fmG_GroupName?.toLowerCase().includes(searchTerm.toLowerCase())
+                                );
+                                return (
+                                    <div>
+                                        <Label htmlFor='feeGroupIds' className='inline-flex cursor-pointer items-center space-x-2'>
+                                            Group List:<span className='ml-1 text-red-500'>*</span>
+                                        </Label>
+                                        <div className='group flex flex-col gap-1.5 md:col-span-2'>
+                                            {/* Search Input */}
+                                            <div className='relative mb-2'>
+                                                <input
+                                                    type='text'
+                                                    placeholder='Search groups...'
+                                                    value={searchTerm}
+                                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                                    className='w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500'
+                                                />
+                                                {searchTerm && (
+                                                    <button
+                                                        type='button'
+                                                        onClick={() => setSearchTerm('')}
+                                                        className='-translate-y-1/2 absolute top-1/2 right-2 text-gray-400 hover:text-gray-600'>
+                                                        ✕
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            {/* Groups List */}
+                                            <div className='min-h-[40px] rounded-md border bg-white px-3 py-2'>
+                                                <div className='flex max-h-40 flex-col gap-2 overflow-y-auto'>
+                                                    {groupListLoading ? (
+                                                        <div className='flex items-center justify-center py-4'>
+                                                            <span className='text-gray-400 text-sm'>Loading Groups...</span>
+                                                        </div>
+                                                    ) : filteredGroups.length > 0 ? (
+                                                        filteredGroups.map((grp) => {
+                                                            const optVal = Number(grp.fmG_Id);
+                                                            return (
+                                                                <label
+                                                                    key={grp.fmG_Id}
+                                                                    className='flex cursor-pointer items-center rounded p-1 hover:bg-gray-50'>
+                                                                    <input
+                                                                        type='checkbox'
+                                                                        value={grp.fmG_Id}
+                                                                        disabled={true}
+                                                                        checked={selectedGroups.includes(optVal)}
+                                                                        onChange={async (e) => {
+                                                                            const checked = e.target.checked;
+                                                                            const newSelected = checked
+                                                                                ? [...selectedGroups, optVal]
+                                                                                : selectedGroups.filter((p) => p !== optVal);
+                                                                            setSelectedGroups(newSelected);
+                                                                            field.onChange(newSelected);
+                                                                        }}
+                                                                        className='mr-2 h-4 w-4 accent-blue-600'
+                                                                    />
+                                                                    <span className='truncate'>{grp.fmG_GroupName}</span>
+                                                                </label>
+                                                            );
+                                                        })
+                                                    ) : groupListError ? (
+                                                        <div className='flex items-center justify-center py-4'>
+                                                            <span className='text-gray-400 text-sm'>Error loading groups</span>
+                                                        </div>
+                                                    ) : searchTerm ? (
+                                                        <div className='flex items-center justify-center py-4'>
+                                                            <span className='text-gray-400 text-sm'>
+                                                                No groups found for "{searchTerm}"
+                                                            </span>
+                                                        </div>
+                                                    ) : (
+                                                        <div className='flex items-center justify-center py-4'>
+                                                            <span className='text-gray-400 text-sm'>No groups available</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Show selected count */}
+                                                {selectedGroups.length > 0 && (
+                                                    <div className='mt-2 flex items-center justify-between border-t pt-2'>
+                                                        <span className='text-blue-600 text-sm'>
+                                                            {selectedGroups.length} Group(s) selected
+                                                        </span>
+                                                        {searchTerm && filteredGroups.length > 0 && (
+                                                            <span className='text-gray-500 text-xs'>
+                                                                Showing {filteredGroups.length} of {groupList.length}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {errors.feeGroupIds && <p className='text-red-500 text-sm'>{errors.feeGroupIds.message}</p>}
+                                        </div>
                                     </div>
-                                    {selectedGroups.length > 0 && (
-                                        <div className='mt-2 text-blue-600 text-sm'>{selectedGroups.length} Group(s) selected</div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
+                                );
+                            }}
+                        />
 
                         <div className='flex items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-3 py-2'>
                             <label className='inline-flex cursor-pointer items-center space-x-2'>
@@ -836,9 +934,9 @@ export default function UpdateFeeTransactionWaiveOffForm({
                                     Upload Photo
                                 </Button>
 
-                                {photoFile && (
+                                {uploadedLogo?.document_Path && (
                                     <div className='mt-2 flex items-center gap-3'>
-                                        <div className='text-gray-600 text-sm'>{photoFile.name}</div>
+                                        <div className='text-gray-600 text-sm'>{photoFile?.name}</div>
 
                                         <Button type='button' variant='secondary' onClick={() => setIsViewing(true)} className='px-3'>
                                             View
@@ -850,6 +948,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
                                             onClick={() => {
                                                 setPhotoFile(null);
                                                 setPhotoPreview(null);
+                                                setUploadedLogo(null);
                                                 if (fileInputRef.current) fileInputRef.current.value = '';
                                             }}>
                                             <Trash className='text-red-600' />
@@ -881,10 +980,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
                                 onRowSelectionChange={(selectedRows: feeTransactionWaivedOffHead[]) => {
                                     console.log('selectedRows', selectedRows);
                                     const selectedRowIds = selectedRows.map((r) => String(r.ftI_Id));
-                                    const selected = headList.filter((s, index) => {
-                                        const isSelected = selectedRowIds.includes(s.ftI_Id.toString());
-                                        return isSelected;
-                                    });
+                                    const selected = headList.filter((head) => selectedRows.some((row) => row.ftI_Id === head.ftI_Id));
 
                                     setSelectedHead(selected);
                                     setPreSelectedInstallmentIds(preSelectedInstallmentIds);

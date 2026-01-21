@@ -15,7 +15,7 @@ const SelectSearchContext = React.createContext<{
 }>({
     searchable: true,
     searchQuery: '',
-    setSearchQuery: () => {},
+    setSearchQuery: () => { },
     filteredItems: new Set(),
     isMobile: false
 });
@@ -84,27 +84,84 @@ const Select = ({ children, searchable = true, onOpenChange, ...props }: SelectP
         return values;
     }, []);
 
-    // Filter items when search query changes
+    // Filter items when search query changes ( PREVIOUS CODE)
+    // React.useEffect(() => {
+    //     if (!searchable || !searchQuery) {
+    //         setFilteredItems(new Set());
+    //         return;
+    //     }
+
+    //     const allItems = collectItemValues(children);
+    //     const lowerQuery = searchQuery.toLowerCase();
+
+    //     const filtered = new Set(
+    //         allItems
+    //             .filter((item) => {
+    //                 const [value, text] = item.split(':::');
+    //                 return text.toLowerCase().includes(lowerQuery) || value.toLowerCase().includes(lowerQuery);
+    //             })
+    //             .map((item) => item.split(':::')[0])
+    //     );
+
+    //     setFilteredItems(filtered);
+    // }, [children, searchable, searchQuery, collectItemValues]);
+
+    //Update filtered items for fixing search isses in  academic year and trailing Spaces error.
     React.useEffect(() => {
         if (!searchable || !searchQuery) {
             setFilteredItems(new Set());
             return;
         }
 
+        const query = searchQuery.trimEnd().toLowerCase();
+        const isNumericQuery = /^\d+$/.test(query);
+
         const allItems = collectItemValues(children);
-        const lowerQuery = searchQuery.toLowerCase();
 
-        const filtered = new Set(
-            allItems
-                .filter((item) => {
-                    const [value, text] = item.split(':::');
-                    return text.toLowerCase().includes(lowerQuery) || value.toLowerCase().includes(lowerQuery);
-                })
-                .map((item) => item.split(':::')[0])
-        );
+        const startsWithMatches: string[] = [];
+        const containsMatches: string[] = [];
 
-        setFilteredItems(filtered);
+        allItems.forEach((item) => {
+            const [value, text] = item.split(':::');
+            const lowerText = text.toLowerCase();
+            const lowerValue = value.toLowerCase();
+
+            // ✅ Detect academic year (YYYY-YYYY)
+            const isAcademicYear = /^\d{4}-\d{4}$/.test(text);
+
+            if (isAcademicYear && isNumericQuery) {
+                const [startYear, endYear] = text.split('-');
+
+                // ✅ STRICT: match ONLY from start of full year
+                if (
+                    startYear.startsWith(query) ||
+                    endYear.startsWith(query)
+                ) {
+                    startsWithMatches.push(value);
+                }
+
+                return; // 🚫 do NOT fall into normal string logic
+            }
+
+            // ✅ Normal string logic
+            if (
+                lowerText.startsWith(query) ||
+                lowerValue.startsWith(query)
+            ) {
+                startsWithMatches.push(value);
+            } else if (
+                lowerText.includes(query) ||
+                lowerValue.includes(query)
+            ) {
+                containsMatches.push(value);
+            }
+        });
+
+        // ✅ Starts-with items come first
+        setFilteredItems(new Set([...startsWithMatches, ...containsMatches]));
     }, [children, searchable, searchQuery, collectItemValues]);
+
+
 
     // Normalize common "empty" values to undefined so Radix shows placeholder.
     // Treat empty string, null, and numeric/string zero as empty (many forms use 0 as 'no selection').
@@ -230,6 +287,7 @@ const SelectSearch = React.forwardRef<HTMLInputElement, React.InputHTMLAttribute
             setSearchQuery(newValue);
         }, 300);
     };
+
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         // Prevent the select from closing when typing

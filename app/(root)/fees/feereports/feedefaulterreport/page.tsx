@@ -34,7 +34,7 @@ import type {
 } from '@/types/fees/reports/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, Eye } from 'lucide-react';
+import { ArrowUpDown, CalendarIcon, Eye } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Input } from 'react-aria-components';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
@@ -406,6 +406,68 @@ export default function FeeDefaulterReport() {
     const [smsContent, setSmsContent] = useState('');
     const [smsSearch, setSmsSearch] = useState('');
 
+    const [sortConfig, setSortConfig] = useState<{
+        key: keyof (typeof studentreportData)[0];
+        direction: 'asc' | 'desc';
+    } | null>(null);
+
+    // Sorting function
+    const handleSortfull = (key: keyof (typeof studentreportData)[0]) => {
+        let direction: 'asc' | 'desc' = 'asc';
+
+        if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+
+        setSortConfig({ key, direction });
+    };
+
+    // Apply sorting to data
+    const sortedData = useMemo(() => {
+        if (!sortConfig) return studentreportData;
+
+        return [...studentreportData].sort((a, b) => {
+            // Handle different data types
+            const aValue = a[sortConfig.key];
+            const bValue = b[sortConfig.key];
+
+            if (aValue == null && bValue == null) return 0;
+            if (aValue == null) return 1;
+            if (bValue == null) return -1;
+
+            if (typeof aValue === 'string' && typeof bValue === 'string') {
+                return sortConfig.direction === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+            }
+
+            if (typeof aValue === 'number' && typeof bValue === 'number') {
+                return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
+            }
+
+            return 0;
+        });
+    }, [studentreportData, sortConfig]);
+
+    // Add this filtering logic for students
+    const filteredStudentData = useMemo(() => {
+        // If no search term, return all data
+        if (!search.trim()) return studentreportData;
+
+        const searchTerm = search.toLowerCase().trim();
+
+        // Filter students based on search term
+        return studentreportData.filter((student) => {
+            return (
+                student.name.toLowerCase().includes(searchTerm) ||
+                student.admissionNo.toLowerCase().includes(searchTerm) ||
+                student.classSection.toLowerCase().includes(searchTerm) ||
+                student.fatherName.toLowerCase().includes(searchTerm) ||
+                student.mobileNumber.toLowerCase().includes(searchTerm) ||
+                student.emailId.toLowerCase().includes(searchTerm) ||
+                student.route.toLowerCase().includes(searchTerm) ||
+                student.balanceAmount.toString().includes(searchTerm)
+            );
+        });
+    }, [studentreportData, search]); // Re-run when data or search changes
     // Update the toggleCommunicationMethod function
     // const toggleCommunicationMethod = (method: keyof typeof communicationMethods) => {
     //     setCommunicationMethods((prev) => ({
@@ -1011,7 +1073,7 @@ export default function FeeDefaulterReport() {
                 <div className='mx-auto max-w-7xl'>
                     <Card className='border-0 shadow-xl'>
                         <div className='p-8'>
-                            <h1 className='mb-8 font-bold text-3xl text-gray-900'>Fee Defaulter Report</h1>
+                            <h1 className='mb-8 font-bold text-3xl text-gray-900'>Yearly Fee Defaulter Report</h1>
 
                             <div className='space-y-8'>
                                 {/* User Type Card */}
@@ -1505,7 +1567,9 @@ export default function FeeDefaulterReport() {
 
                                     {/* Bus Route */}
                                     <div className='space-y-3'>
-                                        <Label className='font-semibold text-lg'>Bus Route</Label>
+                                        <Label className='font-semibold text-lg'>
+                                            Bus Route<span className='text-red-500'>*</span>
+                                        </Label>
                                         <Card className='border bg-gray-50 p-4'>
                                             {/* <div className='max-h-64 space-y-3 overflow-y-auto'>
                                              
@@ -2314,7 +2378,7 @@ export default function FeeDefaulterReport() {
                                                         {filters.userType === 'Students' && studentreportData.length > 0 && (
                                                             <div className='overflow-x-auto border'>
                                                                 <table className='w-full table-auto border-collapse'>
-                                                                    <thead className='bg-primary text-white'>
+                                                                    {/* <thead className='bg-primary text-white'>
                                                                         <tr>
                                                                             <th className='p-2 text-center'>
                                                                                 <Checkbox
@@ -2338,14 +2402,119 @@ export default function FeeDefaulterReport() {
                                                                             <th className='p-2 text-center'>Email ID</th>
                                                                             <th className='p-2 text-center'>Route</th>
                                                                             <th className='p-2 text-center'>Balance Amount</th>
-                                                                            {/* <th className='p-2 text-center'>Fine Amount</th>
+                                                                            <th className='p-2 text-center'>Fine Amount</th>
                                                                             <th className='p-2 text-center'>Total Amount</th>
-                                                                            <th className='p-2 text-center'>Fee Group</th> */}
+                                                                            <th className='p-2 text-center'>Fee Group</th>
+                                                                        </tr>
+                                                                    </thead> */}
+                                                                    <thead className='bg-primary text-white'>
+                                                                        <tr>
+                                                                            <th className='p-2 text-center'>
+                                                                                <Checkbox
+                                                                                    checked={
+                                                                                        selectedIds.length === studentreportData.length &&
+                                                                                        studentreportData.length > 0
+                                                                                    }
+                                                                                    indeterminate={
+                                                                                        selectedIds.length > 0 &&
+                                                                                        selectedIds.length < studentreportData.length
+                                                                                    }
+                                                                                    onCheckedChange={toggleAllstudents}
+                                                                                />
+                                                                            </th>
+                                                                            <th className='p-2 text-center'>Sl No</th>
+                                                                            <th className='p-2 text-center'>
+                                                                                <Button
+                                                                                    // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                    onClick={() => handleSortfull('name')}
+                                                                                >
+                                                                                    Name
+                                                                                    {sortConfig?.key === 'name' && (
+                                                                                        <ArrowUpDown className='h-4 w-4' />
+                                                                                    )}
+                                                                                </Button>
+                                                                            </th>
+                                                                            <th className='p-2 text-center'>
+                                                                                <Button
+                                                                                    // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                    onClick={() => handleSortfull('admissionNo')}
+                                                                                >
+                                                                                    Admission No
+                                                                                    {sortConfig?.key === 'admissionNo' && (
+                                                                                        <ArrowUpDown className='h-4 w-4' />
+                                                                                    )}
+                                                                                </Button>
+                                                                            </th>
+                                                                            <th className='p-2 text-center'>
+                                                                                <Button
+                                                                                    // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                    onClick={() => handleSortfull('classSection')}
+                                                                                >
+                                                                                    Class & Section
+                                                                                    {sortConfig?.key === 'classSection' && (
+                                                                                        <ArrowUpDown className='h-4 w-4' />
+                                                                                    )}
+                                                                                </Button>
+                                                                            </th>
+                                                                            <th className='p-2 text-center'>
+                                                                                <Button
+                                                                                    // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                    onClick={() => handleSortfull('fatherName')}
+                                                                                >
+                                                                                    Father Name
+                                                                                    {sortConfig?.key === 'fatherName' && (
+                                                                                        <ArrowUpDown className='h-4 w-4' />
+                                                                                    )}
+                                                                                </Button>
+                                                                            </th>
+                                                                            <th className='p-2 text-center'>
+                                                                                <Button
+                                                                                    // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                    onClick={() => handleSortfull('mobileNumber')}
+                                                                                >
+                                                                                    Mobile Number
+                                                                                    {sortConfig?.key === 'mobileNumber' && (
+                                                                                        <ArrowUpDown className='h-4 w-4' />
+                                                                                    )}
+                                                                                </Button>
+                                                                            </th>
+                                                                            <th className='p-2 text-center'>
+                                                                                <Button
+                                                                                    // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                    onClick={() => handleSortfull('emailId')}
+                                                                                >
+                                                                                    Email ID
+                                                                                    {sortConfig?.key === 'emailId' && (
+                                                                                        <ArrowUpDown className='h-4 w-4' />
+                                                                                    )}
+                                                                                </Button>
+                                                                            </th>
+                                                                            <th className='p-2 text-center'>
+                                                                                <Button
+                                                                                    // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                    onClick={() => handleSortfull('route')}
+                                                                                >
+                                                                                    Route
+                                                                                    {sortConfig?.key === 'route' && (
+                                                                                        <ArrowUpDown className='h-4 w-4' />
+                                                                                    )}
+                                                                                </Button>
+                                                                            </th>
+                                                                            <th className='p-2 text-center'>
+                                                                                <Button
+                                                                                    // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                    onClick={() => handleSortfull('balanceAmount')}
+                                                                                >
+                                                                                    Balance Amount
+                                                                                    {sortConfig?.key === 'balanceAmount' && (
+                                                                                        <ArrowUpDown className='h-4 w-4' />
+                                                                                    )}
+                                                                                </Button>
+                                                                            </th>
                                                                         </tr>
                                                                     </thead>
-
                                                                     <tbody>
-                                                                        {studentreportData.map((row, index) => (
+                                                                        {/* {studentreportData.map((row, index) => (
                                                                             <tr key={row.id} className='border-b hover:bg-gray-50'>
                                                                                 <td className='p-2 text-center'>
                                                                                     <Checkbox
@@ -2364,15 +2533,73 @@ export default function FeeDefaulterReport() {
                                                                                 <td className='p-2 text-center font-bold'>
                                                                                     ₹{row.balanceAmount.toLocaleString('en-IN')}
                                                                                 </td>
-                                                                                {/* <td className='p-2 text-center font-bold text-red-600'>
+                                                                                <td className='p-2 text-center font-bold text-red-600'>
                                                                                     ₹{row.fineAmount.toLocaleString('en-IN')}
-                                                                                </td> */}
-                                                                                {/* <td className='p-2 text-center font-bold text-green-700'>
+                                                                                </td>
+                                                                                <td className='p-2 text-center font-bold text-green-700'>
                                                                                     ₹{row.totalAmount.toLocaleString('en-IN')}
                                                                                 </td>
-                                                                                <td className='p-2 text-center'>{row.feeGroup}</td> */}
+                                                                                <td className='p-2 text-center'>{row.feeGroup}</td>
                                                                             </tr>
-                                                                        ))}
+                                                                        ))} */}
+                                                                        {filteredStudentData.length === 0 ? (
+                                                                            <tr>
+                                                                                <td colSpan={11} className='p-4 text-center text-gray-500'>
+                                                                                    {search.trim()
+                                                                                        ? `No students found for "${search}"`
+                                                                                        : 'No student data available'}
+                                                                                </td>
+                                                                            </tr>
+                                                                        ) : (
+                                                                            // Use sortedData for display (which sorts the filtered data)
+                                                                            sortedData.map((row, index) => (
+                                                                                <tr key={row.id} className='border-b hover:bg-gray-50'>
+                                                                                    <td className='p-2 text-center'>
+                                                                                        <Checkbox
+                                                                                            checked={selectedIds.includes(row.id)}
+                                                                                            onCheckedChange={() => toggleRow(row.id)}
+                                                                                        />
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-medium'>
+                                                                                        {index + 1}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-medium'>
+                                                                                        {row.name}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center'>{row.admissionNo}</td>
+                                                                                    <td className='p-2 text-center'>{row.classSection}</td>
+                                                                                    <td className='p-2 text-center'>{row.fatherName}</td>
+                                                                                    <td className='p-2 text-center'>{row.mobileNumber}</td>
+                                                                                    <td className='p-2 text-center'>{row.emailId}</td>
+                                                                                    <td className='p-2 text-center'>{row.route}</td>
+                                                                                    <td className='p-2 text-center font-bold'>
+                                                                                        ₹{row.balanceAmount.toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                </tr>
+                                                                            ))
+                                                                        )}
+
+                                                                        {/* {sortedData.map((row, index) => (
+                                                                            <tr key={row.id} className='border-b hover:bg-gray-50'>
+                                                                                <td className='p-2 text-center'>
+                                                                                    <Checkbox
+                                                                                        checked={selectedIds.includes(row.id)}
+                                                                                        onCheckedChange={() => toggleRow(row.id)}
+                                                                                    />
+                                                                                </td>
+                                                                                <td className='p-2 text-center font-medium'>{index + 1}</td>
+                                                                                <td className='p-2 text-center font-medium'>{row.name}</td>
+                                                                                <td className='p-2 text-center'>{row.admissionNo}</td>
+                                                                                <td className='p-2 text-center'>{row.classSection}</td>
+                                                                                <td className='p-2 text-center'>{row.fatherName}</td>
+                                                                                <td className='p-2 text-center'>{row.mobileNumber}</td>
+                                                                                <td className='p-2 text-center'>{row.emailId}</td>
+                                                                                <td className='p-2 text-center'>{row.route}</td>
+                                                                                <td className='p-2 text-center font-bold'>
+                                                                                    ₹{row.balanceAmount.toLocaleString('en-IN')}
+                                                                                </td>
+                                                                            </tr>
+                                                                        ))} */}
 
                                                                         {/* Totals Row */}
                                                                         {/* <tr className='bg-gray-100 font-bold'>
@@ -2390,6 +2617,7 @@ export default function FeeDefaulterReport() {
                                                                         </tr> */}
                                                                     </tbody>
                                                                 </table>
+                                                                <div>Total Records : {studentreportData.length}</div>
                                                             </div>
                                                         )}
                                                     </div>

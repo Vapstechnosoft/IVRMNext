@@ -53,6 +53,10 @@ export const ADMISSION_QUERY_KEYS = {
     ADMISSION_SECTION_DROPDOWN: 'admission_section_dropdown',
     ADMISSION_CLASS_DROPDOWN1: 'admission_class_dropdown1',
     CONCESSION_DROPDOWN_DATA: 'concession_dropdown_data',
+
+    ADMISSION_FORM_GET_ALL: 'admission_form_get_all',
+    STUDENT_ADMISSION_FORM: 'student_admission_form',
+
     CLASS_WISE_STUDENT_REPORT: 'class_wise_student_report',
     ATTENDANCE_ABSENT_REPORT: 'attendance_absent_report',
     ATTENDANCE_REPORT: 'attendance_report',
@@ -115,6 +119,7 @@ export const FEES_QUERY_KEYS = {
 
     FEE_MASTER_CONCESSION: 'masterfeeconcession',
     FEE_MASTER_TERMS: 'feemasterterms',
+    FEE_MASTER_TERMS_DROPDOWN_GROUPHEADMAPPING: 'feemastertermsdropdowngroupheadmapping',
     FEE_MASTER_TERMS_HEAD: 'mastertermfeehead',
     TERM_DROP_DOWN_DATA: 'Terms_Drop_down_data',
     MASTER_HEADS_DROP_DOWN: 'masterHeadsDropdown',
@@ -198,6 +203,7 @@ export const FEES_QUERY_KEYS = {
     FEE_COMPANY_GROUP_MAPPING_GROUP_DROPDOWN: 'fee_company_group_mapping_group_dropdown',
     FEE_COMPANY_GROUPMAPPING_GROUP_DROPDOWN: 'fee_company_groupmapping_group_dropdown',
     FEE_STUDENT_UPDATE_TRANSACTION: 'fee_student_update_transaction',
+    FEE_STUDENT_CURRENT_ACADEMIC_DETAILS: 'fee_student_current_academic_details',
 
     FEE_DEFAULTER_REPORT: 'fee_defaulter_report',
     FEE_GROUP_DEFAULTER: 'fee_group_defaulter_report',
@@ -256,7 +262,9 @@ export const EXAM_QUERY_KEYS = {
     MASTER_EXAM_ORDERED_DROPDOWN_LIST: 'master-exam-ordered-dropdown-list',
     MASTER_EXAM_PAPER: 'master-exam-paper',
     MASTER_SUB_EXAM: 'master-sub-exam',
+    MASTER_SUB_EXAM_DROPDOWN_LIST: 'master-sub-exam-dropdown-list',
     MASTER_GRADE_EX: 'master-grade-ex',
+    MASTER_GRADE_DROPDOWN_LIST: 'master-grade-dropdown-list',
     MASTER_GRADE_DETAILS: 'master-grade-details',
     MASTER_SUBJECT_GROUP_: 'master-subject-group',
     MASTER_SUBJECT_GROUP_DROPDOWN_LIST: 'master-subject-group-dropdown-list',

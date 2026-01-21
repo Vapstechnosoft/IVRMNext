@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { InputText } from '@/components/ui/extension/input-text';
-import { useMasterFeehead } from '@/hooks/fees/useMasters';
+import { useMasterModeOfPayment } from '@/hooks/fees/useMasters';
 import { masterModeOfPaymentSchema } from '@/schemas/fees/masters';
 import { addOrUpdateModeOfPayment } from '@/server/fees/masters/modeOfPayment';
 import type { IModeOfPaymentList } from '@/types/fees/masters/masters';
@@ -26,7 +26,7 @@ export default function UpdateMasterModeOfPaymentForm({
     ivrmmoD_ModeOfPayment = '',
     selectedRow: row
 }: UpdateMasterModeOfPaymentFormProps) {
-    const { refetchAll } = useMasterFeehead();
+    const { refetchAll } = useMasterModeOfPayment();
 
     const {
         setValue,
@@ -53,7 +53,7 @@ export default function UpdateMasterModeOfPaymentForm({
         try {
             const { ivrmmoD_ModeOfPayment, ivrmmoD_ModeOfPayment_Code, ivrmmoD_Id } = data;
             const payload = {
-                mi_id: 30,
+                // mi_id: 30,
                 IVRMMOD_ModeOfPayment: ivrmmoD_ModeOfPayment,
                 IVRMMOD_ModeOfPayment_Code: ivrmmoD_ModeOfPayment_Code,
                 IVRMMOD_Id: ivrmmoD_Id

@@ -9,13 +9,13 @@ export async function getMasterYearlyCategory(searchParams?: ApiSearchparams) {
         searchParams ?? {},
         'asmaY_Year,fmG_GroupName,fyG_RebateApplicableFlg,fyG_PartialRebateAmtOrPercentageValue'
     );
-    const url = `/fee_yearly_group/30?${urlParams}`;
+    const url = `/fee_yearly_group/getdata?${urlParams}`;
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }
 
 export async function getGroupListCategory(searchParams?: ApiSearchparams) {
     const _urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = '/fee_yearly_group/getgrouplist/30';
+    const url = '/fee_yearly_group/getgrouplist';
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }
 
@@ -29,7 +29,7 @@ export async function addOrUpdateMasterGroupYearlyCategory(data: any) {
     return await api.post<any>('fees', url, data);
 }
 
-export async function toggleMasterclassYearlyCategory(mi_id: number, id: number) {
-    const url = `/fee_yearly_group/toggle_fee_yearlygroup/${mi_id}/${id}`;
+export async function toggleMasterclassYearlyCategory(id: number) {
+    const url = `/fee_yearly_group/toggle_fee_yearlygroup/${id}`;
     return await api.put('fees', url);
 }

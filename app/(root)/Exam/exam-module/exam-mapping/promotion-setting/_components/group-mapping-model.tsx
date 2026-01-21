@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import type { ExamDetail } from '@/types/exam/exam-module/exam-mapping';
 import { AlertTriangle, Check, Edit2, Eye, Plus, Trash2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -47,15 +48,17 @@ interface LeftExamRow {
 
 export function ViewGroupsModal({
     subject,
+    exams,
     onClose,
     onAddGroup,
-    groups,
+    onSave,
     onOpenExams
 }: {
     subject: SubjectRow;
+    exams: any[];
     onClose: () => void;
     onAddGroup: (g: GroupItem) => void;
-    groups: GroupItem[];
+    onSave: (groups: GroupItem[]) => void;
     onOpenExams: (g: GroupItem) => void;
 }) {
     const [formData, setFormData] = useState<GroupFormData>({
@@ -75,15 +78,25 @@ export function ViewGroupsModal({
     const [groupToDelete, setGroupToDelete] = useState<GroupItem | null>(null);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [leftExams, setLeftExams] = useState<LeftExamRow[]>([]);
+    const groups = Array.isArray(subject.pro_exams_group_list) ? subject.pro_exams_group_list : [];
 
     // Initialize left exams
     useEffect(() => {
-        setLeftExams([
-            { id: 101, name: 'Formative Assessment -04', isSelected: false, convertedMarks: '', conversionRequired: false },
-            { id: 102, name: 'Summative Assessment-02', isSelected: false, convertedMarks: '', conversionRequired: false },
-            { id: 103, name: 'Unit Test 1', isSelected: false, convertedMarks: '', conversionRequired: false }
-        ]);
-    }, []);
+        if (!Array.isArray(exams)) {
+            setLeftExams([]);
+            return;
+        }
+
+        const mappedExams = exams.map((exam: ExamDetail) => ({
+            id: exam.emE_Id,
+            name: exam.emE_ExamName,
+            isSelected: false,
+            convertedMarks: '',
+            conversionRequired: false
+        }));
+
+        setLeftExams(mappedExams);
+    }, [exams]);
 
     // Validate form
     const validateForm = (): boolean => {
@@ -226,7 +239,7 @@ export function ViewGroupsModal({
             percentage: 0,
             groupName: '',
             displayName: '',
-            groupOrder: groups.length > 0 ? Math.max(...groups.map((g) => g.order)) + 1 : 1,
+            groupOrder: groups.length > 0 ? Math.max(...groups.map((g) => g.EMPSG_Order)) + 1 : 1,
             maxOff: 0,
             bestOff: 0,
             roundOff: false,
@@ -251,23 +264,22 @@ export function ViewGroupsModal({
         const selectedExams = leftExams
             .filter((exam) => exam.isSelected)
             .map((exam) => ({
-                id: exam.id,
-                name: exam.name,
-                marks: Number.parseInt(exam.convertedMarks) || 0,
-                conversionRequired: exam.conversionRequired
+                emE_Id: exam.id,
+                emE_ExamName: exam.name,
+                EMPSGE_ForMaxMarkrs: Number.parseInt(exam.convertedMarks) || 0,
+                EMPSGE_ConvertionReqOrNot: exam.conversionRequired
             }));
-
         const newGroup: GroupItem = {
             id: editingGroupId || Date.now(),
-            groupName: formData.groupName,
-            displayName: formData.displayName,
-            percentage: formData.percentage || 0,
-            marks: formData.marks || 0,
-            maxOff: formData.maxOff || 0,
-            bestOff: formData.bestOff || 0,
-            order: formData.groupOrder,
-            roundOffFlag: formData.roundOff,
-            exams: selectedExams
+            EMPSG_GroupName: formData.groupName,
+            EMPSG_DisplayName: formData.displayName,
+            EMPSG_PercentValue: formData.percentage || 0,
+            EMPSG_MarksValue: formData.marks || 0,
+            EMPSG_MaxOff: formData.maxOff || 0,
+            EMPSG_BestOff: formData.bestOff || 0,
+            EMPSG_Order: formData.groupOrder,
+            EMPSG_RoundOffFlag: formData.roundOff,
+            Exm_M_Prom_Subj_Group_Exams_master: selectedExams
         };
 
         onAddGroup(newGroup);
@@ -281,26 +293,26 @@ export function ViewGroupsModal({
 
         // Set form data
         setFormData({
-            marks: group.marks,
-            percentage: group.percentage,
-            groupName: group.groupName,
-            displayName: group.displayName,
-            groupOrder: group.order,
-            maxOff: group.maxOff,
-            bestOff: group.bestOff,
-            roundOff: group.roundOffFlag || false,
+            marks: group.EMPSG_MarksValue,
+            percentage: group.EMPSG_PercentValue,
+            groupName: group.EMPSG_GroupName,
+            displayName: group.EMPSG_DisplayName,
+            groupOrder: group.EMPSG_Order,
+            maxOff: group.EMPSG_MaxOff,
+            bestOff: group.EMPSG_BestOff,
+            roundOff: group.EMPSG_RoundOffFlag || false,
             exams: []
         });
 
         // Set left exams with selected exams from the group
         const updatedLeftExams = leftExams.map((exam) => {
-            const groupExam = group.exams.find((g) => g.id === exam.id);
+            const groupExam = group.Exm_M_Prom_Subj_Group_Exams_master.find((g) => g.emE_Id === exam.id);
             return groupExam
                 ? {
                       ...exam,
                       isSelected: true,
-                      convertedMarks: groupExam.marks.toString(),
-                      conversionRequired: groupExam.conversionRequired || false,
+                      convertedMarks: groupExam.EMPSGE_ForMaxMarkrs.toString(),
+                      conversionRequired: groupExam.EMPSGE_ConvertionReqOrNot || false,
                       error: undefined
                   }
                 : {
@@ -334,7 +346,7 @@ export function ViewGroupsModal({
         if (groupToDelete) {
             // You would typically call a prop function here to update the parent state
             // For now, we'll show a toast and close the dialog
-            toast.success(`Group "${groupToDelete.groupName}" deleted successfully`);
+            toast.success(`Group "${groupToDelete.EMPSG_GroupName}" deleted successfully`);
             setIsDeleteDialogOpen(false);
             setGroupToDelete(null);
         }
@@ -348,7 +360,7 @@ export function ViewGroupsModal({
     // Auto-update groupOrder when groups change
     useEffect(() => {
         if (!editingGroupId && groups.length > 0) {
-            const maxOrder = Math.max(...groups.map((g) => g.order));
+            const maxOrder = Math.max(...groups.map((g) => g.EMPSG_Order));
             setFormData((prev) => ({
                 ...prev,
                 groupOrder: maxOrder + 1
@@ -563,7 +575,7 @@ export function ViewGroupsModal({
                         </div>
                     </div>
 
-                    {groups.length > 0 && (
+                    {subject.pro_exams_group_list && subject.pro_exams_group_list.length > 0 && (
                         <div className='border-t p-4'>
                             <table className='min-w-full border-collapse border'>
                                 <thead className='bg-gray-100 text-sm'>
@@ -583,24 +595,24 @@ export function ViewGroupsModal({
                                 </thead>
 
                                 <tbody className='[&>tr:hover>td]:!bg-accent/90'>
-                                    {groups.map((g, i) => (
+                                    {subject.pro_exams_group_list.map((g, i) => (
                                         <tr
                                             key={g.id}
                                             className={`${i % 2 ? 'bg-gray-50' : 'bg-white'}hover:[&>td]:!bg-accent/90 text-sm transition-colors`}>
                                             <td className='p-2 text-center'>{i + 1}</td>
-                                            <td className='p-2'>{g.groupName}</td>
-                                            <td className='p-2'>{g.displayName}</td>
-                                            <td className='p-2 text-center'>{g.percentage}</td>
-                                            <td className='p-2 text-center'>{g.marks}</td>
-                                            <td className='p-2 text-center'>{g.maxOff}</td>
-                                            <td className='p-2 text-center'>{g.bestOff}</td>
-                                            <td className='p-2 text-center'>{g.order}</td>
+                                            <td className='p-2'>{g.EMPSG_GroupName}</td>
+                                            <td className='p-2'>{g.EMPSG_DisplayName}</td>
+                                            <td className='p-2 text-center'>{g.EMPSG_PercentValue}</td>
+                                            <td className='p-2 text-center'>{g.EMPSG_MarksValue}</td>
+                                            <td className='p-2 text-center'>{g.EMPSG_MaxOff}</td>
+                                            <td className='p-2 text-center'>{g.EMPSG_BestOff}</td>
+                                            <td className='p-2 text-center'>{g.EMPSG_Order}</td>
                                             <td className='p-2 text-center'>
                                                 <Button size='sm' variant='ghost' onClick={() => onOpenExams(g)}>
                                                     <Eye className='h-4 w-4 text-blue-600' />
                                                 </Button>
                                             </td>
-                                            <td className='p-2 text-center'>{getStatusBadge(g.roundOffFlag ? 'yes' : 'no')}</td>
+                                            <td className='p-2 text-center'>{getStatusBadge(g.EMPSG_RoundOffFlag ? 'yes' : 'no')}</td>
                                             <td className='p-2 text-center'>
                                                 <div className='flex items-center justify-center gap-2'>
                                                     <Button
@@ -627,7 +639,13 @@ export function ViewGroupsModal({
                             </table>
 
                             <div className='mt-4 flex w-fit justify-center'>
-                                <Button onClick={onClose}>Submit & Close</Button>
+                                <Button
+                                    onClick={() => {
+                                        onSave(groups); // send data to parent
+                                        onClose();
+                                    }}>
+                                    Submit & Close
+                                </Button>
                             </div>
                         </div>
                     )}
@@ -653,7 +671,7 @@ export function ViewGroupsModal({
                             </div>
                             <p className='mb-4'>
                                 Are you sure you want to delete the group{' '}
-                                <strong className='text-destructive'>"{groupToDelete.groupName}"</strong>?
+                                <strong className='text-destructive'>"{groupToDelete.EMPSG_GroupName}"</strong>?
                             </p>
                         </div>
 

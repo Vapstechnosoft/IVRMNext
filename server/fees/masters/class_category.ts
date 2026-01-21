@@ -6,7 +6,7 @@ import type { IMasterCasteCategoryList } from '@/types/admission/preadmission/ma
 
 export async function getMasterClassCategory(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'fmcC_ClassCategoryName,fmcC_ClassCategoryCode');
-    const url = `/fee_class_category/30?${urlParams}`;
+    const url = `/fee_class_category/getdata?${urlParams}`;
 
     return await api.get<IMasterCasteCategoryList[]>('fees', url);
 }

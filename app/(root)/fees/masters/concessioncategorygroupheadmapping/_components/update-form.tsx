@@ -129,8 +129,8 @@ export default function UpdateConcessionCategoryGroupHeadForm({
         try {
             const payload = {
                 ...data,
-                mI_Id: 30,
-                fmccD_CreatedBy: 21602,
+                // mI_Id: 30,
+                // fmccD_CreatedBy: 21602,
                 fmaccG_Id: row.fmaccG_Id
             };
             const response = await addOrUpdateConcessionCategoryGroupHeadMapping(payload);

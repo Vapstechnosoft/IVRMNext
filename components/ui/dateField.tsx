@@ -8,6 +8,7 @@ import { format, isValid, parse } from 'date-fns';
 import { Calendar } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { FormError, Label } from './extension/field';
+import { toast } from 'sonner';
 
 interface DateFieldProps {
     field: any;
@@ -16,9 +17,11 @@ interface DateFieldProps {
     placeholder?: string;
     fromDate?: Date;
     toDate?: Date;
+    restricted_tofieldName?: string;
+    restricted_fromfieldName?: string;
 }
 
-export const DateField: React.FC<DateFieldProps> = ({ field, fieldState, label, placeholder = 'Pick a date', fromDate }) => {
+export const DateField: React.FC<DateFieldProps> = ({ field, fieldState, label, placeholder = 'Pick a date', fromDate, toDate, restricted_tofieldName, restricted_fromfieldName }) => {
     const [isOpen, setIsOpen] = useState(false);
 
     const parseInputDate = (val: any): Date | null => {
@@ -51,7 +54,14 @@ export const DateField: React.FC<DateFieldProps> = ({ field, fieldState, label, 
 
     const handleSelect = (date: Date | undefined) => {
         if (!date) return;
-        if (fromDate && date < fromDate) return; // ✅ Prevent selecting dates before `fromDate`
+        if (toDate && date > toDate) {
+            toast.error(`you can not select date greater than ${restricted_tofieldName} i.e -${format(toDate, 'dd-MM-yyyy')}`);
+            return;
+        }
+        if (fromDate && date < fromDate) {
+            toast.error(`you can not select date less than ${restricted_fromfieldName} i.e -${format(fromDate, 'dd-MM-yyyy')}`);
+            return;
+        }
         setSelectedDate(date);
         field.onChange(date.toISOString());
         setIsOpen(false);

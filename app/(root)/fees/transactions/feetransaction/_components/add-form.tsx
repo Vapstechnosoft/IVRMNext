@@ -128,6 +128,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
         [key: number]: string;
     }>({});
     const [filterType, setFilterType] = useState('regular');
+    const [searchByLet, setSearchByLetters] = useState('2');
     const [payType, setPayType] = useState<string>('');
     const [modeType, setModeType] = useState<string>('Single');
     const [checkPayType, setCheckPayType] = useState<string[]>([]);
@@ -155,12 +156,18 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
         { value: 'regular', label: 'Regular' },
         { value: 'Chal_no', label: 'Challan No.' },
         { value: 'regno', label: 'Reg No' },
-        { value: 'admno', label: 'Adm No' },
-        { value: 'nameadmno', label: 'Name:Adm.No.' },
-        { value: 'nameregno', label: 'Name:Reg.No.' },
-        { value: 'father', label: 'Father Name' },
-        { value: 'mother', label: 'Mother Name' },
-        { value: 'mobile', label: 'Mobile No' }
+        { value: 'AdmNo', label: 'Adm No' },
+        { value: 'NameAdmno', label: 'Name:Adm.No.' },
+        { value: 'NameRegNo', label: 'Name:Reg.No.' },
+        { value: 'Fathername', label: 'Father Name' },
+        { value: 'Mothername', label: 'Mother Name' },
+        { value: 'MobileNo', label: 'Mobile No' }
+    ];
+    const searchByLetters = [
+        { value: '2', label: '2' },
+        { value: '3', label: '3' },
+        { value: '4', label: '4' },
+        { value: '5', label: '5' }
     ];
 
     const selectedLabel = filterOptions.find((opt) => opt.value === filterType)?.label || '';
@@ -240,7 +247,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                     searchfilter: studentSearch,
                     asmcL_ID: selectedclassId ?? 0,
                     asmS_Id: selectedSectionId ?? 0,
-                    amsT_SOL: 'string'
+                    amsT_SOL: left === false ? 'S' : 'L'
                 };
                 const studentsArray = await searchStudentName(payload);
                 const studentsData = JSON.parse(JSON.stringify(studentsArray.feeStudentSearch || []));
@@ -273,6 +280,8 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                     autoReceiptFlag: true,
                     asmaY_Id: selectedAsmayId
                 };
+
+                console.log('term details payload', JSON.stringify(payload));
                 const termArray = await getStudentDetails(payload);
                 const termList = JSON.parse(JSON.stringify(termArray.masterGroupDetails || []));
                 const studentDetails = JSON.parse(JSON.stringify(termArray.fillstudents || []));
@@ -488,10 +497,10 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
         setTerms(updated);
     };
 
-    const handleCheckboxChange = (checked: boolean, type: 'left' | 'deactive' | 'class' | 'section') => {
+    const handleCheckboxChange = (checked: boolean, type: 'left' | 'inactive' | 'class' | 'section') => {
         if (type === 'left') {
             setLeft(checked);
-        } else if (type === 'deactive') {
+        } else if (type === 'inactive') {
             setDeative(checked);
         } else if (type === 'class') {
             setClass(checked);
@@ -767,6 +776,23 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                 ))}
                             </div>
                         </RadioGroup>
+                        {filterType === 'regular' && (
+                            <Card className='mt-5 w-full p-3 shadow'>
+                                Search by (No. of letters) :
+                                <RadioGroup value={searchByLet} onValueChange={setSearchByLetters}>
+                                    <div className='grid grid-cols-5 gap-3'>
+                                        {searchByLetters.map((item) => (
+                                            <div key={item.value} className='flex items-center space-x-2'>
+                                                <RadioGroupItem value={item.value} id={item.value} />
+                                                <Label htmlFor={item.value} className='cursor-pointer text-sm'>
+                                                    {item.label}
+                                                </Label>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </RadioGroup>
+                            </Card>
+                        )}
                         <div className='grid grid-cols-2 gap-3 pt-4 '>
                             <div className='flex items-center space-x-2'>
                                 <Checkbox id='left' checked={left} onCheckedChange={(c) => handleCheckboxChange(c as boolean, 'left')} />
@@ -777,11 +803,11 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
 
                             <div className='flex items-center space-x-2'>
                                 <Checkbox
-                                    id='deactive'
+                                    id='inactive'
                                     checked={deactive}
-                                    onCheckedChange={(c) => handleCheckboxChange(c as boolean, 'deactive')}
+                                    onCheckedChange={(c) => handleCheckboxChange(c as boolean, 'inactive')}
                                 />
-                                <Label htmlFor='deactive' className='cursor-pointer text-sm'>
+                                <Label htmlFor='inactive' className='cursor-pointer text-sm'>
                                     Deactive
                                 </Label>
                             </div>
@@ -793,7 +819,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                     onCheckedChange={(c) => handleCheckboxChange(c as boolean, 'class')}
                                 />
                                 <Label htmlFor='class' className='cursor-pointer text-sm'>
-                                    Class
+                                    Class Wise
                                 </Label>
                             </div>
 
@@ -804,7 +830,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                     onCheckedChange={(c) => handleCheckboxChange(c as boolean, 'section')}
                                 />
                                 <Label htmlFor='section' className='cursor-pointer text-sm'>
-                                    Section
+                                    Section Wise
                                 </Label>
                             </div>
                         </div>
@@ -1148,8 +1174,8 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                             <div>STUDENT NAME</div>
                                             <div className='text-gray-700'>
                                                 {studentDetails?.[0]?.amsT_FirstName || 'N/A'}
-                                                {studentDetails?.[0]?.amsT_MiddleName}
-                                                {studentDetails?.[0]?.amsT_LastName}
+                                                {studentDetails?.[0]?.amsT_MiddleName && ` ${studentDetails[0].amsT_MiddleName}`}
+                                                {studentDetails?.[0]?.amsT_LastName && ` ${studentDetails[0].amsT_LastName}`}
                                             </div>
 
                                             <div>CLASS / SECTION</div>
@@ -1184,6 +1210,8 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                         onClose={() => setOpenStudentDetails(false)}
                         data={openStudentDetails}
                         loading={false}
+                        amst_Id={Number(selectedStudent?.amst_Id)}
+                        asmay_Id={Number(selectedAsmayId)}
                     />
                 )}
 
