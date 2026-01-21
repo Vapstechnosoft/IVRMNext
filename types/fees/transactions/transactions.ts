@@ -1036,3 +1036,11 @@ export interface IFeeReceiptImportDelate {
     amount: number;
     fyP_Id: number;
 }
+
+export interface IStudentDisableList {
+    paid: number;
+    netAmount: number;
+    balance: number;
+    fmtId: number;
+    fmtOrder: number;
+}

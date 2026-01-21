@@ -127,6 +127,7 @@ export const FEES_QUERY_KEYS = {
     FEE_CATEGORY_DROPDOWN: 'fee_category_dropdown',
     FEE_GROUP_DROPDOWN: 'fee_group_dropdown',
     ACADEMIC_DROPDOWN_FEES: 'academic_dropdown_fees',
+    THIRD_PARTY_AUTORECEIPT_FLG: 'third_party_auto_receipt_flg',
     FEES_PRIVILEGE_LIST: 'fees_privilege_list',
     FEE_WAVIED_OFF: 'fee_waived_off',
     FEE_OPENING_BALANCE: 'fee_opening_balance',
@@ -199,6 +200,7 @@ export const FEES_QUERY_KEYS = {
     FEE_COMPANY_GROUPMAPPING_GROUP_DROPDOWN: 'fee_company_groupmapping_group_dropdown',
     FEE_STUDENT_UPDATE_TRANSACTION: 'fee_student_update_transaction',
     FEE_STUDENT_CURRENT_ACADEMIC_DETAILS: 'fee_student_current_academic_details',
+    MASTER_SETTING_LIST: 'master_setting_list',
 
     FEE_DEFAULTER_REPORT: 'fee_defaulter_report',
     FEE_GROUP_DEFAULTER: 'fee_group_defaulter_report',

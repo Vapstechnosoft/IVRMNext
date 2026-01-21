@@ -1027,3 +1027,37 @@ export const useFeeStudentCurrentAcademicDetails = (amst_Id: number, asmay_Id: n
             })
     };
 };
+
+// export const useThirdPartyTrasactionfeeReceiptNoflg = (searchParams?: ApiSearchparams) => {
+//     const queryClient = useQueryClient();
+
+//     return {
+//         ...useQuery({
+//             queryKey: [FEES_QUERY_KEYS.THIRD_PARTY_AUTORECEIPT_FLG, searchParams ?? {}],
+//             queryFn: async () => ThirdPartyTrasactionfeeReceiptNoflg(),
+//             staleTime: 0
+//         }),
+//         refetchAll: () => {
+//             return queryClient.invalidateQueries({
+//                 queryKey: [FEES_QUERY_KEYS.THIRD_PARTY_AUTORECEIPT_FLG]
+//             });
+//         }
+//     };
+// };
+
+export const usemastersettinglist = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.MASTER_SETTING_LIST],
+            queryFn: async () => mastersettinglist(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.MASTER_SETTING_LIST]
+            });
+        }
+    };
+};
