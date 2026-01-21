@@ -444,3 +444,7 @@ export const HRMS_QUERY_KEYS = {
     APPLY_LEAVE: 'leave_apply_leave',
     LEAVE_APPROVAL: 'leave_leave_approval'
 };
+
+export const HOSTEL_QUERY_KEYS = {
+    HOSTEL_MASTER_FACILITY_GRID: 'hostel_master_facility_grid',
+}

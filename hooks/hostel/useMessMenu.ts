@@ -1,4 +1,4 @@
-import { getMessMenuData } from '@/server/hostel/mess-menu/server-action';
+import { getMessMenuData } from '@/server/hostel/hostel-management/masters/menu';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 // Define a key for the query

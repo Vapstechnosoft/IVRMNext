@@ -1,4 +1,4 @@
-import { fetchHostelData } from '@/server/hostel/master-hostel/server-action';
+import { fetchHostelData } from '@/server/hostel/hostel-management/masters/hostel';
 import { useQuery } from '@tanstack/react-query';
 
 export const useMasterHostel = () => {

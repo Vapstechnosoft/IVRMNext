@@ -1,9 +1,6 @@
+import { deleteMess, fetchMessData } from '@/server/hostel/hostel-management/masters/mess';
+import { IMess } from '@/types/hostel/hostel-management/masters';
 import { useState, useEffect, useCallback } from 'react';
-import { 
-    fetchMessData, 
-    deleteMess, 
-    IMess
-} from '@/server/hostel/master-mess/server-action';
 import { toast } from 'sonner';
 
 export const useMasterMess = () => {

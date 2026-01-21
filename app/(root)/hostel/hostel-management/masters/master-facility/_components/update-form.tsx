@@ -5,7 +5,7 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterFacility } from '@/hooks/hostel/useMasterFacility';
 import { IMasterFacility, masterFacilitySchema } from '@/schemas/hostel/masters';
-import { saveMasterFacility } from '@/server/hostel/master-facility/masters/server-action';
+import { addOrUpdateMasterFacility } from '@/server/hostel/hostel-management/masters/facility';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RefreshCw, Save, X } from 'lucide-react';
 import { useEffect } from 'react';
@@ -46,7 +46,7 @@ export default function UpdateMasterFacilityForm({ selectedRow, onSuccess, class
 
     const onSubmit: SubmitHandler<IMasterFacility> = async (data) => {
         try {
-            const response = await saveMasterFacility(data);
+            const response = await addOrUpdateMasterFacility(data);
 
             if (response.success) {
                 toast.success(response.message);
