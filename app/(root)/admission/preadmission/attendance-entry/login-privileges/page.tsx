@@ -125,8 +125,8 @@ function PrivilegeForm({ createPrivilege, refetch, isSearching, onSearchSuccess 
     const staffList = Array.isArray((staffData as any)?.employeeList)
         ? (staffData as any)?.employeeList
         : Array.isArray((staffData as any)?.data?.employeeList)
-          ? (staffData as any)?.data?.employeeList
-          : [];
+            ? (staffData as any)?.data?.employeeList
+            : [];
 
     // Removed unused classes/sections derivations if strictly relying on search results
 
