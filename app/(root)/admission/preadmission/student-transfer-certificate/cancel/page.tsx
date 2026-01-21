@@ -1,56 +1,162 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { api } from '@/lib/apiService';
-import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
-import { useQuery } from '@tanstack/react-query';
-import { Search } from 'lucide-react';
-import { useState } from 'react';
-import { type ITCCancelSearch, tcCancelColumns } from './_components/columns';
+import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
+import { useStudentsByAcademicYear, useTCCancelDetails } from '@/hooks/admission/preadmission/useStudentTc';
+import { cn } from '@/lib/utils';
+import { Check, ChevronsUpDown, Printer } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { type TCCancelDetail, tcCancelDetailsColumns } from './_components/columns';
 
 export default function StudentTCCancelPage() {
-    const [data, setData] = useState<ITCCancelSearch[]>([]);
-    const [selectedTC, setSelectedTC] = useState<ITCCancelSearch | null>(null);
+    const [isMounted, setIsMounted] = useState(false);
     const [selectedYear, setSelectedYear] = useState<string>('');
 
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+    const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
+    const [openStudentCombo, setOpenStudentCombo] = useState(false);
+    const [tableData, setTableData] = useState<TCCancelDetail[]>([]);
+    const [showTable, setShowTable] = useState(false);
+
     // Fetch Academic Years
-    const { data: academicYears } = useQuery({
-        queryKey: ['academicYears'],
-        queryFn: async () => {
-            // Register a proxy base URL for client-side CORS avoidance
-            api.addBaseUrl('admission_proxy', '/api/admission');
+    const { data: academicYears } = useAcademicYearDropdown();
 
-            // Use the proxy key
-            const response = await api.get<IAcademicYearDropDown[]>(
-                'admission_proxy',
-                'master_class_category/academic_year_drop_down_list'
-            );
-            return response.data || [];
-        }
-    });
+    // Fetch Students by Academic Year
+    const { data: studentsList } = useStudentsByAcademicYear(Number(selectedYear));
 
-    const handleSearch = () => {
-        setData([
-            { id: 1, tcAppNo: 'TC-2023-001', studentName: 'John Doe', class: 'X', tcDate: '2023-10-01' },
-            { id: 2, tcAppNo: 'TC-2023-002', studentName: 'Jane Smith', class: 'X', tcDate: '2023-10-05' }
-        ]);
-        setSelectedTC(null);
-    };
+    // API Mutation
+    const searchMutation = useTCCancelDetails();
 
-    const handleSelect = (tc: ITCCancelSearch) => {
-        setSelectedTC(tc);
-    };
+    if (!isMounted) {
+        return null;
+    }
 
-    const tableProps = {
-        data: data,
-        totalItems: data.length,
-        isLoading: false,
-        error: null,
-        success: true
+    // Safely extract list regardless of response structure (Direct array vs Wrapped in .data)
+    const rawStudents = Array.isArray(studentsList) ? studentsList : Array.isArray(studentsList?.data) ? studentsList.data : [];
+
+    // Deduplicate students based on amsT_Id
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+    const uniqueStudents = rawStudents
+        .filter((s: any) => s?.amsT_Id)
+        .filter((student: any, index: number, self: any[]) => index === self.findIndex((t: any) => t.amsT_Id === student.amsT_Id));
+
+    // Helper to get selected student name
+    const selectedStudentName = uniqueStudents.find((s: any) => s.amsT_Id === selectedStudentId)?.studentName;
+
+    const fetchTCDetails = (yearId: number, studentId: number) => {
+        // According to curl: TC_CancelReason=tmp
+        const payload = {
+            asmayId: yearId,
+            amstId: studentId,
+            reason: 'tmp'
+        };
+
+        setShowTable(true);
+        setTableData([]); // clear previous
+
+        searchMutation.mutate(payload, {
+            onSuccess: (response: any) => {
+                try {
+                    // Safe extraction
+                    const apiData = response?.data || response;
+
+                    // Prioritize 'studentTCDetails' or 'deletedTCDetails' or 'studentList'
+                    let list: any[] = [];
+
+                    if (Array.isArray(apiData?.studentTCDetails) && apiData.studentTCDetails.length > 0) {
+                        list = apiData.studentTCDetails;
+                    } else if (Array.isArray(apiData?.deletedTCDetails) && apiData.deletedTCDetails.length > 0) {
+                        list = apiData.deletedTCDetails;
+                    } else if (Array.isArray(apiData)) {
+                        list = apiData;
+                    } else {
+                        // fallback search
+                        const possibleKeys = ['studentList', 'studentdetails', 'getdetails', 'data', 'd'];
+                        for (const key of possibleKeys) {
+                            if (Array.isArray(apiData[key]) && apiData[key].length > 0) {
+                                list = apiData[key];
+                                break;
+                            }
+                        }
+                        // If still empty, look for ANY array property
+                        if (list.length === 0) {
+                            const found = Object.values(apiData).find((val) => Array.isArray(val) && val.length > 0);
+                            if (found) list = found as any[];
+                        }
+                    }
+
+                    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+                    const mappedData = list
+                        .map((item: any, index: number) => {
+                            if (!item) return null;
+
+                            // Name extraction
+                            // In the provided JSON: "amsT_FirstName": "SAMANYU KOTEHAL GOWDARA:VVVS-2/23-24"
+                            let name = item.studentName || item.amsT_FirstName || item.amsT_Name || 'Unknown';
+                            let tcNo = item.tcNo || item.tC_No || item.astC_TCNO || '-';
+
+                            // Specific hack for the weird generic Name format if detected
+                            if (name && typeof name === 'string' && name.includes(':') && (tcNo === '-' || !tcNo)) {
+                                const parts = name.split(':');
+                                if (parts.length > 1) {
+                                    name = parts[0];
+                                    tcNo = parts[1];
+                                }
+                            }
+
+                            const admNo = item.amsT_AdmNo || item.admNo || '';
+                            const displayStudent = admNo ? `${name} : ${admNo}` : name;
+
+                            let colTcDate = '-';
+                            const dateVal = item.tcDate || item.tC_Date || item.astC_TCDate;
+                            if (dateVal) colTcDate = new Date(dateVal).toLocaleDateString('en-GB');
+
+                            const colReason =
+                                item.reason ||
+                                item.tC_CancelReason ||
+                                item.astC_TCReason ||
+                                item.astC_Remarks ||
+                                item.astC_LeavingReason ||
+                                '-';
+
+                            let colDelDate = '-';
+                            const delDateVal = item.deletedDate || item.tC_CancellationDate || item.updatedDate;
+                            if (delDateVal) colDelDate = new Date(delDateVal).toLocaleString('en-GB');
+
+                            return {
+                                slNo: index + 1,
+                                studentDetails: displayStudent,
+                                tcNo: tcNo,
+                                tcDate: colTcDate,
+                                reason: colReason,
+                                deletedDate: colDelDate
+                            };
+                        })
+                        .filter((item): item is TCCancelDetail => item !== null);
+
+                    if (mappedData.length === 0) {
+                        toast.info('No TC Cancel details found for this student.');
+                    }
+                    setTableData(mappedData);
+                } catch (error) {
+                    console.error('Error processing TC details:', error);
+                    toast.error('An error occurred while processing data.');
+                }
+            },
+            onError: (error) => {
+                console.error('Search error:', error);
+                toast.error('Failed to fetch TC Cancel details.');
+            }
+        });
     };
 
     return (
@@ -64,12 +170,17 @@ export default function StudentTCCancelPage() {
                                 Academic Year:<span className='text-red-500'>*</span>
                             </Label>
                             <div>
-                                <Select value={selectedYear} onValueChange={setSelectedYear}>
+                                <Select
+                                    value={selectedYear}
+                                    onValueChange={(val) => {
+                                        setSelectedYear(val);
+                                        setSelectedStudentId(null); // Reset student on year change
+                                    }}>
                                     <SelectTrigger id='academic-year-select'>
-                                        <SelectValue placeholder='2025-2026' />
+                                        <SelectValue placeholder='Select Academic Year' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {academicYears?.map((year) => (
+                                        {academicYears?.data?.map((year) => (
                                             <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
                                                 {year.asmaY_Year}
                                             </SelectItem>
@@ -84,68 +195,78 @@ export default function StudentTCCancelPage() {
                             <Label htmlFor='student-search' className='whitespace-nowrap text-right font-medium text-base'>
                                 Student Name :<span className='text-red-500'>*</span>
                             </Label>
-                            <div className='relative'>
-                                <input
-                                    id='student-search'
-                                    className='flex h-10 w-full rounded-md border bg-background px-3 pr-8 text-sm ring-offset-background file:border-0 file:bg-transparent file:font-medium file:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
-                                    placeholder='Select Or Search Student'
-                                />
-                                <Search className='pointer-events-none absolute top-2.5 right-2 h-4 w-4 text-muted-foreground' />
+                            <div className='relative w-full'>
+                                <Popover open={openStudentCombo} onOpenChange={setOpenStudentCombo}>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant='outline'
+                                            // biome-ignore lint/a11y/useSemanticElements: <explanation>
+                                            role='combobox'
+                                            aria-expanded={openStudentCombo}
+                                            className='w-full justify-between'
+                                            disabled={!selectedYear}>
+                                            {selectedStudentId ? selectedStudentName || 'Select Student' : 'Select Or Search Student'}
+                                            <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className='w-[--radix-popover-trigger-width] p-0'>
+                                        <Command>
+                                            <CommandInput placeholder='Search student...' />
+                                            <CommandList>
+                                                <CommandEmpty>No student found.</CommandEmpty>
+                                                <CommandGroup>
+                                                    {uniqueStudents.map((student: any) => (
+                                                        <CommandItem
+                                                            key={student.amsT_Id}
+                                                            value={`${student.studentName} ${student.amsT_AdmNo}`}
+                                                            onSelect={() => {
+                                                                setSelectedStudentId(student.amsT_Id);
+                                                                setOpenStudentCombo(false);
+                                                                fetchTCDetails(Number(selectedYear), student.amsT_Id);
+                                                            }}>
+                                                            <Check
+                                                                className={cn(
+                                                                    'mr-2 h-4 w-4',
+                                                                    selectedStudentId === student.amsT_Id ? 'opacity-100' : 'opacity-0'
+                                                                )}
+                                                            />
+                                                            {student.studentName} ({student.amsT_AdmNo})
+                                                        </CommandItem>
+                                                    ))}
+                                                </CommandGroup>
+                                            </CommandList>
+                                        </Command>
+                                    </PopoverContent>
+                                </Popover>
                             </div>
                         </div>
                     </div>
-
-                    <div className='mt-6 flex justify-center'>
-                        {/* Search Button removed from original design? or implicit? 
-                             The provided image doesn't show a search button, but logic usually requires one or auto-search.
-                             I'll keep the search button but maybe move it or keep it below as per standard patterns if not explicitly shown.
-                             Wait, the user said "implemnt this ui on cencel tc". The image is just the top part.
-                             I should probably keep the search functionality.
-                             I will add the search button row below for functionality.
-                         */}
-                    </div>
                 </CollapsibleSection>
 
-                {/* Keeping the result table logical part below as it wasn't contradicted, just the top filter redesigned */}
-                {data.length > 0 && !selectedTC && (
-                    <CollapsibleSection defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
-                        <GenericDataTable<ITCCancelSearch>
-                            {...tableProps}
-                            columns={tcCancelColumns(handleSelect)}
-                            isLoading={false}
-                            showViewOptions={false}
-                            noDataTitle='No Active TCs Found'
-                        />
-                    </CollapsibleSection>
-                )}
-
-                {selectedTC && (
+                {showTable && (
                     <CollapsibleSection
-                        title={`Confirm Cancel TC: ${selectedTC.tcAppNo}`}
+                        title='STUDENT TC CANCEL DETAILS'
                         defaultOpen={true}
                         variant='default'
                         size='lg'
                         className='shadow-lg'>
-                        <div className='space-y-4 p-4'>
-                            <p>
-                                Are you sure you want to cancel the Transfer Certificate application for{' '}
-                                <strong>{selectedTC.studentName}</strong>?
-                            </p>
+                        <GenericDataTable<TCCancelDetail>
+                            data={tableData}
+                            totalItems={tableData.length}
+                            columns={tcCancelDetailsColumns}
+                            isLoading={searchMutation.isPending}
+                            showViewOptions={false}
+                            noDataTitle='No details found'
+                            isSearchRequired={true} // To match "search here..." input in image
+                        />
 
-                            <div className='space-y-2'>
-                                <label htmlFor='tc-cancel-reason' className='font-medium text-sm'>
-                                    Reason for Cancellation
-                                </label>
-                                <textarea id='tc-cancel-reason' className='flex h-20 w-full rounded-md border bg-background px-3 py-2' />
-                            </div>
-
-                            <div className='flex gap-4'>
-                                <Button variant='destructive'>Confirm Cancellation</Button>
-                                <Button variant='outline' onClick={() => setSelectedTC(null)}>
-                                    Back
+                        {tableData.length > 0 && (
+                            <div className='mt-4 flex justify-center'>
+                                <Button className='bg-blue-700 text-white hover:bg-blue-800'>
+                                    <Printer className='mr-2 h-4 w-4' /> PRINT
                                 </Button>
                             </div>
-                        </div>
+                        )}
                     </CollapsibleSection>
                 )}
             </div>

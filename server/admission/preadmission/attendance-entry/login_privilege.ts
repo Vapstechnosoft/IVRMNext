@@ -65,3 +65,24 @@ export async function getDataByTypeSelected(data: any) {
         return [];
     }
 }
+
+export async function getStaffWiseGrid(asmayId: number, entryType: number, hrmeId: number) {
+    try {
+        const queryParams = `ASMAY_Id=${asmayId}&ASALU_EntryTypeFlag=${entryType}&HRME_Id=${hrmeId}`;
+        const res = await api.post<any>('admission', `/${CONTROLLER}/GetStaffWiseGrid?${queryParams}`, {});
+        return res?.data || res || {};
+    } catch (error) {
+        console.error('Error fetching staff wise grid:', error);
+        return {};
+    }
+}
+
+export async function deleteAttPrivileges(asalucId: number, asalucsId: number) {
+    try {
+        const queryParams = `ASALUC_Id=${asalucId}&ASALUCS_Id=${asalucsId}`;
+        return await api.delete('admission', `/${CONTROLLER}/DeleteAttPrivileges?${queryParams}`);
+    } catch (error) {
+        console.error('Error deleting privilege:', error);
+        throw error;
+    }
+}

@@ -10,17 +10,14 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useGetLoginPrivilegeEmployees, useLoginPrivileges } from '@/hooks/admission/preadmission/useLoginPrivilege';
-import {
-    useAcademicYearDropdown,
-    useMasterClassDropdown,
-    useMasterSectionDropdown,
-    useMasterSubjectDropdown
-} from '@/hooks/admission/preadmission/useMasters';
+import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
+import { getStaffWiseGrid } from '@/server/admission/preadmission/attendance-entry/login_privilege';
 import type { ILoginPrivilege, ILoginPrivilegeDTO } from '@/types/admission/preadmission/login_privilege';
 import { Loader2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { loginPrivilegeColumns } from './_components/columns';
+import DeleteLoginPrivilegeForm from './_components/delete-form';
 
 export default function LoginPrivilegePage() {
     return (
@@ -31,7 +28,7 @@ export default function LoginPrivilegePage() {
 }
 
 function LoginPrivilegePageContent() {
-    const { data: initialData, isLoading, refetch, createPrivilege, fetchDataByType, isSearching } = useLoginPrivileges();
+    const { data: initialData, isLoading, refetch, createPrivilege, isSearching } = useLoginPrivileges();
     const [showList, setShowList] = useState(false);
 
     // State for Table Data
@@ -40,7 +37,7 @@ function LoginPrivilegePageContent() {
     // Sync initial data
     useEffect(() => {
         if (initialData) {
-            const data = Array.isArray(initialData) ? initialData : (initialData as any)?.data || [];
+            const data = Array.isArray(initialData) ? initialData : (initialData as any)?.loginPData || (initialData as any)?.data || [];
             setTableData(data);
             setShowList(true);
         }
@@ -60,7 +57,6 @@ function LoginPrivilegePageContent() {
                 <PrivilegeForm
                     createPrivilege={createPrivilege}
                     refetch={refetch}
-                    fetchDataByType={fetchDataByType}
                     isSearching={isSearching}
                     onSearchSuccess={(data) => {
                         setTableData(data);
@@ -95,16 +91,15 @@ function LoginPrivilegePageContent() {
 interface PrivilegeFormProps {
     createPrivilege: (data: ILoginPrivilegeDTO) => Promise<any>;
     refetch: () => void;
-    fetchDataByType: (data: any) => Promise<any>;
     isSearching: boolean;
     onSearchSuccess: (data: any[]) => void;
 }
 
-function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching, onSearchSuccess }: PrivilegeFormProps) {
-    const { selectedRow, closeEditForm } = useFormContext<ILoginPrivilege>();
+function PrivilegeForm({ createPrivilege, refetch, isSearching, onSearchSuccess }: PrivilegeFormProps) {
+    const { selectedRow, isDeleteFormOpen, closeDeleteForm } = useFormContext<ILoginPrivilege>();
 
     // ... existing state ...
-    const [role, setRole] = useState<string>('class_teacher');
+    const [role, setRole] = useState<string>('2'); // Default to Class Teacher (value 2)
     const [selectedYearId, setSelectedYearId] = useState<string>('');
     const [selectedStaffId, setSelectedStaffId] = useState<string>('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -122,9 +117,6 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching,
     const { data: yearData } = useAcademicYearDropdown();
     const MI_ID = 30; // Hardcoded MI_ID
     const { data: staffData } = useGetLoginPrivilegeEmployees();
-    const { data: classData } = useMasterClassDropdown();
-    const { data: sectionData } = useMasterSectionDropdown();
-    const { data: subjectData } = useMasterSubjectDropdown(MI_ID);
 
     // Derived Lists
     // Derived Lists with Safe Array Checks
@@ -150,9 +142,9 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching,
             if (selectedRow.hrmE_Id) setSelectedStaffId(String(selectedRow.hrmE_Id));
             if (selectedRow.lp_role) {
                 // Map display role back to value key
-                if (selectedRow.lp_role === 'Class Teacher') setRole('class_teacher');
-                else if (selectedRow.lp_role === 'Subject Teacher') setRole('subject_teacher');
-                else setRole('others');
+                if (selectedRow.lp_role === 'Class Teacher') setRole('2');
+                else if (selectedRow.lp_role === 'Subject Teacher') setRole('1');
+                else setRole('3');
             }
             setShowMapping(true); // Auto-show mapping on edit
         }
@@ -165,120 +157,66 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching,
     const handleSubjectToggle = (id: string) => {
         setSelectedSubjects((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
     };
+
+    const [isSearchLoading, setIsSearchLoading] = useState(false);
+
     const handleSearch = async () => {
-        if (!selectedYearId) {
-            toast.error('Please select Academic Year');
+        if (!selectedYearId || !selectedStaffId) {
+            toast.error('Please select Academic Year and Staff');
             return;
         }
 
+        setIsSearchLoading(true);
         try {
             // Map Role to ASALU_EntryTypeFlag
-            let entryTypeFlag = 0;
-            // Subject Teacher = 0, Class Teacher = 1, Others = 2
-            if (role === 'subject_teacher') entryTypeFlag = 0;
-            else if (role === 'class_teacher') entryTypeFlag = 1;
-            else if (role === 'others') entryTypeFlag = 2;
+            // Map Role to ASALU_EntryTypeFlag: 1=Subject Teacher, 2=Class Teacher, 3=Others (as per user request "value wise 1 2 3")
 
-            const searchPayload = {
-                ASMAY_Id: Number(selectedYearId),
-                ASALU_EntryTypeFlag: entryTypeFlag
-            };
+            const entryTypeFlag = Number(role);
 
-            console.log('Searching with payload:', searchPayload);
+            // Call new API
+            const result = await getStaffWiseGrid(Number(selectedYearId), entryTypeFlag, Number(selectedStaffId));
 
-            const result = await fetchDataByType(searchPayload);
-            console.log('Search Response Raw:', result);
-
-            // Handle various response structures
-            // Ensure we extract the inner 'data' object correctly
-            // If result has 'classSectionList' directly, use result.
-            // If result.data has it, use result.data.
-            // If result.data.data has it, use result.data.data.
-
-            let data: any = null;
-            if (result && Array.isArray(result.classSectionList)) {
-                data = result;
-            } else if (result?.data && Array.isArray(result.data.classSectionList)) {
-                data = result.data;
-            } else if (result?.data?.data && Array.isArray(result.data.data.classSectionList)) {
-                data = result.data.data;
-            } else {
-                // Fallback to previous logic if array check fails (maybe it's null but exists?)
-                data = (result as any)?.data?.data || (result as any)?.data || result;
-            }
-
-            console.log('Extracted Data Object:', data);
-
-            if (data) {
-                // 1. Populate Available Class-Sections
+            if (result) {
+                // 1. Populate Available Class-Sections from classsectionList
+                const classSecListRaw = result.classsectionList || [];
                 let csList: any[] = [];
-                console.log('Raw classSectionList:', data.classSectionList);
 
-                if (Array.isArray(data.classSectionList)) {
+                if (Array.isArray(classSecListRaw)) {
                     const seenIds = new Set();
-                    csList = data.classSectionList.reduce((acc: any[], item: any) => {
+                    csList = classSecListRaw.reduce((acc: any[], item: any) => {
                         const uniqueId = `${item.asmcL_Id}-${item.asmC_Id}`;
                         if (!seenIds.has(uniqueId)) {
                             seenIds.add(uniqueId);
                             acc.push({
-                                id: uniqueId, // Unique ID
+                                id: uniqueId,
                                 label: item.name || `${item.asmcL_ClassName || ''} : ${item.asmC_SectionName || ''}`,
                                 classId: item.asmcL_Id,
                                 sectionId: item.asmC_Id,
-                                nameRaw: item.name // Store for matching
+                                nameRaw: item.name
                             });
                         }
                         return acc;
                     }, []);
                     setMappingClassSections(csList);
-                    console.log('Mapped csList (Unique):', csList);
                 } else {
-                    console.warn('classSectionList is NOT an array');
                     setMappingClassSections([]);
                 }
 
                 // 2. Populate Available Subjects
-                if (Array.isArray(data.subjectList)) {
-                    setMappingSubjects(data.subjectList);
+                if (Array.isArray(result.subjectList)) {
+                    setMappingSubjects(result.subjectList);
+                } else if (Array.isArray(result.data?.subjectList)) {
+                    setMappingSubjects(result.data.subjectList);
                 } else {
                     setMappingSubjects([]);
                 }
 
-                // 3. Populate Grid Table with Existing Privileges
-                let existingPrivileges: any[] = [];
-                if (Array.isArray(data.loginPrivileges)) {
-                    existingPrivileges = data.loginPrivileges;
-                    onSearchSuccess(existingPrivileges);
-                } else {
-                    onSearchSuccess([]);
-                }
+                // 3. Populate Grid Table with loginPData
+                const privileges = result.loginPData || [];
+                onSearchSuccess(privileges);
 
-                // 4. Pre-select Checkboxes ("Remember all fields")
-                // User requested NO pre-selection: "nothing should be selected bydeafult"
+                // 4. Reset selections
                 setSelectedClassSections([]);
-
-                // const preSelectedIds: string[] = [];
-
-                // if (existingPrivileges.length > 0 && csList.length > 0) {
-                //     existingPrivileges.forEach((priv: any) => {
-                //         // Construct the name signature to match 'name' in classSectionList
-                //         const constructName = `${priv.asmcL_ClassName} - ${priv.asmC_SectionName}`;
-
-                //         // Find matching item in csList
-                //         const match = csList.find(c => c.nameRaw === constructName || c.nameRaw === constructName.trim());
-                //         if (match) {
-                //             preSelectedIds.push(match.id);
-                //         }
-                //     });
-                // }
-
-                // Set the selected IDs
-                // setSelectedClassSections(preSelectedIds);
-                // console.log('Pre-selected IDs:', preSelectedIds);
-
-                // If finding matches for Subject mapping (tempList)
-                // If Role is Subject Teacher, we might need to populate tempList differently
-                // But for now, user focus seems to be Class Teacher/Others class mapping
 
                 toast.success('Data fetched successfully');
                 setShowMapping(true);
@@ -286,6 +224,16 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching,
         } catch (e) {
             console.error('Search Error:', e);
             toast.error('Failed to fetch data');
+        } finally {
+            setIsSearchLoading(false);
+        }
+    };
+
+    const handleRefresh = async () => {
+        if (selectedYearId && selectedStaffId) {
+            await handleSearch();
+        } else {
+            refetch();
         }
     };
 
@@ -369,20 +317,11 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching,
             const classSectionsPayload: { asmcL_Id: number; asmC_Id: number }[] = [];
             const classSectionSubjectsPayload: { asmcL_Id: number; asmC_Id: number; subjectIds: number[] }[] = [];
 
-            // Determine EntryTypeFlag
-            let entryTypeFlag = 0;
-            if (role === 'subject_teacher') entryTypeFlag = 0;
-            else if (role === 'class_teacher') entryTypeFlag = 1;
-            else if (role === 'others') entryTypeFlag = 2;
+            // Determine EntryTypeFlag: 1=Subject, 2=Class, 3=Others
+            const entryTypeFlag = Number(role);
 
-            if (role === 'subject_teacher' || role === 'others') {
-                if (tempList.length === 0) {
-                    toast.error('Please Add at least one mapping (Class-Section + Subject) before saving.');
-                    setIsSubmitting(false);
-                    return;
-                }
-
-                // Populate classSectionSubjects
+            // 1. Populate classSectionSubjects from tempList (Subject Teacher & Others)
+            if ((role === '1' || role === '3') && tempList.length > 0) {
                 const grouped = tempList.reduce(
                     (acc, curr) => {
                         const key = `${curr.asmcL_Id}-${curr.asmS_Id}`;
@@ -402,14 +341,10 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching,
                 Object.values(grouped).forEach((item) => {
                     classSectionSubjectsPayload.push(item);
                 });
-            } else {
-                // Class Teacher (Only Class-Sections)
-                if (selectedClassSections.length === 0) {
-                    toast.error('Please select at least one Class-Section');
-                    setIsSubmitting(false);
-                    return;
-                }
+            }
 
+            // 2. Populate classSections from selectedClassSections (For all roles as fallback or addition)
+            if (selectedClassSections.length > 0) {
                 selectedClassSections.forEach((csId) => {
                     const [cId, sId] = csId.split('-').map(Number);
                     classSectionsPayload.push({
@@ -417,6 +352,13 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching,
                         asmC_Id: sId
                     });
                 });
+            }
+
+            // 3. Validation: Allow save if ANY of the two payloads is populated (Either-Or Case)
+            if (classSectionsPayload.length === 0 && classSectionSubjectsPayload.length === 0) {
+                toast.error('Please select at least one Class-Section or Mapping');
+                setIsSubmitting(false);
+                return;
             }
 
             const payload: ILoginPrivilegeDTO = {
@@ -429,23 +371,16 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching,
                 classSectionSubjects: classSectionSubjectsPayload
             };
 
-            console.log('Saving Payload:', JSON.stringify(payload, null, 2)); // Debug log
-
             await createPrivilege(payload);
             handleClear(); // Clear form on success
             // Note: success toast is handled by hook
-            refreshGrid();
+            await handleRefresh();
         } catch (error) {
             console.error(error);
             // Error toast handled by hook
         } finally {
             setIsSubmitting(false);
         }
-    };
-
-    // Rename refetch to more explicit name if needed, but 'refetch' is fine.
-    const refreshGrid = () => {
-        refetch();
     };
 
     const handleClear = () => {
@@ -490,19 +425,19 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching,
                             }}
                             className='flex flex-wrap items-center gap-6'>
                             <div className='flex items-center space-x-2'>
-                                <RadioGroupItem value='subject_teacher' id='r_sub' />
+                                <RadioGroupItem value='1' id='r_sub' />
                                 <Label htmlFor='r_sub' className='cursor-pointer font-normal'>
                                     Subject Teacher
                                 </Label>
                             </div>
                             <div className='flex items-center space-x-2'>
-                                <RadioGroupItem value='class_teacher' id='r_class' />
+                                <RadioGroupItem value='2' id='r_class' />
                                 <Label htmlFor='r_class' className='cursor-pointer font-normal'>
                                     Class Teacher
                                 </Label>
                             </div>
                             <div className='flex items-center space-x-2'>
-                                <RadioGroupItem value='others' id='r_others' />
+                                <RadioGroupItem value='3' id='r_others' />
                                 <Label htmlFor='r_others' className='cursor-pointer font-normal'>
                                     Others
                                 </Label>
@@ -520,7 +455,6 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching,
                                 value={selectedYearId}
                                 onValueChange={(val) => {
                                     setSelectedYearId(val);
-                                    setSelectedStaffId('');
                                     setShowMapping(false);
                                     setMappingClassSections([]);
                                     setMappingSubjects([]);
@@ -563,8 +497,8 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching,
                                 type='button'
                                 className='w-full bg-[#f97316] text-white hover:bg-[#ea580c]'
                                 onClick={handleSearch}
-                                disabled={isSearching}>
-                                {isSearching ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
+                                disabled={isSearchLoading || isSearching}>
+                                {isSearchLoading || isSearching ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
                                 Search
                             </Button>
                         </div>
@@ -582,7 +516,7 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching,
                     className='fade-in slide-in-from-top-4 animate-in border-t-4 border-t-primary shadow-lg duration-500'>
                     <div className='p-6'>
                         {/* Checkbox Mapping View (Subject Teacher & Others) */}
-                        {(role === 'subject_teacher' || role === 'others') && (
+                        {(role === '1' || role === '3') && (
                             <div className='flex flex-col gap-6'>
                                 <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
                                     {/* Class-Section Box */}
@@ -690,7 +624,7 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching,
                         )}
 
                         {/* Class Teacher View (Transfer List Style) */}
-                        {role === 'class_teacher' && (
+                        {role === '2' && (
                             <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
                                 {/* Available Box */}
                                 <div className='overflow-hidden rounded-md border border-border shadow-sm'>
@@ -760,6 +694,10 @@ function PrivilegeForm({ createPrivilege, refetch, fetchDataByType, isSearching,
                         </div>
                     </div>
                 </CollapsibleSection>
+            )}
+
+            {isDeleteFormOpen && selectedRow && (
+                <DeleteLoginPrivilegeForm rowData={selectedRow} onClose={closeDeleteForm} onSuccess={handleRefresh} />
             )}
         </div>
     );

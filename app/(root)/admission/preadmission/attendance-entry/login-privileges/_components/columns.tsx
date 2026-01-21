@@ -1,4 +1,3 @@
-'use client';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
@@ -20,30 +19,30 @@ export const loginPrivilegeColumns: ColumnDef<ILoginPrivilege>[] = [
         enableHiding: false
     },
     {
-        accessorKey: 'lp_year',
+        accessorKey: 'asmaY_Year',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Year' />,
-        cell: ({ row }) => <div>{row.getValue('lp_year')}</div>,
+        cell: ({ row }) => <div>{row.getValue('asmaY_Year')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'lp_staff_name',
+        accessorKey: 'userName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Staff Name' />,
-        cell: ({ row }) => <div className='font-medium'>{row.getValue('lp_staff_name')}</div>,
+        cell: ({ row }) => <div className='font-medium'>{row.getValue('userName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'lp_classes',
+        accessorKey: 'asmcL_ClassName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />,
-        cell: ({ row }) => <div>{row.getValue('lp_classes')}</div>,
+        cell: ({ row }) => <div>{row.getValue('asmcL_ClassName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'lp_sections',
+        accessorKey: 'asmC_SectionName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Section' />,
-        cell: ({ row }) => <div>{row.getValue('lp_sections')}</div>,
+        cell: ({ row }) => <div>{row.getValue('asmC_SectionName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
@@ -57,7 +56,7 @@ export const loginPrivilegeColumns: ColumnDef<ILoginPrivilege>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: ILoginPrivilege }) {
-    const { openEditForm, openToggleForm } = useFormContext<ILoginPrivilege>();
+    const { openEditForm, openDeleteForm, openToggleForm } = useFormContext<ILoginPrivilege>();
 
     const handleEdit = useCallback(
         (data: ILoginPrivilege) => {
@@ -73,13 +72,21 @@ function ActionButtonsCell({ rowData }: { rowData: ILoginPrivilege }) {
         [openToggleForm]
     );
 
+    const handleDelete = useCallback(
+        (data: ILoginPrivilege) => {
+            openDeleteForm(data);
+        },
+        [openDeleteForm]
+    );
+
     return (
         <ActionButtons
             rowData={rowData}
             buttons={{ edit: true, toggle: false, delete: true }}
+            disabled={{ edit: true }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            // Using delete as the image shows a trash icon
+            onDelete={handleDelete}
         />
     );
 }

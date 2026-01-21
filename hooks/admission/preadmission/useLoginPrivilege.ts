@@ -1,5 +1,5 @@
 import {
-    deleteLoginPrivilege,
+    deleteAttPrivileges,
     getDataByTypeSelected,
     getEmployeeData,
     getLoginPrivileges,
@@ -34,11 +34,13 @@ export const useLoginPrivileges = () => {
     });
 
     const deleteMutation = useMutation({
-        mutationFn: (id: number) => deleteLoginPrivilege(id),
-        onSuccess: (res) => {
-            if (res.success) {
-                toast.success(res.message);
+        mutationFn: ({ asaluC_Id, asalucS_Id }: { asaluC_Id: number; asalucS_Id: number }) => deleteAttPrivileges(asaluC_Id, asalucS_Id),
+        onSuccess: (res: any) => {
+            if (res.returnVal || res.success) {
+                toast.success(res.message || 'Subject privilege deleted successfully');
                 queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+            } else {
+                toast.error('Failed to delete privilege');
             }
         },
         onError: () => toast.error('Failed to delete privilege')
