@@ -7,6 +7,7 @@ import type { IMasterExam } from '@/types/exam/exam-module/masters';
 export async function getMasterExam(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/exam_master/30?${urlParams}`;
+    console.info('url', url);
     return await api.get<IMasterExam>('exam', url);
 }
 

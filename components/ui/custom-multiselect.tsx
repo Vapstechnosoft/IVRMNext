@@ -43,8 +43,6 @@ export const CustomMultiSelectBox: React.FC<CustomMultiSelectBoxProps> = ({
 
     const allSelected = filteredOptions.every((opt) => value.includes(opt.value)) && filteredOptions.length > 0;
 
-    const allCheckboxesDisabled = filteredOptions.length > 0 && filteredOptions.every((opt) => opt.disabled);
-
     const toggleSelect = (option: Option) => {
         if (disabled) return; // 🚫 Prevent action when disabled
 
@@ -99,13 +97,15 @@ export const CustomMultiSelectBox: React.FC<CustomMultiSelectBoxProps> = ({
                         <div
                             className={`mb-2 flex items-center gap-2 rounded-md p-1 font-medium text-sm ${
                                 disabled ? '' : 'cursor-pointer hover:bg-accent'
-                            }`}>
+                            }`}
+                            onClick={() => !disabled && toggleSelectAll()}>
                             <Checkbox
                                 checked={allSelected}
                                 onCheckedChange={toggleSelectAll}
-                                disabled={disabled || allCheckboxesDisabled}
+                                onClick={(e) => e.stopPropagation()}
+                                disabled={disabled}
                             />
-                            <span onClick={() => !disabled && !allCheckboxesDisabled && toggleSelectAll()}>Select All</span>
+                            <span>Select All</span>
                         </div>
                     )}
 
@@ -114,13 +114,15 @@ export const CustomMultiSelectBox: React.FC<CustomMultiSelectBoxProps> = ({
                             key={opt.value}
                             className={`mb-1 flex items-center gap-2 rounded-md p-1 text-sm ${
                                 disabled ? '' : 'cursor-pointer hover:bg-accent'
-                            }`}>
+                            }`}
+                            onClick={() => !disabled && toggleSelect(opt)}>
                             <Checkbox
                                 checked={value.includes(opt.value)}
                                 onCheckedChange={() => toggleSelect(opt)}
-                                disabled={disabled || opt.disabled}
+                                onClick={(e) => e.stopPropagation()}
+                                disabled={disabled}
                             />
-                            <span onClick={() => !disabled && toggleSelect(opt)}>{opt.label}</span>
+                            <span>{opt.label}</span>
                         </div>
                     ))}
                     {isLoading && <div className='text-muted-foreground text-sm'>Loading...</div>}

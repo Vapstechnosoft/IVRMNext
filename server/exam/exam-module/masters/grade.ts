@@ -9,6 +9,11 @@ export async function getMasterGrade(searchParams?: ApiSearchparams) {
     const url = `/master_exam_grade/30?${urlParams}`;
     return await api.get<IMasterGrade>('exam', url);
 }
+export async function getMasterGradeDropdownList() {
+    const url = '/master_exam_grade/master_exam_grade_drop_down_list/30';
+    return await api.get<IMasterGrade>('exam', url);
+}
+
 export async function addOrUpdateMasterGrade(data: any) {
     const url = '/master_exam_grade';
     return await api.post<any>('exam', url, data);

@@ -5,7 +5,7 @@ import type { ApiSearchparams } from '@/types';
 import type { IParentsDashboardStudentResponse } from '@/types/admission/preadmission/reports';
 
 export async function addOrUpdateStudentCountReport(data: any, searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, ',ivrmmR_Name');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'name');
     const url = `/preadmission_reports/preadmission_student_count_report?${urlParams}`;
     return await api.post<any>('preadmission', url, data);
 }

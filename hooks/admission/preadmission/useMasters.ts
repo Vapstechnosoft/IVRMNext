@@ -1,4 +1,4 @@
-import { ADMISSION_QUERY_KEYS } from '@/constants/query-keys';
+import { ADMISSION_QUERY_KEYS, EXAM_QUERY_KEYS } from '@/constants/query-keys';
 import { getMasterStudentList } from '@/server/admission/preadmission/masters/active_deactive_student';
 import { getMasterCaste, getMasterCasteCategoryDropdown } from '@/server/admission/preadmission/masters/caste';
 import { getMasterCasteCategory, getMasterCasteCategoryCodeDropdown } from '@/server/admission/preadmission/masters/caste_category';
@@ -25,6 +25,7 @@ import {
 import { getMasterSection, getSectionSetOrder } from '@/server/admission/preadmission/masters/section';
 import { getMasterSource } from '@/server/admission/preadmission/masters/source';
 import { getConcessionDropdown } from '@/server/admission/preadmission/reports/report';
+import { getMasterSubjectDropdownList } from '@/server/exam/exam-module/masters/subject';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -549,6 +550,29 @@ export const useMasterCategoryDropdown = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [ADMISSION_QUERY_KEYS.MASTER_CATEGORY_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useMasterSubjectDropdown = (mI_Id?: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.MASTER_SUBJECT_DROPDOWN_LIST, mI_Id ?? {}],
+            queryFn: async () => {
+                if (!mI_Id || mI_Id <= 0) {
+                    return { data: [] } as any;
+                }
+                return await getMasterSubjectDropdownList(mI_Id);
+            },
+            enabled: Boolean(mI_Id && mI_Id > 0),
+            staleTime: 0
+        }),
+        refetchAll: (id?: number) => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.MASTER_SUBJECT_DROPDOWN_LIST, id ?? {}]
             });
         }
     };
