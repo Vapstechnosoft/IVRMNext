@@ -92,6 +92,8 @@ function StudentCountReportPageContent({
                         isLoading={isLoading}
                         error={error}
                         showViewOptions={false}
+                        isSearchRequired={true}
+                        showSearchColumns={true}
                         columnPinning={{ right: ['actions'] }}
                         isPaginationRequired={true}
                         loadingMessage='Loading  Student Count Reports...'

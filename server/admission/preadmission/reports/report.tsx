@@ -34,7 +34,7 @@ export async function getPreAdmissionMonthEndReport(data: any, searchParams?: Ap
     return await api.post<any>('admission', url, data);
 }
 export async function getPreAdmissionRegistrationReport(data: any, searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'name,email_Id,mob_No,created_Date');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'Name');
     let url = `/RegistrationReport/GetRegistrationReport?${urlParams}`;
 
     // YEAR WISE
@@ -54,7 +54,7 @@ export async function getPreAdmissionRegistrationReport(data: any, searchParams?
     return await api.post<any>('admission', url);
 }
 export async function getPreAdmissionExcelRegistrationReport(data: any, searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'name,email_Id,mob_No,created_Date');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'Name');
     let url = `/RegistrationReport/ExportRegistrationReport?${urlParams}`;
 
     // YEAR WISE
@@ -74,7 +74,7 @@ export async function getPreAdmissionExcelRegistrationReport(data: any, searchPa
     return await api.post<any>('admission', url);
 }
 export async function getPreAdmissionEmailSmsReport(data: any, searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'name,email_Id,mob_No,created_Date');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'Name');
     let url = `/EmailSmsReport/GetSMSEmailReport?${urlParams}`;
 
     // YEAR WISE
