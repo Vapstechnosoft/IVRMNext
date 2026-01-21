@@ -1044,20 +1044,3 @@ export const useFeeStudentCurrentAcademicDetails = (amst_Id: number, asmay_Id: n
 //         }
 //     };
 // };
-
-export const usemastersettinglist = () => {
-    const queryClient = useQueryClient();
-
-    return {
-        ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.MASTER_SETTING_LIST],
-            queryFn: async () => mastersettinglist(),
-            staleTime: 0
-        }),
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: [FEES_QUERY_KEYS.MASTER_SETTING_LIST]
-            });
-        }
-    };
-};
