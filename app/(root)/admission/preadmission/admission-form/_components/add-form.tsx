@@ -648,9 +648,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             // Send JSON payload directly
             const res = await saveFirstTabApi(payload);
             console.debug('[Admission] saveFirstTab response:', res);
-            if (res?.success && res?.data && (res.data.amsT_Id || res.data.amsT_Id === 0)) {
+            if (res?.success && res?.data !== undefined && res?.data !== null) {
                 try {
-                    const returnedId = Number(res.data.amsT_Id ?? res.data?.amsT_Id ?? 0) || 0;
+                    const returnedId = Number(res.data) || 0;
                     if (returnedId) {
                         setValue('amsT_Id' as any, returnedId);
                         setSavedAmsTId(returnedId);

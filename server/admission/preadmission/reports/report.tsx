@@ -34,7 +34,7 @@ export async function getPreAdmissionMonthEndReport(data: any, searchParams?: Ap
     return await api.post<any>('admission', url, data);
 }
 export async function getPreAdmissionRegistrationReport(data: any, searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'name,email_Id,mob_No,created_Date');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'user_Name,name,email_Id,mob_No,created_Date');
     let url = `/RegistrationReport/GetRegistrationReport?${urlParams}`;
 
     // YEAR WISE
