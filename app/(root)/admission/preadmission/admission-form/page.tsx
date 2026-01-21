@@ -179,8 +179,8 @@ function FormSections({
             {isEditFormOpen && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Preadmission Application'
-                        description='Update the details below to edit the preadmission application'
+                        title='Edit Admission Application'
+                        description='Update the details below to edit the Admission application'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
