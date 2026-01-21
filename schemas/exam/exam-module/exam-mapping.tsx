@@ -666,6 +666,8 @@ export const examMarksProcessConditionSchema = {
     addOrUpdate: z
         .object({
             mI_Id: z.number().min(1).default(30),
+            eyC_Id: z.number().min(1, { message: 'Mapping is required' }),
+            eycE_Id: z.number().min(1, { message: 'Mapping is required' }),
 
             asmaY_Id: z.number().min(1, { message: 'Academic Year is required' }),
 

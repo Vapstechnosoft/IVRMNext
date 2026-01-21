@@ -15,7 +15,7 @@ const SelectSearchContext = React.createContext<{
 }>({
     searchable: true,
     searchQuery: '',
-    setSearchQuery: () => {},
+    setSearchQuery: () => { },
     filteredItems: new Set(),
     isMobile: false
 });
@@ -84,27 +84,84 @@ const Select = ({ children, searchable = true, onOpenChange, ...props }: SelectP
         return values;
     }, []);
 
-    // Filter items when search query changes
+    // Filter items when search query changes ( PREVIOUS CODE)
+    // React.useEffect(() => {
+    //     if (!searchable || !searchQuery) {
+    //         setFilteredItems(new Set());
+    //         return;
+    //     }
+
+    //     const allItems = collectItemValues(children);
+    //     const lowerQuery = searchQuery.toLowerCase();
+
+    //     const filtered = new Set(
+    //         allItems
+    //             .filter((item) => {
+    //                 const [value, text] = item.split(':::');
+    //                 return text.toLowerCase().includes(lowerQuery) || value.toLowerCase().includes(lowerQuery);
+    //             })
+    //             .map((item) => item.split(':::')[0])
+    //     );
+
+    //     setFilteredItems(filtered);
+    // }, [children, searchable, searchQuery, collectItemValues]);
+
+    //Update filtered items for fixing search isses in  academic year and trailing Spaces error.
     React.useEffect(() => {
         if (!searchable || !searchQuery) {
             setFilteredItems(new Set());
             return;
         }
 
+        const query = searchQuery.trimEnd().toLowerCase();
+        const isNumericQuery = /^\d+$/.test(query);
+
         const allItems = collectItemValues(children);
-        const lowerQuery = searchQuery.toLowerCase();
 
-        const filtered = new Set(
-            allItems
-                .filter((item) => {
-                    const [value, text] = item.split(':::');
-                    return text.toLowerCase().includes(lowerQuery) || value.toLowerCase().includes(lowerQuery);
-                })
-                .map((item) => item.split(':::')[0])
-        );
+        const startsWithMatches: string[] = [];
+        const containsMatches: string[] = [];
 
-        setFilteredItems(filtered);
+        allItems.forEach((item) => {
+            const [value, text] = item.split(':::');
+            const lowerText = text.toLowerCase();
+            const lowerValue = value.toLowerCase();
+
+            // ✅ Detect academic year (YYYY-YYYY)
+            const isAcademicYear = /^\d{4}-\d{4}$/.test(text);
+
+            if (isAcademicYear && isNumericQuery) {
+                const [startYear, endYear] = text.split('-');
+
+                // ✅ STRICT: match ONLY from start of full year
+                if (
+                    startYear.startsWith(query) ||
+                    endYear.startsWith(query)
+                ) {
+                    startsWithMatches.push(value);
+                }
+
+                return; // 🚫 do NOT fall into normal string logic
+            }
+
+            // ✅ Normal string logic
+            if (
+                lowerText.startsWith(query) ||
+                lowerValue.startsWith(query)
+            ) {
+                startsWithMatches.push(value);
+            } else if (
+                lowerText.includes(query) ||
+                lowerValue.includes(query)
+            ) {
+                containsMatches.push(value);
+            }
+        });
+
+        // ✅ Starts-with items come first
+        setFilteredItems(new Set([...startsWithMatches, ...containsMatches]));
     }, [children, searchable, searchQuery, collectItemValues]);
+
+
 
     // Normalize common "empty" values to undefined so Radix shows placeholder.
     // Treat empty string, null, and numeric/string zero as empty (many forms use 0 as 'no selection').
@@ -217,6 +274,7 @@ const SelectSearch = React.forwardRef<HTMLInputElement, React.InputHTMLAttribute
 
     const debounceTimeout = React.useRef<NodeJS.Timeout | null>(null);
 
+    // Updated this function to resolve loosing focus issue.
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.stopPropagation();
         const newValue = e.target.value.replace(/^\s+/, '');
@@ -230,6 +288,7 @@ const SelectSearch = React.forwardRef<HTMLInputElement, React.InputHTMLAttribute
             setSearchQuery(newValue);
         }, 300);
     };
+
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         // Prevent the select from closing when typing
@@ -311,7 +370,7 @@ const SelectContent = React.forwardRef<
                 className={cn(
                     'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-56 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=closed]:animate-out data-[state=open]:animate-in',
                     position === 'popper' &&
-                        'data-[side=left]:-translate-x-1 data-[side=top]:-translate-y-1 data-[side=right]:translate-x-1 data-[side=bottom]:translate-y-1',
+                    'data-[side=left]:-translate-x-1 data-[side=top]:-translate-y-1 data-[side=right]:translate-x-1 data-[side=bottom]:translate-y-1',
                     !isPointerEventsEnabled && 'pointer-events-none', // Disable pointer events during updates
                     className
                 )}

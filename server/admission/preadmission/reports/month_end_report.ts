@@ -12,6 +12,38 @@ export interface ElectiveItem {
     ismS_SubjectName: string;
 }
 
+export async function getExcelAdmissionRegistrationReport(
+    ASMAY_Id: number,
+    AttendanceType: number,
+    payload?: any,
+    searchParams?: ApiSearchparams
+) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {});
+
+    const baseUrl = process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
+    const url = `${baseUrl}/AdmissionRegister/ExportAdmissionRegisterReportToExcel?ASMAY_Id=${ASMAY_Id}&AttendanceType=${AttendanceType}&TempararyArrayListclass=${encodeURIComponent(JSON.stringify(payload.tempararyArrayListclass))}&TempararyArrayListcoloumn=${encodeURIComponent(JSON.stringify(payload.tempararyArrayListcoloumn))}&${urlParams}`;
+
+    try {
+        const session = await auth();
+
+        const response = await axios.post(url, null, {
+            responseType: 'arraybuffer',
+            timeout: 60000,
+            headers: {
+                Authorization: `Bearer ${session?.token || ''}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        // Convert to regular Array to be serializable across server/client boundary
+        const uint8Array = new Uint8Array(response.data);
+        return Array.from(uint8Array);
+    } catch (error) {
+        console.error('Excel export error:', error);
+        throw error;
+    }
+}
+
 export async function getExcelMonthEndReport(data: {
     ASMAY_Id: number;
     month: string;
@@ -459,6 +491,7 @@ export async function getExcelPreAdmissionMonthEndReport(data: {
         throw error;
     }
 }
+
 export async function getExcelDOBReport(
     ASMAY_Id: number,
     ASMCL_Id: number,

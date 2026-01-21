@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
-    useMasterGrade,
+    useMasterGradeDropdownList,
     useMasterLifeSkillArea,
     useMasterLifeSkillAreaMapping,
     useMasterLifeSkills
@@ -30,7 +30,7 @@ export default function AddLifeSkillAreaMapping({ onSuccess }: { onSuccess?: () 
     const [grades, setGrades] = useState<IMasterGrade[]>([]);
     const { data: lifeSkillData, error: lifeSkillError } = useMasterLifeSkills();
     const { data: lifeSkillAreaData, error: areaError } = useMasterLifeSkillArea();
-    const { data: masterGradeData, error: masterGradeError } = useMasterGrade();
+    const { data: masterGradeData, error: masterGradeError } = useMasterGradeDropdownList();
 
     // 🔹 Form Setup
     const methods = useForm<FormFields>({
@@ -68,7 +68,6 @@ export default function AddLifeSkillAreaMapping({ onSuccess }: { onSuccess?: () 
     const mappingArray = useFieldArray({ control, name: 'mappingDTO' });
 
     useEffect(() => {
-
         // Life Skills
         if (lifeSkillData?.data) {
             const skills = Array.isArray(lifeSkillData.data) ? lifeSkillData.data : [lifeSkillData.data];
@@ -89,15 +88,7 @@ export default function AddLifeSkillAreaMapping({ onSuccess }: { onSuccess?: () 
             setGrades(gradeList);
         }
         if (masterGradeError) toast.error('Failed to load Grades');
-    }, [
-        lifeSkillData,
-        lifeSkillAreaData,
-        masterGradeData,
-        academicYearError,
-        lifeSkillError,
-        areaError,
-        masterGradeError
-    ]);
+    }, [lifeSkillData, lifeSkillAreaData, masterGradeData, academicYearError, lifeSkillError, areaError, masterGradeError]);
 
     // 🔹 Submit
     const onSubmit = async (data: FormFields) => {

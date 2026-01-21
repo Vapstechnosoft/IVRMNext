@@ -30,6 +30,7 @@ export default function FeesReceiptImport(props: { searchParams: SearchParams })
     const [tableHeaders, setTableHeaders] = useState<string[]>([]);
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [filename, setFilename] = useState<string>('');
+    const [isSaving, setIsSaving] = useState(false);
 
     const { data: response, isLoading, error } = useFeeRefundableList(Number(selectedAsmayId), searchParams);
     const { data: academicYearData, isLoading: loadingYears } = useopeningacademicyerdropdowndatafee();
@@ -241,6 +242,7 @@ export default function FeesReceiptImport(props: { searchParams: SearchParams })
                     searchQuery={searchQuery}
                     setSearchQuery={setSearchQuery}
                     filename={filename}
+                    isSaving={isSaving}
                 />
             </FormProvider>
         </>
@@ -270,7 +272,8 @@ function FeesReceiptImportDeletePageContent({
     tableHeaders,
     searchQuery,
     setSearchQuery,
-    filename
+    filename,
+    isSaving
 }: {
     isLoading: boolean;
     error: any;
@@ -295,6 +298,7 @@ function FeesReceiptImportDeletePageContent({
     searchQuery: string;
     setSearchQuery: (query: string) => void;
     filename: string;
+    isSaving: boolean;
 }) {
     const { openAddForm } = useFormContext<IFeeReceiptImportDelate>();
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -479,11 +483,27 @@ function FeesReceiptImportDeletePageContent({
                         {/* Buttons Section */}
                         <div className='mt-6 flex flex-col items-center justify-center gap-4 rounded-lg border bg-white p-6 shadow-sm'>
                             <div className='flex items-center gap-4'>
-                                <Button
+                                {/* <Button
                                     type='button'
                                     onClick={onSave}
                                     className='shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                                     Save
+                                </Button> */}
+                                <Button
+                                    type='button'
+                                    onClick={onSave}
+                                    disabled={!shouldShowTableContent || isSaving}
+                                    className='shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100'>
+                                    {isSaving ? (
+                                        <>
+                                            {/* <span className="animate-spin mr-2">⏳</span> */}
+                                            Saving...
+                                        </>
+                                    ) : isReportGenerated ? (
+                                        'Update'
+                                    ) : (
+                                        'Save'
+                                    )}
                                 </Button>
                                 <Button variant='outline' onClick={onResetClick} type='button'>
                                     Reset

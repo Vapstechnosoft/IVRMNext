@@ -40,7 +40,7 @@ export default function ToggleMasterAmountEntryForm({ rowData, onClose }: Toggle
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await deleteAmountEntry(30, Number(rowData.asmaY_Id), Number(rowData.fmA_Id));
+            const response = await deleteAmountEntry(Number(rowData.asmaY_Id), Number(rowData.fmA_Id));
             if (response?.success) {
                 toast.success(response.message || 'Deleted successfully');
                 refetchAll();

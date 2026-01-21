@@ -1,5 +1,7 @@
 'use server';
 
+import { api } from '@/lib/apiService';
+
 // Mock Data for Toppers List Report
 
 const ACADEMIC_YEARS = [
@@ -130,4 +132,10 @@ export async function getReportDetails(data: any) {
             }
         ] // Mock Institution
     };
+}
+
+export async function getToppersReportDetails(data: any) {
+    const url = '/toppers_list_report/toppers_list_report';
+    const response = await api.get('exam', url);
+    return response;
 }

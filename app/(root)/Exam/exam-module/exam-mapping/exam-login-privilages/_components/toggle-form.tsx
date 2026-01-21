@@ -31,7 +31,7 @@ export default function ToggleLoginPrivilegeForm({ rowData, elpId, asmclId, asms
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        defaultValues: { lpD_Id: rowData.elP_Id }
+        defaultValues: { lpD_Id: rowData.elpsS_Id }
     });
 
     function closeDialog() {
@@ -41,7 +41,8 @@ export default function ToggleLoginPrivilegeForm({ rowData, elpId, asmclId, asms
 
     const onSubmit: SubmitHandler<FormFields> = async () => {
         try {
-            const response = await toggleExamLoginPrivilege(Number(rowData.asmS_Id));
+            console.log(rowData.elpS_Id);
+            const response = await toggleExamLoginPrivilege(Number(rowData.elpS_Id));
             if (response.success) {
                 toast.success(response.message);
                 refetchAll();

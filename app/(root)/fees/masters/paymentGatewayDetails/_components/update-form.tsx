@@ -84,8 +84,8 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         const payload = {
-            user_id: 20612,
-            mi_id: 30,
+            // user_id: 20612,
+            // mi_id: 30,
             fpgD_Id: selectedRow.fpgD_Id,
             fpgD_SaltKey: data.fpgD_SaltKey,
             fpgD_MerchantId: data.fpgD_MerchantId,
@@ -224,7 +224,7 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
                         error={errors.fpgD_AccNo?.message}
                         onKeyDown={(e) => {
                             // Block minus, plus, special chars used in number inputs
-                            if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                            if (['-', '+', ' '].includes(e.key)) {
                                 e.preventDefault();
                             }
 
@@ -251,7 +251,7 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
                         error={errors.fpgD_MerchantKey?.message}
                         onKeyDown={(e) => {
                             // Block minus, plus, special chars used in number inputs
-                            if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                            if (['-', '+', ' '].includes(e.key)) {
                                 e.preventDefault();
                             }
 
@@ -323,7 +323,7 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
                                 className='w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary'
                                 onKeyDown={(e) => {
                                     // Block minus, plus, special chars used in number inputs
-                                    if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                                    if (['-', '+', ' '].includes(e.key)) {
                                         e.preventDefault();
                                     }
 

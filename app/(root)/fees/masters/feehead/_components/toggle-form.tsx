@@ -40,7 +40,7 @@ export default function ToggleMasterFeesHeadForm({ rowData, onClose }: ToggleMas
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleMasterfeehead(30, Number(rowData.fmH_Id));
+            const response = await toggleMasterfeehead(Number(rowData.fmH_Id));
 
             if (response.success) {
                 toast.success(response.message);

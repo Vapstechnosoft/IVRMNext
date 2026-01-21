@@ -5,13 +5,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMasterGradeDropdownList } from '@/hooks/exam/exammodule/usemasters';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import { useMasterGrade } from '@/hooks/exam/exammodule/usemasters';
 import { tbs_reportschoolSchema } from '@/schemas/exam/exam-module/reports';
 import {
     getClassDropDownByAcademicYearlist,
-    getSectionsDropDownByAcademicYearandClasslist,
     getExamsDropDownByAcademicYearandClassandSectionlist,
+    getSectionsDropDownByAcademicYearandClasslist,
     getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/tbs-report-school';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -42,7 +42,13 @@ export default function TBSReportSchoolForm({
         }
     });
 
-    const { control, handleSubmit, reset, setValue, formState: { isSubmitting, errors } } = methods;
+    const {
+        control,
+        handleSubmit,
+        reset,
+        setValue,
+        formState: { isSubmitting, errors }
+    } = methods;
 
     const [classes, setClasses] = useState<any[]>([]);
     const [sections, setSections] = useState<any[]>([]);
@@ -51,7 +57,7 @@ export default function TBSReportSchoolForm({
     const [gradeList, setGradeList] = useState<any[]>([]);
 
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
-    const { data: gradeData, isLoading: gradeLoading, error: gradeError } = useMasterGrade();
+    const { data: gradeData, isLoading: gradeLoading, error: gradeError } = useMasterGradeDropdownList();
 
     const selectedYear = useWatch({ control, name: 'asmaY_Id' });
     const selectedClass = useWatch({ control, name: 'asmcL_Id' });
@@ -68,9 +74,6 @@ export default function TBSReportSchoolForm({
             setGradeList([]);
         }
     }, [gradeData, gradeError]);
-
-
-
 
     useEffect(() => {
         if (!selectedYear || selectedYear === 0) return;
@@ -167,22 +170,27 @@ export default function TBSReportSchoolForm({
                                     )}
                                 />
 
-
                                 {/* Class */}
                                 <Controller
                                     control={control}
                                     name='asmcL_Id'
                                     render={({ field }) => (
                                         <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                            <Label className='sm:w-32'>Class <span className='text-destructive'>*</span></Label>
+                                            <Label className='sm:w-32'>
+                                                Class <span className='text-destructive'>*</span>
+                                            </Label>
                                             <div className='flex-1'>
-                                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value ? String(field.value) : ''}>
+                                                <Select
+                                                    onValueChange={(v) => field.onChange(Number(v))}
+                                                    value={field.value ? String(field.value) : ''}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder='Select Class' />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {classes.map((c) => (
-                                                            <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>{c.asmcL_ClassName}</SelectItem>
+                                                            <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
+                                                                {c.asmcL_ClassName}
+                                                            </SelectItem>
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
@@ -198,15 +206,21 @@ export default function TBSReportSchoolForm({
                                     name='asmS_Id'
                                     render={({ field }) => (
                                         <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                            <Label className='sm:w-32'>Section <span className='text-destructive'>*</span></Label>
+                                            <Label className='sm:w-32'>
+                                                Section <span className='text-destructive'>*</span>
+                                            </Label>
                                             <div className='flex-1'>
-                                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value ? String(field.value) : ''}>
+                                                <Select
+                                                    onValueChange={(v) => field.onChange(Number(v))}
+                                                    value={field.value ? String(field.value) : ''}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder='Select Section' />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {sections.map((s) => (
-                                                            <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>{s.asmC_SectionName}</SelectItem>
+                                                            <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
+                                                                {s.asmC_SectionName}
+                                                            </SelectItem>
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
@@ -222,7 +236,9 @@ export default function TBSReportSchoolForm({
                                     name='emgR_Id'
                                     render={({ field, fieldState }) => (
                                         <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                            <Label className='sm:w-32'>Grade <span className='text-destructive'>*</span></Label>
+                                            <Label className='sm:w-32'>
+                                                Grade <span className='text-destructive'>*</span>
+                                            </Label>
                                             <div className='flex-1'>
                                                 <Select
                                                     key={field.value}
@@ -233,12 +249,18 @@ export default function TBSReportSchoolForm({
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {gradeLoading ? (
-                                                            <SelectItem value='loading' disabled>Loading Grades...</SelectItem>
+                                                            <SelectItem value='loading' disabled>
+                                                                Loading Grades...
+                                                            </SelectItem>
                                                         ) : gradeError ? (
-                                                            <SelectItem value='error' disabled>Error loading grades</SelectItem>
+                                                            <SelectItem value='error' disabled>
+                                                                Error loading grades
+                                                            </SelectItem>
                                                         ) : (
                                                             gradeList.map((g: any) => (
-                                                                <SelectItem key={g.emgR_Id} value={String(g.emgR_Id)}>{g.emgR_GradeName}</SelectItem>
+                                                                <SelectItem key={g.emgR_Id} value={String(g.emgR_Id)}>
+                                                                    {g.emgR_GradeName}
+                                                                </SelectItem>
                                                             ))
                                                         )}
                                                     </SelectContent>
@@ -257,12 +279,14 @@ export default function TBSReportSchoolForm({
                                     name='emE_Id'
                                     render={({ field }) => (
                                         <div className='flex flex-col gap-2 sm:flex-row sm:items-start'>
-                                            <Label className='sm:w-32 pt-2'>Exams <span className='text-destructive'>*</span></Label>
+                                            <Label className='pt-2 sm:w-32'>
+                                                Exams <span className='text-destructive'>*</span>
+                                            </Label>
                                             <div className='flex-1'>
                                                 <CustomMultiSelectBox
-                                                    options={exams.map(e => ({ label: e.emE_ExamName, value: e.emE_Id.toString() }))}
-                                                    onChange={(vals) => field.onChange(vals.map(v => ({ emE_Id: Number(v) })))}
-                                                    value={field.value.map(v => v.emE_Id.toString())}
+                                                    options={exams.map((e) => ({ label: e.emE_ExamName, value: e.emE_Id.toString() }))}
+                                                    onChange={(vals) => field.onChange(vals.map((v) => ({ emE_Id: Number(v) })))}
+                                                    value={field.value.map((v) => v.emE_Id.toString())}
                                                     placeholder='Select Exams'
                                                     height='120px'
                                                 />
@@ -278,15 +302,17 @@ export default function TBSReportSchoolForm({
                                     name='studentList'
                                     render={({ field }) => (
                                         <div className='flex flex-col gap-2 sm:flex-row sm:items-start'>
-                                            <Label className='sm:w-32 pt-2'>Students <span className='text-destructive'>*</span></Label>
+                                            <Label className='pt-2 sm:w-32'>
+                                                Students <span className='text-destructive'>*</span>
+                                            </Label>
                                             <div className='flex-1'>
                                                 <CustomMultiSelectBox
-                                                    options={students.map(s => ({
+                                                    options={students.map((s) => ({
                                                         label: `${s.studentName || 'Unknown'} - ${s.amsT_AdmNo || ''}`,
                                                         value: s.amsT_Id.toString()
                                                     }))}
-                                                    onChange={(vals) => field.onChange(vals.map(v => ({ amsT_Id: Number(v) })))}
-                                                    value={field.value.map(v => v.amsT_Id.toString())}
+                                                    onChange={(vals) => field.onChange(vals.map((v) => ({ amsT_Id: Number(v) })))}
+                                                    value={field.value.map((v) => v.amsT_Id.toString())}
                                                     placeholder='Select Students'
                                                     height='200px'
                                                     isSearchRequired
@@ -299,12 +325,19 @@ export default function TBSReportSchoolForm({
                             </div>
                         </div>
 
-                        <div className='flex justify-center gap-4 pt-8 border-t mt-6'>
+                        <div className='mt-6 flex justify-center gap-4 border-t pt-8'>
                             <Button type='submit' disabled={isSubmitting} className='min-w-[120px]'>
                                 {isSubmitting ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Check className='mr-2 h-4 w-4' />}
                                 Report
                             </Button>
-                            <Button type='button' variant='destructive' onClick={() => { reset(); onCancel(); }} className='min-w-[120px]'>
+                            <Button
+                                type='button'
+                                variant='destructive'
+                                onClick={() => {
+                                    reset();
+                                    onCancel();
+                                }}
+                                className='min-w-[120px]'>
                                 <X className='mr-2 h-4 w-4' />
                                 Cancel
                             </Button>

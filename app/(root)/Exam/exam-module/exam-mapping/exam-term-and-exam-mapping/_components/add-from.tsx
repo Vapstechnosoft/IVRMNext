@@ -7,16 +7,15 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useExamTermAndExamMapping } from '@/hooks/exam/exammodule/exam-mapping';
+import { useMasterGradeDropdownList } from '@/hooks/exam/exammodule/usemasters';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { ExamTermAndExamMappingSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import { getExamGroupsByCategory } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
 import { addOrUpdateExamTermAndExamMapping } from '@/server/exam/exam-module/exam-mapping/examTerm-and-exam-mappiong';
 import { getCategoryDropDownByAcademicYearlist } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
-import { getMasterGrade } from '@/server/exam/exam-module/masters/grade';
-import type { IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AlertTriangle, Trash2 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { AwaitedReactNode, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useEffect, useRef, useState } from 'react';
 import { Controller, FormProvider, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -52,7 +51,6 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
     const [addedRows, setAddedRows] = useState<FormFields['exam_term']>([]);
     const [categories, setCategories] = useState<{ emcA_Id: number; emcA_CategoryName: string }[]>([]);
     const [exams, setExams] = useState<{ emE_Id: number; emE_ExamName: string }[]>([]);
-    const [grades, setGrades] = useState<IMasterGrade[]>([]);
 
     const { replace } = useFieldArray({ control, name: 'exam_term' });
 
@@ -79,6 +77,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
     today.setHours(0, 0, 0, 0);
 
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
+    const { data: masterGrade, isLoading: masterGradeLoading, error: masterGradeError } = useMasterGradeDropdownList();
 
     useEffect(() => {
         if (!asmaY_Id || topLocked) return;
@@ -89,9 +88,6 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                 if (Array.isArray(cats) && cats.length === 0) {
                     toast.info('No categories found for selected academic year');
                 }
-                const { data: g } = await getMasterGrade({});
-                setGrades(Array.isArray(g) ? g : []);
-                setValue('emcA_Id', 0);
             } catch (err: any) {
                 toast.error(err?.message ?? 'Failed to load related lists');
             }
@@ -286,7 +282,6 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
         // Optional: refresh dropdown data
         setCategories([]);
         setExams([]);
-        setGrades([]);
 
         toast.info('Form has been reset');
     }
@@ -545,11 +540,21 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                                 <SelectValue placeholder='Select Grade' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {grades.map((g) => (
-                                                    <SelectItem key={g.emgR_Id} value={String(g.emgR_Id)}>
-                                                        {g.emgR_GradeName}
+                                                {masterGradeLoading ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading Grades...
                                                     </SelectItem>
-                                                ))}
+                                                ) : masterGradeError ? (
+                                                    <SelectItem value='error' disabled>
+                                                        Error Loading Grades
+                                                    </SelectItem>
+                                                ) : (
+                                                    Array.isArray(masterGrade?.data) && masterGrade?.data?.map((item: { emgR_Id: number; emgR_GradeName: string }) => (
+                                                        <SelectItem key={item.emgR_Id} value={item.emgR_Id.toString()}>
+                                                            {item.emgR_GradeName}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
