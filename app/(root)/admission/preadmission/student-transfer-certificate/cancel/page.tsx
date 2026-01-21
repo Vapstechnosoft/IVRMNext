@@ -99,13 +99,15 @@ export default function StudentTCCancelPage() {
                         .map((item: any, index: number) => {
                             if (!item) return null;
 
-                            // Name extraction
-                            // In the provided JSON: "amsT_FirstName": "SAMANYU KOTEHAL GOWDARA:VVVS-2/23-24"
-                            let name = item.studentName || item.amsT_FirstName || item.amsT_Name || 'Unknown';
-                            let tcNo = item.tcNo || item.tC_No || item.astC_TCNO || '-';
+                            // Safely handle potentially null/undefined values
+                            const rawName = item?.studentName || item?.amsT_FirstName || item?.amsT_Name;
+                            let name = rawName ? String(rawName) : 'Unknown';
 
-                            // Specific hack for the weird generic Name format if detected
-                            if (name && typeof name === 'string' && name.includes(':') && (tcNo === '-' || !tcNo)) {
+                            const rawTcNo = item?.tcNo || item?.tC_No || item?.astC_TCNO;
+                            let tcNo = rawTcNo ? String(rawTcNo) : '-';
+
+                            // Specific hack for the weird generic Name format
+                            if (name.includes(':') && (tcNo === '-' || !tcNo)) {
                                 const parts = name.split(':');
                                 if (parts.length > 1) {
                                     name = parts[0];
@@ -113,31 +115,44 @@ export default function StudentTCCancelPage() {
                                 }
                             }
 
-                            const admNo = item.amsT_AdmNo || item.admNo || '';
+                            const rawAdmNo = item?.amsT_AdmNo || item?.admNo;
+                            const admNo = rawAdmNo ? String(rawAdmNo) : '';
                             const displayStudent = admNo ? `${name} : ${admNo}` : name;
 
                             let colTcDate = '-';
-                            const dateVal = item.tcDate || item.tC_Date || item.astC_TCDate;
-                            if (dateVal) colTcDate = new Date(dateVal).toLocaleDateString('en-GB');
+                            const dateVal = item?.tcDate || item?.tC_Date || item?.astC_TCDate;
+                            if (dateVal) {
+                                try {
+                                    colTcDate = new Date(dateVal).toLocaleDateString('en-GB');
+                                } catch (e) {
+                                    colTcDate = String(dateVal);
+                                }
+                            }
 
                             const colReason =
-                                item.reason ||
-                                item.tC_CancelReason ||
-                                item.astC_TCReason ||
-                                item.astC_Remarks ||
-                                item.astC_LeavingReason ||
+                                item?.reason ||
+                                item?.tC_CancelReason ||
+                                item?.astC_TCReason ||
+                                item?.astC_Remarks ||
+                                item?.astC_LeavingReason ||
                                 '-';
 
                             let colDelDate = '-';
-                            const delDateVal = item.deletedDate || item.tC_CancellationDate || item.updatedDate;
-                            if (delDateVal) colDelDate = new Date(delDateVal).toLocaleString('en-GB');
+                            const delDateVal = item?.deletedDate || item?.tC_CancellationDate || item?.updatedDate;
+                            if (delDateVal) {
+                                try {
+                                    colDelDate = new Date(delDateVal).toLocaleString('en-GB');
+                                } catch (e) {
+                                    colDelDate = String(delDateVal);
+                                }
+                            }
 
                             return {
                                 slNo: index + 1,
                                 studentDetails: displayStudent,
                                 tcNo: tcNo,
                                 tcDate: colTcDate,
-                                reason: colReason,
+                                reason: String(colReason),
                                 deletedDate: colDelDate
                             };
                         })
