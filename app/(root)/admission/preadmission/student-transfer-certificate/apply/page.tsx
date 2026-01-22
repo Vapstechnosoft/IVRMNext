@@ -27,14 +27,15 @@ export default function StudentTCApplyPage() {
     const { data: academicYears } = useQuery({
         queryKey: ['academicYears'],
         queryFn: async () => {
-            // Register a proxy base URL for client-side CORS avoidance
-            api.addBaseUrl('admission_proxy', '/api/admission');
+            //  api.addBaseUrl('admission_proxy', '/api/admission');
 
-            // Use the proxy key
-            const response = await api.get<IAcademicYearDropDown[]>(
-                'admission_proxy',
-                'master_class_category/academic_year_drop_down_list'
-            );
+            // // Use the proxy key
+            // const response = await api.get<IAcademicYearDropDown[]>(
+            //     'admission_proxy',
+            //     'master_class_category/academic_year_drop_down_list'
+            // );
+            // Use the admission API key directly
+            const response = await api.get<IAcademicYearDropDown[]>('admission', 'master_class_category/academic_year_drop_down_list');
             return response.data || [];
         }
     });

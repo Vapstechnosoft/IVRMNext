@@ -20,6 +20,8 @@ export interface ApiArrayResponse<T> extends Partial<PaginationData> {
     } | null;
     [key: string]: unknown;
 }
+// biome-ignore lint/style/useNodejsImportProtocol: <explanation>
+import https from 'https';
 import { signOut } from '@/lib/auth';
 import type { ApiSearchparams } from '@/types';
 import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios';
