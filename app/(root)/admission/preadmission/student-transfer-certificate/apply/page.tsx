@@ -32,7 +32,7 @@ export default function StudentTCApplyPage() {
 
             // Use the proxy key
             const response = await api.get<IAcademicYearDropDown[]>(
-                'admission_proxy',
+                'admission_proxy' as any,
                 'master_class_category/academic_year_drop_down_list'
             );
             return response.data || [];
