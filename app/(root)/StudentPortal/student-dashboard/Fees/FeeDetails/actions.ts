@@ -32,7 +32,7 @@ const mockDetailedData: any[] = [
 ];
 
 export async function getFeeDetailsLoadData() {
-    const url = `/api/FeeDetails/getloaddata`;
+    const url = `/FeeDetails/getloaddata`;
     try {
         const response = await api.post<FeeDetailsLoadData>('default', url, {});
         if (response && response.data) return response.data;
@@ -44,7 +44,7 @@ export async function getFeeDetailsLoadData() {
 }
 
 export async function getFeeDetails(data: FeeDetailsRequest) {
-    const url = `/api/FeeDetails/Getdetails`;
+    const url = `/FeeDetails/Getdetails`;
     try {
         const response = await api.post<FeeDetailsResponse>('default', url, data);
         if (response && response.data) return response.data;

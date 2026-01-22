@@ -182,8 +182,8 @@ class ApiService {
 
             return response.data;
         } catch (error: any) {
-            console.error('❌ [API SERVICE] Request failed');
-            console.error('💥 [API SERVICE] Error details:', {
+            console.warn('❌ [API SERVICE] Request failed');
+            console.warn('💥 [API SERVICE] Error details:', {
                 message: error?.message,
                 status: error?.response?.status,
                 statusText: error?.response?.statusText,

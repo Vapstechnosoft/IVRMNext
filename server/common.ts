@@ -2563,6 +2563,14 @@ export async function getUserAccessibleModules() {
                                             icon: 'ClipboardList',
                                             url: '/StudentPortal/student-dashboard/EnrolledStudents/Transaction/AttendanceDetails',
                                             title: 'Attendance Details'
+                                        },
+                                        {
+                                            id: 40002,
+                                            name: 'Online Leave Application',
+                                            icon: 'FilePlus',
+                                            url: '/StudentPortal/student-dashboard/Admission/OnlineLeaveApp',
+                                            title: 'Online Leave Application',
+                                            description: 'Apply for Leave'
                                         }
                                     ]
                                 }
@@ -2603,11 +2611,11 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 1,
-                                            name: 'Cumulative Subject',
+                                            name: 'Exam Report',
                                             icon: 'BarChart3',
-                                            url: '/StudentPortal/student-dashboard/Exam/CumulativeSubject',
-                                            title: 'Cumulative Subject',
-                                            description: 'View Cumulative Subject Performance'
+                                            url: '/StudentPortal/student-dashboard/Exam/ExamReport',
+                                            title: 'Exam Report',
+                                            description: 'View Exam Report Performance'
                                         }
                                     ]
                                 }
@@ -2653,6 +2661,28 @@ export async function getUserAccessibleModules() {
                                             url: '/StudentPortal/student-dashboard/Fees/Reports/PortalFeeReceipt',
                                             title: 'Portal Fee Receipt',
                                             description: 'View and Download Fee Receipts'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            id: 7,
+                            name: 'Feedback',
+                            icon: 'MessageSquare',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Transaction',
+                                    icon: 'List',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Student Complaints',
+                                            icon: 'List',
+                                            url: '/StudentPortal/student-dashboard/Feedback/Transaction/StudentCompliantsView',
+                                            title: 'Student Complaints',
+                                            description: 'View Student Complaints'
                                         }
                                     ]
                                 }
