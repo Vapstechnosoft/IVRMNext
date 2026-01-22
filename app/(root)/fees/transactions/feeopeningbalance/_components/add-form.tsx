@@ -87,6 +87,8 @@ export default function AddFeeOpeningBalanceForm({
 
     const isPDA = activefee === 'PDA';
 
+    const [changedRefundableType, setChangedRefundableType] = useState<string>('');
+
     // Data Hooks
     const { data: academicYearData, isLoading: loadingAcademicYear } = useopeningacademicyerdropdowndatafee();
     const { data: classData, isLoading: loadingClasses } = useopeningClassdropdowndatafee();
@@ -94,9 +96,23 @@ export default function AddFeeOpeningBalanceForm({
         academicYearId ? Number(academicYearId) : 0,
         classId ? Number(classId) : 0
     );
+    // if (refundableType === 'Refundable') {
+    //     setChangedRefundableType('Refunable');
+    // } else {
+    //     setChangedRefundableType('NonRefundable');
+    // }
+
+    useEffect(() => {
+        if (refundableType === 'Refundable') {
+            setChangedRefundableType('Refunable'); // Keep the typo as required
+        } else {
+            setChangedRefundableType('NonRefundable');
+        }
+    }, [refundableType]);
+
     const { data: refundableData, isLoading: loadingRefundable } = useFeeOpeningRefundable(
         academicYearId ? Number(academicYearId) : 0,
-        refundableType
+        changedRefundableType
     );
     const { data: categoryData, isLoading: loadingCategories } = useopeningCategorydropdowndatafee();
     const { data: groupData, isLoading: loadingGroups } = useopeningGroupdropdowndatafee(headId ? Number(headId) : 0);
@@ -196,12 +212,12 @@ export default function AddFeeOpeningBalanceForm({
         return head?.fmH_FeeName !== 'Other Allowances';
     }, [headId, refundableData]);
 
-    const showFeeInstallment = useMemo(() => {
-        if (!headId || !groupId || !refundableData?.data || !groupData?.data) return false;
-        const head = refundableData.data.find((h: any) => h.fmH_Id === Number(headId))?.fmH_FeeName;
-        const group = groupData.data.find((g: any) => g.fmG_Id === Number(groupId))?.fmG_GroupName;
-        return head === 'TRANSPORT FEE' && group && ['TRANSPORT FEE', 'TRANSPORT OTHER FEE', 'TRANSPORT UKG AND LKG FEE'].includes(group);
-    }, [headId, groupId, refundableData, groupData]);
+    // const showFeeInstallment = useMemo(() => {
+    //     if (!headId || !groupId || !refundableData?.data || !groupData?.data) return false;
+    //     const head = refundableData.data.find((h: any) => h.fmH_Id === Number(headId))?.fmH_FeeName;
+    //     const group = groupData.data.find((g: any) => g.fmG_Id === Number(groupId))?.fmG_GroupName;
+    //     return head === 'TRANSPORT FEE' && group && ['TRANSPORT FEE', 'TRANSPORT OTHER FEE', 'TRANSPORT UKG AND LKG FEE'].includes(group);
+    // }, [headId, groupId, refundableData, groupData]);
 
     const loadStudents = useCallback(async () => {
         if (!academicYearId || !headId) return toast.error('Please select Academic Year and Fee Head');
@@ -221,7 +237,7 @@ export default function AddFeeOpeningBalanceForm({
                 studenttype: activeType,
                 FMG_Id: groupId ? Number(groupId) : 0,
                 FMH_Id: Number(headId),
-                userid: 9,
+                // userid: 9,
                 isPDA: isPDA ? 'Y' : 'N',
                 TempArrayHeadList: [{ FTI_Id: installmentId ? Number(installmentId) : 0 }]
             };
@@ -610,33 +626,33 @@ export default function AddFeeOpeningBalanceForm({
                     )}
 
                     {/* Installment */}
-                    {showFeeInstallment && (
-                        <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                            <Label className='w-44 text-right'>Installment</Label>
-                            <div className='w-full sm:w-96'>
-                                <Controller
-                                    name='installmentId'
-                                    control={control}
-                                    render={({ field }) => (
-                                        <Select
-                                            onValueChange={(v) => field.onChange(v ? Number(v) : undefined)}
-                                            value={field.value?.toString()}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder={loadingInstallments ? 'Loading...' : 'Select Installment'} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {installmentData?.data?.map((item: any) => (
-                                                    <SelectItem key={item.ftI_Id} value={String(item.ftI_Id)}>
-                                                        {item.ftI_Name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    )}
-                                />
-                            </div>
+                    {/* {showFeeInstallment && ( */}
+                    <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+                        <Label className='w-44 text-right'>Installment</Label>
+                        <div className='w-full sm:w-96'>
+                            <Controller
+                                name='installmentId'
+                                control={control}
+                                render={({ field }) => (
+                                    <Select
+                                        onValueChange={(v) => field.onChange(v ? Number(v) : undefined)}
+                                        value={field.value?.toString()}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder={loadingInstallments ? 'Loading...' : 'Select Installment'} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {installmentData?.data?.map((item: any) => (
+                                                <SelectItem key={item.ftI_Id} value={String(item.ftI_Id)}>
+                                                    {item.ftI_Name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
                         </div>
-                    )}
+                    </div>
+                    {/* )} */}
                 </div>
 
                 {/* Right Column - UNCHANGED */}

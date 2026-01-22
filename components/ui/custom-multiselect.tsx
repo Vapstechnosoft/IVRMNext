@@ -8,6 +8,7 @@ import { useState } from 'react';
 interface Option {
     label: string;
     value: string;
+    disabled?: boolean;
 }
 
 interface CustomMultiSelectBoxProps {
