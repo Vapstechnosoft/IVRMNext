@@ -106,7 +106,7 @@ export default function FeeDefaulterReportstthomas() {
                 asmaY_Year: item.asmaY_Year ?? 'Unknown Year',
                 asmaY_Order: item.asmaY_Order ?? 0
             }));
-            formatted.sort((a, b) => (b.asmaY_Order || 0) - (a.asmaY_Order || 0));
+            //formatted.sort((a, b) => (b.asmaY_Order || 0) - (a.asmaY_Order || 0));
             setAcademicYears(formatted);
         }
     }, [academicData, academicError]);

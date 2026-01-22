@@ -115,7 +115,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
             }
 
             try {
-                const response = await getGroupListCategory(30, Number(academicYear), {}); // mi_id = 30
+                const response = await getGroupListCategory(Number(academicYear), {}); // mi_id = 30
                 if (response?.data && Array.isArray(response.data)) {
                     const options = response.data.map((item: any) => ({
                         value: item.asmcL_Id.toString(),
@@ -161,15 +161,15 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
 
             const payload = {
                 FYCC_Id: 0,
-                MI_Id: 30,
+                // MI_Id: 30,
                 FMCC_Id: Number(classCategory), // Selected class category ID
                 ASMAY_Id: Number(academicYear), // Selected academic year
                 ASMCL_ID: 0, // Always 0 as per your rules (single class will be in TempararyArrayList)
                 FYCC_ActiveFlag: true,
                 ClassList: classes.map((clsId) => ({
                     ASMCL_ID: Number(clsId)
-                })),
-                user_id: 21602 // Static user id
+                }))
+                // user_id: 21602 // Static user id
             };
 
             console.log('Payload:', payload);

@@ -41,7 +41,7 @@ export default function AddMasterClassCategoryForm({ onSuccess, className = '' }
             const { fmcC_ClassCategoryName, fmcC_ClassCategoryCode } = data;
 
             const payload = {
-                mI_Id: 30,
+                // mI_Id: 30,
                 fmcC_Id: 0,
                 fmcC_ClassCategoryName,
                 fmcC_ClassCategoryCode,

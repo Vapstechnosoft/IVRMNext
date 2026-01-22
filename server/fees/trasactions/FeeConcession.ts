@@ -27,17 +27,18 @@ export async function getConcessionTermDropdownData(groupOrTerm: string, asmaY_I
 }
 
 export async function getConcessionAcademicDropdownData(mi_Id: number) {
-    const url = `FeeConcessionFacade/getacademicyears/${mi_Id || 30}`;
+    const url = 'FeeConcessionFacade/getacademicyears';
     return await api.get<IFeeConcessionAcademicyearDropDownList[]>('fees', url);
 }
 
 export async function getConcessionClassesDropdownData(mi_Id: number) {
-    const url = `FeeConcessionFacade/getclasses/${mi_Id || 30}`;
+    const url = 'FeeConcessionFacade/getclasses';
     return await api.get<IFeeConcessionClassDropDownList[]>('fees', url);
 }
 
 export async function getConcessionCategoryDropdownData(mi_Id: number) {
-    const url = `FeeConcessionFacade/getfeeconcessioncategories/${mi_Id || 30}`;
+    //const url = 'FeeConcessionFacade/getfeeconcessioncategories';
+    const url = 'FeeConcessionFacade/getadmconcessioncategories';
     return await api.get<IFeeConcessionCategoryDropDownList[]>('fees', url);
 }
 
@@ -59,7 +60,7 @@ export async function getConcessionStudentConcessionGrid(
     asmcL_Id: number,
     searchParams?: ApiSearchparams
 ) {
-    const url = `FeeConcessionFacade/getstudentconcessions?MiId=${mi_Id || 30}&AsmayId=${asmaY_Id || 0}&AsmclId=${asmcL_Id || 0}`;
+    const url = `FeeConcessionFacade/getstudentconcessions?AsmayId=${asmaY_Id || 0}&AsmclId=${asmcL_Id || 0}`;
     return await api.get<IFeeConcessionStudentConcessionGrid[]>('fees', url);
 }
 export async function saveFeeHead(data: any) {

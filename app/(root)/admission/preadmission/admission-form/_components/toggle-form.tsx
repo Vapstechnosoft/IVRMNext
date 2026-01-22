@@ -2,130 +2,82 @@
 
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
-import { FormError } from '@/components/ui/extension/field';
-import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { useActivePreadmissionDetails, useStudentApplicationList } from '@/hooks/admission/preadmission/useTransactions';
-import { studentApplicationFormSchema } from '@/schemas/admission/preadmission/transactions';
-import { toggleStudentApplication } from '@/server/admission/preadmission/transactions/application_form';
+import { deleteAdmissionForm } from '@/server/admission/admission-form/admission';
 import type { IadmissionStudentApplicationList } from '@/types/admission/admission';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Power, PowerOff, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import type { z } from 'zod';
 
-type FormFields = z.infer<typeof studentApplicationFormSchema.delete>;
-
-export default function ToggleStudentApplicationForm({ row, cell }: { row?: any; cell?: any }) {
+export default function DeleteMasterClassForm({ row, cell }: { row?: any; cell?: any }) {
     const data = cell?.getValue ? cell.getValue() : row;
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [isActive, setIsActive] = useState(Number(data?.pasR_ActiveFlag) === 0);
-    const [selectedRow, setSelectedRow] = useState<IadmissionStudentApplicationList>();
-    const { data: activePreadmission } = useActivePreadmissionDetails();
-    const { refetchAll } = useStudentApplicationList(activePreadmission?.data?.asmaY_Id ?? 0);
+    const [selectedRow, setSelectedRow] = useState<IadmissionStudentApplicationList | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
-    const handleToggle = () => {
+    const handleOpen = () => {
         setSelectedRow(data);
         setIsDialogOpen(true);
     };
 
     function closeDialog() {
         setIsDialogOpen(false);
-        reset();
+        setSelectedRow(null);
     }
 
-    const {
-        register,
-        handleSubmit,
-        reset,
-        formState: { errors, isSubmitting }
-    } = useForm<FormFields>({
-        resolver: zodResolver(studentApplicationFormSchema.delete),
-        mode: 'onChange'
-    });
-
-    const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
+    async function onDelete() {
         try {
-            const { pasr_id } = data;
-            const newStatus = !isActive;
+            setIsDeleting(true);
+            // prefer common id shapes: amsT_Id, AMST_Id, amst_Id, amsTId, id
+            const id = Number(selectedRow?.amsT_Id ?? 0) || 0;
 
-            const response = await toggleStudentApplication(Number(pasr_id));
+            if (!id) return toast.error('Unable to determine admission id for delete');
 
-            if (response.success) {
-                toast.success(response.message);
-                setIsActive(newStatus);
-                refetchAll();
+            const response: any = await deleteAdmissionForm(id as number);
+
+            if (response?.success) {
+                toast.success(response.message ?? 'Deleted successfully');
                 closeDialog();
+                // best-effort refresh
+                window.location.reload();
             } else {
-                toast.error(response.message);
+                toast.error(response?.message ?? 'Delete failed');
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error?.message ?? 'Delete failed');
+        } finally {
+            setIsDeleting(false);
         }
-    };
+    }
 
     return (
         <>
             <Tooltip>
                 <TooltipTrigger asChild>
                     <div className='flex items-center gap-2 rounded-md px-2 py-1 transition-all duration-200 hover:bg-gray-50'>
-                        <div className='flex cursor-default items-center gap-1'>
-                            {isActive ? <Power className='h-3 w-3 text-green-600' /> : <PowerOff className='h-3 w-3 text-red-500' />}
-                            <span className={`font-medium text-xs ${isActive ? 'text-green-700' : 'text-red-600'}`}>
-                                {isActive ? 'Active' : 'Inactive'}
-                            </span>
-                        </div>
-                        <Switch
-                            checked={isActive}
-                            onCheckedChange={handleToggle}
-                            className='data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-400'
-                        />
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    type='button'
-                                    variant='ghost'
-                                    size='sm'
-                                    disabled={!isActive}
-                                    onClick={handleToggle}
-                                    className='w-fit p-1'>
-                                    <Trash2 className={`h-4 w-4 ${isActive ? 'text-red-500' : 'text-gray-300'}`} />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>{isActive ? 'Delete' : 'Cannot delete - Inactive'}</p>
-                            </TooltipContent>
-                        </Tooltip>
+                        <Button type='button' variant='ghost' size='sm' onClick={handleOpen} className='p-1'>
+                            <Trash2 className='h-4 w-4 text-red-600' />
+                        </Button>
                     </div>
                 </TooltipTrigger>
-                <TooltipContent>
-                    <p>{isActive ? 'Deactivate' : 'Activate'}</p>
-                </TooltipContent>
+                <TooltipContent>Delete</TooltipContent>
             </Tooltip>
 
             {selectedRow && (
-                <AdaptiveDialog title='Active/Inactive Brand' isOpen={isDialogOpen} onClose={closeDialog}>
-                    <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
+                <AdaptiveDialog title='Delete Admission' isOpen={isDialogOpen} onClose={closeDialog}>
+                    <div className='flex flex-col gap-4'>
                         <AdaptiveBody className='flex flex-col gap-5'>
-                            <input type='text' hidden={true} {...register('pasr_id')} defaultValue={selectedRow.pasr_id} />
-                            <p>
-                                Are you sure you want to {isActive ? 'inactivate' : 'activate'} {selectedRow.student_name}?
-                            </p>
-
-                            <FormError>{errors.pasr_id?.message}</FormError>
-                            <FormError>{errors.root?.message}</FormError>
+                            <p>Are you sure you want to delete {selectedRow.studentName}?</p>
                         </AdaptiveBody>
                         <AdaptiveFooter>
-                            <Button variant='secondary' onClick={closeDialog}>
+                            <Button variant='secondary' onClick={closeDialog} disabled={isDeleting}>
                                 Cancel
                             </Button>
-                            <Button type='submit' isLoading={isSubmitting}>
-                                {isActive ? 'Inactivate' : 'Activate'}
+                            <Button type='button' onClick={onDelete} disabled={isDeleting}>
+                                {isDeleting ? 'Deleting...' : 'Delete'}
                             </Button>
                         </AdaptiveFooter>
-                    </form>
+                    </div>
                 </AdaptiveDialog>
             )}
         </>

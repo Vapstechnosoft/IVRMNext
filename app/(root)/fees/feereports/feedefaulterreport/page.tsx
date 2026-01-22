@@ -447,6 +447,27 @@ export default function FeeDefaulterReport() {
         });
     }, [studentreportData, sortConfig]);
 
+    // Add this filtering logic for students
+    const filteredStudentData = useMemo(() => {
+        // If no search term, return all data
+        if (!search.trim()) return studentreportData;
+
+        const searchTerm = search.toLowerCase().trim();
+
+        // Filter students based on search term
+        return studentreportData.filter((student) => {
+            return (
+                student.name.toLowerCase().includes(searchTerm) ||
+                student.admissionNo.toLowerCase().includes(searchTerm) ||
+                student.classSection.toLowerCase().includes(searchTerm) ||
+                student.fatherName.toLowerCase().includes(searchTerm) ||
+                student.mobileNumber.toLowerCase().includes(searchTerm) ||
+                student.emailId.toLowerCase().includes(searchTerm) ||
+                student.route.toLowerCase().includes(searchTerm) ||
+                student.balanceAmount.toString().includes(searchTerm)
+            );
+        });
+    }, [studentreportData, search]); // Re-run when data or search changes
     // Update the toggleCommunicationMethod function
     // const toggleCommunicationMethod = (method: keyof typeof communicationMethods) => {
     //     setCommunicationMethods((prev) => ({
@@ -1052,7 +1073,7 @@ export default function FeeDefaulterReport() {
                 <div className='mx-auto max-w-7xl'>
                     <Card className='border-0 shadow-xl'>
                         <div className='p-8'>
-                            <h1 className='mb-8 font-bold text-3xl text-gray-900'>Fee Defaulter Report</h1>
+                            <h1 className='mb-8 font-bold text-3xl text-gray-900'>Yearly Fee Defaulter Report</h1>
 
                             <div className='space-y-8'>
                                 {/* User Type Card */}
@@ -2521,8 +2542,44 @@ export default function FeeDefaulterReport() {
                                                                                 <td className='p-2 text-center'>{row.feeGroup}</td>
                                                                             </tr>
                                                                         ))} */}
+                                                                        {filteredStudentData.length === 0 ? (
+                                                                            <tr>
+                                                                                <td colSpan={11} className='p-4 text-center text-gray-500'>
+                                                                                    {search.trim()
+                                                                                        ? `No students found for "${search}"`
+                                                                                        : 'No student data available'}
+                                                                                </td>
+                                                                            </tr>
+                                                                        ) : (
+                                                                            // Use sortedData for display (which sorts the filtered data)
+                                                                            sortedData.map((row, index) => (
+                                                                                <tr key={row.id} className='border-b hover:bg-gray-50'>
+                                                                                    <td className='p-2 text-center'>
+                                                                                        <Checkbox
+                                                                                            checked={selectedIds.includes(row.id)}
+                                                                                            onCheckedChange={() => toggleRow(row.id)}
+                                                                                        />
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-medium'>
+                                                                                        {index + 1}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-medium'>
+                                                                                        {row.name}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center'>{row.admissionNo}</td>
+                                                                                    <td className='p-2 text-center'>{row.classSection}</td>
+                                                                                    <td className='p-2 text-center'>{row.fatherName}</td>
+                                                                                    <td className='p-2 text-center'>{row.mobileNumber}</td>
+                                                                                    <td className='p-2 text-center'>{row.emailId}</td>
+                                                                                    <td className='p-2 text-center'>{row.route}</td>
+                                                                                    <td className='p-2 text-center font-bold'>
+                                                                                        ₹{row.balanceAmount.toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                </tr>
+                                                                            ))
+                                                                        )}
 
-                                                                        {sortedData.map((row, index) => (
+                                                                        {/* {sortedData.map((row, index) => (
                                                                             <tr key={row.id} className='border-b hover:bg-gray-50'>
                                                                                 <td className='p-2 text-center'>
                                                                                     <Checkbox
@@ -2542,7 +2599,7 @@ export default function FeeDefaulterReport() {
                                                                                     ₹{row.balanceAmount.toLocaleString('en-IN')}
                                                                                 </td>
                                                                             </tr>
-                                                                        ))}
+                                                                        ))} */}
 
                                                                         {/* Totals Row */}
                                                                         {/* <tr className='bg-gray-100 font-bold'>

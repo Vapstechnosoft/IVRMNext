@@ -4,21 +4,21 @@ import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Edit } from 'lucide-react';
+import { Download, Edit } from 'lucide-react';
 
 import { ROLES } from '@/constants';
 
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 
-import { useStudentApplicationForm } from '@/hooks/admission/preadmission/useTransactions';
+import { useStudentAdmissionFormById } from '@/hooks/admission/admissionForm';
 import type { IadmissionStudentApplicationList } from '@/types/admission/admission';
 import { toast } from 'sonner';
 import DeleteMasterClassForm from './toggle-form';
 
 export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationList>[] = [
     {
-        accessorKey: 'pasr_id',
+        accessorKey: 'amsT_Id',
         header: ({ column }) => <DataTableColumnHeader className='w-full pl-6' column={column} title='Sl.No' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
@@ -29,74 +29,119 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
         enableSorting: true,
         enableHiding: false
     },
+    //   {
+    //     accessorKey: 'amsT_Id',
+    //     header: ({ column }) => <DataTableColumnHeader column={column} title='Name/view Profile' />,
+    //     cell: ({ row }) => <div>{row.getValue('amsT_Id') ?? 'N.A'}</div>,
+    //     enableSorting: true,
+    //     enableHiding: true
+    // },
     {
-        accessorKey: 'pasR_profile',
+        accessorKey: 'studentName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Name/view Profile' />,
-        cell: ({ row }) => <div>{row.getValue('pasR_profile') ?? 'N.A'}</div>,
+        cell: ({ row }) => <div>{row.getValue('studentName') ?? 'N.A'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'student_class',
+        accessorKey: 'className',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />,
-        cell: ({ row }) => <div>{row.getValue('student_class')}</div>,
+        cell: ({ row }) => <div>{row.getValue('className')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'pasR_date',
+        accessorKey: 'admissionDate',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Date' />,
-        cell: ({ row }) => <div>{row.getValue('pasR_date')}</div>,
+        cell: ({ row }) => <div>{row.getValue('admissionDate')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'applied_class_gender',
+        accessorKey: 'gender',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Gender' />,
-        cell: ({ row }) => <div>{row.getValue('applied_class_gender')}</div>,
+        cell: ({ row }) => <div>{row.getValue('gender')}</div>,
         enableSorting: true,
         enableHiding: true
     },
 
     {
-        accessorKey: 'admission_reg_no',
+        accessorKey: 'registrationNo',
         header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='Reg.No.' />,
-        cell: ({ row }) => <div>{row.getValue('admission_reg_no')}</div>,
+        cell: ({ row }) => <div>{row.getValue('registrationNo')}</div>,
         enableSorting: false,
         enableHiding: true
     },
     {
-        accessorKey: 'applied_admission_no',
+        accessorKey: 'admissionNo',
         header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='Adm.No.' />,
-        cell: ({ row }) => <div>{row.getValue('applied_admission_no')}</div>,
+        cell: ({ row }) => <div>{row.getValue('admissionNo')}</div>,
         enableSorting: false,
         enableHiding: true
     },
     {
-        accessorKey: 'applied_email',
+        accessorKey: 'emailId',
         header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='Email Id' />,
-        cell: ({ row }) => <div>{row.getValue('applied_email')}</div>,
+        cell: ({ row }) => <div>{row.getValue('emailId')}</div>,
         enableSorting: false,
         enableHiding: true
     },
     {
-        accessorKey: 'applied_mobile',
+        accessorKey: 'mobileNo',
         header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='Mobile No' />,
-        cell: ({ row }) => <div>{row.getValue('applied_mobile')}</div>,
+        cell: ({ row }) => <div>{row.getValue('mobileNo')}</div>,
         enableSorting: false,
         enableHiding: true
     },
+    // {
+    //     accessorKey: 'isActive',
+    //     header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='Status.' />,
+    //     cell: ({ row }) => <div>{row.getValue('isActive')}</div>,
+    //     enableSorting: false,
+    //     enableHiding: true
+    // },
     {
-        accessorKey: 'admission_status',
-        header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='Status.' />,
-        cell: ({ row }) => <div>{row.getValue('admission_status')}</div>,
-        enableSorting: false,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'admission_Photo',
+        accessorKey: 'studentPhotoUrl',
         header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='Photo' />,
-        cell: ({ row }) => <div>{row.getValue('admission_Photo')}</div>,
+        cell: ({ row }) => {
+            const photo = row.getValue('studentPhotoUrl') as string | null;
+
+            const handleDownload = async () => {
+                if (!photo) {
+                    toast.error('No photo available to download');
+                    return;
+                }
+
+                try {
+                    const res = await fetch(photo);
+                    if (!res.ok) throw new Error('Network response was not ok');
+                    const blob = await res.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    const filename = photo.split('/').pop()?.split('?')[0] || 'photo.jpg';
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    URL.revokeObjectURL(url);
+                } catch (err) {
+                    // eslint-disable-next-line no-console
+                    console.error('Download failed', err);
+                    toast.error('Unable to download photo');
+                }
+            };
+
+            return (
+                <div className='flex items-center gap-2'>
+                    <div>
+                        <Button type='button' variant='ghost' size='sm' onClick={handleDownload} className='p-1'>
+                            <Download className='h-4 w-4' />
+                        </Button>
+                    </div>
+                </div>
+            );
+        },
         enableSorting: false,
         enableHiding: true
     },
@@ -112,48 +157,199 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
         cell: ({ cell }: { cell: any }) => {
             const { openEditForm } = useFormContext<IadmissionStudentApplicationList>();
             const session = useSession();
-            const [pasrId, setPasrId] = useState<number>(0);
+            const [amstId, setAmstId] = useState<number>(0);
 
-            const { data: applicationFormDetails, isLoading: applicationFormDetailsLoading } = useStudentApplicationForm(pasrId);
+            const {
+                data: applicationFormDetails,
+                isLoading: applicationFormDetailsLoading,
+                error: applicationFormError
+            } = useStudentAdmissionFormById(amstId);
 
             useEffect(() => {
-                if (session?.data?.role === undefined) {
-                    window.location.reload();
-                }
+                // Avoid forcing a full page reload when session role is temporarily undefined.
+                // Session lifecycle should be handled elsewhere; do nothing here.
             }, [session?.data?.role]);
 
             // Trigger form open when applicationFormDetails is loaded
             useEffect(() => {
-                if (pasrId && applicationFormDetails?.data && !applicationFormDetailsLoading) {
+                if (applicationFormError) {
+                    console.error('Failed to fetch application details:', applicationFormError);
+                    toast.error('Unable to fetch application details');
+                    setAmstId(0);
+                    return;
+                }
+
+                if (amstId && applicationFormDetails?.data && !applicationFormDetailsLoading) {
                     try {
                         const resp = applicationFormDetails.data;
-                        const student = resp?.student_details || resp || {};
-                        const payload = {
-                            ...student,
-                            selectedSourceDetails: (resp?.student_sources || resp?.studentSource || []).map((s: any) => ({
-                                pamS_Id: String(s.pamS_Id)
-                            })),
-                            selectedRefrenceDetails: (resp?.student_refrences || resp?.studentReference || []).map((r: any) => ({
-                                pamR_Id: String(r.pamR_Id)
-                            })),
-                            siblingsDetails: resp?.student_siblings || [],
-                            previousSchoolDetails: resp?.previous_schools || [],
-                            selectedDocuments: (resp?.student_documents || []).map((d: any) => ({
-                                pasrD_Id: d.pasrD_Id,
-                                pasR_Id: d.pasR_Id,
-                                amsmD_Id: d.amsmD_Id,
-                                document_Path: d.document_Path
-                            }))
-                        };
+
+                        // If backend returned a "full" structured object (firstTab/secondTab/thirdTab...)
+                        // merge those tabs into a single student payload so the edit form can autofill.
+                        const hasTabbed = Boolean(
+                            (resp && (resp.firstTab || resp.secondTab || resp.thirdTab)) ||
+                                (resp?.data && (resp.data.firstTab || resp.data.secondTab || resp.data.thirdTab))
+                        );
+
+                        let payload: any;
+
+                        if (hasTabbed) {
+                            // support both shapes: resp itself has tabs, or resp.data has tabs
+                            const src = resp.firstTab ? resp : resp.data ? resp.data : resp;
+                            const combined = {
+                                ...(src.firstTab || {}),
+                                ...(src.secondTab || {}),
+                                ...(src.thirdTab || {}),
+                                ...(src.fourthTab || {}),
+                                ...(src.fifthTab || {}),
+                                ...(src.lastTab || {})
+                            };
+
+                            payload = {
+                                ...combined,
+                                // normalized arrays expected by update-form.tsx
+                                adm_M_Student_EmailIdDTO: src.firstTab?.emailIds || src.emailIds || src.adm_M_Student_EmailIdDTO || [],
+                                mobileNos: src.firstTab?.mobileNos || src.mobileNos || [],
+                                previousSchools: (
+                                    src.fourthTab?.previousSchools ||
+                                    src.previousSchools ||
+                                    src.previous_schools ||
+                                    src.previousSchoolDetails ||
+                                    []
+                                ).map((ps: any) => ({
+                                    amstpS_Id: ps?.amstpS_Id ?? ps?.id ?? '',
+                                    schoolName: ps.schoolName ?? ps.pasrpS_PrvSchoolName ?? ps.pasrS_SchoolName ?? '',
+                                    schoolType: String(ps.schoolType ?? ''),
+                                    class: String((ps.class || ps.classId) ?? ''),
+                                    percentage: ps.percentage ?? ps.pasrpS_PreviousPer ?? '',
+                                    grade: ps.grade ?? ps.pasrpS_PreviousGrade ?? '',
+                                    passedYear: ps.passedYear ? Number(ps.passedYear) : 0,
+                                    country: String(ps.country ?? ''),
+                                    state: String(ps.state ?? ''),
+                                    address: ps.address ?? ps.pasrpS_Address ?? '',
+                                    leftReason: ps.leftReason ?? ps.pasrpS_LeftReason ?? '',
+                                    medium: ps.medium ?? '',
+                                    tcNumber: ps.tcNumber ?? ps.pasrpS_TcNo ?? '',
+                                    tcDate: ps.tcDate ? (ps.tcDate instanceof Date ? ps.tcDate.toISOString() : String(ps.tcDate)) : ''
+                                })),
+                                siblings: (
+                                    src.fourthTab?.siblings ||
+                                    src.siblings ||
+                                    src.student_siblings ||
+                                    src.siblingsDetails ||
+                                    []
+                                ).map((s: any) => ({
+                                    ...s,
+                                    amsts_Id: s?.amstS_Id ?? s?.amsts_Id ?? s?.id ?? 0
+                                })),
+                                guardian: (src.guardians || src.guardian || src.guardiansDetails || []).map((g: any) => ({
+                                    ...g,
+                                    guardian_Id: g?.guardian_Id ?? g?.guardianId ?? g?.id ?? null
+                                })),
+                                selectedSourceDetails: (
+                                    src.fourthTab?.selectedSourceDetails ||
+                                    src.selectedSource ||
+                                    src.student_sources ||
+                                    []
+                                )
+                                    .filter(Boolean)
+                                    .map((s: any) => ({
+                                        pamS_Id: String(s?.pamS_Id)
+                                    })),
+                                selectedRefrenceDetails: (
+                                    src.selectedRefrenceDetails ||
+                                    src.selectedReference ||
+                                    src.student_refrences ||
+                                    []
+                                )
+                                    .filter(Boolean)
+                                    .map((r: any) => ({
+                                        pamR_Id: String(r?.pamR_Id)
+                                    })),
+                                selectedDocuments: (src.student_documents || src.selectedDocuments || []).filter(Boolean).map((d: any) => ({
+                                    pasrD_Id: d?.pasrD_Id,
+                                    pasR_Id: d?.pasR_Id,
+                                    amsmD_Id: d?.amsmD_Id,
+                                    document_Path: d?.document_Path
+                                })),
+                                activities: (src.fourthTab?.activities || src.activities || []).map((a: any) => ({
+                                    activityId: a?.activityId,
+                                    isSelected: a?.isSelected ?? true
+                                })),
+                                sourceDetails: (src.fourthTab?.sourceDetails || src.sourceDetails || []).map((s: any) => ({
+                                    sourceId: s?.sourceId,
+                                    isSelected: s?.isSelected ?? true
+                                }))
+                            };
+                        } else {
+                            // fallback to older/flat shape
+                            const student = resp?.student_details || resp || {};
+                            payload = {
+                                ...student,
+                                // normalized keys for flat responses
+                                adm_M_Student_EmailIdDTO: resp?.emailIds || resp?.adm_M_Student_EmailIdDTO || [],
+                                mobileNos: resp?.mobileNos || [],
+                                previousSchools: (resp?.previousSchools || resp?.previous_schools || []).map((ps: any) => ({
+                                    amstpS_Id: ps?.amstpS_Id ?? ps?.id ?? '',
+                                    schoolName: ps.schoolName ?? ps.pasrpS_PrvSchoolName ?? ps.pasrS_SchoolName ?? '',
+                                    schoolType: String(ps.schoolType ?? ''),
+                                    class: String((ps.class || ps.classId) ?? ''),
+                                    percentage: ps.percentage ?? ps.pasrpS_PreviousPer ?? '',
+                                    grade: ps.grade ?? ps.pasrpS_PreviousGrade ?? '',
+                                    passedYear: ps.passedYear ? Number(ps.passedYear) : 0,
+                                    country: String(ps.country ?? ''),
+                                    state: String(ps.state ?? ''),
+                                    address: ps.address ?? ps.pasrpS_Address ?? '',
+                                    leftReason: ps.leftReason ?? ps.pasrpS_LeftReason ?? '',
+                                    medium: ps.medium ?? '',
+                                    tcNumber: ps.tcNumber ?? ps.pasrpS_TcNo ?? '',
+                                    tcDate: ps.tcDate ? (ps.tcDate instanceof Date ? ps.tcDate.toISOString() : String(ps.tcDate)) : ''
+                                })),
+                                siblings: (resp?.siblings || resp?.student_siblings || []).map((s: any) => ({
+                                    ...s,
+                                    amsts_Id: s?.amstS_Id ?? s?.amsts_Id ?? s?.id ?? 0
+                                })),
+                                guardian: (resp?.guardian || resp?.guardians || []).map((g: any) => ({
+                                    ...g,
+                                    guardian_Id: g?.guardian_Id ?? g?.guardianId ?? g?.id ?? null
+                                })),
+                                selectedSourceDetails: (resp?.student_sources || resp?.studentSource || [])
+                                    .filter(Boolean)
+                                    .map((s: any) => ({
+                                        pamS_Id: String(s?.pamS_Id)
+                                    })),
+                                selectedRefrenceDetails: (resp?.student_refrences || resp?.studentReference || [])
+                                    .filter(Boolean)
+                                    .map((r: any) => ({
+                                        pamR_Id: String(r?.pamR_Id)
+                                    })),
+                                selectedDocuments: (resp?.student_documents || []).filter(Boolean).map((d: any) => ({
+                                    pasrD_Id: d?.pasrD_Id,
+                                    pasR_Id: d?.pasR_Id,
+                                    amsmD_Id: d?.amsmD_Id,
+                                    document_Path: d?.document_Path
+                                })),
+                                activities: (resp?.activities || []).map((a: any) => ({
+                                    activityId: a?.activityId,
+                                    isSelected: a?.isSelected ?? true
+                                })),
+                                sourceDetails: (resp?.sourceDetails || []).map((s: any) => ({
+                                    sourceId: s?.sourceId,
+                                    isSelected: s?.isSelected ?? true
+                                }))
+                            };
+                        }
+
+                        // Open edit form with the flattened payload (matches update-form expectations)
                         openEditForm(payload);
-                        setPasrId(0); // Reset after opening
+                        setAmstId(0); // Reset after opening
                     } catch (error) {
-                        console.error('Error fetching application details:', error);
-                        toast.error('Unable to fetch application details');
-                        setPasrId(0); // Reset on error
+                        // eslint-disable-next-line no-console
+                        console.error('Error processing application details:', error);
+                        toast.error('Unable to process application details');
+                        setAmstId(0); // Reset on error
                     }
                 }
-            }, [pasrId, applicationFormDetails, applicationFormDetailsLoading]);
+            }, [applicationFormDetails, applicationFormDetailsLoading, applicationFormError]);
 
             return (
                 <div className='flex items-start justify-start gap-2'>
@@ -163,8 +359,14 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
                         size='sm'
                         disabled={applicationFormDetailsLoading}
                         onClick={() => {
-                            const rowData = cell.row.original;
-                            setPasrId(rowData.pasr_id);
+                            const rowData = cell.row.original as any;
+                            // Prefer the admission's amsT_Id; fall back to common id shapes
+                            const id = rowData?.amsT_Id ?? rowData?.amsTId ?? rowData?.id ?? 0;
+                            if (id) {
+                                setAmstId(Number(id));
+                            } else {
+                                toast.error('Unable to determine admission id for edit');
+                            }
                         }}
                         className='w-fit p-1'>
                         {applicationFormDetailsLoading ? (

@@ -209,6 +209,22 @@ export interface IMasterTermsList {
     fmT_ActiveFlag: boolean;
 }
 
+export interface IMasterTermsDropDownList {
+    fmT_Id: number;
+    mI_Id: number;
+    fmT_Name: string;
+    fmT_ActiveFlag: boolean;
+    fromMonth: string | null;
+    toMonth: string | null;
+    fmT_Order: number | null;
+    fmT_Year: number | null;
+    transport_FromMonth: string | null;
+    transport_ToMonth: string | null;
+    fmT_IncludeArrearFeeFlg: boolean;
+    createdDate: string;
+    updatedDate: string;
+}
+
 export interface IMasterpaymentGatewayDropdownList {
     impG_Id: number;
     impG_PGName: string;
