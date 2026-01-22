@@ -7,7 +7,7 @@ import { format } from 'date-fns';
 const formatDate = (date?: Date | null) => (date ? format(date, 'yyyy-MM-dd') : undefined);
 export async function getStudentTcReport(data: any, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, ',ivrmmR_Name');
-    const url = `/StudentTcReport/GetAdmissionTcReport?${urlParams}&ASMAY_Id=${data.ASMAY_Id}&AllOrInd=${data.AllOrInd}&ASMCL_Id=${data.ASMCL_Id}&ASMC_Id=${data.ASMC_Id}&TempararyArrayheadList=${data.TempararyArrayheadList}&PermOrTemp=${data.PermOrTemp}&AMC_Id=${data.AMC_Id}`;
+    const url = `/StudentTcReport/GetAdmissionTcReport?${urlParams}`;
     return await api.post<any>('admission', url, data);
 }
 export async function getMonthEndReport(data: any) {
@@ -29,12 +29,12 @@ export async function getExcelMonthEndReport(data: {
 }
 
 export async function getPreAdmissionMonthEndReport(data: any, searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, ',ivrmmR_Name');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'Name');
     const url = `/PreAdmissionMonthEndReport/GetPreAdmissionMonthEndReport?Year=${data.year}&Month=${data.month}&Amay=${data.ASMAY_Id}&${urlParams}`;
     return await api.post<any>('admission', url, data);
 }
 export async function getPreAdmissionRegistrationReport(data: any, searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'name,email_Id,mob_No,created_Date');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'Name');
     let url = `/RegistrationReport/GetRegistrationReport?${urlParams}`;
 
     // YEAR WISE
@@ -54,7 +54,7 @@ export async function getPreAdmissionRegistrationReport(data: any, searchParams?
     return await api.post<any>('admission', url);
 }
 export async function getPreAdmissionExcelRegistrationReport(data: any, searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'name,email_Id,mob_No,created_Date');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'Name');
     let url = `/RegistrationReport/ExportRegistrationReport?${urlParams}`;
 
     // YEAR WISE
@@ -74,7 +74,7 @@ export async function getPreAdmissionExcelRegistrationReport(data: any, searchPa
     return await api.post<any>('admission', url);
 }
 export async function getPreAdmissionEmailSmsReport(data: any, searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'name,email_Id,mob_No,created_Date');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'Name');
     let url = `/EmailSmsReport/GetSMSEmailReport?${urlParams}`;
 
     // YEAR WISE
