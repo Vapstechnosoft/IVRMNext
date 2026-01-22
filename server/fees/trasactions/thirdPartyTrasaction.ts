@@ -8,6 +8,7 @@ import type {
     IFeeThirdPartyTransactionGroupDropDown,
     IFeeThirdPartyTransactionHeadDropDown,
     IFeeThirdPartyTransactionStudentDetails,
+    IThirdPartyReceiptFlag,
     IThirdPartyTransactionEditdata
 } from '@/types/fees/transactions/transactions';
 
@@ -79,5 +80,5 @@ export async function ThirdPartyTrasactionfeeReceiptNoflg() {
     const url = '/ThirdPartyTransaction/ThirdPartyTrasactionfeeReceiptNoflg';
 
     console.info('ThirdPartyTrasactionfeeReceiptNoflg', url);
-    return await api.get<any>('fees', url);
+    return await api.get<IThirdPartyReceiptFlag[]>('fees', url);
 }

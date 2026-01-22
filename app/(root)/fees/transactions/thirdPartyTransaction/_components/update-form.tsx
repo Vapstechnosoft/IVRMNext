@@ -45,7 +45,7 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
 
     const [selectedPaymentMode, setSelectedPaymentMode] = useState<string>('B');
     const [loading, setLoading] = useState(false);
-
+    const [receiptnoflgdata, setReceiptnoflgdata] = useState(false);
     const {
         control,
         register,
@@ -82,6 +82,26 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
     } = useeditThirdpartytrasaction(Number(row.mI_Id), Number(row.asmaY_Id), row?.fyP_Id ?? 0, {
         enabled: !!row?.fyP_Id
     });
+
+    useEffect(() => {
+        const fetchReceiptFlag = async () => {
+            try {
+                const res = await ThirdPartyTrasactionfeeReceiptNoflg();
+
+                // assuming API response shape: { data: IThirdPartyReceiptFlag[] }
+                if (res?.data?.length) {
+                    //setReceiptnoflgdata(res.data);
+                    setReceiptnoflgdata(true);
+                } else {
+                    setReceiptnoflgdata(false);
+                }
+            } catch (error) {
+                console.error('Error fetching receipt flag', error);
+            }
+        };
+
+        fetchReceiptFlag();
+    }, []);
 
     useEffect(() => {
         if (!row?.fyP_Id) return;
@@ -334,7 +354,7 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                 />
             </div>
 
-            {(watch('fyP_Receipt_No') || row.fyP_Receipt_No) && (
+            {(watch('fyP_Receipt_No') || row.fyP_Receipt_No) && receiptnoflgdata && (
                 <div className='flex items-center gap-4'>
                     <Label htmlFor='receiptNo' className='min-w-[150px] text-right'>
                         Receipt No <span className='text-red-500'>*</span>
