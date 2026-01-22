@@ -60,7 +60,9 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
                 setIsLoading(true);
                 const res = await getAllMasterSubjectDetails();
                 const data = Array.isArray(res?.data) ? res.data : [];
-                setAllSubjects(data);
+                // Sort by OrderFlag to match Master Subject order
+                const sortedData = data.sort((a, b) => (a.ismS_OrderFlag || 0) - (b.ismS_OrderFlag || 0));
+                setAllSubjects(sortedData);
 
                 if (initialData?.subjects?.length) {
                     const selected = data.filter((s) => initialData.subjects?.some((i) => i.ismS_Id === s.ismS_Id));

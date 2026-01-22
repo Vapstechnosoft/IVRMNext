@@ -18,6 +18,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
+import { toast } from 'sonner';
 
 interface ReportFormProps {
     onReportGenerated: (data: any) => void;
@@ -31,6 +32,10 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     const [sections, setSections] = useState<any[]>([]);
     const [employees, setEmployees] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadingCategories, setLoadingCategories] = useState(false);
+    const [loadingClasses, setLoadingClasses] = useState(false);
+    const [loadingSections, setLoadingSections] = useState(false);
+    const [loadingEmployees, setLoadingEmployees] = useState(false);
 
     const methods = useForm<ExamLoginPrivilegesSchema>({
         resolver: zodResolver(examLoginPrivilegesReportSchema),
@@ -53,51 +58,112 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
 
     // Initial Data
     useEffect(() => {
-        getDetails().then((res) => {
-            setYears(res.acdlist);
-            setLoading(false);
-        });
+        getDetails()
+            .then((res) => {
+                setYears(res.acdlist || []);
+                if (!res.acdlist || res.acdlist.length === 0) {
+                    toast.info('No Academic Years found');
+                }
+                setLoading(false);
+            })
+            .catch((err) => {
+                console.error(err);
+                toast.error('Failed to load initial data');
+                setLoading(false);
+            });
     }, []);
 
     // Load Categories on Year Change
     useEffect(() => {
         if (watchYear) {
-            getCategories(watchYear).then((res) => {
-                setCategories(res.catlist);
-            });
+            setLoadingCategories(true);
+            getCategories(watchYear)
+                .then((res) => {
+                    setCategories(res.catlist || []);
+                    if (!res.catlist || res.catlist.length === 0) {
+                        toast.info('No Categories found');
+                    }
+                    setLoadingCategories(false);
+                })
+                .catch((err) => {
+                    console.error(err);
+                    toast.error('Failed to load categories');
+                    setLoadingCategories(false);
+                });
             setValue('EMCA_Id', '');
             setValue('ASMCL_Id', undefined);
             setValue('ASMS_Id', undefined);
+        } else {
+            setCategories([]);
         }
     }, [watchYear, setValue]);
 
     // Load Classes on Category Change
     useEffect(() => {
         if (watchCategory) {
-            getClasses(watchCategory).then((res) => {
-                setClasses(res.ctlist);
-            });
+            setLoadingClasses(true);
+            getClasses(watchCategory)
+                .then((res) => {
+                    setClasses(res.ctlist || []);
+                    if (!res.ctlist || res.ctlist.length === 0) {
+                        toast.info('No Classes found');
+                    }
+                    setLoadingClasses(false);
+                })
+                .catch((err) => {
+                    console.error(err);
+                    toast.error('Failed to load classes');
+                    setLoadingClasses(false);
+                });
             setValue('ASMCL_Id', undefined);
+        } else {
+            setClasses([]);
         }
     }, [watchCategory, setValue]);
 
     // Load Sections on Class Change
     useEffect(() => {
         if (watchClass) {
-            getSections(watchClass).then((res) => {
-                setSections(res.seclist);
-            });
+            setLoadingSections(true);
+            getSections(watchClass)
+                .then((res) => {
+                    setSections(res.seclist || []);
+                    if (!res.seclist || res.seclist.length === 0) {
+                        toast.info('No Sections found');
+                    }
+                    setLoadingSections(false);
+                })
+                .catch((err) => {
+                    console.error(err);
+                    toast.error('Failed to load sections');
+                    setLoadingSections(false);
+                });
             setValue('ASMS_Id', undefined);
+        } else {
+            setSections([]);
         }
     }, [watchClass, setValue]);
 
     // Load Employees on Section Change
     useEffect(() => {
         if (watchSection) {
-            getEmployees(watchSection).then((res) => {
-                setEmployees(res.emplist);
-            });
+            setLoadingEmployees(true);
+            getEmployees(watchSection)
+                .then((res) => {
+                    setEmployees(res.emplist || []);
+                    if (!res.emplist || res.emplist.length === 0) {
+                        toast.info('No Employees found');
+                    }
+                    setLoadingEmployees(false);
+                })
+                .catch((err) => {
+                    console.error(err);
+                    toast.error('Failed to load employees');
+                    setLoadingEmployees(false);
+                });
             setValue('HRME_Id', undefined);
+        } else {
+            setEmployees([]);
         }
     }, [watchSection, setValue]);
 
@@ -166,16 +232,22 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                     name='ASMAY_Id'
                                     render={({ field, fieldState }) => (
                                         <>
-                                            <Select onValueChange={field.onChange} value={field.value}>
+                                            <Select key={field.value} onValueChange={field.onChange} value={field.value}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Academic Year' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {years.map((year) => (
-                                                        <SelectItem key={year.asmaY_Id} value={String(year.asmaY_Id)}>
-                                                            {year.asmaY_Year}
+                                                    {years.length === 0 ? (
+                                                        <SelectItem value='0' disabled>
+                                                            No Academic Years found
                                                         </SelectItem>
-                                                    ))}
+                                                    ) : (
+                                                        years.map((year) => (
+                                                            <SelectItem key={year.asmaY_Id} value={String(year.asmaY_Id)}>
+                                                                {year.asmaY_Year}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -194,16 +266,26 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                     name='EMCA_Id'
                                     render={({ field, fieldState }) => (
                                         <>
-                                            <Select onValueChange={field.onChange} value={field.value}>
+                                            <Select key={field.value} onValueChange={field.onChange} value={field.value}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Category' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {categories.map((cat) => (
-                                                        <SelectItem key={cat.emcA_Id} value={String(cat.emcA_Id)}>
-                                                            {cat.emcA_CategoryName}
+                                                    {loadingCategories ? (
+                                                        <SelectItem value='0' disabled>
+                                                            Categories are loading...
                                                         </SelectItem>
-                                                    ))}
+                                                    ) : categories.length === 0 ? (
+                                                        <SelectItem value='0' disabled>
+                                                            No Categories found
+                                                        </SelectItem>
+                                                    ) : (
+                                                        categories.map((cat) => (
+                                                            <SelectItem key={cat.emcA_Id} value={String(cat.emcA_Id)}>
+                                                                {cat.emcA_CategoryName}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -223,6 +305,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                     render={({ field, fieldState }) => (
                                         <>
                                             <Select
+                                                key={field.value}
                                                 onValueChange={field.onChange}
                                                 value={field.value}
                                                 disabled={watchType !== 'individual'}>
@@ -230,11 +313,21 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                                     <SelectValue placeholder='Select Class' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {classes.map((cls) => (
-                                                        <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>
-                                                            {cls.asmcL_ClassName}
+                                                    {loadingClasses ? (
+                                                        <SelectItem value='0' disabled>
+                                                            Classes are loading...
                                                         </SelectItem>
-                                                    ))}
+                                                    ) : classes.length === 0 ? (
+                                                        <SelectItem value='0' disabled>
+                                                            No Classes found
+                                                        </SelectItem>
+                                                    ) : (
+                                                        classes.map((cls) => (
+                                                            <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>
+                                                                {cls.asmcL_ClassName}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -254,6 +347,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                     render={({ field, fieldState }) => (
                                         <>
                                             <Select
+                                                key={field.value}
                                                 onValueChange={field.onChange}
                                                 value={field.value}
                                                 disabled={watchType !== 'individual'}>
@@ -261,11 +355,21 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                                     <SelectValue placeholder='Select Section' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {sections.map((sec) => (
-                                                        <SelectItem key={sec.asmS_Id} value={String(sec.asmS_Id)}>
-                                                            {sec.asmC_SectionName}
+                                                    {loadingSections ? (
+                                                        <SelectItem value='0' disabled>
+                                                            Sections are loading...
                                                         </SelectItem>
-                                                    ))}
+                                                    ) : sections.length === 0 ? (
+                                                        <SelectItem value='0' disabled>
+                                                            No Sections found
+                                                        </SelectItem>
+                                                    ) : (
+                                                        sections.map((sec) => (
+                                                            <SelectItem key={sec.asmS_Id} value={String(sec.asmS_Id)}>
+                                                                {sec.asmC_SectionName}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -307,16 +411,30 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                     name='HRME_Id'
                                     render={({ field, fieldState }) => (
                                         <>
-                                            <Select onValueChange={field.onChange} value={field.value} disabled={!watchEmployeeChecked}>
+                                            <Select
+                                                key={field.value}
+                                                onValueChange={field.onChange}
+                                                value={field.value}
+                                                disabled={!watchEmployeeChecked}>
                                                 <SelectTrigger className={!watchEmployeeChecked ? 'bg-gray-100' : ''}>
                                                     <SelectValue placeholder='Select Employee' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {employees.map((emp) => (
-                                                        <SelectItem key={emp.hrmE_Id} value={String(emp.hrmE_Id)}>
-                                                            {emp.hrmE_EmployeeFirstName}
+                                                    {loadingEmployees ? (
+                                                        <SelectItem value='0' disabled>
+                                                            Employees are loading...
                                                         </SelectItem>
-                                                    ))}
+                                                    ) : employees.length === 0 ? (
+                                                        <SelectItem value='0' disabled>
+                                                            No Employees found
+                                                        </SelectItem>
+                                                    ) : (
+                                                        employees.map((emp) => (
+                                                            <SelectItem key={emp.hrmE_Id} value={String(emp.hrmE_Id)}>
+                                                                {emp.hrmE_EmployeeFirstName}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
