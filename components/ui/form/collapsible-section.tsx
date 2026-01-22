@@ -16,6 +16,8 @@ interface CollapsibleSectionProps {
     variant?: 'default' | 'ghost' | 'outline';
     size?: 'sm' | 'md' | 'lg';
     keepContentMounted?: boolean;
+    isOpen?: boolean;
+    onToggle?: () => void;
 }
 
 export function CollapsibleSection({

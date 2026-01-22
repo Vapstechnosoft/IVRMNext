@@ -13,9 +13,10 @@ interface IInstituteDetails {
 interface ReceiptViewPageProps {
     rowData: IFeePreAdmissionTransactionDetails;
     onClose: () => void;
+    asmayId?: number;
 }
 
-export default function ReceiptViewPage({ rowData, onClose }: ReceiptViewPageProps) {
+export default function ReceiptViewPage({ rowData, onClose, asmayId }: ReceiptViewPageProps) {
     const receiptRef = useRef<HTMLDivElement>(null);
     const [institute, setInstitute] = useState<IInstituteDetails>({});
     const [loading, setLoading] = useState(true);
@@ -36,7 +37,7 @@ export default function ReceiptViewPage({ rowData, onClose }: ReceiptViewPagePro
         const fetchInstituteDetails = async () => {
             try {
                 const preadmissionorprospectus = 'Preadmission';
-                const rawResponse = await getPrintdetails(rowData.fyP_Id, rowData.asmaY_Id, preadmissionorprospectus, rowData.pasR_Id);
+                const rawResponse = await getPrintdetails(rowData.fyP_Id, Number(asmayId), preadmissionorprospectus, rowData.pasR_Id);
                 const response = typeof rawResponse === 'string' ? JSON.parse(rawResponse) : rawResponse;
                 const logoUrl = response?.data?.institute_logo || response?.institute_logo || '';
                 setInstitute({

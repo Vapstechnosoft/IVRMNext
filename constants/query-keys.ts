@@ -3,6 +3,18 @@ export const QUERY_KEYS = {
     USER_NOTIFICATION: 'user_notification'
 };
 
+export const INVENTORY_QUERY_KEYS = {
+    INV_MASTER_STORE: 'INV_MASTER_STORE',
+    INV_MASTER_SUPPLIER: 'INV_MASTER_SUPPLIER',
+    INV_MASTER_TAX: 'INV_MASTER_TAX',
+    INV_MASTER_GROUP: 'INV_MASTER_GROUP'
+};
+
+export const SUPER_ADMIN_QUERY_KEYS = {
+    SUPER_ADMIN_MASTER: 'super_admin_master',
+    SUPER_ADMIN_MASTER_ORDER: 'super_admin_master_order'
+};
+
 export const ADMISSION_QUERY_KEYS = {
     MASTER_CLASS: 'master_class',
     MASTER_CATEGORY: 'master_category',
@@ -114,6 +126,7 @@ export const FEES_QUERY_KEYS = {
 
     FEE_MASTER_CONCESSION: 'masterfeeconcession',
     FEE_MASTER_TERMS: 'feemasterterms',
+    FEE_MASTER_TERMS_DROPDOWN_GROUPHEADMAPPING: 'feemastertermsdropdowngroupheadmapping',
     FEE_MASTER_TERMS_HEAD: 'mastertermfeehead',
     TERM_DROP_DOWN_DATA: 'Terms_Drop_down_data',
     MASTER_HEADS_DROP_DOWN: 'masterHeadsDropdown',
@@ -197,6 +210,7 @@ export const FEES_QUERY_KEYS = {
     FEE_COMPANY_GROUP_MAPPING_GROUP_DROPDOWN: 'fee_company_group_mapping_group_dropdown',
     FEE_COMPANY_GROUPMAPPING_GROUP_DROPDOWN: 'fee_company_groupmapping_group_dropdown',
     FEE_STUDENT_UPDATE_TRANSACTION: 'fee_student_update_transaction',
+    FEE_STUDENT_CURRENT_ACADEMIC_DETAILS: 'fee_student_current_academic_details',
 
     FEE_DEFAULTER_REPORT: 'fee_defaulter_report',
     FEE_GROUP_DEFAULTER: 'fee_group_defaulter_report',
@@ -442,4 +456,41 @@ export const HRMS_QUERY_KEYS = {
     LEAVE_HISTORY: 'leave_leave_history',
     APPLY_LEAVE: 'leave_apply_leave',
     LEAVE_APPROVAL: 'leave_leave_approval'
+};
+
+export const LIBRARY_QUERY_KEYS = {
+    MASTER_LIBRARY_LIST_DATA: 'master_library_list_data',
+    MASTER_VENDOR_LIST_DATA: 'master_vendor_list_data',
+    MASTER_PUBLISHER_LIST_DATA: 'master_publisher_list_data',
+    MASTER_CATEGORY_LIST_DATA: 'master_category_list_data',
+
+    MASTER_AUTHOR_LIST_DATA: 'master_author_list_data',
+    MASTER_LANGUAGE_LIST_DATA: 'master_language_list_data',
+
+    MASTER_ACCESSORIES: 'master_accessories',
+    // Book Transaction
+    BOOK_TRANSACTION: 'book_transaction',
+    STUDENT_DETAILS: 'student_details',
+    STAFF_DETAILS: 'staff_details',
+    BOOK_DETAILS: 'book_details',
+    SEARCH_BOOKS: 'search_books',
+    STUDENTS_BY_CLASS: 'students_by_class',
+    STAFF_BY_DEPARTMENT: 'staff_by_department',
+    DESIGNATIONS_BY_DEPARTMENT: 'designations_by_department',
+    SHOW_FINE: 'show_fine',
+    BOOK_AVAILABILITY: 'book_availability',
+    MASTER_SUBJECT_LIST_DATA: 'master_library_subject_data',
+    LIBRARY_MASTER_SUBJECT_DROPDOWNDATADETAILS: 'library_master_subject_dropdowndetails',
+
+    // Lost Books
+    LIBRARY_LOST_BOOK_GRID: 'library_lost_book_grid',
+    LIBRARY_ACADEMIC_YEAR_DROPDOWN: 'library_academic_year_dropdown',
+    LIBRARY_LOST_BOOK_LIST: 'library_lost_book_list'
+};
+export const PORTAL_QUERY_KEYS = {
+    CLASS_WORK_UPLOADED: 'class_work_uploaded',
+    HOME_WORK_UPLOADED: 'home_work_uploaded',
+
+    STUDENT_PORTAL_FEEDBACK: 'student_portal_feedback',
+    COE_LIST: 'coe_list'
 };

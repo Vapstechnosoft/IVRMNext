@@ -38,6 +38,7 @@ interface DataTableProps<TData, TValue> {
     maxSelectableRows?: number;
     onRowSelectionChange?: (selectedRows: TData[]) => void;
     showSearchColumns?: boolean;
+    manualPagination?: boolean;
 }
 
 export interface DataTableRef {
@@ -58,7 +59,8 @@ function DataTableInner<TData, TValue>(
         isPaginationRequired = true,
         maxSelectableRows = 0,
         onRowSelectionChange,
-        showSearchColumns = false
+        showSearchColumns = false,
+        manualPagination = true
     }: DataTableProps<TData, TValue>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -148,7 +150,7 @@ function DataTableInner<TData, TValue>(
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
-        manualPagination: true,
+        manualPagination: manualPagination,
         manualSorting: true,
         manualFiltering: true,
         initialState: {

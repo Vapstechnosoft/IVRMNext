@@ -62,7 +62,6 @@ export async function getAttendanceLoadData(data: any): Promise<AttendanceLoadDa
     // const url = `/AttendanceDetails/getloaddata`;
     // return await api.post<any>('default', url, data);
 
-    console.log('Fetching Attendance load data (mock)');
     return {
         attyearlist: MOCK_ACADEMIC_YEARS,
         currentyear: [{ asmaY_Id: 1 }]

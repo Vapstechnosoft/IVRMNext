@@ -64,8 +64,8 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
             const payload = {
-                user_id: 20612,
-                mi_id: 30,
+                // user_id: 20612,
+                // mi_id: 30,
                 fpgD_SaltKey: data.fpgD_SaltKey,
                 fpgD_MerchantId: data.fpgD_MerchantId,
                 fpgD_Image: data.fpgD_Image,
@@ -164,7 +164,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                             onKeyDown={(e) => {
                                 // Block minus, plus, special chars used in number inputs
-                                if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                                if (['-', '+', ' '].includes(e.key)) {
                                     e.preventDefault();
                                 }
 
@@ -190,7 +190,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                                 onKeyDown={(e) => {
                                     // Block minus, plus, special chars used in number inputs
-                                    if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                                    if (['-', '+', ' '].includes(e.key)) {
                                         e.preventDefault();
                                     }
 

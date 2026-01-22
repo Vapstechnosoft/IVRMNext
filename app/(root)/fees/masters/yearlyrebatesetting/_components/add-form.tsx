@@ -29,7 +29,7 @@ export default function AddMasterYearlyRebateSetting({ onSuccess }: { onSuccess?
         handleSubmit,
         reset,
         watch,
-
+        getValues,
         setValue,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
@@ -44,14 +44,41 @@ export default function AddMasterYearlyRebateSetting({ onSuccess }: { onSuccess?
         }
     });
 
+    // const handleReset = () => {
+    //     reset({
+    //         asmaY_Id: '',
+    //         fyrebseT_Id: '',
+    //         fyrebseT_RebateTypeFlg: undefined,
+    //         fyrebseT_RebateAmtOrPercentValue: 0,
+    //         fyrebseT_RebateDate: ''
+    //     });
+    //      setTimeout(() => {
+    //     setValue('asmaY_Id', '');
+    //     setValue('fyrebseT_Id', '');
+    // }, 0);
+    // };
     const handleReset = () => {
-        reset({
+        console.log('Before reset - current values:', getValues());
+
+        const defaultValues = {
             asmaY_Id: '',
             fyrebseT_Id: '',
             fyrebseT_RebateTypeFlg: undefined,
             fyrebseT_RebateAmtOrPercentValue: 0,
             fyrebseT_RebateDate: ''
+        };
+
+        reset(defaultValues, {
+            keepErrors: false,
+            keepDirty: false,
+            keepIsSubmitted: false,
+            keepTouched: false,
+            keepIsValid: false,
+            keepSubmitCount: false
         });
+
+        console.log('After reset - form values:', getValues());
+        console.log('After reset - rebateType field:', getValues('fyrebseT_Id'));
     };
 
     const rebateId = watch('fyrebseT_Id');
@@ -123,7 +150,7 @@ export default function AddMasterYearlyRebateSetting({ onSuccess }: { onSuccess?
                             <label htmlFor='academicYear' className='mb-1 font-medium text-gray-700 text-sm'>
                                 Academic Year <span className='text-red-500'>*</span>
                             </label>
-                            <Select onValueChange={field.onChange} value={field.value}>
+                            <Select onValueChange={field.onChange} value={field.value || ''} key={field.value}>
                                 <SelectTrigger id='academicYear' className={cn(errors.asmaY_Id ? 'border-red-500' : '')}>
                                     <SelectValue placeholder='Select Academic Year' />
                                 </SelectTrigger>
@@ -154,11 +181,12 @@ export default function AddMasterYearlyRebateSetting({ onSuccess }: { onSuccess?
                             </Label>
 
                             <Select
+                                key={field.value || 'empty'}
                                 onValueChange={(value) => {
                                     field.onChange(value);
                                     setValue('fyrebseT_RebateTypeFlg', value === '0' ? 'A' : 'P');
                                 }}
-                                value={field.value}>
+                                value={field.value || ''}>
                                 <SelectTrigger className={cn(errors.fyrebseT_Id ? 'border-red-500' : '')}>
                                     <SelectValue placeholder='Select Type' />
                                 </SelectTrigger>
