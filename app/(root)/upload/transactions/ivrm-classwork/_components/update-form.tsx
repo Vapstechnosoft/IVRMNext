@@ -38,7 +38,7 @@ interface UpdateClassWorkFormProps {
 
 type FormFields = z.infer<typeof classWorkSchema.addOrUpdate>;
 
-export default function UpdateClassWorkForm({ onSuccess, classList }: UpdateClassWorkFormProps) {
+export default function UpdateClassWorkForm({ onSuccess,selectedRow }: UpdateClassWorkFormProps) {
     const [sections, setSections] = useState<any[]>([]);
     const [subjects, setSubjects] = useState<{ ismS_Id: number }[]>([]);
     const [showUrlSection, setShowUrlSection] = useState(false);
@@ -53,11 +53,14 @@ export default function UpdateClassWorkForm({ onSuccess, classList }: UpdateClas
     } = useForm<FormFields>({
         resolver: zodResolver(classWorkSchema.addOrUpdate),
         mode: 'onChange',
-        defaultValues: {}
+        defaultValues: {
+            asmaY_Id:0,
+        }
     });
     const payload = {
         asmaY_Id: 176
     };
+
     const { refetchAll } = ClassWorkUploadedList(payload);
     const { data: academicResponse } = useAcademicYearDropdown();
     const { data: classData } = useClassDropdownDropdown();
@@ -70,6 +73,13 @@ export default function UpdateClassWorkForm({ onSuccess, classList }: UpdateClas
         name: 'hm_section_list'
     });
     const selectedYear = useWatch({ control, name: 'asmaY_Id' });
+    const selectedAcademic=watch("asmaY_Id");
+
+        useEffect(()=>{
+        reset({
+            asmaY_Id:selectedRow.asmaY_Id,
+        })
+    },[selectedRow])
 
     useEffect(() => {
         if (!selectedYear || selectedYear === 0) {
