@@ -36,6 +36,17 @@ export const ROUTES = {
                 REPORTS: '/reports',
                 REPORTS_SUB_MENUS: {
                     STUDENT_COUNT_REPORT: '/student-count-report'
+                },
+                ATTENDANCE_ENTRY: '/attendance-entry',
+                ATTENDANCE_ENTRY_SUB_MENUS: {
+                    ENTRY_TYPE: '/attendance_entry_type',
+                    LOGIN_PRIVILEGES: '/login-privileges',
+                    STUDENT_ATTENDANCE: '/student-attendance'
+                },
+                STUDENT_TC: '/student-transfer-certificate',
+                STUDENT_TC_SUB_MENUS: {
+                    APPLY: '/apply',
+                    CANCEL: '/cancel'
                 }
             }
         }
