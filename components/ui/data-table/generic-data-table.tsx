@@ -1,5 +1,4 @@
 'use client';
-
 import { DataTable } from '@/components/ui/data-table/data-table';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Database, RefreshCw } from 'lucide-react';
@@ -46,6 +45,8 @@ interface GenericDataTableProps<T> {
     ErrorComponent?: React.ComponentType<{ error: Error; message: string }>;
     NoDataComponent?: React.ComponentType;
     searchQuery?: string;
+
+    defaultVisibility?: { [key: string]: boolean };
 }
 
 export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<any>>(function GenericDataTable<T>(
@@ -71,6 +72,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         LoadingComponent,
         ErrorComponent,
         showSearchColumns = false
+        // manualPagination = true
     }: GenericDataTableProps<T>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -132,6 +134,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                     columnPinning={columnPinning}
                     showSearchColumns={showSearchColumns}
                     maxSelectableRows={maxSelectableRows}
+                    //manualPagination={manualPagination}
                     onRowSelectionChange={(selectedRows) => {
                         if (onRowSelectionChange) {
                             onRowSelectionChange(selectedRows);
@@ -156,6 +159,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                 columnPinning={columnPinning}
                 maxSelectableRows={maxSelectableRows}
                 showSearchColumns={showSearchColumns}
+                //manualPagination={manualPagination}
                 onRowSelectionChange={(selectedRows) => {
                     if (onRowSelectionChange) {
                         onRowSelectionChange(selectedRows);
