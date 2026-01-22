@@ -2587,16 +2587,48 @@ export async function getUserAccessibleModules() {
                                             url: '/SuperAdmin/super-admin-module/general-setting/module',
                                             title: 'Modules',
                                             description: 'Manage Master Modules'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Master Main Menu',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-main-menu',
+                                            title: 'Master Main Menu',
+                                            description: 'Manage Master Main Menu'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Master Sub Menu',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-sub-menu',
+                                            title: 'Master Sub Menu',
+                                            description: 'Manage Master Sub Menu'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Master Menu Page Mapping',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-menu-page-mapping',
+                                            title: 'Master Menu Page Mapping',
+                                            description: 'Manage Master Menu Page Mapping'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Master School Type',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-school-type',
+                                            title: 'Master School Type',
+                                            description: 'Manage Master School Type'
                                         }
                                     ]
                                 }
                             ]
                         }
                     ]
-        }
+                }
             ]
-             }
-                
+        }
+
     } else {
         response = {
             success: true,
