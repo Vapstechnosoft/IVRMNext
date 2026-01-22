@@ -89,13 +89,13 @@ export const ViewAttachmentModal = ({ isOpen, onClose, attachments }: ViewAttach
 
                 {previewUrl && (
                     <div className='mt-4 border-t pt-4'>
-                        <div className='flex items-center justify-between mb-2'>
+                        <div className='mb-2 flex items-center justify-between'>
                             <h4 className='font-semibold'>Preview</h4>
                             <Button variant='outline' size='sm' onClick={() => setPreviewUrl(null)}>
                                 Close Preview
                             </Button>
                         </div>
-                        <div className='aspect-video w-full border rounded'>
+                        <div className='aspect-video w-full rounded border'>
                             <iframe src={previewUrl} className='h-full w-full' title='Attachment Preview' />
                         </div>
                     </div>
