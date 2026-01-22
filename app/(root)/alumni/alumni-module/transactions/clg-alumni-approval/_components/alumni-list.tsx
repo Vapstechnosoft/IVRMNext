@@ -5,7 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { IClgAlumniApprovalDetails } from '@/types/alumni/clg-alumni-approval';
-import { Search, Users, X } from 'lucide-react';
+import { Calendar, GraduationCap, Search, Users, X } from 'lucide-react';
 import { useState } from 'react';
 
 interface AlumniListProps {
@@ -25,20 +25,41 @@ export default function AlumniList({ data, onSearch, onCancel }: AlumniListProps
         }
     };
 
+    const selectedAlumni = data.find((item) => item.alcsreG_Id === selectedId);
+
     return (
-        <div className='space-y-4'>
-            <div className='flex items-center justify-between px-2'>
-                <div className='flex items-center gap-2'>
-                    <Users className='h-4 w-4 text-primary' />
-                    <p className='text-muted-foreground text-sm'>
-                        Total Pending Alumni: <span className='font-bold text-foreground'>{data.length}</span>
-                    </p>
+        <div className='space-y-6'>
+            <div className='flex items-center justify-between'>
+                <div className='flex items-center gap-3'>
+                    <div className='rounded-lg bg-primary/10 p-2'>
+                        <Users className='h-5 w-5 text-primary' />
+                    </div>
+                    <div>
+                        <h3 className='font-bold text-gray-800'>Pending Verification Requests</h3>
+                        <p className='text-muted-foreground text-sm'>
+                            Total: <span className='font-bold text-primary'>{data.length}</span> alumni awaiting approval
+                        </p>
+                    </div>
                 </div>
+
+                {selectedAlumni && (
+                    <div className='rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 p-3'>
+                        <div className='flex items-center gap-2'>
+                            <div className='flex h-8 w-8 items-center justify-center rounded-full bg-blue-100'>
+                                <span className='font-bold text-blue-600'>✓</span>
+                            </div>
+                            <div>
+                                <p className='font-medium text-blue-800 text-sm'>Selected: {selectedAlumni.alcsreG_MemberName}</p>
+                                <p className='text-blue-600 text-xs'>{selectedAlumni.admit_course}</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
-            <ScrollArea className='h-[400px] rounded-md border'>
+            <ScrollArea className='h-[400px] rounded-lg border'>
                 <Table>
-                    <TableHeader className='sticky top-0 z-10 bg-muted/50'>
+                    <TableHeader className='sticky top-0 z-10 bg-gradient-to-r from-gray-50 to-blue-50'>
                         <TableRow>
                             <TableHead className='w-[50px] text-center'>Select</TableHead>
                             <TableHead className='w-[60px] text-center'>SLNO</TableHead>
@@ -55,26 +76,73 @@ export default function AlumniList({ data, onSearch, onCancel }: AlumniListProps
                         {data.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={9} className='h-24 text-center'>
-                                    No records found.
+                                    <div className='flex flex-col items-center justify-center gap-3 py-8'>
+                                        <div className='rounded-full bg-green-50 p-4'>
+                                            <Users className='h-10 w-10 text-green-500' />
+                                        </div>
+                                        <div>
+                                            <h4 className='font-bold text-gray-700'>All Caught Up!</h4>
+                                            <p className='text-muted-foreground text-sm'>No pending alumni verification requests.</p>
+                                        </div>
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         ) : (
                             data.map((item, index) => (
-                                <TableRow key={item.alcsreG_Id} className={selectedId === item.alcsreG_Id ? 'bg-primary/5' : ''}>
+                                <TableRow
+                                    key={item.alcsreG_Id}
+                                    className={`transition-all hover:bg-gray-50 ${selectedId === item.alcsreG_Id ? 'border-primary border-l-4 bg-gradient-to-r from-blue-50 to-purple-50' : ''}`}
+                                    onClick={() => handleCheckboxChange(item.alcsreG_Id)}>
                                     <TableCell className='text-center'>
                                         <Checkbox
                                             checked={selectedId === item.alcsreG_Id}
                                             onCheckedChange={() => handleCheckboxChange(item.alcsreG_Id)}
+                                            className='data-[state=checked]:bg-primary'
                                         />
                                     </TableCell>
                                     <TableCell className='text-center font-medium'>{index + 1}</TableCell>
-                                    <TableCell className='font-semibold'>{item.alcsreG_MemberName}</TableCell>
-                                    <TableCell className='text-center'>{item.a_year}</TableCell>
-                                    <TableCell className='text-center'>{item.l_year}</TableCell>
-                                    <TableCell>{item.admit_course}</TableCell>
-                                    <TableCell>{item.left_course}</TableCell>
-                                    <TableCell>{item.admit_branch}</TableCell>
-                                    <TableCell>{item.left_branch}</TableCell>
+                                    <TableCell className='font-semibold'>
+                                        <div className='flex items-center gap-2'>
+                                            <div className='flex h-8 w-8 items-center justify-center rounded-full bg-primary/10'>
+                                                <span className='font-bold text-primary text-xs'>{item.alcsreG_MemberName.charAt(0)}</span>
+                                            </div>
+                                            {item.alcsreG_MemberName}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className='text-center'>
+                                        <div className='flex items-center justify-center gap-1'>
+                                            <Calendar className='h-3 w-3 text-blue-500' />
+                                            {item.a_year}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className='text-center'>
+                                        <div className='flex items-center justify-center gap-1'>
+                                            <Calendar className='h-3 w-3 text-green-500' />
+                                            {item.l_year}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className='flex items-center gap-2'>
+                                            <GraduationCap className='h-3 w-3 text-blue-600' />
+                                            <span className='max-w-[150px] truncate'>{item.admit_course}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className='flex items-center gap-2'>
+                                            <GraduationCap className='h-3 w-3 text-green-600' />
+                                            <span className='max-w-[150px] truncate'>{item.left_course}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <span className='rounded-full bg-blue-100 px-2 py-1 text-blue-700 text-xs'>
+                                            {item.admit_branch}
+                                        </span>
+                                    </TableCell>
+                                    <TableCell>
+                                        <span className='rounded-full bg-green-100 px-2 py-1 text-green-700 text-xs'>
+                                            {item.left_branch}
+                                        </span>
+                                    </TableCell>
                                 </TableRow>
                             ))
                         )}
@@ -82,14 +150,18 @@ export default function AlumniList({ data, onSearch, onCancel }: AlumniListProps
                 </Table>
             </ScrollArea>
 
-            <div className='flex flex-wrap items-center justify-center gap-4 border-t pt-4'>
-                <Button onClick={() => selectedId && onSearch(selectedId)} disabled={!selectedId} className='min-w-[120px]'>
-                    <Search className='mr-2 h-4 w-4' />
-                    Search Match
+            <div className='flex flex-wrap items-center justify-center gap-4 border-t pt-6'>
+                <Button
+                    onClick={() => selectedId && onSearch(selectedId)}
+                    disabled={!selectedId}
+                    className='h-12 min-w-[160px] bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg hover:from-blue-700 hover:to-purple-700'
+                    size='lg'>
+                    <Search className='mr-2 h-5 w-5' />
+                    Search Matching Records
                 </Button>
-                <Button variant='destructive' onClick={onCancel} className='min-w-[120px]'>
-                    <X className='mr-2 h-4 w-4' />
-                    Cancel
+                <Button variant='outline' onClick={onCancel} className='h-12 min-w-[120px]' size='lg'>
+                    <X className='mr-2 h-5 w-5' />
+                    Clear Selection
                 </Button>
             </div>
         </div>
