@@ -4,13 +4,8 @@
  * All master-related hooks consolidated in one file
  */
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
-import { getMasterBank } from '@/server/hrms/hrmsConfig/master/bank';
-import {
-    addOrUpdateMasterBank,
-    getMasterBank,
-    getMasterBankById,
-    toggleMasterBank
-} from '@/server/hrms/hrmsConfig/master/bank';
+// import { getMasterBank } from '@/server/hrms/hrmsConfig/master/bank';
+import { getMasterBank, getMasterBankById } from '@/server/hrms/hrmsConfig/master/bank';
 import {
     addOrUpdateMasterCourse,
     getCourseSetOrder,
@@ -19,15 +14,10 @@ import {
     toggleMasterCourse
 } from '@/server/hrms/hrmsConfig/master/course';
 import { getDepartmentSetOrder, getMasterDepartment, getMasterDepartmentById } from '@/server/hrms/hrmsConfig/master/department';
-import {
-    getDesignationSetOrder,
-    getMasterDesignation,
-    getMasterDesignationById
-} from '@/server/hrms/hrmsConfig/master/designation';
+import { getDesignationSetOrder, getMasterDesignation, getMasterDesignationById } from '@/server/hrms/hrmsConfig/master/designation';
 // ... previous imports ...
 
 // ... (skipping to line 128 where useMasterDesignation is defined)
-
 
 import {
     activateDeactivateMasterEarningsDeductions,
@@ -47,7 +37,6 @@ import { getMasterEmployeeType, getMasterEmployeeTypeById } from '@/server/hrms/
 
 // ... (skipping to line 291 where useMasterEmployeeType is defined)
 
-
 import { getMasterGender, getMasterGenderById } from '@/server/hrms/hrmsConfig/master/gender';
 import { getGradeSetOrder, getMasterGrade, getMasterGradeById } from '@/server/hrms/hrmsConfig/master/grade';
 import {
@@ -56,15 +45,10 @@ import {
     saveGroupDeptDessgMapping,
     toggleGroupDeptDessgMapping
 } from '@/server/hrms/hrmsConfig/master/group-dept-dessg-mapping';
-import {
-    getGroupTypeSetOrder,
-    getMasterGroupType,
-    getMasterGroupTypeById
-} from '@/server/hrms/hrmsConfig/master/group-type';
+import { getGroupTypeSetOrder, getMasterGroupType, getMasterGroupTypeById } from '@/server/hrms/hrmsConfig/master/group-type';
 // ... previous imports ...
 
 // ... (skipping to line 433 where useMasterGroupType is defined)
-
 
 import { getLeaveYearSetOrder, getMasterLeaveYear } from '@/server/hrms/hrmsConfig/master/leave-year';
 import { getMasterLoan, getMasterLoanById } from '@/server/hrms/hrmsConfig/master/loan';
@@ -76,12 +60,12 @@ import {
 } from '@/server/hrms/hrmsConfig/master/payroll-standard';
 import { getMasterProfessionalTax, getMasterProfessionalTaxById } from '@/server/hrms/hrmsConfig/master/professional-tax';
 import {
-    getReligionCategoryMappingList,
-    saveReligionCategoryMapping,
-    toggleReligionCategoryMapping,
+    getCasteCategoryDropdown,
     getReligionCategoryMappingById,
+    getReligionCategoryMappingList,
     getReligionDropdown,
-    getCasteCategoryDropdown
+    saveReligionCategoryMapping,
+    toggleReligionCategoryMapping
 } from '@/server/hrms/hrmsConfig/master/religion-category-mapping';
 import { getMasterSpecialization, getMasterSpecializationById } from '@/server/hrms/hrmsConfig/master/specialization';
 import type { ApiSearchparams } from '@/types';
@@ -286,7 +270,7 @@ export function useMasterCourseLegacy(roleId: number, searchParams?: ApiSearchpa
                 queryKey: [HRMS_QUERY_KEYS.MASTER_COURSE]
             });
         },
-        onError: (error: any) => { }
+        onError: (error: any) => {}
     });
     const toggleMutation = useMutation({
         mutationFn: (data: { HRMC_Id: number; HRMC_ActiveFlag: boolean; MI_Id?: number }) => {
@@ -300,7 +284,7 @@ export function useMasterCourseLegacy(roleId: number, searchParams?: ApiSearchpa
                 queryKey: [HRMS_QUERY_KEYS.MASTER_COURSE]
             });
         },
-        onError: (error: any) => { }
+        onError: (error: any) => {}
     });
     const refetchAll = () => {
         queryClient.invalidateQueries({
@@ -745,7 +729,6 @@ export function useReligionCategoryMapping(searchParams?: ApiSearchparams) {
         })
     };
 }
-
 
 export function useReligionCategoryMappingById(id: number) {
     return useQuery({
