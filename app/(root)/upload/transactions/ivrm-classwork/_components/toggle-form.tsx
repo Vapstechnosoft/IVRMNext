@@ -12,7 +12,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-type FormFields = z.infer<typeof classWorkSchema.addOrUpdate>;
+type FormFields = z.infer<typeof classWorkSchema.delete>;
 interface ToggleClassWorkFormProps {
     rowData: IClassWorkDetails;
     onClose: () => void;
@@ -24,15 +24,15 @@ export default function ToggleClassWorkForm({ rowData, onClose }: ToggleClassWor
     };
     const { refetchAll } = ClassWorkUploadedList(payload);
 
-    const {
-        handleSubmit,
-        reset,
-        formState: { errors, isSubmitting }
-    } = useForm<FormFields>({
-        resolver: zodResolver(classWorkSchema.addOrUpdate),
-        mode: 'onChange',
-        defaultValues: {}
-    });
+        const {
+            register,
+            handleSubmit,
+            reset,
+            formState: { errors, isSubmitting }
+        } = useForm<FormFields>({
+            resolver: zodResolver(classWorkSchema.delete),
+            mode: 'onChange'
+        });
 
     function closeDialog() {
         onClose();
@@ -58,7 +58,7 @@ export default function ToggleClassWorkForm({ rowData, onClose }: ToggleClassWor
         <AdaptiveDialog title='Class Work Upload Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' defaultValue={rowData.icW_Id} />
+                    <input type='hidden'{...register('icW_Id')} defaultValue={rowData.icW_Id} />
                     <p>
                         Are you sure you want to {rowData.icW_ActiveFlag ? 'deactivate' : 'activate'} <strong>{rowData.icW_Content}</strong>
                         ?

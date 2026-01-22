@@ -1,3 +1,4 @@
+import { deleteIdSchema } from '@/schemas/validationSchemas';
 import { z } from 'zod';
 
 // export const classWorkSchem = z.object({
@@ -119,7 +120,10 @@ export const classWorkSchema = {
             required_error: 'End Date is required',
             invalid_type_error: 'End Date is required'
         })
-    })
+    }),
+    delete: z.object({
+            icW_Id: deleteIdSchema('icW_Id')
+        })
 };
 
 export const studentMarksSchema = z.object({

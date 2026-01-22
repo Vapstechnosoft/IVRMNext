@@ -581,6 +581,14 @@ export async function getUserAccessibleModules() {
                                             url: '/upload/reports/noticeboard-report',
                                             title: 'NoticeBoard Report',
                                             description: 'NoticeBoard Report Details'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'COE Report',
+                                            icon: 'FileText',
+                                            url: '/upload/reports/coereport',
+                                            title: 'COE Report',
+                                            description: 'COE Report Details'
                                         }
                                     ]
                                 }
