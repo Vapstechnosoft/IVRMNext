@@ -25,8 +25,12 @@ export default function ReceiptPage({ rowData, onClose }: ReceiptPageProps) {
         asmaY_Id: rowData.asmaY_Id,
         fyP_Id: rowData.fyP_Id,
         fyptP_Id: rowData.fyptP_Id
+        // fyptP_Name:"",
+        // fyP_Bank_Name:"",
+        // fyP_Receipt_No:"",
+        // fyP_DD_Cheque_No:""
     };
-    console.log('Receipt Payload:', payload);
+    console.log('Receipt Payload:', JSON.stringify(payload));
 
     // ───────────────────────────────────────────────
     //  FETCH RECEIPT DATA
