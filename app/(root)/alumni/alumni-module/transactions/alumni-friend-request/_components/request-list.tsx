@@ -1,10 +1,10 @@
 'use client';
 
 import ViewProfileModal from '@/app/(root)/alumni/alumni-module/transactions/alumni-friend-request/_components/view-profile-modal';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { sendFriendRequest } from '@/server/alumni/alumni-friend-request';
 import type { IAlumniFriendRequest } from '@/types/alumni/alumni-friend-request';
 import { Eye, Loader2, Send } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -16,26 +16,13 @@ interface RequestListProps {
     onRefresh: () => void;
 }
 
-// Mock API function
-const mockSendFriendRequest = async (payload: any) => {
-    console.log('Sending friend request:', payload);
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    // Simulate some requests failing
-    const success = Math.random() > 0.2;
-
-    return {
-        success,
-        message: success ? 'Friend request sent successfully' : 'Failed to send request. Please try again.'
-    };
-};
-
 export default function RequestList({ data, isLoading, onRefresh }: RequestListProps) {
     const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
     const [viewingAlumniId, setViewingAlumniId] = useState<number | null>(null);
     const [viewingAlumniName, setViewingAlumniName] = useState<string>('');
     const [isSending, setIsSending] = useState(false);
 
+    // Selectable items are those that have NOT yet received a request (checktru is false)
     const selectableData = useMemo(() => data.filter((d) => !d.checktru), [data]);
 
     const handleSelectAll = (checked: boolean) => {
@@ -66,12 +53,9 @@ export default function RequestList({ data, isLoading, onRefresh }: RequestListP
 
         setIsSending(true);
         try {
-            const requestalumni = Array.from(selectedRows).map((id) => ({ ALMST_Id: id }));
-            const res = await mockSendFriendRequest({
-                requestalumni,
-                almsT_Id: 0,
-                mI_Id: 0,
-                user_id: 0
+            const requestalumni = Array.from(selectedRows).map((id) => ({ almsT_Id: id }));
+            const res = await sendFriendRequest({
+                requestalumni
             });
             if (res.success) {
                 toast.success('Friend requests sent successfully');
@@ -80,6 +64,7 @@ export default function RequestList({ data, isLoading, onRefresh }: RequestListP
             } else {
                 toast.error(res.message || 'Failed to send requests');
             }
+            // biome-ignore lint/correctness/noUnusedVariables: <explanation>
         } catch (error) {
             toast.error('An error occurred');
         } finally {
@@ -106,7 +91,12 @@ export default function RequestList({ data, isLoading, onRefresh }: RequestListP
                     <TableHeader>
                         <TableRow>
                             <TableHead className='w-12 text-center'>
-                                <Checkbox checked={isAllSelected} onCheckedChange={(v) => handleSelectAll(!!v)} />
+                                <Checkbox
+                                    checked={isAllSelected}
+                                    onCheckedChange={(v) => handleSelectAll(!!v)}
+                                    // Disable select all if there are no selectable items
+                                    disabled={selectableData.length === 0}
+                                />
                             </TableHead>
                             <TableHead>SL NO</TableHead>
                             <TableHead>Alumni Name</TableHead>
@@ -120,6 +110,7 @@ export default function RequestList({ data, isLoading, onRefresh }: RequestListP
                             <TableRow key={row.ALMST_Id}>
                                 <TableCell className='text-center'>
                                     <Checkbox
+                                        // Disable if request already sent (checktru is true)
                                         disabled={row.checktru}
                                         checked={selectedRows.has(row.ALMST_Id)}
                                         onCheckedChange={(v) => handleSelectRow(row.ALMST_Id, !!v)}
@@ -130,21 +121,19 @@ export default function RequestList({ data, isLoading, onRefresh }: RequestListP
                                 <TableCell>{row.ASMAY_Year}</TableCell>
                                 <TableCell>
                                     {row.ALSFRND_AcceptFlag === 'ACCEPT' ? (
-                                        <Badge
-                                            variant='success'
-                                            className='border-green-200 bg-green-100 text-green-700 hover:bg-green-100'>
+                                        <span className='font-medium text-green-600 italic' title='Accepted'>
                                             Accepted
-                                        </Badge>
+                                        </span>
                                     ) : row.ALSFRND_AcceptFlag === 'REJECT' ? (
-                                        <Badge variant='destructive' className='border-red-200 bg-red-100 text-red-700 hover:bg-red-100'>
+                                        <span className='font-medium text-red-600 italic' title='Rejected'>
                                             Rejected
-                                        </Badge>
+                                        </span>
                                     ) : row.ALSFRND_RequestDate ? (
-                                        <Badge variant='outline' className='border-pink-200 bg-pink-50 text-pink-600'>
+                                        <span className='font-medium text-pink-600 italic' title='Requesting...'>
                                             Requesting...
-                                        </Badge>
+                                        </span>
                                     ) : (
-                                        <span className='text-muted-foreground text-xs italic'>No request sent</span>
+                                        <span className='text-muted-foreground text-xs italic'>-</span>
                                     )}
                                 </TableCell>
                                 <TableCell className='text-center'>

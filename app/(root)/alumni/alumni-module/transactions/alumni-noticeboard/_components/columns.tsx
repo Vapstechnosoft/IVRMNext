@@ -52,10 +52,7 @@ export const AlumniNoticeBoardColumns: ColumnDef<IAlumniNoticeBoard>[] = [
     {
         id: 'view',
         header: 'View Attachment',
-        cell: ({ row }) => {
-            const count = row.original.attachment_Array?.length || 0;
-            return count > 0 ? <ViewAttachmentButton row={row.original} /> : <span>---</span>;
-        }
+        cell: ({ row }) => <ViewAttachmentButton row={row.original} />
     },
     {
         id: 'actions',
@@ -67,8 +64,10 @@ export const AlumniNoticeBoardColumns: ColumnDef<IAlumniNoticeBoard>[] = [
 ];
 
 function ViewAttachmentButton({ row }: { row: IAlumniNoticeBoard }) {
+    const { openDetailsView } = useFormContext<IAlumniNoticeBoard>();
+
     return (
-        <Button variant='ghost' size='icon' onClick={() => console.log('View', row)}>
+        <Button variant='ghost' size='icon' onClick={() => openDetailsView(row)}>
             <Eye className='h-4 w-4' />
         </Button>
     );

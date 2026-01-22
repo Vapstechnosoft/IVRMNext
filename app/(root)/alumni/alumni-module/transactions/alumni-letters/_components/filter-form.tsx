@@ -11,7 +11,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { IAcademicYear, IClassDetails } from '@/types/alumni/alumni-letters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Printer, Search, X } from 'lucide-react';
+import { Printer, X } from 'lucide-react';
+import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 interface FilterFormProps {
@@ -19,7 +20,7 @@ interface FilterFormProps {
     classes: IClassDetails[];
     onShowReport: (values: AlumniLettersSchema) => void;
     onClear: () => void;
-    onPrint: () => void;
+    onPrint: (values: AlumniLettersSchema) => void;
     canPrint: boolean;
 }
 
@@ -40,12 +41,34 @@ export default function FilterForm({ years, classes, onShowReport, onClear, onPr
         register,
         handleSubmit,
         reset,
+        watch,
+        trigger,
+        getValues,
         formState: { errors }
     } = form;
+
+    const asmcL_Id = watch('asmcL_Id');
+    const asmaY_Id = watch('asmaY_Id');
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
+    const reporttype = watch('reporttype');
+
+    // Automatically trigger search when class changes
+    useEffect(() => {
+        if (asmcL_Id && asmaY_Id) {
+            onShowReport(form.getValues());
+        }
+    }, [asmcL_Id, onShowReport]); // Trigger ONLY on class change
 
     const handleClear = () => {
         reset();
         onClear();
+    };
+
+    const handlePrintClick = async () => {
+        const isValid = await trigger();
+        if (isValid) {
+            onPrint(getValues());
+        }
     };
 
     return (
@@ -126,7 +149,6 @@ export default function FilterForm({ years, classes, onShowReport, onClear, onPr
                     />
                     {errors.asmcL_Id && <FormError>{errors.asmcL_Id.message}</FormError>}
                 </div>
-
                 <div className='flex flex-col gap-2'>
                     <Label>
                         Letter Type <span className='text-red-500'>*</span>
@@ -160,13 +182,10 @@ export default function FilterForm({ years, classes, onShowReport, onClear, onPr
             </div>
 
             <div className='flex flex-wrap items-center justify-center gap-4 border-t pt-4'>
-                <Button type='submit' variant='default' className='min-w-[140px]'>
-                    <Search className='mr-2 h-4 w-4' /> Search Students
-                </Button>
-                <Button type='button' variant='outline' onClick={onPrint} disabled={!canPrint} className='min-w-[140px]'>
+                <Button type='button' variant='outline' onClick={handlePrintClick} disabled={!canPrint} className='min-w-[120px]'>
                     <Printer className='mr-2 h-4 w-4' /> Print Letters
                 </Button>
-                <Button type='button' variant='destructive' onClick={handleClear} className='min-w-[140px]'>
+                <Button type='button' variant='destructive' onClick={handleClear} className='min-w-[120px]'>
                     <X className='mr-2 h-4 w-4' /> Cancel
                 </Button>
             </div>

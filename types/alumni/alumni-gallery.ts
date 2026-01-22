@@ -20,3 +20,14 @@ export interface IAlumniGalleryView {
     algaV_Id?: number;
     algaV_Videos?: string;
 }
+export interface IAlumniGalleryDetail {
+    algA_Id: number;
+    algaP_Id?: number;
+    algaV_Id?: number;
+    algA_GalleryName: string;
+    algA_Date: string | Date;
+    algA_Time: string;
+    algA_ActiveFlag: boolean;
+    algaP_Photos?: string;
+    algaV_Videos?: string;
+}

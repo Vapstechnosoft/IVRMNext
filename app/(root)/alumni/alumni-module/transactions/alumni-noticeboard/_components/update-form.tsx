@@ -6,67 +6,23 @@ import { DateField } from '@/components/ui/dateField';
 import { Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
+import { editAlumniNoticeBoard, saveAlumniNoticeBoard } from '@/server/alumni/alumni-notice-board';
+import { uploadDocument } from '@/server/document_upload';
 import type { IAlumniNoticeBoard } from '@/types/alumni/alumni-notice-board';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Save, Trash2 } from 'lucide-react';
-import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { type AlumniNoticeBoardSchema, alumniNoticeBoardSchema } from './schema';
-
 interface UpdateAlumniNoticeBoardFormProps {
     selectedRow: IAlumniNoticeBoard;
     onSuccess?: () => void;
+    mI_Id: number;
+    asmaY_Id: number;
 }
 
-// Static edit data
-const staticEditData = {
-    editdetails: [
-        {
-            alntB_Id: 1,
-            mI_Id: 30,
-            alntB_Title: 'Annual Alumni Meet 2024',
-            alntB_Description: 'Join us for the annual alumni meet on December 15th, 2024. Networking, dinner, and keynote speeches.',
-            alntB_FilePath: '/documents/alumni/notice1.pdf',
-            alntB_Attachment: 'notice1.pdf',
-            alntB_StartDate: '2024-12-01T00:00:00.000Z',
-            alntB_EndDate: '2024-12-31T23:59:59.000Z',
-            alntB_DisplayDate: '2024-11-25T00:00:00.000Z',
-            alntB_ActiveFlag: true,
-            alntB_CreatedDate: '2024-10-01T10:30:00.000Z',
-            alntB_UpdatedDate: '2024-10-01T10:30:00.000Z'
-        }
-    ],
-    editdetailsfiles: [
-        {
-            alntbfL_Id: 101,
-            alntbfL_FileName: 'meet-schedule.pdf',
-            alntbfL_FilePath: '/uploads/alumni/meet-schedule.pdf'
-        },
-        {
-            alntbfL_Id: 102,
-            alntbfL_FileName: 'venue-map.jpg',
-            alntbfL_FilePath: '/uploads/alumni/venue-map.jpg'
-        }
-    ]
-};
-
-// Mock save function
-const mockSaveAlumniNoticeBoard = async (payload: any) => {
-    console.info('Saving notice:', payload);
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
-    return { success: true, message: 'Notice updated successfully' };
-};
-
-// Mock upload function
-const mockUploadDocument = async (formData: FormData) => {
-    console.info('Uploading file:', formData.get('File'));
-    await new Promise((resolve) => setTimeout(resolve, 800)); // Simulate upload delay
-    return { path: `/uploads/alumni/${Date.now()}-${formData.get('File')?.toString()}` };
-};
-
-export default function UpdateAlumniNoticeBoardForm({ selectedRow, onSuccess }: UpdateAlumniNoticeBoardFormProps) {
+export default function UpdateAlumniNoticeBoardForm({ selectedRow, onSuccess, mI_Id }: UpdateAlumniNoticeBoardFormProps) {
     const [uploading, setUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [fetching, setFetching] = useState(true);
@@ -103,15 +59,12 @@ export default function UpdateAlumniNoticeBoardForm({ selectedRow, onSuccess }: 
         const loadData = async () => {
             if (selectedRow.alntB_Id) {
                 try {
-                    await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate loading delay
-
-                    // Use static data instead of API call
-                    const res = staticEditData;
-
+                    const res: any = await editAlumniNoticeBoard(selectedRow.alntB_Id);
+                    // res is ApiResponse, so data is in res.data
                     // biome-ignore lint/complexity/useOptionalChain: <explanation>
-                    if (res && res.editdetails && res.editdetails.length > 0) {
-                        const details = res.editdetails[0];
-                        const files = res.editdetailsfiles || [];
+                    if (res && res.data && res.data.editdetails && res.data.editdetails.length > 0) {
+                        const details = res.data.editdetails[0];
+                        const files = res.data.attachment_Array || [];
 
                         const mappedFiles = files.map((f: any) => ({
                             alntbfL_Id: f.alntbfL_Id,
@@ -120,11 +73,11 @@ export default function UpdateAlumniNoticeBoardForm({ selectedRow, onSuccess }: 
                         }));
 
                         reset({
-                            alntB_Id: details.alntB_Id,
+                            alntB_Id: details.alntB_Id || selectedRow.alntB_Id,
                             alntB_Title: details.alntB_Title,
                             alntB_Description: details.alntB_Description,
-                            alntB_StartDate: new Date(details.alntB_StartDate),
-                            alntB_EndDate: new Date(details.alntB_EndDate),
+                            alntB_StartDate: details.alntB_StartDate ? new Date(details.alntB_StartDate) : undefined,
+                            alntB_EndDate: details.alntB_EndDate ? new Date(details.alntB_EndDate) : undefined,
                             alntB_DisplayDate: details.alntB_DisplayDate ? new Date(details.alntB_DisplayDate) : null,
                             intB_DispalyDisableFlg: !!details.alntB_DisplayDate,
                             attachment_Array: mappedFiles
@@ -150,14 +103,27 @@ export default function UpdateAlumniNoticeBoardForm({ selectedRow, onSuccess }: 
             formData.append('folder', 'Alumni_Notice');
 
             try {
-                const response = await mockUploadDocument(formData);
+                const response = await uploadDocument(formData);
                 const res: any = response;
                 let path = '';
 
-                if (typeof res === 'string') {
+                console.info('Upload response:', res); // Debug log
+
+                if (Array.isArray(res) && res.length > 0) {
+                    path = res[0].path || res[0];
+                } else if (typeof res === 'string') {
                     path = res;
                 } else if (res?.path) {
                     path = res.path;
+                } else if (res?.data) {
+                    // Check for nested data structure
+                    if (Array.isArray(res.data) && res.data.length > 0) {
+                        path = res.data[0].path || res.data[0];
+                    } else if (typeof res.data === 'string') {
+                        path = res.data;
+                    } else if (res.data?.path) {
+                        path = res.data.path;
+                    }
                 }
 
                 if (path) {
@@ -167,6 +133,7 @@ export default function UpdateAlumniNoticeBoardForm({ selectedRow, onSuccess }: 
                     });
                     toast.success('File uploaded successfully');
                 } else {
+                    console.error('File upload failed, response structure unknown:', res);
                     toast.error('File upload failed');
                 }
             } catch (err: any) {
@@ -185,13 +152,15 @@ export default function UpdateAlumniNoticeBoardForm({ selectedRow, onSuccess }: 
 
     const onSubmit = async (data: AlumniNoticeBoardSchema) => {
         try {
+            const firstAttachment = data.attachment_Array && data.attachment_Array.length > 0 ? data.attachment_Array[0] : null;
+
             const payload: any = {
-                alntB_Id: data.alntB_Id,
-                mI_Id: selectedRow.mI_Id || 0,
+                alntB_Id: data.alntB_Id || selectedRow.alntB_Id,
+                mI_Id: mI_Id,
                 alntB_Title: data.alntB_Title,
                 alntB_Description: data.alntB_Description || '',
-                alntB_FilePath: selectedRow.alntB_FilePath || '',
-                alntB_Attachment: selectedRow.alntB_Attachment || '',
+                alntB_FilePath: firstAttachment?.alntbfL_FilePath || '',
+                alntB_Attachment: firstAttachment?.alntbfL_FileName || '',
                 alntB_DisplayDate: data.alntB_DisplayDate ? new Date(data.alntB_DisplayDate).toISOString() : new Date().toISOString(),
                 alntB_StartDate: data.alntB_StartDate ? new Date(data.alntB_StartDate).toISOString() : new Date().toISOString(),
                 alntB_EndDate: data.alntB_EndDate ? new Date(data.alntB_EndDate).toISOString() : new Date().toISOString(),
@@ -205,7 +174,7 @@ export default function UpdateAlumniNoticeBoardForm({ selectedRow, onSuccess }: 
                     })) || []
             };
 
-            const res = await mockSaveAlumniNoticeBoard(payload);
+            const res = await saveAlumniNoticeBoard(payload);
             if (res) {
                 toast.success('Notice updated successfully');
                 onSuccess?.();

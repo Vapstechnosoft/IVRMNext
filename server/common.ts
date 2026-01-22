@@ -2569,6 +2569,14 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 5,
+                                            name: 'Alumni Friend Request Accept',
+                                            icon: 'UserPlus',
+                                            url: '/alumni/alumni-module/transactions/alumni-friend-request-accept',
+                                            title: 'Alumni Friend Request Accept',
+                                            description: 'Manage Alumni Friend Request Accept Details'
+                                        },
+                                        {
+                                            id: 6,
                                             name: 'Alumni Donation',
                                             icon: 'HeartHandshake',
                                             url: '/alumni/alumni-module/transactions/alumni-donation',
@@ -2576,7 +2584,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Alumni Donation Details'
                                         },
                                         {
-                                            id: 6,
+                                            id: 7,
                                             name: 'Alumni Letters',
                                             icon: 'MailOpen',
                                             url: '/alumni/alumni-module/transactions/alumni-letters',
@@ -2584,7 +2592,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Generate Alumni Letters'
                                         },
                                         {
-                                            id: 7,
+                                            id: 8,
                                             name: 'CLG Alumni Approval',
                                             icon: 'UserCheck',
                                             url: '/alumni/alumni-module/transactions/clg-alumni-approval',
@@ -2592,7 +2600,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Approve College Alumni Registrations'
                                         },
                                         {
-                                            id: 8,
+                                            id: 9,
                                             name: 'CLG Student Search',
                                             icon: 'Search',
                                             url: '/alumni/alumni-module/transactions/clg-alumni-student-search',
