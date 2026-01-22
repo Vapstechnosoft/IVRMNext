@@ -165,7 +165,7 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
 
                 fyP_DD_Cheque_No: data.chequeNo || '',
                 fyP_Date: data.date ? format(new Date(data.date), 'yyyy-MM-dd') : null,
-
+                //FYP_Receipt_No: row.fyP_Receipt_No,
                 fyP_Remarks: data.towards,
                 //user_id: 21602,
                 FYP_Bank_Or_Cash: data.paymentMode,
