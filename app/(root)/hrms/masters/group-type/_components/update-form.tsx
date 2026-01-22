@@ -104,7 +104,6 @@ export default function UpdateGroupTypeForm({ onSuccess, className = '', selecte
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
 
-
                     </div>
                 </div>
 

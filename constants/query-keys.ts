@@ -457,3 +457,33 @@ export const HRMS_QUERY_KEYS = {
     MASTER_BANK_LIST: 'hrms_master_bank_list',
     MASTER_PAYMENT_MODE_LIST: 'hrms_master_payment_mode_list'
 };
+
+export const LIBRARY_QUERY_KEYS = {
+    MASTER_LIBRARY_LIST_DATA: 'master_library_list_data',
+    MASTER_VENDOR_LIST_DATA: 'master_vendor_list_data',
+    MASTER_PUBLISHER_LIST_DATA: 'master_publisher_list_data',
+    MASTER_CATEGORY_LIST_DATA: 'master_category_list_data',
+
+    MASTER_AUTHOR_LIST_DATA: 'master_author_list_data',
+    MASTER_LANGUAGE_LIST_DATA: 'master_language_list_data',
+
+    MASTER_ACCESSORIES: 'master_accessories',
+    // Book Transaction
+    BOOK_TRANSACTION: 'book_transaction',
+    STUDENT_DETAILS: 'student_details',
+    STAFF_DETAILS: 'staff_details',
+    BOOK_DETAILS: 'book_details',
+    SEARCH_BOOKS: 'search_books',
+    STUDENTS_BY_CLASS: 'students_by_class',
+    STAFF_BY_DEPARTMENT: 'staff_by_department',
+    DESIGNATIONS_BY_DEPARTMENT: 'designations_by_department',
+    SHOW_FINE: 'show_fine',
+    BOOK_AVAILABILITY: 'book_availability',
+    MASTER_SUBJECT_LIST_DATA: 'master_library_subject_data',
+    LIBRARY_MASTER_SUBJECT_DROPDOWNDATADETAILS: 'library_master_subject_dropdowndetails',
+
+    // Lost Books
+    LIBRARY_LOST_BOOK_GRID: 'library_lost_book_grid',
+    LIBRARY_ACADEMIC_YEAR_DROPDOWN: 'library_academic_year_dropdown',
+    LIBRARY_LOST_BOOK_LIST: 'library_lost_book_list'
+};

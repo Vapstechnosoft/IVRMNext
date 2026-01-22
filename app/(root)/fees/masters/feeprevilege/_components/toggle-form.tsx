@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { useMasterTermsHead } from '@/hooks/fees/useMasters';
+import { useFeePrevilegeList } from '@/hooks/fees/useMasters';
 import { feePrivilegeSchema } from '@/schemas/fees/masters';
 import { deleteFeePrivilege } from '@/server/fees/masters/fee_previlege';
 import type { IFeePrivilegeList } from '@/types/fees/masters/masters';
@@ -21,7 +21,7 @@ interface ToggleMasterTermFeeHeadFormProps {
 }
 
 export default function ToggleMasterFeePrevilageForm({ rowData, onClose }: ToggleMasterTermFeeHeadFormProps) {
-    const { refetchAll } = useMasterTermsHead();
+    const { refetchAll } = useFeePrevilegeList();
 
     const {
         register,

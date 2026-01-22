@@ -7,9 +7,8 @@ import type {
 } from '@/types/hrms/reports/employee-log-report';
 
 /**
- * Get onload data for employee log report
- * This endpoint returns filter dropdowns (types/group types)
- * POST /api/EmployeeLogReportFacade/getdata
+ * Get employee log report data
+ * POST /api/EmployeeLogReportFacade/search
  */
 export async function getEmployeeLogReportOnload(
     MI_Id = 30,

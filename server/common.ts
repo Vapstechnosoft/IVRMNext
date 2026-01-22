@@ -2475,6 +2475,7 @@ export async function getUserAccessibleModules() {
                         // }
                     ]
                 },
+                 
                 {
                     id: 5,
                     name: 'IFrame',
@@ -2511,7 +2512,610 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
+                },
+                {
+                    id: 6,
+                    name: 'Time Table',
+                    icon: 'Clock',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Time Table',
+                            icon: 'Clock',
+                            sub_menu: [
+                                // {
+                                //     id: 4,
+                                //     name: 'Configuration',
+                                //     icon: 'BadgeIndianRupee',
+                                //     pages: [
+                                //         {
+                                //             id: 21,
+                                //             name: 'Fee configuration',
+                                //             icon: 'BadgeIndianRupee',
+                                //             url: '/fees/configuration/masterfeeconfig',
+                                //             title: 'Fee configuration',
+                                //             description: 'Fee configuration'
+                                //         }
+                                //     ]
+                                // },
+                                {
+                                    id: 1,
+                                    name: 'Masters',
+                                    icon: 'Clock',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Day',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterday',
+                                            title: 'Master Day',
+                                            description: 'Manage Master Day Details'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'Master Day Class Wise',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterdayclasswise',
+                                            title: 'Master Day Class Wise',
+                                            description: 'Manage Master Day Class Wise Details'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Master Building',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterbuilding',
+                                            title: 'Master Building',
+                                            description: 'Manage Master Building Details'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Staff Abbreviation',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/staffabbreviations',
+                                            title: 'Staff Abbreviation',
+                                            description: 'Manage Staff Abbreviation Details'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Subject Abbreviation',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/subjectabbreviations',
+                                            title: 'Subject Abbreviation',
+                                            description: 'Manage Subject Abbreviation Details'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Category Class Mapping',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/categoryclassmapping',
+                                            title: 'Category Class Mapping',
+                                            description: 'Manage Category Class Mapping Details'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Master Category',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/mastercategory',
+                                            title: 'Master Category',
+                                            description: 'Manage Master Category Details'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Master Break Time Settings',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/breaktimesettings',
+                                            title: 'Master Break Time Settings',
+                                            description: 'Manage Master Break Time Settings Details'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Master Period',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterperiod',
+                                            title: 'Master Period',
+                                            description: 'Manage Master Period Details'
+                                        },
+                                        {
+                                            id: 12,
+                                            name: 'Master Period Class',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterperiodclass',
+                                            title: 'Master Period Class',
+                                            description: 'Manage Master Period Class Details'
+                                        },
+
+                                        {
+                                            id: 10,
+                                            name: 'Period Distribution',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/perioddistribution',
+                                            title: 'Period Distribution',
+                                            description: 'Manage Period Distribution Details'
+                                        },
+                                        {
+                                            id: 11,
+                                            name: 'Period Allocation Master Period',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/periodallocationmasterperiod',
+                                            title: 'Period Allocation Master Period',
+                                            description: 'Manage Period Allocation Master Period Details'
+                                        },
+
+                                        {
+                                            id: 13,
+                                            name: 'Period Time Setting',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/periodtimesetting',
+                                            title: 'Period Time Setting',
+                                            description: 'Manage Period Time Settings'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Constraints',
+                                    icon: 'Clock',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Bifurcation Constraints',
+                                            icon: 'Clock',
+                                            url: '/timetable/constraints/bifurcationconstraints',
+                                            title: 'Bifurcation Constraints',
+                                            description: 'Manage Bifurcation Constraints Details'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'consecutive',
+                                            icon: 'Clock',
+                                            url: '/timetable/constraints/consecutive',
+                                            title: 'Consecutive Constraints',
+                                            description: 'Manage Consecutive Constraints Details'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Fixing',
+                                            icon: 'Clock',
+                                            url: '/timetable/constraints/fixing',
+                                            title: 'Fixing Constraints',
+                                            description: 'Manage Fixing Constraints Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Reports',
+                                    icon: 'Clock',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Consolidated Report',
+                                            icon: 'Clock',
+                                            url: '/timetable/reports/consolidated',
+                                            title: 'Consolidated Report',
+                                            description: 'TimeTable Consolidated Report'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Class Wise TimeTable',
+                                            icon: 'Clock',
+                                            url: '/timetable/reports/classwisett',
+                                            title: 'Class Wise TimeTable',
+                                            description: 'Class Wise TimeTable Report'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Subject Wise TimeTable',
+                                            icon: 'Clock',
+                                            url: '/timetable/reports/subjectwisett',
+                                            title: 'Subject Wise TimeTable',
+                                            description: 'Subject Wise TimeTable Report'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Staff Wise TimeTable',
+                                            icon: 'Clock',
+                                            url: '/timetable/reports/staffwisett',
+                                            title: 'Staff Wise TimeTable',
+                                            description: 'Staff Wise TimeTable Report'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Deputation Report',
+                                            icon: 'Clock',
+                                            url: '/timetable/reports/deputationreport',
+                                            title: 'Deputation Report',
+                                            description: 'Deputation Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 7,
+                    name: 'Library',
+                    icon: 'BookOpen',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Library',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 3000,
+                                    name: 'masters',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 30001,
+                                            name: 'Master Library',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/masterlibrary',
+                                            title: 'Master Library',
+                                            description: 'Master Library  Details'
+                                        },
+                                        {
+                                            id: 30002,
+                                            name: 'Master Vendor',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/libraryvendor',
+                                            title: 'Master Library Vendor',
+                                            description: 'Library Vendor Details'
+                                        },
+                                        {
+                                            id: 30003,
+                                            name: 'Master Publisher',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/librarypublisher',
+                                            title: 'Master Library Publisher',
+                                            description: 'Library Master Publisher Details'
+                                        },
+                                        {
+                                            id: 30004,
+                                            name: 'Master Author',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/masterauthor',
+                                            title: 'Master Author',
+                                            description: 'Library Master Author Details'
+                                        },
+
+                                        {
+                                            id: 30005,
+                                            name: 'Master Subject',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/mastersubject',
+                                            title: 'Add Master Subject',
+                                            description: 'Add Master Subject'
+                                        },
+
+                                        //    {
+                                        //     id: 30003,
+                                        //     name: 'MASTER BOOKS CATEGORY ',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/library/masters/mastercategory',
+                                        //     title: 'MASTER BOOKS CATEGORY ',
+                                        //     description: 'MASTER BOOKS CATEGORY '
+                                        // },
+
+                                        {
+                                            id: 30006,
+                                            name: 'Master Language',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/masterlanguage',
+                                            title: 'Master Language',
+                                            description: 'Library Master Language Details'
+                                        },
+
+                                        {
+                                            id: 30007,
+                                            name: 'Master Accessories',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/accessories-master',
+                                            title: 'Master Accessories',
+                                            description: 'Master Accessories Details'
+                                        },
+                                        {
+                                            id: 30008,
+                                            name: 'Master Class Category',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/master-class-category',
+                                            title: 'Master Class Category',
+                                            description: 'Master Class Category Entry'
+                                        },
+
+                                        {
+                                            id: 30009,
+                                            name: 'Master Book Category',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/mastercategory',
+                                            title: 'Master Book Category',
+                                            description: 'Master Book Category Details'
+                                        },
+
+                                        {
+                                            id: 30010,
+                                            name: 'Master Department',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/department-master',
+                                            title: 'Master Department',
+                                            description: 'Master Department Details'
+                                        },
+
+                                        {
+                                            id: 30011,
+                                            name: 'Master Rack Details',
+                                            icon: 'BookOpen',
+                                            url: '/library/masters/master-rack-details',
+                                            title: 'Master Rack Details',
+                                            description: 'Master Rack Details Entry'
+                                        },
+                                        {
+                                            id: 30012,
+                                            name: 'Master Time Slab',
+                                            icon: 'Clock',
+                                            url: '/library/masters/master-time-slab',
+                                            title: 'Master Time Slab',
+                                            description: 'Master Time Slab Details'
+                                        }
+                                        // ,
+
+                                        // {
+                                        //     id: 30010,
+                                        //     name: 'Master Category',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/library/masters/category',
+                                        //     title: 'Library Category',
+                                        //     description: 'Library Category Details'
+                                        // }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Transactions',
+                                    icon: 'BookOpen',
+
+                                    pages: [
+                                        {
+                                            id: 30013,
+                                            name: 'Book Register',
+                                            icon: 'BookOpen',
+                                            url: '/library/transactions/book-register',
+                                            title: 'Book Register',
+                                            description: 'Book Register Details'
+                                        },
+
+                                        {
+                                            id: 30014,
+                                            name: 'Book Return',
+                                            icon: 'BookOpen',
+                                            url: '/library/transactions/book-return',
+                                            title: 'Book Return',
+                                            description: 'Book Return Transaction Details'
+                                        },
+                                        // {
+                                        //     id: 30015,
+                                        //     name: 'Circulation Parameter',
+                                        //     icon: 'Settings',
+                                        //     url: '/library/transactions/circulation-parameter',
+                                        //     title: 'Circulation Parameter',
+                                        //     description: 'Manage Circulation Parameters'
+                                        // },
+
+                                        {
+                                            id: 30016,
+                                            name: 'Book Transaction',
+                                            icon: 'BookOpen',
+                                            url: '/library/transactions/lib-book-transaction',
+                                            title: 'Book Transaction',
+                                            description: 'Lib Book Transaction Details'
+                                        },
+                                        {
+                                            id: 30017,
+                                            name: 'LOST BOOK',
+                                            icon: 'BookOpen',
+                                            url: '/library/transactions/lostbook',
+                                            title: 'LOST BOOK',
+                                            description: 'LOST BOOK Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Reports',
+                                    icon: 'BookOpen',
+
+                                    pages: [
+                                        {
+                                            id: 30018,
+                                            name: 'Available Books Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/available-books-report',
+                                            title: 'Available Books Report',
+                                            description: 'View Available Books Report'
+                                        },
+                                        {
+                                            id: 30019,
+                                            name: 'Book Arrival Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/book-arrival-report',
+                                            title: 'Book Arrival Report',
+                                            description: 'View Book Arrival Report'
+                                        },
+                                        {
+                                            id: 30020,
+                                            name: 'Rack Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/rack-report',
+                                            title: 'Rack Report',
+                                            description: 'View Rack Report'
+                                        },
+                                        {
+                                            id: 30021,
+                                            name: 'Book Circulation Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/book-circulation-report',
+                                            title: 'Book Circulation Report',
+                                            description: 'View Book Circulation Report'
+                                        },
+                                        {
+                                            id: 30022,
+                                            name: 'Purchase/Donate/New Arrival Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/purchase-donate-report',
+                                            title: 'Purchase/Donate/New Arrival Report',
+                                            description: 'View Purchase Donate Report'
+                                        },
+                                        {
+                                            id: 30023,
+                                            name: 'Transaction Count Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/lib-transaction-report',
+                                            title: 'Transaction Count Report',
+                                            description: 'View Lib Transaction Report'
+                                        },
+                                        {
+                                            id: 30024,
+                                            name: 'Lost Book Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/lib-lost-book-report',
+                                            title: 'Lost Book Report',
+                                            description: 'View Lost Book Report'
+                                        },
+                                        {
+                                            id: 30025,
+                                            name: 'Student Transaction Count Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/clg-transaction-count-report',
+                                            title: 'Student Transaction Count Report',
+                                            description: 'View Student Transaction Count Report'
+                                        },
+                                        {
+                                            id: 30026,
+                                            name: 'Book Register Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/book-register-report',
+                                            title: 'Book Register Report',
+                                            description: 'View Book Register Report'
+                                        },
+                                        {
+                                            id: 30027,
+                                            name: 'Library Month End Report',
+                                            icon: 'FileText',
+                                            url: '/library/reports/library-month-end-report',
+                                            title: 'Library Month End Report',
+                                            description: 'View Library Month End Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },             
+                {
+                    id: 8,
+                    name: 'Hostel Management',
+                    icon: 'Home',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Master',
+                            icon: 'Settings',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Masters',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Facility',
+                                            icon: 'Wifi',
+                                            url: '/hostel/hostel-management/masters/master-facility',
+                                            title: 'Master Facility',
+                                            description: 'Manage Hostel Facilities'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Master Hostel',
+                                            icon: 'Building',
+                                            url: '/hostel/hostel-management/masters/master-hostel',
+                                            title: 'Master Hostel',
+                                            description: 'Manage Hostel Details'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Master Mess Category',
+                                            icon: 'Home',
+                                            url: '/hostel/hostel-management/masters/master-mess-category',
+                                            title: 'Master Mess Category',
+                                            description: 'Manage Mess Category Mapping'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Master Floor',
+                                            icon: 'Layers',
+                                            url: '/hostel/hostel-management/masters/master-floor',
+                                            title: 'Master Floor',
+                                            description: 'Manage Floor Details'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Master Room',
+                                            icon: 'Home',
+                                            url: '/hostel/hostel-management/masters/master-room',
+                                            title: 'Master Room',
+                                            description: 'Manage Room Details'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Master Bed',
+                                            icon: 'Home',
+                                            url: '/hostel/hostel-management/masters/master-bed',
+                                            title: 'Master Bed',
+                                            description: 'Manage Bed Details'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Master Mess',
+                                            icon: 'Home',
+                                            url: '/hostel/hostel-management/masters/master-mess',
+                                            title: 'Master Mess',
+                                            description: 'Manage Mess Details'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Mess Menu',
+                                            icon: 'Home',
+                                            url: '/hostel/hostel-management/masters/mess-menu',
+                                            title: 'Mess Menu',
+                                            description: 'Manage Mess Menu Details'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'Room Category',
+                                            icon: 'Home',
+                                            url: '/hostel/hostel-management/masters/room-category',
+                                            title: 'Room Category',
+                                            description: 'Manage Room Categories'
+                                        },
+                                        {
+                                            id: 10,
+                                            name: 'Room Tariff',
+                                            icon: 'Home',
+                                            url: '/hostel/hostel-management/masters/room-tariff',
+                                            title: 'Room Tariff',
+                                            description: 'Manage Room Tariffs'
+                                        },
+
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
                 }
+
             ]
         };
     } else {

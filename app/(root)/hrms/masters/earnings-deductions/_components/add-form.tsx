@@ -391,7 +391,6 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                             })}
                         />
                     </div>
-
                     <div className='group flex items-center gap-2'>
                         <Input type='checkbox' id='HRMED_ReviseFlg' className='h-4 w-4' {...register('HRMED_ReviseFlg')} />
                         <Label htmlFor='HRMED_ReviseFlg' className='cursor-pointer'>

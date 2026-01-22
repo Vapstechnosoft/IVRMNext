@@ -23,7 +23,6 @@ import {
 } from '@/server/hrms/hrmsConfig/reports/employee-details-report';
 import { getEmployeeInOutReportOnload } from '@/server/hrms/hrmsConfig/reports/employee-inout-report';
 import { getEmployeeLateInEarlyOutReportOnload } from '@/server/hrms/hrmsConfig/reports/employee-latein-earlyout-report';
-import { getEmployeeLogReportList, getEmployeeLogReportOnload } from '@/server/hrms/hrmsConfig/reports/employee-log-report';
 import { getEmployeeMonthlyReportList, getEmployeeMonthlyReportOnload } from '@/server/hrms/hrmsConfig/reports/employee-monthly-report';
 import {
     filterEmployeeOfferAndExperienceData,
@@ -108,6 +107,7 @@ import type { PFForm10ReportFilterRequest, PFForm10ReportSearchRequest } from '@
 import type { SalarySlipFilterRequest, SalarySlipGenerateRequest } from '@/types/hrms/reports/salary-slip-report';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { getEmployeeLogReportList, getEmployeeLogReportOnload } from '@/server/hrms/hrmsConfig/reports/employee-log-report';
 // ============================================================================
 // EMPLOYEE PROFILE REPORT
 // ============================================================================

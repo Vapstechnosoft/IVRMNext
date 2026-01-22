@@ -8,7 +8,7 @@ import type { IFeeHeadsListSetOrder } from '@/types/fees/masters/masters';
 export async function getfeehead(searchParams?: ApiSearchparams) {
     console.info('Fetching fee heads with search params:', searchParams);
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'fmH_FeeName,fmH_SpecialFeeFlag,fmH_Order');
-    const url = `/fee_head/30?${urlParams}`;
+    const url = `/fee_head/getdata?${urlParams}`;
     return await api.get<IFeeHeadsList[]>('fees', url);
 }
 
@@ -17,7 +17,7 @@ export async function addOrUpdateMasterfeehead(data: any) {
     return await api.post<any>('fees', url, data);
 }
 
-export async function toggleMasterfeehead(mi_id: number, id: number) {
+export async function toggleMasterfeehead(id: number) {
     const url = `/fee_head/deactivate/${id}`;
     return await api.put('fees', url);
 }

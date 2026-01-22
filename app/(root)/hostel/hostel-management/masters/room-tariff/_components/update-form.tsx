@@ -1,0 +1,217 @@
+'use client';
+
+import { Button } from '@/components/ui/button';
+import { FormError, Label } from '@/components/ui/extension/field';
+import { InputText } from '@/components/ui/extension/input-text';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RoomTariffSchema, RoomTariffSchemaType } from '@/schemas/hostel/room-tariff.schema';
+import { getBedCount, IAcademicYear, IRoom, IRoomTariff, saveRoomTariff } from '@/server/hostel/room-tariff/server-action';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { RefreshCw, Save } from 'lucide-react';
+import { useEffect } from 'react';
+import { type SubmitHandler, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+
+interface UpdateRoomTariffFormProps {
+    initialData: IRoomTariff;
+    onSuccess?: () => void;
+    onCancel?: () => void;
+    yearList: IAcademicYear[];
+    roomList: IRoom[];
+    className?: string;
+}
+
+export default function UpdateRoomTariffForm({
+    initialData,
+    onSuccess,
+    onCancel,
+    yearList,
+    roomList,
+    className = ''
+}: UpdateRoomTariffFormProps) {
+    const {
+        register,
+        handleSubmit,
+        watch,
+        setValue,
+        reset,
+        formState: { errors, isSubmitting }
+    } = useForm<RoomTariffSchemaType>({
+        resolver: zodResolver(RoomTariffSchema),
+        mode: 'onChange',
+        defaultValues: {
+            HLMRTF_Id: initialData.hlmrtF_Id,
+            ASMAY_Id: initialData.asmaY_Id,
+            HRMRM_Id: initialData.hrmrM_Id,
+            HLMRTF_SORate: initialData.hlmrtF_SORate,
+            HLMRTF_RoomRate: initialData.hlmrtF_RoomRate,
+            HLMRTF_ActiveFlag: initialData.hlmrtF_ActiveFlag,
+        },
+    });
+
+    const roomId = watch('HRMRM_Id');
+    const singleRate = watch('HLMRTF_SORate');
+
+    // Reset form when initialData changes
+    useEffect(() => {
+        reset({
+            HLMRTF_Id: initialData.hlmrtF_Id,
+            ASMAY_Id: initialData.asmaY_Id,
+            HRMRM_Id: initialData.hrmrM_Id,
+            HLMRTF_SORate: initialData.hlmrtF_SORate,
+            HLMRTF_RoomRate: initialData.hlmrtF_RoomRate,
+            HLMRTF_ActiveFlag: initialData.hlmrtF_ActiveFlag,
+        });
+    }, [initialData, reset]);
+
+    const handleSingleRateBlur = async () => {
+        if (!roomId || !singleRate) return;
+
+        const response = await getBedCount(roomId, singleRate);
+        if (response && response.hrmrM_BedCapacity) {
+            const totalRate = singleRate * response.hrmrM_BedCapacity;
+            setValue('HLMRTF_RoomRate', totalRate);
+        }
+    };
+
+    const onSubmit: SubmitHandler<RoomTariffSchemaType> = async (data) => {
+        try {
+            const result = await saveRoomTariff(data);
+
+            if (result && result.returnval) {
+                toast.success('Room Tariff updated successfully');
+                onSuccess?.();
+            } else {
+                if (result && result.duplicate) {
+                    toast.error('Record already exists');
+                } else {
+                    toast.error('Failed to update Room Tariff');
+                }
+            }
+        } catch (error: any) {
+            toast.error(error.message || 'An unexpected error occurred');
+        }
+    };
+
+    const handleReset = () => {
+        reset({
+            HLMRTF_Id: initialData.hlmrtF_Id,
+            ASMAY_Id: initialData.asmaY_Id,
+            HRMRM_Id: initialData.hrmrM_Id,
+            HLMRTF_SORate: initialData.hlmrtF_SORate,
+            HLMRTF_RoomRate: initialData.hlmrtF_RoomRate,
+            HLMRTF_ActiveFlag: initialData.hlmrtF_ActiveFlag,
+        });
+        toast.info('Form reset to original values');
+    };
+
+    return (
+        <div className={`${className} items-center justify-center`}>
+            <form onSubmit={handleSubmit(onSubmit)} className='items-center justify-center space-y-6'>
+                <div className='space-y-4'>
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                        {/* Academic Year */}
+                        <div className='group flex flex-col gap-2'>
+                            <Label htmlFor='ASMAY_Id'>
+                                Academic Year <span className='ml-1 text-red-500'>*</span>
+                            </Label>
+                            <Select
+                                onValueChange={(val) => setValue('ASMAY_Id', Number(val))}
+                                value={watch('ASMAY_Id')?.toString() || ''}
+                            >
+                                <SelectTrigger className={errors.ASMAY_Id ? 'border-red-500' : ''}>
+                                    <SelectValue placeholder="--Select Academic Year--" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {yearList.map((year) => (
+                                        <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
+                                            {year.asmaY_Year}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {errors.ASMAY_Id && <FormError>{errors.ASMAY_Id.message}</FormError>}
+                        </div>
+
+                        {/* Room */}
+                        <div className='group flex flex-col gap-2'>
+                            <Label htmlFor='HRMRM_Id'>
+                                Room <span className='ml-1 text-red-500'>*</span>
+                            </Label>
+                            <Select
+                                onValueChange={(val) => setValue('HRMRM_Id', Number(val))}
+                                value={watch('HRMRM_Id')?.toString() || ''}
+                            >
+                                <SelectTrigger className={errors.HRMRM_Id ? 'border-red-500' : ''}>
+                                    <SelectValue placeholder="--Select Room--" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {roomList.map((room) => (
+                                        <SelectItem key={room.hrmrM_Id} value={room.hrmrM_Id.toString()}>
+                                            {room.hrmrM_RoomNo}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {errors.HRMRM_Id && <FormError>{errors.HRMRM_Id.message}</FormError>}
+                        </div>
+                    </div>
+
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                        {/* Single Bed Rate */}
+                        <InputText
+                            label='Single Bed Rate'
+                            required
+                            id='HLMRTF_SORate'
+                            {...register('HLMRTF_SORate', { valueAsNumber: true })}
+                            error={errors.HLMRTF_SORate?.message}
+                            placeholder='Enter Rate'
+                            type='number'
+                            disabled={!roomId}
+                            onBlur={handleSingleRateBlur}
+                        />
+
+                        {/* Entire Room Rate */}
+                        <InputText
+                            label='Entire Room Rate'
+                            required
+                            id='HLMRTF_RoomRate'
+                            {...register('HLMRTF_RoomRate', { valueAsNumber: true })}
+                            error={errors.HLMRTF_RoomRate?.message}
+                            placeholder='Auto Calculated'
+                            type='number'
+                            readOnly
+                        />
+                    </div>
+
+                    {errors.root && <FormError>{errors.root.message}</FormError>}
+                </div>
+
+                {/* Buttons */}
+                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
+                    <Button
+                        type='button'
+                        variant='outline'
+                        onClick={handleReset}
+                        disabled={isSubmitting}
+                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                        <RefreshCw className='mr-2 h-4 w-4' />
+                        Reset
+                    </Button>
+
+                    <Button
+                        type='submit'
+                        disabled={isSubmitting}
+                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                        isLoading={isSubmitting}
+                        loadingText='Updating...'>
+                        <div className='flex items-center'>
+                            <Save className='mr-2 h-4 w-4' />
+                            Update Tariff
+                        </div>
+                    </Button>
+                </div>
+            </form>
+        </div>
+    );
+}

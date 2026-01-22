@@ -105,7 +105,7 @@ export default function AddFeeTermsHeadDueDateFormForm({ onSuccess, termname = '
             const { asmay_Id, fmt_id, fmh_id } = data;
 
             const payload = {
-                MI_Id: 30,
+                // MI_Id: 30,
                 term_year_id: selectedAcademicYear ?? 0,
                 // fmT_Id: selectedTerm ?? 0,
                 // fmH_Id: selectedHead ?? 0,

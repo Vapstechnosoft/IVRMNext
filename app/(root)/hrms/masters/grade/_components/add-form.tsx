@@ -124,7 +124,7 @@ export default function AddGradeForm({ onSuccess, className = '' }: AddGradeForm
                                     label='Pay Scale From'
                                     required
                                     id='hrmG_PayScaleFrom'
-                                    value={field.value ?? NaN}
+                                    value={field.value ?? Number.NaN}
                                     maxDigits={6}
                                     onChange={(value) => {
                                         const numValue = Number.isNaN(value) ? undefined : value;
@@ -150,7 +150,7 @@ export default function AddGradeForm({ onSuccess, className = '' }: AddGradeForm
                                     label='Increment Of'
                                     required
                                     id='hrmG_IncrementOf'
-                                    value={field.value ?? NaN}
+                                    value={field.value ?? Number.NaN}
                                     maxDigits={6}
                                     onChange={(value) => {
                                         const numValue = Number.isNaN(value) ? undefined : value;
@@ -172,7 +172,7 @@ export default function AddGradeForm({ onSuccess, className = '' }: AddGradeForm
                                     label='Pay Scale To'
                                     required
                                     id='hrmG_PayScaleTo'
-                                    value={field.value ?? NaN}
+                                    value={field.value ?? Number.NaN}
                                     maxDigits={6}
                                     onChange={(value) => {
                                         const numValue = Number.isNaN(value) ? undefined : value;
@@ -191,7 +191,8 @@ export default function AddGradeForm({ onSuccess, className = '' }: AddGradeForm
                         />
 
                         <div className='flex flex-col gap-2'>
-                            <label className='text-sm font-medium'>Pay Scale Range</label>
+                            {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
+                            <label className='font-medium text-sm'>Pay Scale Range</label>
                             <div className='flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50'>
                                 <PayScaleRangeDisplay control={control} />
                             </div>

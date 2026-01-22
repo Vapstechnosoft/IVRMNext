@@ -23,7 +23,7 @@ export async function feeTransactionWaivedOff(searchParams?: ApiSearchparams) {
 
 export async function addOrUpdateTransactionWaivedOff(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/FeeMasterTermsFacade/fee_terms/30?${urlParams}`;
+    const url = `/FeeMasterTermsFacade/fee_terms?${urlParams}`;
     return await api.get<IFeeTransactionWaivedOffList[]>('fees', url);
 }
 

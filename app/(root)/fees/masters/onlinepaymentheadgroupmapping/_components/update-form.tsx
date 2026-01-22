@@ -172,20 +172,22 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
     // Fetch installments dynamically when heads change
     useEffect(() => {
         const fetchInstallments = async () => {
-            if (!academicYear || (!groupId && !classId)) {
+            if (!academicYear || !classId || !groupId || !!selectedHeads) {
                 setInstallmentOptions([]);
                 return;
             }
 
             try {
                 const payload: any = {
-                    mi_Id: Number(getValues('mI_Id') ?? 30),
+                    // mi_Id: Number(getValues('mI_Id') ?? 30),
                     asmaY_Id: academicYear,
                     fmg_Id: groupId ?? classId
                 };
 
-                if (selectedHeads.length > 0) {
-                    payload.selectedheadList = selectedHeads.map((h) => ({ fmH_Id: h }));
+                const typedSelectedHeads: any[] = selectedHeads || [];
+
+                if (typedSelectedHeads.length > 0) {
+                    payload.selectedheadList = typedSelectedHeads.map((h) => ({ fmH_Id: h }));
                 }
 
                 const res = await GetInstallmentMasterDropdown(payload);
@@ -320,15 +322,15 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
 
         const payload = {
             fopM_Id: selectedRow.fopM_Id,
-            mI_Id: Number(getValues('mI_Id')),
+            // mI_Id: Number(getValues('mI_Id')),
             asmaY_Id: academicYear,
             asmcL_ID: classId,
             fpgd_id: subMerchantId,
             fmg_id: groupId,
             selectedheadList: selectedHeads.map((headId) => ({ fmH_Id: headId })),
             fmt_id: termId,
-            fti_id: installmentId,
-            user_id: 1001
+            fti_id: installmentId
+            // user_id: 1001
         };
 
         try {
@@ -616,7 +618,7 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
                                                             if (academicYear && (groupId ?? classId)) {
                                                                 try {
                                                                     const payload: any = {
-                                                                        mi_Id: Number(getValues('mI_Id') ?? 30),
+                                                                        // mi_Id: Number(getValues('mI_Id') ?? 30),
                                                                         asmaY_Id: academicYear,
                                                                         fmg_Id: groupId ?? classId
                                                                     };

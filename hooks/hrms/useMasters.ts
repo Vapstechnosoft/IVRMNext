@@ -4,6 +4,7 @@
  * All master-related hooks consolidated in one file
  */
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
+import { getMasterBank } from '@/server/hrms/hrmsConfig/master/bank';
 import {
     addOrUpdateMasterBank,
     getMasterBank,
@@ -337,7 +338,6 @@ export function useCourseSetOrder() {
         }
     };
 }
-
 // ============================================================================
 // GENDER
 // ============================================================================

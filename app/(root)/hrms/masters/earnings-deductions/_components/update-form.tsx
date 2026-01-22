@@ -412,7 +412,6 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                             })}
                         />
                     </div>
-
                     <div className='group flex items-center gap-2'>
                         <Input
                             type='checkbox'

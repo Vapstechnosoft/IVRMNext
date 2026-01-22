@@ -16,7 +16,6 @@ interface ReportTemplateProps {
     onExport: () => void;
     onCancel: () => void;
 }
-
 export function CumulativeSalaryReportTemplate({
     schoolName = '',
     schoolAddress = '',
@@ -33,11 +32,9 @@ export function CumulativeSalaryReportTemplate({
     const formatCurrency = (value: number) => {
         return value.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
     };
-
     // Get month name in uppercase
     const monthName = month ? month.toUpperCase() : '';
     const yearValue = year || '';
-
     return (
         <div className='mx-auto w-full max-w-[1400px] bg-white p-6 print:p-4'>
             {/* Report Header */}
@@ -49,7 +46,6 @@ export function CumulativeSalaryReportTemplate({
                     CUMULATIVE SALARY REPORT FOR THE MONTH OF {monthName} - {yearValue}
                 </div>
             </div>
-
             {/* Report Table */}
             <div className='mb-6 overflow-x-auto'>
                 <table className='w-full border-collapse border border-gray-300 text-sm'>
@@ -164,7 +160,6 @@ export function CumulativeSalaryReportTemplate({
                     </tbody>
                 </table>
             </div>
-
             {/* Action Buttons */}
             <div className='flex justify-end gap-3 print:hidden'>
                 <Button variant='outline' onClick={onPrint} className='gap-2'>

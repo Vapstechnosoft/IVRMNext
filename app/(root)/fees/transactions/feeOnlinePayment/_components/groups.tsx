@@ -69,7 +69,7 @@ export function MasterViewDetail({ onSuccess }: MasterViewDetailProps) {
             });
 
             return {
-                mI_Id: 30,
+                // mI_Id: 30,
                 asmaY_Id: selectedRow?.academicYearId,
                 amsT_Id: selectedRow?.studentId,
                 // userId: 21602,
@@ -116,17 +116,17 @@ export function MasterViewDetail({ onSuccess }: MasterViewDetailProps) {
             prev.map((g) =>
                 g.fmG_Id === group.fmG_Id
                     ? {
-                        ...g,
-                        checked: shouldCheck,
-                        heads: g.heads.map((head) => ({
-                            ...head,
-                            checked: head.disabled ? head.checked : shouldCheck,
-                            installments: head.installments.map((inst) => ({
-                                ...inst,
-                                checked: inst.disabled ? inst.checked : shouldCheck
-                            }))
-                        }))
-                    }
+                          ...g,
+                          checked: shouldCheck,
+                          heads: g.heads.map((head) => ({
+                              ...head,
+                              checked: head.disabled ? head.checked : shouldCheck,
+                              installments: head.installments.map((inst) => ({
+                                  ...inst,
+                                  checked: inst.disabled ? inst.checked : shouldCheck
+                              }))
+                          }))
+                      }
                     : g
             )
         );
@@ -261,8 +261,9 @@ export function MasterViewDetail({ onSuccess }: MasterViewDetailProps) {
                                                                         }
                                                                     />
                                                                     <span
-                                                                        className={`text-sm ${inst.disabled ? 'text-muted-foreground' : ''
-                                                                            }`}>
+                                                                        className={`text-sm ${
+                                                                            inst.disabled ? 'text-muted-foreground' : ''
+                                                                        }`}>
                                                                         {inst.installmentName}
                                                                     </span>
                                                                 </div>
@@ -296,4 +297,3 @@ export function MasterViewDetail({ onSuccess }: MasterViewDetailProps) {
         </Dialog>
     );
 }
-

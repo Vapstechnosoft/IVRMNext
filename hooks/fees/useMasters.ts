@@ -303,7 +303,7 @@ export const useMasterFeeInstallment = (searchParams?: ApiSearchparams) => {
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.FEE_INSTALLMENT, searchParams ?? {}],
-            queryFn: async () => getfeeInstallment(30, searchParams),
+            queryFn: async () => getfeeInstallment(searchParams),
             staleTime: 0
         }),
         refetchAll: () => {

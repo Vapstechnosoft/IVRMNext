@@ -52,7 +52,7 @@ export default function UpdateFeeTermForm({ onSuccess, fineslab = '', selectedRo
         try {
             const { fmT_Name, fmT_IncludeArrearFeeFlg } = data;
             const payload = {
-                mi_id: 30,
+                // mi_id: 30,
                 fmT_Name: fmT_Name,
                 fmT_Id: row.fmT_Id,
                 fmT_IncludeArrearFeeFlg: fmT_IncludeArrearFeeFlg,
