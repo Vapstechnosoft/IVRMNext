@@ -3325,6 +3325,14 @@ export async function getUserAccessibleModules() {
                                             url: '/StudentPortal/student-dashboard/Fees/FeeOnlinePayment',
                                             title: 'Fee Online Payment',
                                             description: 'Pay Fees Online'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'CumulativeFeeAnalysis',
+                                            icon: 'CreditCard',
+                                            url: '/StudentPortal/masters/cumulative-fee-analysis',
+                                            title: 'Fee Online Payment',
+                                            description: 'Pay Fees Online'
                                         }
                                     ]
                                 },
