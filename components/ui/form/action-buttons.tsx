@@ -16,6 +16,11 @@ interface ActionButtonsProps {
     onEdit?: (data: any) => void;
     onDelete?: (data: any) => void;
     onToggle?: (data: any, newState: boolean) => void;
+    disabled?: {
+        edit?: boolean;
+        delete?: boolean;
+        toggle?: boolean;
+    };
     toggleConditionKey?: string;
     className?: string;
     size?: 'sm' | 'default' | 'lg';
@@ -25,6 +30,7 @@ interface ActionButtonsProps {
 export function ActionButtons({
     rowData,
     buttons = { edit: true, delete: false, toggle: false },
+    disabled = { edit: false, delete: false, toggle: false },
     onEdit,
     onDelete,
     onToggle,
@@ -66,6 +72,7 @@ export function ActionButtons({
                                 variant={variant}
                                 size={size}
                                 onClick={handleEdit}
+                                disabled={disabled.edit}
                                 className='h-8 w-8 p-0 transition-all duration-200 hover:bg-blue-50 hover:text-blue-600'>
                                 <Edit className='h-4 w-4' />
                             </Button>

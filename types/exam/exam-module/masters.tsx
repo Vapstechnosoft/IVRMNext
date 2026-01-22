@@ -114,6 +114,7 @@ export interface IMasterSubjectGroup {
     updatedDate?: string;
 }
 export interface IMasterSubjectGroupDetails {
+    ismS_SubjectGroup: any;
     ismS_Id?: number;
     ismS_SubjectName: string;
     ismS_SubjectCode: string;

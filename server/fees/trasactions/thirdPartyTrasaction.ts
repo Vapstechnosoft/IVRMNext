@@ -18,8 +18,8 @@ export async function getThirdPartyTrasaction(searchParams?: ApiSearchparams) {
 }
 
 export async function getThirdPartyTrasactionGroupDropDown(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `ThirdPartyTransaction/group_drop_down_list?${urlParams}`;
+    //const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const url = '/ThirdPartyTransaction/group_drop_down_list';
     return await api.get<IFeeThirdPartyTransactionGroupDropDown[]>('fees', url);
 }
 
@@ -73,4 +73,11 @@ export async function receiptView(data: any) {
 
     console.info('thirdPartyTrasaction', url);
     return await api.post<any>('fees', url, data);
+}
+
+export async function ThirdPartyTrasactionfeeReceiptNoflg() {
+    const url = '/ThirdPartyTransaction/ThirdPartyTrasactionfeeReceiptNoflg';
+
+    console.info('ThirdPartyTrasactionfeeReceiptNoflg', url);
+    return await api.get<any>('fees', url);
 }

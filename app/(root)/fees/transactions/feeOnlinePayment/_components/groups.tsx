@@ -69,7 +69,7 @@ export function MasterViewDetail({ onSuccess }: MasterViewDetailProps) {
             });
 
             return {
-                mI_Id: 30,
+                // mI_Id: 30,
                 asmaY_Id: selectedRow?.academicYearId,
                 amsT_Id: selectedRow?.studentId,
                 // userId: 21602,

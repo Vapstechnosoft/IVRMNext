@@ -110,15 +110,15 @@ export default function AddFeeTermsPeriodForm({ onSuccess, termname = '' }: FeeT
             const { asmay_Id, fmt_id } = data;
 
             const payload = {
-                mi_id: 30,
+                // mi_id: 30,
                 asmay_Id: asmay_Id,
                 fmt_id: fmt_id,
                 // fmh_id: selectedHead,
                 fmtP_Year: data.fmtP_Year,
                 feeflag: filterType,
                 fmtP_FROM_MONTH: data.from_Month,
-                fmtP_TO_MONTH: data.to_Month,
-                user_id: 21602
+                fmtP_TO_MONTH: data.to_Month
+                // user_id: 21602
             };
 
             console.log('Payload JSON:', JSON.stringify(payload));

@@ -6,7 +6,7 @@ import type { IFeePreAdmissionTransactionDetails, Ifeetransaction } from '@/type
 
 export async function getFeeStudentTransactionDetails(asmaY_Id: number, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/FeeStudentTransaction/fee-details?ASMAY_Id=${asmaY_Id || 231}&${urlParams}`;
+    const url = `/FeeStudentTransaction/fee-details?ASMAY_Id=${asmaY_Id || 0}&${urlParams}`;
     return await api.post<Ifeetransaction[]>('fees', url);
 }
 

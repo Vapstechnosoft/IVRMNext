@@ -243,10 +243,22 @@ export default function UpdateFeePrivilegeForm({ onSuccess, selectedRow, classNa
 
     useEffect(() => {
         if (masterHeadName?.data && Array.isArray(masterHeadName.data)) {
-            const opts = masterHeadName.data.map((h: any) => ({
-                value: h.fmH_Id.toString(),
-                label: h.fmH_FeeName
-            }));
+            // const opts = masterHeadName.data.map((h: any) => ({
+            //     value: h.fmH_Id.toString(),
+            //     label: h.fmH_FeeName
+            // }));
+            const opts = Array.from(
+                new Map(
+                    masterHeadName.data.map((h: any) => [
+                        h.fmH_Id, // unique key
+                        {
+                            value: h.fmH_Id.toString(),
+                            label: h.fmH_FeeName
+                        }
+                    ])
+                ).values()
+            );
+
             setHeadOptions(opts);
         } else {
             setHeadOptions([]);
@@ -420,7 +432,7 @@ export default function UpdateFeePrivilegeForm({ onSuccess, selectedRow, classNa
                 fgL_Id: Number(selectedRow?.fgL_Id),
                 asmaY_Id: Number(selectedAcademicYear.value),
                 fmG_ID: Number(selectedGroup.value),
-                mI_Id: 30,
+                // mI_Id: 30,
                 UserId: Number(selectedRole.value),
                 grouphead: data.heads.map((h) => ({ FMH_Id: Number(h) })),
                 username: data.users.map((u) => ({ UserId: Number(u) }))

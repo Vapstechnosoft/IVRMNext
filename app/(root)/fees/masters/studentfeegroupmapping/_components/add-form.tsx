@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -46,6 +45,10 @@ import { MasterViewDetail } from './masterViewDetails';
 import { masterFeeStudentClassMapping } from './student-list-columns';
 
 type FormFields = z.infer<typeof masterStudentFeeGroupMappingSchema.addOrUpdate>;
+interface DropdownOption {
+    value: string;
+    label: string;
+}
 interface AddStudentFeeGroupMappingFilter {
     onSuccess?: () => void;
 }
@@ -115,6 +118,7 @@ function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFeeGroupMappingFi
         handleSubmit,
         reset,
         watch,
+        setValue,
         getValues,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
@@ -122,22 +126,39 @@ function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFeeGroupMappingFi
         mode: 'onChange',
         defaultValues: {
             // asmaY_Id: academicYear,
-            //  asmaY_Id: 231,
-            mI_Id: '30',
-            institutionName: 'vidya_vikas_vidya_samste'
+            //  asmaY_Id: 0,
+            mI_Id: '',
+            institutionName: ''
         }
     });
 
     //-------------Academic Year---------------
     const { data: academicYearData, isLoading: academicYearLoading, error: academicYearError } = useMasterStudentFeeGrouMappingAcademic();
+    const [academicYearOptions, setAcademicYearOptions] = useState<DropdownOption[]>([]);
+    // useEffect(() => {
+    //     if (academicYearError) {
+    //         toast.error(academicYearError.message || 'Error fetching academic years');
+    //         setAcademicYearOptions([]);
+    //         return;
+    //     }
+    //     if (academicYearData?.data && Array.isArray(academicYearData.data)) {
+    //         const options = academicYearData.data.map((item: any) => ({
+    //             value: item.asmaY_Id.toString(),
+    //             label: item.asmaY_Year
+    //         }));
+    //         setAcademicYearOptions(options);
+    //     } else {
+    //         setAcademicYearOptions([]);
+    //     }
+    // }, [academicYearData, academicYearError]);
 
     useEffect(() => {
-        if (academicYearData?.data?.length) {
-            const firstId = academicYearData.data[0].asmaY_Id;
+        if (academicYearData?.data && Array.isArray(academicYearData.data)) {
+            const firstId = academicYearData.data[0]?.asmaY_Id.toString();
 
             reset((prev) => ({
                 ...prev,
-                asmaY_Id: firstId
+                asmaY_Id: Number(firstId)
             }));
         }
     }, [academicYearData]);
@@ -491,7 +512,7 @@ function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFeeGroupMappingFi
             }));
 
             return {
-                mI_Id: Number(getValues('mI_Id')),
+                // mI_Id: Number(getValues('mI_Id')),
                 asmaY_Id: asmaY_Id,
                 // userId: 1001,
                 studentMappings
@@ -591,7 +612,7 @@ function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFeeGroupMappingFi
             </Card>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-5'>
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                    <div className='group flex flex-col gap-1.5'>
+                    {/* <div className='group flex flex-col gap-1.5'>
                         <Label htmlFor='asmaY_Id'>
                             Academic Year <span className='ml-1 text-red-500'>*</span>
                         </Label>
@@ -622,9 +643,9 @@ function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFeeGroupMappingFi
                                                 Error
                                             </SelectItem>
                                         ) : (
-                                            academicYearData?.data?.map((item: any) => (
-                                                <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                    {item.asmaY_Year}
+                                            academicYearOptions.map((item) => (
+                                                <SelectItem key={item.value} value={item.value}>
+                                                    {item.label}
                                                 </SelectItem>
                                             ))
                                         )}
@@ -633,6 +654,44 @@ function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFeeGroupMappingFi
                             )}
                         />
 
+                        {errors.asmaY_Id && <FormError>{errors.asmaY_Id.message}</FormError>}
+                    </div> */}
+                    <div>
+                        <Label htmlFor='asmaY_Id'>
+                            Academic Year <span className='ml-1 text-red-500'>*</span>
+                        </Label>
+                        <Select
+                            onValueChange={(value) => setValue('asmaY_Id', Number(value), { shouldValidate: true })}
+                            value={asmaY_Id?.toString() || ''}
+                            disabled={academicYearLoading}>
+                            <SelectTrigger id='asmaY_Id' className={`transition-colors ${errors.asmaY_Id ? 'border-red-500' : ''}`}>
+                                <SelectValue placeholder='Select Academic Year' />
+                            </SelectTrigger>
+                            {/* <SelectContent>
+                                    {academicYearOptions.map((option) => (
+                                        <SelectItem key={option.value} value={option.value}>
+                                            {option.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent> */}
+                            <SelectContent>
+                                {academicYearLoading ? (
+                                    <SelectItem value='loading' disabled>
+                                        Loading...
+                                    </SelectItem>
+                                ) : academicYearError ? (
+                                    <SelectItem value='error' disabled>
+                                        Error loading
+                                    </SelectItem>
+                                ) : (
+                                    academicYearData?.data?.map((item: any, index: number) => (
+                                        <SelectItem key={`${item.asmaY_Id}-${index}`} value={item.asmaY_Id.toString()}>
+                                            {item.asmaY_Year}
+                                        </SelectItem>
+                                    ))
+                                )}
+                            </SelectContent>
+                        </Select>
                         {errors.asmaY_Id && <FormError>{errors.asmaY_Id.message}</FormError>}
                     </div>
                     {filterType === 'FCC' && (

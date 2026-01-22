@@ -32,6 +32,7 @@ import {
 import type {
     IFeeTDetails,
     IFeeTermDetails,
+    IStudentDisableList,
     IStudentSearchList,
     IStudentTDetails,
     IStudentTermList,
@@ -75,6 +76,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
     const [selectedStudent, setSelectedStudent] = useState<IStudentSearchList | null>(null);
     const [selectedTerm, setselectedTerm] = useState<string[]>([]);
     const [terms, setTerms] = useState<IStudentTermList[]>([]);
+    const [disableTerms, setDisableTerms] = useState<IStudentDisableList[]>([]);
     const [loadingTerm, setLoadingTerm] = useState(false);
     const [studentDetails, SetStudentDetails] = useState<IStudentTDetails[]>([]);
     const [feeDetails, SetFeeDetails] = useState<IFeeTDetails[]>([]);
@@ -280,13 +282,17 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                     autoReceiptFlag: true,
                     asmaY_Id: selectedAsmayId
                 };
+
+                console.log('term details payload', JSON.stringify(payload));
                 const termArray = await getStudentDetails(payload);
                 const termList = JSON.parse(JSON.stringify(termArray.masterGroupDetails || []));
+                const disableTerms = JSON.parse(JSON.stringify(termArray.termDetails || []));
                 const studentDetails = JSON.parse(JSON.stringify(termArray.fillstudents || []));
                 const feeDetails = JSON.parse(JSON.stringify(termArray.showstaticticsdetails || []));
                 const studentUserNameArray = JSON.parse(JSON.stringify(termArray.filusernames || []));
                 // const studentAmountDetails = JSON.parse(JSON.stringify(termArray.fillstudentviewdetails || []));
                 setTerms(termList || []);
+                setDisableTerms(disableTerms || []);
                 SetStudentDetails(studentDetails || []);
                 SetFeeDetails(feeDetails || []);
                 SetStudentUserNameDetails(studentUserNameArray || []);
@@ -300,6 +306,21 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
         };
         fetchStudentsDetails();
     }, [selectedStudent]);
+
+    useEffect(() => {
+        if (terms.length === disableTerms.length && terms.length > 0) {
+            const updatedTerms = [...terms];
+            for (let i = 0; i < terms.length; i++) {
+                const matchingTerm = disableTerms.find((dt) => dt.fmtId === terms[i].fmT_Id);
+                if (matchingTerm && matchingTerm.netAmount <= matchingTerm.paid) {
+                    updatedTerms[i].disablepaisterms = true;
+                } else {
+                    updatedTerms[i].disablepaisterms = false;
+                }
+            }
+            setTerms(updatedTerms);
+        }
+    }, [disableTerms]);
 
     useEffect(() => {
         if (!selectedTerm || selectedTerm.length === 0) {
@@ -1097,7 +1118,8 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                 <CustomMultiSelectBox
                                     options={terms.map((ex) => ({
                                         label: ex.fmG_GroupName,
-                                        value: ex.fmT_Id.toString()
+                                        value: ex.fmT_Id.toString(),
+                                        disabled: ex.disablepaisterms
                                     }))}
                                     isLoading={loadingTerm}
                                     disabled={amountCheck || filterType === 'Chal_no'}
@@ -1159,11 +1181,13 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                         Fee Details <span>➤</span>
                                     </span>
 
-                                    <span
-                                        className='flex cursor-pointer items-center gap-1 hover:underline'
-                                        onClick={() => setOpenStudentDetails(true)}>
-                                        Student Profile <span>➤</span>
-                                    </span>
+                                    {selectedStudent != null && (
+                                        <span
+                                            className='flex cursor-pointer items-center gap-1 hover:underline'
+                                            onClick={() => setOpenStudentDetails(true)}>
+                                            Student Profile <span>➤</span>
+                                        </span>
+                                    )}
                                 </div>
 
                                 {studentDetails.length > 0 && (
@@ -1202,13 +1226,13 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
 
                 {openFeeDetails && <FeeDetails onClose={() => setOpenFeeDetails(false)} data={feeDetails} loading={false} />}
 
-                {openStudentDetails && (
+                {openStudentDetails && selectedStudent != null && (
                     <StudentProfileModal
                         isOpen={!!openStudentDetails}
                         onClose={() => setOpenStudentDetails(false)}
                         data={openStudentDetails}
                         loading={false}
-                        amst_Id={Number(selectedStudent?.amst_Id)}
+                        amst_Id={Number(selectedStudent!.amst_Id)}
                         asmay_Id={Number(selectedAsmayId)}
                     />
                 )}
