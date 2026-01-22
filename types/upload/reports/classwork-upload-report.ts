@@ -82,3 +82,14 @@ export interface IClassWorkDetails {
     ivrmuL_Id: number | null;
     ihW_FilePath: string | null;
 }
+
+export interface IClassWorkUploadReport {
+    topic: string;
+    className: string;
+    sectionName: string;
+    subjectName: string;
+    uploadDate: string;
+    fileName: string;
+    userName: string;
+    employeeName: string;
+}

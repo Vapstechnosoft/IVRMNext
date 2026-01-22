@@ -33,12 +33,12 @@ export default function HomeWorkUploadReportPage() {
         setIsLoading(true);
         try {
             const res = await getHomeWorkReportData({ ...payload, ...sParams });
-            if (res.data && res.data.homeworkreportlist) {
-                setReportData(res.data.homeworkreportlist);
-            } else {
-                setReportData([]);
-                toast.info('No records found');
-            }
+            // if (res.data && res.data.homeworkreportlist) {
+            //     setReportData(res.data.homeworkreportlist);
+            // } else {
+            //     setReportData([]);
+            //     toast.info('No records found');
+            // }
         } catch (error) {
             console.error('Error fetching report:', error);
             toast.error('Failed to fetch report');
@@ -62,12 +62,12 @@ export default function HomeWorkUploadReportPage() {
             };
 
             const res = await viewHomeWorkAttachmentData(payload);
-            if (res.data && res.data.attachementlist && res.data.attachementlist.length > 0) {
-                setModalAttachments(res.data.attachementlist);
-                setIsModalOpen(true);
-            } else {
-                toast.info('No attachments details found.');
-            }
+            // if (res.data && res.data.attachementlist && res.data.attachementlist.length > 0) {
+            //     setModalAttachments(res.data.attachementlist);
+            //     setIsModalOpen(true);
+            // } else {
+            //     toast.info('No attachments details found.');
+            // }
         } catch (error) {
             console.error('Error fetching attachments:', error);
             toast.error('Failed to fetch attachments');
