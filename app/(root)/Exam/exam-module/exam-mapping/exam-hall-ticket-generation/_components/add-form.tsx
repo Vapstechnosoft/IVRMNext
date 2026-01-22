@@ -72,8 +72,6 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
         reset,
         setValue,
         getValues,
-        watch,
-        trigger,
         formState: { errors, isSubmitting }
     } = methods;
 
@@ -107,6 +105,7 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
 
     // ---------- Auto-select first academic year if none selected ----------
     useEffect(() => {
+        if (selectedYear === undefined) return;
         if (academicYearError) {
             toast.error('Failed to load academic years');
             return;
@@ -258,6 +257,7 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                 // re-fetch generated list if available
                 try {
                     refetchAll?.();
+                    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
                 } catch (e) {
                     // if refetchAll not available or fails, ignore
                 }
@@ -292,7 +292,7 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
     useEffect(() => {
         if (errors && Object.keys(errors).length > 0) {
             // Full object for debugging
-            console.log('❌ Validation Errors object:', errors);
+            console.info('❌ Validation Errors object:', errors);
 
             // Human readable lines
             Object.entries(errors).forEach(([field, info]) => {
@@ -300,7 +300,7 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                 if (!info) return;
                 // simple shape: info.message
                 const msg = (info as any)?.message ?? JSON.stringify(info);
-                console.log(` - ${field}: ${msg}`);
+                console.info(` - ${field}: ${msg}`);
             });
         }
     }, [errors]);
@@ -328,8 +328,9 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                                         </Label>
                                         <div className='flex-1'>
                                             <Select
-                                                onValueChange={(v) => field.onChange(Number(v))}
-                                                value={field.value ? String(field.value) : ''}>
+                                                key={field.value}
+                                                value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                                onValueChange={(val) => field.onChange(Number(val))}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Academic Year' />
                                                 </SelectTrigger>
@@ -368,7 +369,8 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                                         </Label>
                                         <div className='flex-1'>
                                             <Select
-                                                disabled={!selectedYear || loadingClasses}
+                                                //disabled={!selectedYear || loadingClasses}
+                                                key={field.value}
                                                 onValueChange={(v) => field.onChange(Number(v))}
                                                 value={field.value ? String(field.value) : ''}>
                                                 <SelectTrigger>
@@ -605,11 +607,12 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                             size='lg'
                             onClick={() => {
                                 // Full reset but keep academic year (common UX)
+                                // biome-ignore lint/correctness/noUnusedVariables: <explanation>
                                 const curYear = getValues('asmaY_Id');
                                 reset({
                                     ...methods.getValues(),
                                     mI_Id: 0,
-                                    asmaY_Id: curYear ?? 0,
+                                    asmaY_Id: undefined,
                                     asmcL_Id: 0,
                                     classList: [],
                                     sectionList: [],
@@ -620,6 +623,8 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                                     prefixNoFlag: 'N',
                                     leadingzeros: 0
                                 } as any);
+                                setSections([]);
+                                setClasses([]);
                             }}
                             className='min-w-[120px]'>
                             CANCEL

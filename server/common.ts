@@ -371,6 +371,60 @@ export async function getUserAccessibleModules() {
                                             description: 'PreAdmission Month End Report'
                                         }
                                     ]
+                                },
+                                {
+                                    id: 6,
+                                    name: 'Attendance Entry',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Entry Type',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/attendance-entry/attendance_entry_type',
+                                            title: 'Attendance Entry Type',
+                                            description: 'Manage attendance entry types'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Login Privileges',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/attendance-entry/login-privileges',
+                                            title: 'Login Privileges',
+                                            description: 'Manage attendance login privileges'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Student Attendance',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/attendance-entry/student-attendance',
+                                            title: 'Student Attendance',
+                                            description: 'Enter student attendance'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 7,
+                                    name: 'Student TC',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Apply TC',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/student-transfer-certificate/apply',
+                                            title: 'Apply TC',
+                                            description: 'Apply for Student Transfer Certificate'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Cancel TC',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/student-transfer-certificate/cancel',
+                                            title: 'Cancel TC',
+                                            description: 'Cancel Student Transfer Certificate'
+                                        }
+                                    ]
                                 }
                             ]
                         },
@@ -389,8 +443,8 @@ export async function getUserAccessibleModules() {
                                             name: 'Admission Form',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/admission-form',
-                                            title: 'Master Class',
-                                            description: 'Manage Master Class Details'
+                                            title: 'Admission Form',
+                                            description: 'Apply For Admission'
                                         }
                                     ]
                                 },
@@ -1492,22 +1546,22 @@ export async function getUserAccessibleModules() {
                                             title: 'Toppers List Report',
                                             description: 'View Toppers List Details'
                                         },
-                                        // {
-                                        //     id: 80,
-                                        //     name: 'Exam Login Privileges Report',
-                                        //     icon: 'BookOpen',
-                                        //     url: '/Exam/exam-module/reports/exam-login-privileges-report',
-                                        //     title: 'Exam Login Privileges Report',
-                                        //     description: 'View Exam Login Privileges Details'
-                                        // },
-                                        // {
-                                        //     id: 81,
-                                        //     name: 'Marks Entry Report',
-                                        //     icon: 'BookOpen',
-                                        //     url: '/Exam/exam-module/reports/marks-entry-report',
-                                        //     title: 'Marks Entry Report',
-                                        //     description: 'View Marks Entry Report Details'
-                                        // },
+                                        {
+                                            id: 80,
+                                            name: 'Exam Login Privileges Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/exam-login-privileges-report',
+                                            title: 'Exam Login Privileges Report',
+                                            description: 'View Exam Login Privileges Details'
+                                        },
+                                        {
+                                            id: 81,
+                                            name: 'Marks Entry Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/marks-entry-report',
+                                            title: 'Marks Entry Report',
+                                            description: 'View Marks Entry Report Details'
+                                        },
                                         {
                                             id: 82,
                                             name: 'Tabulation Report',
@@ -3339,11 +3393,18 @@ export async function getUserAccessibleModules() {
                                     name: 'Admission',
                                     icon: 'Database',
                                     pages: [
+                                        // {
+                                        //     id: 40001,
+                                        //     name: 'Attendance Details',
+                                        //     icon: 'ClipboardList',
+                                        //     url: '/StudentPortal/student-dashboard/EnrolledStudents/Transaction/AttendanceDetails',
+                                        //     title: 'Attendance Details'
+                                        // },
                                         {
                                             id: 40001,
                                             name: 'Attendance Details',
                                             icon: 'ClipboardList',
-                                            url: '/StudentPortal/student-dashboard/EnrolledStudents/Transaction/AttendanceDetails',
+                                            url: '/StudentPortal/masters/attendance-details',
                                             title: 'Attendance Details'
                                         }
                                     ]
@@ -3420,6 +3481,14 @@ export async function getUserAccessibleModules() {
                                             url: '/StudentPortal/student-dashboard/Fees/FeeOnlinePayment',
                                             title: 'Fee Online Payment',
                                             description: 'Pay Fees Online'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'CumulativeFeeAnalysis',
+                                            icon: 'CreditCard',
+                                            url: '/StudentPortal/masters/cumulative-fee-analysis',
+                                            title: 'Fee Online Payment',
+                                            description: 'Pay Fees Online'
                                         }
                                     ]
                                 },
@@ -3450,11 +3519,19 @@ export async function getUserAccessibleModules() {
                                     name: 'COE',
                                     icon: 'Calendar',
                                     pages: [
+                                        // {
+                                        //     id: 1,
+                                        //     name: 'Calendar of Events',
+                                        //     icon: 'Calendar',
+                                        //     url: '/StudentPortal/student-dashboard/COE/COE',
+                                        //     title: 'Calendar of Events',
+                                        //     description: 'View Calendar of Events'
+                                        // },
                                         {
                                             id: 1,
                                             name: 'Calendar of Events',
                                             icon: 'Calendar',
-                                            url: '/StudentPortal/student-dashboard/COE/COE',
+                                            url: '/StudentPortal/coe/',
                                             title: 'Calendar of Events',
                                             description: 'View Calendar of Events'
                                         }
@@ -3478,6 +3555,14 @@ export async function getUserAccessibleModules() {
                                             icon: 'MessageSquare',
                                             url: '/StudentPortal/student-dashboard/Feedback/Transaction/FeedbackCollegeParentTransaction',
                                             title: 'Feedback College Parent Transaction',
+                                            description: 'Provide Feedback'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Student Feedback',
+                                            icon: 'MessageSquare',
+                                            url: '/StudentPortal/feedback/studentfeedback',
+                                            title: 'Student Feedback Details',
                                             description: 'Provide Feedback'
                                         }
                                     ]
@@ -3870,6 +3955,14 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 5,
+                                            name: 'Alumni Friend Request Accept',
+                                            icon: 'UserPlus',
+                                            url: '/alumni/alumni-module/transactions/alumni-friend-request-accept',
+                                            title: 'Alumni Friend Request Accept',
+                                            description: 'Manage Alumni Friend Request Accept Details'
+                                        },
+                                        {
+                                            id: 6,
                                             name: 'Alumni Donation',
                                             icon: 'HeartHandshake',
                                             url: '/alumni/alumni-module/transactions/alumni-donation',
@@ -3877,7 +3970,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Alumni Donation Details'
                                         },
                                         {
-                                            id: 6,
+                                            id: 7,
                                             name: 'Alumni Letters',
                                             icon: 'MailOpen',
                                             url: '/alumni/alumni-module/transactions/alumni-letters',
@@ -3885,7 +3978,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Generate Alumni Letters'
                                         },
                                         {
-                                            id: 7,
+                                            id: 8,
                                             name: 'CLG Alumni Approval',
                                             icon: 'UserCheck',
                                             url: '/alumni/alumni-module/transactions/clg-alumni-approval',
@@ -3893,7 +3986,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Approve College Alumni Registrations'
                                         },
                                         {
-                                            id: 8,
+                                            id: 9,
                                             name: 'CLG Student Search',
                                             icon: 'Search',
                                             url: '/alumni/alumni-module/transactions/clg-alumni-student-search',

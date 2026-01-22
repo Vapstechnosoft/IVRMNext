@@ -1,16 +1,16 @@
 'use client';
 
-import { use } from 'react';
-import { Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
-import { bmiCalculationColumns } from './_components/columns';
-import BMICalculationForm from './_components/add-form';
-import UpdateBMICalculationForm from './_components/update-form';
 import { useBMICalculation } from '@/hooks/sports/useBMICalculation';
-import { IBMICalculation } from '@/types/sports/transactions/bmi-calculation';
+import type { IBMICalculation } from '@/types/sports/transactions/bmi-calculation';
+import { Plus, X } from 'lucide-react';
+import { use } from 'react';
+import BMICalculationForm from './_components/add-form';
+import { bmiCalculationColumns } from './_components/columns';
+import UpdateBMICalculationForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -34,20 +34,21 @@ function BMICalculationPageContent({
     isLoading: boolean;
     error: any;
 }) {
-    const { openAddForm, isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } = useFormContext<IBMICalculation>();
+    const { openAddForm, isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
+        useFormContext<IBMICalculation>();
     const tableProps = useDataTableProps(response);
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-6 p-4'>
                 {/* Header/Add Button */}
-                <div className='flex justify-between items-center'>
-                    <h2 className="text-2xl font-bold tracking-tight">BMI Calculation</h2>
+                <div className='flex items-center justify-between'>
+                    <h2 className='font-bold text-2xl tracking-tight'>BMI Calculation</h2>
                     <Button
                         type='button'
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4 mr-1' />
+                        <Plus className='mr-1 h-4 w-4' />
                         New Calculation
                     </Button>
                 </div>
@@ -56,11 +57,10 @@ function BMICalculationPageContent({
                 {(isAddFormOpen || isEditFormOpen) && (
                     <div ref={isAddFormOpen ? addFormRef : editFormRef}>
                         <CollapsibleSection
-                            title={isEditFormOpen ? "Edit BMI Calculation" : "BMI Calculation Entry"}
+                            title={isEditFormOpen ? 'Edit BMI Calculation' : 'BMI Calculation Entry'}
                             defaultOpen={true}
                             variant='default'
-                            className='slide-in-from-top-4 animate-in shadow-lg duration-300'
-                        >
+                            className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
                             <div className='relative'>
                                 <Button
                                     type='button'
@@ -68,7 +68,7 @@ function BMICalculationPageContent({
                                     variant='ghost'
                                     size='sm'
                                     className='-top-[3.5rem] absolute right-4 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                    <X className='h-4 w-4 text-destructive mr-1' /> Close
+                                    <X className='mr-1 h-4 w-4 text-destructive' /> Close
                                 </Button>
                                 {isEditFormOpen && selectedRow ? (
                                     <UpdateBMICalculationForm selectedRow={selectedRow} onSuccess={closeEditForm} />
@@ -82,7 +82,7 @@ function BMICalculationPageContent({
 
                 {/* Data Table Section */}
                 <CollapsibleSection
-                    title="BMI CALCULATION LIST"
+                    title='BMI CALCULATION LIST'
                     defaultOpen={true}
                     variant='default'
                     size='lg'
@@ -92,7 +92,7 @@ function BMICalculationPageContent({
                         columns={bmiCalculationColumns}
                         isLoading={isLoading}
                         error={error}
-                        manualPagination={false}
+                        // manualPagination={false}
                         showViewOptions={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading BMI data...'

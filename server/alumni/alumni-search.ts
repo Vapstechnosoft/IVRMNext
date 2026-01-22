@@ -9,6 +9,6 @@ export async function getAlumniSearchLoadData() {
 }
 
 export async function performAlumniSearch(data: any) {
-    const url = '/AlumniSearch/';
+    const url = '/AlumniSearch';
     return await api.post<IAlumniSearchResponse>('alumni', url, data);
 }

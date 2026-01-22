@@ -202,3 +202,62 @@ export function exportToExcel(rows: any[], fileName: string) {
 
     XLSX.writeFile(workbook, `${fileName}.xlsx`);
 }
+
+export function exportToExcelforFeeGroupWise(rows: any[], fileName: string) {
+    if (!rows || rows.length === 0) return;
+    const dataForExcel = rows.map((row, index) => ({
+        'Sl No': index + 1,
+        'Group Name': row.fmG_GroupName,
+        'Balance Amount': `${row.totalBalance?.toLocaleString('en-IN') || '0'}`
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataForExcel);
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
+
+    XLSX.writeFile(workbook, `${fileName}.xlsx`);
+}
+export function exportToExcelforFeeInstallmentWise(rows: any[], fileName: string) {
+    if (!rows || rows.length === 0) return;
+    const dataForExcel = rows.map((row, index) => ({
+        'Sl No': index + 1,
+        Name: row.fmG_GroupName,
+        'Admission No': row.amsT_AdmNo,
+        'Class & Section': row.classSection,
+        'Father Name': row.amsT_FatherName,
+        'Mobile Number': row.amsT_MobileNo,
+        'Email ID': row.amsT_emailId,
+        Term: row.fmT_Name,
+        'Balance Amount': row.totalBalance
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataForExcel);
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
+
+    XLSX.writeFile(workbook, `${fileName}.xlsx`);
+}
+
+export function exportToExcelforFeeStudentorStaffWise(rows: any[], fileName: string) {
+    if (!rows || rows.length === 0) return;
+    const dataForExcel = rows.map((row, index) => ({
+        'Sl No': index + 1,
+        Name: row.fmG_GroupName,
+        'Admission No': row.amsT_AdmNo,
+        'Class & Section': row.classSection,
+        'Father Name': row.amsT_FatherName,
+        'Mobile Number': row.amsT_MobileNo,
+        'Email ID': row.amsT_emailId,
+        Route: row.amsT_Route,
+        'Balance Amount': row.totalBalance
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataForExcel);
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
+
+    XLSX.writeFile(workbook, `${fileName}.xlsx`);
+}

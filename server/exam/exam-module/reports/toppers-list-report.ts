@@ -1,5 +1,7 @@
 'use server';
 
+import { api } from '@/lib/apiService';
+
 // Mock Data for Toppers List Report
 
 const ACADEMIC_YEARS = [
@@ -89,6 +91,7 @@ export async function getDetails() {
     };
 }
 
+// biome-ignore lint/correctness/noUnusedVariables: <explanation>
 export async function getClasses(yearId: any) {
     // Return classes for the year
     return {
@@ -96,6 +99,7 @@ export async function getClasses(yearId: any) {
     };
 }
 
+// biome-ignore lint/correctness/noUnusedVariables: <explanation>
 export async function getSectionsAndExams(classId: any) {
     return {
         seclist: SECTIONS,
@@ -103,6 +107,7 @@ export async function getSectionsAndExams(classId: any) {
     };
 }
 
+// biome-ignore lint/correctness/noUnusedVariables: <explanation>
 export async function getSubjects(data: any) {
     return {
         sublist: SUBJECTS
@@ -130,4 +135,11 @@ export async function getReportDetails(data: any) {
             }
         ] // Mock Institution
     };
+}
+
+// biome-ignore lint/correctness/noUnusedVariables: <explanation>
+export async function getToppersReportDetails(data: any) {
+    const url = '/toppers_list_report/toppers_list_report';
+    const response = await api.get('exam', url);
+    return response;
 }

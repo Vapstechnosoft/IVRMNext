@@ -5,13 +5,17 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { useCoScholasticActivityAreaMapping } from '@/hooks/exam/exammodule/exam-mapping';
-import { useCoScholasticActivityAreaDropDown, useCoScholasticActivityDropDown, useMasterGrade } from '@/hooks/exam/exammodule/usemasters';
+import {
+    useCoScholasticActivityAreaDropDown,
+    useCoScholasticActivityDropDown,
+    useMasterGradeDropdownList
+} from '@/hooks/exam/exammodule/usemasters';
 import { CoScholasticActivityAreaMappingSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import { addOrUpdateCoScholasticActivityAreaMapping } from '@/server/exam/exam-module/exam-mapping/co-scholastic-activitiy-area-mapping';
 import type { ICoScholasticActivityAreaMapping } from '@/types/exam/exam-module/exam-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
-import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
+import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -43,25 +47,22 @@ export default function UpdateCoScholasticActivityAreaMapping({ rowData, onSucce
     });
 
     const { refetchAll } = useCoScholasticActivityAreaMapping();
-    const { control, handleSubmit, reset, setValue, formState, getValues } = methods;
+    const { control, handleSubmit, reset, formState } = methods;
     const { isSubmitting, errors } = formState;
 
-
-    const {
-        data: academicYear,
-        isLoading: academicYearLoading,
-        error: academicYearError,
-    } = useAcademicYearDropdown();
+    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
     const [grades, setGrades] = useState<{ emgR_Id: number; emgR_GradeName: string }[]>([]);
     const [activity, setActivity] = useState<{ ecacT_Id: number; ecacT_SkillName: string }[]>([]);
     const [activityArea, setActivityArea] = useState<{ ecactA_Id: number; ecactA_SkillArea: string }[]>([]);
 
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
-    const { data: gradesData, isLoading: loadingGrades, error: gradesError } = useMasterGrade();
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
+    const { data: gradesData, isLoading: loadingGrades, error: gradesError } = useMasterGradeDropdownList();
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const { data: areaData, isLoading: loadingArea, error: activityAreaError } = useCoScholasticActivityAreaDropDown();
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const { data: activityData, isLoading: loadingActivity, error: activityError } = useCoScholasticActivityDropDown();
-
-
 
     // Grades
     useEffect(() => {
@@ -113,7 +114,9 @@ export default function UpdateCoScholasticActivityAreaMapping({ rowData, onSucce
     // --- FIXED: Proper reset trigger ---
     useEffect(() => {
         // Run only if dropdowns have loaded
-        const allDropdownsLoaded = academicYear?.data ? academicYear.data.length : 0 > 0 && grades.length > 0 && activity.length > 0 && activityArea.length > 0;
+        const allDropdownsLoaded = academicYear?.data
+            ? academicYear.data.length
+            : 0 && grades.length > 0 && activity.length > 0 && activityArea.length > 0;
 
         if (rowData && allDropdownsLoaded) {
             reset({

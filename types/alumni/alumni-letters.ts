@@ -14,20 +14,23 @@ export interface IAlumniLetterStudent {
     amsT_Id: number;
     amsT_RegistrationNo: string;
     amsT_AdmNo: string;
-    amsT_FirstName: string;
+    amsT_FirstName?: string;
+    studentname: string;
+    mothername?: string;
+    fathername?: string;
     amsT_Date: string;
     amsT_DOB: string;
     asmcL_ClassName: string;
-    amsT_MobileNo: string;
+    amsT_MobileNo: string | number;
     amsT_emailId: string;
     amsT_Sex: string;
-    AMST_PerStreet: string;
-    AMST_PerArea: string;
-    AMST_PerCity: string;
-    AMST_PerPincode: string;
-    amsT_FatherName: string;
+    amsT_PerStreet: string | null;
+    amsT_PerArea: string | null;
+    amsT_PerCity: string | null;
+    amsT_PerPincode: string | number | null;
+    amsT_FatherName?: string;
     selected?: boolean;
-    AMST_BloodGroup?: string;
+    amsT_BloodGroup?: string;
 }
 
 export interface IAlumniLettersLoadResponse {
@@ -36,10 +39,6 @@ export interface IAlumniLettersLoadResponse {
     logopath: { logoname: string }[];
 }
 
-export interface IAlumniLettersReportResponse {
-    searchstudentDetails2: IAlumniLetterStudent[];
-}
+export type IAlumniLettersReportResponse = IAlumniLetterStudent[];
 
-export interface IAlumniLettersShowReportResponse {
-    searchstudentDetails: IAlumniLetterStudent[];
-}
+export type IAlumniLettersShowReportResponse = IAlumniLetterStudent[];

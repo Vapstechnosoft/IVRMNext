@@ -1,18 +1,18 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { studentAgeCalculationSchema, type StudentAgeCalculationFormData } from '@/schemas/sports/transactions/student-age-calculation';
-import { useStudentAgeCalculation } from '@/hooks/sports/useStudentAgeCalculation';
-import { DataTable } from '@/components/ui/data-table/data-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
-import { MultiSelect } from '@/components/ui/multi-select';
+import { DataTable } from '@/components/ui/data-table/data-table';
 import { DatePicker } from '@/components/ui/date-picker';
+import { Label } from '@/components/ui/label';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useStudentAgeCalculation } from '@/hooks/sports/useStudentAgeCalculation';
+import { type StudentAgeCalculationFormData, studentAgeCalculationSchema } from '@/schemas/sports/transactions/student-age-calculation';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 
 export default function StudentAgeCalculationPage() {
     const { initialData, studentsData, saveData, gridData } = useStudentAgeCalculation();
@@ -24,7 +24,7 @@ export default function StudentAgeCalculationPage() {
         watch,
         setValue,
         reset,
-        formState: { errors },
+        formState: { errors }
     } = useForm<StudentAgeCalculationFormData>({
         resolver: zodResolver(studentAgeCalculationSchema),
         defaultValues: {
@@ -32,8 +32,8 @@ export default function StudentAgeCalculationPage() {
             asmcL_Id: undefined,
             asmS_Id: undefined,
             student: [],
-            Till_Date: undefined,
-        },
+            Till_Date: undefined
+        }
     });
 
     const watchClass = watch('asmcL_Id');
@@ -42,24 +42,26 @@ export default function StudentAgeCalculationPage() {
 
     useEffect(() => {
         if (watchAcademicYear && watchClass && watchSection) {
-            studentsData.mutate({
-                ASMAY_Id: watchAcademicYear,
-                asmcL_Id: watchClass,
-                asmS_Id: watchSection
-            }, {
-                onSuccess: (res) => {
-                    if (res.success && res.data) {
-                        setStudentOptions(res.data.map(s => ({ label: s.label, value: s.id.toString() })));
-                    } else {
-                        setStudentOptions([]);
+            studentsData.mutate(
+                {
+                    ASMAY_Id: watchAcademicYear,
+                    asmcL_Id: watchClass,
+                    asmS_Id: watchSection
+                },
+                {
+                    onSuccess: (res) => {
+                        if (res.success && res.data) {
+                            setStudentOptions(res.data.map((s) => ({ label: s.label, value: s.id.toString() })));
+                        } else {
+                            setStudentOptions([]);
+                        }
                     }
                 }
-            });
+            );
         } else {
             setStudentOptions([]);
         }
     }, [watchAcademicYear, watchClass, watchSection]);
-
 
     const onSubmit = (data: StudentAgeCalculationFormData) => {
         saveData.mutate(data);
@@ -78,11 +80,15 @@ export default function StudentAgeCalculationPage() {
         { accessorKey: 'asmC_SectionName', header: 'Section' },
         { accessorKey: 'age_Years', header: 'Age Year' },
         { accessorKey: 'age_Months', header: 'Month' },
-        { accessorKey: 'age_Days', header: "Day's" },
+        { accessorKey: 'age_Days', header: "Day's" }
     ];
 
     if (initialData.isLoading) {
-        return <div className="flex justify-center items-center h-full"><Loader2 className="animate-spin" /></div>;
+        return (
+            <div className='flex h-full items-center justify-center'>
+                <Loader2 className='animate-spin' />
+            </div>
+        );
     }
 
     const academicYears = initialData.data?.data?.academicYears || [];
@@ -90,23 +96,25 @@ export default function StudentAgeCalculationPage() {
     const sections = initialData.data?.data?.sections || [];
 
     return (
-        <div className="space-y-6">
+        <div className='space-y-6'>
             <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
                     <CardTitle>Age Calculation</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label>Academic Year <span className="text-red-500">*</span></Label>
+                    <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
+                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                            <div className='space-y-2'>
+                                <Label>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </Label>
                                 <Controller
                                     control={control}
-                                    name="ASMAY_Id"
+                                    name='ASMAY_Id'
                                     render={({ field }) => (
                                         <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select Academic Year" />
+                                                <SelectValue placeholder='Select Academic Year' />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {academicYears.map((year) => (
@@ -118,18 +126,20 @@ export default function StudentAgeCalculationPage() {
                                         </Select>
                                     )}
                                 />
-                                {errors.ASMAY_Id && <span className="text-sm text-destructive">{errors.ASMAY_Id.message}</span>}
+                                {errors.ASMAY_Id && <span className='text-destructive text-sm'>{errors.ASMAY_Id.message}</span>}
                             </div>
 
-                            <div className="space-y-2">
-                                <Label>Class <span className="text-red-500">*</span></Label>
+                            <div className='space-y-2'>
+                                <Label>
+                                    Class <span className='text-red-500'>*</span>
+                                </Label>
                                 <Controller
                                     control={control}
-                                    name="asmcL_Id"
+                                    name='asmcL_Id'
                                     render={({ field }) => (
                                         <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select Class" />
+                                                <SelectValue placeholder='Select Class' />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {classes.map((cls) => (
@@ -141,18 +151,20 @@ export default function StudentAgeCalculationPage() {
                                         </Select>
                                     )}
                                 />
-                                {errors.asmcL_Id && <span className="text-sm text-destructive">{errors.asmcL_Id.message}</span>}
+                                {errors.asmcL_Id && <span className='text-destructive text-sm'>{errors.asmcL_Id.message}</span>}
                             </div>
 
-                            <div className="space-y-2">
-                                <Label>Section <span className="text-red-500">*</span></Label>
+                            <div className='space-y-2'>
+                                <Label>
+                                    Section <span className='text-red-500'>*</span>
+                                </Label>
                                 <Controller
                                     control={control}
-                                    name="asmS_Id"
+                                    name='asmS_Id'
                                     render={({ field }) => (
                                         <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select Section" />
+                                                <SelectValue placeholder='Select Section' />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {sections.map((sec) => (
@@ -164,53 +176,52 @@ export default function StudentAgeCalculationPage() {
                                         </Select>
                                     )}
                                 />
-                                {errors.asmS_Id && <span className="text-sm text-destructive">{errors.asmS_Id.message}</span>}
+                                {errors.asmS_Id && <span className='text-destructive text-sm'>{errors.asmS_Id.message}</span>}
                             </div>
 
-                            <div className="space-y-2">
-                                <Label>Student Name <span className="text-red-500">*</span></Label>
+                            <div className='space-y-2'>
+                                <Label>
+                                    Student Name <span className='text-red-500'>*</span>
+                                </Label>
                                 <Controller
                                     control={control}
-                                    name="student"
+                                    name='student'
                                     render={({ field }) => (
                                         <MultiSelect
                                             options={studentOptions}
                                             onValueChange={(vals) => field.onChange(vals.map(Number))}
                                             defaultValue={field.value?.map(String) || []}
-                                            placeholder="Select Student"
-                                            variant="default"
+                                            placeholder='Select Student'
+                                            variant='default'
                                             maxCount={3}
                                         />
                                     )}
                                 />
-                                {errors.student && <span className="text-sm text-destructive">{errors.student.message}</span>}
+                                {errors.student && <span className='text-destructive text-sm'>{errors.student.message}</span>}
                             </div>
 
-                            <div className="space-y-2">
-                                <Label>Age Till Date <span className="text-red-500">*</span></Label>
+                            <div className='space-y-2'>
+                                <Label>
+                                    Age Till Date <span className='text-red-500'>*</span>
+                                </Label>
                                 <Controller
                                     control={control}
-                                    name="Till_Date"
-                                    render={({ field }) => (
-                                        <DatePicker
-                                            date={field.value}
-                                            setDate={(date) => field.onChange(date)}
-                                        />
-                                    )}
+                                    name='Till_Date'
+                                    render={({ field }) => <DatePicker date={field.value} setDate={(date) => field.onChange(date)} />}
                                 />
-                                {errors.Till_Date && <span className="text-sm text-destructive">{errors.Till_Date.message}</span>}
+                                {errors.Till_Date && <span className='text-destructive text-sm'>{errors.Till_Date.message}</span>}
                             </div>
                         </div>
 
-                        <div className="flex justify-center space-x-2">
-                            <Button type="submit" disabled={saveData.isPending}>
-                                {saveData.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        <div className='flex justify-center space-x-2'>
+                            <Button type='submit' disabled={saveData.isPending}>
+                                {saveData.isPending && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
                                 Save
                             </Button>
-                            <Button type="button" variant="destructive" onClick={onCancel}>
+                            <Button type='button' variant='destructive' onClick={onCancel}>
                                 Cancel
                             </Button>
-                            <Button type="button" variant="secondary" onClick={() => window.print()}>
+                            <Button type='button' variant='secondary' onClick={() => window.print()}>
                                 Print
                             </Button>
                         </div>
@@ -219,7 +230,7 @@ export default function StudentAgeCalculationPage() {
             </Card>
 
             <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
                     <CardTitle>Age Calculated Record</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -227,7 +238,7 @@ export default function StudentAgeCalculationPage() {
                         columns={columns}
                         data={gridData.data?.data || []}
                         totalItems={gridData.data?.data?.length || 0}
-                        manualPagination={false}
+                        //manualPagination={false}
                     />
                 </CardContent>
             </Card>

@@ -1036,3 +1036,38 @@ export interface IFeeReceiptImportDelate {
     amount: number;
     fyP_Id: number;
 }
+
+export interface IStudentDisableList {
+    paid: number;
+    netAmount: number;
+    balance: number;
+    fmtId: number;
+    fmtOrder: number;
+}
+
+// types/fees/transactions/transactions.ts
+export interface IAmountEntryFineSlabDetails {
+    success: boolean;
+    message: string;
+    data: {
+        fillslab: FineSlabItem[];
+        fillslabecs: FineSlabItem[];
+    };
+    total: number | null;
+    page: number | null;
+    page_size: number | null;
+}
+
+export interface FineSlabItem {
+    fmfS_Id: number;
+    mI_Id: number;
+    fmfS_FineType: string;
+    fmfS_FromDay: number;
+    fmfS_ToDay: number;
+    fmfS_ECSFlag: string;
+    fmfS_ActiveFlag: boolean;
+    fmfS_CreatedBy: number | null;
+    fmfS_UpdatedBy: number;
+    createdDate: string;
+    updatedDate: string;
+}

@@ -1,16 +1,16 @@
 'use client';
 
-import { use } from 'react';
-import { Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
-import { eventSponsorColumns } from './_components/columns';
-import AddEventSponsorMappingForm from './_components/add-form';
-import UpdateEventSponsorMappingForm from './_components/update-form';
 import { useEventsSponsor } from '@/hooks/sports/useEventsSponsor';
 import type { IEventSponsorMapping } from '@/types/sports/transactions/events-sponsor';
+import { Plus, X } from 'lucide-react';
+import { use } from 'react';
+import AddEventSponsorMappingForm from './_components/add-form';
+import { eventSponsorColumns } from './_components/columns';
+import UpdateEventSponsorMappingForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -34,7 +34,8 @@ function EventsSponsorMappingPageContent({
     isLoading: boolean;
     error: any;
 }) {
-    const { openAddForm, isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } = useFormContext<IEventSponsorMapping>();
+    const { openAddForm, isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
+        useFormContext<IEventSponsorMapping>();
     const tableProps = useDataTableProps(response);
 
     return (
@@ -53,7 +54,7 @@ function EventsSponsorMappingPageContent({
 
                 {/* Data Table Section */}
                 <CollapsibleSection
-                    title="Events Sponsor Mapping List"
+                    title='Events Sponsor Mapping List'
                     defaultOpen={true}
                     variant='default'
                     size='lg'
@@ -63,7 +64,7 @@ function EventsSponsorMappingPageContent({
                         columns={eventSponsorColumns}
                         isLoading={isLoading}
                         error={error}
-                        manualPagination={false}
+                        //manualPagination={false}
                         showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading mapping details...'
@@ -77,11 +78,10 @@ function EventsSponsorMappingPageContent({
                 {isAddFormOpen && (
                     <div ref={addFormRef}>
                         <CollapsibleSection
-                            title="Add Events Sponsor Mapping"
+                            title='Add Events Sponsor Mapping'
                             defaultOpen={true}
                             variant='default'
-                            className='slide-in-from-top-4 animate-in shadow-lg duration-300'
-                        >
+                            className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
                             <div className='relative'>
                                 <Button
                                     type='button'
@@ -101,11 +101,10 @@ function EventsSponsorMappingPageContent({
                 {isEditFormOpen && selectedRow && (
                     <div ref={editFormRef}>
                         <CollapsibleSection
-                            title="Edit Events Sponsor Mapping"
+                            title='Edit Events Sponsor Mapping'
                             defaultOpen={true}
                             variant='default'
-                            className='slide-in-from-top-4 animate-in shadow-lg duration-300'
-                        >
+                            className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
                             <div className='relative'>
                                 <Button
                                     type='button'

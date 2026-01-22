@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -53,11 +53,6 @@ interface Props {
 }
 
 export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }: Props) {
-    // Keys to force re-render of selects
-    const [classKey, setClassKey] = useState(0);
-    const [sectionKey, setSectionKey] = useState(0);
-    const [examKey, setExamKey] = useState(0);
-
     // State for dropdown data
     const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
@@ -90,7 +85,7 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
         }
     });
 
-    const { control, handleSubmit, setValue, watch, reset } = methods;
+    const { control, handleSubmit, setValue, reset, getValues } = methods;
 
     const asmaY_Id = useWatch({ control, name: 'asmaY_Id' });
     const asmcL_Id = useWatch({ control, name: 'asmcL_Id' });
@@ -104,37 +99,31 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
     useEffect(() => {
         if (!rowData) return;
 
-        reset(
-            {
-                mI_Id: orgId,
-                asmcL_Id: rowData.asmcL_Id ?? 0,
-                emE_Id: rowData.emE_Id ?? 0,
-                asmaY_Id: rowData.asmaY_Id ?? 0,
-                asmS_Id: rowData.asmS_Id ?? 0,
-                studentdata_Remarks: []
-            },
-            { keepDirty: false }
-        );
+        reset({
+            mI_Id: orgId,
+            asmcL_Id: rowData.asmcL_Id ?? 0,
+            emE_Id: rowData.emE_Id ?? 0,
+            asmaY_Id: rowData.asmaY_Id ?? 0,
+            asmS_Id: rowData.asmS_Id ?? 0,
+            studentdata_Remarks: []
+        });
 
-        // Clear dependent states
+        // Clear dependent data but don't trigger unnecessary state updates
         setClasses([]);
         setSections([]);
         setExams([]);
         setStudents([]);
         setIsStudentsGridOpen(false);
-
-        // Force re-render of selects
-        setClassKey((prev) => prev + 1);
-        setSectionKey((prev) => prev + 1);
-        setExamKey((prev) => prev + 1);
     }, [rowData, orgId, reset]);
 
-    // ---------- Load Classes ----------
+    // Load Classes when academic year changes
     useEffect(() => {
         if (!asmaY_Id || asmaY_Id === 0) {
-            setClasses([]);
-            setValue('asmcL_Id', 0);
-            setClassKey((prev) => prev + 1);
+            // Don't reset classes if we're just loading the form initially
+            if (getValues('asmcL_Id') !== 0) {
+                setClasses([]);
+                setValue('asmcL_Id', 0, { shouldDirty: false });
+            }
             return;
         }
 
@@ -145,30 +134,32 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                 const classData = Array.isArray(data) ? data : [];
                 setClasses(classData);
 
-                // Clear dependent data
+                // Only clear sections and exams if the class is actually changing
+                // const currentClassId = getValues('asmcL_Id');
+                if (classData.length > 0) {
+                    // If rowData exists and we have matching class, select it
+                    if (rowData?.asmcL_Id && rowData.asmaY_Id === asmaY_Id) {
+                        const foundClass = classData.find((c) => c.asmcL_Id === rowData.asmcL_Id);
+                        if (foundClass) {
+                            setValue('asmcL_Id', rowData.asmcL_Id, { shouldDirty: false });
+                        } else {
+                            setValue('asmcL_Id', 0, { shouldDirty: false });
+                            // Clear dependent dropdowns
+                            setSections([]);
+                            setExams([]);
+                            setValue('asmS_Id', 0, { shouldDirty: false });
+                            setValue('emE_Id', 0, { shouldDirty: false });
+                        }
+                    }
+                }
+
+                setValue('asmcL_Id', 0, { shouldDirty: false });
                 setSections([]);
                 setExams([]);
-                setStudents([]);
-                setValue('asmS_Id', 0);
-                setValue('emE_Id', 0);
+                setValue('asmS_Id', 0, { shouldDirty: false });
+                setValue('emE_Id', 0, { shouldDirty: false });
 
-                // Force re-render
-                setSectionKey((prev) => prev + 1);
-                setExamKey((prev) => prev + 1);
-
-                // If rowData exists and we have matching class, select it
-                if (rowData?.asmcL_Id) {
-                    const foundClass = classData.find((c) => c.asmcL_Id === rowData.asmcL_Id);
-                    if (foundClass) {
-                        setValue('asmcL_Id', rowData.asmcL_Id);
-                    }
-                } else {
-                    setValue('asmcL_Id', 0);
-                }
-
-                if (classData.length === 0) {
-                    toast.info('No classes found for selected academic year');
-                }
+                toast.info('No classes found for selected academic year');
             } catch {
                 toast.error('Failed to load classes');
                 setClasses([]);
@@ -178,14 +169,16 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
         };
 
         fetchClasses();
-    }, [asmaY_Id, setValue, rowData]);
+    }, [asmaY_Id, setValue, rowData, getValues]);
 
-    // ---------- Load Sections ----------
+    // Load Sections when class changes
     useEffect(() => {
         if (!asmaY_Id || !asmcL_Id || asmcL_Id === 0) {
-            setSections([]);
-            setValue('asmS_Id', 0);
-            setSectionKey((prev) => prev + 1);
+            // Don't reset sections if we're just loading the form initially
+            if (getValues('asmS_Id') !== 0) {
+                setSections([]);
+                setValue('asmS_Id', 0, { shouldDirty: false });
+            }
             return;
         }
 
@@ -196,25 +189,28 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                 const sectionData = Array.isArray(data) ? data : [];
                 setSections(sectionData);
 
-                // Clear dependent data
-                setExams([]);
-                setStudents([]);
-                setValue('emE_Id', 0);
-
-                // Force re-render
-                setExamKey((prev) => prev + 1);
-
-                // If rowData exists and we have matching section, select it
-                if (rowData?.asmS_Id) {
-                    const foundSection = sectionData.find((s) => s.asmS_Id === rowData.asmS_Id);
-                    if (foundSection) {
-                        setValue('asmS_Id', rowData.asmS_Id);
+                // Only clear exams if the section is actually changing
+                const currentSectionId = getValues('asmS_Id');
+                if (sectionData.length > 0) {
+                    // If rowData exists and we have matching section, select it
+                    if (rowData?.asmS_Id && rowData.asmcL_Id === asmcL_Id && rowData.asmaY_Id === asmaY_Id) {
+                        const foundSection = sectionData.find((s) => s.asmS_Id === rowData.asmS_Id);
+                        if (foundSection) {
+                            setValue('asmS_Id', rowData.asmS_Id, { shouldDirty: false });
+                        } else {
+                            setValue('asmS_Id', 0, { shouldDirty: false });
+                            // Clear dependent dropdown
+                            setExams([]);
+                            setValue('emE_Id', 0, { shouldDirty: false });
+                        }
                     }
                 } else {
-                    setValue('asmS_Id', 0);
-                }
-
-                if (sectionData.length === 0) {
+                    // No sections found, clear dependent dropdown
+                    if (currentSectionId !== 0) {
+                        setValue('asmS_Id', 0, { shouldDirty: false });
+                        setExams([]);
+                        setValue('emE_Id', 0, { shouldDirty: false });
+                    }
                     toast.info('No sections found for selected class');
                 }
             } catch {
@@ -226,14 +222,16 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
         };
 
         fetchSections();
-    }, [asmaY_Id, asmcL_Id, setValue, rowData]);
+    }, [asmaY_Id, asmcL_Id, setValue, rowData, getValues]);
 
-    // ---------- Load Exams ----------
+    // Load Exams when section changes
     useEffect(() => {
         if (!asmaY_Id || !asmcL_Id || !asmS_Id || asmS_Id === 0) {
-            setExams([]);
-            setValue('emE_Id', 0);
-            setExamKey((prev) => prev + 1);
+            // Don't reset exams if we're just loading the form initially
+            if (getValues('emE_Id') !== 0) {
+                setExams([]);
+                setValue('emE_Id', 0, { shouldDirty: false });
+            }
             return;
         }
 
@@ -248,17 +246,13 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                 setStudents([]);
 
                 // If rowData exists and we have matching exam, select it
-                if (rowData?.emE_Id) {
+                if (rowData?.emE_Id && rowData.asmS_Id === asmS_Id && rowData.asmcL_Id === asmcL_Id && rowData.asmaY_Id === asmaY_Id) {
                     const foundExam = examData.find((e) => e.emE_Id === rowData.emE_Id);
                     if (foundExam) {
-                        setValue('emE_Id', rowData.emE_Id);
+                        setValue('emE_Id', rowData.emE_Id, { shouldDirty: false });
+                    } else {
+                        setValue('emE_Id', 0, { shouldDirty: false });
                     }
-                } else {
-                    setValue('emE_Id', 0);
-                }
-
-                if (examData.length === 0) {
-                    toast.info('No exams found for selected section');
                 }
             } catch {
                 toast.error('Failed to load exams');
@@ -269,7 +263,70 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
         };
 
         fetchExams();
-    }, [asmaY_Id, asmcL_Id, asmS_Id, setValue, rowData]);
+    }, [asmaY_Id, asmcL_Id, asmS_Id, setValue, rowData, getValues]);
+
+    // Memoized placeholders for better performance
+    const classPlaceholder = useMemo(() => {
+        if (loadingClasses) return 'Loading classes...';
+        if (!asmaY_Id || asmaY_Id === 0) return 'Select Academic Year first';
+        if (classes.length === 0) return 'No classes available';
+        return 'Select Class';
+    }, [loadingClasses, asmaY_Id, classes.length]);
+
+    const sectionPlaceholder = useMemo(() => {
+        if (loadingSections) return 'Loading sections...';
+        if (!asmcL_Id || asmcL_Id === 0) return 'Select Class first';
+        if (sections.length === 0) return 'No sections available';
+        return 'Select Section';
+    }, [loadingSections, asmcL_Id, sections.length]);
+
+    const examPlaceholder = useMemo(() => {
+        if (loadingExams) return 'Loading exams...';
+        if (!asmS_Id || asmS_Id === 0) return 'Select Section first';
+        if (exams.length === 0) return 'No exams available';
+        return 'Select Exam';
+    }, [loadingExams, asmS_Id, exams.length]);
+
+    // Handle class change - this will trigger sections to reload
+    const handleClassChange = useCallback(
+        (value: string) => {
+            const newClassId = Number(value);
+            setValue('asmcL_Id', newClassId);
+            // Clear dependent dropdowns
+            setSections([]);
+            setExams([]);
+            setValue('asmS_Id', 0);
+            setValue('emE_Id', 0);
+            setStudents([]);
+            setIsStudentsGridOpen(false);
+        },
+        [setValue]
+    );
+
+    // Handle section change - this will trigger exams to reload
+    const handleSectionChange = useCallback(
+        (value: string) => {
+            const newSectionId = Number(value);
+            setValue('asmS_Id', newSectionId);
+            // Clear dependent dropdown
+            setExams([]);
+            setValue('emE_Id', 0);
+            setStudents([]);
+            setIsStudentsGridOpen(false);
+        },
+        [setValue]
+    );
+
+    // Handle exam change
+    const handleExamChange = useCallback(
+        (value: string) => {
+            const newExamId = Number(value);
+            setValue('emE_Id', newExamId);
+            setStudents([]);
+            setIsStudentsGridOpen(false);
+        },
+        [setValue]
+    );
 
     async function handleSearch() {
         if (!asmaY_Id || !asmcL_Id || !emE_Id || !asmS_Id || asmaY_Id === 0 || asmcL_Id === 0 || emE_Id === 0 || asmS_Id === 0) {
@@ -391,14 +448,9 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
         setTableProps({});
         setIsStudentsGridOpen(false);
         setValidationErrors({});
-
-        // Force re-render of selects
-        setClassKey((prev) => prev + 1);
-        setSectionKey((prev) => prev + 1);
-        setExamKey((prev) => prev + 1);
     };
 
-    const updateStudent = (id: number, remarks: string) => {
+    const updateStudent = useCallback((id: number, remarks: string) => {
         setStudents((prev) => {
             const updated = prev.map((s) => (s.amsT_Id === id ? { ...s, emeR_Remarks: remarks } : s));
 
@@ -419,7 +471,7 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
 
             return updated;
         });
-    };
+    }, []);
 
     // Pass to columns
     const columns = ExamWiseStudentRemarksColumns(updateStudent, validationErrors);
@@ -439,7 +491,12 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                                 </Label>
                                 <div className='flex-1'>
                                     <Select
-                                        onValueChange={(val) => field.onChange(Number(val))}
+                                        onValueChange={(val) => {
+                                            field.onChange(Number(val));
+                                            setValue('asmcL_Id', 0);
+                                            setValue('asmS_Id', 0);
+                                            setValue('emE_Id', 0);
+                                        }}
                                         value={field.value && field.value !== 0 ? String(field.value) : ''}
                                         disabled={academicYearLoading}>
                                         <SelectTrigger>
@@ -486,29 +543,17 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                                 </Label>
                                 <div className='flex-1'>
                                     <Select
-                                        key={`class-${classKey}`}
-                                        onValueChange={(v) => field.onChange(Number(v))}
-                                        value={field.value && field.value !== 0 ? String(field.value) : ''}
-                                        disabled={!asmaY_Id || asmaY_Id === 0 || loadingClasses}>
+                                        onValueChange={handleClassChange}
+                                        value={field.value && field.value !== 0 ? String(field.value) : ''}>
                                         <SelectTrigger>
-                                            <SelectValue
-                                                placeholder={
-                                                    loadingClasses
-                                                        ? 'Loading classes...'
-                                                        : !asmaY_Id || asmaY_Id === 0
-                                                          ? 'Select Academic Year first'
-                                                          : classes.length === 0
-                                                            ? 'No classes available'
-                                                            : 'Select Class'
-                                                }
-                                            />
+                                            <SelectValue placeholder={classPlaceholder} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {loadingClasses ? (
                                                 <SelectItem value='loading' disabled>
                                                     Loading classes...
                                                 </SelectItem>
-                                            ) : classes.length === 0 ? (
+                                            ) : classes.length === 0 && asmaY_Id ? (
                                                 <SelectItem value='none' disabled>
                                                     No classes available
                                                 </SelectItem>
@@ -538,29 +583,17 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                                 </Label>
                                 <div className='flex-1'>
                                     <Select
-                                        key={`section-${sectionKey}`}
-                                        onValueChange={(v) => field.onChange(Number(v))}
-                                        value={field.value && field.value !== 0 ? String(field.value) : ''}
-                                        disabled={!asmcL_Id || asmcL_Id === 0 || loadingSections}>
+                                        onValueChange={handleSectionChange}
+                                        value={field.value && field.value !== 0 ? String(field.value) : ''}>
                                         <SelectTrigger>
-                                            <SelectValue
-                                                placeholder={
-                                                    loadingSections
-                                                        ? 'Loading sections...'
-                                                        : !asmcL_Id || asmcL_Id === 0
-                                                          ? 'Select Class first'
-                                                          : sections.length === 0
-                                                            ? 'No sections available'
-                                                            : 'Select Section'
-                                                }
-                                            />
+                                            <SelectValue placeholder={sectionPlaceholder} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {loadingSections ? (
                                                 <SelectItem value='loading' disabled>
                                                     Loading sections...
                                                 </SelectItem>
-                                            ) : sections.length === 0 ? (
+                                            ) : sections.length === 0 && asmcL_Id ? (
                                                 <SelectItem value='none' disabled>
                                                     No sections available
                                                 </SelectItem>
@@ -590,29 +623,17 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                                 </Label>
                                 <div className='flex-1'>
                                     <Select
-                                        key={`exam-${examKey}`}
-                                        onValueChange={(v) => field.onChange(Number(v))}
-                                        value={field.value && field.value !== 0 ? String(field.value) : ''}
-                                        disabled={!asmS_Id || asmS_Id === 0 || loadingExams}>
+                                        onValueChange={handleExamChange}
+                                        value={field.value && field.value !== 0 ? String(field.value) : ''}>
                                         <SelectTrigger>
-                                            <SelectValue
-                                                placeholder={
-                                                    loadingExams
-                                                        ? 'Loading exams...'
-                                                        : !asmS_Id || asmS_Id === 0
-                                                          ? 'Select Section first'
-                                                          : exams.length === 0
-                                                            ? 'No exams available'
-                                                            : 'Select Exam'
-                                                }
-                                            />
+                                            <SelectValue placeholder={examPlaceholder} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {loadingExams ? (
                                                 <SelectItem value='loading' disabled>
                                                     Loading exams...
                                                 </SelectItem>
-                                            ) : exams.length === 0 ? (
+                                            ) : exams.length === 0 && asmS_Id ? (
                                                 <SelectItem value='none' disabled>
                                                     No exams available
                                                 </SelectItem>

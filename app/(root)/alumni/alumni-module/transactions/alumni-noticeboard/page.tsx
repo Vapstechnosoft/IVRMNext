@@ -1,9 +1,10 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { getAlumniNoticeBoardData } from '@/server/alumni/alumni-notice-board';
 import type { IAlumniNoticeBoard } from '@/types/alumni/alumni-notice-board';
 import { Plus, X } from 'lucide-react';
 import { use, useCallback, useEffect, useState } from 'react';
@@ -13,139 +14,39 @@ import UpdateAlumniNoticeBoardForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-// Static mock data
-const staticNoticeBoardData = {
-    alumninoticeboardlist: [
-        {
-            alntB_Id: 1,
-            mI_Id: 30,
-            alntB_Title: 'Annual Alumni Meet 2024',
-            alntB_Description: 'Join us for the annual alumni meet on December 15th, 2024. Networking, dinner, and keynote speeches.',
-            alntB_FilePath: '/documents/alumni/notice1.pdf',
-            alntB_Attachment: 'notice1.pdf',
-            alntB_StartDate: '2024-12-01T00:00:00.000Z',
-            alntB_EndDate: '2024-12-31T23:59:59.000Z',
-            alntB_DisplayDate: '2024-11-25T00:00:00.000Z',
-            alntB_ActiveFlag: true,
-            alntB_CreatedDate: '2024-10-01T10:30:00.000Z',
-            alntB_UpdatedDate: '2024-10-01T10:30:00.000Z',
-            slNo: 1,
-            attachment_Array: [
-                {
-                    alntbfL_Id: 101,
-                    alntbfL_FileName: 'meet-schedule.pdf',
-                    alntbfL_FilePath: '/uploads/alumni/meet-schedule.pdf'
-                },
-                {
-                    alntbfL_Id: 102,
-                    alntbfL_FileName: 'venue-map.jpg',
-                    alntbfL_FilePath: '/uploads/alumni/venue-map.jpg'
-                }
-            ]
-        },
-        {
-            alntB_Id: 2,
-            mI_Id: 30,
-            alntB_Title: 'Job Opening: Software Engineer',
-            alntB_Description: 'TechCorp is hiring software engineers. Alumni get preference in hiring process.',
-            alntB_FilePath: '/documents/alumni/job-opening.docx',
-            alntB_Attachment: 'job-opening.docx',
-            alntB_StartDate: '2024-11-01T00:00:00.000Z',
-            alntB_EndDate: '2024-12-15T23:59:59.000Z',
-            alntB_DisplayDate: '2024-10-28T00:00:00.000Z',
-            alntB_ActiveFlag: true,
-            alntB_CreatedDate: '2024-10-15T14:20:00.000Z',
-            alntB_UpdatedDate: '2024-10-15T14:20:00.000Z',
-            slNo: 2,
-            attachment_Array: [
-                {
-                    alntbfL_Id: 103,
-                    alntbfL_FileName: 'job-description.pdf',
-                    alntbfL_FilePath: '/uploads/alumni/job-description.pdf'
-                }
-            ]
-        },
-        {
-            alntB_Id: 3,
-            mI_Id: 30,
-            alntB_Title: 'Workshop: AI & Machine Learning',
-            alntB_Description: 'Free workshop for alumni on the latest trends in AI and Machine Learning.',
-            alntB_FilePath: '/documents/alumni/workshop.pptx',
-            alntB_Attachment: 'workshop.pptx',
-            alntB_StartDate: '2024-11-10T00:00:00.000Z',
-            alntB_EndDate: '2024-11-30T23:59:59.000Z',
-            alntB_DisplayDate: '2024-11-05T00:00:00.000Z',
-            alntB_ActiveFlag: false,
-            alntB_CreatedDate: '2024-10-20T09:15:00.000Z',
-            alntB_UpdatedDate: '2024-10-20T09:15:00.000Z',
-            slNo: 3,
-            attachment_Array: []
-        },
-        {
-            alntB_Id: 4,
-            mI_Id: 30,
-            alntB_Title: 'Library Membership Renewal',
-            alntB_Description: 'Renew your library membership for 2025. Special discount for alumni members.',
-            alntB_FilePath: '',
-            alntB_Attachment: '',
-            alntB_StartDate: '2024-12-01T00:00:00.000Z',
-            alntB_EndDate: '2025-01-31T23:59:59.000Z',
-            alntB_DisplayDate: null,
-            alntB_ActiveFlag: true,
-            alntB_CreatedDate: '2024-10-25T16:45:00.000Z',
-            alntB_UpdatedDate: '2024-10-25T16:45:00.000Z',
-            slNo: 4,
-            attachment_Array: [
-                {
-                    alntbfL_Id: 104,
-                    alntbfL_FileName: 'membership-form.pdf',
-                    alntbfL_FilePath: '/uploads/alumni/membership-form.pdf'
-                },
-                {
-                    alntbfL_Id: 105,
-                    alntbfL_FileName: 'fee-structure.xlsx',
-                    alntbfL_FilePath: '/uploads/alumni/fee-structure.xlsx'
-                }
-            ]
-        },
-        {
-            alntB_Id: 5,
-            mI_Id: 30,
-            alntB_Title: 'Campus Visit Program',
-            alntB_Description: 'Alumni can visit campus on weekends. Prior registration required.',
-            alntB_FilePath: '/documents/alumni/visit-program.pdf',
-            alntB_Attachment: 'visit-program.pdf',
-            alntB_StartDate: '2024-11-01T00:00:00.000Z',
-            alntB_EndDate: '2025-03-31T23:59:59.000Z',
-            alntB_DisplayDate: '2024-10-20T00:00:00.000Z',
-            alntB_ActiveFlag: true,
-            alntB_CreatedDate: '2024-10-10T11:30:00.000Z',
-            alntB_UpdatedDate: '2024-10-10T11:30:00.000Z',
-            slNo: 5,
-            attachment_Array: [
-                {
-                    alntbfL_Id: 106,
-                    alntbfL_FileName: 'visit-guidelines.pdf',
-                    alntbfL_FilePath: '/uploads/alumni/visit-guidelines.pdf'
-                }
-            ]
-        }
-    ],
-    total: 5
-};
-
 export default function AlumniNoticeBoardPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const [data, setData] = useState<{ alumninoticeboardlist: IAlumniNoticeBoard[]; total?: number } | null>(null);
+    const [data, setData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<any>(null);
+    const [mI_Id, setMI_Id] = useState<number>(0);
+    const [asmaY_Id, setAsmaY_Id] = useState<number>(0);
 
     const refetchAll = useCallback(async () => {
         setIsLoading(true);
         try {
-            // Use static data instead of API call
-            await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate loading delay
-            setData(staticNoticeBoardData);
+            const res = await getAlumniNoticeBoardData(searchParams as any);
+            console.info('Notice Board RAW Response:', res);
+            if (res.success && res.data) {
+                // Shape the data for the GenericDataTable: it expects response.data to be the array
+                // The backend returns the array directly in res.data based on user input
+                const dataList = Array.isArray(res.data) ? res.data : res.data.alumninoticeboardlist || [];
+
+                const shapedResponse = {
+                    ...res,
+                    data: dataList,
+                    total: dataList.length
+                };
+
+                console.info('Notice Board Data Array:', shapedResponse.data);
+                setData(shapedResponse);
+                // Handle metadata if it exists, otherwise default
+                setMI_Id(res.data.mI_Id || 0);
+                setAsmaY_Id(res.data.asmaY_Id || 0);
+            } else {
+                console.warn('Notice Board fetch failed:', res.message);
+                setData(null);
+            }
             setError(null);
         } catch (err) {
             setError(err);
@@ -160,24 +61,38 @@ export default function AlumniNoticeBoardPage(props: { searchParams: SearchParam
 
     return (
         <FormProvider<IAlumniNoticeBoard>>
-            <PageContent response={data} isLoading={isLoading} error={error} refetchAll={refetchAll} />
+            <PageContent response={data} isLoading={isLoading} error={error} refetchAll={refetchAll} mI_Id={mI_Id} asmaY_Id={asmaY_Id} />
         </FormProvider>
     );
 }
 
-function PageContent({
-    response,
-    isLoading,
-    error,
-    refetchAll
-}: {
+interface PageContentProps {
     response: any;
     isLoading: boolean;
     error: any;
-    refetchAll: any;
-}) {
+    refetchAll: () => void;
+    mI_Id: number;
+    asmaY_Id: number;
+}
+
+function PageContent({ response, isLoading, error, refetchAll, mI_Id, asmaY_Id }: PageContentProps) {
     const { openAddForm } = useFormContext<IAlumniNoticeBoard>();
-    const tableProps = useDataTableProps(response?.alumninoticeboardlist || []);
+
+    // DEBUG: Logging response to inspect structure
+    console.info('PageContent response:', response);
+
+    // Mapping response explicitly to ensure data binding
+    const tableProps = {
+        data: response?.data || [],
+        totalItems: response?.total || 0,
+        success: response?.success,
+        errorMessage: response?.message
+    };
+
+    console.info('PageContent tableProps:', tableProps);
+    // DEBUG: Logging data prop passed to GenericDataTable
+    console.info('GenericDataTable data prop:', tableProps.data);
+    console.info('GenericDataTable totalItems prop:', tableProps.totalItems);
 
     return (
         <div className='min-h-screen'>
@@ -199,7 +114,6 @@ function PageContent({
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<IAlumniNoticeBoard>
                         {...tableProps}
-                        data={response?.alumninoticeboardlist || []}
                         columns={AlumniNoticeBoardColumns}
                         isLoading={isLoading}
                         error={error}
@@ -211,15 +125,37 @@ function PageContent({
                     />
                 </CollapsibleSection>
 
-                <FormSections onSuccess={refetchAll} />
+                <FormSections onSuccess={refetchAll} mI_Id={mI_Id} asmaY_Id={asmaY_Id} />
             </div>
         </div>
     );
 }
 
-function FormSections({ onSuccess }: { onSuccess: () => void }) {
-    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
-        useFormContext<IAlumniNoticeBoard>();
+import ToggleNoticeForm from './_components/toggle-form';
+import ViewAttachmentDialog from './_components/view-dialog';
+
+function FormSections({
+    onSuccess,
+    mI_Id,
+    asmaY_Id
+}: {
+    onSuccess: () => void;
+    mI_Id: number;
+    asmaY_Id: number;
+}) {
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isToggleFormOpen,
+        isDetailsViewOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        closeToggleForm,
+        closeDetailsView,
+        addFormRef,
+        editFormRef
+    } = useFormContext<IAlumniNoticeBoard>();
 
     return (
         <>
@@ -245,6 +181,8 @@ function FormSections({ onSuccess }: { onSuccess: () => void }) {
                                     onSuccess();
                                     closeAddForm();
                                 }}
+                                mI_Id={mI_Id}
+                                asmaY_Id={asmaY_Id}
                             />
                         </div>
                     </CollapsibleSection>
@@ -274,11 +212,17 @@ function FormSections({ onSuccess }: { onSuccess: () => void }) {
                                     onSuccess();
                                     closeEditForm();
                                 }}
+                                mI_Id={mI_Id}
+                                asmaY_Id={asmaY_Id}
                             />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
+
+            {isToggleFormOpen && selectedRow && <ToggleNoticeForm rowData={selectedRow} onClose={closeToggleForm} onSuccess={onSuccess} />}
+
+            {isDetailsViewOpen && selectedRow && <ViewAttachmentDialog rowData={selectedRow} onClose={closeDetailsView} />}
         </>
     );
 }

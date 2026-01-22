@@ -75,6 +75,7 @@ const staticReplyThreads: Record<number, IAlumniInteractionReply[]> = {
 };
 
 // Mock API functions
+// biome-ignore lint/correctness/noUnusedVariables: <explanation>
 const mockGetInteractionThread = async ({ alsminT_Id, alsminT_ComposedById }: { alsminT_Id: number; alsminT_ComposedById: number }) => {
     await new Promise((resolve) => setTimeout(resolve, 400));
     return {
@@ -86,20 +87,20 @@ const mockGetInteractionThread = async ({ alsminT_Id, alsminT_ComposedById }: { 
 };
 
 const mockSaveInteractionReply = async (payload: any) => {
-    console.log('Saving reply:', payload);
+    console.info('Saving reply:', payload);
     await new Promise((resolve) => setTimeout(resolve, 600));
     return { success: true, message: 'Reply sent successfully' };
 };
 
 const mockDeleteInteractionMessage = async (id: number) => {
-    console.log('Deleting message:', id);
+    console.info('Deleting message:', id);
     await new Promise((resolve) => setTimeout(resolve, 300));
     return { success: true, message: 'Message deleted from thread' };
 };
 
 const mockUploadDocument = async (formData: FormData) => {
     const file = formData.get('File');
-    console.log('Uploading file:', file);
+    console.info('Uploading file:', file);
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     const timestamp = Date.now();
@@ -109,6 +110,7 @@ const mockUploadDocument = async (formData: FormData) => {
     };
 };
 
+// biome-ignore lint/correctness/noUnusedVariables: <explanation>
 export default function ViewReplyModal({ message, userHrmeId, onClose, onSuccess }: ViewReplyModalProps) {
     const [replies, setReplies] = useState<IAlumniInteractionReply[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -145,6 +147,7 @@ export default function ViewReplyModal({ message, userHrmeId, onClose, onSuccess
             if (res.success && res.data) {
                 setReplies(res.data.viewmessage || []);
             }
+            // biome-ignore lint/correctness/noUnusedVariables: <explanation>
         } catch (error) {
             toast.error('Failed to load message thread');
         } finally {
@@ -180,6 +183,7 @@ export default function ViewReplyModal({ message, userHrmeId, onClose, onSuccess
                     setValue('images_paths', [...images_paths, { path, name: file.name }]);
                     toast.success('File uploaded successfully');
                 }
+                // biome-ignore lint/correctness/noUnusedVariables: <explanation>
             } catch (err) {
                 toast.error('File upload failed');
             } finally {
@@ -199,6 +203,7 @@ export default function ViewReplyModal({ message, userHrmeId, onClose, onSuccess
             } else {
                 toast.error(res.message || 'Failed to delete message');
             }
+            // biome-ignore lint/correctness/noUnusedVariables: <explanation>
         } catch (error) {
             toast.error('An error occurred while deleting');
         }
@@ -230,6 +235,7 @@ export default function ViewReplyModal({ message, userHrmeId, onClose, onSuccess
             } else {
                 toast.error(res.message || 'Failed to send reply');
             }
+            // biome-ignore lint/correctness/noUnusedVariables: <explanation>
         } catch (error) {
             toast.error('An error occurred while sending your reply');
         }

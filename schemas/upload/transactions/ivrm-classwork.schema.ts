@@ -150,7 +150,7 @@ export const classWorkMarksListSchema = z.object({
     students: z.array(studentMarksSchema)
 });
 
-// export type IClassWork = z.infer<typeof classWorkSchema>;
+export type IClassWork = z.infer<typeof classWorkMarksListSchema>;
 export type IStudentMarks = z.infer<typeof studentMarksSchema>;
 export type IClassWorkMarksList = z.infer<typeof classWorkMarksListSchema>;
 
