@@ -6,10 +6,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 import { CalendarIcon, Save } from 'lucide-react';
 
-import { use, useState } from 'react';
+import { use, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { CalendarYear } from '@/components/ui/calendar_year';
+import type { DataTableRef } from '@/components/ui/data-table/data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
@@ -20,6 +23,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { type IAttendanceAbsentSmsReport, getAttendanceAbsentSmsColumns } from './_components/columns';
 
 // helper to compare local dates
 const isSameLocalDate = (a: Date, b: Date) =>
@@ -27,7 +31,7 @@ const isSameLocalDate = (a: Date, b: Date) =>
 
 // Local schema for this form (only allow today's date)
 const attendanceAbsentSmsSchema = z.object({
-    frequency: z.enum(['once', 'twice']).default('once'),
+    frequency: z.enum(['0', '1']).default('0'),
     asmaY_Id: z.number().min(1, 'Academic Year is required'),
     from_date: z
         .string()
@@ -41,13 +45,15 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 type FormFields = z.infer<typeof attendanceAbsentSmsSchema>;
 
-export default function StudyCertificateReportPage(props: {
+export default function AttendanceAbsentSmsReportPage(props: {
     searchParams: SearchParams;
 }) {
     const searchParams = use(props.searchParams);
     const [openPopover, setOpenPopover] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [shouldFetch, setShouldFetch] = useState(false);
+    const [reportData, setReportData] = useState<IAttendanceAbsentSmsReport[]>([]);
+    const tableRef = useRef<DataTableRef>(null);
 
     const {
         control,
@@ -58,7 +64,7 @@ export default function StudyCertificateReportPage(props: {
     } = useForm<FormFields>({
         resolver: zodResolver(attendanceAbsentSmsSchema),
         defaultValues: {
-            frequency: 'once',
+            frequency: '0',
             from_date: new Date().toISOString()
         }
     });
@@ -68,7 +74,16 @@ export default function StudyCertificateReportPage(props: {
     const asmaY_Id = watch('asmaY_Id');
     const from_date = watch('from_date');
     const frequency = watch('frequency');
-    const { data: response, refetch } = useAttendanceAbsentSmsReport(asmaY_Id, from_date, frequency, searchParams);
+    const { refetch, isLoading: reportLoading, error } = useAttendanceAbsentSmsReport(asmaY_Id, from_date, frequency, searchParams);
+
+    const columns = getAttendanceAbsentSmsColumns();
+
+    // Use the custom hook for data table props
+    const tableProps = useDataTableProps({
+        data: reportData,
+        success: reportData.length > 0,
+        message: ''
+    });
 
     const onSubmit = async () => {
         if (!asmaY_Id || asmaY_Id === 0) {
@@ -77,17 +92,22 @@ export default function StudyCertificateReportPage(props: {
         }
         setIsLoading(true);
         setShouldFetch(true);
-        setIsLoading(true);
         try {
             const { data } = await refetch();
-            if (data?.message) {
-                toast.success(data.message);
+            if (data?.data && Array.isArray(data.data)) {
+                setReportData(data.data);
+                toast.success(data.message || 'Report fetched successfully');
+            } else if (data && Array.isArray(data)) {
+                setReportData(data);
+                toast.success('Report fetched successfully');
             } else {
+                setReportData([]);
                 toast.error('No data found for the selected criteria');
             }
             console.debug(data);
         } catch {
             toast.error('Failed to generate report');
+            setReportData([]);
         } finally {
             setIsLoading(false);
         }
@@ -144,14 +164,14 @@ export default function StudyCertificateReportPage(props: {
                                 render={({ field }) => (
                                     <RadioGroup value={field.value} onValueChange={field.onChange} className='flex gap-6'>
                                         <div className='flex items-center space-x-2'>
-                                            <RadioGroupItem value='once' id='once' />
+                                            <RadioGroupItem value='0' id='once' />
                                             <Label htmlFor='once'>
                                                 Daily Once<span className='text-red-500'>*</span>
                                             </Label>
                                         </div>
 
                                         <div className='flex items-center space-x-2'>
-                                            <RadioGroupItem value='twice' id='twice' />
+                                            <RadioGroupItem value='1' id='twice' />
                                             <Label htmlFor='twice'>
                                                 Daily Twice<span className='text-red-500'>*</span>
                                             </Label>
@@ -247,7 +267,15 @@ export default function StudyCertificateReportPage(props: {
 
                     {/* ─────────────── Action Buttons ─────────────── */}
                     <div className='mt-6 flex justify-start gap-3 border-t pt-4'>
-                        <Button type='button' variant='outline' onClick={() => reset()} disabled={isSubmitting} className='w-fit'>
+                        <Button
+                            type='button'
+                            variant='outline'
+                            onClick={() => {
+                                reset();
+                                setReportData([]);
+                            }}
+                            disabled={isSubmitting}
+                            className='w-fit'>
                             Reset
                         </Button>
 
@@ -255,12 +283,34 @@ export default function StudyCertificateReportPage(props: {
                             <Save className='mr-2 h-4 w-4' />
                             Report
                         </Button>
-                        <Button onClick={downloadExcel} className='w-fit'>
-                            Export to Excel
-                        </Button>
+                        {reportData.length > 0 && (
+                            <Button type='button' onClick={downloadExcel} className='w-fit'>
+                                Export to Excel
+                            </Button>
+                        )}
                     </div>
                 </div>
             </form>
+
+            {/* ─────────────── Report Table ─────────────── */}
+            {shouldFetch && (
+                <CollapsibleSection title='Attendance Absentees Report' defaultOpen={true}>
+                    <GenericDataTable<IAttendanceAbsentSmsReport>
+                        {...tableProps}
+                        ref={tableRef}
+                        columns={columns}
+                        isLoading={isLoading || reportLoading}
+                        error={error}
+                        showViewOptions={false}
+                        isSearchRequired={true}
+                        isPaginationRequired={true}
+                        loadingMessage='Loading absentees report...'
+                        noDataTitle='No Data Found'
+                        noDataDescription='No absentee records found for the selected criteria.'
+                        errorTitle='Error Loading Report'
+                    />
+                </CollapsibleSection>
+            )}
         </div>
     );
 }

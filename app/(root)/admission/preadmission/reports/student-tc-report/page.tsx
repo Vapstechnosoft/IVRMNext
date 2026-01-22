@@ -60,11 +60,11 @@ export default function StudentTcReportPage(props: {
     });
     const selectedFields = watch('TempararyArrayheadList') || [];
 
-    const handleFilterChange = (filterType: 'class' | 'status' | 'academic_year', value: number) => {
+    const handleFilterChange = (filterType: 'class' | 'section' | 'academic_year', value: number) => {
         if (filterType === 'class') {
             setClassId(value);
-        } else if (filterType === 'status') {
-            setStatusId(value);
+        } else if (filterType === 'section') {
+            setSectionId(value);
         } else if (filterType === 'academic_year') {
             setAcademicYearId(value);
         }
@@ -87,7 +87,7 @@ export default function StudentTcReportPage(props: {
 
     const [academicYearId, setAcademicYearId] = useState<number>(0);
     const [classId, setClassId] = useState<number>(0);
-    const [statusId, setStatusId] = useState<number>(0);
+    const [sectionId, setSectionId] = useState<number>(0);
     const [showTable, setShowTable] = useState(false);
     const [fieldSearch, setFieldSearch] = useState('');
 
@@ -114,13 +114,8 @@ export default function StudentTcReportPage(props: {
             ASMAY_Id: academicYearId || 0,
             AllOrInd: viewMode,
             ASMCL_Id: viewMode === 'indi' ? classId : 0,
-            ASMC_Id: viewMode === 'indi' ? statusId : 0,
-            tempararyArrayheadList: selectedFields.map((id: string) => {
-                const _field = ColumnValue.find((f) => f.columnID === id);
-                return {
-                    columnID: id
-                };
-            }),
+            ASMC_Id: viewMode === 'indi' ? sectionId : 0,
+            TempararyArrayheadList: [{ columnID: 'AMST_Id' }, ...selectedFields.map((id: string) => ({ columnID: id }))],
             PermOrTemp: tcType,
             AMC_Id: 0
         };
@@ -155,13 +150,8 @@ export default function StudentTcReportPage(props: {
         ASMAY_Id: academicYearId,
         AllOrInd: viewMode,
         ASMCL_Id: viewMode === 'indi' ? classId : 0,
-        ASMC_Id: viewMode === 'indi' ? statusId : 0,
-        TempararyArrayheadList: [
-            { columnID: 'AMST_Id' },
-            { columnID: 'AMST_FirstName' },
-            { columnID: 'AMST_AdmNo' },
-            { columnID: 'ASTC_TCDate' }
-        ],
+        ASMC_Id: viewMode === 'indi' ? sectionId : 0,
+        TempararyArrayheadList: [{ columnID: 'AMST_Id' }, ...selectedFields.map((id: string) => ({ columnID: id }))],
         PermOrTemp: tcType,
         AMC_Id: 0
     };
@@ -199,7 +189,7 @@ export default function StudentTcReportPage(props: {
     const handleReset = () => {
         setAcademicYearId(0);
         setClassId(0);
-        setStatusId(0);
+        setSectionId(0);
         setViewMode('all');
         setTcType('PTC');
         handleResetSelection();
@@ -330,8 +320,8 @@ export default function StudentTcReportPage(props: {
                                     Section
                                 </Label>
                                 <Select
-                                    onValueChange={(value) => handleFilterChange('status', Number(value))}
-                                    value={statusId !== 0 ? statusId?.toString() : undefined}>
+                                    onValueChange={(value) => handleFilterChange('section', Number(value))}
+                                    value={sectionId !== 0 ? sectionId?.toString() : undefined}>
                                     <SelectTrigger id='admission-status'>
                                         <SelectValue placeholder='Select Section' />
                                     </SelectTrigger>

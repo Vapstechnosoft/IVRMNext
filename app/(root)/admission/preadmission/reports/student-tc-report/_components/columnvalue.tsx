@@ -4,7 +4,7 @@ export const ColumnValue = [
         columnName: 'Student Name'
     },
     {
-        columnID: 'AMST_AdmNo',
+        columnID: 'AMST_REGNO',
         columnName: 'Registration No.'
     },
     {

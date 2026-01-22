@@ -7,8 +7,30 @@ import { format } from 'date-fns';
 const formatDate = (date?: Date | null) => (date ? format(date, 'yyyy-MM-dd') : undefined);
 export async function getStudentTcReport(data: any, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, ',ivrmmR_Name');
-    const url = `/StudentTcReport/GetAdmissionTcReport?${urlParams}`;
-    return await api.post<any>('admission', url, data);
+
+    const queryParams = new URLSearchParams();
+    queryParams.append('ASMAY_Id', data.ASMAY_Id?.toString() ?? '0');
+    queryParams.append('AllOrInd', data.AllOrInd ?? '');
+    queryParams.append('ASMCL_Id', data.ASMCL_Id?.toString() ?? '0');
+    queryParams.append('ASMC_Id', data.ASMC_Id?.toString() ?? '0');
+    queryParams.append('PermOrTemp', data.PermOrTemp ?? '');
+
+    let url = `/StudentTcReport/GetAdmissionTcReport?${queryParams.toString()}`;
+
+    if (data.TempararyArrayheadList && Array.isArray(data.TempararyArrayheadList)) {
+        const listParams = data.TempararyArrayheadList.map(
+            (item: any) => `TempararyArrayheadList=${encodeURIComponent(JSON.stringify(item))}`
+        ).join('&');
+        if (listParams) {
+            url += `&${listParams}`;
+        }
+    }
+
+    if (urlParams) {
+        url += `&${urlParams}`;
+    }
+
+    return await api.post<any>('admission', url, {});
 }
 export async function getMonthEndReport(data: any) {
     const url = `/monthendreport/GetMonthEndReport?AcayId=${data.ASMAY_Id}&Month=${data.month}&Year=${data.year}`;
@@ -115,7 +137,11 @@ export async function getclasswiseStudentDetails(
 }
 export async function getAttendanceAbsentSmsReport(ASMAY_Id: number, from_date: string, frequency: string, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'AMST_FirstName');
-    const url = `/OveralldailyattendanceabsentsmsFacade/GetOverallDailyAbsentAttendance?${urlParams}&ASMAY_Id=${ASMAY_Id}&FromDate=${from_date}&Flag=${frequency}`;
+    const formattedDate = formatDate(new Date(from_date));
+    let url = `/OveralldailyattendanceabsentsmsFacade/GetOverallDailyAbsentAttendance?ASMAY_Id=${ASMAY_Id}&FromDate=${formattedDate}&Flag=${frequency}&ASMCL_Ids=0&ASMS_Ids=0&AMC_Id=0&AttType=Absent`;
+    if (urlParams) {
+        url += `&${urlParams}`;
+    }
     return await api.post<any[]>('admission', url);
 }
 export async function getAttendanceReport(ASMAY_Id: number, from_date: string, frequency: string, searchParams?: ApiSearchparams) {
