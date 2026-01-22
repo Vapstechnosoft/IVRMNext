@@ -120,7 +120,11 @@ export async function getAttendanceAbsentSmsReport(ASMAY_Id: number, from_date: 
 }
 export async function getAttendanceReport(ASMAY_Id: number, from_date: string, frequency: string, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'AMST_FirstName');
-    const url = `/OverallAttendance/GetOverallDailyAttendance?${urlParams}&ASMAY_Id=${ASMAY_Id}&FromDate=${from_date}&Flag=${frequency}`;
+    const formattedDate = formatDate(new Date(from_date));
+    let url = `/OverallAttendance/GetOverallDailyAttendance?ASMAY_Id=${ASMAY_Id}&FromDate=${formattedDate}&Flag=${frequency}&ASMCL_Ids=&ASMS_Ids=`;
+    if (urlParams) {
+        url += `&${urlParams}`;
+    }
     return await api.post<any[]>('admission', url);
 }
 export async function getStudentAttendanceReport(

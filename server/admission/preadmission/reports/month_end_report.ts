@@ -292,9 +292,13 @@ export async function getExcelOverallAttendanceReport(
     searchParams?: ApiSearchparams
 ) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'AMST_FirstName');
+    const formattedDate = formatDate(new Date(from_date));
 
     const baseUrl = process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
-    const url = `${baseUrl}/OverallAttendance/ExportOverallDailyAttendanceSimpleToExcel?${urlParams}&ASMAY_Id=${ASMAY_Id}&FromDate=${from_date}&Flag=${frequency}`;
+    let url = `${baseUrl}/OverallAttendance/ExportOverallDailyAttendanceSimpleToExcel?ASMAY_Id=${ASMAY_Id}&FromDate=${formattedDate}&Flag=${frequency}&ASMCL_Ids=&ASMS_Ids=`;
+    if (urlParams) {
+        url += `&${urlParams}`;
+    }
 
     try {
         const session = await auth();
