@@ -9,7 +9,13 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useGetEmployeeDetailsBySelection, useMassUpdationOnload, useSearchMassUpdationEmployees } from '@/hooks/hrms/useTransactions';
+import {
+    useGetEmployeeDetailsBySelection,
+    useGetMassUpdationDepartments,
+    useGetMassUpdationDesignations,
+    useMassUpdationOnload,
+    useSearchMassUpdationEmployees
+} from '@/hooks/hrms/useTransactions';
 import { hrmsTransactionSchemas } from '@/schemas/hrms/transaction';
 import type { EmployeeDropdown } from '@/types/hrms/mass-updation';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -28,6 +34,11 @@ export default function MassUpdationPage() {
     const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
     const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
     const [hasSearched, setHasSearched] = useState(false);
+
+    // Cascading state
+    const [cascadingDepartments, setCascadingDepartments] = useState<any[]>([]);
+    const [cascadingDesignations, setCascadingDesignations] = useState<any[]>([]);
+
     const _formRef = useRef<HTMLDivElement>(null);
     const {
         register,
@@ -35,6 +46,7 @@ export default function MassUpdationPage() {
         reset,
         watch,
         control,
+        setValue,
         getValues,
         formState: { errors }
     } = useForm<MassUpdateForm>({
@@ -63,6 +75,58 @@ export default function MassUpdationPage() {
     });
     const searchMutation = useSearchMassUpdationEmployees();
     const saveMutation = useGetEmployeeDetailsBySelection();
+
+    // Cascading Mutations
+    const { mutate: getDepartments } = useGetMassUpdationDepartments();
+    const { mutate: getDesignations } = useGetMassUpdationDesignations();
+
+    // Cascading dropdowns: Group Type -> Department
+    useEffect(() => {
+        if (watchedGroupType && watchedGroupType.length > 0) {
+            const groupTypeIds = watchedGroupType.map(Number);
+            getDepartments({
+                MI_Id: 30,
+                hrmgT_IdList: groupTypeIds
+            }, {
+                onSuccess: (data) => {
+                    setCascadingDepartments(data.departmentdropdown || []);
+                    // Reset dependency
+                    setValue('department', []);
+                    setCascadingDesignations([]);
+                    setValue('designation', []);
+                },
+                onError: () => setCascadingDepartments([])
+            });
+        } else {
+            setCascadingDepartments([]);
+            setCascadingDesignations([]);
+            // Only reset if we actually had selections to avoid initial reset issues? 
+            // Actually, if group type is cleared, we should clear deps.
+        }
+    }, [watchedGroupType, getDepartments, setValue]);
+
+    // Cascading dropdowns: Department -> Designation
+    useEffect(() => {
+        if (watchedDepartment && watchedDepartment.length > 0 && watchedGroupType && watchedGroupType.length > 0) {
+            const groupTypeIds = watchedGroupType.map(Number);
+            const deptIds = watchedDepartment.map(Number);
+            getDesignations({
+                MI_Id: 30,
+                hrmgT_IdList: groupTypeIds,
+                hrmD_IdList: deptIds
+            }, {
+                onSuccess: (data) => {
+                    setCascadingDesignations(data.designationdropdown || []);
+                    setValue('designation', []);
+                },
+                onError: () => setCascadingDesignations([])
+            });
+        } else {
+            setCascadingDesignations([]);
+        }
+    }, [watchedDepartment, watchedGroupType, getDesignations, setValue]);
+
+
     // Debug logging - onloadData handled by data loading logic
     // Handle both field name variants (with and without 'list' suffix)
     // Memoize arrays to prevent unnecessary re-renders
@@ -71,16 +135,25 @@ export default function MassUpdationPage() {
             ? onloadData.groupTypedropdownlist
             : onloadData?.groupTypedropdown || [];
     }, [onloadData?.groupTypedropdownlist, onloadData?.groupTypedropdown]);
+
+    // Use cascading data if available, else onload
     const departments = useMemo(() => {
+        if (cascadingDepartments.length > 0) return cascadingDepartments;
+
         return onloadData?.departmentdropdownlist && onloadData.departmentdropdownlist.length > 0
             ? onloadData.departmentdropdownlist
             : onloadData?.departmentdropdown || [];
-    }, [onloadData?.departmentdropdownlist, onloadData?.departmentdropdown]);
+    }, [cascadingDepartments, onloadData?.departmentdropdownlist, onloadData?.departmentdropdown]);
+
+    // Use cascading data if available, else onload
     const designations = useMemo(() => {
+        if (cascadingDesignations.length > 0) return cascadingDesignations;
+
         return onloadData?.designationdropdownlist && onloadData.designationdropdownlist.length > 0
             ? onloadData.designationdropdownlist
             : onloadData?.designationdropdown || [];
-    }, [onloadData?.designationdropdownlist, onloadData?.designationdropdown]);
+    }, [cascadingDesignations, onloadData?.designationdropdownlist, onloadData?.designationdropdown]);
+
     const heads = useMemo(() => onloadData?.headdropdown || [], [onloadData?.headdropdown]);
     // Debug log the final values - dependencies tracked for memoization
     const filteredHeads = React.useMemo(() => {

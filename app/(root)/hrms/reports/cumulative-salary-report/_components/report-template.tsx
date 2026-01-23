@@ -91,15 +91,23 @@ export function CumulativeSalaryReportTemplate({
                             reportData.map((record, index) => (
                                 <tr key={record.HRME_Id || index} className='hover:bg-gray-50'>
                                     <td className='border border-gray-300 px-2 py-2 text-center'>{index + 1}</td>
-                                    <td className='border border-gray-300 px-2 py-2 text-left'>{record.employeeName || record.HRME_EmployeeFirstName}</td>
-                                    <td className='border border-gray-300 px-2 py-2 text-left'>{record.designation || record.HRMDES_DesignationName}</td>
+                                    <td className='border border-gray-300 px-2 py-2 text-left'>
+                                        {record.employeeName || record.HRME_EmployeeFirstName}
+                                    </td>
+                                    <td className='border border-gray-300 px-2 py-2 text-left'>
+                                        {record.designation || record.HRMDES_DesignationName}
+                                    </td>
 
                                     <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(record.basic || 0)}</td>
                                     <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(record.da || 0)}</td>
                                     <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(record.hra || 0)}</td>
-                                    <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(record.conveyance || 0)}</td>
+                                    <td className='border border-gray-300 px-2 py-2 text-right'>
+                                        {formatCurrency(record.conveyance || 0)}
+                                    </td>
                                     <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(record.medical || 0)}</td>
-                                    <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(record.splAllowance || 0)}</td>
+                                    <td className='border border-gray-300 px-2 py-2 text-right'>
+                                        {formatCurrency(record.splAllowance || 0)}
+                                    </td>
                                     <td className='border border-gray-300 px-2 py-2 text-right font-semibold'>
                                         {formatCurrency(record.grossEarning || 0)}
                                     </td>

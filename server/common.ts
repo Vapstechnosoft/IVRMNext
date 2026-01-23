@@ -1645,85 +1645,86 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 }
+                                ,
+                                {
+                                    id: 2,
+                                    name: 'Employee',
+                                    icon: 'User',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Employee Register',
+                                            icon: 'UserPlus',
+                                            url: '/hrms/employee',
+                                            title: 'Employee Register',
+                                            description: 'Manage Employee Registration'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Transactions',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Salary Approval',
+                                            icon: 'CheckSquare',
+                                            url: '/hrms/transactions/salary-approval',
+                                            title: 'Salary Approval',
+                                            description: 'Approve Calculated Salaries'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Salary Calculation',
+                                            icon: 'Calculator',
+                                            url: '/hrms/transactions/salary-calculation',
+                                            title: 'Salary Calculation',
+                                            description: 'Calculate Employee Salary'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Salary Increment Process',
+                                            icon: 'TrendingUp',
+                                            url: '/hrms/transactions/salary-increment',
+                                            title: 'Salary Increment Process',
+                                            description: 'Manage Salary Increments'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Salary Updation',
+                                            icon: 'Edit',
+                                            url: '/hrms/transactions/salary-updation',
+                                            title: 'Salary Updation',
+                                            description: 'Update Employee Salary'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Mass Updation',
+                                            icon: 'RefreshCw',
+                                            url: '/hrms/transactions/mass-updation',
+                                            title: 'Mass Updation',
+                                            description: 'Bulk Update Employee Data'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Salary Advance',
+                                            icon: 'DollarSign',
+                                            url: '/hrms/transactions/salary-advance',
+                                            title: 'Salary Advance',
+                                            description: 'Manage Salary Advances'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Employee Loan',
+                                            icon: 'CreditCard',
+                                            url: '/hrms/transactions/employee-loan',
+                                            title: 'Employee Loan',
+                                            description: 'Manage Employee Loans'
+                                        }
+                                    ]
+                                }
                                 //,
-                                // {
-                                //     id: 2,
-                                //     name: 'Employee',
-                                //     icon: 'User',
-                                //     pages: [
-                                //         {
-                                //             id: 1,
-                                //             name: 'Employee Register',
-                                //             icon: 'UserPlus',
-                                //             url: '/hrms/employee',
-                                //             title: 'Employee Register',
-                                //             description: 'Manage Employee Registration'
-                                //         }
-                                //     ]
-                                // },
-                                // {
-                                //     id: 3,
-                                //     name: 'Transactions',
-                                //     icon: 'FileText',
-                                //     pages: [
-                                //         {
-                                //             id: 1,
-                                //             name: 'Salary Approval',
-                                //             icon: 'CheckSquare',
-                                //             url: '/hrms/transactions/salary-approval',
-                                //             title: 'Salary Approval',
-                                //             description: 'Approve Calculated Salaries'
-                                //         },
-                                //         {
-                                //             id: 2,
-                                //             name: 'Salary Calculation',
-                                //             icon: 'Calculator',
-                                //             url: '/hrms/transactions/salary-calculation',
-                                //             title: 'Salary Calculation',
-                                //             description: 'Calculate Employee Salary'
-                                //         },
-                                //         {
-                                //             id: 3,
-                                //             name: 'Salary Increment Process',
-                                //             icon: 'TrendingUp',
-                                //             url: '/hrms/transactions/salary-increment',
-                                //             title: 'Salary Increment Process',
-                                //             description: 'Manage Salary Increments'
-                                //         },
-                                //         {
-                                //             id: 4,
-                                //             name: 'Salary Updation',
-                                //             icon: 'Edit',
-                                //             url: '/hrms/transactions/salary-updation',
-                                //             title: 'Salary Updation',
-                                //             description: 'Update Employee Salary'
-                                //         },
-                                //         {
-                                //             id: 5,
-                                //             name: 'Mass Updation',
-                                //             icon: 'RefreshCw',
-                                //             url: '/hrms/transactions/mass-updation',
-                                //             title: 'Mass Updation',
-                                //             description: 'Bulk Update Employee Data'
-                                //         },
-                                //         {
-                                //             id: 6,
-                                //             name: 'Salary Advance',
-                                //             icon: 'DollarSign',
-                                //             url: '/hrms/transactions/salary-advance',
-                                //             title: 'Salary Advance',
-                                //             description: 'Manage Salary Advances'
-                                //         },
-                                //         {
-                                //             id: 7,
-                                //             name: 'Employee Loan',
-                                //             icon: 'CreditCard',
-                                //             url: '/hrms/transactions/employee-loan',
-                                //             title: 'Employee Loan',
-                                //             description: 'Manage Employee Loans'
-                                //         }
-                                //     ]
-                                // },
                                 // {
                                 //     id: 4,
                                 //     name: 'Reports',

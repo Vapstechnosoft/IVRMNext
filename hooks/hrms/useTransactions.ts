@@ -4,15 +4,25 @@
  * All transaction-related hooks consolidated in one file
  */
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
-import { activateDeactivateEmployeeLoan, getEmployeeLoanById, getEmployeeLoanByEmployee, getEmployeeLoanList, saveEmployeeLoan } from '@/server/hrms/hrmsConfig/transaction/employee-loan';
+import {
+    activateDeactivateEmployeeLoan,
+    getEmployeeLoanById,
+    getEmployeeLoanByEmployee,
+    getEmployeeLoanGrid,
+    getEmployeeLoanMasters,
+    saveEmployeeLoan
+} from '@/server/hrms/hrmsConfig/transaction/employee-loan';
 import { getSalaryAdvanceById, getSalaryAdvanceDetailsByEmployee, getSalaryAdvanceList, saveSalaryAdvance, searchSalaryAdvanceFilter, toggleSalaryAdvanceStatus } from '@/server/hrms/hrmsConfig/transaction/salary-advance';
 import { approveSalaries, getSalaryApprovalOnload, searchSalaryApprovalEmployees } from '@/server/hrms/hrmsConfig/transaction/salary-approval';
 import { generateSalaryForSelectedEmployees, getSalaryCalculationOnload, searchSalaryCalculationBySelection } from '@/server/hrms/hrmsConfig/transaction/salary-calculation';
 import { deleteSalaryIncrement, getSalaryIncrementOnload, saveSalaryIncrement } from '@/server/hrms/hrmsConfig/transaction/salary-increment';
 import { deleteSalaryUpdation, filterSalaryUpdationEmployees, getSalaryUpdationDepartments, getSalaryUpdationDesignations, getSalaryUpdationEmployeeDetailsBySelection, getSalaryUpdationList, getSalaryUpdationOnload, saveSalaryUpdation } from '@/server/hrms/hrmsConfig/transaction/salary-updation';
-import { getEmployeeDetailsBySelection, getMassUpdationOnload, saveMassUpdation, searchMassUpdationEmployees } from '@/server/hrms/hrmsConfig/transaction/mass-updation';
+import { getEmployeeDetailsBySelection, getMassUpdationDepartments, getMassUpdationDesignations, getMassUpdationOnload, saveMassUpdation, searchMassUpdationEmployees } from '@/server/hrms/hrmsConfig/transaction/mass-updation';
 import type {
+    EmployeeDetailsResponse,
     EmployeeLoanDeleteRequest,
+    EmployeeLoanGridResponse,
+    EmployeeLoanMastersResponse,
     EmployeeLoanOnloadRequest,
     EmployeeLoanOnloadResponse,
     EmployeeLoanSaveRequest,
@@ -74,11 +84,11 @@ import { toast } from 'sonner';
 // ============================================================================
 // EMPLOYEE LOAN
 // ============================================================================
-export function useEmployeeLoanList(payload: EmployeeLoanOnloadRequest) {
-    return useQuery<EmployeeLoanOnloadResponse, Error>({
-        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST, payload],
+export function useEmployeeLoanMasters(payload: EmployeeLoanOnloadRequest) {
+    return useQuery<EmployeeLoanMastersResponse, Error>({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST, 'masters', payload], // Using same base key to keep unrelated cache clear simple
         queryFn: () =>
-            getEmployeeLoanList(payload).then((res: any) => {
+            getEmployeeLoanMasters(payload).then((res: any) => {
                 if (!res.success) {
                     throw new Error(res.message);
                 }
@@ -88,6 +98,22 @@ export function useEmployeeLoanList(payload: EmployeeLoanOnloadRequest) {
         enabled: !!(payload.MIID || payload.roleId)
     });
 }
+
+export function useEmployeeLoanGrid(payload: EmployeeLoanOnloadRequest) {
+    return useQuery<EmployeeLoanGridResponse, Error>({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST, 'grid', payload],
+        queryFn: () =>
+            getEmployeeLoanGrid(payload).then((res: any) => {
+                if (!res.success) {
+                    throw new Error(res.message);
+                }
+                return res.data!;
+            }),
+        staleTime: 1000 * 60 * 1, // Short stale time for list data
+        enabled: true
+    });
+}
+
 export function useSaveEmployeeLoan() {
     const queryClient = useQueryClient();
     return useMutation<EmployeeLoanSaveResponse, Error, EmployeeLoanSaveRequest>({
@@ -96,20 +122,16 @@ export function useSaveEmployeeLoan() {
                 if (!res.success) {
                     throw new Error(res.message);
                 }
-                return res.data!;
+                return res;
             }),
         onSuccess: (data, variables) => {
-            if (data.emploanList || data.HREL_Id) {
-                toast.success(
-                    data.retrunMsg ||
-                        (variables.HREL_Id === 0 ? 'Employee loan created successfully!' : 'Employee loan updated successfully!')
-                );
-                queryClient.invalidateQueries({
-                    queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST]
-                });
-            } else {
-                toast.error(data.retrunMsg || 'Failed to save employee loan.');
-            }
+            toast.success(
+                data.message ||
+                (variables.HREL_Id === 0 ? 'Employee loan created successfully!' : 'Employee loan updated successfully!')
+            );
+            queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST]
+            });
         },
         onError: (error) => {
             toast.error(error.message || 'Failed to save employee loan.');
@@ -130,11 +152,11 @@ export function useGetEmployeeLoanById(id: number) {
         enabled: !!id && id > 0
     });
 }
-export function useGetEmployeeLoanByEmployee(employeeId: number, miId: number = 30) {
-    return useQuery<EmployeeLoanOnloadResponse, Error>({
-        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST, 'by-employee', employeeId, miId],
+export function useGetEmployeeLoanByEmployee(employeeId: number) {
+    return useQuery<EmployeeDetailsResponse, Error>({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST, 'by-employee', employeeId],
         queryFn: () =>
-            getEmployeeLoanByEmployee(employeeId, miId).then((res: any) => {
+            getEmployeeLoanByEmployee(employeeId).then((res: any) => {
                 if (!res.success) {
                     throw new Error(res.message);
                 }
@@ -212,7 +234,7 @@ export function useSaveSalaryAdvance() {
                 queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST]
             });
             // Show success message
-            const successMessage = 
+            const successMessage =
                 (data as SalaryAdvanceSaveResponse).retrunMsg ||
                 (variables.HRESA_Id === 0 ? 'Salary advance created successfully!' : 'Salary advance updated successfully!');
             toast.success(successMessage);
@@ -478,7 +500,7 @@ export function useSaveSalaryIncrement() {
         onSuccess: (data, variables) => {
             toast.success(
                 data.retrunMsg ||
-                    (variables.HREIC_Id === 0 ? 'Salary increment created successfully!' : 'Salary increment updated successfully!')
+                (variables.HREIC_Id === 0 ? 'Salary increment created successfully!' : 'Salary increment updated successfully!')
             );
             queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.SALARY_INCREMENT_ONLOAD]
@@ -551,7 +573,7 @@ export function useSalaryUpdationList(payload: SalaryUpdationOnloadRequest) {
         onSuccess: (data, variables) => {
             toast.success(
                 data.retrunMsg ||
-                    (variables.HRESU_Id === 0 ? 'Salary updation created successfully!' : 'Salary updation updated successfully!')
+                (variables.HRESU_Id === 0 ? 'Salary updation created successfully!' : 'Salary updation updated successfully!')
             );
             queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.SALARY_UPDATION_ONLOAD]
@@ -599,7 +621,7 @@ export function useSaveSalaryUpdation() {
         onSuccess: (data, variables) => {
             toast.success(
                 data.retrunMsg ||
-                    (variables.HRESU_Id === 0 ? 'Salary updation created successfully!' : 'Salary updation updated successfully!')
+                (variables.HRESU_Id === 0 ? 'Salary updation created successfully!' : 'Salary updation updated successfully!')
             );
             queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.SALARY_UPDATION_ONLOAD]
@@ -719,6 +741,24 @@ export function useGetSalaryUpdationDesignations() {
         }
     });
 }
+export function useGetSalaryUpdationGroupTypes() {
+    return useMutation<SalaryUpdationDesignationResponse, Error, SalaryUpdationDesignationRequest>({
+        mutationFn: (data: SalaryUpdationDesignationRequest) => {
+            return getSalaryUpdationDesignations(data).then((res) => {
+                if (!res.success) {
+                    throw new Error(res.message);
+                }
+                const designationCount = res.data?.designationdropdown?.length || 0;
+                return res.data!;
+            }).catch((error) => {
+                throw error;
+            });
+        },
+        onError: (error) => {
+            toast.error(error.message || 'Failed to get designations.');
+        }
+    });
+}
 // ============================================================================
 // MASS UPDATION
 // ============================================================================
@@ -736,6 +776,7 @@ export function useMassUpdationOnload(payload: MassUpdationOnloadRequest) {
         enabled: !!payload.MI_Id && !!payload.roleId
     });
 }
+
 export function useSaveMassUpdation() {
     const queryClient = useQueryClient();
     return useMutation<MassUpdationSaveResponse, Error, MassUpdationSaveRequest>({
@@ -775,22 +816,51 @@ export function useSearchMassUpdationEmployees() {
     });
 }
 export function useGetEmployeeDetailsBySelection() {
-    const queryClient = useQueryClient();
     return useMutation<MassUpdationOnloadResponse, Error, MassUpdationSearchRequest>({
         mutationFn: (data: MassUpdationSearchRequest) =>
-            getEmployeeDetailsBySelection(data).then((res) => {
+            getEmployeeDetailsBySelection(data).then((res: any) => {
                 if (!res.success) {
                     throw new Error(res.message);
                 }
                 return res.data!;
             }),
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: [HRMS_QUERY_KEYS.MASS_UPDATION_ONLOAD]
-            });
+        onSuccess: (data) => {
+            toast.success(data.retrunMsg || 'Employee details loaded successfully!');
         },
         onError: (error) => {
-            toast.error(error.message || 'Failed to update employee details.');
+            toast.error(error.message || 'Failed to get employee details.');
         }
     });
 }
+
+export function useGetMassUpdationDepartments() {
+    return useMutation<{ departmentdropdown: any[] }, Error, { MI_Id?: number; hrmgT_IdList?: number[] }>({
+        mutationFn: (data) =>
+            getMassUpdationDepartments(data).then((res) => {
+                if (!res.success) {
+                    throw new Error(res.message);
+                }
+                return res.data!;
+            }),
+        onError: (error) => {
+            toast.error(error.message || 'Failed to get departments.');
+        }
+    });
+}
+
+export function useGetMassUpdationDesignations() {
+    return useMutation<{ designationdropdown: any[] }, Error, { MI_Id?: number; hrmgT_IdList?: number[]; hrmD_IdList?: number[] }>({
+        mutationFn: (data) =>
+            getMassUpdationDesignations(data).then((res) => {
+                if (!res.success) {
+                    throw new Error(res.message);
+                }
+                return res.data!;
+            }),
+        onError: (error) => {
+            toast.error(error.message || 'Failed to get designations.');
+        }
+    });
+}
+
+

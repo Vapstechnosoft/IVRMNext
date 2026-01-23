@@ -12,11 +12,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import {
     useFilterSalaryUpdationEmployees,
-    useGetSalaryUpdationDepartments,
-    useGetSalaryUpdationDesignations,
     useGetSalaryUpdationEmployeeDetailsBySelection,
     useSalaryUpdationList
 } from '@/hooks/hrms/useTransactions';
+import {
+    getDepartmentDropdownByGroupType,
+    getDesignationDropdownByGroupTypeAndDesignation,
+    getGroupTypeDropdown,
+    getHeadDropdown
+} from '@/server/hrms/hrmsConfig/transaction/salary-updation';
 import type {
     DeductionResultItem,
     DepartmentDropdown,
@@ -74,34 +78,72 @@ function SalaryUpdationPageContent({
     const [cascadingDesignations, setCascadingDesignations] = useState<DesignationDropdown[]>([]);
     const { mutate: filterEmployees, isPending: isFiltering } = useFilterSalaryUpdationEmployees();
     const { mutate: getEmployeeDetails, isPending: isGettingDetails } = useGetSalaryUpdationEmployeeDetailsBySelection();
-    const { mutate: getDepartments, isPending: isGettingDepartments } = useGetSalaryUpdationDepartments();
-    const { mutate: getDesignations, isPending: isGettingDesignations } = useGetSalaryUpdationDesignations();
+    // Simplified: Removed mutation hooks for dropdowns
+
     // Safely extract data with proper defaults to prevent hydration mismatches
     // Use useMemo to prevent unnecessary re-renders and infinite loops
     // Support both new format (groupTypedropdown) and legacy format (groupTypedropdownlist)
-    const groupTypes = useMemo(
-        () => response?.groupTypedropdown || response?.groupTypedropdownlist || [],
-        [response?.groupTypedropdown, response?.groupTypedropdownlist]
-    );
-    // Use cascading departments if available, otherwise fall back to onload data
-    const departments = useMemo(
-        () =>
-            cascadingDepartments.length > 0 ? cascadingDepartments : response?.departmentdropdown || response?.departmentdropdownlist || [],
-        [cascadingDepartments, response?.departmentdropdown, response?.departmentdropdownlist]
-    );
-    // Use cascading designations if available, otherwise fall back to onload data
-    const designations = useMemo(
-        () =>
-            cascadingDesignations.length > 0
-                ? cascadingDesignations
-                : response?.designationdropdown || response?.designationdropdownlist || [],
-        [cascadingDesignations, response?.designationdropdown, response?.designationdropdownlist]
-    );
+    const [groupTypes, setGroupTypes] = useState<any[]>([]);
+
+    // Initial departments/designations from load (if any)
+    // We will merge/override these with cascading values
+
+    const [departments, setDepartments] = useState<DepartmentDropdown[]>([]);
+    const [designations, setDesignations] = useState<DesignationDropdown[]>([]);
+    const [headsData, setHeadsData] = useState<any[]>([]);
+
+    useEffect(() => {
+        // Fetch group types on mount
+        async function fetchGroupTypes() {
+            try {
+                const { groupTypedropdown } = await getGroupTypeDropdown();
+                setGroupTypes(groupTypedropdown || []);
+            } catch (err) {
+                console.error("Failed to load group types", err);
+                setGroupTypes([]);
+            }
+        }
+        fetchGroupTypes();
+
+        async function fetchHeads() {
+            try {
+                const { headdropdown } = await getHeadDropdown();
+                setHeadsData(headdropdown || []);
+            } catch (err) {
+                console.error("Failed to load heads", err);
+                setHeadsData([]);
+            }
+        }
+        fetchHeads();
+
+        if (response?.departmentdropdown || response?.departmentdropdownlist) {
+            setDepartments(response?.departmentdropdown || response?.departmentdropdownlist || []);
+        }
+        if (response?.designationdropdown || response?.designationdropdownlist) {
+            setDesignations(response?.designationdropdown || response?.designationdropdownlist || []);
+        }
+    }, [response]);
+
     const _employees = useMemo(() => response?.employeedropdown || [], [response?.employeedropdown]);
-    // Get all head dropdowns from response
-    const allHeads = useMemo(() => response?.headdropdown || [], [response?.headdropdown]);
-    const earningHeadsList = useMemo(() => response?.earningdropdown || [], [response?.earningdropdown]);
-    const deductionHeadsList = useMemo(() => response?.detectiondropdown || [], [response?.detectiondropdown]);
+    // Get all head dropdowns from response or local state
+    const allHeads = useMemo(() => {
+        if (headsData.length > 0) return headsData;
+        return response?.headdropdown || [];
+    }, [response?.headdropdown, headsData]);
+
+    const earningHeadsList = useMemo(() => {
+        if (headsData.length > 0) {
+            return headsData.filter((h: any) => h.HRMED_EarnDedFlag?.toLowerCase() === 'earning');
+        }
+        return response?.earningdropdown || [];
+    }, [response?.earningdropdown, headsData]);
+
+    const deductionHeadsList = useMemo(() => {
+        if (headsData.length > 0) {
+            return headsData.filter((h: any) => h.HRMED_EarnDedFlag?.toLowerCase() === 'deduction');
+        }
+        return response?.detectiondropdown || [];
+    }, [response?.detectiondropdown, headsData]);
     const _monthOptions = useMemo(() => response?.monthdropdown || [], [response?.monthdropdown]);
     const _leaveYearOptions = useMemo(() => response?.leaveyeardropdown || [], [response?.leaveyeardropdown]);
     // Initialize date values client-side only to prevent hydration mismatches
@@ -167,96 +209,86 @@ function SalaryUpdationPageContent({
     // Cascading dropdown: Fetch departments when group type changes
     useEffect(() => {
         if (!isClient || !isFormInitialized) return;
-        if (watchedGroupType && Array.isArray(watchedGroupType) && watchedGroupType.length > 0) {
-            const groupTypeIds = watchedGroupType
-                .map((gt: string) => {
-                    const groupType = groupTypes.find((g: any) => g.HRMGT_EmployeeGroupType === gt);
-                    return groupType?.HRMGT_Id;
-                })
-                .filter((id): id is number => id !== undefined);
-            if (groupTypeIds.length > 0) {
-                getDepartments(
-                    {
-                        MI_Id: HRMS_MI_ID,
-                        hrmgT_IdList: groupTypeIds
-                    },
-                    {
-                        onSuccess: (data) => {
-                            setCascadingDepartments(data.departmentdropdown || []);
-                            // Reset department and designation when group type changes
-                            setValue('department', []);
-                            setValue('designation', []);
-                            setCascadingDesignations([]);
-                        },
-                        onError: () => {
-                            setCascadingDepartments([]);
-                        }
+
+        async function fetchDepartments() {
+            if (watchedGroupType && Array.isArray(watchedGroupType) && watchedGroupType.length > 0) {
+                const groupTypeIds = watchedGroupType
+                    .map((gt: string) => Number(gt))
+                    .filter((id) => !Number.isNaN(id));
+
+                if (groupTypeIds.length > 0) {
+                    const ids = groupTypeIds.join(',');
+                    try {
+                        const { departmentdropdown } = await getDepartmentDropdownByGroupType(ids);
+                        setDepartments(departmentdropdown || []);
+                        // Reset selections
+                        setValue('department', []);
+                        setValue('designation', []);
+                        setDesignations([]);
+                    } catch (error) {
+                        console.error("Failed to load departments", error);
+                        setDepartments([]);
                     }
-                );
+                } else {
+                    setDepartments([]);
+                    setDesignations([]);
+                }
             } else {
-                setCascadingDepartments([]);
-                setCascadingDesignations([]);
+                setDepartments([]);
+                setDesignations([]);
+                setValue('department', []);
+                setValue('designation', []);
             }
-        } else if (!watchedGroupType || (Array.isArray(watchedGroupType) && watchedGroupType.length === 0)) {
-            // Reset to onload data when no group types selected
-            setCascadingDepartments([]);
-            setCascadingDesignations([]);
-            setValue('department', []);
-            setValue('designation', []);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [watchedGroupType, isClient, isFormInitialized]);
+
+        fetchDepartments();
+    }, [watchedGroupType, isClient, isFormInitialized, setValue]);
+
     // Cascading dropdown: Fetch designations when department changes
     useEffect(() => {
         if (!isClient || !isFormInitialized) return;
-        if (
-            watchedDepartment &&
-            Array.isArray(watchedDepartment) &&
-            watchedDepartment.length > 0 &&
-            watchedGroupType &&
-            Array.isArray(watchedGroupType) &&
-            watchedGroupType.length > 0
-        ) {
-            const groupTypeIds = watchedGroupType
-                .map((gt: string) => {
-                    const groupType = groupTypes.find((g: any) => g.HRMGT_EmployeeGroupType === gt);
-                    return groupType?.HRMGT_Id;
-                })
-                .filter((id): id is number => id !== undefined);
-            const departmentIds = watchedDepartment
-                .map((dept: string) => {
-                    const department = departments.find((d: any) => d.HRMD_DepartmentName === dept);
-                    return department?.HRMD_Id;
-                })
-                .filter((id): id is number => id !== undefined);
-            if (groupTypeIds.length > 0 && departmentIds.length > 0) {
-                getDesignations(
-                    {
-                        MI_Id: HRMS_MI_ID,
-                        hrmgT_IdList: groupTypeIds,
-                        hrmD_IdList: departmentIds
-                    },
-                    {
-                        onSuccess: (data) => {
-                            setCascadingDesignations(data.designationdropdown || []);
-                            // Reset designation when department changes
-                            setValue('designation', []);
-                        },
-                        onError: () => {
-                            setCascadingDesignations([]);
-                        }
+
+        async function fetchDesignations() {
+            if (
+                watchedDepartment &&
+                Array.isArray(watchedDepartment) &&
+                watchedDepartment.length > 0 &&
+                watchedGroupType &&
+                Array.isArray(watchedGroupType) &&
+                watchedGroupType.length > 0
+            ) {
+                const groupTypeIds = watchedGroupType
+                    .map((gt: string) => Number(gt))
+                    .filter((id) => !Number.isNaN(id));
+
+                const departmentIds = watchedDepartment
+                    .map((dept: string) => Number(dept))
+                    .filter((id) => !Number.isNaN(id));
+
+                if (groupTypeIds.length > 0 && departmentIds.length > 0) {
+                    const gIds = groupTypeIds.join(',');
+                    const dIds = departmentIds.join(',');
+
+                    try {
+                        const { designationdropdown } = await getDesignationDropdownByGroupTypeAndDesignation(gIds, dIds);
+                        setDesignations(designationdropdown || []);
+                        // Reset designation when department changes
+                        setValue('designation', []);
+                    } catch (error) {
+                        console.error("Failed to load designations", error);
+                        setDesignations([]);
                     }
-                );
-            } else {
-                setCascadingDesignations([]);
+                } else {
+                    setDesignations([]);
+                }
+            } else if (!watchedDepartment || (Array.isArray(watchedDepartment) && watchedDepartment.length === 0)) {
+                setDesignations([]);
+                setValue('designation', []);
             }
-        } else if (!watchedDepartment || (Array.isArray(watchedDepartment) && watchedDepartment.length === 0)) {
-            // Reset to onload data when no departments selected
-            setCascadingDesignations([]);
-            setValue('designation', []);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [watchedDepartment, watchedGroupType, isClient, isFormInitialized]);
+
+        fetchDesignations();
+    }, [watchedDepartment, watchedGroupType, isClient, isFormInitialized, setValue]);
     // Reset heads when earning/deduction or amount/percentage selection changes
     useEffect(() => {
         if (isClient && isFormInitialized) {
@@ -270,28 +302,19 @@ function SalaryUpdationPageContent({
             const groupTypeIds: number[] = [];
             if (formData.groupType && Array.isArray(formData.groupType) && formData.groupType.length > 0) {
                 formData.groupType.forEach((gt: string) => {
-                    const groupType = groupTypes.find((g: any) => g.HRMGT_EmployeeGroupType === gt);
-                    if (groupType) {
-                        groupTypeIds.push(groupType.HRMGT_Id);
-                    }
+                    if (gt !== 'All') groupTypeIds.push(Number(gt));
                 });
             }
             const departmentIds: number[] = [];
             if (formData.department && Array.isArray(formData.department) && formData.department.length > 0) {
                 formData.department.forEach((dept: string) => {
-                    const department = departments.find((d: any) => d.HRMD_DepartmentName === dept);
-                    if (department) {
-                        departmentIds.push(department.HRMD_Id);
-                    }
+                    if (dept !== 'All') departmentIds.push(Number(dept));
                 });
             }
             const designationIds: number[] = [];
             if (formData.designation && Array.isArray(formData.designation) && formData.designation.length > 0) {
                 formData.designation.forEach((desg: string) => {
-                    const designation = designations.find((d: any) => d.HRMDES_DesignationName === desg);
-                    if (designation) {
-                        designationIds.push(designation.HRMDES_Id);
-                    }
+                    if (desg !== 'All') designationIds.push(Number(desg));
                 });
             }
             const headIds: number[] = [];
@@ -432,7 +455,7 @@ function SalaryUpdationPageContent({
                                     control={control}
                                     render={({ field }) => {
                                         const currentValue = Array.isArray(field.value) ? field.value : [];
-                                        const allGroupTypeValues = groupTypes.map((gt: any) => gt.HRMGT_EmployeeGroupType);
+                                        const allGroupTypeValues = groupTypes.map((gt: any) => gt.HRMGT_Id?.toString() || '');
                                         const isAllSelected =
                                             allGroupTypeValues.length > 0 &&
                                             allGroupTypeValues.every((val: string) => currentValue.includes(val));
@@ -442,7 +465,7 @@ function SalaryUpdationPageContent({
                                                     { label: 'All', value: 'All' },
                                                     ...groupTypes.map((gt: any) => ({
                                                         label: gt.HRMGT_EmployeeGroupType,
-                                                        value: gt.HRMGT_EmployeeGroupType
+                                                        value: gt.HRMGT_Id?.toString() || ''
                                                     }))
                                                 ]}
                                                 onValueChange={(vals) => {
@@ -477,7 +500,7 @@ function SalaryUpdationPageContent({
                                     control={control}
                                     render={({ field }) => {
                                         const currentValue = Array.isArray(field.value) ? field.value : [];
-                                        const allDeptValues = departments.map((d: any) => d.HRMD_DepartmentName);
+                                        const allDeptValues = departments.map((d: any) => d.HRMD_Id?.toString() || '');
                                         const isAllSelected =
                                             allDeptValues.length > 0 && allDeptValues.every((val: string) => currentValue.includes(val));
                                         return (
@@ -486,7 +509,7 @@ function SalaryUpdationPageContent({
                                                     { label: 'All', value: 'All' },
                                                     ...departments.map((dept: any) => ({
                                                         label: dept.HRMD_DepartmentName,
-                                                        value: dept.HRMD_DepartmentName
+                                                        value: dept.HRMD_Id?.toString() || ''
                                                     }))
                                                 ]}
                                                 onValueChange={(vals) => {
@@ -503,7 +526,6 @@ function SalaryUpdationPageContent({
                                                 placeholder='Select Departments'
                                                 className='w-full'
                                                 maxHeight={240}
-                                                disabled={isGettingDepartments}
                                             />
                                         );
                                     }}
@@ -519,7 +541,7 @@ function SalaryUpdationPageContent({
                                     control={control}
                                     render={({ field }) => {
                                         const currentValue = Array.isArray(field.value) ? field.value : [];
-                                        const allDesgValues = designations.map((d: any) => d.HRMDES_DesignationName);
+                                        const allDesgValues = designations.map((d: any) => d.HRMDES_Id?.toString() || '');
                                         const isAllSelected =
                                             allDesgValues.length > 0 && allDesgValues.every((val: string) => currentValue.includes(val));
                                         return (
@@ -528,7 +550,7 @@ function SalaryUpdationPageContent({
                                                     { label: 'All', value: 'All' },
                                                     ...designations.map((desg: any) => ({
                                                         label: desg.HRMDES_DesignationName,
-                                                        value: desg.HRMDES_DesignationName
+                                                        value: desg.HRMDES_Id?.toString() || ''
                                                     }))
                                                 ]}
                                                 onValueChange={(vals) => {
@@ -545,7 +567,6 @@ function SalaryUpdationPageContent({
                                                 placeholder='Select Designations'
                                                 className='w-full'
                                                 maxHeight={240}
-                                                disabled={isGettingDesignations}
                                             />
                                         );
                                     }}

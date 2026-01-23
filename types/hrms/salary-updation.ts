@@ -121,6 +121,9 @@ export interface EmployeeDropdown {
     HRME_AllowSoftwareAccessFlg?: boolean | null;
     CreatedDate?: string;
     UpdatedDate?: string;
+    // Mapped properties from Search API
+    earningResult?: EarningResultItem[];
+    deductionResult?: DeductionResultItem[];
 }
 
 // Department Dropdown
