@@ -2957,14 +2957,6 @@ export async function getUserAccessibleModules() {
                                             title: 'Master Period',
                                             description: 'Manage Master Period Details'
                                         },
-                                        {
-                                            id: 12,
-                                            name: 'Master Period Class',
-                                            icon: 'Clock',
-                                            url: '/timetable/masters/masterperiodclass',
-                                            title: 'Master Period Class',
-                                            description: 'Manage Master Period Class Details'
-                                        },
 
                                         {
                                             id: 10,
@@ -2981,6 +2973,14 @@ export async function getUserAccessibleModules() {
                                             url: '/timetable/masters/periodallocationmasterperiod',
                                             title: 'Period Allocation Master Period',
                                             description: 'Manage Period Allocation Master Period Details'
+                                        },
+                                        {
+                                            id: 12,
+                                            name: 'Master Period Class',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterperiodclass',
+                                            title: 'Master Period Class',
+                                            description: 'Manage Master Period Class Details'
                                         },
 
                                         {

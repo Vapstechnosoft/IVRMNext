@@ -10,12 +10,7 @@ import { TimePicker } from '@/components/ui/time-picker/time-picker';
 import { useBreakTimeSettingDetails } from '@/hooks/timetable/useMasters';
 
 import { breakTimeSettingsSchema } from '@/schemas/timetable/masters';
-import {
-    getBreakTimeSettingsById,
-    getClassByCategory,
-    getMaximumPeriodsCount,
-    saveBreakTimeSettings
-} from '@/server/timetable/masters/breaktimesettings';
+import { getBreakTimeSettingsById, getClassByCategory, saveBreakTimeSettings } from '@/server/timetable/masters/breaktimesettings';
 import type { IBreakTimeSettingsList, IMasterDayList } from '@/types/timetable/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
@@ -140,10 +135,10 @@ export default function UpdateBreakTimeSettingsForm({ onSuccess, selectedRow }: 
                 try {
                     const classId = watchedClasses[watchedClasses.length - 1].asmcL_Id.toString();
                     const count = watchedClasses.length;
-                    const res = await getMaximumPeriodsCount({ classid: classId, calssidscount: count });
-                    if (res?.calssidscountreturn) {
-                        setMaxPeriods(res.calssidscountreturn as number);
-                    }
+                    // const res = await getMaximumPeriodsCount({ classid: classId, calssidscount: count });
+                    // if (res?.calssidscountreturn) {
+                    //     setMaxPeriods(res.calssidscountreturn as number);
+                    // }
                 } catch (err) {
                     console.error('Error fetching max periods', err);
                 }
