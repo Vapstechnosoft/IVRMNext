@@ -5,155 +5,43 @@ import { AlumniGalleryColumns } from '@/app/(root)/alumni/alumni-module/transact
 import ToggleAlumniGalleryForm from '@/app/(root)/alumni/alumni-module/transactions/alumni-gallery/_components/toggle-form';
 import UpdateAlumniGalleryForm from '@/app/(root)/alumni/alumni-module/transactions/alumni-gallery/_components/update-form';
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { getAlumniGalleryData } from '@/server/alumni/alumni-gallery';
 import type { IAlumniGallery } from '@/types/alumni/alumni-gallery';
 import { Plus, X } from 'lucide-react';
 import { use, useCallback, useEffect, useState } from 'react';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-// Static gallery data
-const staticGalleryData: IAlumniGallery[] = [
-    {
-        algA_Id: 1,
-        algA_GalleryName: 'Annual Alumni Meet 2024',
-        algA_Date: '2024-12-15T00:00:00.000Z',
-        algA_Time: '14:30:00',
-        algA_CommonGalleryFlg: 'Y',
-        algA_ActiveFlag: true,
-        images_list: [
-            {
-                filePath: '/images/gallery/meet-1.jpg',
-                fileName: 'meet-1.jpg'
-            },
-            {
-                filePath: '/images/gallery/meet-2.jpg',
-                fileName: 'meet-2.jpg'
-            }
-        ]
-    },
-    {
-        algA_Id: 2,
-        algA_GalleryName: 'Campus Reunion 2023',
-        algA_Date: '2023-11-10T00:00:00.000Z',
-        algA_Time: '10:00:00',
-        algA_CommonGalleryFlg: 'Y',
-        algA_ActiveFlag: true,
-        images_list: [
-            {
-                filePath: '/images/gallery/reunion-1.jpg',
-                fileName: 'reunion-1.jpg'
-            },
-            {
-                filePath: '/images/gallery/reunion-2.jpg',
-                fileName: 'reunion-2.jpg'
-            },
-            {
-                filePath: '/videos/gallery/reunion-video.mp4',
-                fileName: 'reunion-video.mp4'
-            }
-        ]
-    },
-    {
-        algA_Id: 3,
-        algA_GalleryName: 'Sports Day Memories',
-        algA_Date: '2024-02-25T00:00:00.000Z',
-        algA_Time: '09:45:00',
-        algA_CommonGalleryFlg: 'N',
-        algA_ActiveFlag: false,
-        images_list: [
-            {
-                filePath: '/images/gallery/sports-1.jpg',
-                fileName: 'sports-1.jpg'
-            }
-        ]
-    },
-    {
-        algA_Id: 4,
-        algA_GalleryName: 'Convocation Ceremony 2022',
-        algA_Date: '2022-05-20T00:00:00.000Z',
-        algA_Time: '11:00:00',
-        algA_CommonGalleryFlg: 'Y',
-        algA_ActiveFlag: true,
-        images_list: [
-            {
-                filePath: '/images/gallery/convocation-1.jpg',
-                fileName: 'convocation-1.jpg'
-            },
-            {
-                filePath: '/images/gallery/convocation-2.jpg',
-                fileName: 'convocation-2.jpg'
-            },
-            {
-                filePath: '/images/gallery/convocation-3.jpg',
-                fileName: 'convocation-3.jpg'
-            },
-            {
-                filePath: '/videos/gallery/convocation.mp4',
-                fileName: 'convocation.mp4'
-            }
-        ]
-    },
-    {
-        algA_Id: 5,
-        algA_GalleryName: 'Cultural Fest 2021',
-        algA_Date: '2021-10-05T00:00:00.000Z',
-        algA_Time: '18:30:00',
-        algA_CommonGalleryFlg: 'Y',
-        algA_ActiveFlag: true,
-        images_list: [
-            {
-                filePath: '/images/gallery/cultural-1.jpg',
-                fileName: 'cultural-1.jpg'
-            },
-            {
-                filePath: '/images/gallery/cultural-2.jpg',
-                fileName: 'cultural-2.jpg'
-            }
-        ]
-    },
-    {
-        algA_Id: 6,
-        algA_GalleryName: 'Tech Workshop Series',
-        algA_Date: '2024-03-12T00:00:00.000Z',
-        algA_Time: '15:20:00',
-        algA_CommonGalleryFlg: 'N',
-        algA_ActiveFlag: true,
-        images_list: []
-    }
-];
-
-// Mock API function
-const mockGetAlumniGalleryData = async () => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    return {
-        data: {
-            get_galleryimg: staticGalleryData
-        }
-    };
-};
-
 export default function AlumniGalleryPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const [data, setData] = useState<IAlumniGallery[]>([]);
+    const [data, setData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<any>(null);
+    const [mI_Id, setMI_Id] = useState<number>(0);
+    const [asmaY_Id, setAsmaY_Id] = useState<number>(0);
 
     const refetchAll = useCallback(async () => {
         setIsLoading(true);
         try {
-            const res: any = await mockGetAlumniGalleryData();
-            const list = res?.data?.get_galleryimg || [];
-            setData(list);
+            const res = await getAlumniGalleryData(searchParams as any);
+            console.info('Gallery Response:', res);
+            if (res.success) {
+                setData(res);
+                setMI_Id((res as any).mI_Id || 0);
+                setAsmaY_Id((res as any).asmaY_Id || 0);
+            } else {
+                setData(null);
+            }
             setError(null);
         } catch (err) {
             setError(err);
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [searchParams]);
 
     useEffect(() => {
         refetchAll();
@@ -161,7 +49,7 @@ export default function AlumniGalleryPage(props: { searchParams: SearchParams })
 
     return (
         <FormProvider<IAlumniGallery>>
-            <PageContent response={data} isLoading={isLoading} error={error} refetchAll={refetchAll} />
+            <PageContent response={data} isLoading={isLoading} error={error} refetchAll={refetchAll} mI_Id={mI_Id} asmaY_Id={asmaY_Id} />
         </FormProvider>
     );
 }
@@ -170,15 +58,26 @@ function PageContent({
     response,
     isLoading,
     error,
-    refetchAll
+    refetchAll,
+    mI_Id,
+    asmaY_Id
 }: {
-    response: IAlumniGallery[];
+    response: any;
     isLoading: boolean;
     error: any;
-    refetchAll: any;
+    refetchAll: () => void;
+    mI_Id: number;
+    asmaY_Id: number;
 }) {
     const { openAddForm } = useFormContext<IAlumniGallery>();
-    const tableProps = useDataTableProps(response || []);
+
+    // Explicit mapping to ensure server-side pagination works correctly
+    const tableProps = {
+        data: Array.isArray(response?.data) ? response.data : response?.data?.get_galleryimg || response?.get_galleryimg || [],
+        totalItems: response?.total || response?.data?.total || 0,
+        success: response?.success,
+        errorMessage: response?.message
+    };
 
     return (
         <div className='min-h-screen'>
@@ -191,7 +90,6 @@ function PageContent({
                         <Plus className='h-4 w-4' />
                         Add Gallery Entry
                     </Button>
-                    <div className='ml-4 text-muted-foreground text-sm'>Manage alumni photos and videos galleries</div>
                 </div>
 
                 <CollapsibleSection
@@ -201,7 +99,6 @@ function PageContent({
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<IAlumniGallery>
                         {...tableProps}
-                        data={response || []}
                         columns={AlumniGalleryColumns}
                         isLoading={isLoading}
                         error={error}
@@ -213,13 +110,13 @@ function PageContent({
                     />
                 </CollapsibleSection>
 
-                <FormSections onSuccess={refetchAll} />
+                <FormSections onSuccess={refetchAll} mI_Id={mI_Id} asmaY_Id={asmaY_Id} />
             </div>
         </div>
     );
 }
 
-function FormSections({ onSuccess }: { onSuccess: () => void }) {
+function FormSections({ onSuccess, mI_Id, asmaY_Id }: { onSuccess: () => void; mI_Id: number; asmaY_Id: number }) {
     const {
         isAddFormOpen,
         isEditFormOpen,
@@ -256,6 +153,8 @@ function FormSections({ onSuccess }: { onSuccess: () => void }) {
                                     onSuccess();
                                     closeAddForm();
                                 }}
+                                mI_Id={mI_Id}
+                                asmaY_Id={asmaY_Id}
                             />
                         </div>
                     </CollapsibleSection>
@@ -285,6 +184,7 @@ function FormSections({ onSuccess }: { onSuccess: () => void }) {
                                     onSuccess();
                                     closeEditForm();
                                 }}
+                                mI_Id={mI_Id}
                             />
                         </div>
                     </CollapsibleSection>

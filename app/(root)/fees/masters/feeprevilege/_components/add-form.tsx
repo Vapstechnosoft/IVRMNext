@@ -47,6 +47,7 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
         handleSubmit,
         setValue,
         watch,
+
         formState: { errors, isSubmitting },
         reset
     } = useForm<FormFields>({
@@ -66,14 +67,15 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
     const roles = watch('roles');
     const usersValue = watch('users');
 
-    const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
+    const { data: academicData, isLoading: loadingAcademic, error: academicError, refetch } = useAcademicYearDropdown();
 
     const { data: rolesData, isLoading: loadingRoles, error: rolesError } = useRolesDropdown();
 
     const {
         data: groupData,
         isLoading: loadingGroupData,
-        error: groupDataError
+        error: groupDataError,
+        refetch: refetchGroups
     } = useFeeMasterGroupwiseAutoReceiptDropDown(Number(academicYear));
 
     const { data: userNameData, isLoading: loadingUserNames, error: userNameError } = useUserNameDropdown(Number(roles || 0));
@@ -94,9 +96,16 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
     const [headSearchTerm, setHeadSearchTerm] = useState('');
     const [isLoadingDropdowns, setIsLoadingDropdowns] = useState(false);
 
+    const [resetKey, setResetKey] = useState(0);
+
     useEffect(() => {
         if (academicYear && group) {
+            // Clear heads immediately when group changes
+            setHeadOptions([]);
+            setValue('heads', []);
+            // Then refetch for new group
             refetchHeadNames();
+            //refetchHeadNames();
         } else {
             setHeadOptions([]);
             setValue('heads', []);
@@ -253,11 +262,44 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
         }
     };
 
+    // const handleReset = () => {
+    //     // reset();
+    //     // setUserSearch('');
+    //     // setHeadSearchTerm('');
+    //     // setHasSubmitted(false);
+    //     window.location.reload();
+    // };
+
     const handleReset = () => {
-        reset();
+        // Reset form values
+        reset({
+            academicYear: '',
+            group: '',
+            heads: [],
+            roles: '',
+            users: []
+        });
+
+        // Clear search terms
         setUserSearch('');
         setHeadSearchTerm('');
+
+        // Reset validation state
         setHasSubmitted(false);
+
+        // Clear dropdown options that depend on selections
+        setGroupOptions([]);
+        setUserOptions([]);
+        setHeadOptions([]);
+
+        // IMPORTANT: Force refetch groups with undefined academic year
+        // This will clear the cached data for the previous academic year
+        setTimeout(() => {
+            setValue('academicYear', '', { shouldValidate: false });
+            setValue('roles', '', { shouldValidate: false });
+        }, 0);
+
+        setResetKey((prev) => prev + 1);
     };
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
@@ -311,22 +353,30 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
                 <CardContent className='p-6'>
                     <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                         {/* Academic Year */}
-                        <div>
+                        <div key={`academic-${resetKey}`}>
                             <Label htmlFor='academicYear'>
                                 Academic Year <span className='text-red-500'>*</span>
                             </Label>
                             <Select
                                 onValueChange={(v) => {
-                                    setValue('academicYear', v, { shouldValidate: true });
+                                    if (v === 'none') {
+                                        setValue('academicYear', '', { shouldValidate: true });
+                                    } else {
+                                        setValue('academicYear', v, { shouldValidate: true });
+                                    }
+                                    //  setValue('academicYear', v, { shouldValidate: true });
                                     setValue('group', '');
                                     setValue('heads', []);
                                 }}
-                                value={academicYear}
+                                value={academicYear || ''}
                                 disabled={isLoadingDropdowns}>
                                 <SelectTrigger
                                     id='academicYear'
                                     className={cn('mt-1 w-full', errors.academicYear ? 'border-red-500' : 'border-gray-300')}>
                                     <SelectValue placeholder='Select Academic Year' />
+                                    {/* <SelectValue placeholder='Select Academic Year'>
+            {academicYear ? academicYearOptions.find(opt => opt.value === academicYear)?.label : ''}
+        </SelectValue> */}
                                 </SelectTrigger>
                                 <SelectContent>
                                     {academicYearOptions.map((o) => (

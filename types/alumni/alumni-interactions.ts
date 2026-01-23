@@ -32,9 +32,15 @@ export interface IAlumniInteractionAlumni {
 }
 
 export interface IAlumniInteractionLoadResponse {
-    roletype: { ivrmrT_Role: string }[];
+    roletype: { ivrmrT_Role: string; ivrmrT_Id: number }[];
     userhrmE_Id: number;
+    asmaY_Id: number;
+    almsT_Id: number;
+    mI_Id: number;
     getinboxmsg: IAlumniInteraction[];
+    total?: number;
+    page?: number;
+    page_size?: number;
 }
 
 export interface IAlumniDetailsResponse {

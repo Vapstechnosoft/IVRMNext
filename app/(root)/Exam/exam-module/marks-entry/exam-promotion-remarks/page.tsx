@@ -1,9 +1,9 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import {
     addOrUpdateTermWiseRemarks,
@@ -48,6 +48,7 @@ const PromotionRemarksSchema = z.object({
         .optional()
 });
 
+// biome-ignore lint/correctness/noUnusedVariables: <explanation>
 type FormData = z.infer<typeof PromotionRemarksSchema>;
 
 const MI_ID = 30; // You might want to get this from user context or environment
@@ -81,6 +82,7 @@ function PromotionRemarksContent() {
 
     // Students
     const [students, setStudents] = useState<IPromotionRemarksGrid[]>([]);
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const [preSelectedStudentIds, setPreSelectedStudentIds] = useState<string[]>([]);
     const [tableProps, setTableProps] = useState<ReturnType<typeof useDataTableProps> | null>(null);
     const [isStudentsGridOpen, setIsStudentsGridOpen] = useState(false);
@@ -134,6 +136,7 @@ function PromotionRemarksContent() {
                 setSelectedTerm(undefined);
                 // Clear form errors when academic year changes
                 setFormErrors((prev) => ({ ...prev, academicYear: '' }));
+                // biome-ignore lint/correctness/noUnusedVariables: <explanation>
             } catch (err) {
                 toast.error('Failed to load classes');
             } finally {
@@ -162,6 +165,7 @@ function PromotionRemarksContent() {
                 setSelectedTerm(undefined);
                 // Clear form errors when class changes
                 setFormErrors((prev) => ({ ...prev, class: '' }));
+                // biome-ignore lint/correctness/noUnusedVariables: <explanation>
             } catch (err) {
                 toast.error('Failed to load sections');
             } finally {
@@ -287,8 +291,9 @@ function PromotionRemarksContent() {
                     ecT_Id: activeTab === 0 ? selectedTerm! : undefined
                 }));
 
-                console.log('studentList', studentList);
+                console.info('studentList', studentList);
 
+                // biome-ignore lint/correctness/noUnusedVariables: <explanation>
                 const preSelected = studentList.filter((s) => s.remarks && s.remarks.trim() !== '').map((s, index) => index.toString());
 
                 setPreSelectedStudentIds(preSelected);
@@ -370,7 +375,7 @@ function PromotionRemarksContent() {
                     ecterE_Remarks: student.remarks || '' // Ensure it's always a string
                 }))
             };
-            console.log('payload saveData', saveData);
+            console.info('payload saveData', saveData);
             const response = await addOrUpdateTermWiseRemarks(saveData);
 
             if (response.success) {

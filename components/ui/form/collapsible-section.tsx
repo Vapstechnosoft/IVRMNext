@@ -5,7 +5,7 @@ import { ChevronRight } from 'lucide-react';
 import { type ReactNode, useEffect, useState } from 'react';
 
 interface CollapsibleSectionProps {
-    title?: string;
+    title?: ReactNode;
     description?: string;
     children: ReactNode;
     defaultOpen?: boolean;
@@ -71,7 +71,7 @@ export function CollapsibleSection({
                         `}>
                         {(title || description) && (
                             <div className='space-y-1'>
-                                {title && <h3 className={`font-semibold tracking-tight ${sizeClasses[size]}`}>{title}</h3>}
+                                {title && <div className={`font-semibold tracking-tight ${sizeClasses[size]}`}>{title}</div>}
                                 {description && <p className='text-muted-foreground text-sm'>{description}</p>}
                             </div>
                         )}

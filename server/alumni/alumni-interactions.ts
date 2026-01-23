@@ -1,30 +1,31 @@
 'use server';
 
-import { api } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
+import { auth } from '@/lib/auth';
+import type { ApiSearchparams } from '@/types';
 import type { IAlumniDetailsResponse, IAlumniInteractionLoadResponse } from '@/types/alumni/alumni-interactions';
 
-export async function getAlumniInteractionLoadData(data: any = {}) {
-    const url = '/Alumni_Interactions/getloaddata';
-    const payload = {
-        mI_Id: data.mI_Id || 0,
-        almsT_Id: data.almsT_Id || 0,
-        hrmE_Id: data.hrmE_Id || 0,
-        roleflg: data.roleflg || '',
-        asmaY_Id: data.asmaY_Id || 0,
-        ivrmrT_Id: data.ivrmrT_Id || 0
-    };
-    return await api.post<IAlumniInteractionLoadResponse>('alumni', url, payload);
+export async function getAlumniInteractionLoadData(searchParams?: ApiSearchparams) {
+    const session = await auth();
+    const roleFlag = (searchParams as any)?.Role_flag || (session as any)?.role || 'Alumni';
+    const ivrmrtId = (searchParams as any)?.IVRMRT_Id || (session as any)?.ivrmrT_Id || 30;
+    const almstId = (session as any)?.almsT_Id || 0;
+    const hrmeId = (session as any)?.hrmE_Id || 0;
+    const asmayId = (session as any)?.asmaY_Id || 0;
+
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'ALSMINT_Subject');
+    const url = `/Alumni_Interactions/get_loaddata?IVRMRT_Id=${ivrmrtId}&ALMST_Id=${almstId}&ASMAY_Id=${asmayId}&HRME_Id=${hrmeId}&Role_flag=${roleFlag}&${urlParams}`;
+    return await api.get<IAlumniInteractionLoadResponse>('alumni', url);
 }
 
-export async function getAlumniDetails(data: { mI_Id?: number; ivrmrT_Id?: number; userflag: string; asmaY_Id?: number }) {
-    const url = '/Alumni_Interactions/getdetails';
-    const payload = {
-        mI_Id: data.mI_Id || 0,
-        ivrmrT_Id: data.ivrmrT_Id || 0,
-        userflag: data.userflag,
-        asmaY_Id: data.asmaY_Id || 0
-    };
-    return await api.post<IAlumniDetailsResponse>('alumni', url, payload);
+export async function getAlumniDetails(data: { userflag: string }) {
+    const session = await auth();
+    const ivrmrtId = (session as any)?.ivrmrT_Id || 0;
+    const almstId = (session as any)?.almsT_Id || 0;
+    const roleFlag = (session as any)?.role || 'Alumni';
+
+    const url = `/Alumni_Interactions/get_details?IVRMRT_Id=${ivrmrtId}&ALMST_Id=${almstId}&userflag=${data.userflag}&Role_flag=${roleFlag}`;
+    return await api.get<IAlumniDetailsResponse>('alumni', url);
 }
 
 export async function saveAlumniInteraction(data: any) {
@@ -33,23 +34,17 @@ export async function saveAlumniInteraction(data: any) {
 }
 
 export async function getInteractionThread(data: {
-    alsminT_Id: number;
-    mI_Id?: number;
-    hrmE_Id?: number;
-    almsT_Id?: number;
-    ivrmrT_Id?: number;
-    alsminT_ComposedById?: number;
-    asmaY_Id?: number;
+    ALSMINT_Id: number;
+    ASMAY_Id?: number;
+    IVRMRT_Id?: number;
+    ALMST_Id?: number;
 }) {
     const url = '/Alumni_Interactions/reply';
     const payload = {
-        alsminT_Id: data.alsminT_Id,
-        mI_Id: data.mI_Id || 0,
-        hrmE_Id: data.hrmE_Id || 0,
-        almsT_Id: data.almsT_Id || 0,
-        ivrmrT_Id: data.ivrmrT_Id || 0,
-        alsminT_ComposedById: data.alsminT_ComposedById || 0,
-        asmaY_Id: data.asmaY_Id || 0
+        ALSMINT_Id: data.ALSMINT_Id,
+        ASMAY_Id: data.ASMAY_Id || 0,
+        IVRMRT_Id: data.IVRMRT_Id || 0,
+        ALMST_Id: data.ALMST_Id || 0
     };
     return await api.post<{ viewmessage: any[] }>('alumni', url, payload);
 }

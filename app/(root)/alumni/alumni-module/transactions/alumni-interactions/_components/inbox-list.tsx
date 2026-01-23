@@ -18,7 +18,7 @@ interface InboxListProps {
 
 // Mock API function
 const mockDeleteInboxMessage = async (id: number) => {
-    console.log('Deleting message:', id);
+    console.info('Deleting message:', id);
     await new Promise((resolve) => setTimeout(resolve, 400));
     return { success: true, message: 'Interaction deleted successfully' };
 };
@@ -38,6 +38,7 @@ export default function InboxList({ messages, userHrmeId, onRefresh }: InboxList
             } else {
                 toast.error(res.message || 'Failed to delete');
             }
+            // biome-ignore lint/correctness/noUnusedVariables: <explanation>
         } catch (error) {
             toast.error('An error occurred while deleting');
         } finally {

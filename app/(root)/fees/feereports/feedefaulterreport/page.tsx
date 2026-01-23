@@ -1,4 +1,3 @@
-// app/(root)/fees/feereports/feedefaulterreport/page.tsx
 'use client';
 
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
@@ -8,7 +7,8 @@ import {
     useFeeCustomGroupDefaulterreport,
     useFeeGroupDefaulterreport,
     useFeeSectionListDefaulterreport,
-    useFeeTermDefaulterreport
+    useFeeTermDefaulterreport,
+    usemastersettinglist
 } from '@/hooks/fees/useReports';
 
 import { Button } from '@/components/ui/button';
@@ -23,7 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FormError } from '@/components/ui/extension/field';
 import { feeDefaulterReportSchema } from '@/schemas/fees/reports';
-import { getFeesSectionListByClassId } from '@/server/fees/reports/fee_DefaulterReport';
+import { getFeesSectionListByClassId, getfeedefaluerreport } from '@/server/fees/reports/fee_DefaulterReport';
 import type {
     IFeeBusRouteDropdownList,
     IFeeClassDropdownList,
@@ -40,19 +40,17 @@ import { Input } from 'react-aria-components';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-import { type IFeeDefaluterReport, exportToExcel, printTable } from './_components/columns';
+import {
+    exportToExcelforFeeGroupWise,
+    exportToExcelforFeeInstallmentWise,
+    exportToExcelforFeeStudentorStaffWise,
+    printTable
+} from './_components/columns';
 
 type FormFields = z.infer<typeof feeDefaulterReportSchema>;
 
-// Checkbox with full indeterminate support
 const Checkbox = ({ checked, indeterminate, onCheckedChange, ...props }: any) => {
     const ref = useRef<HTMLButtonElement>(null);
-
-    //   useEffect(() => {
-    //     if (ref.current) {
-    //       ref.current.indeterminate = !!indeterminate;
-    //     }
-    //   }, [indeterminate]);
 
     return <BaseCheckbox ref={ref} checked={checked} onCheckedChange={onCheckedChange} {...props} />;
 };
@@ -63,51 +61,21 @@ interface IAcademicYear {
     asmaY_Order?: number;
 }
 
-interface FeeDefaulterReportPayload {
-    // Common fields for both Yearly and Date Wise
-    FMG_Id?: number; // Optional fee group ID
-    Balance_1?: number; // 1 if balance checkbox is checked, 0 otherwise
-    FMGG_Id?: number; // Custom group ID (0 if undefined)
-    FMT_Id?: number; // Term ID (0 if undefined)
-    ASMAY_Id: number; // Academic Year ID (REQUIRED)
-    radioval: string; // "FGW", "FHW", "FCW", "FIW", "FSW", "FPW"
-    reporttype: 'year' | 'date'; // "year" or "date"
-    yearid?: number; // 1 if route is selected, 0 otherwise
-    active: number; // 1 or 0
-    deactive: number; // 1 or 0
-    left: number; // 1 or 0
-    customflag?: string; // Custom flag (empty string if undefined)
-    groupflag?: string; // Group flag (empty string if undefined)
-    ASMCL_Id?: number; // Class ID (0 if not selected)
-    AMSC_Id?: number; // Section ID (0 if not selected)
-    FMG_Ids: number[]; // Array of selected fee group IDs
-    FMT_Ids: number[]; // Array of selected term IDs
-    TRMR_Ids: number[]; // Array of selected bus route IDs
-    term_group: 'G' | 'T'; // "G" for group, "T" for term
-    Select_Button?: string; // Radio type selection
-
-    // Conditional fields for Date Wise
-    From_Date?: string; // Only for date wise (in date string format)
-    duedate?: number; // Only for date wise (1 if due date selected)
-
-    // Conditional fields for Yearly Wise
-    studenttype?: string; // Only for yearly wise
-}
-
 interface IStudentFeeDefaulterReport {
     id: number;
-    // slNo: number;
-    name: string;
-    admissionNo: string;
+    amsT_Id: number;
+    totalBalance: number;
+    studentName: string;
+    amsT_AdmNo: string;
     classSection: string;
-    fatherName: string;
-    mobileNumber: string;
-    emailId: string;
-    route: string;
-    balanceAmount: number;
-    // fineAmount: number;
-    // totalAmount: number;
-    // feeGroup: string;
+    amsT_MobileNo: string;
+    amsT_FatherName: string;
+    amsT_emailId: string;
+    fmT_Name: string;
+    fmG_GroupName: string;
+    fmH_FeeName: string;
+    asmcL_ClassName: string;
+    amsT_Route: string;
 }
 
 export default function FeeDefaulterReport() {
@@ -151,11 +119,9 @@ export default function FeeDefaulterReport() {
         }
     });
 
-    const [loading, setLoading] = useState(false);
-
     const [filters, setFilters] = useState({
-        userType: 'Students' as 'Students' | 'Staff' | 'Others',
-        viewMode: 'Yearly Wise' as 'Yearly Wise' | 'Date Wise',
+        userType: 'Student' as 'Student' | 'Staff' | 'Others',
+        viewMode: 'year' as 'year' | 'date',
         breakdown: 'Fee Group Wise',
         academicYearId: '',
         classId: 0,
@@ -185,10 +151,13 @@ export default function FeeDefaulterReport() {
     const [feeBusRoutes, setFeeBusRoutes] = useState<IFeeBusRouteDropdownList[]>([]);
     const [customGroups, setCustomGroups] = useState<IFeeCustomGroupDropdownList[]>([]);
 
-    const [reportData, setReportData] = useState<IFeeDefaluterReport[]>([]);
+    const [reportData, setReportData] = useState<IStudentFeeDefaulterReport[]>([]);
 
     const [studentreportData, setstudentReportData] = useState<IStudentFeeDefaulterReport[]>([]);
-    const [reportLoading, setReportLoading] = useState(false); // ← ADD THIS LINE
+
+    const [studentGroupreportData, setstudentGroupReportData] = useState<IStudentFeeDefaulterReport[]>([]);
+
+    const [reportLoading, setReportLoading] = useState(false);
     const [showReport, setShowReport] = useState(false);
 
     const [search, setSearch] = useState('');
@@ -197,6 +166,9 @@ export default function FeeDefaulterReport() {
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
     const [sectionLoading, setSectionLoading] = useState(false);
+
+    const { data: mastersettingList } = usemastersettinglist();
+    const term_group = mastersettingList?.data?.[0]?.fmC_GroupOrTermFlg;
 
     // Hooks
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
@@ -212,7 +184,6 @@ export default function FeeDefaulterReport() {
     const { data: busRouteResponse, isLoading: loadingBusRoutes, error: busRouteError } = useFeeBusRouteDefaulterreport();
     const { data: customGroupResponse, isLoading: loadingCustomGroup, error: customGroupError } = useFeeCustomGroupDefaulterreport();
 
-    // Load data effects (unchanged)
     useEffect(() => {
         if (academicError) {
             toast.error(academicError?.message || 'Failed to load academic years');
@@ -225,7 +196,6 @@ export default function FeeDefaulterReport() {
                 asmaY_Year: item.asmaY_Year ?? 'Unknown Year',
                 asmaY_Order: item.asmaY_Order ?? 0
             }));
-            //  formatted.sort((a, b) => (b.asmaY_Order || 0) - (a.asmaY_Order || 0));
             setAcademicYears(formatted);
         }
     }, [academicData, academicError]);
@@ -248,38 +218,16 @@ export default function FeeDefaulterReport() {
             setFilters((prev) => ({ ...prev, sectionId: 0 }));
         }
     }, [filters.classId, refetchSections]);
-    // useEffect(() => {
-    //     const fetchSections = async () => {
-    //         if (!filters.includeClassSection || !filters.academicYearId || filters.classId <= 0) {
-    //             setSections([]);
-    //             setFilters((prev) => ({ ...prev, sectionId: 0 }));
-    //             return;
-    //         }
-
-    //         setSectionLoading(true);
-    //         try {
-    //             const result = await getFeesSectionListByClassId(Number(filters.academicYearId), filters.classId);
-    //              console.log('sectionsdata', result);
-    //             const data = Array.isArray(result?.data) ? result.data : [];
-    //             setSections(data);
-
-    //             if (data.length === 0) {
-    //                 toast.info('No sections found for this class');
-    //             }
-    //         } catch (error: any) {
-    //             toast.error(error.message || 'Failed to load sections');
-    //             setSections([]);
-    //         } finally {
-    //             setSectionLoading(false);
-    //         }
-    //     };
-
-    //     fetchSections();
-    // }, [filters.academicYearId, filters.classId, filters.includeClassSection]);
 
     const classId = watch('classId') ?? 0;
     const academicYearId = watch('academicYearId');
     const includeClassSection = watch('includeClassSection');
+    const sectionId = watch('sectionId') ?? 0;
+    const feeGroupIds = watch('feeGroupIds') ?? [];
+    const termIds = watch('termIds') ?? [];
+    const routeIds = watch('busRouteIds') ?? [];
+    const breakdown = watch('breakdown');
+    const customGroupIds = watch('customGroupIds') ?? [];
 
     useEffect(() => {
         const fetchSections = async () => {
@@ -293,12 +241,8 @@ export default function FeeDefaulterReport() {
 
             try {
                 const result = await getFeesSectionListByClassId(Number(academicYearId), classId);
-
-                console.log('sectionsdata', result);
-
                 const data = Array.isArray(result?.data) ? result.data : [];
                 setSections(data);
-
                 if (data.length === 0) {
                     toast.info('No sections found for this class');
                 }
@@ -359,19 +303,31 @@ export default function FeeDefaulterReport() {
         }));
 
     const selectAllCustomGroups = (checked: boolean) => {
-        setFilters((prev) => ({ ...prev, customGroupIds: checked ? customGroups.map((g) => g.fmgG_Id) : [] }));
+        setFilters((prev) => ({
+            ...prev,
+            customGroupIds: checked ? customGroups.map((g) => g.fmgG_Id) : []
+        }));
     };
 
     const selectAllFeeGroups = (checked: boolean) => {
-        setFilters((prev) => ({ ...prev, feeGroupIds: checked ? feeGroups.map((g) => g.fmG_Id) : [] }));
+        setFilters((prev) => ({
+            ...prev,
+            feeGroupIds: checked ? feeGroups.map((g) => g.fmG_Id) : []
+        }));
     };
 
     const selectAllTerms = (checked: boolean) => {
-        setFilters((prev) => ({ ...prev, termIds: checked ? feeTerms.map((t) => t.fmT_Id) : [] }));
+        setFilters((prev) => ({
+            ...prev,
+            termIds: checked ? feeTerms.map((t) => t.fmT_Id) : []
+        }));
     };
 
     const selectAllBusRoutes = (checked: boolean) => {
-        setFilters((prev) => ({ ...prev, busRouteIds: checked ? feeBusRoutes.map((r) => r.trmR_Id) : [] }));
+        setFilters((prev) => ({
+            ...prev,
+            busRouteIds: checked ? feeBusRoutes.map((r) => r.trmR_Id) : []
+        }));
     };
 
     const toggleStatus = (status: 'active' | 'deactive' | 'left' | 'balance') => {
@@ -381,7 +337,6 @@ export default function FeeDefaulterReport() {
         }));
     };
 
-    // Add these state variables after your existing states
     const [communicationMethods, setCommunicationMethods] = useState({
         email: false,
         sms: false,
@@ -411,7 +366,6 @@ export default function FeeDefaulterReport() {
         direction: 'asc' | 'desc';
     } | null>(null);
 
-    // Sorting function
     const handleSortfull = (key: keyof (typeof studentreportData)[0]) => {
         let direction: 'asc' | 'desc' = 'asc';
 
@@ -422,12 +376,10 @@ export default function FeeDefaulterReport() {
         setSortConfig({ key, direction });
     };
 
-    // Apply sorting to data
     const sortedData = useMemo(() => {
         if (!sortConfig) return studentreportData;
 
         return [...studentreportData].sort((a, b) => {
-            // Handle different data types
             const aValue = a[sortConfig.key];
             const bValue = b[sortConfig.key];
 
@@ -447,59 +399,28 @@ export default function FeeDefaulterReport() {
         });
     }, [studentreportData, sortConfig]);
 
-    // Add this filtering logic for students
     const filteredStudentData = useMemo(() => {
-        // If no search term, return all data
         if (!search.trim()) return studentreportData;
-
         const searchTerm = search.toLowerCase().trim();
-
-        // Filter students based on search term
         return studentreportData.filter((student) => {
             return (
-                student.name.toLowerCase().includes(searchTerm) ||
-                student.admissionNo.toLowerCase().includes(searchTerm) ||
+                student.studentName.toLowerCase().includes(searchTerm) ||
+                student.amsT_AdmNo.toLowerCase().includes(searchTerm) ||
                 student.classSection.toLowerCase().includes(searchTerm) ||
-                student.fatherName.toLowerCase().includes(searchTerm) ||
-                student.mobileNumber.toLowerCase().includes(searchTerm) ||
-                student.emailId.toLowerCase().includes(searchTerm) ||
-                student.route.toLowerCase().includes(searchTerm) ||
-                student.balanceAmount.toString().includes(searchTerm)
+                student.amsT_FatherName.toLowerCase().includes(searchTerm) ||
+                student.amsT_MobileNo.includes(searchTerm) ||
+                student.amsT_emailId.toLowerCase().includes(searchTerm) ||
+                student.amsT_Route.toLowerCase().includes(searchTerm) ||
+                student.totalBalance.toString().includes(searchTerm)
             );
         });
-    }, [studentreportData, search]); // Re-run when data or search changes
-    // Update the toggleCommunicationMethod function
-    // const toggleCommunicationMethod = (method: keyof typeof communicationMethods) => {
-    //     setCommunicationMethods((prev) => ({
-    //         ...prev,
-    //         [method]: !prev[method]
-    //     }));
-
-    //     // Open the appropriate modal when method is selected
-    //     if (!communicationMethods[method]) {
-    //         switch (method) {
-    //             case 'email':
-    //                 setshowEmailContent(true);
-    //                 break;
-    //             case 'notification':
-    //                 setShowNotificationModal(true);
-    //                 break;
-    //             case 'sms':
-    //                 setShowSMSModal(true);
-    //                 break;
-    //             // whatsapp can be handled similarly if needed
-    //         }
-    //     }
-    // };
+    }, [studentreportData, search]);
 
     const toggleCommunicationMethod = (method: keyof typeof communicationMethods) => {
         setCommunicationMethods((prev) => ({
             ...prev,
             [method]: !prev[method]
         }));
-
-        // Remove the modal opening logic from here
-        // The modal will only open when REQUEST button is clicked
     };
 
     const handleRequestCommunication = () => {
@@ -511,98 +432,38 @@ export default function FeeDefaulterReport() {
             setShowSMSModal(true);
         }
     };
-    // Add this function to handle communication method toggles
-    // const toggleCommunicationMethod = (method: keyof typeof communicationMethods) => {
-    //     setCommunicationMethods(prev => ({
-    //         ...prev,
-    //         [method]: !prev[method]
-    //     }));
 
-    //     // If email is selected, open the email modal
-    //     if (method === 'email' && !communicationMethods.email) {
-    //         setShowEmailModal(true);
-    //     }
-    // };
-
-    // Add this function to handle sending emails
     const handleSendEmail = () => {
-        // Get selected students
-        const selectedStudents = studentreportData.filter((student) => selectedIds.includes(student.id));
+        const selectedStudents = studentreportData.filter((student) => selectedIds.includes(student.amsT_Id));
 
         if (selectedStudents.length === 0) {
             toast.error('Please select at least one student');
             return;
         }
-
-        // Here you would typically make an API call to send emails
-        console.log('Sending email to:', selectedStudents);
-        console.log('Subject:', emailSubject);
-        console.log('Content:', emailContent);
-        console.log('Template:', emailTemplate);
-
         toast.success(`Email sent to ${selectedStudents.length} student(s)`);
         setShowEmailModal(false);
     };
 
-    // Add this function to calculate totals
     const calculateTotals = () => {
-        const selectedStudents = studentreportData.filter((student) => selectedIds.includes(student.id));
+        const selectedStudents = studentreportData.filter((student) => selectedIds.includes(student.amsT_Id));
 
         return {
             count: selectedStudents.length,
-            totalBalance: selectedStudents.reduce((sum, student) => sum + student.balanceAmount, 0)
-            // Add other totals if needed
+            totalBalance: selectedStudents.reduce((sum, student) => sum + student.totalBalance, 0)
         };
     };
-    // const handleSubmit = async () => {
-
-    //   if (!filters.academicYearId) return toast.error('Please select an Academic Year');
-    //   if (filters.feeGroupIds.length === 0) return toast.error('Please select at least one Fee Group');
-    //   if (filters.termIds.length === 0) return toast.error('Please select at least one Term');
-
-    //   setReportLoading(true);
-    //   setShowReport(false);
-
-    //   try {   // Call your server function (make sure it returns Promise!)
-    //     const result = await feedefaluerreportdata(5855, 55);
-
-    //     const data = Array.isArray(result) ? result : (result?.data || []);
-
-    //     setReportData(data as IFeeAuditReport[]);
-    //     setShowReport(true);
-
-    //     // Feedback
-    //     if (data.length > 0) {
-    //       toast.success(`Report generated: ${data.length} defaulter(s) found`);
-    //     } else {
-    //       toast.info('No defaulters found for the selected criteria');
-    //     }
-
-    //     setTimeout(() => {
-    //       window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-    //     }, 100);
-
-    //   } catch (error: any) {
-    //     console.error('Fee Defaulter Report Error:', error);
-    //     toast.error(error.message || 'Failed to generate report');
-
-    //     setReportData([]);
-    //     setShowReport(true);
-    //   } finally {
-    //     setReportLoading(false);
-    //     setLoading(false);
-    //   }
-    // };
 
     const filteredData = useMemo(() => {
-        let rows = [...reportData]; // your reportData from API
+        let rows = [...reportData];
 
         if (search) {
-            rows = rows.filter((r) => r.feeGroup.toLowerCase().includes(search.toLowerCase()) || r.totalDue.toString().includes(search));
+            rows = rows.filter(
+                (r) => r.fmG_GroupName.toLowerCase().includes(search.toLowerCase()) || r.totalBalance.toString().includes(search)
+            );
         }
 
         if (sortKey) {
-            rows.sort((a, b) => {
+            rows.sort((a: any, b: any) => {
                 const valA = a[sortKey];
                 const valB = b[sortKey];
 
@@ -631,10 +492,10 @@ export default function FeeDefaulterReport() {
     };
 
     const toggleAll = () => {
-        if (selectedIds.length === filteredData.length) {
+        if (selectedIds.length === studentGroupreportData.length) {
             setSelectedIds([]);
         } else {
-            setSelectedIds(filteredData.map((r) => r.id));
+            setSelectedIds(studentGroupreportData.map((row) => row.id));
         }
     };
 
@@ -645,135 +506,321 @@ export default function FeeDefaulterReport() {
             setSelectedIds(studentreportData.map((r) => r.id));
         }
     };
-    const totalBalance = filteredData.reduce((sum, r) => sum + r.totalDue, 0);
-    const selectedBalance = filteredData.filter((r) => selectedIds.includes(r.id)).reduce((sum, r) => sum + r.totalDue, 0);
+    const totalBalance = filteredData.reduce((sum, r) => sum + r.totalBalance, 0);
+    const selectedBalance = filteredData.filter((r) => selectedIds.includes(r.id)).reduce((sum, r) => sum + r.totalBalance, 0);
 
-    const handleExportExcel = () => {
-        const rowsToExport = reportData.filter((r) => selectedIds.includes(r.id));
+    const handleExportExcelforFeeGroupWise = () => {
+        const rowsToExport = studentGroupreportData.filter((r) => selectedIds.includes(r.id));
 
         if (!rowsToExport || rowsToExport.length === 0) {
             toast.error('No data selected to export');
             return;
         }
 
-        exportToExcel(rowsToExport, 'Defaulter_Report');
+        exportToExcelforFeeGroupWise(rowsToExport, 'Defaulter_Report');
     };
 
-    const handlePrint = () => {
-        const rowsToPrint = reportData.filter((r) => selectedIds.includes(r.id));
+    const handlePrintforFeeGroupWise = () => {
+        const rowsToPrint = studentGroupreportData.filter((row) => selectedIds.includes(row.id));
 
         if (!rowsToPrint || rowsToPrint.length === 0) {
             toast.error('No data selected to print');
             return;
         }
 
-        const columns = ['feeGroup', 'totalDue']; // object keys
-        const columnHeaders = ['Fee Group', 'Balance Amount']; // headers
+        const columnHeaders = ['Sl.No', 'Fee Group', 'Balance Amount'];
 
-        const printableRows = rowsToPrint.map((row) => ({
-            feeGroup: row.feeGroup,
-            totalDue: `₹${row.totalDue.toLocaleString('en-IN')}`
+        const printableRows = rowsToPrint.map((row, index) => ({
+            'Sl.No': index + 1,
+            'Fee Group': row.fmG_GroupName,
+            'Balance Amount': `₹${row.totalBalance}`
         }));
 
-        const total = rowsToPrint.reduce((sum, r) => sum + r.totalDue, 0);
+        const total = rowsToPrint.reduce((sum, r) => sum + r.totalBalance, 0);
         const sumRow = {
-            feeGroup: 'Total',
-            totalDue: `₹${total.toLocaleString('en-IN')}`
+            'Sl.No': '',
+            'Fee Group': 'Total',
+            'Balance Amount': `₹${total.toLocaleString('en-IN')}`
         };
 
-        printTable(columns, printableRows, sumRow);
+        printTable(columnHeaders, printableRows, sumRow);
     };
 
-    watch('customGroupIds');
+    const handleExportExcelforFeeInstallmentWise = () => {
+        const rowsToExport = studentreportData.filter((r) => selectedIds.includes(r.id));
 
-    const createPayload = (data: FormFields): FeeDefaulterReportPayload => {
-        // Determine report type
-        const reporttype = data.viewMode === 'Yearly Wise' ? 'year' : 'date';
-
-        // Determine grouporterm based on breakdown
-        let term_group: 'G' | 'T' = 'T'; // Default to term
-        if (data.breakdown === 'FGW' || data.breakdown === 'FCW' || data.breakdown === 'FPW') {
-            term_group = 'G'; // Group
+        if (!rowsToExport || rowsToExport.length === 0) {
+            toast.error('No data selected to export');
+            return;
         }
 
-        // Prepare arrays
-        const FMG_Ids = data.feeGroupIds || [];
-        const FMT_Ids = data.termIds || [];
-        const TRMR_Ids = data.busRouteIds || [];
+        exportToExcelforFeeInstallmentWise(rowsToExport, 'Defaulter_Report');
+    };
 
-        // Convert status to 1/0
-        const active = data.status?.active ? 1 : 0;
-        const deactive = data.status?.deactive ? 1 : 0;
-        const left = data.status?.left ? 1 : 0;
-        const Balance_1 = data.status?.balance ? 1 : 0;
+    const handlePrintforFeeInstallmentWise = () => {
+        const rowsToPrint = studentreportData.filter((row) => selectedIds.includes(row.id));
 
-        // Base payload
-        const payload: FeeDefaulterReportPayload = {
-            ASMAY_Id: Number(data.academicYearId),
-            radioval: data.breakdown,
-            reporttype,
-            active,
-            deactive,
-            left,
-            FMG_Ids,
-            FMT_Ids,
-            TRMR_Ids,
-            term_group,
-            Balance_1
+        if (!rowsToPrint || rowsToPrint.length === 0) {
+            toast.error('No data selected to print');
+            return;
+        }
+
+        const columnHeaders = [
+            'Sl.No',
+            'Name',
+            'Admission No',
+            'Class & Section',
+            'Father Name',
+            'Mobile Number',
+            'Email ID',
+            'Term',
+            'Balance Amount'
+        ];
+
+        const printableRows = rowsToPrint.map((row, index) => ({
+            'Sl.No': index + 1,
+            Name: row.studentName,
+            'Admission No': row.amsT_AdmNo,
+            'Class & Section': row.classSection,
+            'Father Name': row.amsT_FatherName,
+            'Mobile Number': row.amsT_MobileNo,
+            'Email ID': row.amsT_emailId,
+            Term: row.fmT_Name,
+            'Balance Amount': row.totalBalance
+        }));
+
+        const total = rowsToPrint.reduce((sum, r) => sum + r.totalBalance, 0);
+        const sumRow = {
+            'Sl.No': '',
+            Name: 'Total',
+            'Admission No': '',
+            'Class & Section': '',
+            'Father Name': '',
+            'Mobile Number': '',
+            'Email ID': '',
+            Term: '',
+            'Balance Amount': `₹${total.toLocaleString('en-IN')}`
         };
 
-        // Set optional fields with defaults
-        payload.FMG_Id = data.feeGroupIds?.[0] || 0;
-        payload.FMGG_Id = data.customGroupIds?.[0] || 0;
-        payload.FMT_Id = data.termIds?.[0] || 0;
-        //payload.customflag = data.customGroupIds?.length > 0 ? 'true' : '';
-        payload.customflag = '';
-        payload.groupflag = data.feeGroupIds?.length > 0 ? 'true' : '';
-        payload.Select_Button = data.userType;
+        printTable(columnHeaders, printableRows, sumRow);
+    };
 
-        // Set class and section if included
-        if (data.includeClassSection && data.classId) {
-            payload.ASMCL_Id = data.classId;
-            payload.AMSC_Id = data.sectionId || 0;
-        } else {
-            payload.ASMCL_Id = 0;
-            payload.AMSC_Id = 0;
+    const handleExportExcelforFeeStudentorStaffWise = () => {
+        const rowsToExport = studentreportData.filter((r) => selectedIds.includes(r.id));
+
+        if (!rowsToExport || rowsToExport.length === 0) {
+            toast.error('No data selected to export');
+            return;
         }
 
-        // Set route/bus info
-        if (TRMR_Ids.length > 0) {
-            payload.yearid = 1;
-            // payload.TRMR_Id = data.busRouteIds[0]; // Uncomment if needed
-        } else {
-            payload.yearid = 0;
-            // payload.TRMR_Id = 0;
+        exportToExcelforFeeStudentorStaffWise(rowsToExport, 'Defaulter_Report');
+    };
+
+    const handlePrintforFeeStudentorStaffWise = () => {
+        const rowsToPrint = studentreportData.filter((row) => selectedIds.includes(row.id));
+
+        if (!rowsToPrint || rowsToPrint.length === 0) {
+            toast.error('No data selected to print');
+            return;
         }
 
-        // Conditional logic based on report type
-        if (reporttype === 'year') {
-            // Yearly Wise specific fields
-            payload.studenttype = 'active'; // You might need to adjust this based on your logic
-        } else if (reporttype === 'date') {
-            // Date Wise specific fields
-            if (filters.dueDate) {
-                payload.From_Date = new Date(filters.dueDate).toDateString();
+        const columnHeaders = [
+            'Sl.No',
+            'Name',
+            'Admission No',
+            'Class & Section',
+            'Father Name',
+            'Mobile Number',
+            'Email ID',
+            'Route',
+            'Balance Amount'
+        ];
+
+        const printableRows = rowsToPrint.map((row, index) => ({
+            'Sl.No': index + 1,
+            Name: row.studentName,
+            'Admission No': row.amsT_AdmNo,
+            'Class & Section': row.classSection,
+            'Father Name': row.amsT_FatherName,
+            'Mobile Number': row.amsT_MobileNo,
+            'Email ID': row.amsT_emailId,
+            Route: row.amsT_Route,
+            'Balance Amount': row.totalBalance
+        }));
+
+        const total = rowsToPrint.reduce((sum, r) => sum + r.totalBalance, 0);
+        const sumRow = {
+            'Sl.No': '',
+            Name: 'Total',
+            'Admission No': '',
+            'Class & Section': '',
+            'Father Name': '',
+            'Mobile Number': '',
+            'Email ID': '',
+            Route: '',
+            'Balance Amount': `₹${total.toLocaleString('en-IN')}`
+        };
+
+        printTable(columnHeaders, printableRows, sumRow);
+    };
+
+    const onSubmit: SubmitHandler<FormFields> = async () => {
+        setReportLoading(true);
+        setShowReport(false);
+        setReportData([]);
+        setstudentReportData([]);
+        setstudentGroupReportData([]);
+
+        try {
+            const blc_new = filters.status.balance === true ? 1 : 0;
+            const active = filters.status.active === true ? 1 : 0;
+            const deactive = filters.status.deactive === true ? 1 : 0;
+            const left = filters.status.left === true ? 1 : 0;
+            const asmcL_Id = includeClassSection === true ? classId : 0;
+            const asmC_Id = includeClassSection === true ? sectionId : 0;
+
+            let payload: any = {};
+            if (filters.viewMode === 'year') {
+                payload = {
+                    ASMAY_Id: academicYearId,
+                    radioval: breakdown,
+                    reporttype: filters.viewMode,
+                    active: active,
+                    deactive: deactive,
+                    left: left,
+                    FMG_Ids: feeGroupIds || [],
+                    FMT_Ids: termIds || [],
+                    TRMR_Ids: routeIds || [],
+                    term_group: term_group,
+                    Balance_1: blc_new,
+                    FMG_Id: feeGroupIds && feeGroupIds.length > 0 ? feeGroupIds[0] : 0,
+                    FMGG_Id: customGroupIds && customGroupIds.length > 0 ? customGroupIds[0] : 0,
+                    FMT_Id: termIds && termIds.length > 0 ? termIds[0] : 0,
+                    customflag: customGroupIds.length > 0 ? 'true' : ' ',
+                    groupflag: feeGroupIds.length > 0 ? 'true' : ' ',
+                    ASMCL_Id: asmcL_Id,
+                    AMSC_Id: asmC_Id,
+                    yearid: 0,
+                    Select_Button: filters.userType,
+                    studenttype: 'active'
+                };
+            } else if (filters.viewMode === 'date') {
+                payload = {
+                    ASMAY_Id: academicYearId,
+                    radioval: breakdown,
+                    reporttype: filters.viewMode,
+                    active: active,
+                    deactive: deactive,
+                    left: left,
+                    FMG_Ids: feeGroupIds || [],
+                    FMT_Ids: termIds || [],
+                    TRMR_Ids: routeIds || [],
+                    Balance_1: blc_new,
+                    From_Date: filters.dueDate,
+                    duedate: filters.dueDate || '',
+                    ASMCL_Id: asmcL_Id,
+                    AMSC_Id: asmC_Id,
+                    term_group: term_group,
+                    Select_Button: filters.userType,
+                    yearid: 0,
+                    studenttype: 'active'
+                };
             }
-            payload.duedate = data.dueDateType === 'Due Date' ? 1 : 0;
-        }
 
-        return payload;
+            const reportArray = await getfeedefaluerreport(payload);
+            const studentDataArray = (reportArray as any)?.data?.list?.studentalldata;
+            const studentGroupDataArray = (reportArray as any)?.data?.list?.groupalldata;
+
+            let hasData = false;
+            if (studentDataArray != null) {
+                if (studentDataArray && Array.isArray(studentDataArray)) {
+                    const studentData = JSON.parse(JSON.stringify(studentDataArray));
+                    const mapApiToReportRows = (apiData: any[]): IStudentFeeDefaulterReport[] => {
+                        return apiData.map((item, index) => ({
+                            id: index + 1,
+                            amsT_AdmNo: item.amsT_AdmNo,
+                            amsT_emailId: item.amsT_emailId,
+                            amsT_FatherName: item.amsT_FatherName,
+                            amsT_Id: item.amsT_Id,
+                            amsT_MobileNo: item.amsT_MobileNo,
+                            amsT_Route: item.amsT_Route,
+                            asmcL_ClassName: item.asmcL_ClassName,
+                            classSection: item.classSection,
+                            fmG_GroupName: item.fmG_GroupName,
+                            fmH_FeeName: item.fmH_FeeName,
+                            fmT_Name: item.fmT_Name,
+                            studentName: item.studentName,
+                            totalBalance: item.totalBalance
+                        }));
+                    };
+                    const data = mapApiToReportRows(studentData);
+                    setstudentReportData(data);
+                    if (studentData.length > 0) {
+                        hasData = true;
+                    }
+                } else {
+                    toast.info('No student data found!');
+                    setstudentReportData([]);
+                }
+            }
+            if (studentGroupDataArray != null) {
+                if (studentGroupDataArray && Array.isArray(studentGroupDataArray)) {
+                    const studentGroupData = JSON.parse(JSON.stringify(studentGroupDataArray));
+                    const mapApiToReportRows = (apiData: any[]): IStudentFeeDefaulterReport[] => {
+                        return apiData.map((item, index) => ({
+                            id: index + 1,
+                            amsT_AdmNo: item.amsT_AdmNo,
+                            amsT_emailId: item.amsT_emailId,
+                            amsT_FatherName: item.amsT_FatherName,
+                            amsT_Id: item.amsT_Id,
+                            amsT_MobileNo: item.amsT_MobileNo,
+                            amsT_Route: item.amsT_Route,
+                            asmcL_ClassName: item.asmcL_ClassName,
+                            classSection: item.classSection,
+                            fmG_GroupName: item.fmG_GroupName,
+                            fmH_FeeName: item.fmH_FeeName,
+                            fmT_Name: item.fmT_Name,
+                            studentName: item.studentName,
+                            totalBalance: item.totalBalance
+                        }));
+                    };
+                    const data = mapApiToReportRows(studentGroupData);
+                    setstudentGroupReportData(data);
+                    if (studentGroupData.length > 0) {
+                        hasData = true;
+                    }
+                } else {
+                    toast.info('No group data found!');
+                    setstudentGroupReportData([]);
+                }
+            }
+
+            if (hasData) {
+                const combinedData = [...(studentDataArray || []), ...(studentGroupDataArray || [])];
+                setReportData(combinedData);
+                setShowReport(true);
+            } else {
+                setReportData([]);
+                setShowReport(false);
+                toast.info('No data available for the report!');
+            }
+        } catch (error: any) {
+            console.error('Error generating report:', error);
+            toast.error(error.message || 'Failed to generate report');
+            setShowReport(false);
+        } finally {
+            setReportLoading(false);
+        }
     };
 
     const handleOpenEmailModal = () => {
         console.log('Button clicked, showEmailModal before:', showEmailModal);
         setshowEmailContent(true);
-        // Check after a small delay
         setTimeout(() => {
             console.log('showEmailModal after:', showEmailModal);
         }, 100);
     };
 
-    // Add these handler functions
     const handleSendNotification = () => {
         setShowNotificationModal(true);
         setTimeout(() => {
@@ -788,284 +835,10 @@ export default function FeeDefaulterReport() {
         }, 100);
     };
 
-    // const handleSubmit = async () => {
-    const onSubmit: SubmitHandler<FormFields> = async (data) => {
-        const payload = createPayload(data);
-
-        console.log('Sending payload:', JSON.stringify(payload));
-
-        // Optional: Keep validation
-        // if (!filters.academicYearId) return toast.error('Please select an Academic Year');
-        // if (filters.feeGroupIds.length === 0) return toast.error('Please select at least one Fee Group');
-        // if (filters.termIds.length === 0) return toast.error('Please select at least one Term');
-
-        setReportLoading(true);
-        setShowReport(false);
-
-        // Simulate API delay
-        await new Promise((resolve) => setTimeout(resolve, 1200));
-
-        // STATIC MOCK DATA - Looks 100% real!
-        const mockData: IFeeDefaluterReport[] = [
-            { feeGroup: 'Tuition Fee', totalDue: 12500, id: 1 },
-            { feeGroup: 'Transport + Tuition', totalDue: 28500, id: 2 },
-            { feeGroup: 'Annual Charges', totalDue: 8000, id: 3 },
-            { feeGroup: 'Tuition Fee', totalDue: 15000, id: 4 },
-            { feeGroup: 'Lab + Tuition', totalDue: 42000, id: 5 },
-            { feeGroup: 'Transport Fee', totalDue: 18000, id: 6 },
-            { feeGroup: 'Tuition Fee', totalDue: 12500, id: 7 },
-            { feeGroup: 'All Fees', totalDue: 55000, id: 8 },
-            { feeGroup: 'Exam Fee', totalDue: 5000, id: 9 },
-            { feeGroup: 'Tuition Fee', totalDue: 11000, id: 10 },
-            { feeGroup: 'Science Fee', totalDue: 15000, id: 11 },
-            { feeGroup: 'Transport', totalDue: 20000, id: 12 },
-            { feeGroup: 'Tuition + Lab', totalDue: 30000, id: 13 },
-            { feeGroup: 'All Fees', totalDue: 68000, id: 14 },
-            { feeGroup: 'Admission Fee', totalDue: 25000, id: 15 }
-        ];
-
-        //IStudentFeeDefaulterReport
-
-        // Mock data generation function
-        const generateMockStudentData = () => {
-            const studentData: IStudentFeeDefaulterReport[] = [
-                {
-                    name: 'SAMAY V',
-                    admissionNo: '78/2025-26',
-                    classSection: 'IIC SEC',
-                    fatherName: 'VINAY B',
-                    mobileNumber: '9876543210',
-                    emailId: 'samay@email.com',
-                    route: 'Route A',
-                    balanceAmount: 42000,
-                    id: 1
-                },
-                {
-                    name: 'THANUSHREE N R',
-                    admissionNo: '89/2025-26',
-                    classSection: 'IIC SEC',
-                    fatherName: 'RENANAIAH N',
-                    mobileNumber: '8765432109',
-                    emailId: 'thanushree@email.com',
-                    route: 'Route B',
-                    balanceAmount: 62000,
-                    id: 2
-                },
-                {
-                    name: 'UMME SUFIYA D F',
-                    admissionNo: '75/2025-26',
-                    classSection: 'IIC SEC',
-                    fatherName: 'MOHAMMED FAZLULLA D S',
-                    mobileNumber: '7654321098',
-                    emailId: 'sufiya@email.com',
-                    route: 'Route C',
-                    balanceAmount: 62000,
-                    id: 3
-                },
-                {
-                    name: 'VIDWATH A M',
-                    admissionNo: '91/2025-26',
-                    classSection: 'IIC SEC',
-                    fatherName: 'ANUP M J',
-                    mobileNumber: '6543210987',
-                    emailId: 'vidwath@email.com',
-                    route: 'Route A',
-                    balanceAmount: 62000,
-                    id: 4
-                },
-                {
-                    name: 'VINAY E',
-                    admissionNo: '90/2025-26',
-                    classSection: 'IIC SEC',
-                    fatherName: 'ERESHA B',
-                    mobileNumber: '5432109876',
-                    emailId: 'vinay@email.com',
-                    route: 'Route B',
-                    balanceAmount: 32000,
-                    id: 5
-                },
-                {
-                    name: 'SHAMANTH REDDY P S',
-                    admissionNo: '64',
-                    classSection: 'I Std A',
-                    fatherName: 'SHASHIDHARA P V',
-                    mobileNumber: '4321098765',
-                    emailId: 'shamanth@email.com',
-                    route: 'Route D',
-                    balanceAmount: 24000,
-                    id: 6
-                },
-                {
-                    name: 'G P DHEERAJ',
-                    admissionNo: '103',
-                    classSection: 'I Std A',
-                    fatherName: 'B PANDU',
-                    mobileNumber: '3210987654',
-                    emailId: 'dheeraj@email.com',
-                    route: 'Route E',
-                    balanceAmount: 24000,
-                    id: 7
-                },
-                {
-                    name: 'NIHARIKA C P',
-                    admissionNo: '119',
-                    classSection: 'I Std A',
-                    fatherName: 'PALAKASHA C N',
-                    mobileNumber: '2109876543',
-                    emailId: 'niharikacp@email.com',
-                    route: 'Route A',
-                    balanceAmount: 24000,
-                    id: 8
-                },
-                {
-                    name: 'BHAVYA C',
-                    admissionNo: '68/2025-26',
-                    classSection: 'I Std A',
-                    fatherName: 'CHANDRASHEKAR N',
-                    mobileNumber: '9012345678',
-                    emailId: 'bhavya@email.com',
-                    route: 'Route C',
-                    balanceAmount: 9300,
-                    id: 9
-                },
-                {
-                    name: 'CHIRANTH M',
-                    admissionNo: '87/2025-26',
-                    classSection: 'I Std A',
-                    fatherName: 'MANJUNATH V',
-                    mobileNumber: '8901234567',
-                    emailId: 'chiranth@email.com',
-                    route: 'Route D',
-                    balanceAmount: 36000,
-                    id: 10
-                },
-                {
-                    name: 'DHANUSH KUMAR M',
-                    admissionNo: '69/2025-26',
-                    classSection: 'I Std A',
-                    fatherName: 'MADHU V',
-                    mobileNumber: '7890123456',
-                    emailId: 'dhanush@email.com',
-                    route: 'Route E',
-                    balanceAmount: 16000,
-                    id: 11
-                },
-                {
-                    name: 'GAHAN REDDY B V',
-                    admissionNo: '88/2025-26',
-                    classSection: 'I Std A',
-                    fatherName: 'VINAYA KUMAR B T',
-                    mobileNumber: '6789012345',
-                    emailId: 'gahan@email.com',
-                    route: 'Route B',
-                    balanceAmount: 36000,
-                    id: 12
-                },
-                {
-                    name: 'HAMSAT',
-                    admissionNo: '70/2025-26',
-                    classSection: 'I Std A',
-                    fatherName: 'THIPPESWAMY N',
-                    mobileNumber: '5678901234',
-                    emailId: 'hamsat@email.com',
-                    route: 'Route C',
-                    balanceAmount: 12000,
-                    id: 13
-                },
-                {
-                    name: 'ARJUN KUMAR',
-                    admissionNo: '85/2025-26',
-                    classSection: 'II Std B',
-                    fatherName: 'RAJESH KUMAR',
-                    mobileNumber: '4567890123',
-                    emailId: 'arjun@email.com',
-                    route: 'Route A',
-                    balanceAmount: 28000,
-                    id: 14
-                },
-                {
-                    name: 'PRIYA SHARMA',
-                    admissionNo: '92/2025-26',
-                    classSection: 'III Std C',
-                    fatherName: 'SUNITA SHARMA',
-                    mobileNumber: '3456789012',
-                    emailId: 'priya@email.com',
-                    route: 'Route D',
-                    balanceAmount: 45000,
-                    id: 15
-                }
-            ];
-
-            const feeGroups = [
-                'Tuition Fee',
-                'Annual Charges',
-                'Transport Fee',
-                'Lab Fee',
-                'Exam Fee',
-                'Sports Fee',
-                'Library Fee',
-                'Development Fee',
-                'Computer Fee',
-                'Medical Fee',
-                'Activity Fee',
-                'Bus Fee',
-                'Uniform Fee',
-                'Book Fee',
-                'Miscellaneous'
-            ];
-
-            return studentData.map((student, index) => {
-                const fineAmount = Math.round(student.balanceAmount * (0.1 + Math.random() * 0.1));
-                const totalAmount = student.balanceAmount + fineAmount;
-
-                return {
-                    id: index + 1,
-                    slNo: index + 1,
-                    name: student.name,
-                    admissionNo: student.admissionNo,
-                    classSection: student.classSection,
-                    fatherName: student.fatherName,
-                    mobileNumber: student.mobileNumber,
-                    emailId: student.emailId,
-                    route: student.route,
-                    balanceAmount: student.balanceAmount,
-                    fineAmount: fineAmount,
-                    totalAmount: totalAmount,
-                    feeGroup: feeGroups[index] || 'General Fee',
-                    totalDue: student.balanceAmount, // For backward compatibility
-                    remarks: '' // Empty remarks for now
-                };
-            });
-        };
-
-        if (data.userType === 'Students') {
-            const mockData = generateMockStudentData();
-            setstudentReportData(mockData);
-            setShowReport(true);
-            setReportLoading(false);
-            setLoading(false);
-
-            toast.success(`Student report generated successfully! Found ${mockData.length} defaulters`);
-        } else {
-            setReportData(mockData);
-            setShowReport(true);
-            setReportLoading(false);
-            setLoading(false);
-
-            toast.success(`Report generated successfully! Found ${mockData.length} defaulters`);
-        }
-
-        // Auto scroll to report
-        setTimeout(() => {
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        }, 100);
-    };
-
-    // const isAcademicYearSelected = !!filters.academicYearId;
     const isAcademicYearSelected = watch('academicYearId');
     const isClassSectionEnabled = filters.includeClassSection;
-    const showDateSection = filters.viewMode === 'Date Wise';
-    const showBalancecheckbox = filters.userType === 'Students' && filters.breakdown === 'Student/Staff Wise';
+    const showDateSection = filters.viewMode === 'date';
+    const showBalancecheckbox = filters.userType === 'Student' && filters.breakdown === 'Student/Staff Wise';
 
     return (
         <div className='min-h-screen bg-gray-50 py-8'>
@@ -1079,7 +852,7 @@ export default function FeeDefaulterReport() {
                                 {/* User Type Card */}
                                 <Card className='border bg-gray-50 p-5 shadow-sm'>
                                     <div className='flex flex-wrap items-center justify-center gap-10'>
-                                        {(['Students', 'Staff', 'Others'] as const).map((type) => (
+                                        {(['Student', 'Staff', 'Others'] as const).map((type) => (
                                             <label key={type} className='flex cursor-pointer items-center gap-3'>
                                                 <input
                                                     type='radio'
@@ -1098,16 +871,26 @@ export default function FeeDefaulterReport() {
                                 <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
                                     <Card className='border bg-gray-50 p-5 shadow-sm'>
                                         <div className='flex items-center gap-10'>
-                                            {(['Yearly Wise', 'Date Wise'] as const).map((mode) => (
-                                                <label key={mode} className='flex cursor-pointer items-center gap-3'>
+                                            {(
+                                                [
+                                                    { label: 'Yearly Wise', value: 'year' },
+                                                    { label: 'Date Wise', value: 'date' }
+                                                ] as const
+                                            ).map((mode) => (
+                                                <label key={mode.value} className='flex cursor-pointer items-center gap-3'>
                                                     <input
                                                         type='radio'
                                                         name='viewMode'
-                                                        checked={filters.viewMode === mode}
-                                                        onChange={() => setFilters((prev) => ({ ...prev, viewMode: mode }))}
+                                                        checked={filters.viewMode === mode.value}
+                                                        onChange={() =>
+                                                            setFilters((prev) => ({
+                                                                ...prev,
+                                                                viewMode: mode.value
+                                                            }))
+                                                        }
                                                         className='h-5 w-5 text-primary'
                                                     />
-                                                    <span className='font-medium text-base'>{mode}</span>
+                                                    <span className='font-medium text-base'>{mode.label}</span>
                                                 </label>
                                             ))}
                                         </div>
@@ -1117,21 +900,6 @@ export default function FeeDefaulterReport() {
                                         <Label className='font-semibold text-lg'>
                                             Academic Year <span className='text-red-500'>*</span>
                                         </Label>
-                                        {/* <Select
-                                            value={filters.academicYearId}
-                                            onValueChange={(val) => setFilters((prev) => ({ ...prev, academicYearId: val }))}
-                                            disabled={loadingAcademic}>
-                                            <SelectTrigger className='w-full min-w-[300px]'>
-                                                <SelectValue placeholder={loadingAcademic ? 'Loading...' : 'Select Academic Year'} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {academicYears.map((year) => (
-                                                    <SelectItem key={year.asmaY_Id} value={String(year.asmaY_Id)}>
-                                                        {year.asmaY_Year}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select> */}
                                         <Controller
                                             name='academicYearId'
                                             control={control}
@@ -1161,30 +929,7 @@ export default function FeeDefaulterReport() {
                                     </div>
                                 </div>
 
-                                {/* Breakdown By Card */}
                                 <Card className='border bg-gray-50 p-5 shadow-sm'>
-                                    {/* <div className='grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-6'>
-                                        {[
-                                            'Fee Group Wise',
-                                            'Fee Head Wise',
-                                            'Class Wise',
-                                            'Installment Wise',
-                                            'Student/Staff Wise',
-                                            'Parent Wise'
-                                        ].map((option) => (
-                                            <label key={option} className='flex cursor-pointer items-center gap-3'>
-                                                <input
-                                                    type='radio'
-                                                    name='breakdown'
-                                                    checked={filters.breakdown === option}
-                                                    onChange={() => setFilters((prev) => ({ ...prev, breakdown: option }))}
-                                                    className='h-5 w-5 text-primary'
-                                                />
-                                                <span className='font-medium text-sm'>{option}</span>
-                                            </label>
-                                        ))}
-                                    </div> */}
-
                                     <div className='grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-6'>
                                         <Controller
                                             name='breakdown'
@@ -1212,50 +957,12 @@ export default function FeeDefaulterReport() {
                                     </div>
                                 </Card>
 
-                                {/* Multi-select Filters with Select All */}
                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4'>
-                                    {/* Custom Group */}
                                     <div className='space-y-3'>
                                         <Label className='font-semibold text-lg'>
                                             Custom Group<span className='text-red-500'>*</span>
                                         </Label>
                                         <Card className='border bg-gray-50 p-4'>
-                                            {/* <div className='max-h-64 space-y-3 overflow-y-auto'>
-                                               
-                                                <label className='flex cursor-pointer items-center gap-3 rounded border-b bg-white px-2 py-2 font-medium hover:bg-gray-200'>
-                                                    <Checkbox
-                                                        checked={
-                                                            customGroups.length > 0 && filters.customGroupIds.length === customGroups.length
-                                                        }
-                                                        indeterminate={
-                                                            filters.customGroupIds.length > 0 &&
-                                                            filters.customGroupIds.length < customGroups.length
-                                                        }
-                                                        onCheckedChange={(checked: any) => selectAllCustomGroups(!!checked)}
-                                                    />
-                                                    <span>Select All</span>
-                                                </label>
-
-                                                {loadingCustomGroup ? (
-                                                    <div className='py-4 text-center text-gray-500'>Loading...</div>
-                                                ) : customGroups.length > 0 ? (
-                                                    customGroups.map((group) => (
-                                                       
-                                                        <label
-                                                            key={group.fmgG_Id}
-                                                            className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'
-                                                        >
-                                                            <Checkbox
-                                                                checked={filters.customGroupIds.includes(group.fmgG_Id)}
-                                                                onCheckedChange={() => toggleCustomGroup(group.fmgG_Id)}
-                                                            />
-                                                            <span className='font-medium text-sm'>{group.fmgG_GroupName}</span>
-                                                        </label>
-                                                    ))
-                                                ) : (
-                                                    <div className='py-4 text-center text-gray-500'>No custom groups</div>
-                                                )}
-                                            </div> */}
                                             <Controller
                                                 name='customGroupIds'
                                                 control={control}
@@ -1342,39 +1049,6 @@ export default function FeeDefaulterReport() {
                                             Fee Group <span className='text-red-500'>*</span>
                                         </Label>
                                         <Card className='border bg-gray-50 p-4'>
-                                            {/* <div className='max-h-64 space-y-3 overflow-y-auto'>
-                                               
-                                                <label className='flex cursor-pointer items-center gap-3 rounded border-b bg-white px-2 py-2 font-medium hover:bg-gray-200'>
-                                                    <Checkbox
-                                                        checked={feeGroups.length > 0 && filters.feeGroupIds.length === feeGroups.length}
-                                                        indeterminate={
-                                                            filters.feeGroupIds.length > 0 && filters.feeGroupIds.length < feeGroups.length
-                                                        }
-                                                        onCheckedChange={(checked: any) => selectAllFeeGroups(!!checked)}
-                                                    />
-                                                    <span>Select All</span>
-                                                </label>
-
-                                                {loadingfeegroup ? (
-                                                    <div className='py-4 text-center text-gray-500'>Loading...</div>
-                                                ) : feeGroups.length > 0 ? (
-                                                    feeGroups.map((group) => (
-                                                        
-                                                        <label
-                                                            key={group.fmG_Id}
-                                                            className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'
-                                                        >
-                                                            <Checkbox
-                                                                checked={filters.feeGroupIds.includes(group.fmG_Id)}
-                                                                onCheckedChange={() => toggleFeeGroup(group.fmG_Id)}
-                                                            />
-                                                            <span className='text-sm'>{group.fmG_GroupName}</span>
-                                                        </label>
-                                                    ))
-                                                ) : (
-                                                    <div className='py-4 text-center text-gray-500'>No fee groups</div>
-                                                )}
-                                            </div> */}
                                             <Controller
                                                 name='feeGroupIds'
                                                 control={control}
@@ -1457,38 +1131,6 @@ export default function FeeDefaulterReport() {
                                             Term Name <span className='text-red-500'>*</span>
                                         </Label>
                                         <Card className='border bg-gray-50 p-4'>
-                                            {/* <div className='max-h-64 space-y-3 overflow-y-auto'>
-                                               
-                                                <label className='flex cursor-pointer items-center gap-3 rounded border-b bg-white px-2 py-2 font-medium hover:bg-gray-200'>
-                                                    <Checkbox
-                                                        checked={feeTerms.length > 0 && filters.termIds.length === feeTerms.length}
-                                                        indeterminate={filters.termIds.length > 0 && filters.termIds.length < feeTerms.length}
-                                                        onCheckedChange={(checked: any) => selectAllTerms(!!checked)}
-                                                    />
-                                                    <span>Select All</span>
-                                                </label>
-
-                                                {loadingfeeterm ? (
-                                                    <div className='py-4 text-center text-gray-500'>Loading...</div>
-                                                ) : feeTerms.length > 0 ? (
-                                                    feeTerms.map((term) => (
-                                                       
-                                                        <label
-                                                            key={term.fmT_Id}
-                                                            className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'
-                                                        >
-                                                            <Checkbox
-                                                                checked={filters.termIds.includes(term.fmT_Id)}
-                                                                onCheckedChange={() => toggleTerm(term.fmT_Id)}
-                                                            />
-                                                            <span className='text-sm'>{term.fmT_Name}</span>
-                                                        </label>
-                                                    ))
-                                                ) : (
-                                                    <div className='py-4 text-center text-gray-500'>No terms</div>
-                                                )}
-                                            </div> */}
-
                                             <Controller
                                                 name='termIds'
                                                 control={control}
@@ -1571,40 +1213,6 @@ export default function FeeDefaulterReport() {
                                             Bus Route<span className='text-red-500'>*</span>
                                         </Label>
                                         <Card className='border bg-gray-50 p-4'>
-                                            {/* <div className='max-h-64 space-y-3 overflow-y-auto'>
-                                             
-                                                <label className='flex cursor-pointer items-center gap-3 rounded border-b bg-white px-2 py-2 font-medium hover:bg-gray-200'>
-                                                    <Checkbox
-                                                        checked={feeBusRoutes.length > 0 && filters.busRouteIds.length === feeBusRoutes.length}
-                                                        indeterminate={
-                                                            filters.busRouteIds.length > 0 && filters.busRouteIds.length < feeBusRoutes.length
-                                                        }
-                                                        onCheckedChange={(checked: any) => selectAllBusRoutes(!!checked)}
-                                                    />
-                                                    <span>Select All</span>
-                                                </label>
-
-                                                {loadingBusRoutes ? (
-                                                    <div className='py-4 text-center text-gray-500'>Loading...</div>
-                                                ) : feeBusRoutes.length > 0 ? (
-                                                    feeBusRoutes.map((route) => (
-                                                       
-                                                        <label
-                                                            key={route.trmR_Id}
-                                                            className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'
-                                                        >
-                                                            <Checkbox
-                                                                checked={filters.busRouteIds.includes(route.trmR_Id)}
-                                                                onCheckedChange={() => toggleBusRoute(route.trmR_Id)}
-                                                            />
-                                                            <span className='text-sm'>{route.trmR_RouteName}</span>
-                                                        </label>
-                                                    ))
-                                                ) : (
-                                                    <div className='py-4 text-center text-gray-500'>No bus routes</div>
-                                                )}
-                                            </div> */}
-
                                             <Controller
                                                 name='busRouteIds'
                                                 control={control}
@@ -1685,23 +1293,6 @@ export default function FeeDefaulterReport() {
                                 <div className='space-y-6 border-t pt-8'>
                                     <div className='flex flex-wrap items-center gap-6'>
                                         <div className='flex items-center gap-3'>
-                                            {/* <Checkbox
-                                                id='includeClass'
-                                                checked={filters.includeClassSection}
-                                                onCheckedChange={(checked: any) => {
-                                                    setFilters((prev) => ({
-                                                        ...prev,
-                                                        includeClassSection: !!checked,
-                                                     
-                                                        classId: !!checked ? prev.classId : 0,
-                                                        
-                                                        sectionId: !!checked ? prev.sectionId : 0
-                                                    }));
-                                                    if (!checked) setSections([]);
-                                                }}
-                                                disabled={!isAcademicYearSelected}
-                                            /> */}
-
                                             <Checkbox
                                                 id='includeClass'
                                                 checked={filters.includeClassSection}
@@ -1735,24 +1326,6 @@ export default function FeeDefaulterReport() {
                                         </div>
 
                                         <div className='w-1/2'>
-                                            {/* <Select
-                                                value={filters.classId === 0 ? '' : String(filters.classId)}
-                                                onValueChange={(val) => {
-                                                    const id = Number(val);
-                                                    setFilters((prev) => ({ ...prev, classId: id, sectionId: 0 }));
-                                                }}
-                                                disabled={!isClassSectionEnabled || loadingClasses}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder={loadingClasses ? 'Loading classes...' : 'Select Class'} />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {classes.map((cls) => (
-                                                        <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>
-                                                            {cls.asmcL_ClassName}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select> */}
                                             <Controller
                                                 name='classId'
                                                 control={control}
@@ -1764,8 +1337,12 @@ export default function FeeDefaulterReport() {
                                                             field.onChange(num);
 
                                                             // 🔑 Trigger validation
-                                                            setValue('classId', num, { shouldValidate: true });
-                                                            setValue('sectionId', 0, { shouldValidate: true });
+                                                            setValue('classId', num, {
+                                                                shouldValidate: true
+                                                            });
+                                                            setValue('sectionId', 0, {
+                                                                shouldValidate: true
+                                                            });
                                                         }}
                                                         disabled={!isClassSectionEnabled || loadingClasses}>
                                                         <SelectTrigger className='w-full text-center'>
@@ -1793,29 +1370,6 @@ export default function FeeDefaulterReport() {
                                                 </div>
 
                                                 <div className='min-w-[220px] flex-1'>
-                                                    {/* <Select
-                                                value={filters.sectionId === 0 ? '' : String(filters.sectionId)}
-                                                onValueChange={(val) => setFilters((prev) => ({ ...prev, sectionId: Number(val) }))}
-                                                disabled={!isClassSectionEnabled || !filters.classId || loadingSections}>
-                                                <SelectTrigger>
-                                                    <SelectValue
-                                                        placeholder={
-                                                            !filters.classId
-                                                                ? 'Select Class first'
-                                                                : loadingSections
-                                                                    ? 'Loading sections...'
-                                                                    : 'Select Section'
-                                                        }
-                                                    />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {sections.map((sec) => (
-                                                        <SelectItem key={sec.asmS_Id} value={String(sec.asmS_Id)}>
-                                                            {sec.asmC_SectionName}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select> */}
                                                     <Controller
                                                         name='sectionId'
                                                         control={control}
@@ -1825,24 +1379,13 @@ export default function FeeDefaulterReport() {
                                                                 onValueChange={(v) => {
                                                                     const num = Number(v);
                                                                     field.onChange(num);
-
-                                                                    // 🔑 Trigger validation
-                                                                    setValue('sectionId', num, { shouldValidate: true });
+                                                                    setValue('sectionId', num, {
+                                                                        shouldValidate: true
+                                                                    });
                                                                 }}
-                                                                disabled={!isClassSectionEnabled || loadingClasses}
-                                                                // disabled={!isClassSectionEnabled || !filters.classId || loadingSections}
-                                                            >
+                                                                disabled={!isClassSectionEnabled || loadingClasses}>
                                                                 <SelectTrigger className='w-full text-center'>
-                                                                    <SelectValue
-                                                                        placeholder='--Select Section--'
-                                                                        // placeholder={
-                                                                        //     !filters.classId
-                                                                        //         ? 'Select Class first'
-                                                                        //         : loadingSections
-                                                                        //             ? 'Loading sections...'
-                                                                        //             : 'Select Section'
-                                                                        // }
-                                                                    />
+                                                                    <SelectValue placeholder='--Select Section--' />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
                                                                     {sections.map((sec) => (
@@ -1899,7 +1442,12 @@ export default function FeeDefaulterReport() {
                                             <div className='flex items-center gap-3'>
                                                 <Checkbox
                                                     checked={filters.bulkDownload}
-                                                    onCheckedChange={(c: any) => setFilters((prev) => ({ ...prev, bulkDownload: !!c }))}
+                                                    onCheckedChange={(c: any) =>
+                                                        setFilters((prev) => ({
+                                                            ...prev,
+                                                            bulkDownload: !!c
+                                                        }))
+                                                    }
                                                 />
                                                 <Label className='cursor-pointer'>Bulk Download</Label>
                                             </div>
@@ -1937,7 +1485,12 @@ export default function FeeDefaulterReport() {
                                                             type='radio'
                                                             name='dueDateType'
                                                             checked={filters.dueDateType === 'Due Date'}
-                                                            onChange={() => setFilters((prev) => ({ ...prev, dueDateType: 'Due Date' }))}
+                                                            onChange={() =>
+                                                                setFilters((prev) => ({
+                                                                    ...prev,
+                                                                    dueDateType: 'Due Date'
+                                                                }))
+                                                            }
                                                             className='h-4 w-4 text-primary'
                                                         />
                                                         <span className='font-medium'>Due Date</span>
@@ -1948,7 +1501,10 @@ export default function FeeDefaulterReport() {
                                                             name='dueDateType'
                                                             checked={filters.dueDateType === 'Till Due Date'}
                                                             onChange={() =>
-                                                                setFilters((prev) => ({ ...prev, dueDateType: 'Till Due Date' }))
+                                                                setFilters((prev) => ({
+                                                                    ...prev,
+                                                                    dueDateType: 'Till Due Date'
+                                                                }))
                                                             }
                                                             className='h-4 w-4 text-primary'
                                                         />
@@ -1959,69 +1515,17 @@ export default function FeeDefaulterReport() {
                                         </div>
                                     )}
                                 </div>
-
-                                {/* Action Buttons */}
-                                {/* <div className="flex justify-end gap-4 pt-8 border-t">
-                <Button size="lg" variant="outline" className="px-8" onClick={() => window.location.reload()}>
-                  Cancel
-                </Button>
-                <Button
-                  size="lg"
-                  className="px-10"
-                  onClick={handleSubmit}
-                  disabled={loading || !filters.academicYearId || filters.feeGroupIds.length === 0 || filters.termIds.length === 0}
-                >
-                  {loading ? 'Generating Report...' : 'Generate Report'}
-                </Button>
-              </div> */}
-
                                 <div>
                                     {/* ==================== ACTION BUTTONS ==================== */}
                                     <div className='flex justify-end gap-4 border-t pt-8'>
                                         <Button size='lg' variant='outline' className='px-8' onClick={() => window.location.reload()}>
                                             Cancel
                                         </Button>
-                                        {/* 
-                                    <Button
-                                        size='lg'
-                                        className='px-12'
-                                        onClick={handleSubmit}
-                                        disabled={
-                                            reportLoading ||
-                                            !filters.academicYearId ||
-                                            filters.feeGroupIds.length === 0 ||
-                                            filters.termIds.length === 0
-                                        }>
-                                        {reportLoading ? (
-                                            <>
-                                                <div className='mr-3 h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent' />
-                                                Generating Report...
-                                            </>
-                                        ) : (
-                                            'Generate Report'
-                                        )}
-                                    </Button> */}
-
                                         <Button type='submit' disabled={isSubmitting} className='min-w-32'>
                                             {isSubmitting ? 'Generating...' : 'Report'}
                                         </Button>
-                                        {/* <Button
-                                            size='lg'
-                                            variant='secondary'
-                                            className='bg-green-600 px-10 font-medium text-white hover:bg-green-700'
-                                            onClick={() => exportToExcel(reportData, 'Fee_Defaulter_Report')}
-                                            disabled={reportLoading || reportData.length === 0}>
-                                            <svg className='mr-2 h-5 w-5' fill='currentColor' viewBox='0 0 20 20'>
-                                                <path d='M4 4h12v2H4V4zm0 4h12v8H4V8zm2 2v4h8v-4H6z' />
-                                                <path d='M13.5 10l-3-3-3 3h2v4h2v-4h2z' />
-                                            </svg>
-                                            Export to Excel
-                                        </Button> */}
                                     </div>
-
-                                    {/* ==================== REPORT SECTION ==================== */}
-                                    {/* ==================== REPORT SECTION ==================== */}
-                                    {showReport && (
+                                    {showReport && (studentreportData.length > 0 || studentGroupreportData.length > 0) && (
                                         <div className='-mx-8 mt-12 overflow-hidden rounded-lg bg-white shadow-xl'>
                                             {/* Loading State */}
                                             {reportLoading ? (
@@ -2036,168 +1540,94 @@ export default function FeeDefaulterReport() {
                                                     variant='default'
                                                     size='lg'
                                                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                                                    {/* <div className='border-b bg-primary/5 px-8 py-6'>
-                                                        <h2 className='font-bold text-2xl text-primary'>Fee Defaulter Report</h2>
-                                                        <div className='mb-4 flex justify-end gap-2'>
-                                                            <Button
-                                                                size='sm'
-                                                                className='h-8 w-auto px-3 text-xs'
-                                                                onClick={handleExportExcel}>
-                                                                Export Excel
-                                                            </Button>
-
-                                                            <Button
-                                                                size='sm'
-                                                                variant='outline'
-                                                                className='h-8 w-auto px-3 text-xs'
-                                                                onClick={handlePrint}>
-                                                                Print
-                                                            </Button>
-                                                        </div>
-                                                    </div> */}
-
                                                     <div className='flex items-center justify-between border-b bg-primary/5 px-8 py-6'>
-                                                        {/* <h2 className='font-bold text-blue-700 text-xl'>Fee Audit Report</h2> */}
                                                         <div className='mb-6 text-center'>
                                                             <h2 className='font-bold text-2xl text-primary'>Fee Defaulter Report</h2>
-                                                            {/* <div className="mt-1 text-sm text-gray-600">
-                                                                    From {formatDate(fromDate)} To {formatDate(toDate)}
-                                                                </div> */}
                                                         </div>
-                                                        <div className='flex gap-3'>
-                                                            <div className='mb-4 flex justify-end gap-2'>
-                                                                <Button
-                                                                    size='sm'
-                                                                    className='h-8 w-auto px-3 text-xs'
-                                                                    onClick={handleExportExcel}>
-                                                                    Export Excel
-                                                                </Button>
+                                                        {studentGroupreportData.length > 0 && (
+                                                            <div className='flex gap-3'>
+                                                                <div className='mb-4 flex justify-end gap-2'>
+                                                                    <Button
+                                                                        size='sm'
+                                                                        className='h-8 w-auto px-3 text-xs'
+                                                                        onClick={handleExportExcelforFeeGroupWise}>
+                                                                        Export Excel
+                                                                    </Button>
 
-                                                                <Button
-                                                                    size='sm'
-                                                                    variant='outline'
-                                                                    className='h-8 w-auto px-3 text-xs'
-                                                                    onClick={handlePrint}>
-                                                                    Print
-                                                                </Button>
+                                                                    <Button
+                                                                        size='sm'
+                                                                        variant='outline'
+                                                                        className='h-8 w-auto px-3 text-xs'
+                                                                        onClick={handlePrintforFeeGroupWise}>
+                                                                        Print
+                                                                    </Button>
+                                                                </div>
                                                             </div>
-                                                        </div>
+                                                        )}
+                                                        {filters.userType === 'Student' &&
+                                                            studentreportData.length > 0 &&
+                                                            breakdown === 'FSW' && (
+                                                                <div className='flex gap-3'>
+                                                                    <div className='mb-4 flex justify-end gap-2'>
+                                                                        <Button
+                                                                            size='sm'
+                                                                            className='h-8 w-auto px-3 text-xs'
+                                                                            onClick={handleExportExcelforFeeStudentorStaffWise}>
+                                                                            Export Excel
+                                                                        </Button>
 
-                                                        {/* {selectedIds.length > 0 && (
-                                                            <div className='mb-4 rounded-lg border border-gray-300 bg-white p-4 shadow-sm'>
-                                                              
-                                                                <div className='mb-3'>
-                                                                    <div className='flex items-center gap-2 font-medium text-gray-700 text-sm'>
-                                                                        <span>Please Select Check Box For:</span>
-                                                                        <div className='ml-2 flex items-center gap-4'>
-                                                                            <div className='flex items-center gap-1.5'>
-                                                                                <Checkbox
-                                                                                    id='email-checkbox'
-                                                                                    checked={communicationMethods.email}
-                                                                                    onCheckedChange={() =>
-                                                                                        toggleCommunicationMethod('email')
-                                                                                    }
-                                                                                    className='h-4 w-4'
-                                                                                />
-                                                                                <Label
-                                                                                    htmlFor='email-checkbox'
-                                                                                    className='cursor-pointer text-sm'>
-                                                                                    EMAIL
-                                                                                </Label>
-                                                                            </div>
-
-                                                                            <div className='flex items-center gap-1.5'>
-                                                                                <Checkbox
-                                                                                    id='sms-checkbox'
-                                                                                    checked={communicationMethods.sms}
-                                                                                    onCheckedChange={() => toggleCommunicationMethod('sms')}
-                                                                                    className='h-4 w-4'
-                                                                                />
-                                                                                <Label
-                                                                                    htmlFor='sms-checkbox'
-                                                                                    className='cursor-pointer text-sm'>
-                                                                                    SMS
-                                                                                </Label>
-                                                                            </div>
-
-                                                                            <div className='flex items-center gap-1.5'>
-                                                                                <Checkbox
-                                                                                    id='notification-checkbox'
-                                                                                    checked={communicationMethods.notification}
-                                                                                    onCheckedChange={() =>
-                                                                                        toggleCommunicationMethod('notification')
-                                                                                    }
-                                                                                    className='h-4 w-4'
-                                                                                />
-                                                                                <Label
-                                                                                    htmlFor='notification-checkbox'
-                                                                                    className='cursor-pointer text-sm'>
-                                                                                    Notification
-                                                                                </Label>
-                                                                            </div>
-
-                                                                            <div className='flex items-center gap-1.5'>
-                                                                                <Checkbox
-                                                                                    id='whatsapp-checkbox'
-                                                                                    checked={communicationMethods.whatsapp}
-                                                                                    onCheckedChange={() =>
-                                                                                        toggleCommunicationMethod('whatsapp')
-                                                                                    }
-                                                                                    className='h-4 w-4'
-                                                                                />
-                                                                                <Label
-                                                                                    htmlFor='whatsapp-checkbox'
-                                                                                    className='cursor-pointer text-sm'>
-                                                                                    WhatsApp
-                                                                                </Label>
-                                                                            </div>
-                                                                        </div>
+                                                                        <Button
+                                                                            size='sm'
+                                                                            variant='outline'
+                                                                            className='h-8 w-auto px-3 text-xs'
+                                                                            onClick={handlePrintforFeeStudentorStaffWise}>
+                                                                            Print
+                                                                        </Button>
                                                                     </div>
                                                                 </div>
+                                                            )}
+                                                        {filters.userType === 'Student' &&
+                                                            studentreportData.length > 0 &&
+                                                            breakdown === 'FIW' && (
+                                                                <div className='flex gap-3'>
+                                                                    <div className='mb-4 flex justify-end gap-2'>
+                                                                        <Button
+                                                                            size='sm'
+                                                                            className='h-8 w-auto px-3 text-xs'
+                                                                            onClick={handleExportExcelforFeeInstallmentWise}>
+                                                                            Export Excel
+                                                                        </Button>
 
-                                                              
-                                                                {communicationMethods.email &&
-                                                                    !communicationMethods.sms &&
-                                                                    !communicationMethods.notification && (
-                                                                        <div className='mt-3 flex justify-end'>
-                                                                            <Button
-                                                                                size='sm'
-                                                                                className='h-8 px-6 text-xs'
-                                                                                onClick={handleOpenEmailModal}>
-                                                                                REQUEST
-                                                                            </Button>
-                                                                        </div>
-                                                                    )}
-                                                                {communicationMethods.notification &&
-                                                                    !communicationMethods.email &&
-                                                                    !communicationMethods.sms && (
-                                                                        <div className='mt-3 flex justify-end'>
-                                                                            <Button
-                                                                                size='sm'
-                                                                                className='h-8 px-6 text-xs'
-                                                                                onClick={handleSendNotification}
-                                                                          
-                                                                            >
-                                                                                REQUEST
-                                                                            </Button>
-                                                                        </div>
-                                                                    )}
-                                                                {communicationMethods.sms &&
-                                                                    !communicationMethods.email &&
-                                                                    !communicationMethods.notification && (
-                                                                        <div className='mt-3 flex justify-end'>
-                                                                            <Button
-                                                                                size='sm'
-                                                                                className='h-8 px-6 text-xs'
-                                                                                onClick={handleSendSMS}
-                                                                            
-                                                                            >
-                                                                                REQUEST
-                                                                            </Button>
-                                                                        </div>
-                                                                    )}
-                                                            </div>
-                                                        )} */}
+                                                                        <Button
+                                                                            size='sm'
+                                                                            variant='outline'
+                                                                            className='h-8 w-auto px-3 text-xs'
+                                                                            onClick={handlePrintforFeeInstallmentWise}>
+                                                                            Print
+                                                                        </Button>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        {/* <div className="flex gap-3">
+                              <div className="mb-4 flex justify-end gap-2">
+                                <Button
+                                  size="sm"
+                                  className="h-8 w-auto px-3 text-xs"
+                                  onClick={handleExportExcelforFeeGroupWise}
+                                >
+                                  Export Excel
+                                </Button>
+
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-8 w-auto px-3 text-xs"
+                                  onClick={handlePrintforFeeGroupWise}
+                                >
+                                  Print
+                                </Button>
+                              </div>
+                            </div> */}
                                                         {selectedIds.length > 0 && (
                                                             <div className='mb-4 rounded-lg border border-gray-300 bg-white p-4 shadow-sm'>
                                                                 {/* Checkboxes Section */}
@@ -2261,32 +1691,6 @@ export default function FeeDefaulterReport() {
                                                             </div>
                                                         )}
                                                     </div>
-
-                                                    {/* <div className='mb-6 text-center'>
-                                                      
-                                                                          
-                                                                            <div className='mb-4 flex justify-end gap-2'>
-                                                                                <Button size='sm' className='h-8 w-auto px-3 text-xs' onClick={handleExportExcel}>
-                                                                                    Export Excel
-                                                                                </Button>
-                                                    
-                                                                                <Button size='sm' variant='outline' className='h-8 w-auto px-3 text-xs' onClick={handlePrint}>
-                                                                                    Print
-                                                                                </Button>
-                                                                            </div>
-                                                                        </div> */}
-                                                    {/* <GenericDataTable<IFeeAuditReport>
-                                                        columns={feeDefaulterReportColumns}
-                                                        data={reportData}
-                                                        isLoading={reportLoading}
-                                                        isPaginationRequired={false}
-                                                    /> */}
-
-                                                    {/* <FeeDefaulterCustomTable
-                                                        data={reportData}
-                                                        isLoading={reportLoading}
-                                                    /> */}
-
                                                     <div>
                                                         {/* Search */}
                                                         <input
@@ -2297,7 +1701,7 @@ export default function FeeDefaulterReport() {
                                                         />
 
                                                         {/* Table */}
-                                                        {filters.userType !== 'Students' && (
+                                                        {studentGroupreportData.length > 0 && (
                                                             <div className='overflow-x-auto border'>
                                                                 <table className='w-full table-auto border-collapse'>
                                                                     <thead className='bg-primary text-white'>
@@ -2334,7 +1738,7 @@ export default function FeeDefaulterReport() {
                                                                     </thead>
 
                                                                     <tbody>
-                                                                        {filteredData.map((row, index) => (
+                                                                        {studentGroupreportData.map((row, index) => (
                                                                             <tr key={row.id} className='border-b'>
                                                                                 <td className='p-2 text-center'>
                                                                                     <Checkbox
@@ -2344,10 +1748,10 @@ export default function FeeDefaulterReport() {
                                                                                 </td>
                                                                                 <td className='p-2 text-center font-medium'>{index + 1}</td>
                                                                                 <td className='p-2 text-center font-medium'>
-                                                                                    {row.feeGroup}
+                                                                                    {row.fmG_GroupName}
                                                                                 </td>
                                                                                 <td className='p-2 text-center font-bold'>
-                                                                                    ₹{row.totalDue.toLocaleString('en-IN')}
+                                                                                    ₹{row.totalBalance.toLocaleString('en-IN')}
                                                                                 </td>
                                                                             </tr>
                                                                         ))}
@@ -2375,251 +1779,337 @@ export default function FeeDefaulterReport() {
                                                                 </table>
                                                             </div>
                                                         )}
-                                                        {filters.userType === 'Students' && studentreportData.length > 0 && (
-                                                            <div className='overflow-x-auto border'>
-                                                                <table className='w-full table-auto border-collapse'>
-                                                                    {/* <thead className='bg-primary text-white'>
-                                                                        <tr>
-                                                                            <th className='p-2 text-center'>
-                                                                                <Checkbox
-                                                                                    checked={
-                                                                                        selectedIds.length === studentreportData.length &&
-                                                                                        studentreportData.length > 0
-                                                                                    }
-                                                                                    indeterminate={
-                                                                                        selectedIds.length > 0 &&
-                                                                                        selectedIds.length < studentreportData.length
-                                                                                    }
-                                                                                    onCheckedChange={toggleAllstudents}
-                                                                                />
-                                                                            </th>
-                                                                            <th className='p-2 text-center'>Sl No</th>
-                                                                            <th className='p-2 text-center'>Name</th>
-                                                                            <th className='p-2 text-center'>Admission No</th>
-                                                                            <th className='p-2 text-center'>Class & Section</th>
-                                                                            <th className='p-2 text-center'>Father Name</th>
-                                                                            <th className='p-2 text-center'>Mobile Number</th>
-                                                                            <th className='p-2 text-center'>Email ID</th>
-                                                                            <th className='p-2 text-center'>Route</th>
-                                                                            <th className='p-2 text-center'>Balance Amount</th>
-                                                                            <th className='p-2 text-center'>Fine Amount</th>
-                                                                            <th className='p-2 text-center'>Total Amount</th>
-                                                                            <th className='p-2 text-center'>Fee Group</th>
-                                                                        </tr>
-                                                                    </thead> */}
-                                                                    <thead className='bg-primary text-white'>
-                                                                        <tr>
-                                                                            <th className='p-2 text-center'>
-                                                                                <Checkbox
-                                                                                    checked={
-                                                                                        selectedIds.length === studentreportData.length &&
-                                                                                        studentreportData.length > 0
-                                                                                    }
-                                                                                    indeterminate={
-                                                                                        selectedIds.length > 0 &&
-                                                                                        selectedIds.length < studentreportData.length
-                                                                                    }
-                                                                                    onCheckedChange={toggleAllstudents}
-                                                                                />
-                                                                            </th>
-                                                                            <th className='p-2 text-center'>Sl No</th>
-                                                                            <th className='p-2 text-center'>
-                                                                                <Button
-                                                                                    // className='flex items-center justify-center gap-1 hover:underline'
-                                                                                    onClick={() => handleSortfull('name')}
-                                                                                >
-                                                                                    Name
-                                                                                    {sortConfig?.key === 'name' && (
-                                                                                        <ArrowUpDown className='h-4 w-4' />
-                                                                                    )}
-                                                                                </Button>
-                                                                            </th>
-                                                                            <th className='p-2 text-center'>
-                                                                                <Button
-                                                                                    // className='flex items-center justify-center gap-1 hover:underline'
-                                                                                    onClick={() => handleSortfull('admissionNo')}
-                                                                                >
-                                                                                    Admission No
-                                                                                    {sortConfig?.key === 'admissionNo' && (
-                                                                                        <ArrowUpDown className='h-4 w-4' />
-                                                                                    )}
-                                                                                </Button>
-                                                                            </th>
-                                                                            <th className='p-2 text-center'>
-                                                                                <Button
-                                                                                    // className='flex items-center justify-center gap-1 hover:underline'
-                                                                                    onClick={() => handleSortfull('classSection')}
-                                                                                >
-                                                                                    Class & Section
-                                                                                    {sortConfig?.key === 'classSection' && (
-                                                                                        <ArrowUpDown className='h-4 w-4' />
-                                                                                    )}
-                                                                                </Button>
-                                                                            </th>
-                                                                            <th className='p-2 text-center'>
-                                                                                <Button
-                                                                                    // className='flex items-center justify-center gap-1 hover:underline'
-                                                                                    onClick={() => handleSortfull('fatherName')}
-                                                                                >
-                                                                                    Father Name
-                                                                                    {sortConfig?.key === 'fatherName' && (
-                                                                                        <ArrowUpDown className='h-4 w-4' />
-                                                                                    )}
-                                                                                </Button>
-                                                                            </th>
-                                                                            <th className='p-2 text-center'>
-                                                                                <Button
-                                                                                    // className='flex items-center justify-center gap-1 hover:underline'
-                                                                                    onClick={() => handleSortfull('mobileNumber')}
-                                                                                >
-                                                                                    Mobile Number
-                                                                                    {sortConfig?.key === 'mobileNumber' && (
-                                                                                        <ArrowUpDown className='h-4 w-4' />
-                                                                                    )}
-                                                                                </Button>
-                                                                            </th>
-                                                                            <th className='p-2 text-center'>
-                                                                                <Button
-                                                                                    // className='flex items-center justify-center gap-1 hover:underline'
-                                                                                    onClick={() => handleSortfull('emailId')}
-                                                                                >
-                                                                                    Email ID
-                                                                                    {sortConfig?.key === 'emailId' && (
-                                                                                        <ArrowUpDown className='h-4 w-4' />
-                                                                                    )}
-                                                                                </Button>
-                                                                            </th>
-                                                                            <th className='p-2 text-center'>
-                                                                                <Button
-                                                                                    // className='flex items-center justify-center gap-1 hover:underline'
-                                                                                    onClick={() => handleSortfull('route')}
-                                                                                >
-                                                                                    Route
-                                                                                    {sortConfig?.key === 'route' && (
-                                                                                        <ArrowUpDown className='h-4 w-4' />
-                                                                                    )}
-                                                                                </Button>
-                                                                            </th>
-                                                                            <th className='p-2 text-center'>
-                                                                                <Button
-                                                                                    // className='flex items-center justify-center gap-1 hover:underline'
-                                                                                    onClick={() => handleSortfull('balanceAmount')}
-                                                                                >
-                                                                                    Balance Amount
-                                                                                    {sortConfig?.key === 'balanceAmount' && (
-                                                                                        <ArrowUpDown className='h-4 w-4' />
-                                                                                    )}
-                                                                                </Button>
-                                                                            </th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody>
-                                                                        {/* {studentreportData.map((row, index) => (
-                                                                            <tr key={row.id} className='border-b hover:bg-gray-50'>
-                                                                                <td className='p-2 text-center'>
-                                                                                    <Checkbox
-                                                                                        checked={selectedIds.includes(row.id)}
-                                                                                        onCheckedChange={() => toggleRow(row.id)}
-                                                                                    />
-                                                                                </td>
-                                                                                <td className='p-2 text-center font-medium'>{index + 1}</td>
-                                                                                <td className='p-2 text-center font-medium'>{row.name}</td>
-                                                                                <td className='p-2 text-center'>{row.admissionNo}</td>
-                                                                                <td className='p-2 text-center'>{row.classSection}</td>
-                                                                                <td className='p-2 text-center'>{row.fatherName}</td>
-                                                                                <td className='p-2 text-center'>{row.mobileNumber}</td>
-                                                                                <td className='p-2 text-center'>{row.emailId}</td>
-                                                                                <td className='p-2 text-center'>{row.route}</td>
-                                                                                <td className='p-2 text-center font-bold'>
-                                                                                    ₹{row.balanceAmount.toLocaleString('en-IN')}
-                                                                                </td>
-                                                                                <td className='p-2 text-center font-bold text-red-600'>
-                                                                                    ₹{row.fineAmount.toLocaleString('en-IN')}
-                                                                                </td>
-                                                                                <td className='p-2 text-center font-bold text-green-700'>
-                                                                                    ₹{row.totalAmount.toLocaleString('en-IN')}
-                                                                                </td>
-                                                                                <td className='p-2 text-center'>{row.feeGroup}</td>
-                                                                            </tr>
-                                                                        ))} */}
-                                                                        {filteredStudentData.length === 0 ? (
+                                                        {filters.userType === 'Student' &&
+                                                            studentreportData.length > 0 &&
+                                                            breakdown === 'FSW' && (
+                                                                <div className='overflow-x-auto border'>
+                                                                    <table className='w-full table-auto border-collapse'>
+                                                                        <thead className='bg-primary text-white'>
                                                                             <tr>
-                                                                                <td colSpan={11} className='p-4 text-center text-gray-500'>
-                                                                                    {search.trim()
-                                                                                        ? `No students found for "${search}"`
-                                                                                        : 'No student data available'}
-                                                                                </td>
+                                                                                <th className='p-2 text-center'>
+                                                                                    <Checkbox
+                                                                                        checked={
+                                                                                            selectedIds.length ===
+                                                                                                studentreportData.length &&
+                                                                                            studentreportData.length > 0
+                                                                                        }
+                                                                                        indeterminate={
+                                                                                            selectedIds.length > 0 &&
+                                                                                            selectedIds.length < studentreportData.length
+                                                                                        }
+                                                                                        onCheckedChange={toggleAllstudents}
+                                                                                    />
+                                                                                </th>
+                                                                                <th className='p-2 text-center'>Sl No</th>
+                                                                                <th className='p-2 text-center'>
+                                                                                    <Button
+                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                        onClick={() => handleSortfull('studentName')}
+                                                                                    >
+                                                                                        Name
+                                                                                        {sortConfig?.key === 'studentName' && (
+                                                                                            <ArrowUpDown className='h-4 w-4' />
+                                                                                        )}
+                                                                                    </Button>
+                                                                                </th>
+                                                                                <th className='p-2 text-center'>
+                                                                                    <Button
+                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                        onClick={() => handleSortfull('amsT_AdmNo')}
+                                                                                    >
+                                                                                        Admission No
+                                                                                        {sortConfig?.key === 'amsT_AdmNo' && (
+                                                                                            <ArrowUpDown className='h-4 w-4' />
+                                                                                        )}
+                                                                                    </Button>
+                                                                                </th>
+                                                                                <th className='p-2 text-center'>
+                                                                                    <Button
+                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                        onClick={() => handleSortfull('classSection')}
+                                                                                    >
+                                                                                        Class & Section
+                                                                                        {sortConfig?.key === 'classSection' && (
+                                                                                            <ArrowUpDown className='h-4 w-4' />
+                                                                                        )}
+                                                                                    </Button>
+                                                                                </th>
+                                                                                <th className='p-2 text-center'>
+                                                                                    <Button
+                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                        onClick={() => handleSortfull('amsT_FatherName')}
+                                                                                    >
+                                                                                        Father Name
+                                                                                        {sortConfig?.key === 'amsT_FatherName' && (
+                                                                                            <ArrowUpDown className='h-4 w-4' />
+                                                                                        )}
+                                                                                    </Button>
+                                                                                </th>
+                                                                                <th className='p-2 text-center'>
+                                                                                    <Button
+                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                        onClick={() => handleSortfull('amsT_MobileNo')}
+                                                                                    >
+                                                                                        Mobile Number
+                                                                                        {sortConfig?.key === 'amsT_MobileNo' && (
+                                                                                            <ArrowUpDown className='h-4 w-4' />
+                                                                                        )}
+                                                                                    </Button>
+                                                                                </th>
+                                                                                <th className='p-2 text-center'>
+                                                                                    <Button
+                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                        onClick={() => handleSortfull('amsT_emailId')}
+                                                                                    >
+                                                                                        Email ID
+                                                                                        {sortConfig?.key === 'amsT_emailId' && (
+                                                                                            <ArrowUpDown className='h-4 w-4' />
+                                                                                        )}
+                                                                                    </Button>
+                                                                                </th>
+                                                                                <th className='p-2 text-center'>
+                                                                                    <Button
+                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                        onClick={() => handleSortfull('amsT_Route')}
+                                                                                    >
+                                                                                        Route
+                                                                                        {sortConfig?.key === 'amsT_Route' && (
+                                                                                            <ArrowUpDown className='h-4 w-4' />
+                                                                                        )}
+                                                                                    </Button>
+                                                                                </th>
+                                                                                <th className='p-2 text-center'>
+                                                                                    <Button
+                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                        onClick={() => handleSortfull('totalBalance')}
+                                                                                    >
+                                                                                        Balance Amount
+                                                                                        {sortConfig?.key === 'totalBalance' && (
+                                                                                            <ArrowUpDown className='h-4 w-4' />
+                                                                                        )}
+                                                                                    </Button>
+                                                                                </th>
                                                                             </tr>
-                                                                        ) : (
-                                                                            // Use sortedData for display (which sorts the filtered data)
-                                                                            sortedData.map((row, index) => (
-                                                                                <tr key={row.id} className='border-b hover:bg-gray-50'>
-                                                                                    <td className='p-2 text-center'>
-                                                                                        <Checkbox
-                                                                                            checked={selectedIds.includes(row.id)}
-                                                                                            onCheckedChange={() => toggleRow(row.id)}
-                                                                                        />
-                                                                                    </td>
-                                                                                    <td className='p-2 text-center font-medium'>
-                                                                                        {index + 1}
-                                                                                    </td>
-                                                                                    <td className='p-2 text-center font-medium'>
-                                                                                        {row.name}
-                                                                                    </td>
-                                                                                    <td className='p-2 text-center'>{row.admissionNo}</td>
-                                                                                    <td className='p-2 text-center'>{row.classSection}</td>
-                                                                                    <td className='p-2 text-center'>{row.fatherName}</td>
-                                                                                    <td className='p-2 text-center'>{row.mobileNumber}</td>
-                                                                                    <td className='p-2 text-center'>{row.emailId}</td>
-                                                                                    <td className='p-2 text-center'>{row.route}</td>
-                                                                                    <td className='p-2 text-center font-bold'>
-                                                                                        ₹{row.balanceAmount.toLocaleString('en-IN')}
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            {filteredStudentData.length === 0 ? (
+                                                                                <tr>
+                                                                                    <td
+                                                                                        colSpan={11}
+                                                                                        className='p-4 text-center text-gray-500'>
+                                                                                        {search.trim()
+                                                                                            ? `No students found for "${search}"`
+                                                                                            : 'No student data available'}
                                                                                     </td>
                                                                                 </tr>
-                                                                            ))
-                                                                        )}
-
-                                                                        {/* {sortedData.map((row, index) => (
-                                                                            <tr key={row.id} className='border-b hover:bg-gray-50'>
-                                                                                <td className='p-2 text-center'>
+                                                                            ) : (
+                                                                                // Use sortedData for display (which sorts the filtered data)
+                                                                                sortedData.map((row, index) => (
+                                                                                    <tr key={row.id} className='border-b hover:bg-gray-50'>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            <Checkbox
+                                                                                                checked={selectedIds.includes(row.id)}
+                                                                                                onCheckedChange={() => toggleRow(row.id)}
+                                                                                            />
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-medium'>
+                                                                                            {index + 1}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-medium'>
+                                                                                            {row.studentName}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {row.amsT_AdmNo}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {row.classSection}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {row.amsT_FatherName}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {row.amsT_MobileNo}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {row.amsT_emailId}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {row.amsT_Route}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{row.totalBalance.toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                ))
+                                                                            )}
+                                                                        </tbody>
+                                                                    </table>
+                                                                    <div>Total Records : {studentreportData.length}</div>
+                                                                </div>
+                                                            )}
+                                                        {filters.userType === 'Student' &&
+                                                            studentreportData.length > 0 &&
+                                                            breakdown === 'FIW' && (
+                                                                <div className='overflow-x-auto border'>
+                                                                    <table className='w-full table-auto border-collapse'>
+                                                                        <thead className='bg-primary text-white'>
+                                                                            <tr>
+                                                                                <th className='p-2 text-center'>
                                                                                     <Checkbox
-                                                                                        checked={selectedIds.includes(row.id)}
-                                                                                        onCheckedChange={() => toggleRow(row.id)}
+                                                                                        checked={
+                                                                                            selectedIds.length ===
+                                                                                                studentreportData.length &&
+                                                                                            studentreportData.length > 0
+                                                                                        }
+                                                                                        indeterminate={
+                                                                                            selectedIds.length > 0 &&
+                                                                                            selectedIds.length < studentreportData.length
+                                                                                        }
+                                                                                        onCheckedChange={toggleAllstudents}
                                                                                     />
-                                                                                </td>
-                                                                                <td className='p-2 text-center font-medium'>{index + 1}</td>
-                                                                                <td className='p-2 text-center font-medium'>{row.name}</td>
-                                                                                <td className='p-2 text-center'>{row.admissionNo}</td>
-                                                                                <td className='p-2 text-center'>{row.classSection}</td>
-                                                                                <td className='p-2 text-center'>{row.fatherName}</td>
-                                                                                <td className='p-2 text-center'>{row.mobileNumber}</td>
-                                                                                <td className='p-2 text-center'>{row.emailId}</td>
-                                                                                <td className='p-2 text-center'>{row.route}</td>
-                                                                                <td className='p-2 text-center font-bold'>
-                                                                                    ₹{row.balanceAmount.toLocaleString('en-IN')}
-                                                                                </td>
+                                                                                </th>
+                                                                                <th className='p-2 text-center'>Sl No</th>
+                                                                                <th className='p-2 text-center'>
+                                                                                    <Button onClick={() => handleSortfull('studentName')}>
+                                                                                        Name
+                                                                                        {sortConfig?.key === 'studentName' && (
+                                                                                            <ArrowUpDown className='h-4 w-4' />
+                                                                                        )}
+                                                                                    </Button>
+                                                                                </th>
+                                                                                <th className='p-2 text-center'>
+                                                                                    <Button
+                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                        onClick={() => handleSortfull('amsT_AdmNo')}
+                                                                                    >
+                                                                                        Admission No
+                                                                                        {sortConfig?.key === 'amsT_AdmNo' && (
+                                                                                            <ArrowUpDown className='h-4 w-4' />
+                                                                                        )}
+                                                                                    </Button>
+                                                                                </th>
+                                                                                <th className='p-2 text-center'>
+                                                                                    <Button
+                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                        onClick={() => handleSortfull('classSection')}
+                                                                                    >
+                                                                                        Class & Section
+                                                                                        {sortConfig?.key === 'classSection' && (
+                                                                                            <ArrowUpDown className='h-4 w-4' />
+                                                                                        )}
+                                                                                    </Button>
+                                                                                </th>
+                                                                                <th className='p-2 text-center'>
+                                                                                    <Button
+                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                        onClick={() => handleSortfull('amsT_FatherName')}
+                                                                                    >
+                                                                                        Father Name
+                                                                                        {sortConfig?.key === 'amsT_FatherName' && (
+                                                                                            <ArrowUpDown className='h-4 w-4' />
+                                                                                        )}
+                                                                                    </Button>
+                                                                                </th>
+                                                                                <th className='p-2 text-center'>
+                                                                                    <Button
+                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                        onClick={() => handleSortfull('amsT_MobileNo')}
+                                                                                    >
+                                                                                        Mobile Number
+                                                                                        {sortConfig?.key === 'amsT_MobileNo' && (
+                                                                                            <ArrowUpDown className='h-4 w-4' />
+                                                                                        )}
+                                                                                    </Button>
+                                                                                </th>
+                                                                                <th className='p-2 text-center'>
+                                                                                    <Button
+                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                        onClick={() => handleSortfull('amsT_emailId')}
+                                                                                    >
+                                                                                        Email ID
+                                                                                        {sortConfig?.key === 'amsT_emailId' && (
+                                                                                            <ArrowUpDown className='h-4 w-4' />
+                                                                                        )}
+                                                                                    </Button>
+                                                                                </th>
+                                                                                <th className='p-2 text-center'>
+                                                                                    <Button
+                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                        onClick={() => handleSortfull('fmT_Name')}
+                                                                                    >
+                                                                                        Term
+                                                                                        {sortConfig?.key === 'fmT_Name' && (
+                                                                                            <ArrowUpDown className='h-4 w-4' />
+                                                                                        )}
+                                                                                    </Button>
+                                                                                </th>
+                                                                                <th className='p-2 text-center'>
+                                                                                    <Button
+                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                        onClick={() => handleSortfull('totalBalance')}
+                                                                                    >
+                                                                                        Balance Amount
+                                                                                        {sortConfig?.key === 'totalBalance' && (
+                                                                                            <ArrowUpDown className='h-4 w-4' />
+                                                                                        )}
+                                                                                    </Button>
+                                                                                </th>
                                                                             </tr>
-                                                                        ))} */}
-
-                                                                        {/* Totals Row */}
-                                                                        {/* <tr className='bg-gray-100 font-bold'>
-                                                                            <td colSpan={9} className='p-2 text-center'>Total</td>
-                                                                            <td className='p-2 text-center'>
-                                                                                ₹{reportData.reduce((sum, r) => sum + r.balanceAmount, 0).toLocaleString('en-IN')}
-                                                                            </td>
-                                                                            <td className='p-2 text-center text-red-600'>
-                                                                                ₹{reportData.reduce((sum, r) => sum + r.fineAmount, 0).toLocaleString('en-IN')}
-                                                                            </td>
-                                                                            <td className='p-2 text-center text-green-700'>
-                                                                                ₹{reportData.reduce((sum, r) => sum + r.totalAmount, 0).toLocaleString('en-IN')}
-                                                                            </td>
-                                                                            <td></td>
-                                                                        </tr> */}
-                                                                    </tbody>
-                                                                </table>
-                                                                <div>Total Records : {studentreportData.length}</div>
-                                                            </div>
-                                                        )}
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            {filteredStudentData.length === 0 ? (
+                                                                                <tr>
+                                                                                    <td
+                                                                                        colSpan={11}
+                                                                                        className='p-4 text-center text-gray-500'>
+                                                                                        {search.trim()
+                                                                                            ? `No students found for "${search}"`
+                                                                                            : 'No student data available'}
+                                                                                    </td>
+                                                                                </tr>
+                                                                            ) : (
+                                                                                // Use sortedData for display (which sorts the filtered data)
+                                                                                sortedData.map((row, index) => (
+                                                                                    <tr key={row.id} className='border-b hover:bg-gray-50'>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            <Checkbox
+                                                                                                checked={selectedIds.includes(row.id)}
+                                                                                                onCheckedChange={() => toggleRow(row.id)}
+                                                                                            />
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-medium'>
+                                                                                            {index + 1}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-medium'>
+                                                                                            {row.studentName}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {row.amsT_AdmNo}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {row.classSection}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {row.amsT_FatherName}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {row.amsT_MobileNo}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {row.amsT_emailId}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>{row.fmT_Name}</td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{row.totalBalance.toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                ))
+                                                                            )}
+                                                                        </tbody>
+                                                                    </table>
+                                                                    <div>Total Records : {studentreportData.length}</div>
+                                                                </div>
+                                                            )}
                                                     </div>
                                                 </CollapsibleSection>
                                             )}
@@ -2654,18 +2144,18 @@ export default function FeeDefaulterReport() {
                                 </thead>
                                 <tbody>
                                     {studentreportData
-                                        .filter((student) => selectedIds.includes(student.id))
+                                        .filter((student) => selectedIds.includes(student.amsT_Id))
                                         .map((student, index) => (
-                                            <tr key={student.id} className='border-b hover:bg-gray-50'>
+                                            <tr key={student.amsT_Id} className='border-b hover:bg-gray-50'>
                                                 <td className='border-r p-3 text-sm'>{index + 1}</td>
-                                                <td className='border-r p-3 text-sm'>{student.name}</td>
-                                                <td className='border-r p-3 text-sm'>{student.admissionNo}</td>
+                                                <td className='border-r p-3 text-sm'>{student.studentName}</td>
+                                                <td className='border-r p-3 text-sm'>{student.amsT_AdmNo}</td>
                                                 <td className='border-r p-3 text-sm'>{student.classSection}</td>
-                                                <td className='border-r p-3 text-sm'>{student.fatherName}</td>
-                                                <td className='border-r p-3 text-sm'>{student.mobileNumber}</td>
-                                                <td className='border-r p-3 text-sm'>{student.emailId}</td>
+                                                <td className='border-r p-3 text-sm'>{student.amsT_FatherName}</td>
+                                                <td className='border-r p-3 text-sm'>{student.amsT_MobileNo}</td>
+                                                <td className='border-r p-3 text-sm'>{student.amsT_emailId}</td>
                                                 <td className='p-3 font-semibold text-sm'>
-                                                    ₹{student.balanceAmount.toLocaleString('en-IN')}
+                                                    ₹{student.totalBalance.toLocaleString('en-IN')}
                                                 </td>
                                             </tr>
                                         ))}
@@ -2756,18 +2246,18 @@ export default function FeeDefaulterReport() {
                                 </thead>
                                 <tbody>
                                     {studentreportData
-                                        .filter((student) => selectedIds.includes(student.id))
+                                        .filter((student) => selectedIds.includes(student.amsT_Id))
                                         .map((student, index) => (
-                                            <tr key={student.id} className='border-b hover:bg-gray-50'>
+                                            <tr key={student.amsT_Id} className='border-b hover:bg-gray-50'>
                                                 <td className='border-r p-3 text-sm'>{index + 1}</td>
-                                                <td className='border-r p-3 text-sm'>{student.name}</td>
-                                                <td className='border-r p-3 text-sm'>{student.admissionNo}</td>
+                                                <td className='border-r p-3 text-sm'>{student.studentName}</td>
+                                                <td className='border-r p-3 text-sm'>{student.amsT_AdmNo}</td>
                                                 <td className='border-r p-3 text-sm'>{student.classSection}</td>
-                                                <td className='border-r p-3 text-sm'>{student.fatherName}</td>
-                                                <td className='border-r p-3 text-sm'>{student.mobileNumber}</td>
-                                                <td className='border-r p-3 text-sm'>{student.emailId}</td>
+                                                <td className='border-r p-3 text-sm'>{student.amsT_FatherName}</td>
+                                                <td className='border-r p-3 text-sm'>{student.amsT_MobileNo}</td>
+                                                <td className='border-r p-3 text-sm'>{student.amsT_emailId}</td>
                                                 <td className='p-3 font-semibold text-sm'>
-                                                    ₹{student.balanceAmount.toLocaleString('en-IN')}
+                                                    ₹{student.totalBalance.toLocaleString('en-IN')}
                                                 </td>
                                             </tr>
                                         ))}
@@ -2858,18 +2348,18 @@ export default function FeeDefaulterReport() {
                                 </thead>
                                 <tbody>
                                     {studentreportData
-                                        .filter((student) => selectedIds.includes(student.id))
+                                        .filter((student) => selectedIds.includes(student.amsT_Id))
                                         .map((student, index) => (
-                                            <tr key={student.id} className='border-b hover:bg-gray-50'>
+                                            <tr key={student.amsT_Id} className='border-b hover:bg-gray-50'>
                                                 <td className='border-r p-3 text-sm'>{index + 1}</td>
-                                                <td className='border-r p-3 text-sm'>{student.name}</td>
-                                                <td className='border-r p-3 text-sm'>{student.admissionNo}</td>
+                                                <td className='border-r p-3 text-sm'>{student.studentName}</td>
+                                                <td className='border-r p-3 text-sm'>{student.amsT_AdmNo}</td>
                                                 <td className='border-r p-3 text-sm'>{student.classSection}</td>
-                                                <td className='border-r p-3 text-sm'>{student.fatherName}</td>
-                                                <td className='border-r p-3 text-sm'>{student.mobileNumber}</td>
-                                                <td className='border-r p-3 text-sm'>{student.emailId}</td>
+                                                <td className='border-r p-3 text-sm'>{student.amsT_FatherName}</td>
+                                                <td className='border-r p-3 text-sm'>{student.amsT_MobileNo}</td>
+                                                <td className='border-r p-3 text-sm'>{student.amsT_emailId}</td>
                                                 <td className='p-3 font-semibold text-sm'>
-                                                    ₹{student.balanceAmount.toLocaleString('en-IN')}
+                                                    ₹{student.totalBalance.toLocaleString('en-IN')}
                                                 </td>
                                             </tr>
                                         ))}

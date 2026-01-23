@@ -27,7 +27,7 @@ import {
 
 import { cn } from '@/lib/utils';
 import { thirdPartyTransactionSchema } from '@/schemas/fees/trasactions';
-import { saveorUpdateThirdPartyTrasaction } from '@/server/fees/trasactions/thirdPartyTrasaction';
+import { ThirdPartyTrasactionfeeReceiptNoflg, saveorUpdateThirdPartyTrasaction } from '@/server/fees/trasactions/thirdPartyTrasaction';
 import type { IFeeThirdPartyTransaction } from '@/types/fees/transactions/transactions';
 import type { z } from 'zod';
 
@@ -40,6 +40,8 @@ interface UpdateThirdPartyFormProps {
 
 export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: UpdateThirdPartyFormProps) {
     const { refetchAll } = useFeeThirdParty();
+
+    const receiptnoflg = ThirdPartyTrasactionfeeReceiptNoflg();
 
     const [selectedPaymentMode, setSelectedPaymentMode] = useState<string>('B');
     const [loading, setLoading] = useState(false);

@@ -6,9 +6,10 @@ import { DateField } from '@/components/ui/dateField';
 import { Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
+import { saveAlumniNoticeBoard } from '@/server/alumni/alumni-notice-board';
+import { uploadDocument } from '@/server/document_upload';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Save, Trash2 } from 'lucide-react';
-import type React from 'react';
 import { useRef, useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -16,28 +17,12 @@ import { type AlumniNoticeBoardSchema, alumniNoticeBoardSchema } from './schema'
 
 interface AddAlumniNoticeBoardFormProps {
     onSuccess?: () => void;
+    mI_Id: number;
+    asmaY_Id: number;
     className?: string;
 }
 
-// Mock save function
-const mockSaveAlumniNoticeBoard = async (payload: any) => {
-    console.log('Saving new notice:', payload);
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
-    return { success: true, message: 'Notice saved successfully' };
-};
-
-// Mock upload function
-const mockUploadDocument = async (formData: FormData) => {
-    console.log('Uploading file:', formData.get('File'));
-    await new Promise((resolve) => setTimeout(resolve, 800)); // Simulate upload delay
-    const fileName = formData.get('File')?.toString() || 'file';
-    return {
-        path: `/uploads/alumni/${Date.now()}-${fileName}`,
-        data: [{ path: `/uploads/alumni/${Date.now()}-${fileName}` }]
-    };
-};
-
-export default function AddAlumniNoticeBoardForm({ onSuccess, className = '' }: AddAlumniNoticeBoardFormProps) {
+export default function AddAlumniNoticeBoardForm({ onSuccess, mI_Id, className = '' }: AddAlumniNoticeBoardFormProps) {
     const [uploading, setUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -67,6 +52,7 @@ export default function AddAlumniNoticeBoardForm({ onSuccess, className = '' }: 
 
     const displayDateEnabled = watch('intB_DispalyDisableFlg');
     const startDate = watch('alntB_StartDate');
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const endDate = watch('alntB_EndDate');
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,12 +61,14 @@ export default function AddAlumniNoticeBoardForm({ onSuccess, className = '' }: 
             const file = e.target.files[0];
             const formData = new FormData();
             formData.append('File', file);
-            formData.append('folder', 'Alumni_Notice');
+            formData.append('folder', 'Alumni_Notice'); // As per legacy
 
             try {
-                const response = await mockUploadDocument(formData);
+                const response = await uploadDocument(formData);
                 const res: any = response;
                 let path = '';
+
+                console.info('Upload response:', res); // Debug log
 
                 if (Array.isArray(res) && res.length > 0) {
                     path = res[0].path || res[0];
@@ -89,6 +77,7 @@ export default function AddAlumniNoticeBoardForm({ onSuccess, className = '' }: 
                 } else if (res?.path) {
                     path = res.path;
                 } else if (res?.data) {
+                    // Check for nested data structure from ApiResponse
                     if (Array.isArray(res.data) && res.data.length > 0) {
                         path = res.data[0].path || res.data[0];
                     } else if (typeof res.data === 'string') {
@@ -105,28 +94,37 @@ export default function AddAlumniNoticeBoardForm({ onSuccess, className = '' }: 
                     });
                     toast.success('File uploaded successfully');
                 } else {
+                    console.error('File upload failed, response structure unknown:', res);
                     toast.error('File upload failed (no path returned)');
                 }
             } catch (err: any) {
+                // biome-ignore lint/style/useTemplate: <explanation>
                 toast.error('File upload error: ' + err.message);
             } finally {
                 setUploading(false);
+                // Clear input
                 e.target.value = '';
             }
         }
     };
 
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const handleRemoveFile = async (index: number, filePath: string) => {
         remove(index);
     };
 
     const onSubmit = async (data: AlumniNoticeBoardSchema) => {
+        console.info('Form submitting...', data); // Debug log
         try {
+            const firstAttachment = data.attachment_Array && data.attachment_Array.length > 0 ? data.attachment_Array[0] : null;
+
             const payload: any = {
-                alntB_Id: 0,
-                mI_Id: 30,
+                alntB_Id: data.alntB_Id || 0,
+                mI_Id: mI_Id,
                 alntB_Title: data.alntB_Title,
                 alntB_Description: data.alntB_Description || '',
+                alntB_FilePath: firstAttachment?.alntbfL_FilePath || '',
+                alntB_Attachment: firstAttachment?.alntbfL_FileName || '',
                 alntB_DisplayDate: data.alntB_DisplayDate ? new Date(data.alntB_DisplayDate).toISOString() : new Date().toISOString(),
                 alntB_StartDate: data.alntB_StartDate ? new Date(data.alntB_StartDate).toISOString() : new Date().toISOString(),
                 alntB_EndDate: data.alntB_EndDate ? new Date(data.alntB_EndDate).toISOString() : new Date().toISOString(),
@@ -139,8 +137,10 @@ export default function AddAlumniNoticeBoardForm({ onSuccess, className = '' }: 
                         alntbfL_FilePath: file.alntbfL_FilePath
                     })) || []
             };
+            console.info('Payload:', payload); // Debug log
 
-            const res = await mockSaveAlumniNoticeBoard(payload);
+            const res = await saveAlumniNoticeBoard(payload);
+            console.info('Save response:', res); // Debug log
 
             if (res) {
                 toast.success('Notice saved successfully');
@@ -148,11 +148,13 @@ export default function AddAlumniNoticeBoardForm({ onSuccess, className = '' }: 
                 onSuccess?.();
             }
         } catch (err: any) {
+            console.error('Submit error:', err); // Debug log
             toast.error(err.message || 'Failed to save');
         }
     };
 
     const onError = (errors: any) => {
+        console.error('Form validation errors:', errors); // Debug log
         toast.error('Please check the form for errors');
     };
 
@@ -239,6 +241,7 @@ export default function AddAlumniNoticeBoardForm({ onSuccess, className = '' }: 
                                 <div key={field.id} className='flex items-center justify-between rounded bg-secondary/20 p-2'>
                                     <span className='max-w-[200px] truncate text-sm'>{field.alntbfL_FileName}</span>
                                     <div className='flex gap-2'>
+                                        {/* View Link - simplistic */}
                                         <a
                                             href={field.alntbfL_FilePath}
                                             target='_blank'

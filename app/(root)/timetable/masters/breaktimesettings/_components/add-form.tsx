@@ -1,7 +1,6 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Label } from '@/components/ui/label';
@@ -15,6 +14,7 @@ import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
+import { InputNumber } from '@/components/ui/extension/input-number';
 import {
     useAcademicYearDropDownMasterDayClasswise,
     useBreakTimeSettingDetails,
@@ -37,9 +37,17 @@ interface AddBreakTimeSettingsFormProps {
 export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: AddBreakTimeSettingsFormProps) {
     const { data: response, refetchAll } = useBreakTimeSettingDetails();
     const [classList, setClassList] = useState<any[]>([]);
-    const [periodsBefore, setPeriodsBefore] = useState<any[]>([]);
-    const [periodsAfter, setPeriodsAfter] = useState<any[]>([]);
+    const [periodsBefore, setPeriodsBefore] = useState<{ key: number; label: string }[]>([]);
+    const [periodsAfter, setPeriodsAfter] = useState<{ key: number; label: string }[]>([]);
     const [maxPeriods, setMaxPeriods] = useState<number>(0);
+
+    // State for selected periods
+    const [selectedBeforePeriods, setSelectedBeforePeriods] = useState<number[]>([]);
+    const [selectedAfterPeriods, setSelectedAfterPeriods] = useState<number[]>([]);
+
+    // Search states for periods
+    const [beforePeriodSearch, setBeforePeriodSearch] = useState('');
+    const [afterPeriodSearch, setAfterPeriodSearch] = useState('');
 
     // Initial load of dropdowns from response
     const dayList: IMasterDayList[] = (response as any)?.daysDrpDwn || [];
@@ -95,27 +103,9 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
     const watchedClasses = watch('calssids');
     const watchedAfterPeriod = watch('ttmB_AfterPeriod');
 
-    // // Fetch classes when Category/Academic Year changes
-    // useEffect(() => {
-    //     const fetchClasses = async () => {
-    //         if (watchedAcademicYear && watchedCategory) {
-    //             try {
-    //                 const res = await getClassByCategory({
-    //                     ASMAY_Id: watchedAcademicYear,
-    //                     TTMC_Id: watchedCategory
-    //                 });
-    //                 if (res?.classbycategory) {
-    //                     setClassList(res.classbycategory as any[]);
-    //                 } else {
-    //                     setClassList([]);
-    //                 }
-    //             } catch (err) {
-    //                 console.error('Error fetching classes', err);
-    //             }
-    //         }
-    //     };
-    //     fetchClasses();
-    // }, [watchedAcademicYear, watchedCategory]);
+    // Watch before and after periods from form
+    const watchedBeforePeriods = watch('arraybeforeperiodsList') || [];
+    const watchedAfterPeriodsList = watch('arrayafterperiodsList') || [];
 
     // Fetch max periods when classes are selected
     useEffect(() => {
@@ -123,42 +113,68 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
             if (watchedClasses && watchedClasses.length > 0) {
                 try {
                     const classIds = watchedClasses.map((c: any) => c.asmcL_Id);
-                    const data = {
-                        classid: classIds[classIds.length - 1],
-                        classidscount: classIds.length
-                    };
+                    const classidscount = classIds.length;
 
-                    const res = await getMaximumPeriodsCount(data);
-                    if (res?.classidscountreturn) {
-                        setMaxPeriods(res.classidscountreturn as number);
+                    const res = await getMaximumPeriodsCount(0, classidscount);
+                    console.log('getMaximumPeriodsCount response:', res);
+                    if (res.success) {
+                        setMaxPeriods(res.data);
+                    } else {
+                        setMaxPeriods(0);
                     }
                 } catch (err) {
                     console.error('Error fetching max periods', err);
+                    setMaxPeriods(0);
                 }
+            } else {
+                setMaxPeriods(0);
             }
         };
         fetchMaxPeriods();
     }, [watchedClasses]);
 
+    // Validate After Period and update period lists
     useEffect(() => {
-        if (watchedAfterPeriod && maxPeriods) {
+        if (watchedAfterPeriod !== undefined && maxPeriods > 0) {
             const ap = Number(watchedAfterPeriod);
+
+            // Check if After Period exceeds Max Periods
             if (ap > maxPeriods) {
-                toast.error('After Period cannot exceed Max Periods (' + maxPeriods + ')');
-                setValue('ttmB_AfterPeriod', 0); // Reset or handle error
+                toast.error(`After Period cannot exceed Max Periods (${maxPeriods})`);
+                setValue('ttmB_AfterPeriod', 0);
+                // Reset period lists
+                setPeriodsBefore([]);
+                setPeriodsAfter([]);
                 return;
             }
 
-            // Calculate lists
-            // Before: 1 to ap
+            // Calculate Before periods (1 to ap)
             const before = [];
-            for (let i = 1; i <= ap; i++) before.push({ key: i, label: `${i}` });
+            for (let i = 1; i <= ap; i++) {
+                before.push({ key: i, label: `Period ${i}` });
+            }
             setPeriodsBefore(before);
 
-            // After: ap + 1 to maxPeriods
+            // Initialize selected before periods with all periods
+            if (before.length > 0) {
+                const allBeforeKeys = before.map((p) => p.key);
+                setSelectedBeforePeriods(allBeforeKeys);
+                setValue('arraybeforeperiodsList', allBeforeKeys);
+            }
+
+            // Calculate After periods (ap + 1 to maxPeriods)
             const after = [];
-            for (let i = ap + 1; i <= maxPeriods; i++) after.push({ key: i, label: `${i}` });
+            for (let i = ap + 1; i <= maxPeriods; i++) {
+                after.push({ key: i, label: `Period ${i}` });
+            }
             setPeriodsAfter(after);
+
+            // Initialize selected after periods with all periods
+            if (after.length > 0) {
+                const allAfterKeys = after.map((p) => p.key);
+                setSelectedAfterPeriods(allAfterKeys);
+                setValue('arrayafterperiodsList', allAfterKeys);
+            }
         }
     }, [watchedAfterPeriod, maxPeriods, setValue]);
 
@@ -181,7 +197,6 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
             updated = [...calss_ids, id];
         }
 
-        // MUST be tuple: at least 1 element
         if (updated.length === 0) {
             setValue('calssids', undefined as any);
         } else {
@@ -193,29 +208,12 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
         setSelectedcalssidsItems(updated.map((x) => ({ asmcL_Id: x })));
     };
 
-    // const selectAllcalssids = () => {
-    //     const all = classOptions.map((h) => h.id);
-
-    //     if (calss_ids.length === all.length) {
-    //         // Option: clear selection → field becomes undefined
-    //         setValue('calssids', undefined as any);
-    //         setSelectedcalssidsItems([]);
-    //     } else {
-    //         setValue('calssids', all as [string, ...string[]], {
-    //             shouldValidate: true
-    //         });
-    //         setSelectedcalssidsItems(all.map((x) => ({ asmcL_Id: x })));
-    //     }
-    // };
-
     const selectAllcalssids = () => {
-        // Decide source based on search
         const source = classSearch.trim().length > 0 ? filteredcalssids.map((h) => h.asmcL_Id.toString()) : classOptions.map((h) => h.id);
 
         const isAllSelected = source.every((id) => calss_ids.includes(id));
 
         if (isAllSelected) {
-            // Unselect only the affected items
             const remaining = calss_ids.filter((id) => !source.includes(id));
 
             if (remaining.length === 0) {
@@ -226,9 +224,7 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
                 });
             }
         } else {
-            // Merge current + source (avoid duplicates)
             const merged = Array.from(new Set([...calss_ids, ...source]));
-
             setValue('calssids', merged as [string, ...string[]], {
                 shouldValidate: true
             });
@@ -289,8 +285,77 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
         }
     };
 
-    // const watchedAcademicYear = watch('asmay_id');
-    // const watchedCategory = watch('ttmC_Id');
+    // Toggle Before Period selection
+    const toggleBeforePeriod = (period: number) => {
+        let updated: number[] = [...selectedBeforePeriods];
+
+        if (updated.includes(period)) {
+            updated = updated.filter((p) => p !== period);
+        } else {
+            updated.push(period);
+        }
+
+        setSelectedBeforePeriods(updated);
+        setValue('arraybeforeperiodsList', updated);
+    };
+
+    // Select All Before Periods
+    const selectAllBeforePeriods = () => {
+        const filteredBefore = periodsBefore.filter((p) => p.label.toLowerCase().includes(beforePeriodSearch.toLowerCase()));
+
+        const filteredKeys = filteredBefore.map((p) => p.key);
+        const isAllSelected = filteredKeys.every((key) => selectedBeforePeriods.includes(key));
+
+        if (isAllSelected) {
+            // Unselect filtered items
+            const remaining = selectedBeforePeriods.filter((key) => !filteredKeys.includes(key));
+            setSelectedBeforePeriods(remaining);
+            setValue('arraybeforeperiodsList', remaining);
+        } else {
+            // Select all filtered items
+            const merged = Array.from(new Set([...selectedBeforePeriods, ...filteredKeys]));
+            setSelectedBeforePeriods(merged);
+            setValue('arraybeforeperiodsList', merged);
+        }
+    };
+
+    // Toggle After Period selection
+    const toggleAfterPeriod = (period: number) => {
+        let updated: number[] = [...selectedAfterPeriods];
+
+        if (updated.includes(period)) {
+            updated = updated.filter((p) => p !== period);
+        } else {
+            updated.push(period);
+        }
+
+        setSelectedAfterPeriods(updated);
+        setValue('arrayafterperiodsList', updated);
+    };
+
+    // Select All After Periods
+    const selectAllAfterPeriods = () => {
+        const filteredAfter = periodsAfter.filter((p) => p.label.toLowerCase().includes(afterPeriodSearch.toLowerCase()));
+
+        const filteredKeys = filteredAfter.map((p) => p.key);
+        const isAllSelected = filteredKeys.every((key) => selectedAfterPeriods.includes(key));
+
+        if (isAllSelected) {
+            // Unselect filtered items
+            const remaining = selectedAfterPeriods.filter((key) => !filteredKeys.includes(key));
+            setSelectedAfterPeriods(remaining);
+            setValue('arrayafterperiodsList', remaining);
+        } else {
+            // Select all filtered items
+            const merged = Array.from(new Set([...selectedAfterPeriods, ...filteredKeys]));
+            setSelectedAfterPeriods(merged);
+            setValue('arrayafterperiodsList', merged);
+        }
+    };
+
+    const filteredBeforePeriods = periodsBefore.filter((p) => p.label.toLowerCase().includes(beforePeriodSearch.toLowerCase()));
+
+    const filteredAfterPeriods = periodsAfter.filter((p) => p.label.toLowerCase().includes(afterPeriodSearch.toLowerCase()));
 
     useEffect(() => {
         const fetchClassesOnCategoryChange = async () => {
@@ -301,14 +366,12 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
 
                 const res = await getClassDropDownMasterDayClasswiseOnchnageofCatandyr(watchedAcademicYear, watchedCategory);
 
-                // ✅ override class dropdown data
                 if (res?.data?.length) {
                     setOverrideClassData(res.data);
                 } else {
                     setOverrideClassData([]);
                 }
 
-                // reset selection
                 setValue('calssids', undefined as any);
                 setClassSearch('');
             } catch (err) {
@@ -324,18 +387,20 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
+            // Validate After Period
+            if (Number(data.ttmB_AfterPeriod) > maxPeriods) {
+                toast.error(`After Period cannot exceed Max Periods (${maxPeriods})`);
+                return;
+            }
+
             const payload = {
                 TTMB_Id: 0,
-                // ASMAY_Id: data.asmaY_Id,
-                // TTMC_Id: data.ttmC_Id,
-                // ArrayClassList: data.classIds,
-                // ArrayDayList: data.dayIds,
                 TTMB_BreakName: data.ttmB_BreakName,
                 TTMB_BreakStartTime: data.ttmB_BreakStartTime,
                 TTMB_BreakEndTime: data.ttmB_BreakEndTime,
                 TTMB_AfterPeriod: data.ttmB_AfterPeriod,
-                ArraybeforeperiodsList: periodsBefore.map((p) => ({ TTPeriodnameB: p.key })),
-                ArrayafterperiodsList: periodsAfter.map((p) => ({ TTPeriodnameA: p.key })),
+                ArraybeforeperiodsList: selectedBeforePeriods.map((p) => ({ TTPeriodnameB: p })),
+                ArrayafterperiodsList: selectedAfterPeriods.map((p) => ({ TTPeriodnameA: p })),
                 TTMB_ActiveFlag: true
             };
 
@@ -343,6 +408,9 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
             if (response.success) {
                 toast.success(response.message);
                 reset();
+                // Reset period selections
+                setSelectedBeforePeriods([]);
+                setSelectedAfterPeriods([]);
                 refetchAll();
                 onSuccess?.();
             } else {
@@ -406,13 +474,12 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
 
                             <div className='mt-2 rounded-md border border-gray-300 bg-white p-3'>
                                 <InputText
-                                    placeholder='Search calssids...'
+                                    placeholder='Search classes...'
                                     value={classSearch}
                                     onChange={(e) => setClassSearch(e.target.value)}
                                     className='mb-3'
                                 />
 
-                                {/* Select All Users */}
                                 {classData?.data && (
                                     <div
                                         onClick={selectAllcalssids}
@@ -477,26 +544,72 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
                             <Controller
                                 control={control}
                                 name='ttmB_BreakStartTime'
-                                render={({ field }) => (
-                                    // <TimePicker date={field.value} setDate={field.onChange} />
-                                    <SpinnerTimePicker value={field.value} onChange={field.onChange} />
-                                )}
+                                render={({ field }) => <SpinnerTimePicker value={field.value} onChange={field.onChange} />}
                             />
                             {errors.ttmB_BreakStartTime && <FormError>{errors.ttmB_BreakStartTime.message}</FormError>}
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>Before Period</Label>
-                            <div className='flex flex-wrap gap-2 rounded-md border bg-muted/20 p-2'>
-                                {periodsBefore.map((p) => (
-                                    <div key={p.key} className='flex items-center space-x-2'>
-                                        <Checkbox checked disabled />
-                                        <Label className='font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                                            {p.label}
-                                        </Label>
+                            <Label>Before Periods (1 to {watchedAfterPeriod || 0})</Label>
+
+                            <div className='mt-2 rounded-md border border-gray-300 bg-white p-3'>
+                                <InputText
+                                    placeholder='Search before periods...'
+                                    value={beforePeriodSearch}
+                                    onChange={(e) => setBeforePeriodSearch(e.target.value)}
+                                    className='mb-3'
+                                />
+
+                                {periodsBefore.length > 0 && (
+                                    <div
+                                        onClick={selectAllBeforePeriods}
+                                        className={cn(
+                                            'mb-2 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm transition-all',
+                                            filteredBeforePeriods.every((p) => selectedBeforePeriods.includes(p.key))
+                                                ? 'border-primary bg-primary/5 text-primary'
+                                                : 'border-gray-300 hover:border-primary/40'
+                                        )}>
+                                        {filteredBeforePeriods.every((p) => selectedBeforePeriods.includes(p.key)) ? (
+                                            <CheckSquare className='h-4 w-4 text-primary' />
+                                        ) : (
+                                            <Square className='h-4 w-4 text-gray-400' />
+                                        )}
+                                        <span>Select All</span>
                                     </div>
-                                ))}
-                                {periodsBefore.length === 0 && <span className='text-muted-foreground text-xs'>No periods before</span>}
+                                )}
+
+                                <div className='max-h-40 overflow-y-auto rounded-md border border-gray-300 p-1'>
+                                    {periodsBefore.length === 0 ? (
+                                        <div className='py-4 text-center text-gray-500 text-sm'>
+                                            {maxPeriods === 0 ? 'Please select classes first' : 'Enter After Period to see before periods'}
+                                        </div>
+                                    ) : filteredBeforePeriods.length === 0 ? (
+                                        <div className='py-4 text-center text-gray-500 text-sm'>No periods found</div>
+                                    ) : (
+                                        filteredBeforePeriods.map((p) => {
+                                            const selected = selectedBeforePeriods.includes(p.key);
+
+                                            return (
+                                                <div
+                                                    key={p.key}
+                                                    onClick={() => toggleBeforePeriod(p.key)}
+                                                    className={cn(
+                                                        'mb-1 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm transition-all',
+                                                        selected
+                                                            ? 'border-primary bg-primary/5 text-primary'
+                                                            : 'border-gray-300 hover:border-primary/40'
+                                                    )}>
+                                                    {selected ? (
+                                                        <CheckSquare className='h-4 w-4 text-primary' />
+                                                    ) : (
+                                                        <Square className='h-4 w-4 text-gray-400' />
+                                                    )}
+                                                    <span>{p.label}</span>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -521,11 +634,11 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
                                             <SelectValue placeholder='Select Category' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {academicLoading ? (
+                                            {categoryLoading ? (
                                                 <SelectItem value='loading' disabled>
                                                     Loading CategoryData
                                                 </SelectItem>
-                                            ) : academicError ? (
+                                            ) : categoryError ? (
                                                 <SelectItem value='error' disabled>
                                                     Error loading CategoryData
                                                 </SelectItem>
@@ -613,13 +726,29 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
                         </div>
 
                         <div className='space-y-2'>
-                            <InputText
-                                label='After Period'
-                                required
-                                {...register('ttmB_AfterPeriod')}
-                                error={errors.ttmB_AfterPeriod?.message}
-                                type='number'
+                            <div className='flex items-center gap-2'>
+                                <Label className='flex-1'>
+                                    After Period <span className='text-red-500'>*</span>
+                                </Label>
+                                {maxPeriods > 0 && <span className='text-muted-foreground text-xs'>Max Periods: {maxPeriods}</span>}
+                            </div>
+                            <Controller
+                                control={control}
+                                name='ttmB_AfterPeriod'
+                                render={({ field }) => (
+                                    <InputNumber
+                                        {...field}
+                                        onChange={(value) => {
+                                            field.onChange(value);
+                                            if (value > maxPeriods) {
+                                                toast.error(`After Period cannot exceed Max Periods (${maxPeriods})`);
+                                            }
+                                        }}
+                                        error={errors.ttmB_AfterPeriod?.message}
+                                    />
+                                )}
                             />
+                            {errors.ttmB_AfterPeriod && <FormError>{errors.ttmB_AfterPeriod.message}</FormError>}
                         </div>
 
                         <div className='space-y-2'>
@@ -629,26 +758,74 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
                             <Controller
                                 control={control}
                                 name='ttmB_BreakEndTime'
-                                render={({ field }) => (
-                                    //<TimePicker date={field.value} setDate={field.onChange} />
-                                    <SpinnerTimePicker value={field.value} onChange={field.onChange} />
-                                )}
+                                render={({ field }) => <SpinnerTimePicker value={field.value} onChange={field.onChange} />}
                             />
                             {errors.ttmB_BreakEndTime && <FormError>{errors.ttmB_BreakEndTime.message}</FormError>}
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>After Period (Remaining)</Label>
-                            <div className='flex flex-wrap gap-2 rounded-md border bg-muted/20 p-2'>
-                                {periodsAfter.map((p) => (
-                                    <div key={p.key} className='flex items-center space-x-2'>
-                                        <Checkbox checked disabled />
-                                        <Label className='font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                                            {p.label}
-                                        </Label>
+                            <Label>
+                                After Periods ({watchedAfterPeriod ? watchedAfterPeriod + 1 : 1} to {maxPeriods})
+                            </Label>
+
+                            <div className='mt-2 rounded-md border border-gray-300 bg-white p-3'>
+                                <InputText
+                                    placeholder='Search after periods...'
+                                    value={afterPeriodSearch}
+                                    onChange={(e) => setAfterPeriodSearch(e.target.value)}
+                                    className='mb-3'
+                                />
+
+                                {periodsAfter.length > 0 && (
+                                    <div
+                                        onClick={selectAllAfterPeriods}
+                                        className={cn(
+                                            'mb-2 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm transition-all',
+                                            filteredAfterPeriods.every((p) => selectedAfterPeriods.includes(p.key))
+                                                ? 'border-primary bg-primary/5 text-primary'
+                                                : 'border-gray-300 hover:border-primary/40'
+                                        )}>
+                                        {filteredAfterPeriods.every((p) => selectedAfterPeriods.includes(p.key)) ? (
+                                            <CheckSquare className='h-4 w-4 text-primary' />
+                                        ) : (
+                                            <Square className='h-4 w-4 text-gray-400' />
+                                        )}
+                                        <span>Select All</span>
                                     </div>
-                                ))}
-                                {periodsAfter.length === 0 && <span className='text-muted-foreground text-xs'>No periods after</span>}
+                                )}
+
+                                <div className='max-h-40 overflow-y-auto rounded-md border border-gray-300 p-1'>
+                                    {periodsAfter.length === 0 ? (
+                                        <div className='py-4 text-center text-gray-500 text-sm'>
+                                            {maxPeriods === 0 ? 'Please select classes first' : 'Enter After Period to see after periods'}
+                                        </div>
+                                    ) : filteredAfterPeriods.length === 0 ? (
+                                        <div className='py-4 text-center text-gray-500 text-sm'>No periods found</div>
+                                    ) : (
+                                        filteredAfterPeriods.map((p) => {
+                                            const selected = selectedAfterPeriods.includes(p.key);
+
+                                            return (
+                                                <div
+                                                    key={p.key}
+                                                    onClick={() => toggleAfterPeriod(p.key)}
+                                                    className={cn(
+                                                        'mb-1 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm transition-all',
+                                                        selected
+                                                            ? 'border-primary bg-primary/5 text-primary'
+                                                            : 'border-gray-300 hover:border-primary/40'
+                                                    )}>
+                                                    {selected ? (
+                                                        <CheckSquare className='h-4 w-4 text-primary' />
+                                                    ) : (
+                                                        <Square className='h-4 w-4 text-gray-400' />
+                                                    )}
+                                                    <span>{p.label}</span>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>

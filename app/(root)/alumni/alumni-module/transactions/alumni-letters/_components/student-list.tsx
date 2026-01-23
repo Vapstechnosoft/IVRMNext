@@ -62,7 +62,7 @@ export default function StudentList({ students, selectedIds, onToggleAll, onTogg
                                     <TableCell className='text-center font-medium'>{index + 1}</TableCell>
                                     <TableCell>{student.amsT_RegistrationNo}</TableCell>
                                     <TableCell>{student.amsT_AdmNo}</TableCell>
-                                    <TableCell className='font-semibold'>{student.amsT_FirstName}</TableCell>
+                                    <TableCell className='font-semibold'>{student.studentname}</TableCell>
                                     <TableCell>{student.amsT_Date ? format(new Date(student.amsT_Date), 'dd/MM/yyyy') : 'N/A'}</TableCell>
                                     <TableCell>{student.amsT_DOB ? format(new Date(student.amsT_DOB), 'dd/MM/yyyy') : 'N/A'}</TableCell>
                                     <TableCell>{student.asmcL_ClassName}</TableCell>

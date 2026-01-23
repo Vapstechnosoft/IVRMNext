@@ -287,6 +287,7 @@ export default function AlumniSearchPage() {
                 setYears(res.data.yearList || []);
                 setClasses(res.data.classList || []);
             }
+            // biome-ignore lint/correctness/noUnusedVariables: <explanation>
         } catch (error) {
             toast.error('Failed to load search preferences');
         } finally {
@@ -320,6 +321,7 @@ export default function AlumniSearchPage() {
             } else {
                 toast.error('Search failed');
             }
+            // biome-ignore lint/correctness/noUnusedVariables: <explanation>
         } catch (error) {
             toast.error('An error occurred during search');
         } finally {

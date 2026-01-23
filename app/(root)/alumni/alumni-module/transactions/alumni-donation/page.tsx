@@ -3,7 +3,8 @@
 import DonationForm from '@/app/(root)/alumni/alumni-module/transactions/alumni-donation/_components/donation-form';
 import { Card, CardContent } from '@/components/ui/card';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import type { IAlumniDonationDetails, IDonationCategory, IPaymentGateway, IPaymentGatewayDetails } from '@/types/alumni/alumni-donation';
+import { getAlumniDonationData, getAlumniDonationLoadData, getPaymentDetails, saveDonationPayment } from '@/server/alumni/alumni-donation';
+import type { IAlumniDonationDetails, IDonationCategory, IPaymentGateway } from '@/types/alumni/alumni-donation';
 import { Calendar, Hash, Loader2, Mail, MapPin, Phone, User } from 'lucide-react';
 import Script from 'next/script';
 import { useCallback, useEffect, useState } from 'react';
@@ -15,136 +16,6 @@ declare global {
     }
 }
 
-// Static alumni details
-const staticAlumniDetails: IAlumniDonationDetails = {
-    almsT_FirstName: 'John',
-    almsT_LastName: 'Doe',
-    almsT_RegistrationNo: 'ALM2024001',
-    almsT_AdmNo: 'ADM2018015',
-    almsT_MobileNo: '+91 9876543210',
-    almsT_emailId: 'john.doe@example.com',
-    almsT_StudentPhoto: '/images/alumni/john-doe.jpg',
-    almsT_Id: 101,
-    alsreG_Id: 201,
-    leftyear: '2020',
-    classleft: 'B.Tech Computer Science',
-    almsT_ConStreet: '123 Tech Park',
-    almsT_ConArea: 'Silicon Valley',
-    almsT_ConCity: 'Bangalore',
-    almsT_District: 'Bangalore Urban',
-    ivrmmS_Name: 'Karnataka',
-    ivrmmC_CountryName: 'India',
-    almsT_ConPincode: '560001',
-    almsT_StudentPANCard: 'ABCDE1234F',
-    almsT_FatherName: 'Robert Doe'
-};
-
-// Static donation categories
-const staticCategories: IDonationCategory[] = [
-    {
-        almdoN_Id: 1,
-        almdoN_DonationName: 'Infrastructure Development',
-        almdoN_Amount: 5000,
-        almdoN_RegistrationFeeFlag: false
-    },
-    {
-        almdoN_Id: 2,
-        almdoN_DonationName: 'Scholarship Fund',
-        almdoN_Amount: 3000,
-        almdoN_RegistrationFeeFlag: false
-    },
-    {
-        almdoN_Id: 3,
-        almdoN_DonationName: 'Library Enhancement',
-        almdoN_Amount: 2000,
-        almdoN_RegistrationFeeFlag: false
-    },
-    {
-        almdoN_Id: 4,
-        almdoN_DonationName: 'Sports Equipment',
-        almdoN_Amount: 1500,
-        almdoN_RegistrationFeeFlag: false
-    },
-    {
-        almdoN_Id: 5,
-        almdoN_DonationName: 'Alumni Association Membership',
-        almdoN_Amount: 1000,
-        almdoN_RegistrationFeeFlag: true
-    }
-];
-
-// Static payment gateways
-const staticGateways: IPaymentGateway[] = [
-    {
-        fpgD_Id: 1,
-        fpgD_PGName: 'Razorpay',
-        fpgD_Image: '/images/payment/razorpay.svg'
-    },
-    {
-        fpgD_Id: 2,
-        fpgD_PGName: 'PayPal',
-        fpgD_Image: '/images/payment/paypal.svg'
-    },
-    {
-        fpgD_Id: 3,
-        fpgD_PGName: 'Stripe',
-        fpgD_Image: '/images/payment/stripe.svg'
-    }
-];
-
-// Static payment gateway details
-const staticPaymentDetails: IPaymentGatewayDetails = {
-    paymentgateway: [
-        {
-            fpgD_SaltKey: 'rzp_test_YOUR_KEY_HERE',
-            fpgD_AuthorisationKey: 'YOUR_AUTH_KEY'
-        }
-    ],
-    orderId: `order_${Date.now()}`,
-    institution: [
-        {
-            mI_Name: 'University of Technology',
-            mI_PAN: 'ABCDE1234F',
-            mI_Logo: '/images/institution/logo.png'
-        }
-    ]
-};
-
-// Mock API functions
-const mockGetAlumniDonationLoadData = async () => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    return {
-        success: true,
-        data: {
-            almdetails: [staticAlumniDetails],
-            fillalumnidonationdetails: staticCategories,
-            fillpaymentgateway: staticGateways,
-            imagenew: staticAlumniDetails.almsT_StudentPhoto
-        }
-    };
-};
-
-const mockGetPaymentDetails = async ({ mI_Id, fpgD_PGName }: { mI_Id: number; fpgD_PGName: string }) => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    return {
-        success: true,
-        data: staticPaymentDetails
-    };
-};
-
-const mockSaveDonationPayment = async (payload: any) => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    console.log('Saved payment:', payload);
-    return {
-        success: true,
-        message: 'Payment saved successfully',
-        data: {
-            receiptNo: `REC${Date.now()}`,
-            transactionId: `TXN${Date.now()}`
-        }
-    };
-};
-
 export default function AlumniDonationPage() {
     const [details, setDetails] = useState<IAlumniDonationDetails | null>(null);
     const [categories, setCategories] = useState<IDonationCategory[]>([]);
@@ -155,13 +26,48 @@ export default function AlumniDonationPage() {
     const loadData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const res = await mockGetAlumniDonationLoadData();
-            if (res.success && res.data) {
-                setDetails(res.data.almdetails?.[0] || null);
-                setCategories(res.data.fillalumnidonationdetails || []);
-                setGateways(res.data.fillpaymentgateway || []);
+            // We call both as requested, though they might return similar data
+            const [loadRes, dataRes] = await Promise.all([getAlumniDonationLoadData(), getAlumniDonationData()]);
+
+            console.info('Donation Load Res:', loadRes);
+            console.info('Donation Data Res:', dataRes);
+
+            let rawCategories: any[] = [];
+            let rawGateways: any[] = [];
+            let almdetails: IAlumniDonationDetails | null = null;
+
+            // Process dataRes (getdata_donation)
+            if (dataRes.success && dataRes.data) {
+                const d = dataRes.data as any;
+                if (Array.isArray(d)) {
+                    rawCategories = [...rawCategories, ...d];
+                } else {
+                    if (d.fillalumnidonationdetails) rawCategories = [...rawCategories, ...d.fillalumnidonationdetails];
+                    if (d.data && Array.isArray(d.data)) rawCategories = [...rawCategories, ...d.data];
+                    if (d.fillpaymentgateway) rawGateways = [...rawGateways, ...d.fillpaymentgateway];
+                    almdetails = d.almdetails?.[0] || null;
+                }
             }
+
+            // Process loadRes (page_load)
+            if (loadRes.success && loadRes.data) {
+                const l = loadRes.data as any;
+                if (!almdetails) almdetails = l.almdetails?.[0] || null;
+                if (l.fillalumnidonationdetails) rawCategories = [...rawCategories, ...l.fillalumnidonationdetails];
+                if (l.fillpaymentgateway) rawGateways = [...rawGateways, ...l.fillpaymentgateway];
+            }
+
+            // De-duplicate categories by almdoN_Id
+            const uniqueCategories = Array.from(new Map(rawCategories.filter((c) => c?.almdoN_Id).map((c) => [c.almdoN_Id, c])).values());
+
+            // De-duplicate gateways by fpgD_Id
+            const uniqueGateways = Array.from(new Map(rawGateways.filter((g) => g?.fpgD_Id).map((g) => [g.fpgD_Id, g])).values());
+
+            setCategories(uniqueCategories);
+            setGateways(uniqueGateways);
+            setDetails(almdetails);
         } catch (error) {
+            console.error('Failed to load donation data:', error);
             toast.error('Failed to load donation data');
         } finally {
             setIsLoading(false);
@@ -176,61 +82,76 @@ export default function AlumniDonationPage() {
         if (!details) return;
         setIsPaying(true);
         try {
-            const payRes = await mockGetPaymentDetails({
+            const payRes = await getPaymentDetails({
                 mI_Id: 0,
-                fpgD_PGName: values.paymentGateway
+                fpgD_PGName: values.paymentGateway,
+                ALMDON_Amount: values.amount,
+                ALMST_FirstName: details.almsT_FirstName,
+                ALMST_Id: details.almsT_Id
             });
 
             if (payRes.success && payRes.data) {
                 const pgData = payRes.data;
+                const paymentInfo = pgData.paymentgateway?.[0];
+                const instInfo = pgData.institution?.[0] || pgData;
 
-                // For demo purposes, simulate payment without actual Razorpay
-                toast.success('Payment simulation successful! In a real app, this would open Razorpay.');
+                const options = {
+                    key: paymentInfo?.fpgD_SaltKey || '',
+                    amount: values.amount * 100,
+                    currency: 'INR',
+                    name: instInfo.mI_Name || 'VAPS Institution',
+                    description: 'Alumni Donation',
+                    image: instInfo.mI_Logo || '',
+                    order_id: pgData.orderId,
+                    handler: async (response: any) => {
+                        try {
+                            const saveRes = await saveDonationPayment({
+                                ALMDON_Id: Number(values.donationId),
+                                ALSREG_Id: details.alsreG_Id,
+                                ALMST_Id: details.almsT_Id,
+                                ALDON_DonorName: `${details.almsT_FirstName} ${details.almsT_LastName || ''}`.trim(),
+                                ALDON_Amount: values.amount,
+                                ALDON_Date: new Date().toISOString(),
+                                ReceiptNo: response.razorpay_payment_id,
+                                OrderId: pgData.orderId,
+                                ALMST_StudentPANCard: values.panNumber || details.almsT_StudentPANCard,
+                                ALDON_NRIFlg: values.nriStatus === '1',
+                                ALMDON_RegistrationFeeFlag:
+                                    categories.find((c) => c.almdoN_Id === Number(values.donationId))?.almdoN_RegistrationFeeFlag || false,
+                                transnumbconfigurationsettingsss: {
+                                    IMN_AutoManualFlag: 'Auto',
+                                    IMN_Flag: 'AlumniDonation'
+                                }
+                            });
 
-                // Simulate payment callback
-                const mockResponse = {
-                    razorpay_payment_id: `pay_${Date.now()}`,
-                    razorpay_order_id: pgData.orderId,
-                    razorpay_signature: 'demo_signature'
+                            if (saveRes.success) {
+                                toast.success('Payment completed successfully!');
+                                loadData();
+                            } else {
+                                toast.error(saveRes.message || 'Payment failed to save');
+                            }
+                            // biome-ignore lint/correctness/noUnusedVariables: <explanation>
+                        } catch (error) {
+                            toast.error('Error saving payment details');
+                        }
+                    },
+                    prefill: {
+                        name: `${details.almsT_FirstName} ${details.almsT_LastName || ''}`.trim(),
+                        email: details.almsT_emailId,
+                        contact: details.almsT_MobileNo
+                    },
+                    theme: {
+                        color: '#F37254'
+                    }
                 };
 
-                const saveRes = await mockSaveDonationPayment({
-                    ALMDON_Id: Number(values.donationId),
-                    ALSREG_Id: details.alsreG_Id,
-                    ALMST_Id: details.almsT_Id,
-                    ALDON_DonorName: details.almsT_FirstName,
-                    ALDON_Amount: values.amount,
-                    ALDON_Date: new Date().toISOString(),
-                    ReceiptNo: mockResponse.razorpay_payment_id,
-                    ALMST_StudentPANCard: values.panNumber || details.almsT_StudentPANCard,
-                    ALDON_NRIFlg: values.nriStatus === '1',
-                    ALDON_Towards:
-                        categories.find((c) => c.almdoN_Id === Number(values.donationId))?.almdoN_DonationName || 'Alumni Donation',
-                    userid: 1,
-                    MI_Id: 1,
-                    ASMAY_Id: 1,
-                    transnumbconfigurationsettingsss: {
-                        IMN_AutoManualFlag: 'Auto',
-                        IMN_PrefixAcadYearCode: true,
-                        IMN_PrefixParticular: 'DON',
-                        IMN_SuffixAcadYearCode: true,
-                        IMN_SuffixParticular: '',
-                        IMN_StartingNo: '1',
-                        IMN_WidthNumeric: '5',
-                        IMN_ZeroPrefixFlag: 'Yes'
-                    }
-                });
-
-                if (saveRes.success) {
-                    toast.success('Payment processed successfully!');
-                    loadData();
-                } else {
-                    toast.error(saveRes.message || 'Failed to save payment details');
-                }
+                const rzp = new window.Razorpay(options);
+                rzp.open();
             } else {
-                toast.error('Failed to initialize payment');
+                toast.error('Failed to initialize payment gateway');
             }
         } catch (error) {
+            console.error('Payment initialization error:', error);
             toast.error('Payment initialization failed');
         } finally {
             setIsPaying(false);
@@ -271,14 +192,31 @@ export default function AlumniDonationPage() {
                             <Card className='border-none bg-muted/30 shadow-none'>
                                 <CardContent className='space-y-4 p-4'>
                                     <div className='flex flex-col items-center gap-3 border-b pb-4'>
-                                        <div className='h-24 w-24 overflow-hidden rounded-full border-2 border-primary/20 bg-background'>
-                                            <div className='flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-secondary/20'>
-                                                <User className='h-10 w-10 text-primary' />
-                                            </div>
+                                        <div className='flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-2 border-primary/20 bg-muted'>
+                                            {details.almsT_StudentPhoto ? (
+                                                <img
+                                                    src={details.almsT_StudentPhoto}
+                                                    alt={details.almsT_FirstName}
+                                                    className='h-full w-full object-cover'
+                                                    onError={(e) => {
+                                                        const target = e.target as HTMLImageElement;
+                                                        target.style.display = 'none';
+                                                        const parent = target.parentElement;
+                                                        if (parent) {
+                                                            const icon = document.createElement('div');
+                                                            icon.innerHTML =
+                                                                '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user text-muted-foreground/30"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+                                                            parent.appendChild(icon.firstChild!);
+                                                        }
+                                                    }}
+                                                />
+                                            ) : (
+                                                <User className='h-12 w-12 text-muted-foreground/30' />
+                                            )}
                                         </div>
                                         <div className='text-center'>
                                             <h3 className='font-bold text-lg'>
-                                                {details.almsT_FirstName} {details.almsT_LastName}
+                                                {details.almsT_FirstName} {details.almsT_LastName || ''}
                                             </h3>
                                             <p className='text-muted-foreground text-xs uppercase tracking-widest'>
                                                 {details.leftyear} Batch
@@ -295,7 +233,12 @@ export default function AlumniDonationPage() {
                                         <InfoItem
                                             icon={<MapPin className='h-4 w-4' />}
                                             label='Address'
-                                            value={`${details.almsT_ConStreet}, ${details.almsT_ConCity}, ${details.almsT_District} - ${details.almsT_ConPincode}`}
+                                            value={
+                                                [details.almsT_ConStreet, details.almsT_ConCity, details.almsT_District]
+                                                    .filter(Boolean)
+                                                    .join(', ') + (details.almsT_ConPincode ? ` - ${details.almsT_ConPincode}` : '') ||
+                                                'N/A'
+                                            }
                                         />
                                         <InfoItem
                                             icon={<User className='h-4 w-4' />}
@@ -318,23 +261,19 @@ export default function AlumniDonationPage() {
                         <h3 className='mb-3 font-bold text-green-800 text-lg'>Why Donate?</h3>
                         <ul className='space-y-2 text-green-700 text-sm'>
                             <li className='flex items-start gap-2'>
-                                {/* biome-ignore lint/style/useSelfClosingElements: <explanation> */}
-                                <div className='mt-1.5 h-1.5 w-1.5 rounded-full bg-green-600'></div>
+                                <div className='mt-1.5 h-1.5 w-1.5 rounded-full bg-green-600' />
                                 <span>Support infrastructure development for future students</span>
                             </li>
                             <li className='flex items-start gap-2'>
-                                {/* biome-ignore lint/style/useSelfClosingElements: <explanation> */}
-                                <div className='mt-1.5 h-1.5 w-1.5 rounded-full bg-green-600'></div>
+                                <div className='mt-1.5 h-1.5 w-1.5 rounded-full bg-green-600' />
                                 <span>Contribute to scholarship programs for deserving students</span>
                             </li>
                             <li className='flex items-start gap-2'>
-                                {/* biome-ignore lint/style/useSelfClosingElements: <explanation> */}
-                                <div className='mt-1.5 h-1.5 w-1.5 rounded-full bg-green-600'></div>
+                                <div className='mt-1.5 h-1.5 w-1.5 rounded-full bg-green-600' />
                                 <span>Help enhance library resources and digital access</span>
                             </li>
                             <li className='flex items-start gap-2'>
-                                {/* biome-ignore lint/style/useSelfClosingElements: <explanation> */}
-                                <div className='mt-1.5 h-1.5 w-1.5 rounded-full bg-green-600'></div>
+                                <div className='mt-1.5 h-1.5 w-1.5 rounded-full bg-green-600' />
                                 <span>All donations are eligible for tax exemption under Section 80G</span>
                             </li>
                         </ul>
@@ -345,13 +284,13 @@ export default function AlumniDonationPage() {
     );
 }
 
-function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number | null }) {
     return (
         <div className='flex items-start gap-3 text-sm'>
             <div className='mt-0.5 text-primary'>{icon}</div>
             <div className='flex-1'>
                 <p className='mb-1 font-bold text-[10px] text-muted-foreground uppercase leading-none'>{label}</p>
-                <p className='font-medium text-foreground'>{value || 'N/A'}</p>
+                <div className='font-medium text-foreground'>{value?.toString() || 'N/A'}</div>
             </div>
         </div>
     );

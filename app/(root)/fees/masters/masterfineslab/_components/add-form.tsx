@@ -169,8 +169,8 @@ export default function AddFineSlabForm({ onSuccess, fineslab = '' }: AddFineSla
                             render={({ field }) => (
                                 <div className='flex items-center space-x-2'>
                                     <Checkbox
-                                        checked={field.value === '1'}
-                                        onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                        checked={field.value === 'E'}
+                                        onCheckedChange={(checked) => field.onChange(checked ? 'E' : 'R')}
                                         id='fmfS_ECSFlag'
                                     />
                                     <Label htmlFor='fmfS_ECSFlag'>ECS Flag</Label>

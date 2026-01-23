@@ -20,7 +20,9 @@ export interface ApiArrayResponse<T> extends Partial<PaginationData> {
     } | null;
     [key: string]: unknown;
 }
-import { auth, signOut } from '@/lib/auth';
+// biome-ignore lint/style/useNodejsImportProtocol: <explanation>
+// import https from 'https'; // Removed to avoid client-side bundling errors
+import { signOut } from '@/lib/auth';
 import type { ApiSearchparams } from '@/types';
 import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios';
 
@@ -85,14 +87,37 @@ class ApiService {
         if (!this.instances.has(key)) {
             const baseURL = typeof key === 'string' && key in this.baseUrls ? this.baseUrls[key as ApiBaseUrlKey] : this.baseUrls.default;
 
-            const instance = axios.create({
+            // Check if this is a localhost URL in development mode
+            const isLocalhost =
+                baseURL &&
+                (baseURL.includes('localhost') ||
+                    baseURL.includes('127.0.0.1') ||
+                    baseURL.includes('://192.168.') ||
+                    baseURL.startsWith('https://local'));
+
+            // Create config with optional SSL bypass for localhost in development
+            const config: AxiosRequestConfig = {
                 baseURL,
                 timeout: 60000,
                 headers: {
                     'Content-Type': 'application/json',
                     Accept: '*/*'
                 }
-            });
+            };
+
+            // Add SSL bypass for localhost in development mode
+            if (isLocalhost && process.env.NODE_ENV === 'development' && typeof window === 'undefined') {
+                // This only runs on server-side (Node.js environment)
+                // Using require here to avoid client-side bundling issues with 'https'
+                const https = require('https');
+                config.httpsAgent = new https.Agent({
+                    rejectUnauthorized: false // Bypass SSL certificate validation
+                });
+
+                console.info('🔵 [API SERVICE] SSL bypass enabled for:', baseURL);
+            }
+
+            const instance = axios.create(config);
 
             this.setupInterceptors(instance);
             this.instances.set(key, instance);
@@ -102,13 +127,26 @@ class ApiService {
     }
 
     private setupInterceptors(instance: AxiosInstance): void {
-        // Request Interceptorr
+        // Request Interceptor
         instance.interceptors.request.use(
             async (config) => {
                 try {
-                    const session = await auth();
-                    if (session?.token) {
-                        config.headers.Authorization = `Bearer ${session.token}`;
+                    let token: string | undefined;
+
+                    if (typeof window !== 'undefined') {
+                        // Client-side: use getSession from next-auth/react
+                        const { getSession } = await import('next-auth/react');
+                        const session = await getSession();
+                        token = session?.token;
+                    } else {
+                        // Server-side: use auth from @/lib/auth
+                        const { auth } = await import('@/lib/auth');
+                        const session = await auth();
+                        token = session?.token;
+                    }
+
+                    if (token) {
+                        config.headers.Authorization = `Bearer ${token}`;
                     }
                     return config;
                 } catch (error) {
@@ -139,8 +177,27 @@ class ApiService {
         );
     }
 
+    // ... rest of the class remains the same
     private handleError(error: any): string {
-        return error || 'An unknown error occurred.';
+        // Check for SSL certificate errors
+        if (
+            error.code === 'DEPTH_ZERO_SELF_SIGNED_CERT' ||
+            error.code === 'SELF_SIGNED_CERT_IN_CHAIN' ||
+            error.message?.includes('self-signed certificate')
+        ) {
+            console.error('🔴 SSL Certificate Error detected');
+            console.error('🔴 If this is a local development server, ensure SSL bypass is enabled');
+            console.error('🔴 For production, use valid SSL certificates');
+
+            // Return a more helpful error message
+            return (
+                // biome-ignore lint/style/useTemplate: <explanation>
+                `SSL Certificate Error: ${error.message}. ` +
+                'For local development, make sure the ApiService is configured to bypass SSL validation.'
+            );
+        }
+
+        return error?.response?.data?.message || error?.message || 'An unknown error occurred.';
     }
 
     public async request<T>(
@@ -163,7 +220,8 @@ class ApiService {
                 url,
                 fullUrl,
                 hasData: !!data,
-                dataSize: data ? JSON.stringify(data).length : 0
+                dataSize: data ? JSON.stringify(data).length : 0,
+                sslBypass: config?.httpsAgent ? 'Enabled' : 'Disabled'
             });
 
             // Warn if base URL is not set
@@ -209,6 +267,7 @@ class ApiService {
             console.warn('❌ [API SERVICE] Request failed');
             console.warn('💥 [API SERVICE] Error details:', {
                 message: error?.message,
+                code: error?.code,
                 status: error?.response?.status,
                 statusText: error?.response?.statusText,
                 data: error?.response?.data,

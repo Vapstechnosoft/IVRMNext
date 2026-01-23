@@ -1,24 +1,24 @@
 export interface IAlumniDonationDetails {
     almsT_FirstName: string;
-    almsT_LastName: string;
+    almsT_LastName: string | null;
     almsT_RegistrationNo: string;
     almsT_AdmNo: string;
-    almsT_MobileNo: string;
+    almsT_MobileNo: string | number;
     almsT_emailId: string;
-    almsT_StudentPhoto: string;
+    almsT_StudentPhoto: string | null;
     almsT_Id: number;
     alsreG_Id: number;
-    leftyear: string;
-    classleft: string;
-    almsT_ConStreet: string;
-    almsT_ConArea: string;
-    almsT_ConCity: string;
-    almsT_District: string;
-    ivrmmS_Name: string;
-    ivrmmC_CountryName: string;
-    almsT_ConPincode: string;
+    leftyear: string | null;
+    classleft: string | null;
+    almsT_ConStreet: string | null;
+    almsT_ConArea: string | null;
+    almsT_ConCity: string | null;
+    almsT_District: string | null;
+    ivrmmS_Name: string | null;
+    ivrmmC_CountryName: string | null;
+    almsT_ConPincode: string | number | null;
     almsT_StudentPANCard: string | null;
-    almsT_FatherName: string;
+    almsT_FatherName: string | null;
 }
 
 export interface IDonationCategory {
@@ -39,6 +39,8 @@ export interface IAlumniDonationLoadResponse {
     fillalumnidonationdetails: IDonationCategory[];
     fillpaymentgateway: IPaymentGateway[];
     imagenew: string;
+    mI_Id: number;
+    asmaY_Id: number;
 }
 
 export interface IPaymentGatewayDetails {
@@ -52,4 +54,7 @@ export interface IPaymentGatewayDetails {
         mI_PAN: string;
         mI_Logo: string;
     }[];
+    mI_PAN?: string; // Sometimes directly on the object
+    mI_Name?: string;
+    mI_Logo?: string;
 }

@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import html2canvas from 'html2canvas';
+//import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { useRef, useState } from 'react';
 //import { useReactToPrint } from 'react-to-print';
@@ -58,18 +58,18 @@ export default function PortalFeeReceiptClient({ initialYears }: PortalFeeReceip
     //     documentTitle: 'Fee Receipt'
     // });
 
-    const handleDownload = () => {
-        if (componentRef.current) {
-            html2canvas(componentRef.current).then((canvas) => {
-                const imgData = canvas.toDataURL('image/png');
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-                pdf.save('FeeReceipt.pdf');
-            });
-        }
-    };
+    // const handleDownload = () => {
+    //     if (componentRef.current) {
+    //         html2canvas(componentRef.current).then((canvas) => {
+    //             const imgData = canvas.toDataURL('image/png');
+    //             const pdf = new jsPDF('p', 'mm', 'a4');
+    //             const pdfWidth = pdf.internal.pageSize.getWidth();
+    //             const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+    //             pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    //             pdf.save('FeeReceipt.pdf');
+    //         });
+    //     }
+    // };
 
     const handleClear = () => {
         setSelectedYear('');
@@ -217,9 +217,9 @@ export default function PortalFeeReceiptClient({ initialYears }: PortalFeeReceip
                             {/* <Button onClick={handlePrint} disabled={!receiptData}>
                                 Print
                             </Button> */}
-                            <Button onClick={handleDownload} disabled={!receiptData}>
+                            {/* <Button onClick={handleDownload} disabled={!receiptData}>
                                 Download
-                            </Button>
+                            </Button> */}
                             <Button variant='outline' onClick={handleClear}>
                                 Clear
                             </Button>

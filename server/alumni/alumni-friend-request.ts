@@ -1,71 +1,59 @@
 'use server';
 
-import { api } from '@/lib/apiService';
-import type { IAlumniFriendRequestLoadResponse, IAlumniProfileResponse } from '@/types/alumni/alumni-friend-request';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
+import { auth } from '@/lib/auth';
+import type { ApiSearchparams } from '@/types';
+import type { IAlumniFriendRequest, IAlumniFriendRequestLoadResponse, IAlumniProfileResponse } from '@/types/alumni/alumni-friend-request';
 
-export async function getAlumniFriendRequestData(data: { almsT_Id?: number; mI_Id?: number; user_id?: number } = {}) {
-    const url = '/Alumni_Student_FriendRequest/getdata';
-    const payload = {
-        almsT_Id: data.almsT_Id || 0,
-        mI_Id: data.mI_Id || 0,
-        user_id: data.user_id || 0
-    };
-    return await api.post<IAlumniFriendRequestLoadResponse>('alumni', url, payload);
+export async function getAlumniFriendRequestData(searchParams?: ApiSearchparams) {
+    const session = await auth();
+    const roleFlag = (searchParams as any)?.Role_flag || (session as any)?.role || 'Alumni';
+    const ivrmrtId = (searchParams as any)?.IVRMRT_Id || (session as any)?.ivrmrT_Id || 30;
+    const almstId = (session as any)?.almsT_Id || 0;
+    const asmayId = (session as any)?.asmaY_Id || 0;
+
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'searchParams');
+    const url = `/Alumni_Student_FriendRequest/getdata?IVRMRT_Id=${ivrmrtId}&ALMST_Id=${almstId}&ASMAY_Id=${asmayId}&Role_flag=${roleFlag}&${urlParams}`;
+
+    return await api.get<IAlumniFriendRequestLoadResponse>('alumni', url);
 }
 
 export async function searchAlumniFriendRequest(data: any) {
     const url = '/Alumni_Student_FriendRequest/getsearch_data';
-    const payload = {
-        ...data,
-        almsT_Id: data.almsT_Id || 0,
-        mI_Id: data.mI_Id || 0,
-        user_id: data.user_id || 0
-    };
-    return await api.post<IAlumniFriendRequestLoadResponse>('alumni', url, payload);
+    return await api.post<IAlumniFriendRequestLoadResponse>('alumni', url, data);
 }
 
-export async function viewAlumniProfile(data: { almsT_Id: number; mI_Id?: number }) {
+export async function viewAlumniProfile(data: { almsT_Id: number }) {
     const url = '/Alumni_Student_FriendRequest/viewprofile';
     const payload = {
-        almsT_Id: data.almsT_Id,
-        mI_Id: data.mI_Id || 0
+        almsT_Id: data.almsT_Id
     };
     return await api.post<IAlumniProfileResponse>('alumni', url, payload);
 }
 
 export async function sendFriendRequest(data: {
-    requestalumni: { ALMST_Id: number }[];
-    almsT_Id?: number;
-    mI_Id?: number;
-    user_id?: number;
+    requestalumni: { almsT_Id: number }[];
 }) {
     const url = '/Alumni_Student_FriendRequest/send_request';
     const payload = {
-        requestalumni: data.requestalumni,
-        almsT_Id: data.almsT_Id || 0,
-        mI_Id: data.mI_Id || 0,
-        user_id: data.user_id || 0
+        requestalumni: data.requestalumni
     };
     return await api.post('alumni', url, payload);
 }
 
-export async function getAlumniFriendRequestReceivedData(data: { mI_Id?: number; user_id?: number } = {}) {
+export async function getAlumniFriendRequestReceivedData() {
     const url = '/Alumni_Student_FriendRequest/getdata_request';
-    const payload = {
-        mI_Id: data.mI_Id || 0,
-        user_id: data.user_id || 0
-    };
-    return await api.post<IAlumniFriendRequestLoadResponse>('alumni', url, payload);
+    return await api.post<IAlumniFriendRequest[]>('alumni', url, { id: 1 });
 }
 
-export async function acceptFriendRequest(data: {
-    user_id?: number;
-    requestalumniaccept: { almsT_Id: number; alsfrnD_RequestDate: string | Date }[];
+export async function handleFriendRequestAction(data: {
+    action: 'Accept' | 'Cancel';
+    requestalumniaccept: { ALMST_Id: number; ALSFRND_RequestDate: string }[];
 }) {
     const url = '/Alumni_Student_FriendRequest/friend_request_accept';
     const payload = {
-        user_id: data.user_id || 0,
+        Cancel: data.action,
         requestalumniaccept: data.requestalumniaccept
     };
-    return await api.post('alumni', url, payload);
+    return await api.post<any>('alumni', url, payload);
 }

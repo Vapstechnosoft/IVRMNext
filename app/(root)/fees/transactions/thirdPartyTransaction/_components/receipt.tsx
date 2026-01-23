@@ -169,7 +169,12 @@ export default function ReceiptPage({ rowData, onClose }: ReceiptPageProps) {
     );
 
     if (loading || !receiptData) {
-        return <div className='fixed inset-0 flex items-center justify-center bg-black/50 text-lg text-white'>Loading receipt...</div>;
+        // return <div className='fixed inset-0 flex items-center justify-center bg-black/50 text-lg text-white'>Loading receipt...</div>;
+        return (
+            <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50'>
+                <div className='rounded-lg bg-white p-8'>Loading receipt...</div>
+            </div>
+        );
     }
 
     // Extract Data ---------------------------------------------------------

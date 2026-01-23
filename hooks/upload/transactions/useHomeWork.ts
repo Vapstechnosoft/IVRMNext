@@ -23,6 +23,7 @@ export const HomeWorkUploadedList = (payload: any, searchParams?: ApiSearchparam
     };
 };
 
+// biome-ignore lint/correctness/noUnusedVariables: <explanation>
 export const useHomeWork = (params?: any) => {
     const [data, setData] = useState<{
         yearlist: any[];
