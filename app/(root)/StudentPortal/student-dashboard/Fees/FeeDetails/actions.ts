@@ -44,8 +44,8 @@ export async function getFeeDetailsLoadData() {
     }
 }
 
-export async function getFeeDetails() {
-    const url = 'api/CumulativeFeeAnalysis/getacademicyear?AMST_Id=17108';
+export async function getFeeDetails(data: FeeDetailsRequest) {
+    const url = `/FeeDetails/Getdetails`;
     try {
         const response = await api.get<FeeDetailsResponse>('portal', url, {});
 

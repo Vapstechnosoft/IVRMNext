@@ -20,7 +20,7 @@ export async function getFeedbackTransactionLoadData() {
         "MI_Id": 4,
         "Flag": 'Parents'
     };
-    const url = `/api/FeedbackTransaction/getdetails`;
+    const url = `/FeedbackTransaction/getdetails`;
     try {
         const response = await api.post<FeedbackTransactionLoadData>('default', url, data);
         if (response && response.data) return response.data;
@@ -32,7 +32,7 @@ export async function getFeedbackTransactionLoadData() {
 }
 
 export async function getFeedbackDetails(requestData: FeedbackDetailsRequest) {
-    const url = `/api/FeedbackTransaction/getfeedback`;
+    const url = `/FeedbackTransaction/getfeedback`;
     try {
         const response = await api.post<FeedbackDetailsResponse>('default', url, requestData);
         if (response && response.data) return response.data;
@@ -61,7 +61,7 @@ export async function getFeedbackDetails(requestData: FeedbackDetailsRequest) {
 }
 
 export async function saveFeedbackTransaction(requestData: FeedbackTransactionSaveRequest) {
-    const url = `/api/FeedbackTransaction/savedata`;
+    const url = `/FeedbackTransaction/savedata`;
     try {
         const response = await api.post<{ returnval: boolean, message?: string }>('default', url, requestData);
         if (response && response.data) return response.data;
