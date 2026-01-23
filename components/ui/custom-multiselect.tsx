@@ -41,27 +41,31 @@ export const CustomMultiSelectBox: React.FC<CustomMultiSelectBoxProps> = ({
 
     const filteredOptions = options.filter((opt) => opt.label.toLowerCase().includes(search.toLowerCase()));
 
-    const allSelected = filteredOptions.every((opt) => value.includes(opt.value)) && filteredOptions.length > 0;
+    const allSelected = filteredOptions.length > 0 && filteredOptions.every((opt) => value.includes(opt.value));
 
-    const toggleSelect = (option: Option) => {
-        if (disabled) return; // 🚫 Prevent action when disabled
+    const allCheckboxesDisabled = filteredOptions.length > 0 && filteredOptions.every((opt) => opt.disabled);
 
-        if (value.includes(option.value)) {
-            onChange(value.filter((v) => v !== option.value));
-        } else {
-            onChange([...value, option.value]);
-        }
+    const handleSelectOption = (optionValue: string) => {
+        if (disabled) return;
+
+        const newValues = value.includes(optionValue) ? value.filter((v) => v !== optionValue) : [...value, optionValue];
+
+        onChange(newValues);
     };
 
-    const toggleSelectAll = () => {
-        if (disabled) return; // 🚫 Prevent action when disabled
+    const handleSelectAll = () => {
+        if (disabled || allCheckboxesDisabled) return;
+
+        const allOptionValues = filteredOptions.map((opt) => opt.value);
 
         if (allSelected) {
-            const newValues = value.filter((v) => !filteredOptions.some((opt) => opt.value === v));
-            if (newValues.length !== value.length) onChange(newValues);
+            // Deselect all filtered options
+            const newValues = value.filter((v) => !allOptionValues.includes(v));
+            onChange(newValues);
         } else {
-            const newValues = [...value, ...filteredOptions.filter((opt) => !value.includes(opt.value)).map((opt) => opt.value)];
-            if (newValues.length !== value.length) onChange(newValues);
+            // Select all filtered options that aren't already selected
+            const newValues = [...new Set([...value, ...allOptionValues])];
+            onChange(newValues);
         }
     };
 
@@ -92,39 +96,41 @@ export const CustomMultiSelectBox: React.FC<CustomMultiSelectBoxProps> = ({
                     style={{
                         height: `calc(${height} - ${isSearchRequired ? '48px' : '0px'})`
                     }}>
-                    {/* Select All */}
+                    {/* Select All - ONLY checkbox handles the click */}
                     {filteredOptions.length > 0 && (
-                        <div
-                            className={`mb-2 flex items-center gap-2 rounded-md p-1 font-medium text-sm ${
-                                disabled ? '' : 'cursor-pointer hover:bg-accent'
-                            }`}
-                            onClick={() => !disabled && toggleSelectAll()}>
-                            <Checkbox
-                                checked={allSelected}
-                                onCheckedChange={toggleSelectAll}
-                                onClick={(e) => e.stopPropagation()}
-                                disabled={disabled}
-                            />
-                            <span>Select All</span>
+                        <div className='mb-2 flex items-center gap-2 rounded-md p-1 font-medium text-sm'>
+                            <div className='flex items-center gap-2'>
+                                <Checkbox
+                                    checked={allSelected}
+                                    onCheckedChange={handleSelectAll}
+                                    disabled={disabled || allCheckboxesDisabled}
+                                />
+                                <span
+                                    className={`${disabled || allCheckboxesDisabled ? '' : 'cursor-pointer hover:underline'}`}
+                                    onClick={() => !disabled && !allCheckboxesDisabled && handleSelectAll()}>
+                                    Select All
+                                </span>
+                            </div>
                         </div>
                     )}
 
                     {filteredOptions.map((opt) => (
-                        <div
-                            key={opt.value}
-                            className={`mb-1 flex items-center gap-2 rounded-md p-1 text-sm ${
-                                disabled ? '' : 'cursor-pointer hover:bg-accent'
-                            }`}
-                            onClick={() => !disabled && toggleSelect(opt)}>
-                            <Checkbox
-                                checked={value.includes(opt.value)}
-                                onCheckedChange={() => toggleSelect(opt)}
-                                onClick={(e) => e.stopPropagation()}
-                                disabled={disabled}
-                            />
-                            <span>{opt.label}</span>
+                        <div key={opt.value} className='mb-1 flex items-center gap-2 rounded-md p-1 text-sm'>
+                            <div className='flex items-center gap-2'>
+                                <Checkbox
+                                    checked={value.includes(opt.value)}
+                                    onCheckedChange={() => handleSelectOption(opt.value)}
+                                    disabled={disabled || opt.disabled}
+                                />
+                                <span
+                                    className={`${disabled || opt.disabled ? '' : 'cursor-pointer hover:underline'}`}
+                                    onClick={() => !disabled && !opt.disabled && handleSelectOption(opt.value)}>
+                                    {opt.label}
+                                </span>
+                            </div>
                         </div>
                     ))}
+
                     {isLoading && <div className='text-muted-foreground text-sm'>Loading...</div>}
 
                     {!isLoading && filteredOptions.length === 0 && <div className='text-muted-foreground text-sm'>No options found</div>}
