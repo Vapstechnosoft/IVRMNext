@@ -1,19 +1,23 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { InputText } from '@/components/ui/extension/input-text';
 import { Label } from '@/components/ui/label';
-import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     useAcademicYearDropDownMasterDayClasswise,
     useCategtoryDropDownMasterDayClasswise,
     useClassDropDownMasterDayClasswise,
+    useDayDropDownMasterDayClasswise,
     useMasterDayClasswiseDetails
 } from '@/hooks/timetable/useMasters';
+import { cn } from '@/lib/utils';
 import { masterDayClasswiseSchema } from '@/schemas/timetable/masters';
-import { getClassByCategory, savePeriodClass } from '@/server/timetable/masters/periodallocation';
+import { getClassDropDownMasterDayClasswiseOnchnageofCatandyr } from '@/server/timetable/masters/masterdayclasswise';
+import { savePeriodClass } from '@/server/timetable/masters/periodallocation';
+import type { ClassDropDownDataTT } from '@/types/timetable/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save } from 'lucide-react';
+import { CheckSquare, Save, Square } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -34,6 +38,8 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
 
     const [isLoadingClasses, setIsLoadingClasses] = useState(false);
 
+    const [selectedcalssidsItems, setSelectedcalssidsItems] = useState<{ asmcL_Id: string }[]>([]);
+    const [overrideClassData, setOverrideClassData] = useState<ClassDropDownDataTT[] | null>(null);
     const {
         data: academicList,
         isLoading: academicLoading,
@@ -55,9 +61,8 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
         isLoading: masterdaydataloading,
         error: masterdaydataError,
         refetchAll: masterdaydataRefetch
-    } = useClassDropDownMasterDayClasswise();
-    //const academicList = (response as any)?.academiclist || [];
-    //const categoryList = (response as any)?.catelist || [];
+    } = useDayDropDownMasterDayClasswise();
+    // Convert calssids API to { label, id }
 
     const {
         register,
@@ -74,125 +79,167 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
         }
     });
 
+    const finalClassData = overrideClassData ?? classData?.data ?? [];
+
+    const classOptions =
+        classData?.data?.map((h) => ({
+            id: h.asmcL_Id.toString(),
+            label: h.asmcL_ClassName
+        })) ?? [];
+
+    // Define form value for calss_ids
+    const calss_ids = watch('calssids') || [];
+    const day_ids = watch('dayids') || [];
+
+    const toggleClass = (id: string) => {
+        let updated = [];
+
+        if (calss_ids.includes(id)) {
+            updated = calss_ids.filter((v: string) => v !== id);
+        } else {
+            updated = [...calss_ids, id];
+        }
+
+        // MUST be tuple: at least 1 element
+        if (updated.length === 0) {
+            setValue('calssids', undefined as any);
+        } else {
+            setValue('calssids', updated as [string, ...string[]], {
+                shouldValidate: true
+            });
+        }
+
+        setSelectedcalssidsItems(updated.map((x) => ({ asmcL_Id: x })));
+    };
+
+    // const selectAllcalssids = () => {
+    //     const all = classOptions.map((h) => h.id);
+
+    //     if (calss_ids.length === all.length) {
+    //         // Option: clear selection → field becomes undefined
+    //         setValue('calssids', undefined as any);
+    //         setSelectedcalssidsItems([]);
+    //     } else {
+    //         setValue('calssids', all as [string, ...string[]], {
+    //             shouldValidate: true
+    //         });
+    //         setSelectedcalssidsItems(all.map((x) => ({ asmcL_Id: x })));
+    //     }
+    // };
+
+    const selectAllcalssids = () => {
+        // Decide source based on search
+        const source = classSearch.trim().length > 0 ? filteredcalssids.map((h) => h.asmcL_Id.toString()) : classOptions.map((h) => h.id);
+
+        const isAllSelected = source.every((id) => calss_ids.includes(id));
+
+        if (isAllSelected) {
+            // Unselect only the affected items
+            const remaining = calss_ids.filter((id) => !source.includes(id));
+
+            if (remaining.length === 0) {
+                setValue('calssids', undefined as any);
+            } else {
+                setValue('calssids', remaining as [string, ...string[]], {
+                    shouldValidate: true
+                });
+            }
+        } else {
+            // Merge current + source (avoid duplicates)
+            const merged = Array.from(new Set([...calss_ids, ...source]));
+
+            setValue('calssids', merged as [string, ...string[]], {
+                shouldValidate: true
+            });
+        }
+
+        setSelectedcalssidsItems(
+            (classSearch.trim().length > 0 ? filteredcalssids : classData?.data || []).map((x) => ({
+                asmcL_Id: x.asmcL_Id.toString()
+            }))
+        );
+    };
+
+    const filteredcalssids = classData?.data?.filter((h) => h.asmcL_ClassName.toLowerCase().includes(classSearch.toLowerCase())) ?? [];
+
+    const filteredDayIds = Masterdaydata?.data?.filter((d) => d.ttmD_DayName.toLowerCase().includes(daySearch.toLowerCase())) ?? [];
+
+    const toggleDay = (id: string) => {
+        let updated: string[] = [];
+
+        if (day_ids.includes(id)) {
+            updated = day_ids.filter((v) => v !== id);
+        } else {
+            updated = [...day_ids, id];
+        }
+
+        if (updated.length === 0) {
+            setValue('dayids', undefined as any);
+        } else {
+            setValue('dayids', updated as [string, ...string[]], {
+                shouldValidate: true
+            });
+        }
+    };
+
+    const selectAllDayIds = () => {
+        const source =
+            daySearch.trim().length > 0
+                ? filteredDayIds.map((d) => d.ttmD_Id.toString())
+                : (Masterdaydata?.data?.map((d) => d.ttmD_Id.toString()) ?? []);
+
+        const isAllSelected = source.every((id) => day_ids.includes(id));
+
+        if (isAllSelected) {
+            const remaining = day_ids.filter((id) => !source.includes(id));
+
+            if (remaining.length === 0) {
+                setValue('dayids', undefined as any);
+            } else {
+                setValue('dayids', remaining as [string, ...string[]], {
+                    shouldValidate: true
+                });
+            }
+        } else {
+            const merged = Array.from(new Set([...day_ids, ...source]));
+            setValue('dayids', merged as [string, ...string[]], {
+                shouldValidate: true
+            });
+        }
+    };
+
     const watchedAcademicYear = watch('asmay_id');
     const watchedCategory = watch('ttmC_Id');
-    // const watchedNoOfPeriods = watch('noOfPeriods');
 
-    // Fetch Classes based on Category and Academic Year
     useEffect(() => {
-        const fetchClasses = async () => {
-            if (watchedAcademicYear && watchedCategory) {
-                try {
-                    const res = await getClassByCategory({
-                        ASMAY_Id: watchedAcademicYear,
-                        TTMC_Id: watchedCategory
-                    });
-                    if (res?.tempararyArray) {
-                        setClassList(res.tempararyArray as any[]);
-                    } else {
-                        setClassList([]);
-                    }
-                } catch (err) {
-                    console.error('Error fetching classes', err);
+        const fetchClassesOnCategoryChange = async () => {
+            if (!watchedAcademicYear || !watchedCategory) return;
+
+            try {
+                setIsLoadingClasses(true);
+
+                const res = await getClassDropDownMasterDayClasswiseOnchnageofCatandyr(watchedAcademicYear, watchedCategory);
+
+                // ✅ override class dropdown data
+                if (res?.data?.length) {
+                    setOverrideClassData(res.data);
+                } else {
+                    setOverrideClassData([]);
                 }
-            } else {
-                setClassList([]);
+
+                // reset selection
+                setValue('calssids', undefined as any);
+                setClassSearch('');
+            } catch (err) {
+                console.error('Error fetching classes on category change', err);
+                setOverrideClassData([]);
+            } finally {
+                setIsLoadingClasses(false);
             }
         };
-        fetchClasses();
-    }, [watchedAcademicYear, watchedCategory]);
 
-    // Fetch Period Class list
-    // useEffect(() => {
-    //     const fetchPeriods = async () => {
-    //         // if (watchedNoOfPeriods) {
-    //         //     try {
-    //         //         const count = Number(watchedNoOfPeriods);
-    //         //         const res = await getPeriodClass({ period_count: count });
-    //         //         if (res?.periodlist_class) {
-    //         //             setPeriods(res.periodlist_class as any[]);
-    //         //         } else {
-    //         //             setPeriods([]);
-    //         //         }
-    //         //     } catch (err) {
-    //         //         console.error('Error fetching periods', err);
-    //         //         setPeriods([]);
-    //         //     }
-    //         // }
-    //     };
-    //     fetchPeriods();
-    // }, [watchedNoOfPeriods]);
-
-    // const toggleClass = (id: string) => {
-    //     let updated = [];
-
-    //     if (watchedClassIds.includes(id)) {
-    //         updated = watchedClassIds.filter((v: string) => v !== id);
-    //     } else {
-    //         updated = [...watchedClassIds, id];
-    //     }
-
-    //     if (updated.length === 0) {
-    //         setValue('classIds', undefined as any);
-    //     } else {
-    //         setValue('classIds', updated as [string, ...string[]], {
-    //             shouldValidate: true
-    //         });
-    //     }
-    // };
-
-    // const selectAllClasses = () => {
-    //     const all = classList.map(c => c.asmcL_Id.toString());
-
-    //     if (watchedClassIds.length === all.length) {
-    //         setValue('classIds', undefined as any);
-    //     } else {
-    //         setValue('classIds', all as [string, ...string[]], {
-    //             shouldValidate: true
-    //         });
-    //     }
-    // };
-
-    // // Day multi-select handlers
-    // const toggleDay = (id: string) => {
-    //     let updated = [];
-
-    //     if (watchedDayIds.includes(id)) {
-    //         updated = watchedDayIds.filter((v: string) => v !== id);
-    //     } else {
-    //         updated = [...watchedDayIds, id];
-    //     }
-
-    //     if (updated.length === 0) {
-    //         setValue('dayIds', undefined as any);
-    //     } else {
-    //         setValue('dayIds', updated as [string, ...string[]], {
-    //             shouldValidate: true
-    //         });
-    //     }
-    // };
-
-    // const selectAllDays = () => {
-    //     const all = masterDays?.data?.map(d => d.ttmD_Id.toString()) || [];
-
-    //     if (watchedDayIds.length === all.length) {
-    //         setValue('dayIds', undefined as any);
-    //     } else {
-    //         setValue('dayIds', all as [string, ...string[]], {
-    //             shouldValidate: true
-    //         });
-    //     }
-    // };
-
-    // // Filter classes based on search
-    // const filteredClasses = classList.filter(c =>
-    //     c.asmcL_ClassName?.toLowerCase().includes(classSearch.toLowerCase())
-    // );
-
-    // // Filter days based on search
-    // const filteredDays = masterDays?.data?.filter(d =>
-    //     d.ttmD_DayName?.toLowerCase().includes(daySearch.toLowerCase())
-    // ) || [];
+        fetchClassesOnCategoryChange();
+    }, [watchedCategory]);
 
     const onSubmit = async (data: FormFields) => {
         try {
@@ -322,26 +369,66 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
                     <Label>
                         Class <span className='text-red-500'>*</span>
                     </Label>
-                    <Controller
-                        control={control}
-                        name='calssids'
-                        render={({ field }) => (
-                            <MultiSelect
-                                options={classList.map((c: any) => ({ label: c.asmcL_ClassName, value: c.asmcL_Id.toString() }))}
-                                defaultValue={field.value?.map((v: any) => v.asmcL_Id.toString()) || []}
-                                onValueChange={(vals) => {
-                                    const selectedObjs = vals
-                                        .map((id) => {
-                                            const found = classList.find((c) => c.asmcL_Id.toString() === id);
-                                            return found ? { asmcL_Id: found.asmcL_Id, asmcL_ClassName: found.asmcL_ClassName } : null;
-                                        })
-                                        .filter((x) => x);
-                                    field.onChange(selectedObjs);
-                                }}
-                                placeholder='Select Classes'
-                            />
+
+                    <div className='mt-2 rounded-md border border-gray-300 bg-white p-3'>
+                        <InputText
+                            placeholder='Search calssids...'
+                            value={classSearch}
+                            onChange={(e) => setClassSearch(e.target.value)}
+                            className='mb-3'
+                        />
+
+                        {/* Select All Users */}
+                        {classData?.data && (
+                            <div
+                                onClick={selectAllcalssids}
+                                className={cn(
+                                    'mb-2 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm transition-all',
+                                    calss_ids.length === classOptions.length && classOptions.length
+                                        ? 'border-primary bg-primary/5 text-primary'
+                                        : 'border-gray-300 hover:border-primary/40'
+                                )}>
+                                {calss_ids.length === classOptions.length && classOptions.length ? (
+                                    <CheckSquare className='h-4 w-4 text-primary' />
+                                ) : (
+                                    <Square className='h-4 w-4 text-gray-400' />
+                                )}
+                                <span>Select All</span>
+                            </div>
                         )}
-                    />
+
+                        <div className='max-h-40 overflow-y-auto rounded-md border border-gray-300 p-1'>
+                            {classloading ? (
+                                <div className='py-4 text-center text-gray-500 text-sm'>Loading Class...</div>
+                            ) : classData?.data?.length === 0 ? (
+                                <div className='py-4 text-center text-gray-500 text-sm'>No Class found</div>
+                            ) : (
+                                filteredcalssids.map((u) => {
+                                    const id = u.asmcL_Id.toString();
+                                    const selected = calss_ids.includes(id);
+
+                                    return (
+                                        <div
+                                            key={u.asmcL_Id}
+                                            onClick={() => toggleClass(id)}
+                                            className={cn(
+                                                'mb-1 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm transition-all',
+                                                selected
+                                                    ? 'border-primary bg-primary/5 text-primary'
+                                                    : 'border-gray-300 hover:border-primary/40'
+                                            )}>
+                                            {selected ? (
+                                                <CheckSquare className='h-4 w-4 text-primary' />
+                                            ) : (
+                                                <Square className='h-4 w-4 text-gray-400' />
+                                            )}
+                                            <span>{u.asmcL_ClassName}</span>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </div>
                     {errors.calssids && <span className='text-red-500 text-sm'>{errors.calssids.message}</span>}
                 </div>
 
@@ -349,27 +436,69 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
                     <Label>
                         Day <span className='text-red-500'>*</span>
                     </Label>
-                    <Controller
-                        control={control}
-                        name='calssids'
-                        render={({ field }) => (
-                            <MultiSelect
-                                options={classList.map((c: any) => ({ label: c.asmcL_ClassName, value: c.asmcL_Id.toString() }))}
-                                defaultValue={field.value?.map((v: any) => v.asmcL_Id.toString()) || []}
-                                onValueChange={(vals) => {
-                                    const selectedObjs = vals
-                                        .map((id) => {
-                                            const found = classList.find((c) => c.asmcL_Id.toString() === id);
-                                            return found ? { asmcL_Id: found.asmcL_Id, asmcL_ClassName: found.asmcL_ClassName } : null;
-                                        })
-                                        .filter((x) => x);
-                                    field.onChange(selectedObjs);
-                                }}
-                                placeholder='Select Classes'
-                            />
+
+                    <div className='mt-2 rounded-md border border-gray-300 bg-white p-3'>
+                        <InputText
+                            placeholder='Search Day...'
+                            value={daySearch}
+                            onChange={(e) => setDaySearch(e.target.value)}
+                            className='mb-3'
+                        />
+
+                        {Masterdaydata?.data && (
+                            <div
+                                onClick={selectAllDayIds}
+                                className={cn(
+                                    'mb-2 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm transition-all',
+                                    day_ids.length === (daySearch.trim() ? filteredDayIds.length : Masterdaydata.data.length) &&
+                                        day_ids.length
+                                        ? 'border-primary bg-primary/5 text-primary'
+                                        : 'border-gray-300 hover:border-primary/40'
+                                )}>
+                                {day_ids.length === (daySearch.trim() ? filteredDayIds.length : Masterdaydata.data.length) &&
+                                day_ids.length ? (
+                                    <CheckSquare className='h-4 w-4 text-primary' />
+                                ) : (
+                                    <Square className='h-4 w-4 text-gray-400' />
+                                )}
+                                <span>Select All</span>
+                            </div>
                         )}
-                    />
-                    {errors.calssids && <span className='text-red-500 text-sm'>{errors.calssids.message}</span>}
+
+                        <div className='max-h-40 overflow-y-auto rounded-md border border-gray-300 p-1'>
+                            {masterdaydataloading ? (
+                                <div className='py-4 text-center text-gray-500 text-sm'>Loading Days...</div>
+                            ) : filteredDayIds.length === 0 ? (
+                                <div className='py-4 text-center text-gray-500 text-sm'>No Day found</div>
+                            ) : (
+                                filteredDayIds.map((d) => {
+                                    const id = d.ttmD_Id.toString();
+                                    const selected = day_ids.includes(id);
+
+                                    return (
+                                        <div
+                                            key={d.ttmD_Id}
+                                            onClick={() => toggleDay(id)}
+                                            className={cn(
+                                                'mb-1 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm transition-all',
+                                                selected
+                                                    ? 'border-primary bg-primary/5 text-primary'
+                                                    : 'border-gray-300 hover:border-primary/40'
+                                            )}>
+                                            {selected ? (
+                                                <CheckSquare className='h-4 w-4 text-primary' />
+                                            ) : (
+                                                <Square className='h-4 w-4 text-gray-400' />
+                                            )}
+                                            <span>{d.ttmD_DayName}</span>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </div>
+
+                    {errors.dayids && <span className='text-red-500 text-sm'>{errors.dayids.message}</span>}
                 </div>
             </div>
 

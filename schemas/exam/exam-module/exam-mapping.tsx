@@ -356,6 +356,7 @@ const ExamItemSchema = z.object({
     EME_ActiveFlag: z.boolean().optional()
 });
 
+// biome-ignore lint/correctness/noUnusedVariables: <explanation>
 const YearlyCategoryExamSubjectSchema = z.object({
     EYCES_Id: z.number().int().nonnegative().optional(),
     EYCE_Id: z.number().int().nonnegative().optional(),
@@ -666,6 +667,8 @@ export const examMarksProcessConditionSchema = {
     addOrUpdate: z
         .object({
             mI_Id: z.number().min(1).default(30),
+            eyC_Id: z.number().min(1, { message: 'Mapping is required' }),
+            eycE_Id: z.number().min(1, { message: 'Mapping is required' }),
 
             asmaY_Id: z.number().min(1, { message: 'Academic Year is required' }),
 

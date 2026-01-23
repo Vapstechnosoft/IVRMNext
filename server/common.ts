@@ -371,6 +371,60 @@ export async function getUserAccessibleModules() {
                                             description: 'PreAdmission Month End Report'
                                         }
                                     ]
+                                },
+                                {
+                                    id: 6,
+                                    name: 'Attendance Entry',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Entry Type',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/attendance-entry/attendance_entry_type',
+                                            title: 'Attendance Entry Type',
+                                            description: 'Manage attendance entry types'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Login Privileges',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/attendance-entry/login-privileges',
+                                            title: 'Login Privileges',
+                                            description: 'Manage attendance login privileges'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Student Attendance',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/attendance-entry/student-attendance',
+                                            title: 'Student Attendance',
+                                            description: 'Enter student attendance'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 7,
+                                    name: 'Student TC',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Apply TC',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/student-transfer-certificate/apply',
+                                            title: 'Apply TC',
+                                            description: 'Apply for Student Transfer Certificate'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Cancel TC',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/student-transfer-certificate/cancel',
+                                            title: 'Cancel TC',
+                                            description: 'Cancel Student Transfer Certificate'
+                                        }
+                                    ]
                                 }
                             ]
                         },
@@ -389,8 +443,8 @@ export async function getUserAccessibleModules() {
                                             name: 'Admission Form',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/admission-form',
-                                            title: 'Master Class',
-                                            description: 'Manage Master Class Details'
+                                            title: 'Admission Form',
+                                            description: 'Apply For Admission'
                                         }
                                     ]
                                 },
@@ -509,6 +563,193 @@ export async function getUserAccessibleModules() {
                                 }
                             ]
                         }
+                        // ,
+                        // {
+                        //     id: 3,
+                        //     name: 'Upload',
+                        //     icon: 'Upload',
+                        //     sub_menu: [
+                        //         {
+                        //             id: 1,
+                        //             name: 'Transactions',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 221,
+                        //                     name: 'Upload ClassWork',
+                        //                     icon: 'BookOpen',
+                        //                     url: '/upload/transactions/ivrm-classwork',
+                        //                     title: 'Upload ClassWork',
+                        //                     description: 'Manage ClassWork'
+                        //                 },
+                        //                 {
+                        //                     id: 222,
+                        //                     name: 'Verify Class Work',
+                        //                     icon: 'BookOpen',
+                        //                     url: '/upload/transactions/verify-classwork',
+                        //                     title: 'Verify Class Work',
+                        //                     description: 'Verify and Enter Class Work Marks'
+                        //                 },
+                        //                 {
+                        //                     id: 223,
+                        //                     name: 'IVRM HomeWork',
+                        //                     icon: 'BookOpen',
+                        //                     url: '/upload/transactions/ivrm-homework',
+                        //                     title: 'Upload HomeWork',
+                        //                     description: 'Manage IVRM HomeWork'
+                        //                 },
+                        //                 {
+                        //                     id: 224,
+                        //                     name: 'HomeWork Marks Update',
+                        //                     icon: 'BookOpen',
+                        //                     url: '/upload/transactions/homework-marks-update',
+                        //                     title: 'Verify HomeWork',
+                        //                     description: 'Verify HomeWork Marks'
+                        //                 }
+                        //             ]
+                        //         },
+                        //         {
+                        //             id: 2,
+                        //             name: 'Reports',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'ClassWork Upload Report',
+                        //                     icon: 'FileText',
+                        //                     url: '/upload/reports/classwork-upload-report',
+                        //                     title: 'ClassWork Upload Report',
+                        //                     description: 'ClassWork Upload Report Details'
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'HomeWork Upload Report',
+                        //                     icon: 'FileText',
+                        //                     url: '/upload/reports/homework-upload-report',
+                        //                     title: 'HomeWork Upload Report',
+                        //                     description: 'HomeWork Upload Report Details'
+                        //                 },
+                        //                 {
+                        //                     id: 3,
+                        //                     name: 'NoticeBoard Report',
+                        //                     icon: 'FileText',
+                        //                     url: '/upload/reports/noticeboard-report',
+                        //                     title: 'NoticeBoard Report',
+                        //                     description: 'NoticeBoard Report Details'
+                        //                 },
+                        //                 {
+                        //                     id: 4,
+                        //                     name: 'COE Report',
+                        //                     icon: 'FileText',
+                        //                     url: '/upload/reports/coereport',
+                        //                     title: 'COE Report',
+                        //                     description: 'COE Report Details'
+                        //                 }
+                        //             ]
+                        //         }
+                        //     ]
+                        // },
+                        // {
+                        //     id: 4,
+                        //     name: 'Alumni Module',
+                        //     icon: 'BookOpen',
+                        //     sub_menu: [
+                        //         {
+                        //             id: 1,
+                        //             name: 'Transactions',
+                        //             icon: 'Database',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Alumni NoticeBoard',
+                        //                     icon: 'Announcement',
+                        //                     url: '/alumni/alumni-module/transactions/alumni-noticeboard',
+                        //                     title: 'Alumni NoticeBoard',
+                        //                     description: 'Manage Alumni NoticeBoard Details'
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Alumni Gallery',
+                        //                     icon: 'Image',
+                        //                     url: '/alumni/alumni-module/transactions/alumni-gallery',
+                        //                     title: 'Alumni Gallery',
+                        //                     description: 'Manage Alumni Gallery Details'
+                        //                 },
+                        //                 {
+                        //                     id: 3,
+                        //                     name: 'Alumni Interactions',
+                        //                     icon: 'MessageSquare',
+                        //                     url: '/alumni/alumni-module/transactions/alumni-interactions',
+                        //                     title: 'Alumni Interactions',
+                        //                     description: 'Manage Alumni Interaction Details'
+                        //                 },
+                        //                 {
+                        //                     id: 4,
+                        //                     name: 'Alumni Friend Request',
+                        //                     icon: 'UserPlus',
+                        //                     url: '/alumni/alumni-module/transactions/alumni-friend-request',
+                        //                     title: 'Alumni Friend Request',
+                        //                     description: 'Manage Alumni Friend Request Details'
+                        //                 },
+                        //                 {
+                        //                     id: 5,
+                        //                     name: 'Alumni Friend Request Accept',
+                        //                     icon: 'UserPlus',
+                        //                     url: '/alumni/alumni-module/transactions/alumni-friend-request-accept',
+                        //                     title: 'Alumni Friend Request Accept',
+                        //                     description: 'Manage Alumni Friend Request Accept Details'
+                        //                 },
+                        //                 {
+                        //                     id: 6,
+                        //                     name: 'Alumni Donation',
+                        //                     icon: 'HeartHandshake',
+                        //                     url: '/alumni/alumni-module/transactions/alumni-donation',
+                        //                     title: 'Alumni Donation',
+                        //                     description: 'Manage Alumni Donation Details'
+                        //                 },
+                        //                 {
+                        //                     id: 7,
+                        //                     name: 'Alumni Letters',
+                        //                     icon: 'MailOpen',
+                        //                     url: '/alumni/alumni-module/transactions/alumni-letters',
+                        //                     title: 'Alumni Letters',
+                        //                     description: 'Generate Alumni Letters'
+                        //                 },
+                        //                 {
+                        //                     id: 8,
+                        //                     name: 'CLG Alumni Approval',
+                        //                     icon: 'UserCheck',
+                        //                     url: '/alumni/alumni-module/transactions/clg-alumni-approval',
+                        //                     title: 'CLG Alumni Approval',
+                        //                     description: 'Approve College Alumni Registrations'
+                        //                 },
+                        //                 {
+                        //                     id: 9,
+                        //                     name: 'CLG Student Search',
+                        //                     icon: 'Search',
+                        //                     url: '/alumni/alumni-module/transactions/clg-alumni-student-search',
+                        //                     title: 'CLG Student Search',
+                        //                     description: 'Search College Alumni Students'
+                        //                 }
+                        //             ]
+                        //         },
+                        //         {
+                        //             id: 2,
+                        //             name: 'Reports',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Alumni Search',
+                        //                     icon: 'BookOpen',
+                        //                     url: '/alumni/alumni-module/reports/alumni-search',
+                        //                     title: 'Alumni Search',
+                        //                     description: 'Dynamic Alumni Search Report'
+                        //                 }
+                        //             ]
+                        //         }
+                        //     ]
+                        // }
                     ]
                 },
                 {
@@ -575,11 +816,12 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 26,
-                                            name: 'Master Fee Concession',
+                                            // name: 'Master Fee Concession',
+                                            name: 'Concession Category',
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/masterfeeconcession',
-                                            title: 'Fee Master Concession',
-                                            description: 'Manage Master Fee Concession Details'
+                                            title: 'Concession Category',
+                                            description: 'Manage Concession Category Details'
                                         },
 
                                         {
@@ -1414,22 +1656,22 @@ export async function getUserAccessibleModules() {
                                             title: 'Toppers List Report',
                                             description: 'View Toppers List Details'
                                         },
-                                        // {
-                                        //     id: 80,
-                                        //     name: 'Exam Login Privileges Report',
-                                        //     icon: 'BookOpen',
-                                        //     url: '/Exam/exam-module/reports/exam-login-privileges-report',
-                                        //     title: 'Exam Login Privileges Report',
-                                        //     description: 'View Exam Login Privileges Details'
-                                        // },
-                                        // {
-                                        //     id: 81,
-                                        //     name: 'Marks Entry Report',
-                                        //     icon: 'BookOpen',
-                                        //     url: '/Exam/exam-module/reports/marks-entry-report',
-                                        //     title: 'Marks Entry Report',
-                                        //     description: 'View Marks Entry Report Details'
-                                        // },
+                                        {
+                                            id: 80,
+                                            name: 'Exam Login Privileges Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/exam-login-privileges-report',
+                                            title: 'Exam Login Privileges Report',
+                                            description: 'View Exam Login Privileges Details'
+                                        },
+                                        {
+                                            id: 81,
+                                            name: 'Marks Entry Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/marks-entry-report',
+                                            title: 'Marks Entry Report',
+                                            description: 'View Marks Entry Report Details'
+                                        },
                                         {
                                             id: 82,
                                             name: 'Tabulation Report',
@@ -2476,7 +2718,7 @@ export async function getUserAccessibleModules() {
                         // }
                     ]
                 },
-                 
+
                 {
                     id: 5,
                     name: 'IFrame',
@@ -2507,6 +2749,215 @@ export async function getUserAccessibleModules() {
                                             url: '/iframe/question-generator',
                                             title: 'IFrame',
                                             description: 'Manage Question Generator Details'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 12,
+                    name: 'Alumni',
+                    icon: 'Users',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Alumni Module',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Transactions',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Alumni NoticeBoard',
+                                            icon: 'Announcement',
+                                            url: '/alumni/alumni-module/transactions/alumni-noticeboard',
+                                            title: 'Alumni NoticeBoard',
+                                            description: 'Manage Alumni NoticeBoard Details'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Alumni Gallery',
+                                            icon: 'Image',
+                                            url: '/alumni/alumni-module/transactions/alumni-gallery',
+                                            title: 'Alumni Gallery',
+                                            description: 'Manage Alumni Gallery Details'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Alumni Interactions',
+                                            icon: 'MessageSquare',
+                                            url: '/alumni/alumni-module/transactions/alumni-interactions',
+                                            title: 'Alumni Interactions',
+                                            description: 'Manage Alumni Interaction Details'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Alumni Friend Request',
+                                            icon: 'UserPlus',
+                                            url: '/alumni/alumni-module/transactions/alumni-friend-request',
+                                            title: 'Alumni Friend Request',
+                                            description: 'Manage Alumni Friend Request Details'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Alumni Friend Request Accept',
+                                            icon: 'UserPlus',
+                                            url: '/alumni/alumni-module/transactions/alumni-friend-request-accept',
+                                            title: 'Alumni Friend Request Accept',
+                                            description: 'Manage Alumni Friend Request Accept Details'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Alumni Donation',
+                                            icon: 'HeartHandshake',
+                                            url: '/alumni/alumni-module/transactions/alumni-donation',
+                                            title: 'Alumni Donation',
+                                            description: 'Manage Alumni Donation Details'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Alumni Letters',
+                                            icon: 'MailOpen',
+                                            url: '/alumni/alumni-module/transactions/alumni-letters',
+                                            title: 'Alumni Letters',
+                                            description: 'Generate Alumni Letters'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'CLG Alumni Approval',
+                                            icon: 'UserCheck',
+                                            url: '/alumni/alumni-module/transactions/clg-alumni-approval',
+                                            title: 'CLG Alumni Approval',
+                                            description: 'Approve College Alumni Registrations'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'CLG Student Search',
+                                            icon: 'Search',
+                                            url: '/alumni/alumni-module/transactions/clg-alumni-student-search',
+                                            title: 'CLG Student Search',
+                                            description: 'Search College Alumni Students'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Reports',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Alumni Search',
+                                            icon: 'BookOpen',
+                                            url: '/alumni/alumni-module/reports/alumni-search',
+                                            title: 'Alumni Search',
+                                            description: 'Dynamic Alumni Search Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 14,
+                    name: 'Upload',
+                    icon: 'Upload',
+                    menu: [
+                        {
+                            id: 3,
+                            name: 'Upload Module',
+                            icon: 'Upload',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Transactions',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 221,
+                                            name: 'Upload ClassWork',
+                                            icon: 'BookOpen',
+                                            url: '/upload/transactions/ivrm-classwork',
+                                            title: 'Upload ClassWork',
+                                            description: 'Manage ClassWork'
+                                        },
+                                        {
+                                            id: 222,
+                                            name: 'Verify Class Work',
+                                            icon: 'BookOpen',
+                                            url: '/upload/transactions/verify-classwork',
+                                            title: 'Verify Class Work',
+                                            description: 'Verify and Enter Class Work Marks'
+                                        },
+                                        {
+                                            id: 223,
+                                            name: 'IVRM HomeWork',
+                                            icon: 'BookOpen',
+                                            url: '/upload/transactions/ivrm-homework',
+                                            title: 'Upload HomeWork',
+                                            description: 'Manage IVRM HomeWork'
+                                        },
+                                        {
+                                            id: 224,
+                                            name: 'HomeWork Marks Update',
+                                            icon: 'BookOpen',
+                                            url: '/upload/transactions/homework-marks-update',
+                                            title: 'Verify HomeWork',
+                                            description: 'Verify HomeWork Marks'
+                                        },
+
+                                        {
+                                            id: 225,
+                                            name: 'Notice Board',
+                                            icon: 'BookOpen',
+                                            url: '/upload/transactions/notice-board',
+                                            title: 'Upload Notice Board',
+                                            description: 'Upload Notice Board'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Reports',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'ClassWork Upload Report',
+                                            icon: 'FileText',
+                                            url: '/upload/reports/classwork-upload-report',
+                                            title: 'ClassWork Upload Report',
+                                            description: 'ClassWork Upload Report Details'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'HomeWork Upload Report',
+                                            icon: 'FileText',
+                                            url: '/upload/reports/homework-upload-report',
+                                            title: 'HomeWork Upload Report',
+                                            description: 'HomeWork Upload Report Details'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'NoticeBoard Report',
+                                            icon: 'FileText',
+                                            url: '/upload/reports/noticeboard-report',
+                                            title: 'NoticeBoard Report',
+                                            description: 'NoticeBoard Report Details'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'COE Report',
+                                            icon: 'FileText',
+                                            url: '/upload/reports/coereport',
+                                            title: 'COE Report',
+                                            description: 'COE Report Details'
                                         }
                                     ]
                                 }
@@ -2616,14 +3067,6 @@ export async function getUserAccessibleModules() {
                                             title: 'Master Period',
                                             description: 'Manage Master Period Details'
                                         },
-                                        {
-                                            id: 12,
-                                            name: 'Master Period Class',
-                                            icon: 'Clock',
-                                            url: '/timetable/masters/masterperiodclass',
-                                            title: 'Master Period Class',
-                                            description: 'Manage Master Period Class Details'
-                                        },
 
                                         {
                                             id: 10,
@@ -2640,6 +3083,14 @@ export async function getUserAccessibleModules() {
                                             url: '/timetable/masters/periodallocationmasterperiod',
                                             title: 'Period Allocation Master Period',
                                             description: 'Manage Period Allocation Master Period Details'
+                                        },
+                                        {
+                                            id: 12,
+                                            name: 'Master Period Class',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterperiodclass',
+                                            title: 'Master Period Class',
+                                            description: 'Manage Master Period Class Details'
                                         },
 
                                         {
@@ -3013,7 +3464,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                },             
+                },
                 {
                     id: 8,
                     name: 'Hostel Management',
@@ -3108,15 +3559,656 @@ export async function getUserAccessibleModules() {
                                             url: '/hostel/hostel-management/masters/room-tariff',
                                             title: 'Room Tariff',
                                             description: 'Manage Room Tariffs'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 9,
+                    name: 'Student Portal',
+                    icon: 'Users',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Enrolled Students',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Enrolled Students',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 0,
+                                            name: 'Dashboard',
+                                            icon: 'LayoutDashboard',
+                                            url: '/StudentPortal/student-dashboard',
+                                            title: 'StudentDashboard',
+                                            description: 'Main Dashboard'
                                         },
+                                        {
+                                            id: 1,
+                                            name: 'Online Transfer Certificate',
+                                            icon: 'FileText',
+                                            url: '/StudentPortal/student-dashboard/EnrolledStudents/Transaction/OnlineTransferCertificate',
+                                            title: 'Online Transfer Certificate',
+                                            description: 'Apply for Transfer Certificate'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
 
+                        {
+                            id: 2,
+                            name: 'Admission',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 2,
+                                    name: 'Admission',
+                                    icon: 'Database',
+                                    pages: [
+                                        // {
+                                        //     id: 40001,
+                                        //     name: 'Attendance Details',
+                                        //     icon: 'ClipboardList',
+                                        //     url: '/StudentPortal/student-dashboard/EnrolledStudents/Transaction/AttendanceDetails',
+                                        //     title: 'Attendance Details'
+                                        // },
+                                        {
+                                            id: 40001,
+                                            name: 'Attendance Details',
+                                            icon: 'ClipboardList',
+                                            url: '/StudentPortal/masters/attendance-details',
+                                            title: 'Attendance Details'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+
+                        {
+                            id: 3,
+                            name: 'Interaction',
+                            icon: 'MessageSquare',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Interaction',
+                                    icon: 'MessageSquare',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Interactions',
+                                            icon: 'MessageSquare',
+                                            url: '/StudentPortal/student-dashboard/Interaction/IVRM_Interaction/Interaction',
+                                            title: 'Interactions',
+                                            description: 'Interact with Staff and Students'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            id: 4,
+                            name: 'Exam',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Exam',
+                                    icon: 'BookOpen',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Cumulative Subject',
+                                            icon: 'BarChart3',
+                                            url: '/StudentPortal/student-dashboard/Exam/CumulativeSubject',
+                                            title: 'Cumulative Subject',
+                                            description: 'View Cumulative Subject Performance'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            id: 5,
+                            name: 'Fees',
+                            icon: 'Banknote',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Transaction',
+                                    icon: 'CreditCard',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Fee Details',
+                                            icon: 'FileText',
+                                            url: '/StudentPortal/student-dashboard/Fees/FeeDetails',
+                                            title: 'Fee Details',
+                                            description: 'View Fee Details'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Fee Online Payment',
+                                            icon: 'CreditCard',
+                                            url: '/StudentPortal/student-dashboard/Fees/FeeOnlinePayment',
+                                            title: 'Fee Online Payment',
+                                            description: 'Pay Fees Online'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'CumulativeFeeAnalysis',
+                                            icon: 'CreditCard',
+                                            url: '/StudentPortal/masters/cumulative-fee-analysis',
+                                            title: 'Fee Online Payment',
+                                            description: 'Pay Fees Online'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Reports',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Portal Fee Receipt',
+                                            icon: 'FileText',
+                                            url: '/StudentPortal/student-dashboard/Fees/Reports/PortalFeeReceipt',
+                                            title: 'Portal Fee Receipt',
+                                            description: 'View and Download Fee Receipts'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            id: 6,
+                            name: 'COE',
+                            icon: 'Calendar',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'COE',
+                                    icon: 'Calendar',
+                                    pages: [
+                                        // {
+                                        //     id: 1,
+                                        //     name: 'Calendar of Events',
+                                        //     icon: 'Calendar',
+                                        //     url: '/StudentPortal/student-dashboard/COE/COE',
+                                        //     title: 'Calendar of Events',
+                                        //     description: 'View Calendar of Events'
+                                        // },
+                                        {
+                                            id: 1,
+                                            name: 'Calendar of Events',
+                                            icon: 'Calendar',
+                                            url: '/StudentPortal/coe/',
+                                            title: 'Calendar of Events',
+                                            description: 'View Calendar of Events'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            id: 7,
+                            name: 'FEEDBACK',
+                            icon: 'Calendar',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'COE',
+                                    icon: 'Calendar',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Feedback College Parent Transaction',
+                                            icon: 'MessageSquare',
+                                            url: '/StudentPortal/student-dashboard/Feedback/Transaction/FeedbackCollegeParentTransaction',
+                                            title: 'Feedback College Parent Transaction',
+                                            description: 'Provide Feedback'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Student Feedback',
+                                            icon: 'MessageSquare',
+                                            url: '/StudentPortal/feedback/studentfeedback',
+                                            title: 'Student Feedback Details',
+                                            description: 'Provide Feedback'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 10,
+                    name: 'Inventory Management',
+                    icon: 'Users',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Inventory Module',
+                            icon: 'Users',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Masters',
+                                    icon: 'Users',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Tax',
+                                            icon: 'Users',
+                                            url: '/inventory/inventory-module/masters/inv-master-tax',
+                                            title: 'Inventory Master Tax',
+                                            description: 'Manage Inventory Master Tax'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Store',
+                                            icon: 'Users',
+                                            url: '/inventory/inventory-module/masters/inv-master-store',
+                                            title: 'Inventory Master Store',
+                                            description: 'Manage Inventory Master Store'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Supplier',
+                                            icon: 'Users',
+                                            url: '/inventory/inventory-module/masters/inv-master-supplier',
+                                            title: 'Inventory Master Supplier',
+                                            description: 'Manage Inventory Master Supplier'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Group',
+                                            icon: 'Users',
+                                            url: '/inventory/inventory-module/masters/inv-master-group',
+                                            title: 'Inventory Master Group',
+                                            description: 'Manage Inventory Group, User Group & Item Group'
+                                        },
+                                        {
+                                            id: 1105,
+                                            name: 'Master UOM',
+                                            icon: 'Users',
+                                            url: '/inventory/inventory-module/masters/inv-master-uom',
+                                            title: 'Inventory Master UOM',
+                                            description: 'Manage Unit of Measurement Details'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Item Store Mapping',
+                                            icon: 'Users',
+                                            url: '/inventory/inventory-module/masters/inv-item-store-mapping',
+                                            title: 'Item Store Mapping',
+                                            description: 'Manage Item Store Mapping Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Transactions',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'GRN',
+                                            icon: 'FileText',
+                                            url: '/inventory/inventory-module/transactions/inv-t-grn',
+                                            title: 'Inventory GRN',
+                                            description: 'Manage Inventory Goods Receipt Note'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Sales',
+                                            icon: 'FileText',
+                                            url: '/inventory/inventory-module/transactions/inv-t-sales',
+                                            title: 'Inventory Sales',
+                                            description: 'Manage Inventory Sales'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Item Consumption',
+                                            icon: 'FileText',
+                                            url: '/inventory/inventory-module/transactions/inv-t-item-consumption',
+                                            title: 'Item Consumption',
+                                            description: 'Manage Item Consumption'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Opening Balance',
+                                            icon: 'FileText',
+                                            url: '/inventory/inventory-module/transactions/inv-opening-balance',
+                                            title: 'Opening Balance',
+                                            description: 'Manage Inventory Opening Balance'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Reports',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'GRN Report',
+                                            icon: 'FileText',
+                                            url: '/inventory/inventory-module/reports/inv-r-grn',
+                                            title: 'GRN Report',
+                                            description: 'Generate Goods Receipt Note Reports'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Sales Report',
+                                            icon: 'FileText',
+                                            url: '/inventory/inventory-module/reports/inv-r-sales',
+                                            title: 'Sales Report',
+                                            description: 'Generate Sales Reports'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Stock Report',
+                                            icon: 'FileText',
+                                            url: '/inventory/inventory-module/reports/inv-r-stock',
+                                            title: 'Stock Report',
+                                            description: 'Generate Inventory Stock Reports'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Item Consumption Report',
+                                            icon: 'FileText',
+                                            url: '/inventory/inventory-module/reports/inv-r-item-consumption',
+                                            title: 'Item Consumption Report',
+                                            description: 'Generate Item Consumption Reports'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+
+                {
+                    id: 11,
+                    name: 'Sports Management',
+                    icon: 'Trophy',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Sports Management',
+                            icon: 'Activity',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Masters',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Events',
+                                            icon: 'Trophy',
+                                            url: '/Sports/Masters/Events',
+                                            title: 'Sports Events',
+                                            description: 'Manage Sports Events'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Venue',
+                                            icon: 'Trophy',
+                                            url: '/Sports/Masters/Venue',
+                                            title: 'Sports Venue',
+                                            description: 'Manage Sports Venue'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Program Master',
+                                            icon: 'Trophy',
+                                            url: '/Sports/Masters/ProgramMaster',
+                                            title: 'Program Master',
+                                            description: 'Manage Program Master'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Master Sponsor',
+                                            icon: 'Trophy',
+                                            url: '/Sports/Masters/Sponsors',
+                                            title: 'Master Sponsor',
+                                            description: 'Manage Master Sponsor'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Master Division',
+                                            icon: 'Trophy',
+                                            url: '/Sports/Masters/Division',
+                                            title: 'Master Division',
+                                            description: 'Manage Master Division'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Competition Level',
+                                            icon: 'Trophy',
+                                            url: '/Sports/Masters/CompetitionLevel',
+                                            title: 'Master Competition Level',
+                                            description: 'Manage Master Competition Level'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Transactions',
+                                    icon: 'Activity',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Events Sponsor Mapping',
+                                            icon: 'Activity',
+                                            url: '/Sports/Transactions/EventsSponsorMapping',
+                                            title: 'Events Sponsor Mapping',
+                                            description: 'Manage Events Sponsor Mapping'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'BMI Calculation',
+                                            icon: 'Activity',
+                                            url: '/Sports/Transactions/BMICalculation',
+                                            title: 'BMI Calculation',
+                                            description: 'Manage BMI Calculation'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Student Age Calculation',
+                                            icon: 'Activity',
+                                            url: '/Sports/Transactions/StudentAgeCalculation',
+                                            title: 'Student Age Calculation',
+                                            description: 'Manage Student Age Calculation'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Sport Venuewise Participation Report',
+                                            icon: 'Activity',
+                                            url: '/Sports/Transactions/SportVenuewiseParticipationReport',
+                                            title: 'Sport Venuewise Participation Report',
+                                            description: 'Manage Sport Venuewise Participation Report'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Reports',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Student Eligible Report',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/StudentEligbleReport',
+                                            title: 'Student Eligible Report',
+                                            description: 'Student Eligible Report'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Student Age Calculation Report',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/StudentAgeCalculationReport',
+                                            title: 'Student Age Calculation Report',
+                                            description: 'Student Age Calculation Report'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'BMI Report',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/BMIReport',
+                                            title: 'BMI Report',
+                                            description: 'BMI Report'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Sport House Committee Report',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/SportHouseCommitteeReport',
+                                            title: 'Sport House Committee Report',
+                                            description: 'Sport House Committee Report'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'House Incharge Report',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/HouseInchargeReport',
+                                            title: 'House Incharge Report',
+                                            description: 'House Incharge Report'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Sport House Report',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/SportHouseReport',
+                                            title: 'Sport House Report',
+                                            description: 'Sport House Report'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Sport Student Participation Report',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/SportStudentParticipationReport',
+                                            title: 'Sport Student Participation Report',
+                                            description: 'Sport Student Participation Report'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Sport Topper List Report',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/SportTopperListReport',
+                                            title: 'Sport Topper List Report',
+                                            description: 'Sport Topper List Report'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'Sports Year End Report',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/SportsYearEndReport',
+                                            title: 'Sports Year End Report',
+                                            description: 'Sports Year End Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+
+                {
+                    id: 13,
+                    name: 'Super Admin',
+                    icon: 'Settings',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Super Admin Module',
+                            icon: 'Settings',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Master Trust',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Trust',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/masters/trust-master',
+                                            title: 'Master Trust',
+                                            description: 'Manage Master Trust Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Institution',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Institution',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/institution/master-institution',
+                                            title: 'Master Institution',
+                                            description: 'Manage Master Institution'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Institution Subscription',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/institution/institution-subscription',
+                                            title: 'Institution Subscription',
+                                            description: 'Manage Institution Subscription'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Auto Mapping',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/institution/auto-mapping',
+                                            title: 'Auto Mapping',
+                                            description: 'Manage Institution Auto Mapping'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'General Setting',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'General Setting Wizard',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/wizard',
+                                            title: 'General Setting Wizard',
+                                            description: 'General Setting Wizard'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Modules',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/module',
+                                            title: 'Modules',
+                                            description: 'Manage Master Modules'
+                                        }
                                     ]
                                 }
                             ]
                         }
                     ]
                 }
-
             ]
         };
     } else {

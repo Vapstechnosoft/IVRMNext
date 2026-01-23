@@ -4,65 +4,43 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useClassWork } from '@/hooks/upload/transactions/useClassWork';
-import type { IClassWork } from '@/schemas/upload/transactions/ivrm-classwork.schema';
-import { Loader2, Plus, X } from 'lucide-react';
-import { Suspense, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { ClassWorkUploadedList } from '@/hooks/upload/transactions/useClassWork';
+
+import type { IClassWorkDetails } from '@/types/upload/reports/classwork-upload-report';
+import { Plus, X } from 'lucide-react';
+import { use } from 'react';
 import AddClassWorkForm from './_components/add-form';
 import { classWorkColumns } from './_components/columns';
 import ToggleClassWorkForm from './_components/toggle-form';
 import UpdateClassWorkForm from './_components/update-form';
-
-export default function ClassWorkPage() {
-    return (
-        <Suspense fallback={<div className='flex h-full items-center justify-center'><Loader2 className='h-8 w-8 animate-spin' /></div>}>
-            <ClassWorkContent />
-        </Suspense>
-    );
-}
-
-function ClassWorkContent() {
-    const searchParams = useSearchParams();
-    const params = {
-        year: searchParams.get('year') || undefined,
-        class: searchParams.get('class') || undefined,
-        section: searchParams.get('section') || undefined,
-        subject: searchParams.get('subject') || undefined
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+export default function ClassWorkPage(props: {
+    searchParams: SearchParams;
+}) {
+    const searchParams = use(props.searchParams);
+    const payload = {
+        asmaY_Id: 176
     };
-
-    const { data, isLoading, error, refetchAll } = useClassWork(params);
-
+    const { data: response, isLoading, error } = ClassWorkUploadedList(payload, searchParams ?? {});
     return (
-        <FormProvider<IClassWork>>
-            <ClassWorkManager
-                data={data}
-                isLoading={isLoading}
-                error={error}
-                refetchAll={refetchAll}
-            />
+        <FormProvider<IClassWorkDetails>>
+            <ClassWorkContent data={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
 
-function ClassWorkManager({
+function ClassWorkContent({
     data,
     isLoading,
-    error,
-    refetchAll
+    error
 }: {
     data: any;
     isLoading: boolean;
     error: any;
-    refetchAll: () => void;
 }) {
-    const { openAddForm } = useFormContext<IClassWork>();
+    const { openAddForm } = useFormContext<any>();
 
-    const tableProps = {
-        data: data?.classwork || [],
-        isLoading,
-        error
-    };
+    const tableProps = useDataTableProps(data);
 
     return (
         <div className='min-h-screen'>
@@ -85,9 +63,9 @@ function ClassWorkManager({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IClassWork>
+                    <GenericDataTable<IClassWorkDetails>
                         {...tableProps}
-                        columns={classWorkColumns as any}
+                        columns={classWorkColumns}
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
@@ -99,11 +77,7 @@ function ClassWorkManager({
                 </CollapsibleSection>
 
                 {/* Forms */}
-                <FormSections
-                    onSuccess={refetchAll}
-                    yearList={data?.yearlist || []}
-                    classList={data?.classlist || []}
-                />
+                <FormSections yearList={data?.yearlist || []} classList={data?.classlist || []} onSuccess={() => {}} />
             </div>
         </div>
     );
@@ -129,7 +103,7 @@ function FormSections({
         closeToggleForm,
         addFormRef,
         editFormRef
-    } = useFormContext<IClassWork>();
+    } = useFormContext<any>();
 
     return (
         <>
@@ -153,8 +127,10 @@ function FormSections({
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                             <AddClassWorkForm
-                                onSuccess={() => { closeAddForm(); onSuccess(); }}
-                                yearList={yearList}
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    onSuccess();
+                                }}
                                 classList={classList}
                             />
                         </div>
@@ -182,9 +158,11 @@ function FormSections({
                             </Button>
                             <UpdateClassWorkForm
                                 selectedRow={selectedRow}
-                                onSuccess={() => { closeEditForm(); onSuccess(); }}
-                                yearList={yearList}
-                                classList={classList}
+                                onSuccess={() => {
+                                    closeEditForm();
+                                    onSuccess();
+                                }}
+                                classList={[]}
                             />
                         </div>
                     </CollapsibleSection>
@@ -195,7 +173,10 @@ function FormSections({
             {isToggleFormOpen && selectedRow && (
                 <ToggleClassWorkForm
                     rowData={selectedRow}
-                    onClose={() => { closeToggleForm(); onSuccess(); }}
+                    onClose={() => {
+                        closeToggleForm();
+                        onSuccess();
+                    }}
                 />
             )}
         </>

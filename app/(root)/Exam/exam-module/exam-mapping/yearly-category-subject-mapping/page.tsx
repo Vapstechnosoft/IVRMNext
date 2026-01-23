@@ -108,7 +108,7 @@ function FormSections() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add New Category-Class Mapping'
+                        title='Add New Category Subject Mapping'
                         description='Fill in the details below to create a new mapping'
                         defaultOpen={true}
                         variant='outline'

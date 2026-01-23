@@ -58,3 +58,13 @@ export async function feedefaluerreportdata(asmaY_Id: number, asmcl_Id: number) 
     const url = `/FeesCommon/section-dropdown-by-class?asmay_Id=${asmaY_Id}&asmcl_Id=${asmcl_Id}`;
     return await api.get<IFeeAuditReport[]>('fees', url);
 }
+
+export async function getfeedefaluerreport(payload: any) {
+    const url = '/FeeDefaulterReportFacade/fee-defaulter-report';
+    return await api.post<any[]>('fees', url, payload);
+}
+
+export async function mastersettinglist() {
+    const url = '/FeesCommon/master-setting-list';
+    return await api.get<any[]>('fees', url);
+}

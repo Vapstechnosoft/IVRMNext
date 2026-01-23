@@ -12,7 +12,7 @@ import {
     useMasterOnlinePaymentHeadGroupHeadName,
     useMasterOnlinePaymentHeadGroupInstallment,
     useMasterOnlinePaymentHeadGroupSubMerchant,
-    useMasterTerms
+    useMasterTermsDropdowndataOnlinegroupheadmapping
 } from '@/hooks/fees/useMasters';
 import { masterOnlinePaymentHeadGroupSchema } from '@/schemas/fees/masters';
 import { GetInstallmentMasterDropdown, addMasterOnlinePaymentHeadGroup } from '@/server/fees/masters/online_payment_head_group';
@@ -82,7 +82,7 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
     const { data: masterInstallment, isLoading: masterInstallmentLoading } = useMasterOnlinePaymentHeadGroupInstallment(
         academicYear ?? undefined
     );
-    const { data: masterTerms, isLoading: masterTermsLoading } = useMasterTerms();
+    const { data: masterTerms, isLoading: masterTermsLoading } = useMasterTermsDropdowndataOnlinegroupheadmapping();
 
     // useEffect(() => {
     //     if ( academicYearData?.data?.length && academicYear === null) {

@@ -6,6 +6,7 @@ import type {
     AcademicYearDropDownTT,
     CategoryDropDownTT,
     ClassDropDownDataTT,
+    DaysDropDownDataTT,
     IMasterDayClassWise
 } from '@/types/timetable/masters/masters';
 
@@ -37,5 +38,15 @@ export async function getCategoryDropDownMasterDayClasswise() {
 
 export async function getClassDropDownMasterDayClasswise() {
     const url = '/TimeTableCommon/GetClassData';
+    return await api.get<ClassDropDownDataTT[]>('timetable', url);
+}
+
+export async function getDayDropDownMasterDayClasswise() {
+    const url = '/TimeTableCommon/GetDayDetails';
+    return await api.get<DaysDropDownDataTT[]>('timetable', url);
+}
+
+export async function getClassDropDownMasterDayClasswiseOnchnageofCatandyr(asmay_id: number, TTMC_Id: number) {
+    const url = `/TimeTableCommon/GetClassData?asmay_id=${asmay_id}&TTMC_Id=${TTMC_Id}`;
     return await api.get<ClassDropDownDataTT[]>('timetable', url);
 }

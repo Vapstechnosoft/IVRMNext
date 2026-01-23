@@ -38,6 +38,7 @@ export async function getFeePrevilegeList(searchParams?: ApiSearchparams) {
 
 export async function getHeadDropDown(asmay_Id: number, fmg_Id: number) {
     const url = `/FeePrevilege/heads-by-group-and-academic-year?asmay_Id=${asmay_Id}&fmg_Id=${fmg_Id}`;
+    console.info('url', url);
     return await api.get<IMasterGetHeadDropdown[]>('fees', url);
 }
 

@@ -1,20 +1,25 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { DateField } from '@/components/ui/dateField';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
+import { DateField } from '@/components/ui/dateField';
 import { FormError, Label } from '@/components/ui/extension/field';
+
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { getInitialData } from '@/server/upload/reports/classwork-upload-report';
-import type { ApiSearchparams } from '@/types';
 
+import { useClassDropdownDropdown } from '@/hooks/fees/useReports';
+import type { ApiSearchparams } from '@/types';
+import type { IUploadClassDropdownList } from '@/types/upload/reports/classwork-upload-report';
+import { toast } from 'sonner';
+
+/* -------------------- Schema -------------------- */
 const formSchema = z.object({
-    fromdate: z.string({ required_error: 'From date is required' }).nonempty('From date is required'),
-    todate: z.string({ required_error: 'To date is required' }).nonempty('To date is required'),
-    classarray: z.array(z.string()).min(1, 'Please select at least one class'),
+    fromdate: z.string().nonempty('From date is required'),
+    todate: z.string().nonempty('To date is required'),
+    classarray: z.array(z.string()).min(1, 'Please select at least one class')
 });
 
 type FormFields = z.infer<typeof formSchema>;
@@ -26,46 +31,61 @@ export default function ClassWorkReportForm({
     onSuccess: (payload: any, searchParams: ApiSearchparams) => void;
     apiSearchParams: ApiSearchparams;
 }) {
+    /* -------------------- Form -------------------- */
     const methods = useForm<FormFields>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            classarray: [],
             fromdate: '',
             todate: '',
-        },
+            classarray: []
+        }
     });
 
     const { control, handleSubmit, reset, formState } = methods;
     const { isSubmitting } = formState;
 
-    const [classList, setClassList] = useState<{ label: string; value: string }[]>([]);
+    /* -------------------- API -------------------- */
+    const {data: classData,isLoading: loadingClasses, error} = useClassDropdownDropdown();
 
+    /* -------------------- State -------------------- */
+    const [classList, setClassList] = useState<
+        { label: string; value: string }[]
+    >([]);
+
+    /* -------------------- Map API → Dropdown -------------------- */
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const res = await getInitialData(2);
-                if (res.data && res.data.classlist) {
-                    setClassList(
-                        res.data.classlist.map((c: any) => ({
-                            label: c.asmcL_ClassName,
-                            value: String(c.asmcL_Id),
-                        }))
-                    );
-                }
-            } catch (error) {
-                console.error('Error fetching initial data:', error);
-            }
-        };
-        fetchData();
-    }, []);
+        if (error) {
+            toast.error(error?.message || 'Failed to load classes');
+            setClassList([]);
+            return;
+        }
 
-    const onSubmit = async (values: FormFields) => {
+        if (Array.isArray(classData?.data)) {
+            setClassList(
+                classData.data.map((cls: IUploadClassDropdownList) => ({
+                    label: cls.asmcL_ClassName,
+                    value: String(cls.asmcL_Id)
+                }))
+            );
+        }
+    }, [classData, error]);
+
+    /* -------------------- Submit -------------------- */
+    const onSubmit = (values: FormFields) => {
+
+        toast.success("Report Fetched Successfully!!");
         const payload = {
             fromdate: values.fromdate,
             todate: values.todate,
-            classarray: values.classarray.map((id) => ({ ASMCL_Id: Number(id) })),
+            classarray: values.classarray.map((id) => ({
+                ASMCL_Id: Number(id)
+            }))
         };
-        onSuccess(payload, apiSearchParams || { page: 1, page_size: 10 });
+
+        
+
+
+        // onSuccess(payload, apiSearchParams || { page: 1, page_size: 10 });
     };
 
     const handleCancel = () => {
@@ -73,61 +93,84 @@ export default function ClassWorkReportForm({
         onSuccess(null, apiSearchParams || { page: 1, page_size: 10 });
     };
 
+    /* -------------------- UI -------------------- */
     return (
         <FormProvider {...methods}>
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
-                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    {/* From Date */}
                     <Controller
                         control={control}
-                        name='fromdate'
+                        name="fromdate"
                         render={({ field, fieldState }) => (
                             <DateField
                                 field={field}
                                 fieldState={fieldState}
-                                label='From Date'
-                                placeholder='Select From Date'
+                                label="From Date"
+                                placeholder="Select From Date"
                             />
                         )}
                     />
 
+                    {/* To Date */}
                     <Controller
                         control={control}
-                        name='todate'
+                        name="todate"
                         render={({ field, fieldState }) => (
                             <DateField
                                 field={field}
                                 fieldState={fieldState}
-                                label='To Date'
-                                placeholder='Select To Date'
+                                label="To Date"
+                                placeholder="Select To Date"
                             />
                         )}
                     />
 
+                    {/* Class Dropdown */}
                     <Controller
                         control={control}
-                        name='classarray'
+                        name="classarray"
                         render={({ field, fieldState }) => (
-                            <div className='flex flex-col gap-2 mt-5'>
-                                <Label>Class Name <span className='text-red-500'>*</span></Label>
+                            <div className="mt-5 flex flex-col gap-2">
+                                <Label>
+                                    Class Name <span className="text-red-500">*</span>
+                                </Label>
+
                                 <CustomMultiSelectBox
                                     options={classList}
-                                    onChange={(selected) => field.onChange(selected)}
                                     value={field.value}
-                                    placeholder='Select Classes'
-                                    height='200px'
+                                    onChange={field.onChange}
+                                    placeholder={
+                                        loadingClasses
+                                            ? 'Loading classes...'
+                                            : 'Select Classes'
+                                    }
+                                    height="200px"
                                     isSearchRequired
+                                    disabled={loadingClasses}
                                 />
-                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+
+                                {fieldState.error && (
+                                    <FormError>
+                                        {fieldState.error.message}
+                                    </FormError>
+                                )}
                             </div>
                         )}
                     />
                 </div>
 
-                <div className='flex justify-center space-x-2'>
-                    <Button type='submit' disabled={isSubmitting}>
+                {/* Buttons */}
+                <div className="flex justify-center space-x-2">
+                    <Button type="submit" disabled={isSubmitting}>
                         {isSubmitting ? 'Generating...' : 'Report'}
                     </Button>
-                    <Button type='button' variant='destructive' onClick={handleCancel}>
+
+                    <Button
+                        type="button"
+                        variant="destructive"
+                        onClick={handleCancel}
+                    >
                         Cancel
                     </Button>
                 </div>
@@ -135,5 +178,3 @@ export default function ClassWorkReportForm({
         </FormProvider>
     );
 }
-
-

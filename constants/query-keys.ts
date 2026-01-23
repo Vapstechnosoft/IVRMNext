@@ -3,6 +3,18 @@ export const QUERY_KEYS = {
     USER_NOTIFICATION: 'user_notification'
 };
 
+export const INVENTORY_QUERY_KEYS = {
+    INV_MASTER_STORE: 'INV_MASTER_STORE',
+    INV_MASTER_SUPPLIER: 'INV_MASTER_SUPPLIER',
+    INV_MASTER_TAX: 'INV_MASTER_TAX',
+    INV_MASTER_GROUP: 'INV_MASTER_GROUP'
+};
+
+export const SUPER_ADMIN_QUERY_KEYS = {
+    SUPER_ADMIN_MASTER: 'super_admin_master',
+    SUPER_ADMIN_MASTER_ORDER: 'super_admin_master_order'
+};
+
 export const ADMISSION_QUERY_KEYS = {
     MASTER_CLASS: 'master_class',
     MASTER_CATEGORY: 'master_category',
@@ -53,11 +65,16 @@ export const ADMISSION_QUERY_KEYS = {
     ADMISSION_SECTION_DROPDOWN: 'admission_section_dropdown',
     ADMISSION_CLASS_DROPDOWN1: 'admission_class_dropdown1',
     CONCESSION_DROPDOWN_DATA: 'concession_dropdown_data',
+
+    ADMISSION_FORM_GET_ALL: 'admission_form_get_all',
+    STUDENT_ADMISSION_FORM: 'student_admission_form',
+
     CLASS_WISE_STUDENT_REPORT: 'class_wise_student_report',
     ATTENDANCE_ABSENT_REPORT: 'attendance_absent_report',
     ATTENDANCE_REPORT: 'attendance_report',
     STUDENT_ATTENDANCE_REPORT: 'student_attendance_report',
-    DATE_OF_BIRTH_REPORT: 'date_of_birth_report'
+    DATE_OF_BIRTH_REPORT: 'date_of_birth_report',
+    STUDENT_ATTENDANCE_SEARCH: 'student_attendance_search'
 };
 
 export const PREADMISSION_QUERY_KEYS = {
@@ -114,6 +131,7 @@ export const FEES_QUERY_KEYS = {
 
     FEE_MASTER_CONCESSION: 'masterfeeconcession',
     FEE_MASTER_TERMS: 'feemasterterms',
+    FEE_MASTER_TERMS_DROPDOWN_GROUPHEADMAPPING: 'feemastertermsdropdowngroupheadmapping',
     FEE_MASTER_TERMS_HEAD: 'mastertermfeehead',
     TERM_DROP_DOWN_DATA: 'Terms_Drop_down_data',
     MASTER_HEADS_DROP_DOWN: 'masterHeadsDropdown',
@@ -126,6 +144,7 @@ export const FEES_QUERY_KEYS = {
     FEE_CATEGORY_DROPDOWN: 'fee_category_dropdown',
     FEE_GROUP_DROPDOWN: 'fee_group_dropdown',
     ACADEMIC_DROPDOWN_FEES: 'academic_dropdown_fees',
+    THIRD_PARTY_AUTORECEIPT_FLG: 'third_party_auto_receipt_flg',
     FEES_PRIVILEGE_LIST: 'fees_privilege_list',
     FEE_WAVIED_OFF: 'fee_waived_off',
     FEE_OPENING_BALANCE: 'fee_opening_balance',
@@ -198,6 +217,8 @@ export const FEES_QUERY_KEYS = {
     FEE_COMPANY_GROUPMAPPING_GROUP_DROPDOWN: 'fee_company_groupmapping_group_dropdown',
     FEE_STUDENT_UPDATE_TRANSACTION: 'fee_student_update_transaction',
     FEE_STUDENT_CURRENT_ACADEMIC_DETAILS: 'fee_student_current_academic_details',
+    MASTER_SETTING_LIST: 'master_setting_list',
+    FEE_PAYMENTGATEWAY_INSTITUTION_NAME: 'fee_paymentgateway_institution_name',
 
     FEE_DEFAULTER_REPORT: 'fee_defaulter_report',
     FEE_GROUP_DEFAULTER: 'fee_group_defaulter_report',
@@ -256,7 +277,9 @@ export const EXAM_QUERY_KEYS = {
     MASTER_EXAM_ORDERED_DROPDOWN_LIST: 'master-exam-ordered-dropdown-list',
     MASTER_EXAM_PAPER: 'master-exam-paper',
     MASTER_SUB_EXAM: 'master-sub-exam',
+    MASTER_SUB_EXAM_DROPDOWN_LIST: 'master-sub-exam-dropdown-list',
     MASTER_GRADE_EX: 'master-grade-ex',
+    MASTER_GRADE_DROPDOWN_LIST: 'master-grade-dropdown-list',
     MASTER_GRADE_DETAILS: 'master-grade-details',
     MASTER_SUBJECT_GROUP_: 'master-subject-group',
     MASTER_SUBJECT_GROUP_DROPDOWN_LIST: 'master-subject-group-dropdown-list',
@@ -486,4 +509,11 @@ export const LIBRARY_QUERY_KEYS = {
     LIBRARY_LOST_BOOK_GRID: 'library_lost_book_grid',
     LIBRARY_ACADEMIC_YEAR_DROPDOWN: 'library_academic_year_dropdown',
     LIBRARY_LOST_BOOK_LIST: 'library_lost_book_list'
+};
+export const PORTAL_QUERY_KEYS = {
+    CLASS_WORK_UPLOADED: 'class_work_uploaded',
+    HOME_WORK_UPLOADED: 'home_work_uploaded',
+
+    STUDENT_PORTAL_FEEDBACK: 'student_portal_feedback',
+    COE_LIST: 'coe_list'
 };

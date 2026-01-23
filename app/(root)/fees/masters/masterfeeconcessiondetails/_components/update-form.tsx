@@ -47,7 +47,15 @@ export default function UpdateMasterConcessionDetailsForm({
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterConcessionDetailsSchema.addOrUpdate),
-        mode: 'onChange'
+        //mode: 'onChange'
+        mode: 'onBlur', // Use onBlur for better performance
+        defaultValues: {
+            // fmcC_Id: row?.fmcC_Id ?? undefined,
+            // fmccD_PerOrAmtFlag: row?.fmccD_PerOrAmtFlag ?? undefined,
+            // fmccD_FromNoSibblings: row?.fmccD_FromNoSibblings ? Number(row.fmccD_FromNoSibblings) : undefined,
+            // fmccD_ToNoSibblings: row?.fmccD_ToNoSibblings ? Number(row.fmccD_ToNoSibblings) : undefined,
+            //fmccD_PerOrAmt: row?.fmccD_PerOrAmt ? Number(row.fmccD_PerOrAmt) : undefined
+        }
     });
 
     function OnReset() {
@@ -70,7 +78,7 @@ export default function UpdateMasterConcessionDetailsForm({
                 //fmcC_ActiveFlag: row.fmcC_ActiveFlag
             });
         }
-    }, [row, reset, setValue]);
+    }, [row, reset]);
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
@@ -91,7 +99,7 @@ export default function UpdateMasterConcessionDetailsForm({
 
             if (response.success) {
                 toast.success(response.message);
-                OnReset();
+                //OnReset();
                 onSuccess?.();
             } else {
                 toast.error(response.message);
@@ -501,31 +509,60 @@ export default function UpdateMasterConcessionDetailsForm({
                                     )}
                                 /> */}
 
-                                <Controller
+                                {/* <Controller
                                     name='fmccD_PerOrAmt'
                                     control={control}
-                                    rules={{ required: 'Percent/Amount is required' }}
+                                    //rules={{ required: 'Percent/Amount is required' }}
                                     render={({ field }) => (
                                         <div className='flex flex-col'>
                                             <InputNumber
                                                 id='fmccD_PerOrAmt'
-                                                value={field.value ?? ''}
+                                               value={field.value ?? null}
+                                                // onChange={(value: number | string) => {
+                                                //     // Allow empty value without producing NaN
+                                                //     if (value === '' || value === null || value === undefined) {
+                                                //         field.onChange(undefined);
+                                                //         return;
+                                                //     }
+
+                                                //     const num = Number(value);
+
+                                                //     // Prevent NaN from entering form state
+                                                //     if (Number.isNaN(num)) return;
+
+                                                //     field.onChange(num);
+                                                // }}
                                                 onChange={(value: number | string) => {
-                                                    // Allow empty value without producing NaN
-                                                    if (value === '' || value === null || value === undefined) {
-                                                        field.onChange(undefined);
+                                                    if (value === '' || value === null) {
+                                                        field.onChange(null); // keep controlled
                                                         return;
                                                     }
 
                                                     const num = Number(value);
-
-                                                    // Prevent NaN from entering form state
-                                                    if (Number.isNaN(num)) return;
-
-                                                    field.onChange(num);
+                                                    if (!Number.isNaN(num)) {
+                                                        field.onChange(num);
+                                                    }
                                                 }}
                                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                                             />
+                                            {errors.fmccD_PerOrAmt && <FormError>{errors.fmccD_PerOrAmt.message}</FormError>}
+                                        </div>
+                                    )}
+                                /> */}
+                                <Controller
+                                    name='fmccD_PerOrAmt'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <div className='flex flex-col'>
+                                            <InputNumber
+                                                id='fmccD_PerOrAmt'
+                                                value={field.value ?? null}
+                                                onChange={(value: number | null) => {
+                                                    field.onChange(value);
+                                                }}
+                                                className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                            />
+
                                             {errors.fmccD_PerOrAmt && <FormError>{errors.fmccD_PerOrAmt.message}</FormError>}
                                         </div>
                                     )}

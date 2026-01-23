@@ -33,12 +33,12 @@ export default function NoticeBoardReportPage() {
         setIsLoading(true);
         try {
             const res = await getNoticeBoardReportData({ ...payload, ...sParams });
-            if (res.data && res.data.noticereportlist) {
-                setReportData(res.data.noticereportlist);
-            } else {
-                setReportData([]);
-                toast.info('No records found');
-            }
+            // if (res.data && res.data.noticereportlist) {
+            //     setReportData(res.data.noticereportlist);
+            // } else {
+            //     setReportData([]);
+            //     toast.info('No records found');
+            // }
         } catch (error) {
             console.error('Error fetching report:', error);
             toast.error('Failed to fetch report');
@@ -60,12 +60,12 @@ export default function NoticeBoardReportPage() {
             };
 
             const res = await viewNoticeBoardAttachmentData(payload);
-            if (res.data && res.data.attachementlist && res.data.attachementlist.length > 0) {
-                setModalAttachments(res.data.attachementlist);
-                setIsModalOpen(true);
-            } else {
-                toast.info('No attachments details found.');
-            }
+            // if (res.data && res.data.attachementlist && res.data.attachementlist.length > 0) {
+            //     setModalAttachments(res.data.attachementlist);
+            //     setIsModalOpen(true);
+            // } else {
+            //     toast.info('No attachments details found.');
+            // }
         } catch (error) {
             console.error('Error fetching attachments:', error);
             toast.error('Failed to fetch attachments');

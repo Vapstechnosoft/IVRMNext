@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
-    useMasterGrade,
+    useMasterGradeDropdownList,
     useMasterLifeSkillArea,
     useMasterLifeSkillAreaMapping,
     useMasterLifeSkills
@@ -34,15 +34,11 @@ export default function UpdateLifeSkillAreaMapping({ rowData, onSuccess }: Updat
     const [lifeSkillAreas, setLifeSkillAreas] = useState<ILifeSkillArea[]>([]);
     const [grades, setGrades] = useState<IMasterGrade[]>([]);
 
-    const {
-        data: academicYear,
-        isLoading: academicYearLoading,
-        error: academicYearError,
-    } = useAcademicYearDropdown();
+    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
     const academicYears = academicYear?.data ? academicYear.data : [];
     const { data: lifeSkillData, error: lifeSkillError } = useMasterLifeSkills();
     const { data: lifeSkillAreaData, error: areaError } = useMasterLifeSkillArea();
-    const { data: masterGradeData, error: masterGradeError } = useMasterGrade();
+    const { data: masterGradeData, error: masterGradeError } = useMasterGradeDropdownList();
 
     const methods = useForm<FormFields>({
         resolver: zodResolver(lifeSkillAreaMappingSchema.addOrUpdate),
@@ -74,15 +70,7 @@ export default function UpdateLifeSkillAreaMapping({ rowData, onSuccess }: Updat
             setGrades(gradeList);
         }
         if (masterGradeError) toast.error('Failed to load Grades');
-    }, [
-        lifeSkillData,
-        lifeSkillAreaData,
-        masterGradeData,
-        academicYearError,
-        lifeSkillError,
-        areaError,
-        masterGradeError
-    ]);
+    }, [lifeSkillData, lifeSkillAreaData, masterGradeData, academicYearError, lifeSkillError, areaError, masterGradeError]);
 
     // Reset only after dropdowns loaded
     const dropdownsReady = useMemo(
