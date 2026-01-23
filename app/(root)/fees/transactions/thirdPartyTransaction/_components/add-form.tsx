@@ -190,8 +190,8 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
                 asmaY_Id: Number(data.academicYearId),
                 fmG_Id: Number(data.groupId),
                 fmH_Id: Number(data.headId),
-                fyP_Receipt_No: '',
-
+                //fyP_Receipt_No: '',
+                fyP_Receipt_No: data.fyP_Receipt_No,
                 fyP_Bank_Name: bankName,
 
                 //fyptP_Name: data.towards, // "Name" or "Testing", depends on your field
