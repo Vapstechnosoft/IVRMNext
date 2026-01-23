@@ -11,13 +11,25 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMasterDepartments, useMasterDesignations, useMasterGroupTypes } from '@/hooks/hrms/useReports';
 import { cn } from '@/lib/utils';
-import { type EmployeeOfferLaterFields, EmployeeOfferLaterSchema } from '@/schemas/hrms/employee-category-schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Printer, RefreshCw, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { z } from 'zod';
+
+const EmployeeOfferLaterSchema = z.object({
+    groupType: z.string().min(1, 'Group Type is required'),
+    department: z.string().min(1, 'Department is required'),
+    designation: z.string().min(1, 'Designation is required'),
+    month: z.string().optional(),
+    year: z.string().optional(),
+    employee: z.string().min(1, 'Employee is required'),
+    mockLetter: z.string().min(1, 'Letter type is required')
+});
+
+type EmployeeOfferLaterFields = z.infer<typeof EmployeeOfferLaterSchema>;
 
 const mockEmployees = [
     { key: '1208', value: 'ANUSHA T' },

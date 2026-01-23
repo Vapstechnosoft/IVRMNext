@@ -8,12 +8,39 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMasterDepartments, useMasterDesignations, useMasterGroupTypes, useMasterMonths, useMasterYears } from '@/hooks/hrms/useReports';
-import { type LoanReportFormFields, LoanReportSchema } from '@/schemas/hrms/employee-category-schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Printer, RefreshCw, Search } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { z } from 'zod';
+
+// Define the form fields type
+type LoanReportFormFields = {
+    groupType: string[];
+    department: string[];
+    designation: string[];
+    reportType: 'All' | 'Individual';
+    month: string;
+    year: string;
+    employee: string;
+};
+
+// Zod schema for form validation
+export const LoanReportSchema = z
+    .object({
+        groupType: z.array(z.string()).min(1, 'Select at least one group type'),
+        department: z.array(z.string()).min(1, 'Select at least one department'),
+        designation: z.array(z.string()).min(1, 'Select at least one designation'),
+        reportType: z.enum(['All', 'Individual']),
+        month: z.string().min(1, 'Month is required').optional().or(z.literal('')),
+        year: z.string().min(1, 'Year is required').optional().or(z.literal('')),
+        employee: z.string().min(1, 'Employee is required').optional().or(z.literal(''))
+    })
+    .refine((data) => (data.reportType === 'All' && data.month && data.year) || (data.reportType === 'Individual' && data.employee), {
+        message: 'Please fill all required fields based on report type',
+        path: ['reportType']
+    });
 
 const mockEmployees = [
     { key: 'VVS015', value: 'ANUSHA T' },

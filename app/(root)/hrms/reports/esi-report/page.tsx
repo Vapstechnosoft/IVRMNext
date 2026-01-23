@@ -6,13 +6,21 @@ import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMasterDepartments, useMasterDesignations, useMasterGroupTypes, useMasterMonths, useMasterYears } from '@/hooks/hrms/useReports';
-import { type DepartmentSalaryReportFormFields, departmentSalaryReportSchema } from '@/schemas/hrms/employee-category-schemas';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RefreshCw, Search } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import type { z } from 'zod';
+import { z } from 'zod';
+
+const departmentSalaryReportSchema = z.object({
+    groupType: z.array(z.string()).min(1, 'Group Type is required'),
+    department: z.array(z.string()).min(1, 'Department is required'),
+    designation: z.array(z.string()).min(1, 'Designation is required'),
+    month: z.string().optional(),
+    year: z.string().optional()
+});
 
 type FormFields = z.infer<typeof departmentSalaryReportSchema>;
 
@@ -193,7 +201,7 @@ export default function DepartmentSalaryReportPage() {
         mode: 'onChange'
     });
 
-    const onSearch = async (data: DepartmentSalaryReportFormFields) => {
+    const onSearch = async (data: FormFields) => {
         setIsSearching(true);
         try {
             await new Promise((resolve) => setTimeout(resolve, 1000));

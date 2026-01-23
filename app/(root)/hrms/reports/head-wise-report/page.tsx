@@ -7,15 +7,26 @@ import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMasterDepartments, useMasterDesignations, useMasterGroupTypes, useMasterMonths, useMasterYears } from '@/hooks/hrms/useReports';
-import { BankCashReportSchema, type BankCashReportSchemaFormFields } from '@/schemas/hrms/employee-category-schemas';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RefreshCw, Search } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import type { z } from 'zod';
+// Define or import your Zod schema for the form fields
+import { z } from 'zod';
 
-type FormFields = z.infer<typeof BankCashReportSchema>;
+const BankCashReportSchema = z.object({
+    groupType: z.array(z.string()).min(1, 'Group Type is required'),
+    department: z.array(z.string()).min(1, 'Department is required'),
+    designation: z.array(z.string()).min(1, 'Designation is required'),
+    month: z.string().min(1, 'Month is required'),
+    year: z.string().min(1, 'Year is required'),
+    bankCash: z.string().min(1)
+});
+
+type BankCashReportSchemaFormFields = z.infer<typeof BankCashReportSchema>;
+type FormFields = BankCashReportSchemaFormFields;
 
 const mockApiResponse = {
     employeeDetails: [

@@ -10,14 +10,32 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMasterDepartments, useMasterDesignations, useMasterGroupTypes, useMasterMonths, useMasterYears } from '@/hooks/hrms/useReports';
 import { cn } from '@/lib/utils';
-import { type ReportFormFields, ReportSchema } from '@/schemas/hrms/employee-category-schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, RefreshCw, Search } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { z } from 'zod';
 import Footer from '../footer/footer';
+
+const ReportSchema = z.object({
+    groupType: z.array(z.string()).min(1, 'Group Type is required'),
+    department: z.array(z.string()).min(1, 'Department is required'),
+    designation: z.array(z.string()).min(1, 'Designation is required'),
+    reportType: z.enum(['Earning', 'Deduction']),
+    dateType: z.enum(['month', 'betweenDates']),
+    employeeType: z.enum(['all', 'individual']),
+    month: z.string().optional(),
+    year: z.string().optional(),
+    fromDate: z.string().optional(),
+    toDate: z.string().optional(),
+    employee: z.string().optional(),
+    earningHead: z.string().optional(),
+    deductionHead: z.string().optional()
+});
+
+type ReportFormFields = z.infer<typeof ReportSchema>;
 
 const EarningHeadOptions = [
     { value: 'basic', label: 'Basic Salary' },

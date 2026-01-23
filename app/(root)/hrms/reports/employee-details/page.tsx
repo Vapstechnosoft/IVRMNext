@@ -11,14 +11,28 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMasterDepartments, useMasterDesignations, useMasterEmployeeTypes, useMasterGroupTypes } from '@/hooks/hrms/useReports';
 import { cn } from '@/lib/utils';
-import { EmployeeDetailSchema } from '@/schemas/hrms/employee-category-schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, RefreshCw, Search } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import type { z } from 'zod';
+import { z } from 'zod';
+
+const EmployeeDetailSchema = z.object({
+    groupType: z.array(z.string()),
+    department: z.array(z.string()),
+    designation: z.array(z.string()),
+    fromdate: z.string(),
+    todate: z.string(),
+    status: z.string(),
+    mockLetter: z.string(),
+    formated: z.string(),
+    typeOrEmployee: z.string().optional(),
+    type: z.string().optional(),
+    employee: z.string().optional(),
+    selectedHeaders: z.array(z.string())
+});
 
 type FormFields = z.infer<typeof EmployeeDetailSchema>;
 const mockletter = [

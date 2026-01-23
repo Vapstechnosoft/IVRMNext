@@ -15,13 +15,22 @@ import {
     useMasterPaymentModeList,
     useMasterYears
 } from '@/hooks/hrms/useReports';
-import { BankCashReportSchema, type BankCashReportSchemaFormFields } from '@/schemas/hrms/employee-category-schemas';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RefreshCw, Search } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import type { z } from 'zod';
+import { z } from 'zod';
+
+const BankCashReportSchema = z.object({
+    groupType: z.array(z.string()).min(1, 'Group type is required'),
+    department: z.array(z.string()).min(1, 'Department is required'),
+    designation: z.array(z.string()).min(1, 'Designation is required'),
+    month: z.string().min(1, 'Month is required'),
+    year: z.string().min(1, 'Year is required'),
+    bankCash: z.string().min(1, 'Payment type is required')
+});
 
 type FormFields = z.infer<typeof BankCashReportSchema>;
 
@@ -259,7 +268,7 @@ export default function BankCashReportPage() {
         mode: 'onChange'
     });
 
-    const onSearch = async (data: BankCashReportSchemaFormFields) => {
+    const onSearch = async (data: FormFields) => {
         setIsSearching(true);
         try {
             await new Promise((resolve) => setTimeout(resolve, 1000));

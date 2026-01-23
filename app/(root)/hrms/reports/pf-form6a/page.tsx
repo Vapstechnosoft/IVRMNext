@@ -4,7 +4,6 @@ import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-import { PFform6aSchema } from '@/schemas/hrms/employee-category-schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, RefreshCw, Search } from 'lucide-react';
@@ -14,7 +13,7 @@ import { toast } from 'sonner';
 
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import type { z } from 'zod';
+import { z } from 'zod';
 import PFChallan from './_components/columns';
 
 type FormFields = z.infer<typeof PFform6aSchema>;
@@ -38,7 +37,15 @@ const tableProps = {
     establishmentCode: 'PF',
     establishmentAddress: 'Basaveshwara Talkies rd, Gayatri circle, karantaka, 577501'
 };
-
+export const PFform6aSchema = z
+    .object({
+        fromDate: z.string().min(1, 'From Date is required'),
+        toDate: z.string().min(1, 'To Date is required')
+    })
+    .refine((data) => new Date(data.fromDate) <= new Date(data.toDate), {
+        message: 'From Date cannot be greater than To Date',
+        path: ['toDate']
+    });
 export default function DepartmentSalaryReportPage() {
     const [isSearching, setIsSearching] = useState(false);
     const [reportData, setReportData] = useState<any>(null);

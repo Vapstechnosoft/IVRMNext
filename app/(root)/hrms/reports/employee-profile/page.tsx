@@ -8,13 +8,21 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { useMasterDepartments, useMasterDesignations, useMasterGroupTypes } from '@/hooks/hrms/useReports';
 
 import { SelectItem } from '@/components/ui/select';
-import { type EmployeeProfileReportFields, EmployeeProfileReportSchema } from '@/schemas/hrms/employee-category-schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Printer, RefreshCw, Search } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { z } from 'zod';
 import Footer from '../footer/footer';
+
+const EmployeeProfileReportSchema = z.object({
+    groupType: z.array(z.string()).min(1, 'Group Type is required'),
+    department: z.array(z.string()).min(1, 'Department is required'),
+    designation: z.array(z.string()).min(1, 'Designation is required')
+});
+
+type EmployeeProfileReportFields = z.infer<typeof EmployeeProfileReportSchema>;
 
 const mockEmployees = [
     { key: '1447', value: 'Lavnya' },

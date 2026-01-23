@@ -11,14 +11,23 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { SelectItem } from '@/components/ui/select';
 import { useMasterDepartments, useMasterDesignations, useMasterGroupTypes } from '@/hooks/hrms/useReports';
 import { cn } from '@/lib/utils';
-import { EmployeeStrengthReportSchema } from '@/schemas/hrms/employee-category-schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, RefreshCw, Search } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import type { z } from 'zod';
+
+import { z } from 'zod';
+
+const EmployeeStrengthReportSchema = z.object({
+    groupType: z.array(z.string()).min(1, 'Group Type is required'),
+    department: z.array(z.string()).min(1, 'Department is required'),
+    designation: z.array(z.string()).min(1, 'Designation is required'),
+    all_employees: z.boolean().optional(),
+    department_wise: z.boolean().optional(),
+    left_employee: z.boolean().optional()
+});
 
 type FormFields = z.infer<typeof EmployeeStrengthReportSchema>;
 
