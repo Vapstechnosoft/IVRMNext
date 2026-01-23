@@ -30,6 +30,9 @@ const mockLoadData: FeeDetailsLoadData = {
 // ];
 
 export async function getFeeDetailsLoadData() {
+    // const url = `/CumulativeFeeAnalysis/studentfeedetails?ASMAY_Id=${asmaY_Id}&AMST_Id=${asmcL_Id}`
+    // return await api.get<any[]>('portal', url);
+
     const url = 'api/CumulativeFeeAnalysis/studentfeedetails?ASMAY_Id=176&AMST_Id=17108';
     try {
         const response = await api.get<FeeDetailsLoadData>('portal', url, {});

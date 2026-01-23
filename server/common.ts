@@ -3310,14 +3310,14 @@ export async function getUserAccessibleModules() {
                                     name: 'Transaction',
                                     icon: 'CreditCard',
                                     pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Fee Details',
-                                            icon: 'FileText',
-                                            url: '/StudentPortal/student-dashboard/Fees/FeeDetails',
-                                            title: 'Fee Details',
-                                            description: 'View Fee Details'
-                                        },
+                                        // {
+                                        //     id: 1,
+                                        //     name: 'Fee Details',
+                                        //     icon: 'FileText',
+                                        //     url: '/StudentPortal/student-dashboard/Fees/FeeDetails',
+                                        //     title: 'Fee Details',
+                                        //     description: 'View Fee Details'
+                                        // },
                                         {
                                             id: 2,
                                             name: 'Fee Online Payment',
@@ -3326,13 +3326,22 @@ export async function getUserAccessibleModules() {
                                             title: 'Fee Online Payment',
                                             description: 'Pay Fees Online'
                                         },
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'CumulativeFeeAnalysis',
+                                        //     icon: 'CreditCard',
+                                        //     url: '/StudentPortal/masters/cumulative-fee-analysis',
+                                        //     title: 'Fee Online Payment',
+                                        //     description: 'Pay Fees Online'
+                                        // },
+
                                         {
-                                            id: 3,
-                                            name: 'CumulativeFeeAnalysis',
+                                            id: 4,
+                                            name: 'Cumulative Fee Analysis',
                                             icon: 'CreditCard',
-                                            url: '/StudentPortal/masters/cumulative-fee-analysis',
-                                            title: 'Fee Online Payment',
-                                            description: 'Pay Fees Online'
+                                            url: '/StudentPortal/masters/feecumulative',
+                                            title: 'Cumulative Fee Analysis',
+                                            description: 'View Fee Details'
                                         }
                                     ]
                                 },
