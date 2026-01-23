@@ -19,7 +19,7 @@ export async function getAlumniFriendRequestData(searchParams?: ApiSearchparams)
 }
 
 export async function searchAlumniFriendRequest(data: any) {
-    const url = '/Alumni_Student_FriendRequest/getsearch_data';
+    const url = '/AlumniSearch';
     return await api.post<IAlumniFriendRequestLoadResponse>('alumni', url, data);
 }
 
