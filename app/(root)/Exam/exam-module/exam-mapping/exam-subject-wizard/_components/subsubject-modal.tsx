@@ -8,8 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { MasterViewDetails } from '@/components/ui/set-order/generic-set-order';
 import type { IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { GitCompareArrows, List } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { GitCompareArrows } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -46,36 +46,44 @@ export default function SubSubjectModal({
     open: boolean;
     subject?: any;
     onClose: () => void;
-    onSave: (subjectId: number, selectedList: any[]) => void;
+    onSave: (subjectId: number, selectedList: any[], subSubjectList: any[]) => void;
     schema: z.ZodType<any>;
     gradeList: IMasterGrade[];
 }) {
     const methods = useForm<SubSubjectFormValues>({
         resolver: zodResolver(schema),
-        defaultValues: { subsubject_list: [] }
+        defaultValues: { subsubject_list: [] },
+        mode: 'onChange' // Enable validation on change
     });
 
-    // destructure methods (added setError/clearErrors)
-    const { control, handleSubmit, reset, getValues, setValue, formState, setError, clearErrors, watch } = methods;
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
+    const { control, handleSubmit, reset, getValues, setValue, formState, setError, clearErrors, watch, trigger } = methods;
     const { errors } = formState;
 
     const [isOrderDetailsOpen, setIsOrderDetailsOpen] = useState(false);
     const [isOrderSaving, setIsOrderSaving] = useState(false);
     const [isOrderloading, setIsOrderloading] = useState(true);
 
-    const scrollToTop = () => {
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
-    };
+    const parentMaxMarks = useMemo(() => Number(subject?.EYCES_MaxMarks ?? 0), [subject]);
+    const parentMinMarks = useMemo(() => Number(subject?.EYCES_MinMarks ?? 0), [subject]);
 
+    // Memoized form values
+    const currentList = watch('subsubject_list') || [];
+    const selectedSubjects = useMemo(() => currentList.filter((r) => r.checkedvalue), [currentList]);
+
+    // Initialize form data
     useEffect(() => {
         if (!subject) {
             reset({ subsubject_list: [] });
             return;
         }
-        const list = (subject.list ?? []).map((l: any) => ({
+
+        const rawList = subject.list ?? [];
+
+        // Check if any item has an order set
+        const shouldSort = rawList.some((l: any) => Number(l.eycessS_SubSubjectOrder) > 0);
+
+        const mappedList = rawList.map((l: any) => ({
             emsS_Id: l.emsS_Id,
             emsS_SubSubjectName: l.emsS_SubSubjectName,
             emsS_SubSubjectCode: l.emsS_SubSubjectCode,
@@ -83,277 +91,377 @@ export default function SubSubjectModal({
             eycessS_MaxMarks: l.eycessS_MaxMarks ?? '',
             eycessS_MinMarks: l.eycessS_MinMarks ?? '',
             eycessS_MarksEntryMax: l.eycessS_MarksEntryMax ?? '',
-            EMGR_Id: l.emgR_Id ?? '',
-            eycessS_ExemptedFlg: !!l.eycessS_ExemptedFlg,
+            EMGR_Id: l.EMGR_Id ?? '',
+            eycessS_ExemptedFlg: l.eycessS_ExemptedFlg,
             eycessS_ExemptedPer: l.eycessS_ExemptedPer ?? '',
-            eycessS_MarksDisplayFlg: !!l.eycessS_MarksDisplayFlg,
-            eycessS_GradeDisplayFlg: !!l.eycessS_GradeDisplayFlg,
-            eycessS_AplResultFlg: !!l.eycessS_AplResultFlg,
-            eycessS_SubSubjectOrder: l.emsS_Order ?? undefined
+            eycessS_MarksDisplayFlg: l.eycessS_MarksFlg,
+            eycessS_GradeDisplayFlg: l.eycessS_GradesFlg,
+            eycessS_AplResultFlg: l.eycessS_AplResultFlg,
+            eycessS_SubSubjectOrder: l.eycessS_SubSubjectOrder ?? 0
         }));
-        reset({ subsubject_list: list });
+
+        const finalList = shouldSort
+            ? [...mappedList].sort((a, b) => Number(a.eycessS_SubSubjectOrder) - Number(b.eycessS_SubSubjectOrder))
+            : mappedList;
+
+        reset({ subsubject_list: finalList });
     }, [subject, reset]);
 
-    const updateRowValue = (idx: number, field: keyof SubSubject, value: any) => {
-        const list = getValues('subsubject_list').map((r, i) => (i === idx ? { ...r, [field]: value } : r));
-        setValue('subsubject_list', list, { shouldDirty: true, shouldValidate: true });
-        // immediately clear any existing error for that field for smoother UX
-        clearErrors(`subsubject_list.${idx}.${field}`);
-    };
+    // Optimized update function
+    const updateRowValue = useCallback(
+        (idx: number, field: keyof SubSubject, value: any) => {
+            const list = getValues('subsubject_list').map((r, i) => (i === idx ? { ...r, [field]: value } : r));
+            setValue('subsubject_list', list, { shouldDirty: true, shouldValidate: true });
+            clearErrors(`subsubject_list.${idx}.${field}`);
 
-    if (!subject) return null;
-
-    const parentMaxMarks = Number(subject.EYCES_MaxMarks ?? 0);
-
-    const renderSkeletonTable = () => (
-        <div className='w-full rounded-md'>
-            <table className='w-full table-auto border-collapse border border-gray-200'>
-                <tbody>
-                    {Array.from({ length: 6 }).map((_, i) => (
-                        <tr key={i} className='hover:bg-transparent'>
-                            {Array.from({ length: 12 }).map((_, j) => (
-                                <td key={j} className='border px-3 py-2'>
-                                    <div className='h-6 w-full animate-pulse rounded bg-slate-200' />
-                                </td>
-                            ))}
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
+            // Trigger validation for the specific field
+            if (field === 'checkedvalue' && value) {
+                // If checking a row, validate required fields immediately
+                setTimeout(() => {
+                    trigger(`subsubject_list.${idx}.eycessS_MaxMarks`);
+                    trigger(`subsubject_list.${idx}.eycessS_MinMarks`);
+                    trigger(`subsubject_list.${idx}.eycessS_MarksEntryMax`);
+                    trigger(`subsubject_list.${idx}.EMGR_Id`);
+                }, 0);
+            }
+        },
+        [getValues, setValue, clearErrors, trigger]
     );
 
-    const closeOrderDetails = () => {
-        setIsOrderDetailsOpen(false);
-        scrollToTop();
-    };
+    // Validation functions
+    const validateRowManually = useCallback(
+        // biome-ignore lint/correctness/noUnusedVariables: <explanation>
+        (row: SubSubject, idx: number) => {
+            const rowErrs: Record<string, string> = {};
 
-    const handleSetOrder = async () => {
-        try {
-            if (watch('subsubject_list').length === 0) {
-                toast.info('subsubjects are loading...');
-            }
-            setIsOrderDetailsOpen(true);
-        } catch (error: any) {
-            setIsOrderloading(false);
-        } finally {
-            setIsOrderloading(false);
-        }
-    };
+            const max = row.eycessS_MaxMarks === '' || row.eycessS_MaxMarks === null ? undefined : Number(row.eycessS_MaxMarks);
+            const min = row.eycessS_MinMarks === '' || row.eycessS_MinMarks === null ? undefined : Number(row.eycessS_MinMarks);
+            const entry =
+                row.eycessS_MarksEntryMax === '' || row.eycessS_MarksEntryMax === null ? undefined : Number(row.eycessS_MarksEntryMax);
 
-    // Save reordered exams
-    const handleOrderSave = async (updatedData: any) => {
-        setIsOrderSaving(true);
-
-        // Get current form list to preserve full original item shape
-        const currentList = getValues('subsubject_list') ?? [];
-
-        // updatedData likely contains items with `id` (from MasterViewDetails),
-        // so we map back to original items by matching emsS_Id or id.
-        const reorderedList = (updatedData ?? []).map((item: any, index: number) => {
-            const matchId = item.id ?? item.emsS_Id ?? item.EmsS_Id;
-            const original = currentList.find((x: any) => x.emsS_Id === matchId) ?? item;
-
-            return {
-                ...original,
-                eycessS_SubSubjectOrder: index + 1 // ✅ Update order here
-            };
-        });
-
-        // Merge missing originals
-        const reorderedIds = new Set(reorderedList.map((r: any) => r.emsS_Id));
-        const remaining = currentList.filter((x: any) => !reorderedIds.has(x.emsS_Id));
-        const finalList = [...reorderedList, ...remaining];
-
-        // Sort by order
-        finalList.sort((a: any, b: any) => {
-            const aOrder = Number(a.eycessS_SubSubjectOrder ?? 0);
-            const bOrder = Number(b.eycessS_SubSubjectOrder ?? 0);
-            return aOrder - bOrder;
-        });
-
-        setValue('subsubject_list', finalList, {
-            shouldDirty: true,
-            shouldValidate: true
-        });
-        setIsOrderSaving(false);
-        setIsOrderDetailsOpen(false);
-        toast.info('Sub-Subjects order saved successfully.');
-    };
-
-    // ---------- Manual validations ----------
-
-    // Validate a row (returns object of field->message)
-    const validateRowManually = (row: SubSubject) => {
-        const rowErrs: Record<string, string> = {};
-
-        const max = row.eycessS_MaxMarks === '' || row.eycessS_MaxMarks === null ? undefined : Number(row.eycessS_MaxMarks);
-        const min = row.eycessS_MinMarks === '' || row.eycessS_MinMarks === null ? undefined : Number(row.eycessS_MinMarks);
-        const entry =
-            row.eycessS_MarksEntryMax === '' || row.eycessS_MarksEntryMax === null ? undefined : Number(row.eycessS_MarksEntryMax);
-
-        // 1) sub subject marks cannot exceed parent max
-        if (max !== undefined && max > parentMaxMarks) {
-            rowErrs.eycessS_MaxMarks = `Max marks cannot exceed parent subject max (${parentMaxMarks})`;
-        }
-        if (min !== undefined && min > parentMaxMarks) {
-            rowErrs.eycessS_MinMarks = `Min marks cannot exceed parent subject max (${parentMaxMarks})`;
-        }
-        if (entry !== undefined && entry > parentMaxMarks) {
-            rowErrs.eycessS_MarksEntryMax = `Marks entry max cannot exceed parent subject max (${parentMaxMarks})`;
-        }
-
-        // 2) Min <= Max
-        if (min !== undefined && max !== undefined && min > max) {
-            rowErrs.eycessS_MinMarks = 'Min marks cannot be greater than Max marks';
-            rowErrs.eycessS_MaxMarks = 'Max marks cannot be less than Min marks';
-        }
-
-        // 3) MarksEntry <= Max
-        if (entry !== undefined && max !== undefined && entry > max) {
-            rowErrs.eycessS_MarksEntryMax = 'Marks entry max cannot be greater than Max marks';
-        }
-
-        return rowErrs;
-    };
-
-    // Validate all and set form errors (used when user clicks Save & Close)
-    const validateAllBeforeSave = (): boolean => {
-        const all = getValues('subsubject_list') ?? [];
-        let hasError = false;
-
-        // Clear previous errors first
-        clearErrors();
-
-        all.forEach((row: SubSubject, idx: number) => {
-            const rowErrs = validateRowManually(row);
-
-            // If the row is checked, ensure the 4 required fields are present
+            // Required fields validation for checked rows
             if (row.checkedvalue) {
-                // required: max, min, entry, grade
-                const maxVal = row.eycessS_MaxMarks === '' || row.eycessS_MaxMarks === null ? undefined : Number(row.eycessS_MaxMarks);
-                const minVal = row.eycessS_MinMarks === '' || row.eycessS_MinMarks === null ? undefined : Number(row.eycessS_MinMarks);
-                const entryVal =
-                    row.eycessS_MarksEntryMax === '' || row.eycessS_MarksEntryMax === null ? undefined : Number(row.eycessS_MarksEntryMax);
-                const gradeVal = row.EMGR_Id;
-
-                if (maxVal === undefined || maxVal === null) {
-                    rowErrs.eycessS_MaxMarks = 'required';
+                if (max === undefined || max === null) {
+                    rowErrs.eycessS_MaxMarks = 'Max marks is required';
                 }
-                if (minVal === undefined || minVal === null) {
-                    rowErrs.eycessS_MinMarks = ' required ';
+                if (min === undefined || min === null) {
+                    rowErrs.eycessS_MinMarks = 'Min marks is required';
                 }
-                if (entryVal === undefined || entryVal === null) {
-                    rowErrs.eycessS_MarksEntryMax = 'required ';
+                if (entry === undefined || entry === null) {
+                    rowErrs.eycessS_MarksEntryMax = 'Marks entry max is required';
                 }
-                if (gradeVal === undefined || gradeVal === null || gradeVal === '') {
-                    rowErrs.emgR_Id = 'Grade is required ';
+                if (!row.EMGR_Id || row.EMGR_Id === '') {
+                    rowErrs.EMGR_Id = 'Grade is required';
                 }
             }
 
-            // apply rowErrs to react-hook-form
-            Object.keys(rowErrs).forEach((field) => {
-                hasError = true;
-                setError(`subsubject_list.${idx}.${field}` as any, {
-                    type: 'manual',
-                    message: rowErrs[field]
-                });
-            });
-        });
+            // Numeric validations (only if values exist)
+            if (max !== undefined && max > parentMaxMarks) {
+                rowErrs.eycessS_MaxMarks = `Max marks cannot exceed parent subject max (${parentMaxMarks})`;
+            }
 
-        return !hasError;
-    };
+            if (min !== undefined) {
+                if (min > parentMaxMarks) {
+                    rowErrs.eycessS_MinMarks = `Min marks cannot exceed parent subject max (${parentMaxMarks})`;
+                }
+                if (max !== undefined && min > max) {
+                    rowErrs.eycessS_MinMarks = 'Min marks cannot be greater than Max marks';
+                }
+            }
 
-    // inline change helpers - ensure a value doesn't exceed parent max immediately
-    const handleMaxChange = (idx: number, rawVal: string) => {
-        // allow only numbers already on input handlers in your code, but we still coerce
-        const val = rawVal === '' ? '' : Number(rawVal);
-        updateRowValue(idx, 'eycessS_MaxMarks', val);
+            if (entry !== undefined) {
+                if (entry > parentMaxMarks) {
+                    rowErrs.eycessS_MarksEntryMax = `Marks entry max cannot exceed parent subject max (${parentMaxMarks})`;
+                }
+                if (max !== undefined && entry > max) {
+                    rowErrs.eycessS_MarksEntryMax = 'Marks entry max cannot be greater than Max marks';
+                }
+            }
 
-        // immediate check vs parentMax
-        if (val !== '' && Number(val) > parentMaxMarks) {
-            setError(`subsubject_list.${idx}.eycessS_MaxMarks` as any, {
-                type: 'manual',
-                message: `Max marks cannot exceed parent subject max (${parentMaxMarks})`
-            });
-        } else {
-            clearErrors(`subsubject_list.${idx}.eycessS_MaxMarks`);
-            // also clear dependent errors (min/entry) - they may be stale
-            clearErrors(`subsubject_list.${idx}.eycessS_MinMarks`);
-            clearErrors(`subsubject_list.${idx}.eycessS_MarksEntryMax`);
-        }
-    };
+            return rowErrs;
+        },
+        [parentMaxMarks]
+    );
 
-    const handleMinChange = (idx: number, rawVal: string) => {
-        const val = rawVal === '' ? '' : Number(rawVal);
-        updateRowValue(idx, 'eycessS_MinMarks', val);
+    // Handle field changes with immediate validation
+    const handleMaxChange = useCallback(
+        (idx: number, rawVal: string) => {
+            const val = rawVal === '' ? '' : Number(rawVal);
+            updateRowValue(idx, 'eycessS_MaxMarks', val);
 
-        // immediate checks:
-        // min shouldn't be > parent max
-        if (val !== '' && Number(val) > parentMaxMarks) {
-            setError(`subsubject_list.${idx}.eycessS_MinMarks` as any, {
-                type: 'manual',
-                message: `Min marks cannot exceed parent subject max (${parentMaxMarks})`
-            });
-        } else {
-            clearErrors(`subsubject_list.${idx}.eycessS_MinMarks`);
-        }
-
-        // if max exists, ensure min <= max
-        const row = getValues('subsubject_list')[idx];
-        const maxVal = row?.eycessS_MaxMarks === '' ? undefined : Number(row?.eycessS_MaxMarks);
-        if (val !== '' && maxVal !== undefined && Number(val) > Number(maxVal)) {
-            setError(`subsubject_list.${idx}.eycessS_MinMarks` as any, {
-                type: 'manual',
-                message: 'Min marks cannot be greater than Max marks'
-            });
-            setError(`subsubject_list.${idx}.eycessS_MaxMarks` as any, {
-                type: 'manual',
-                message: 'Max marks cannot be less than Min marks'
-            });
-        } else {
-            if (maxVal !== undefined) clearErrors(`subsubject_list.${idx}.eycessS_MaxMarks`);
-        }
-    };
-
-    const handleEntryChange = (idx: number, rawVal: string) => {
-        const val = rawVal === '' ? '' : Number(rawVal);
-        updateRowValue(idx, 'eycessS_MarksEntryMax', val);
-
-        if (val !== '' && Number(val) > parentMaxMarks) {
-            setError(`subsubject_list.${idx}.eycessS_MarksEntryMax` as any, {
-                type: 'manual',
-                message: `Marks entry max cannot exceed parent subject max (${parentMaxMarks})`
-            });
-        } else {
-            // also check against row's max
             const row = getValues('subsubject_list')[idx];
-            const maxVal = row?.eycessS_MaxMarks === '' ? undefined : Number(row?.eycessS_MaxMarks);
-            if (maxVal !== undefined && val !== '' && Number(val) > Number(maxVal)) {
+            const rowErrs = validateRowManually(row, idx);
+
+            if (rowErrs.eycessS_MaxMarks) {
+                setError(`subsubject_list.${idx}.eycessS_MaxMarks` as any, {
+                    type: 'manual',
+                    message: rowErrs.eycessS_MaxMarks
+                });
+            } else {
+                clearErrors(`subsubject_list.${idx}.eycessS_MaxMarks`);
+            }
+        },
+        [updateRowValue, getValues, validateRowManually, setError, clearErrors]
+    );
+
+    const handleMinChange = useCallback(
+        (idx: number, rawVal: string) => {
+            const val = rawVal === '' ? '' : Number(rawVal);
+            updateRowValue(idx, 'eycessS_MinMarks', val);
+
+            const row = getValues('subsubject_list')[idx];
+            const rowErrs = validateRowManually(row, idx);
+
+            if (rowErrs.eycessS_MinMarks) {
+                setError(`subsubject_list.${idx}.eycessS_MinMarks` as any, {
+                    type: 'manual',
+                    message: rowErrs.eycessS_MinMarks
+                });
+            } else {
+                clearErrors(`subsubject_list.${idx}.eycessS_MinMarks`);
+            }
+        },
+        [updateRowValue, getValues, validateRowManually, setError, clearErrors]
+    );
+
+    const handleEntryChange = useCallback(
+        (idx: number, rawVal: string) => {
+            const val = rawVal === '' ? '' : Number(rawVal);
+            updateRowValue(idx, 'eycessS_MarksEntryMax', val);
+
+            const row = getValues('subsubject_list')[idx];
+            const rowErrs = validateRowManually(row, idx);
+
+            if (rowErrs.eycessS_MarksEntryMax) {
                 setError(`subsubject_list.${idx}.eycessS_MarksEntryMax` as any, {
                     type: 'manual',
-                    message: 'Marks entry max cannot be greater than Max marks'
+                    message: rowErrs.eycessS_MarksEntryMax
                 });
             } else {
                 clearErrors(`subsubject_list.${idx}.eycessS_MarksEntryMax`);
             }
-        }
-    };
+        },
+        [updateRowValue, getValues, validateRowManually, setError, clearErrors]
+    );
 
-    // ---------- rendering ----------
+    const handleGradeChange = useCallback(
+        (idx: number, value: string) => {
+            updateRowValue(idx, 'EMGR_Id', value);
+
+            const row = getValues('subsubject_list')[idx];
+            const rowErrs = validateRowManually(row, idx);
+
+            if (rowErrs.EMGR_Id) {
+                setError(`subsubject_list.${idx}.EMGR_Id` as any, {
+                    type: 'manual',
+                    message: rowErrs.EMGR_Id
+                });
+            } else {
+                clearErrors(`subsubject_list.${idx}.EMGR_Id`);
+            }
+        },
+        [updateRowValue, getValues, validateRowManually, setError, clearErrors]
+    );
+
+    const handleCheckboxChange = useCallback(
+        (idx: number, checked: boolean) => {
+            updateRowValue(idx, 'checkedvalue', checked);
+
+            // If unchecking, clear any required field errors
+            if (!checked) {
+                clearErrors([
+                    `subsubject_list.${idx}.eycessS_MaxMarks`,
+                    `subsubject_list.${idx}.eycessS_MinMarks`,
+                    `subsubject_list.${idx}.eycessS_MarksEntryMax`,
+                    `subsubject_list.${idx}.EMGR_Id`
+                ] as any);
+            } else {
+                // If checking, validate immediately
+                const row = getValues('subsubject_list')[idx];
+                const rowErrs = validateRowManually(row, idx);
+
+                Object.entries(rowErrs).forEach(([field, message]) => {
+                    setError(`subsubject_list.${idx}.${field}` as any, {
+                        type: 'manual',
+                        message
+                    });
+                });
+            }
+        },
+        [updateRowValue, clearErrors, getValues, validateRowManually, setError]
+    );
+
+    // Order handling
+    const handleSetOrder = useCallback(() => {
+        if (currentList.length === 0) {
+            toast.info('Sub-subjects are loading...');
+            return;
+        }
+        setIsOrderDetailsOpen(true);
+        setIsOrderloading(false);
+    }, [currentList]);
+
+    // Update the handleOrderSave function in your code:
+
+    const handleOrderSave = useCallback(
+        async (updatedData: any[]) => {
+            setIsOrderSaving(true);
+            const currentList = getValues('subsubject_list') ?? [];
+
+            console.info(
+                'Before reorder - Current list:',
+                currentList.map((item) => ({
+                    id: item.emsS_Id,
+                    name: item.emsS_SubSubjectName,
+                    grade: item.EMGR_Id
+                }))
+            );
+
+            console.info(
+                'Updated data from modal:',
+                updatedData.map((item) => ({
+                    id: item.id || item.emsS_Id,
+                    name: item.emsS_SubSubjectName,
+                    grade: item.EMGR_Id
+                }))
+            );
+
+            // Create a lookup map with ALL current values
+            const currentMap = new Map();
+            currentList.forEach((item) => {
+                currentMap.set(item.emsS_Id, { ...item });
+            });
+
+            // Build the reordered list preserving ALL original values
+            const reorderedList = updatedData.map((updatedItem: any, index: number) => {
+                const itemId = updatedItem.id || updatedItem.emsS_Id;
+                const existingItem = currentMap.get(itemId);
+
+                if (existingItem) {
+                    // Keep ALL existing values including grade, only update the order
+                    return {
+                        ...existingItem,
+                        eycessS_SubSubjectOrder: index + 1
+                    };
+                }
+
+                // If item doesn't exist in current list (shouldn't happen), use updatedItem
+                // but make sure we have the correct ID
+                return {
+                    ...updatedItem,
+                    emsS_Id: itemId,
+                    eycessS_SubSubjectOrder: index + 1,
+                    // Make sure grade is preserved
+                    EMGR_Id: updatedItem.EMGR_Id || ''
+                };
+            });
+
+            console.info(
+                'After reorder - New list:',
+                reorderedList.map((item) => ({
+                    id: item.emsS_Id,
+                    name: item.emsS_SubSubjectName,
+                    grade: item.EMGR_Id
+                }))
+            );
+
+            setValue('subsubject_list', reorderedList, {
+                shouldDirty: true,
+                shouldValidate: true
+            });
+
+            setIsOrderSaving(false);
+            setIsOrderDetailsOpen(false);
+            toast.success('Sub-Subjects order saved successfully.');
+        },
+        [getValues, setValue]
+    );
+
+    // Save handler
+    const handleSave = useCallback(() => {
+        const values = getValues();
+        const selected = selectedSubjects;
+
+        // Validate all checked rows
+        let hasErrors = false;
+        clearErrors();
+
+        currentList.forEach((row, idx) => {
+            if (row.checkedvalue) {
+                const rowErrs = validateRowManually(row, idx);
+                if (Object.keys(rowErrs).length > 0) {
+                    hasErrors = true;
+                    Object.entries(rowErrs).forEach(([field, message]) => {
+                        setError(`subsubject_list.${idx}.${field}` as any, {
+                            type: 'manual',
+                            message
+                        });
+                    });
+                }
+            }
+        });
+
+        if (hasErrors) {
+            toast.error('Please fix all validation errors before saving.');
+            return;
+        }
+
+        // Validate totals match parent subject
+        if (selected.length > 0) {
+            const totMax = selected.reduce((acc, cur) => acc + Number(cur.eycessS_MaxMarks || 0), 0);
+            const totMin = selected.reduce((acc, cur) => acc + Number(cur.eycessS_MinMarks || 0), 0);
+
+            if (totMax !== parentMaxMarks || totMin !== parentMinMarks) {
+                toast.error(
+                    `Sum of selected sub-subjects (Max: ${totMax}, Min: ${totMin}) must equal subject marks (Max: ${parentMaxMarks}, Min: ${parentMinMarks})`
+                );
+                return;
+            }
+        }
+
+        // All good, save
+        onSave(subject.ISMS_Id, selected, values.subsubject_list);
+        onClose();
+    }, [
+        getValues,
+        selectedSubjects,
+        currentList,
+        validateRowManually,
+        clearErrors,
+        setError,
+        parentMaxMarks,
+        parentMinMarks,
+        onSave,
+        onClose,
+        subject
+    ]);
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
+    const sortedSubSubjects = useMemo(() => {
+        const list = getValues('subsubject_list') ?? [];
+
+        // check if all order values are 0 / null / undefined
+        const allZero = list.every((i) => !i.eycessS_SubSubjectOrder || i.eycessS_SubSubjectOrder === 0);
+
+        if (allZero) return list; // keep original order
+
+        // stable sort by order
+        return [...list].sort((a, b) => (a.eycessS_SubSubjectOrder ?? 0) - (b.eycessS_SubSubjectOrder ?? 0));
+    }, [getValues('subsubject_list')]);
+
+    if (!subject) return null;
 
     return (
         <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
             <DialogContent className='max-h-[80vh] w-full min-w-[80vw] overflow-x-auto overflow-y-auto pt-0 sm:overflow-x-hidden'>
                 <DialogHeader className='sticky top-0 bg-white pt-4'>
                     <DialogTitle>{`Map Sub-Subjects — ${subject.ISMS_SubjectName}`}</DialogTitle>
+                    <div className='text-muted-foreground text-sm'>
+                        Parent Subject: Max={parentMaxMarks}, Min={parentMinMarks}
+                    </div>
                 </DialogHeader>
 
                 <FormProvider {...methods}>
-                    <form
-                        onSubmit={(e) => {
-                            e.preventDefault();
-                        }}>
+                    <form onSubmit={(e) => e.preventDefault()}>
                         <div className='max-h-[55vh] overflow-x-auto overflow-y-auto'>
                             <table className='w-full table-auto border-collapse'>
                                 <thead>
@@ -377,12 +485,15 @@ export default function SubSubjectModal({
                                     {subject && subject.list === undefined && (
                                         <tr>
                                             <td colSpan={12} className='p-6'>
-                                                {renderSkeletonTable()}
+                                                <div className='space-y-2'>
+                                                    {Array.from({ length: 5 }).map((_, i) => (
+                                                        <div key={i} className='h-8 w-full animate-pulse rounded bg-slate-200' />
+                                                    ))}
+                                                </div>
                                             </td>
                                         </tr>
                                     )}
 
-                                    {/* No records found */}
                                     {subject?.list?.length === 0 && (
                                         <tr>
                                             <td colSpan={12} className='py-6 text-center text-muted-foreground text-sm'>
@@ -391,8 +502,10 @@ export default function SubSubjectModal({
                                         </tr>
                                     )}
 
-                                    {getValues('subsubject_list')?.map((row, idx) => {
+                                    {currentList.map((row, idx) => {
                                         const idPrefix = `subsubject-${subject.ISMS_Id}-${row.emsS_Id}`;
+                                        const isRowChecked = Boolean(row.checkedvalue);
+                                        const isRowDisabled = !isRowChecked;
 
                                         return (
                                             <tr key={row.emsS_Id ?? idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
@@ -407,16 +520,8 @@ export default function SubSubjectModal({
                                                             <Checkbox
                                                                 id={`${idPrefix}-check`}
                                                                 checked={!!field.value}
-                                                                onCheckedChange={(v) => {
-                                                                    field.onChange(!!v);
-                                                                    updateRowValue(idx, 'checkedvalue', !!v);
-                                                                    // clear potential required-field errors once user toggles
-                                                                    clearErrors([
-                                                                        `subsubject_list.${idx}.eycessS_MaxMarks`,
-                                                                        `subsubject_list.${idx}.eycessS_MinMarks`,
-                                                                        `subsubject_list.${idx}.eycessS_MarksEntryMax`,
-                                                                        `subsubject_list.${idx}.EMGR_Id`
-                                                                    ] as any);
+                                                                onCheckedChange={(checked) => {
+                                                                    handleCheckboxChange(idx, !!checked);
                                                                 }}
                                                             />
                                                         )}
@@ -427,7 +532,9 @@ export default function SubSubjectModal({
                                                 <td className='border p-2'>
                                                     <div className='text-sm'>
                                                         <div className='font-medium'>{row.emsS_SubSubjectName}</div>
-                                                        <div className='text-slate-500 text-xs'>{row.emsS_SubSubjectCode ?? ''}</div>
+                                                        {row.emsS_SubSubjectCode && (
+                                                            <div className='text-slate-500 text-xs'>{row.emsS_SubSubjectCode}</div>
+                                                        )}
                                                     </div>
                                                 </td>
 
@@ -442,16 +549,12 @@ export default function SubSubjectModal({
                                                                 {...field}
                                                                 value={field.value ?? ''}
                                                                 onChange={(e) => {
-                                                                    // only digits
                                                                     const raw = e.target.value.replace(/\D/g, '');
                                                                     handleMaxChange(idx, raw === '' ? '' : raw);
                                                                 }}
                                                                 onBlur={() => {
-                                                                    // run full row validation on blur
                                                                     const rowVal = getValues('subsubject_list')[idx];
-                                                                    const rowErrs = validateRowManually(rowVal);
-                                                                    // clear previous first
-                                                                    clearErrors(`subsubject_list.${idx}.eycessS_MaxMarks` as any);
+                                                                    const rowErrs = validateRowManually(rowVal, idx);
                                                                     if (rowErrs.eycessS_MaxMarks) {
                                                                         setError(`subsubject_list.${idx}.eycessS_MaxMarks` as any, {
                                                                             type: 'manual',
@@ -460,11 +563,15 @@ export default function SubSubjectModal({
                                                                     }
                                                                 }}
                                                                 inputMode='numeric'
+                                                                disabled={isRowDisabled}
+                                                                className={
+                                                                    errors.subsubject_list?.[idx]?.eycessS_MaxMarks ? 'border-red-500' : ''
+                                                                }
                                                             />
                                                         )}
                                                     />
                                                     {errors.subsubject_list?.[idx]?.eycessS_MaxMarks && (
-                                                        <p className='text-[11px] text-red-500'>
+                                                        <p className='mt-1 text-[11px] text-red-500'>
                                                             {String(errors.subsubject_list[idx].eycessS_MaxMarks?.message)}
                                                         </p>
                                                     )}
@@ -486,8 +593,7 @@ export default function SubSubjectModal({
                                                                 }}
                                                                 onBlur={() => {
                                                                     const rowVal = getValues('subsubject_list')[idx];
-                                                                    const rowErrs = validateRowManually(rowVal);
-                                                                    clearErrors(`subsubject_list.${idx}.eycessS_MinMarks` as any);
+                                                                    const rowErrs = validateRowManually(rowVal, idx);
                                                                     if (rowErrs.eycessS_MinMarks) {
                                                                         setError(`subsubject_list.${idx}.eycessS_MinMarks` as any, {
                                                                             type: 'manual',
@@ -496,11 +602,15 @@ export default function SubSubjectModal({
                                                                     }
                                                                 }}
                                                                 inputMode='numeric'
+                                                                disabled={isRowDisabled}
+                                                                className={
+                                                                    errors.subsubject_list?.[idx]?.eycessS_MinMarks ? 'border-red-500' : ''
+                                                                }
                                                             />
                                                         )}
                                                     />
                                                     {errors.subsubject_list?.[idx]?.eycessS_MinMarks && (
-                                                        <p className='text-[11px] text-red-500'>
+                                                        <p className='mt-1 text-[11px] text-red-500'>
                                                             {String(errors.subsubject_list[idx].eycessS_MinMarks?.message)}
                                                         </p>
                                                     )}
@@ -522,8 +632,7 @@ export default function SubSubjectModal({
                                                                 }}
                                                                 onBlur={() => {
                                                                     const rowVal = getValues('subsubject_list')[idx];
-                                                                    const rowErrs = validateRowManually(rowVal);
-                                                                    clearErrors(`subsubject_list.${idx}.eycessS_MarksEntryMax` as any);
+                                                                    const rowErrs = validateRowManually(rowVal, idx);
                                                                     if (rowErrs.eycessS_MarksEntryMax) {
                                                                         setError(`subsubject_list.${idx}.eycessS_MarksEntryMax` as any, {
                                                                             type: 'manual',
@@ -532,11 +641,17 @@ export default function SubSubjectModal({
                                                                     }
                                                                 }}
                                                                 inputMode='numeric'
+                                                                disabled={isRowDisabled}
+                                                                className={
+                                                                    errors.subsubject_list?.[idx]?.eycessS_MarksEntryMax
+                                                                        ? 'border-red-500'
+                                                                        : ''
+                                                                }
                                                             />
                                                         )}
                                                     />
                                                     {errors.subsubject_list?.[idx]?.eycessS_MarksEntryMax && (
-                                                        <p className='text-[11px] text-red-500'>
+                                                        <p className='mt-1 text-[11px] text-red-500'>
                                                             {String(errors.subsubject_list[idx].eycessS_MarksEntryMax?.message)}
                                                         </p>
                                                     )}
@@ -550,12 +665,12 @@ export default function SubSubjectModal({
                                                         render={({ field }) => (
                                                             <Select
                                                                 value={field.value?.toString() ?? ''}
-                                                                onValueChange={(val) => {
-                                                                    field.onChange(val);
-                                                                    updateRowValue(idx, 'EMGR_Id', val);
-                                                                    clearErrors(`subsubject_list.${idx}.EMGR_Id` as any);
-                                                                }}>
-                                                                <SelectTrigger>
+                                                                onValueChange={(val) => handleGradeChange(idx, val)}
+                                                                disabled={isRowDisabled}>
+                                                                <SelectTrigger
+                                                                    className={
+                                                                        errors.subsubject_list?.[idx]?.EMGR_Id ? 'border-red-500' : ''
+                                                                    }>
                                                                     <SelectValue placeholder='Select Grade' />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
@@ -569,7 +684,7 @@ export default function SubSubjectModal({
                                                         )}
                                                     />
                                                     {errors.subsubject_list?.[idx]?.EMGR_Id && (
-                                                        <p className='text-[11px] text-red-500'>
+                                                        <p className='mt-1 text-[11px] text-red-500'>
                                                             {String(errors.subsubject_list[idx].EMGR_Id?.message)}
                                                         </p>
                                                     )}
@@ -588,6 +703,7 @@ export default function SubSubjectModal({
                                                                     updateRowValue(idx, 'eycessS_ExemptedFlg', !!v);
                                                                     if (!v) updateRowValue(idx, 'eycessS_ExemptedPer', '');
                                                                 }}
+                                                                disabled={isRowDisabled}
                                                             />
                                                         )}
                                                     />
@@ -601,7 +717,10 @@ export default function SubSubjectModal({
                                                         render={({ field }) => (
                                                             <Input
                                                                 type='text'
-                                                                disabled={!getValues(`subsubject_list.${idx}.eycessS_ExemptedFlg`)}
+                                                                disabled={
+                                                                    !getValues(`subsubject_list.${idx}.eycessS_ExemptedFlg`) ||
+                                                                    isRowDisabled
+                                                                }
                                                                 {...field}
                                                                 value={field.value ?? ''}
                                                                 onChange={(e) => {
@@ -614,11 +733,6 @@ export default function SubSubjectModal({
                                                             />
                                                         )}
                                                     />
-                                                    {errors.subsubject_list?.[idx]?.eycessS_ExemptedPer && (
-                                                        <p className='text-[11px] text-red-500'>
-                                                            {String(errors.subsubject_list[idx].eycessS_ExemptedPer?.message)}
-                                                        </p>
-                                                    )}
                                                 </td>
 
                                                 {/* Marks Display */}
@@ -633,6 +747,7 @@ export default function SubSubjectModal({
                                                                     field.onChange(!!v);
                                                                     updateRowValue(idx, 'eycessS_MarksDisplayFlg', !!v);
                                                                 }}
+                                                                disabled={isRowDisabled}
                                                             />
                                                         )}
                                                     />
@@ -650,6 +765,7 @@ export default function SubSubjectModal({
                                                                     field.onChange(!!v);
                                                                     updateRowValue(idx, 'eycessS_GradeDisplayFlg', !!v);
                                                                 }}
+                                                                disabled={isRowDisabled}
                                                             />
                                                         )}
                                                     />
@@ -667,6 +783,7 @@ export default function SubSubjectModal({
                                                                     field.onChange(!!v);
                                                                     updateRowValue(idx, 'eycessS_AplResultFlg', !!v);
                                                                 }}
+                                                                disabled={isRowDisabled}
                                                             />
                                                         )}
                                                     />
@@ -678,45 +795,21 @@ export default function SubSubjectModal({
                             </table>
                         </div>
 
-                        <div className='flex w-fit justify-end gap-2 border-t bg-white pt-2'>
+                        <div className='flex w-fit justify-end gap-2 border-t bg-white pt-4'>
                             <Button className='w-fit' type='button' variant='ghost' onClick={onClose}>
                                 Cancel
                             </Button>
 
-                            <Button type='button' onClick={handleSetOrder} className='w-fit transition-all duration-200 hover:scale-90'>
-                                <GitCompareArrows className='h-4 w-4 transition-transform duration-200 group-hover:rotate-90' />
+                            <Button
+                                type='button'
+                                onClick={handleSetOrder}
+                                className='w-fit transition-all duration-200 hover:scale-90'
+                                disabled={currentList.length === 0}>
+                                <GitCompareArrows className='mr-2 h-4 w-4' />
                                 Set Order
                             </Button>
 
-                            <Button
-                                className='w-fit'
-                                type='button'
-                                onClick={() => {
-                                    const values = getValues();
-                                    const selected = values.subsubject_list.filter((r) => r.checkedvalue);
-
-                                    // first run the manual validations across rows
-                                    const ok = validateAllBeforeSave();
-                                    if (!ok) {
-                                        toast.error('Please fix validation errors before saving.');
-                                        return;
-                                    }
-
-                                    // then check sum of selected max/min equals parent subject's marks
-                                    const parentMax = Number(subject.EYCES_MaxMarks ?? 0);
-                                    const parentMin = Number(subject.EYCES_MinMarks ?? 0);
-                                    const totMax = selected.reduce((acc, cur) => acc + Number(cur.eycessS_MaxMarks || 0), 0);
-                                    const totMin = selected.reduce((acc, cur) => acc + Number(cur.eycessS_MinMarks || 0), 0);
-
-                                    if (selected.length > 0 && (totMax !== parentMax || totMin !== parentMin)) {
-                                        toast.error('Sum of selected sub-subjects (max/min) must equal subject max/min marks');
-                                        return;
-                                    }
-
-                                    // all good
-                                    onSave(subject.ISMS_Id, selected);
-                                    onClose();
-                                }}>
+                            <Button className='w-fit' type='button' onClick={handleSave}>
                                 Save & Close
                             </Button>
                         </div>
@@ -726,19 +819,23 @@ export default function SubSubjectModal({
                 {isOrderDetailsOpen && (
                     <MasterViewDetails
                         isOpen={isOrderDetailsOpen}
-                        onClose={closeOrderDetails}
-                        data={methods.watch('subsubject_list').map((d) => ({ ...d, id: d.emsS_Id }))}
+                        onClose={() => setIsOrderDetailsOpen(false)}
+                        data={currentList.map((d, index) => ({
+                            ...d,
+                            id: d.emsS_Id,
+                            order: d.eycessS_SubSubjectOrder ?? index + 1
+                        }))}
                         isLoading={isOrderloading}
                         isSaving={isOrderSaving}
                         columns={[
-                            { key: 'id', label: 'SLNO', className: 'text-center w-12' },
+                            { key: 'id', label: 'ID', className: 'text-center w-12' },
                             { key: 'emsS_SubSubjectName', label: 'Sub-Subject Name', className: 'text-left' },
                             { key: 'emsS_SubSubjectCode', label: 'Sub-Subject Code', className: 'text-left' },
-                            { key: 'eycessS_SubSubjectOrder', label: 'Sub-Subject Order', className: 'text-left' }
+                            { key: 'order', label: 'Current Order', className: 'text-left' }
                         ]}
                         onSave={handleOrderSave}
                         tableHeight='500px'
-                        title='Set Master Subject Order'
+                        title='Set Sub-Subject Order'
                     />
                 )}
             </DialogContent>

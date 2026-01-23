@@ -11,67 +11,66 @@ interface LetterTemplatesProps {
 }
 
 export const LetterTemplates = forwardRef<HTMLDivElement, LetterTemplatesProps>(({ students, letterType, displayDateTime }, ref) => {
-    const currentDate = format(new Date(), 'dd/MM/yyyy');
-
     return (
-        <div ref={ref} className='print-container bg-white p-8 font-serif text-black'>
+        <div ref={ref} className='print-container bg-white font-serif text-black'>
             {/* biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation> */}
             <style
                 dangerouslySetInnerHTML={{
                     __html: `
-                .print-only { display: none; }
                 @media print {
+                    .no-print, header, nav, [role="navigation"], .PolygonBanner { display: none !important; }
                     .print-only { display: block !important; }
-                    .print-container { padding: 0 !important; }
+                    .print-container { padding: 0 !important; margin: 0 !important; display: block !important; width: 100%; }
                     .page-break { page-break-after: always; }
-                    @page { margin: 1cm; }
+                    @page { margin: 0.5cm; size: auto; }
+                    .row { margin-right: 0px; margin-left: 0px; }
+                    .col-sm-2, .col-sm-8, .col-sm-12 { float: left; position: relative; min-height: 1px; padding-right: 15px; padding-left: 15px; }
+                    .col-sm-2 { width: 16.66666667%; }
+                    .col-sm-8 { width: 66.66666667%; }
+                    .col-sm-12 { width: 100%; }
+                    .text-center { text-align: center; }
+                    .pull-right { float: right !important; }
+                    .divob { padding-left: 35px; padding-right: 35px; }
+                    .hhh { font-family: serif; font-size: 14px; margin-bottom: 10px; }
                 }
-                .letter-content { font-size: 14pt; line-height: 1.6; text-align: justify; }
-                .letter-header h2 { font-size: 22pt; font-weight: bold; margin-bottom: 2pt; }
-                .letter-header h3 { font-size: 18pt; font-weight: bold; margin-bottom: 2pt; }
-                .letter-header p { font-size: 12pt; }
-                .signature-section { margin-top: 40pt; font-size: 14pt; }
-                .hhh { margin-bottom: 15pt; }
             `
                 }}
             />
 
             {students.map((student, index) => (
-                <div key={student.amsT_Id} className={`letter-page ${index < students.length - 1 ? 'page-break' : ''}`}>
-                    {/* Header */}
-                    <div className='letter-header mb-6 border-b pb-4 text-center'>
-                        <div className='flex items-center justify-center gap-6'>
-                            <div className='flex h-24 w-24 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-blue-100 to-purple-100 shadow-lg'>
-                                <div className='text-center'>
-                                    <div className='font-bold text-3xl text-blue-800'>SRKVS</div>
-                                    <div className='text-blue-600 text-xs'>ALUMNI</div>
+                <div
+                    key={`${student.amsT_Id}-${letterType}-${index}`}
+                    className={`letter-page divob ${index < students.length - 1 ? 'page-break' : ''}`}
+                    style={{ margin: '90px' }}>
+                    <div className='margin-top-10'>
+                        <div className='row'>
+                            <div className='col-sm-2'>
+                                <div className='baldwin text-center'>
+                                    <img
+                                        src='/images/SRKVSLOGO.png'
+                                        className='img-responsive'
+                                        alt='baldwin'
+                                        style={{ maxWidth: '100%' }}
+                                    />
                                 </div>
                             </div>
-                            <div>
-                                <h2 className='uppercase'>Sri Ramakrishna Vidyashala</h2>
-                                <h3 className='text-primary/80 uppercase'>Old Boys' Association</h3>
-                                <p className='text-muted-foreground'>Yadavagiri, Mysuru 570 020, Karnataka</p>
+                        </div>
+                        <hr style={{ borderTop: '1px solid black', width: '100%', margin: '20px auto' }} />
+
+                        <div className='margin-top-10'>
+                            <div className=''>
+                                <div className='pull-right' style={{ float: 'right' }}>
+                                    {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
+                                    <label className='date2' style={{ fontSize: '22px' }}>
+                                        Date : {format(new Date(), 'dd/MM/yyyy')}
+                                    </label>
+                                </div>
                             </div>
-                        </div>
-                        <div className='mt-2 text-sm italic'>
-                            Phone : (0821) 2514000, 2417555 * e-mail : alumnisrkvs@gmail.com * www.srkvs.org
-                        </div>
-                    </div>
+                            {/* biome-ignore lint/style/useSelfClosingElements: <explanation> */}
+                            <div style={{ clear: 'both' }}></div>
 
-                    <div className='mb-8 flex justify-end font-bold'>Date: {currentDate}</div>
-
-                    {renderLetterBody(student, letterType, displayDateTime)}
-
-                    {/* Footer / Signature */}
-                    <div className='signature-section'>
-                        <div className='mb-8'>With best wishes,</div>
-                        <div className='flex flex-col items-end'>
-                            <div className='text-center'>
-                                <p className='font-bold'>Yours affectionately,</p>
-                                {/* biome-ignore lint/style/useSelfClosingElements: <explanation> */}
-                                <div className='h-16'></div>
-                                <p className='font-bold uppercase'>Correspondent, SRKVS</p>
-                                <p className='font-bold uppercase'>Treasurer, SRKVS OBA</p>
+                            <div className='col-sm-12' style={{ marginTop: '20px' }}>
+                                {renderLetterBody(student, letterType, displayDateTime)}
                             </div>
                         </div>
                     </div>
@@ -84,139 +83,337 @@ export const LetterTemplates = forwardRef<HTMLDivElement, LetterTemplatesProps>(
 LetterTemplates.displayName = 'LetterTemplates';
 
 function renderLetterBody(student: IAlumniLetterStudent, type: string, displayDateTime?: string) {
+    const studentName = student.studentname || student.amsT_FirstName || '';
+    const fatherName = student.fathername || student.amsT_FatherName || '';
+    const address = {
+        street: student.amsT_PerStreet,
+        area: student.amsT_PerArea,
+        city: student.amsT_PerCity,
+        pincode: student.amsT_PerPincode
+    };
+
+    const styles = {
+        fontSize22: { fontSize: '22px' },
+        justify: { textAlign: 'justify' as const },
+        justify22: { textAlign: 'justify' as const, fontSize: '22px' },
+        date1: { fontSize: '22px' }
+    };
+
     switch (type) {
         case 'OBA':
             return (
                 <div className='letter-content'>
-                    <div className='mb-4'>To,</div>
-                    <div className='mb-6 font-bold'>
-                        Dear {student.amsT_FirstName},<br />
-                        {student.AMST_PerStreet}
-                        <br />
-                        {student.AMST_PerArea}
-                        <br />
-                        {student.AMST_PerCity} - {student.AMST_PerPincode}
+                    <div className='hhh mb-2'>
+                        <div className='row' style={styles.fontSize22}>
+                            To
+                        </div>
                     </div>
-                    <div className='mb-4 font-bold underline'>Sub: OBA Games Meet on {displayDateTime || '__________'}</div>
-                    <div className='mb-6'>Ref:</div>
-                    <p className='hhh'>
-                        We are planning, as in the previous years, a Games Meet for the Old Boys' Of Vidyashala residing in Mysore and
-                        nearby places. It is proposed to play matches between the alumni and the present students in Cricket, Volleyball,
-                        Basketball Shuttle badminton, Table Tennis, Handball, Football and Kho-kho, provided there are sufficient number of
-                        players for each game from the OBA side.
+                    <div className='hhh mb-4'>
+                        <div className='row' style={styles.fontSize22}>
+                            Dear {studentName},
+                        </div>
+                    </div>
+                    <div className='hhh mb-6'>
+                        <div className='row' style={styles.fontSize22}>
+                            {address.street}
+                        </div>
+                        <div className='row' style={styles.fontSize22}>
+                            {address.area}
+                        </div>
+                        <div className='row' style={styles.fontSize22}>
+                            {address.city}
+                        </div>
+                        <div className='row' style={styles.fontSize22}>
+                            {address.pincode}
+                        </div>
+                    </div>
+                    <div className='hhh mb-4'>
+                        <div className='row' style={styles.fontSize22}>
+                            Sub : OBA Games Meet on {displayDateTime || '__________'}
+                        </div>
+                    </div>
+                    <div className='hhh mb-6'>
+                        <div className='row' style={styles.fontSize22}>
+                            Ref :
+                        </div>
+                    </div>
+                    <p className='hhh' style={styles.justify}>
+                        &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;We are planning, as in the previous years, a Games Meet for the Old Boys' Of
+                        Vidyashala residing in Mysore and nearby places. It is proposed to play matches between the alumni and the present
+                        students in Cricket, Volleyball, Basketball Shuttle badminton, Table Tennis,Handball,Football and Kho-kho, provided
+                        there are sufficient number of players for each game from the OBA side.
                     </p>
-                    <p className='hhh'>
-                        In this connection, the cricket match between the alumni and the present students of Vidyashala will be played on{' '}
-                        {displayDateTime || '__________'} at Vidyashala. Other matches will also be played on the same day if sufficient
-                        number of players from the OBA side turn up and if time permits.
+                    <p className='hhh' style={styles.justify}>
+                        &nbsp;&nbsp; &nbsp;&nbsp; In this connection, the cricket match between the alumni and the present students of
+                        Vidyashala will be played on {displayDateTime || '__________'} at Vidyashala. Other matches will also be played on
+                        the same day if sufficient number of players from the OBA side turn up and if time permits.
                     </p>
-                    <p className='hhh'>
-                        We are happy that your name is proposed to be included in the alumni team. We hope you will make yourself free to
-                        participate in the match/ matches on that day.
+                    <p className='hhh' style={styles.justify}>
+                        &nbsp;&nbsp;&nbsp;&nbsp; We are happy that your name is proposed to be included in the alumni team. We hope you will
+                        make yourself free to participate in the match/ matches on that day.
                     </p>
-                    <p className='hhh border-2 border-black p-4 font-bold uppercase'>
-                        Kindly confirm your participation by phone (2514000, 2417555) or by e-mail (alumnisrkvs@gmail.com) mentioning the
-                        game in which you are willing to participate.
+                    <p className='hhh uppercase' style={styles.justify}>
+                        &nbsp;&nbsp; KINDLY CONFIRM YOUR PARTICIPATION BY PHONE (2514000, 2417555) OR BY E-MAIL (alumnisrkvs@gmail.com)
+                        MENTIONING THE GAME IN WHICH YOU ARE WILLING TO PARTICIPATE.
                     </p>
                 </div>
             );
         case 'ENR':
         case 'ENR3':
+            // biome-ignore lint/correctness/noSwitchDeclarations: <explanation>
+            const years = type === 'ENR' ? 'three' : 'two';
+            // biome-ignore lint/correctness/noSwitchDeclarations: <explanation>
+            const cday = type === 'ENR' ? 'invitation of the annual College Day' : 'College Day';
             return (
                 <div className='letter-content'>
-                    <div className='mb-6 font-bold'>Dear Sri {student.amsT_FatherName},</div>
-                    <div className='mb-4 font-bold underline'>Sub: Enrolling your boy as a member of the Old Boys' Association</div>
-                    <div className='mb-6'>
-                        Ref: Your ward studying in {student.asmcL_ClassName} - {student.amsT_FirstName} ({student.amsT_AdmNo}).
+                    <div className='hhh mb-6'>
+                        <div className='row' style={styles.fontSize22}>
+                            Dear {fatherName}
+                        </div>
                     </div>
-                    <p className='hhh'>
-                        We are glad that your boy is preparing well for the ensuing public examination. We hope he will do well in it. He
-                        has studied in our institution for {type === 'ENR' ? 'three' : 'two'} years. We trust you desire to continue his
+                    <div className='hhh mb-2'>
+                        <div className='row' style={styles.fontSize22}>
+                            Sub : Enrolling your boy as a member of the Old Boys' Association
+                        </div>
+                    </div>
+                    <div className='hhh mb-6'>
+                        <div className='row' style={{ ...styles.fontSize22, textAlign: 'justify' }}>
+                            Ref : Your ward studying in {student.asmcL_ClassName} - {studentName} ({student.amsT_AdmNo}).
+                        </div>
+                    </div>
+                    <p className='hhh' style={styles.justify}>
+                        &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;We are glad that your boy is preparing well for the ensuing public examination. We
+                        hope he will do well in it. He has studied in our institution for {years} years. We trust you desire to continue his
                         association with us in future also. Hence we request you to enroll him as a member of the Old Boys' Association
                         which aims at bringing our alumni together by strengthening their network.
                     </p>
-                    <p className='hhh'>
-                        The Association organizes programmes like Spiritual Retreats, Regional Meets, Sports and Games Meets etc.
-                        exclusively for our old Boys'. It brings out a bi-annual newsletter - Voice of Vidyashala Alumni (VOVA) with latest
-                        updates about Vidyashala and OBA.
+                    <p className='hhh' style={styles.justify}>
+                        &nbsp;&nbsp; &nbsp;&nbsp; The Association organizes programmes like Spiritual Retreats, Regional Meets, Sports and
+                        Games Meets etc. exclusively for our old Boys'. It brings out a bi-annual newsletter - Voice of Vidyashala Alumni
+                        (VOVA) with latest updates about Vidyashala and OBA. The Association has been conducting a city level Inter High
+                        School Competition in General Knowledge since 1973.
                     </p>
-                    <p className='hhh'>
-                        The Association offers two types of membership - Patron (Rs.5000/-) and Life Member (RS.3OOO/-) - both being
-                        one-time payments only.
+                    <p className='hhh' style={styles.justify}>
+                        &nbsp;&nbsp;&nbsp;&nbsp;The Association offers two types of membership - Patron (Rs.5000/-) and Life Member
+                        (RS.3OOO/-) - both being one-time payments only.
                     </p>
-                    <p className='hhh font-bold italic'>
-                        Your boy will be enrolled as a Life Member by deducting from his personal deposit an amount of Rs.3000/- towards the
-                        above membership fees. You need not send any amount for this.
+                    <p className='hhh' style={styles.justify}>
+                        &nbsp;&nbsp; &nbsp;&nbsp; Your boy will be enrolled as a Life Member by deducting from his personal deposit an
+                        amount of Rs.3000/-towards the above membership fees. You need not send any amount for this.
                     </p>
-                    <p className='hhh'>
-                        In case, you desire your boy to be enrolled as a patron, you will please send an additional amount of Rs.2000/- in
-                        the form of a DD drawn in favour of Sri Ramakrishna Vidyashala, Mysore, with a request letter to enroll him as a
-                        patron of the Old Boys' Association.
+                    <p className='hhh' style={styles.justify}>
+                        &nbsp;&nbsp; &nbsp;&nbsp; In case, you desire your boy to be enrolled as a patron, you will please send an
+                        additional amount of Rs.2000/- in the form of a DD drawn in favour of Sri Ramakrishna Vidyashala, Mysore, with a
+                        request letter to enroll him as a patron of the Old Boys' Association. If he is enrolled as a patron, we appreciate
+                        the noble gesture of support.
+                    </p>
+                    <p className='hhh' style={styles.justify}>
+                        &nbsp;&nbsp; As a member of OBA, he will receive our newsletter – VOVA, {cday} and other important programmes.
                     </p>
                 </div>
             );
         case 'ADR':
             return (
                 <div className='letter-content'>
-                    <div className='mb-4'>To,</div>
-                    <div className='mb-6 font-bold'>
-                        {student.amsT_FirstName},<br />
-                        {student.AMST_PerStreet}
-                        <br />
-                        {student.AMST_PerArea}
-                        <br />
-                        {student.AMST_PerCity} - {student.AMST_PerPincode}
+                    <div className='hhh mb-2'>
+                        <div className='row' style={styles.fontSize22}>
+                            To
+                        </div>
                     </div>
-                    <div className='mb-6 font-bold'>Dear {student.amsT_FirstName},</div>
-                    <div className='mb-4 font-bold underline'>Sub: Change of address</div>
-                    <div className='mb-6'>Ref:</div>
-                    <p className='hhh'>Hope you are doing well.</p>
-                    <p className='hhh'>
-                        It is very nice of you to have intimated the change in your address. It has been incorporated in our records.
-                    </p>
-                    <p className='hhh'>Kindly visit the institution whenever you come to Mysore.</p>
+
+                    <div className='hhh'>
+                        <div className='row' style={styles.fontSize22}>
+                            {studentName}
+                        </div>
+                    </div>
+                    <br />
+                    <div className='hhh'>
+                        <div className='row' style={styles.fontSize22}>
+                            Kind Attention : {studentName}{' '}
+                        </div>
+                    </div>
+                    <br />
+                    <div className='hhh'>
+                        <div className='row' style={styles.fontSize22}>
+                            Dear {studentName}
+                        </div>
+                    </div>
+                    <br />
+                    <div className='hhh'>
+                        <div className='row' style={styles.fontSize22}>
+                            Sub : Change of address
+                        </div>
+                    </div>
+                    <br />
+                    <div className='hhh mb-6'>
+                        <div className='row' style={styles.fontSize22}>
+                            Ref :
+                        </div>
+                    </div>
+
+                    <div className='row'>
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td className='date1' style={styles.justify22}>
+                                        Hope you are doing well.
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <br />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td className='date1' style={styles.justify22}>
+                                        It is very nice of you to have intimated the change in your address. It has been incorporated in our
+                                        records.
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <br />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td className='date1' style={styles.justify22}>
+                                        Kindly visit the institution whenever you come to Mysore.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             );
         case 'PTRN':
             return (
                 <div className='letter-content'>
-                    <div className='mb-4'>To,</div>
-                    <div className='mb-6 font-bold'>
-                        Dear {student.amsT_FirstName},<br />
-                        {student.AMST_PerStreet}
-                        <br />
-                        {student.AMST_PerArea}
-                        <br />
-                        {student.AMST_PerCity} - {student.AMST_PerPincode}
+                    <div className='hhh mb-2'>
+                        <div className='row' style={styles.fontSize22}>
+                            To
+                        </div>
                     </div>
-                    <div className='mb-6 font-bold'>Dear {student.amsT_FirstName},</div>
-                    <div className='mb-4 font-bold underline'>Sub: Your boy is enrolled as Patron</div>
-                    <div className='mb-6'>Ref:</div>
-                    <p className='hhh'>
-                        We are thankful to you for sending an additional membership subscription of Rs.2000/-. Please find the receipt
-                        enclosed.
-                    </p>
-                    <p className='hhh'>
-                        The Life Membership of your boy has been upgraded and he is enrolled as a Patron of the Old Boys' Association. We
-                        wish him all the best.
-                    </p>
+                    <br />
+                    <div className='hhh'>
+                        <div className='row' style={styles.fontSize22}>
+                            Dear {studentName}
+                        </div>
+                    </div>
+                    <br />
+                    <div className='hhh mb-6'>
+                        <div className='row' style={styles.fontSize22}>
+                            {address.street}
+                        </div>
+                        <div className='row' style={styles.fontSize22}>
+                            {address.area}
+                        </div>
+                        <div className='row' style={styles.fontSize22}>
+                            {address.city}
+                        </div>
+                        <div className='row' style={styles.fontSize22}>
+                            {address.pincode}
+                        </div>
+                    </div>
+                    <br />
+                    <div className='hhh'>
+                        <div className='row' style={styles.fontSize22}>
+                            Sub : Your boy is enrolled as Patron
+                        </div>
+                    </div>
+                    <br />
+                    <div className='hhh mb-6'>
+                        <div className='row' style={styles.fontSize22}>
+                            Ref :
+                        </div>
+                    </div>
+                    <div className='row'>
+                        <table>
+                            <tr>
+                                <td className='date1' style={styles.justify22}>
+                                    {' '}
+                                    We are thankful to you for sending an additional membership subscription of Rs.2000/-. Please find the
+                                    receipt enclosed.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td className='date1' style={styles.justify22}>
+                                    The Life Membership of your boy has been upgraded and he is enrolled as a Patron of the Old Boys'
+                                    Association.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td className='date1' style={styles.justify22}>
+                                    We wish him all the best.
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
             );
         case 'LFMB':
             return (
                 <div className='letter-content'>
-                    <div className='mb-6 font-bold'>Dear Sri {student.amsT_FatherName},</div>
-                    <div className='mb-4 font-bold underline'>Sub: Your boy is enrolled as Life Member</div>
-                    <div className='mb-4'>Ref: Your ward: {student.amsT_FirstName}</div>
-                    <p className='hhh'>We are glad that you have enrolled your boy as a Life Member of the Old Boys' association.</p>
-                    <p className='hhh'>
-                        Kindly see that he keeps in touch with the institution in future also. He is welcome to visit the institution
-                        whenever convenient to him.
-                    </p>
-                    <p className='hhh'>
-                        Whenever there is any change in his contact particulars, kindly instruct him to intimate the same to us.
-                    </p>
-                    <p className='hhh'>We wish him all the best in his future endeavours.</p>
+                    <div className='hhh mb-6'>
+                        <div className='row' style={styles.fontSize22}>
+                            Dear Sri {fatherName}
+                        </div>
+                    </div>
+                    <br />
+                    <br />
+                    <div className='hhh'>
+                        <div className='row' style={styles.fontSize22}>
+                            Sub : Your boy is enrolled as Life Member
+                        </div>
+                    </div>
+                    <br />
+                    <br />
+                    <div className='hhh mb-4'>
+                        <div className='row' style={styles.fontSize22}>
+                            Ref :
+                        </div>
+                    </div>
+                    <div className='hhh mb-6 pl-10'>
+                        <div className='row' style={{ ...styles.fontSize22, paddingLeft: '40px' }}>
+                            Your ward: {studentName}
+                        </div>
+                    </div>
+                    <div className='row'>
+                        <table>
+                            <tr>
+                                {/* biome-ignore lint/style/useSelfClosingElements: <explanation> */}
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td className='date1' style={styles.justify22}>
+                                    {' '}
+                                    We are glad that you have enrolled your boy as a Life Member of the Old Boys' association. <br />
+                                </td>
+                            </tr>
+                        </table>
+                        <table style={{ marginTop: '10px' }}>
+                            <tr>
+                                <td className='date1' style={styles.justify22}>
+                                    Kindly see that he keeps in touch with the institution in future also. He is welcome to visit the
+                                    institution whenever convenient to him. <br />
+                                </td>
+                            </tr>
+                        </table>
+                        <table style={{ marginTop: '10px' }}>
+                            <tr>
+                                <td className='date1' style={styles.justify22}>
+                                    Whenever there is any change in his contact particulars, kindly instruct him to intimate the same to us.{' '}
+                                    <br />
+                                </td>
+                            </tr>
+                        </table>
+                        <table style={{ marginTop: '10px' }}>
+                            <tr>
+                                <td className='date1' style={styles.justify22}>
+                                    We wish him all the best in his future endeavours.
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
             );
         default:

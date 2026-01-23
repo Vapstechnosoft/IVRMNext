@@ -216,7 +216,7 @@ const mockGetCoursesByYear = async (yearId: number) => {
     };
 };
 
-const mockGetBranchesByCourse = async ({ AMCO_Id, ASMAY_Id }: { AMCO_Id: number; ASMAY_Id: number }) => {
+const mockGetBranchesByCourse = async ({ AMCO_Id }: { AMCO_Id: number; ASMAY_Id: number }) => {
     await new Promise((resolve) => setTimeout(resolve, 300));
     return {
         success: true,
@@ -226,7 +226,7 @@ const mockGetBranchesByCourse = async ({ AMCO_Id, ASMAY_Id }: { AMCO_Id: number;
     };
 };
 
-const mockGetSemestersByBranch = async ({ AMB_Id, ASMAY_Id, ACAYCB_Id }: { AMB_Id: number; ASMAY_Id: number; ACAYCB_Id: number }) => {
+const mockGetSemestersByBranch = async ({ AMB_Id }: { AMB_Id: number; ASMAY_Id: number; ACAYCB_Id: number }) => {
     await new Promise((resolve) => setTimeout(resolve, 300));
     return {
         success: true,
@@ -332,6 +332,7 @@ export default function ClgAlumniStudentSearchPage() {
                 setYears(res.data.fillyear || []);
                 toast.success(`Loaded ${res.data.fillyear.length} academic years`);
             }
+            // biome-ignore lint/correctness/noUnusedVariables: <explanation>
         } catch (error) {
             toast.error('Failed to load search page data');
         } finally {
@@ -358,6 +359,7 @@ export default function ClgAlumniStudentSearchPage() {
                 setCourses(res.data.courses || []);
                 toast.info(`Loaded ${res.data.courses.length} courses for selected year`);
             }
+            // biome-ignore lint/correctness/noUnusedVariables: <explanation>
         } catch (error) {
             toast.error('Failed to fetch courses');
         }
@@ -376,6 +378,7 @@ export default function ClgAlumniStudentSearchPage() {
                 setBranches(res.data.branches || []);
                 toast.info(`Loaded ${res.data.branches.length} branches`);
             }
+            // biome-ignore lint/correctness/noUnusedVariables: <explanation>
         } catch (error) {
             toast.error('Failed to fetch branches');
         }
@@ -398,6 +401,7 @@ export default function ClgAlumniStudentSearchPage() {
                     setSemesters(res.data.semesters || []);
                     toast.info(`Loaded ${res.data.semesters.length} semesters`);
                 }
+                // biome-ignore lint/correctness/noUnusedVariables: <explanation>
             } catch (error) {
                 toast.error('Failed to fetch semesters');
             }
@@ -444,6 +448,7 @@ export default function ClgAlumniStudentSearchPage() {
             } else {
                 toast.error('Search failed');
             }
+            // biome-ignore lint/correctness/noUnusedVariables: <explanation>
         } catch (error) {
             toast.error('An error occurred during search');
         } finally {

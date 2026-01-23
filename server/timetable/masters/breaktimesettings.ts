@@ -34,9 +34,12 @@ export async function getBreakTimeSettingsById(ttmb_id: number) {
     return await api.get<any>('timetable', url);
 }
 
-export async function getMaximumPeriodsCount(data: any) {
-    const url = '/BreakTimeSettings/getmaximumperiodscount';
-    return await api.post<any>('timetable', url, data);
+export async function getMaximumPeriodsCount(classid: number, classcount: number) {
+    //  const url = `/BreaktimesettingsFacade/getmaximumperiodscount/${classid}/${classcount}/`;
+    const url = `/BreaktimesettingsFacade/getmaximumperiodscount/$${classid}/$${classcount}/`;
+    console.info('getMaximumPeriodsCount URL:', url);
+
+    return await api.get<any>('timetable', url);
 }
 
 export async function getClassByCategory(data: any) {

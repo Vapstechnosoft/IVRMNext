@@ -88,7 +88,7 @@ export default function StudentEligibleReportPage() {
                         columns={columns}
                         isLoading={isLoading}
                         error={error}
-                        // manualPagination={false}
+                        //manualPagination={false}
                         showViewOptions={true}
                         loadingMessage='Loading report data...'
                         noDataTitle='No Records Found'

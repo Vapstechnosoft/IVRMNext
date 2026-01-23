@@ -37,6 +37,7 @@ const staticAlumniList: IAlumniInteractionAlumni[] = [
 ];
 
 // Mock API functions
+// biome-ignore lint/correctness/noUnusedVariables: <explanation>
 const mockGetAlumniDetails = async ({ userflag }: { userflag: string }) => {
     await new Promise((resolve) => setTimeout(resolve, 400));
     return {
@@ -48,14 +49,14 @@ const mockGetAlumniDetails = async ({ userflag }: { userflag: string }) => {
 };
 
 const mockSaveAlumniInteraction = async (payload: any) => {
-    console.log('Saving interaction:', payload);
+    console.info('Saving interaction:', payload);
     await new Promise((resolve) => setTimeout(resolve, 800));
     return { success: true, message: 'Message sent successfully' };
 };
 
 const mockUploadDocument = async (formData: FormData) => {
     const file = formData.get('File');
-    console.log('Uploading file:', file);
+    console.info('Uploading file:', file);
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     const timestamp = Date.now();
@@ -105,6 +106,7 @@ export default function AddInteractionForm({ interactionType, roleFlg, onSuccess
                 if (res.success && res.data) {
                     setAlumniList(res.data.getdetails || []);
                 }
+                // biome-ignore lint/correctness/noUnusedVariables: <explanation>
             } catch (error) {
                 toast.error('Failed to load alumni list');
             } finally {
@@ -142,6 +144,7 @@ export default function AddInteractionForm({ interactionType, roleFlg, onSuccess
                     toast.success('File uploaded');
                 }
             } catch (err: any) {
+                // biome-ignore lint/style/useTemplate: <explanation>
                 toast.error('Upload failed: ' + err.message);
             } finally {
                 setUploading(false);
@@ -340,6 +343,7 @@ export default function AddInteractionForm({ interactionType, roleFlg, onSuccess
                                         className='group relative rounded-lg border border-green-200 bg-white p-3 shadow-sm transition-all hover:shadow-md'>
                                         <div className='mb-2 flex items-center justify-between'>
                                             <span className='max-w-[80%] truncate font-medium text-green-800 text-xs' title={file.name}>
+                                                {/* biome-ignore lint/style/useTemplate: <explanation> */}
                                                 {file.name.length > 15 ? file.name.substring(0, 12) + '...' : file.name}
                                             </span>
                                             <button

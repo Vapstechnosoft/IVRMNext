@@ -95,7 +95,7 @@ function StudentSubjectMappingContent() {
         }
     });
 
-    const { control, watch, setValue, getValues } = methods;
+    const { control, watch, setValue, reset, getValues } = methods;
 
     const watchedAcademicYear = watch('asmaY_Id');
     const watchedClass = watch('asmcL_Id');
@@ -109,7 +109,7 @@ function StudentSubjectMappingContent() {
     const [payload, setPayload] = useState<Payload | null>(null);
     const [subjectGroups, setSubjectGroups] = useState<any[]>([]);
 
-    const [loadingClasses, setLoadingClasses] = useState(false);
+    const [loadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
     const [loadingCategories, setLoadingCategories] = useState(false);
     const [loadingSG, setLoadingSG] = useState(false);
@@ -147,6 +147,7 @@ function StudentSubjectMappingContent() {
                     watchedClass
                 );
                 setSections(Array.isArray(data) ? data : []);
+                if (data.length === 0) toast.info('No sections found for selected class');
                 setValue('asmS_Id', undefined);
             } catch (err: any) {
                 console.error(err);
@@ -172,11 +173,14 @@ function StudentSubjectMappingContent() {
             try {
                 const { data: response } = await getCategoryDropDowByExamYearCategoryList(MI_Id, watchedAcademicYear);
                 const cats: any[] = Array.isArray(response) ? response : [];
-                console.log('cats', cats);
+                console.info('cats', cats);
                 const normalized = cats.map((c) => ({
                     emcA_Id: c.emcA_Id ?? c.eyC_Id,
                     emcA_CategoryName: c.emcA_CategoryName ?? c.eyC_CategoryName
                 }));
+                if (normalized.length === 0) {
+                    toast.info('No categories found for selected academic year');
+                }
                 setCategories(normalized);
                 setValue('emcA_Id', undefined);
                 setValue('subject_group_id', undefined);
@@ -202,13 +206,19 @@ function StudentSubjectMappingContent() {
         const fetchSubjectGroups = async () => {
             setLoadingSG(true);
             try {
-                console.log('watchedAcademicYear', watchedAcademicYear);
-                console.log('watchedCategory', watchedCategory);
+                console.info('watchedAcademicYear', watchedAcademicYear);
+                console.info('watchedCategory', watchedCategory);
                 const data = await getSubjectlistByCatGroupClass(watchedAcademicYear, watchedCategory);
                 const safeData = Array.isArray(data) ? data : (data?.data ?? []);
-                console.log('safeData', safeData);
+                console.info('safeData', safeData);
                 setSubjectGroups(safeData.grouplist);
                 setClasses(safeData.classlist);
+                if (safeData.classlist.length === 0) {
+                    toast.info('No classes found for selected category');
+                }
+                if (safeData.grouplist.length === 0) {
+                    toast.info('No subject groups found for selected category');
+                }
                 setValue('subject_group_id', undefined);
                 setValue('asmcL_Id', undefined);
             } catch (err: any) {
@@ -246,11 +256,10 @@ function StudentSubjectMappingContent() {
                 Deactive_Flag: form.Deactive_Flag ?? true,
                 EMG_Id: FIXED_EMG_ID
             };
-            console.log('params **', params);
             const response = await getStudentsForSubjectMapping(params);
             const success = response?.success ?? false;
             const data = Array.isArray(response?.data) ? response?.data : [];
-            console.log('search response **', data);
+            console.info('search response **', data);
 
             if (!success || data?.length === 0) {
                 toast.error(response?.message ?? 'No data found');
@@ -356,6 +365,7 @@ function StudentSubjectMappingContent() {
                                                 Academic Year <span className='text-red-500'>*</span>
                                             </Label>
                                             <Select
+                                                key={field.value}
                                                 value={field.value ? String(field.value) : undefined}
                                                 onValueChange={(v) => field.onChange(Number(v))}>
                                                 <SelectTrigger className='h-10'>
@@ -386,28 +396,37 @@ function StudentSubjectMappingContent() {
 
                                 <Controller
                                     control={control}
-                                    name='emcA_Id'
+                                    name='asmcL_Id'
                                     render={({ field, fieldState }) => (
                                         <div>
                                             <Label className='mb-1 block font-medium text-slate-700 text-sm'>
-                                                Exam Category <span className='text-red-500'>*</span>
+                                                Class <span className='text-red-500'>*</span>
                                             </Label>
                                             <Select
+                                                key={field.value}
                                                 value={field.value ? String(field.value) : undefined}
                                                 onValueChange={(v) => field.onChange(Number(v))}
-                                                disabled={loadingCategories}>
+                                                disabled={!watchedAcademicYear || loadingClasses}>
                                                 <SelectTrigger className='h-10'>
-                                                    <SelectValue placeholder='Select Category' />
+                                                    <SelectValue placeholder='Select Class' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {loadingCategories ? (
+                                                    {!watchedCategory ? (
+                                                        <SelectItem value='error' disabled>
+                                                            Select Category
+                                                        </SelectItem>
+                                                    ) : loadingClasses ? (
                                                         <SelectItem value='loading' disabled>
                                                             Loading...
                                                         </SelectItem>
+                                                    ) : classes.length === 0 ? (
+                                                        <SelectItem value='error' disabled>
+                                                            No classes found
+                                                        </SelectItem>
                                                     ) : (
-                                                        categories.map((c) => (
-                                                            <SelectItem key={c.emcA_Id} value={String(c.emcA_Id)}>
-                                                                {c.emcA_CategoryName}
+                                                        classes.map((c) => (
+                                                            <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
+                                                                {c.asmcL_ClassName}
                                                             </SelectItem>
                                                         ))
                                                     )}
@@ -425,6 +444,7 @@ function StudentSubjectMappingContent() {
                                         <div>
                                             <Label className='mb-1 block font-medium text-slate-700 text-sm'>Exam</Label>
                                             <Select
+                                                key={field.value}
                                                 value={field.value !== undefined ? String(field.value) : undefined}
                                                 onValueChange={(v) => field.onChange(Number(v))}>
                                                 <SelectTrigger className='h-10'>
@@ -443,28 +463,33 @@ function StudentSubjectMappingContent() {
                             <div className='space-y-4'>
                                 <Controller
                                     control={control}
-                                    name='asmcL_Id'
+                                    name='emcA_Id'
                                     render={({ field, fieldState }) => (
                                         <div>
                                             <Label className='mb-1 block font-medium text-slate-700 text-sm'>
-                                                Class <span className='text-red-500'>*</span>
+                                                Exam Category <span className='text-red-500'>*</span>
                                             </Label>
                                             <Select
+                                                key={field.value}
                                                 value={field.value ? String(field.value) : undefined}
                                                 onValueChange={(v) => field.onChange(Number(v))}
-                                                disabled={!watchedAcademicYear || loadingClasses}>
+                                                disabled={loadingCategories}>
                                                 <SelectTrigger className='h-10'>
-                                                    <SelectValue placeholder='Select Class' />
+                                                    <SelectValue placeholder='Select Category' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {loadingClasses ? (
+                                                    {loadingCategories ? (
                                                         <SelectItem value='loading' disabled>
                                                             Loading...
                                                         </SelectItem>
+                                                    ) : categories.length === 0 ? (
+                                                        <SelectItem value='error' disabled>
+                                                            No categories found
+                                                        </SelectItem>
                                                     ) : (
-                                                        classes.map((c) => (
-                                                            <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
-                                                                {c.asmcL_ClassName}
+                                                        categories.map((c) => (
+                                                            <SelectItem key={c.emcA_Id} value={String(c.emcA_Id)}>
+                                                                {c.emcA_CategoryName}
                                                             </SelectItem>
                                                         ))
                                                     )}
@@ -484,6 +509,7 @@ function StudentSubjectMappingContent() {
                                                 Section <span className='text-red-500'>*</span>
                                             </Label>
                                             <Select
+                                                key={field.value}
                                                 value={field.value ? String(field.value) : undefined}
                                                 onValueChange={(v) => field.onChange(Number(v))}
                                                 disabled={!watchedClass || loadingSections}>
@@ -494,6 +520,14 @@ function StudentSubjectMappingContent() {
                                                     {loadingSections ? (
                                                         <SelectItem value='loading' disabled>
                                                             Loading...
+                                                        </SelectItem>
+                                                    ) : !watchedClass ? (
+                                                        <SelectItem value='error' disabled>
+                                                            Select Class
+                                                        </SelectItem>
+                                                    ) : sections.length === 0 ? (
+                                                        <SelectItem value='error' disabled>
+                                                            No sections found
                                                         </SelectItem>
                                                     ) : (
                                                         sections.map((s) => (
@@ -516,6 +550,7 @@ function StudentSubjectMappingContent() {
                                         <div>
                                             <Label className='mb-1 block font-medium text-slate-700 text-sm'>Subject Group</Label>
                                             <Select
+                                                key={field.value}
                                                 value={field.value ? String(field.value) : undefined}
                                                 onValueChange={(v) => field.onChange(Number(v))}
                                                 disabled={!watchedCategory || loadingSG}>
@@ -585,6 +620,27 @@ function StudentSubjectMappingContent() {
 
                         {/* Search Button */}
                         <div className='mt-6 flex w-fit justify-center'>
+                            <Button
+                                type='button'
+                                variant='outline'
+                                size='lg'
+                                onClick={() => {
+                                    reset({
+                                        asmaY_Id: undefined,
+                                        asmcL_Id: undefined,
+                                        asmS_Id: undefined,
+                                        emcA_Id: undefined,
+                                        eme_Id: 0,
+                                        subject_group_id: undefined,
+                                        Left_Flag: true,
+                                        Deactive_Flag: true
+                                    } as any);
+                                    setClasses([]);
+                                    setCategories([]);
+                                    setSections([]);
+                                }}>
+                                CANCEL
+                            </Button>
                             <Button type='button' className='px-8 py-2 shadow-lg' onClick={handleSearch} disabled={isLoading}>
                                 {isLoading ? 'Searching...' : 'Search'}
                             </Button>

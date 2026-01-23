@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -12,12 +12,14 @@ import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 
+import { Input } from '@/components/ui/input';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 import { useMasterSubjectGroup } from '@/hooks/exam/exammodule/usemasters';
 import { masterSubjectGroupSchema } from '@/schemas/exam/exam-module/masters';
 import { addOrUpdateMasterSubjectGroup, getAllMasterSubjectDetails } from '@/server/exam/exam-module/masters/subject-group';
 import type { IMasterSubjectGroup, IMasterSubjectGroupDetails } from '@/types/exam/exam-module/masters';
+import { Search } from 'lucide-react';
 import { MasterSubjectGroupDetailsColumns } from './subject-group-details-columns';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 
 type FormFields = z.infer<typeof masterSubjectGroupSchema.addOrUpdate>;
 
@@ -32,7 +34,22 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
     const [selectedSubjects, setSelectedSubjects] = useState<IMasterSubjectGroupDetails[]>([]);
     const [isSubjectsEnabled, setIsSubjectsEnabled] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
     const { refetchAll } = useMasterSubjectGroup();
+
+    // Filter subjects based on search term
+    const filteredSubjects = useMemo(() => {
+        if (!searchTerm.trim()) return allSubjects;
+
+        const term = searchTerm.toLowerCase().trim();
+        return allSubjects.filter(
+            (subject) =>
+                subject.ismS_SubjectName?.toLowerCase().includes(term) ||
+                subject.ismS_SubjectCode?.toLowerCase().includes(term) ||
+                subject.ismS_SubjectName?.toLowerCase().includes(term) ||
+                subject.ismS_SubjectGroup?.toLowerCase().includes(term)
+        );
+    }, [allSubjects, searchTerm]);
 
     // -------------------------
     // GET SUBJECT LIST
@@ -50,7 +67,7 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
                     setSelectedSubjects(selected);
                 }
             } catch (err: any) {
-                toast.error(err.message || "Failed to fetch subjects");
+                toast.error(err.message || 'Failed to fetch subjects');
             } finally {
                 setIsLoading(false);
             }
@@ -72,41 +89,42 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
         formState
     } = useForm<FormFields>({
         resolver: zodResolver(masterSubjectGroupSchema.addOrUpdate),
-        mode: "onChange",
-        reValidateMode: "onChange",
+        mode: 'onChange',
+        reValidateMode: 'onChange',
         defaultValues: initialData
             ? {
-                emG_GroupName: initialData.emG_GroupName,
-                emG_TotSubjects: initialData.emG_TotSubjects,
-                emG_MaxAplSubjects: initialData.emG_MaxAplSubjects,
-                emG_MinAplSubjects: initialData.emG_MinAplSubjects,
-                emG_BestOff: initialData.emG_BestOff,
-                subject_list: initialData.subjects?.map(s => ({ ismS_Id: s.ismS_Id })) ?? []
-            }
+                  emG_GroupName: initialData.emG_GroupName,
+                  emG_TotSubjects: initialData.emG_TotSubjects,
+                  emG_MaxAplSubjects: initialData.emG_MaxAplSubjects,
+                  emG_MinAplSubjects: initialData.emG_MinAplSubjects,
+                  emG_BestOff: initialData.emG_BestOff,
+                  subject_list: initialData.subjects?.map((s) => ({ ismS_Id: s.ismS_Id })) ?? []
+              }
             : {
-                emG_GroupName: "",
-                emG_TotSubjects: 1,
-                emG_MaxAplSubjects: 1,
-                emG_MinAplSubjects: 1,
-                emG_BestOff: 1,
-                subject_list: []
-            }
+                  emG_GroupName: '',
+                  emG_TotSubjects: 1,
+                  emG_MaxAplSubjects: 1,
+                  emG_MinAplSubjects: 1,
+                  emG_BestOff: 1,
+                  subject_list: []
+              }
     });
 
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const { errors, isSubmitting, touchedFields, isSubmitted } = formState;
 
     // -------------------------
     // Watch Dependent Fields
     // -------------------------
-    const total = watch("emG_TotSubjects");
-    const max = watch("emG_MaxAplSubjects");
-    const min = watch("emG_MinAplSubjects");
-    const best = watch("emG_BestOff");
+    const total = watch('emG_TotSubjects');
+    const max = watch('emG_MaxAplSubjects');
+    const min = watch('emG_MinAplSubjects');
+    const best = watch('emG_BestOff');
 
     // Whenever dependent fields change -> revalidate to update errors immediately
     useEffect(() => {
         // trigger only the dependent fields to reduce overhead
-        trigger(["emG_TotSubjects", "emG_MaxAplSubjects", "emG_MinAplSubjects", "emG_BestOff"]);
+        trigger(['emG_TotSubjects', 'emG_MaxAplSubjects', 'emG_MinAplSubjects', 'emG_BestOff']);
     }, [total, max, min, best, trigger]);
 
     // Enable subject selection only when values are logically valid
@@ -115,8 +133,8 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
     }, [total, max, min]);
 
     const tableProps = useDataTableProps({
-        data: allSubjects,
-        total: allSubjects.length,
+        data: filteredSubjects,
+        total: filteredSubjects.length,
         pageIndex: 0,
         pageSize: 10
     });
@@ -128,12 +146,17 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
         setSelectedSubjects(rows);
     };
 
+    // Clear search
+    const handleClearSearch = () => {
+        setSearchTerm('');
+    };
+
     // -------------------------
     // SUBMIT
     // -------------------------
     const onSubmit: SubmitHandler<FormFields> = async (d) => {
         if (!isSubjectsEnabled) {
-            toast.error("Enter valid Min/Max subjects first");
+            toast.error('Enter valid Min/Max subjects first');
             return;
         }
 
@@ -150,21 +173,22 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
             emG_MaxAplSubjects: d.emG_MaxAplSubjects,
             emG_MinAplSubjects: d.emG_MinAplSubjects,
             emG_BestOff: d.emG_BestOff,
-            subject_list: selectedSubjects.map(s => ({ ismS_Id: s.ismS_Id }))
+            subject_list: selectedSubjects.map((s) => ({ ismS_Id: s.ismS_Id }))
         };
 
         try {
             const res = await addOrUpdateMasterSubjectGroup(payload);
             if (res.success) {
-                toast.success(res.message || "Saved successfully.");
+                toast.success(res.message || 'Saved successfully.');
                 reset();
+                setSearchTerm('');
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(res.message || "Failed to save");
+                toast.error(res.message || 'Failed to save');
             }
         } catch (e: any) {
-            toast.error(e.message || "Something went wrong");
+            toast.error(e.message || 'Something went wrong');
         }
     };
 
@@ -173,32 +197,27 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
     // -------------------------
     return (
         <form onSubmit={handleSubmit(onSubmit)} className={`space-y-6 ${className}`}>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                 {/* GROUP NAME */}
                 <div>
-                    <InputText
-                        label="Group Name"
-                        required
-                        placeholder="Enter Group Name"
-                        {...register("emG_GroupName")}
-                    />
+                    <InputText label='Group Name' required placeholder='Enter Group Name' {...register('emG_GroupName')} />
                     {errors.emG_GroupName && <FormError>{errors.emG_GroupName.message}</FormError>}
                 </div>
 
                 {/* TOTAL SUBJECTS */}
                 <div>
                     <Controller
-                        name="emG_TotSubjects"
+                        name='emG_TotSubjects'
                         control={control}
                         render={({ field }) => (
                             <InputNumber
-                                label="Total Subjects"
+                                label='Total Subjects'
                                 required
                                 minValue={1}
                                 value={field.value}
                                 onChange={(v) => {
                                     field.onChange(v);
-                                    trigger("emG_TotSubjects");
+                                    trigger('emG_TotSubjects');
                                 }}
                             />
                         )}
@@ -209,17 +228,17 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
                 {/* MAX */}
                 <div>
                     <Controller
-                        name="emG_MaxAplSubjects"
+                        name='emG_MaxAplSubjects'
                         control={control}
                         render={({ field }) => (
                             <InputNumber
-                                label="Max Applicable Subjects"
+                                label='Max Applicable Subjects'
                                 required
                                 minValue={1}
                                 value={field.value}
                                 onChange={(v) => {
                                     field.onChange(v);
-                                    trigger("emG_MaxAplSubjects");
+                                    trigger('emG_MaxAplSubjects');
                                 }}
                             />
                         )}
@@ -230,17 +249,17 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
                 {/* MIN */}
                 <div>
                     <Controller
-                        name="emG_MinAplSubjects"
+                        name='emG_MinAplSubjects'
                         control={control}
                         render={({ field }) => (
                             <InputNumber
-                                label="Min Applicable Subjects"
+                                label='Min Applicable Subjects'
                                 required
                                 minValue={1}
                                 value={field.value}
                                 onChange={(v) => {
                                     field.onChange(v);
-                                    trigger("emG_MinAplSubjects");
+                                    trigger('emG_MinAplSubjects');
                                 }}
                             />
                         )}
@@ -251,48 +270,104 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
                 {/* BEST OFF */}
                 <div>
                     <Controller
-                        name="emG_BestOff"
+                        name='emG_BestOff'
                         control={control}
                         render={({ field }) => (
                             <InputNumber
-                                label="Best Off Subjects"
+                                label='Best Off Subjects'
                                 required
                                 minValue={0}
                                 value={field.value}
                                 onChange={(v) => {
                                     field.onChange(v);
-                                    trigger("emG_BestOff");
+                                    trigger('emG_BestOff');
                                 }}
                             />
                         )}
                     />
                     {errors.emG_BestOff && <FormError>{errors.emG_BestOff.message}</FormError>}
                 </div>
-
-
             </div>
 
-            <CollapsibleSection title="Select Subjects" defaultOpen>
+            <CollapsibleSection title='Select Subjects' defaultOpen>
+                {/* Search Box Section */}
+                <div className='mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+                    <div className='text-gray-600 text-sm'>
+                        Showing {filteredSubjects.length} of {allSubjects.length} subjects
+                        {searchTerm && <span className='ml-2'>(Search: "{searchTerm}")</span>}
+                    </div>
+
+                    <div className='relative w-full sm:w-64'>
+                        <div className='relative'>
+                            <Search className='-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-gray-400' />
+                            <Input
+                                type='text'
+                                placeholder='Search subjects...'
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className='pr-9 pl-9'
+                            />
+                            {searchTerm && (
+                                <button
+                                    type='button'
+                                    onClick={handleClearSearch}
+                                    className='-translate-y-1/2 absolute top-1/2 right-3 text-gray-400 hover:text-gray-600'
+                                    aria-label='Clear search'>
+                                    ✕
+                                </button>
+                            )}
+                        </div>
+                        {searchTerm && filteredSubjects.length === 0 && (
+                            <p className='mt-1 text-red-500 text-xs'>No subjects found matching "{searchTerm}"</p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Subjects Table */}
                 <GenericDataTable
                     {...tableProps}
                     columns={MasterSubjectGroupDetailsColumns}
                     isLoading={isLoading}
                     maxSelectableRows={total}
                     onRowSelectionChange={handleSelectedSubjectsChange}
-                    noDataTitle="No Subjects Found"
-                    noDataDescription="Please add subjects first"
+                    noDataTitle={searchTerm ? 'No Subjects Found' : 'No Subjects Available'}
+                    noDataDescription={searchTerm ? 'Try a different search term' : 'Please add subjects first'}
                 />
+
+                {/* Selection Summary */}
+                {selectedSubjects.length > 0 && (
+                    <div className='mt-4 rounded border bg-gray-50 p-3'>
+                        <div className='flex flex-wrap items-center justify-between gap-2'>
+                            <div className='font-medium text-sm'>
+                                Selected: <span className='text-blue-600'>{selectedSubjects.length}</span> of {total} required subjects
+                            </div>
+                            <div className='text-gray-500 text-xs'>
+                                {selectedSubjects.length >= total ? (
+                                    <span className='text-green-600'>✓ Selection requirement met</span>
+                                ) : (
+                                    <span className='text-amber-600'>Select {total - selectedSubjects.length} more subject(s)</span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
             </CollapsibleSection>
 
-            <div className="flex gap-2 justify-end">
-                <Button type="button" variant="outline" onClick={() => reset()}>
+            <div className='flex justify-end gap-2'>
+                <Button
+                    type='button'
+                    variant='outline'
+                    onClick={() => {
+                        reset();
+                        setSearchTerm('');
+                        setSelectedSubjects([]);
+                    }}>
                     Cancel
                 </Button>
-                <Button type="submit" disabled={isSubmitting} isLoading={isSubmitting}>
+                <Button type='submit' disabled={isSubmitting || !isSubjectsEnabled} isLoading={isSubmitting}>
                     Save
                 </Button>
             </div>
-
         </form>
     );
 }

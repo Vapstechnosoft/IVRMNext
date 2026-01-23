@@ -6,7 +6,7 @@ export const masterRoomSchema = z.object({
     hlmF_Id: z.string().min(1, 'Select Floor'),
     hlmrcA_Id: z.string().min(1, 'Select Room Category'),
     hrmrM_RoomNo: z.string().min(1, 'Enter Room No').max(50),
-    hrmrM_BedCapacity: z.string().min(1, 'Enter Bed Capacity').refine((val) => !isNaN(Number(val)), 'Must be a number'),
+    hrmrM_BedCapacity: z.string().min(1, 'Enter Bed Capacity').refine((val) => !Number.isNaN(Number(val)), 'Must be a number'),
     hrmrM_RoomDesc: z.string().optional(),
     hrmrM_ACFlg: z.boolean().default(false),
     hrmrM_SharingFlg: z.boolean().default(false),
