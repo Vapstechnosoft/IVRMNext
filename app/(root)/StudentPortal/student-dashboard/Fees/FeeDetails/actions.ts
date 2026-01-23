@@ -1,7 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type { FeeDetailsLoadData, FeeDetailsResponse } from './types';
+import type { FeeDetailsLoadData, FeeDetailsRequest, FeeDetailsResponse } from './types';
 
 // Mock data fallbacks
 const mockLoadData: FeeDetailsLoadData = {

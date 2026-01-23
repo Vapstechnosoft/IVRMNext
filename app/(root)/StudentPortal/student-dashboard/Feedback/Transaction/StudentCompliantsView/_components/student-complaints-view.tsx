@@ -82,14 +82,14 @@ export default function StudentComplaintsViewClient({
                         <CardTitle>Details</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <DataTable
+                        <DataTable<StudentComplaint, unknown>
                             columns={columns}
                             data={data}
-                            searchKey="AMST_FirstName" // Or any other searchable field
                             isSearchRequired={true}
-                            searchPlaceholder="Search here..."
                             isPaginationRequired={true}
                             isLoading={isLoading}
+                            totalItems={data.length}
+                            manualPagination={false}
                         />
                     </CardContent>
                 </Card>

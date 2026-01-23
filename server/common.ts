@@ -3414,7 +3414,7 @@ export async function getUserAccessibleModules() {
                             ]
                         },
                         {
-                            id: 7,
+                            id: 8,
                             name: 'FEEDBACK',
                             icon: 'Calendar',
                             sub_menu: [
