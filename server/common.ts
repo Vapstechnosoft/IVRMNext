@@ -2652,6 +2652,22 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Master Modules'
                                         },
                                         {
+                                            id: 7,
+                                            name: 'Master Page',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-page',
+                                            title: 'Master Page',
+                                            description: 'Manage Master Page'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Page Mapping',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/page-mapping',
+                                            title: 'Page Mapping',
+                                            description: 'Map Pages to Modules'
+                                        },
+                                        {
                                             id: 3,
                                             name: 'Master Main Menu',
                                             icon: 'Settings',
@@ -2675,6 +2691,8 @@ export async function getUserAccessibleModules() {
                                             title: 'Master Menu Page Mapping',
                                             description: 'Manage Master Menu Page Mapping'
                                         },
+
+
                                         {
                                             id: 6,
                                             name: 'Master School Type',

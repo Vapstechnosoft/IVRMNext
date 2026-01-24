@@ -252,9 +252,9 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                                     <div className='flex-1 whitespace-nowrap text-muted-foreground text-sm'>
                                         {totalItems > 0
                                             ? `Showing ${paginationState.pageIndex * paginationState.pageSize + 1} to ${Math.min(
-                                                  (paginationState.pageIndex + 1) * paginationState.pageSize,
-                                                  totalItems
-                                              )} of ${totalItems} entries`
+                                                (paginationState.pageIndex + 1) * paginationState.pageSize,
+                                                totalItems
+                                            )} of ${totalItems} entries`
                                             : 'No entries found'}
                                     </div>
                                 )}
