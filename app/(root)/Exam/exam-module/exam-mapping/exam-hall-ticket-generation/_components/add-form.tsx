@@ -105,20 +105,6 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
         return Number.isFinite(n) ? n : fallback;
     };
 
-    // ---------- Auto-select first academic year if none selected ----------
-    useEffect(() => {
-        if (academicYearError) {
-            toast.error('Failed to load academic years');
-            return;
-        }
-        if (academicYear?.data) {
-            const years = academicYear.data.map((i: any) => ({ asmaY_Id: i.asmaY_Id, asmaY_Year: i.asmaY_Year }));
-            if (years.length > 0 && !selectedYear) {
-                setValue('asmaY_Id', years[0].asmaY_Id);
-            }
-        }
-    }, [academicYear, academicYearError, selectedYear, setValue]);
-
     // ---------- Load Classes when year changes ----------
     useEffect(() => {
         if (!selectedYear) return;
@@ -328,8 +314,9 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                                         </Label>
                                         <div className='flex-1'>
                                             <Select
-                                                onValueChange={(v) => field.onChange(Number(v))}
-                                                value={field.value ? String(field.value) : ''}>
+                                                key={field.value}
+                                                value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                                onValueChange={(val) => field.onChange(Number(val))}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Academic Year' />
                                                 </SelectTrigger>
@@ -368,7 +355,8 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                                         </Label>
                                         <div className='flex-1'>
                                             <Select
-                                                disabled={!selectedYear || loadingClasses}
+                                                //disabled={!selectedYear || loadingClasses}
+                                                key={field.value}
                                                 onValueChange={(v) => field.onChange(Number(v))}
                                                 value={field.value ? String(field.value) : ''}>
                                                 <SelectTrigger>
@@ -609,7 +597,7 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                                 reset({
                                     ...methods.getValues(),
                                     mI_Id: 0,
-                                    asmaY_Id: curYear ?? 0,
+                                    asmaY_Id: undefined,
                                     asmcL_Id: 0,
                                     classList: [],
                                     sectionList: [],
@@ -620,6 +608,8 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                                     prefixNoFlag: 'N',
                                     leadingzeros: 0
                                 } as any);
+                                setSections([]);
+                                setClasses([]);
                             }}
                             className='min-w-[120px]'>
                             CANCEL

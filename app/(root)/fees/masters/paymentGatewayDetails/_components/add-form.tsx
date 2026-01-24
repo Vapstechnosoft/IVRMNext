@@ -152,18 +152,16 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
     return (
         <div className={`${gatewaydetails}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                <InputText
+                    label='Institution Name'
+                    id='institution_Name'
+                    disabled
+                    {...register('institution_Name')}
+                    error={errors.institution_Name?.message}
+                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                />
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
-                        <InputText
-                            label='institution_Name'
-                            required
-                            id='institution_Name'
-                            disabled
-                            {...register('institution_Name')}
-                            error={errors.institution_Name?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-
                         <InputText
                             label='Merchant Id'
                             required

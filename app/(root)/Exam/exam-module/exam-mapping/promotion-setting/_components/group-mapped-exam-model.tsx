@@ -11,7 +11,7 @@ export function ViewExamsModal({ group, onClose }: { group: GroupItem; onClose: 
 
             <div className='relative z-[10000] w-[90%] max-w-xl overflow-hidden rounded-xl border bg-white shadow-xl'>
                 <div className='flex items-center justify-between bg-gray-100 px-4 py-2 font-semibold text-lg'>
-                    <span>{group.displayName} — EXAM MAPPING</span>
+                    <span>{group.EMPSG_DisplayName} — EXAM MAPPING</span>
                     <Button
                         type='button'
                         onClick={onClose}
@@ -34,19 +34,19 @@ export function ViewExamsModal({ group, onClose }: { group: GroupItem; onClose: 
                         </thead>
 
                         <tbody>
-                            {group.exams.length === 0 ? (
+                            {group.Exm_M_Prom_Subj_Group_Exams_master.length === 0 ? (
                                 <tr>
                                     <td colSpan={4} className='p-4 text-center'>
                                         No Exams Mapped
                                     </td>
                                 </tr>
                             ) : (
-                                group.exams.map((e, i) => (
-                                    <tr key={e.id} className={`${i % 2 ? 'bg-gray-50' : 'bg-white'} text-sm`}>
+                                group.Exm_M_Prom_Subj_Group_Exams_master.map((e, i) => (
+                                    <tr key={e.emE_Id} className={`${i % 2 ? 'bg-gray-50' : 'bg-white'} text-sm`}>
                                         <td className='p-2 text-center'>{i + 1}</td>
-                                        <td className='p-2'>{e.name}</td>
-                                        <td className='p-2 text-center'>{e.marks}</td>
-                                        <td className='p-2 text-center'>{e.conversionRequired ? '✔' : '✖'}</td>
+                                        <td className='p-2'>{e.emE_Id}</td>
+                                        <td className='p-2 text-center'>{e.emE_ExamName}</td>
+                                        <td className='p-2 text-center'>{e.EMPSGE_ConvertionReqOrNot ? '✔' : '✖'}</td>
                                     </tr>
                                 ))
                             )}

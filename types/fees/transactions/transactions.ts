@@ -1044,3 +1044,52 @@ export interface IStudentDisableList {
     fmtId: number;
     fmtOrder: number;
 }
+
+// types/fees/transactions/transactions.ts
+export interface IAmountEntryFineSlabDetails {
+    success: boolean;
+    message: string;
+    data: {
+        fillslab: FineSlabItem[];
+        fillslabecs: FineSlabItem[];
+    };
+    total: number | null;
+    page: number | null;
+    page_size: number | null;
+}
+
+export interface FineSlabItem {
+    fmfS_Id: number;
+    mI_Id: number;
+    fmfS_FineType: string;
+    fmfS_FromDay: number;
+    fmfS_ToDay: number;
+    fmfS_ECSFlag: string;
+    fmfS_ActiveFlag: boolean;
+    fmfS_CreatedBy: number | null;
+    fmfS_UpdatedBy: number;
+    createdDate: string;
+    updatedDate: string;
+}
+
+export interface IThirdPartyReceiptFlag {
+    imN_Id: number;
+    mI_Id: number;
+    imN_AutoManualFlag: string;
+    imN_DuplicatesFlag: string;
+    imN_StartingNo: string;
+    imN_WidthNumeric: string;
+    imN_ZeroPrefixFlag: 'Y' | 'N';
+    imN_PrefixAcadYearCode: boolean;
+    imN_PrefixParticular: string;
+    imN_SuffixAcadYearCode: boolean;
+    imN_SuffixParticular: string;
+    imN_RestartNumFlag: 'Y' | 'N';
+    imN_Flag: string;
+    imN_PrefixFinYearCode: boolean;
+    imN_PrefixCalYearCode: boolean;
+    imN_SuffixFinYearCode: boolean;
+    imN_SuffixCalYearCode: boolean;
+    createdDate: string; // ISO Date string
+    updatedDate: string; // ISO Date string
+}

@@ -330,7 +330,7 @@ function MarksEntryContent() {
         fetchSubjects();
     }, [selectedAcademicYear, selectedClass, selectedSectionId, selectedExam]);
 
-    /* -------------------------
+    /* ----------
        handleSearch -> fetch subject+students
        ------------------------- */
     const handleSearch = async () => {

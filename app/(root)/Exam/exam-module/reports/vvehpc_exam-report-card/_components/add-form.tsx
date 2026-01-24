@@ -54,12 +54,17 @@ export default function ProgressCardReportForm({
     const [students, setStudents] = useState<{ amsT_AdmNo: number; amsT_Id: number; studentName?: string | null }[]>([]);
     const [allStudentsSelected, setAllStudentsSelected] = useState(false);
 
-    const { data: academicData, error: academicError } = useAcademicYearDropdown();
+    const { data: academicData, error: academicError, isLoading: academicYearLoading } = useAcademicYearDropdown();
 
     const selectedYear = useWatch({ control, name: 'asmaY_Id' });
     const selectedClass = useWatch({ control, name: 'asmcL_Id' });
     const selectedSection = useWatch({ control, name: 'asmS_Id' });
     const studentList = useWatch({ control, name: 'studentList' });
+
+    const [loadingClasses, setLoadingClasses] = useState(false);
+    const [loadingSections, setLoadingSections] = useState(false);
+    const [loadingExams, setLoadingExams] = useState(false);
+    const [loadingStudents, setLoadingStudents] = useState(false);
 
     const hasStudentsSelected = Array.isArray(studentList) && studentList.length > 0;
 
@@ -80,7 +85,11 @@ export default function ProgressCardReportForm({
         if (!selectedYear) return;
         (async () => {
             try {
+                setLoadingClasses(true);
                 const { data } = await getClassDropDownByAcademicYearlist(selectedYear);
+                if (!data || (Array.isArray(data) && data.length === 0)) {
+                    toast.info('No classes mapped to this academic year');
+                }
                 setClasses(Array.isArray(data) ? data : []);
                 setValue('asmcL_Id', 0);
                 setValue('asmS_Id', 0);
@@ -89,6 +98,8 @@ export default function ProgressCardReportForm({
                 setAllStudentsSelected(false);
             } catch {
                 toast.error('Failed to load classes');
+            } finally {
+                setLoadingClasses(false);
             }
         })();
     }, [selectedYear, setValue]);
@@ -97,7 +108,11 @@ export default function ProgressCardReportForm({
         if (!selectedYear || !selectedClass) return;
         (async () => {
             try {
+                setLoadingSections(true);
                 const { data } = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass);
+                if (!data || (Array.isArray(data) && data.length === 0)) {
+                    toast.info('No sections found');
+                }
                 setSections(Array.isArray(data) ? data : []);
                 setValue('asmS_Id', 0);
                 setValue('emE_Id', 0);
@@ -105,6 +120,8 @@ export default function ProgressCardReportForm({
                 setAllStudentsSelected(false);
             } catch {
                 toast.error('Failed to load sections');
+            } finally {
+                setLoadingSections(false);
             }
         })();
     }, [selectedYear, selectedClass, setValue]);
@@ -113,6 +130,7 @@ export default function ProgressCardReportForm({
         if (!selectedYear || !selectedClass || !selectedSection) return;
         (async () => {
             try {
+                setLoadingStudents(true);
                 const { data } = await getStudentsDropDownByAcademicYearandClassandSectionlist(
                     selectedYear,
                     selectedClass,
@@ -121,11 +139,16 @@ export default function ProgressCardReportForm({
                 const valid = Array.isArray(data)
                     ? data.filter((s): s is { amsT_AdmNo: number; amsT_Id: number; studentName?: string } => !!s?.amsT_Id)
                     : [];
+                if (valid.length === 0) {
+                    toast.info('No students found');
+                }
                 setStudents(valid);
                 setValue('studentList', []);
                 setAllStudentsSelected(false);
             } catch {
                 toast.error('Failed to load students');
+            } finally {
+                setLoadingStudents(false);
             }
         })();
     }, [selectedYear, selectedClass, selectedSection, setValue]);
@@ -134,11 +157,17 @@ export default function ProgressCardReportForm({
         if (!selectedYear || !selectedClass || !selectedSection) return;
         (async () => {
             try {
+                setLoadingExams(true);
                 const { data } = await getExamsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, selectedSection);
+                if (!data || (Array.isArray(data) && data.length === 0)) {
+                    toast.info('No exams found');
+                }
                 setExams(Array.isArray(data) ? data : []);
                 setValue('emE_Id', 0);
             } catch {
                 toast.error('Failed to load exams');
+            } finally {
+                setLoadingExams(false);
             }
         })();
     }, [selectedYear, selectedClass, selectedSection, setValue]);
@@ -195,17 +224,28 @@ export default function ProgressCardReportForm({
                                             </Label>
                                             <div className='flex-1'>
                                                 <Select
+                                                    key={field.value}
                                                     onValueChange={(v) => field.onChange(Number(v))}
                                                     value={field.value ? String(field.value) : ''}>
                                                     <SelectTrigger className='w-full'>
                                                         <SelectValue placeholder='Select Academic Year' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {academicYears.map((y) => (
-                                                            <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                                {y.asmaY_Year}
+                                                        {academicYearLoading ? (
+                                                            <SelectItem value='0' disabled>
+                                                                Academic Year is loading...
                                                             </SelectItem>
-                                                        ))}
+                                                        ) : academicYears.length === 0 ? (
+                                                            <SelectItem value='0' disabled>
+                                                                No Academic Year found
+                                                            </SelectItem>
+                                                        ) : (
+                                                            academicYears.map((y) => (
+                                                                <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                                                    {y.asmaY_Year}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -224,17 +264,28 @@ export default function ProgressCardReportForm({
                                             </Label>
                                             <div className='flex-1'>
                                                 <Select
+                                                    key={field.value}
                                                     onValueChange={(v) => field.onChange(Number(v))}
                                                     value={field.value ? String(field.value) : ''}>
                                                     <SelectTrigger className='w-full'>
                                                         <SelectValue placeholder='Select Class' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {classes.map((c) => (
-                                                            <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
-                                                                {c.asmcL_ClassName}
+                                                        {loadingClasses ? (
+                                                            <SelectItem value='0' disabled>
+                                                                Classes are loading...
                                                             </SelectItem>
-                                                        ))}
+                                                        ) : classes.length === 0 ? (
+                                                            <SelectItem value='0' disabled>
+                                                                No Classes found
+                                                            </SelectItem>
+                                                        ) : (
+                                                            classes.map((c) => (
+                                                                <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
+                                                                    {c.asmcL_ClassName}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -253,17 +304,28 @@ export default function ProgressCardReportForm({
                                             </Label>
                                             <div className='flex-1'>
                                                 <Select
+                                                    key={field.value}
                                                     onValueChange={(v) => field.onChange(Number(v))}
                                                     value={field.value ? String(field.value) : ''}>
                                                     <SelectTrigger className='w-full'>
                                                         <SelectValue placeholder='Select Section' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {sections.map((s) => (
-                                                            <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
-                                                                {s.asmC_SectionName}
+                                                        {loadingSections ? (
+                                                            <SelectItem value='0' disabled>
+                                                                Sections are loading...
                                                             </SelectItem>
-                                                        ))}
+                                                        ) : sections.length === 0 ? (
+                                                            <SelectItem value='0' disabled>
+                                                                No Sections found
+                                                            </SelectItem>
+                                                        ) : (
+                                                            sections.map((s) => (
+                                                                <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
+                                                                    {s.asmC_SectionName}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -282,17 +344,28 @@ export default function ProgressCardReportForm({
                                             </Label>
                                             <div className='flex-1'>
                                                 <Select
+                                                    key={field.value}
                                                     onValueChange={(v) => field.onChange(Number(v))}
                                                     value={field.value ? String(field.value) : ''}>
                                                     <SelectTrigger className='w-full'>
                                                         <SelectValue placeholder='Select Exam' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {exams.map((e) => (
-                                                            <SelectItem key={e.emE_Id} value={String(e.emE_Id)}>
-                                                                {e.emE_ExamName}
+                                                        {loadingExams ? (
+                                                            <SelectItem value='0' disabled>
+                                                                Exams are loading...
                                                             </SelectItem>
-                                                        ))}
+                                                        ) : exams.length === 0 ? (
+                                                            <SelectItem value='0' disabled>
+                                                                No Exams found
+                                                            </SelectItem>
+                                                        ) : (
+                                                            exams.map((e) => (
+                                                                <SelectItem key={e.emE_Id} value={String(e.emE_Id)}>
+                                                                    {e.emE_ExamName}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -338,7 +411,14 @@ export default function ProgressCardReportForm({
                             <Button type='submit' disabled={isSubmitting || !hasStudentsSelected} className='min-w-[140px]'>
                                 {isSubmitting ? 'Generating...' : 'Report'}
                             </Button>
-                            <Button type='button' variant='outline' onClick={() => reset()} className='min-w-[100px]'>
+                            <Button
+                                type='button'
+                                variant='outline'
+                                onClick={() => {
+                                    reset();
+                                    setStudents([]);
+                                }}
+                                className='min-w-[100px]'>
                                 Cancel
                             </Button>
                         </div>

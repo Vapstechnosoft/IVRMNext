@@ -9,7 +9,11 @@ import { InputNumber } from '@/components/ui/extension/input-number';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useExamSubjectWizard, useExamSubjectWizardDetails } from '@/hooks/exam/exammodule/exam-mapping';
-import { useMasterGrade } from '@/hooks/exam/exammodule/usemasters';
+import {
+    useMasterGradeDropdownList,
+    useMasterSubExamDropdownList,
+    useMasterSubSubjectDropdownList
+} from '@/hooks/exam/exammodule/usemasters';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { ExamSubjectWizardSchema, SubSubjectSubExamSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import { getCategoryDropDowByExamYearCategoryList } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
@@ -22,11 +26,11 @@ import {
     getSubSubjectsMappedList,
     getSubjectsByCategory
 } from '@/server/exam/exam-module/exam-mapping/exam-subject-wizard';
-import { getMasterSubExamDropdownList } from '@/server/exam/exam-module/masters/sub-exam';
-import { getMasterSubSubjectDropdownList } from '@/server/exam/exam-module/masters/sus-subject';
 import type { IExamSubjectWizard, IExamSubjectWizardDetails } from '@/types/exam/exam-module/exam-mapping';
-import type { ICategory, IMasterGrade } from '@/types/exam/exam-module/masters';
+import type { ICategory, IMasterGrade, IMasterSubExam, IMasterSubSubject } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -77,8 +81,10 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     const [exams, setExams] = useState<{ EME_Id: number; EME_ExamName: string; checked?: boolean }[]>([]);
     const [subjects, setSubjects] = useState<any[]>([]);
     const [gradeList, setGradeList] = useState<IMasterGrade[]>([]);
+    const [isEditFormLoading, setIsEditFormLoading] = useState(false);
     const validateSubjectsRef = useRef<(() => boolean) | null>(null);
-
+    const [subSubjects, setSubSubjects] = useState<any[]>([]);
+    const [subExams, setSubExams] = useState<any[]>([]);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const watchYear = watch('ASMAY_Id');
@@ -93,15 +99,27 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     const [subSubjectModalState, setSubSubjectModalState] = useState<{ open: boolean; subject?: any }>({ open: false });
     const [subSubjectSubExamModalState, setSubSubjectSubExamModalState] = useState<{ open: boolean; subject?: any }>({ open: false });
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
-    const { data: gradeData, error: gradeError } = useMasterGrade();
+    const { data: gradeData, error: gradeError } = useMasterGradeDropdownList();
     const { data: response } = useExamSubjectWizardDetails(30, rowData?.eycE_Id ? rowData?.eycE_Id : 0);
     const { refetchAll } = useExamSubjectWizard();
-
+    const { data: masterSubSubject, isLoading: masterSubSubjectLoading } = useMasterSubSubjectDropdownList();
+    const { data: masterSubExam, isLoading: masterSubExamLoading } = useMasterSubExamDropdownList();
+    const router = useRouter();
     const convertToISO = (dateStr: string) => {
         if (!dateStr) return '';
         const [day, month, year] = dateStr.split('/');
         return `${year}-${month}-${day}`; // convert to YYYY-MM-DD
     };
+    useEffect(() => {
+        if (masterSubSubject && Array.isArray(masterSubSubject.data)) {
+            setSubSubjects(masterSubSubject.data);
+        }
+    }, [masterSubSubject]);
+    useEffect(() => {
+        if (masterSubExam && Array.isArray(masterSubExam.data)) {
+            setSubExams(masterSubExam.data);
+        }
+    }, [masterSubExam]);
 
     // populate controlled dropdowns on mount / when data arrives
     useEffect(() => {
@@ -126,7 +144,8 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     // when rowData (edit) is provided, populate top-level fields
     useEffect(() => {
         if (!rowData) return;
-
+        setIsEditFormLoading(true);
+        setSubjects([]);
         setValue('EYCE_Id', rowData.eycE_Id || 0);
         setValue('ASMAY_Id', rowData.asmaY_Id ?? undefined);
         setValue('EYC_Id', rowData.eyC_Id ?? undefined);
@@ -327,9 +346,10 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                             // ---------------------------
                             // Sub-Subject Mapping
                             if (updated.EYCES_SubSubjectFlg && !updated.EYCES_SubExamFlg) {
+                                console.log(30, updated.EYCES_Id);
                                 const { data: mappedList } = await getSubSubjectsMappedList(30, updated.EYCES_Id);
                                 if (mappedList?.length) {
-                                    console.log('mappedList', mappedList);
+                                    console.log('mapped subsubjectData', mappedList);
                                     updated.subSubjectConfig = mappedList.map(mapToSubSubjectConfig);
                                 }
                             }
@@ -345,6 +365,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                             // Sub-Subject-Sub-Exam Mapping
                             if (updated.EYCES_SubSubjectFlg && updated.EYCES_SubExamFlg) {
                                 const { data: mappedList } = await getSubSubjectsAndSubExamsMappedList(30, updated.EYCES_Id);
+                                console.log('mapped subsubjectData', mappedList);
                                 if (mappedList?.length) {
                                     updated.subSubjectSubExamConfig = mappedList.map(mapToSubSubjeSubExamctConfig);
                                 }
@@ -379,6 +400,8 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
                 setSubjects(fallback);
                 toast.error('Failed to load subjects.');
+            } finally {
+                setIsEditFormLoading(false);
             }
         })();
     }, [rowData, watchCategory, watchEMCA_ID, response, setValue]);
@@ -387,27 +410,27 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     const onOpenSubExamModal = async (subject: any) => {
         try {
             setSubExamModalState({ open: true, subject });
-
-            // Master dropdown
-            const { data: list } = await getMasterSubExamDropdownList(30);
-            const safeList = Array.isArray(list) ? list : [];
-
             const configList = Array.isArray(subject.subExamConfig) ? subject.subExamConfig : [];
 
-            // Merge logic
-            const updatedList = safeList.map((item: any) => {
-                const cfg = configList.find((c: any) => c.EMSE_Id === item.emsE_Id);
+            console.log('open subexammodel configList', configList);
+            console.log('open subexammodel configList', configList);
+            console.log('open subexammodel subExams (master)', subExams);
+            const updatedList = subExams.map((item: any) => {
+                const cfg = configList.find((c: any) => Number(c.EMSE_Id) === Number(item.emsE_Id));
 
                 if (!cfg) {
                     return { ...item, checkedvalue: false };
                 }
 
+                console.log('Found config for', item.emsE_Id, cfg);
                 return {
                     ...item,
                     ...cfg,
                     checkedvalue: true
                 };
             });
+
+            console.log('open subexammodel updatedList', updatedList);
             setSubExamModalState({
                 open: true,
                 subject: {
@@ -433,13 +456,9 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
         try {
             setSubSubjectModalState({ open: true, subject });
 
-            // Fetch only master dropdown list
-            const { data: list } = await getMasterSubSubjectDropdownList(30);
-            const safeList = Array.isArray(list) ? list : [];
-            // Use existing config instead of API call
             const safeSubSubjectList = Array.isArray(subject.subSubjectConfig) ? subject.subSubjectConfig : [];
             // Merge master list with config list
-            const updatedList = safeList.map((item: any) => {
+            const updatedList = subSubjects.map((item: any) => {
                 const matched = safeSubSubjectList.find((ss: any) => ss.emsS_Id === item.emsS_Id);
 
                 if (matched) {
@@ -452,6 +471,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
                 return {
                     ...item,
+                    eycessS_SubSubjectOrder: item.emsS_Order,
                     checkedvalue: false
                 };
             });
@@ -523,15 +543,6 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
         return `${d.split('T')[0] ?? d}T00:00:00`;
     };
     // ------------------- Save handlers for modals (they update subjects state) -------------------
-    const handleSaveSubExam = (subjectId: number, selectedList: any[]) => {
-        setSubjects((prev) =>
-            prev.map((s) =>
-                s.ISMS_Id === subjectId ? { ...s, subExamConfig: selectedList, EYCES_SubExamFlg: selectedList.length > 0 } : s
-            )
-        );
-        setSubExamModalState({ open: false });
-        toast.info('Sub Exams Data saved successfully.');
-    };
 
     const handleSubExamClose = (subjectId: number) => {
         setSubjects((prev) =>
@@ -548,14 +559,63 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
         setSubExamModalState({ open: false });
     };
 
-    const handleSaveSubSubject = (subjectId: number, selectedList: any[]) => {
+    const handleSaveSubSubject = (subjectId: number, selectedList: any[], subSubjectList: any) => {
         setSubjects((prev) =>
             prev.map((s) =>
                 s.ISMS_Id === subjectId ? { ...s, subSubjectConfig: selectedList, EYCES_SubSubjectFlg: selectedList.length > 0 } : s
             )
         );
+        console.log('subSubjectList **', subSubjectList);
+        setSubSubjects((prev: IMasterSubSubject[]) =>
+            prev.map((sub) => {
+                const matched = subSubjectList.find((l: any) => l.emsS_Id === sub.emsS_Id);
+
+                return matched
+                    ? {
+                          ...sub,
+                          emsS_Order: Number(matched.eycessS_SubSubjectOrder ?? 0)
+                      }
+                    : sub;
+            })
+        );
         setSubSubjectModalState({ open: false });
         toast.info('Subject saved successfully.');
+    };
+    const handleSaveSubExam = (subjectId: number, selectedList: any[], subExamList: any[]) => {
+        // update subject level config
+        setSubjects((prev) =>
+            prev.map((s) =>
+                s.ISMS_Id === subjectId
+                    ? {
+                          ...s,
+                          subExamConfig: selectedList,
+                          EYCES_SubExamFlg: selectedList.length > 0
+                      }
+                    : s
+            )
+        );
+        console.log('add-form subExamList **', subExamList);
+        const subExamList_ = subExamList.map((item, index) => ({
+            ...item,
+            emsE_SubExamOrder: index + 1
+        }));
+        console.log('add-form subExamList_ ** after update', subExamList_);
+
+        setSubExams((prev: IMasterSubExam[]) =>
+            prev.map((exam) => {
+                const matched = subExamList_.find((l: any) => Number(l.emsE_Id) === Number(exam.emsE_Id));
+
+                return matched
+                    ? {
+                          ...exam,
+                          emsE_SubExamOrder: Number(matched.emsE_SubExamOrder ?? 0)
+                      }
+                    : exam;
+            })
+        );
+
+        setSubExamModalState({ open: false });
+        toast.info('Sub Exams Data saved successfully.');
     };
 
     const handleSaveSubSubjectSubExam = (subjectId: number, selectedList: any[]) => {
@@ -591,7 +651,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                     EYCESSE_ExemptedFlg: !!(se.EYCESSE_ExemptedFlg ?? se.eycessS_ExemptedFlg),
                     EYCESSE_ExemptedPer: Number(se.EYCESSE_ExemptedPer ?? se.eycessS_ExemptedPer ?? 0) || 0,
                     EYCESSE_ActiveFlg: se.EYCESSE_ActiveFlg ?? true,
-                    EYCESSE_SubExamOrder: se.EYCESSE_SubExamOrder ?? idx + 1,
+                    emsE_SubExamOrder: se.emsE_SubExamOrder ?? idx + 1,
                     EYCESSS_MarksFlg: !!(se.EYCESSS_MarksFlg ?? se.eycessS_MarksFlg),
                     EYCESSS_GradesFlg: !!(se.EYCESSS_GradesFlg ?? se.eycessS_GradesFlg),
                     EYCESSS_AplResultFlg: !!(se.EYCESSS_AplResultFlg ?? se.eycessS_AplResultFlg),
@@ -649,6 +709,12 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     // ------------------- Final Submit -------------------
     const onSubmit = async (values: any) => {
         try {
+            const isValid = validateSubjectsRef.current?.();
+
+            if (!isValid) {
+                toast.error('Please fill required marks for selected subjects');
+                return;
+            }
             const ok = await trigger();
             if (!ok) {
                 toast.error('Fix validation errors before saving');
@@ -713,18 +779,21 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 exm_subject_subsubjects_subexam,
                 Temp_Subject_Order: values.Temp_Subject_Order ?? []
             };
-            console.info('finalPayload', finalPayload);
+            console.info('Wizard finalPayload', finalPayload);
             const res = await addOrUpdateExamSubjectWizard(finalPayload);
             if (res.success) toast.success('Exam Subject Wizard saved successfully');
             else toast.error(res.message);
 
             onSuccess?.();
             refetchAll();
+            router.refresh();
+            window.location.reload();
         } catch (err: any) {
             console.error(err);
             toast.error(err?.message ?? 'Failed to save Exam Subject Wizard');
         }
     };
+
     const handleReset = () => {
         reset({
             UserId: 0,
@@ -885,6 +954,9 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                             label='Attendance From'
                                             placeholder='Select Attendance From Date'
                                             fromDate={today}
+                                            toDate={new Date(watch('EYCE_AttendanceToDate'))}
+                                            restricted_tofieldName='Attendence To-Date'
+                                            restricted_fromfieldName='Attendence From-Date'
                                         />
                                     )}
                                 />
@@ -972,7 +1044,14 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                             </div>
                         </div>
                     </div>
-
+                    {isEditFormLoading && (
+                        <div className='flex h-64 items-center justify-center'>
+                            <div className='text-center'>
+                                <Loader2 className='mx-auto h-8 w-8 animate-spin text-primary' />
+                                <p className='mt-2 text-gray-600 text-sm'>Loading data...</p>
+                            </div>
+                        </div>
+                    )}
                     {/* Subject Table */}
                     <div className='mt-6'>
                         <SubjectTable
@@ -995,31 +1074,23 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                         <Button type='button' variant='outline' onClick={handleReset}>
                             Reset
                         </Button>
-                        <Button
-                            type='submit'
-                            disabled={isSubmitting}
-                            onClick={() => {
-                                const isValid = validateSubjectsRef.current?.();
-
-                                if (!isValid) {
-                                    toast.error('Please fill required marks for selected subjects');
-                                    return;
-                                }
-                            }}>
+                        <Button type='submit' disabled={isSubmitting}>
                             {isSubmitting ? 'Saving...' : 'Save'}
                         </Button>
                     </div>
                 </CollapsibleSection>
 
-                {/* Modals */}
-                <SubExamModal
-                    open={subExamModalState.open}
-                    subject={subExamModalState.subject}
-                    onClose={handleSubExamClose}
-                    onSave={handleSaveSubExam}
-                    gradeList={gradeList}
-                    schema={SubSubjectSubExamSchema}
-                />
+                {!isEditFormLoading && (
+                    <SubExamModal
+                        open={subExamModalState.open}
+                        subject={subExamModalState.subject}
+                        onClose={handleSubExamClose}
+                        onSave={handleSaveSubExam}
+                        gradeList={gradeList}
+                        schema={SubSubjectSubExamSchema}
+                    />
+                )}
+
                 <SubSubjectModal
                     open={subSubjectModalState.open}
                     subject={subSubjectModalState.subject}
@@ -1051,7 +1122,7 @@ const mapToSubExamConfig = (r: any) => ({
     EYCESSE_ExemptedFlg: !!r.eycessS_ExemptedFlg,
     EYCESSE_ExemptedPer: Number(r.eycessS_ExemptedPer) || 0,
     EYCESSE_ActiveFlg: !!r.eycessS_ActiveFlg,
-    EYCESSE_SubExamOrder: Number(r.eycessS_SubExamOrder) || 0,
+    emsE_SubExamOrder: Number(r.emsE_SubExamOrder) || 0,
     EYCESSS_MarksFlg: !!r.eycessS_MarksFlg,
     EYCESSS_GradesFlg: !!r.eycessS_GradesFlg,
     EYCESSS_AplResultFlg: !!r.eycessS_AplResultFlg,
@@ -1066,13 +1137,13 @@ const mapToSubSubjectConfig = (l: any) => ({
     eycessS_MaxMarks: l.eycessS_MaxMarks ?? '',
     eycessS_MinMarks: l.eycessS_MinMarks ?? '',
     eycessS_MarksEntryMax: l.eycessS_MarksEntryMax ?? '',
-    EMGR_Id: l.EMGR_Id ?? '',
-    eycessS_ExemptedFlg: !!l.eycessS_ExemptedFlg,
+    EMGR_Id: l.emgR_Id ?? '',
+    eycessS_ExemptedFlg: l.eycessS_ExemptedFlg,
     eycessS_ExemptedPer: l.eycessS_ExemptedPer ?? '',
-    eycessS_MarksDisplayFlg: !!l.eycessS_MarksDisplayFlg,
-    eycessS_GradeDisplayFlg: !!l.eycessS_GradeDisplayFlg,
-    eycessS_AplResultFlg: !!l.eycessS_AplResultFlg,
-    eycessS_SubSubjectOrder: l.emsS_Order
+    eycessS_MarksDisplayFlg: l.eycessS_MarksFlg,
+    eycessS_GradeDisplayFlg: l.eycessS_GradesFlg,
+    eycessS_AplResultFlg: l.eycessS_AplResultFlg,
+    eycessS_SubSubjectOrder: l.eycessS_SubSubjectOrder
 });
 const mapToSubSubjeSubExamctConfig = (l: any) => ({
     eycessS_Id: l.eycessS_Id ?? undefined,

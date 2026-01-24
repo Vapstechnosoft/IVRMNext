@@ -131,16 +131,15 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+            <InputText
+                label='Institution Name'
+                id='institution_Name'
+                disabled
+                {...register('institution_Name')}
+                error={errors.institution_Name?.message}
+                className='transition-colors focus:ring-2 focus:ring-primary/20'
+            />
             <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
-                <InputText
-                    label='institution_Name'
-                    required
-                    id='institution_Name'
-                    disabled
-                    {...register('institution_Name')}
-                    error={errors.institution_Name?.message}
-                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                />
                 <div className='flex flex-col gap-1.5'>
                     <label htmlFor='fpgD_MerchantId'>
                         Merchant Id <span className='text-red-500'>*</span>

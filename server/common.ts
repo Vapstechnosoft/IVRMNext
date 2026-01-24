@@ -371,6 +371,60 @@ export async function getUserAccessibleModules() {
                                             description: 'PreAdmission Month End Report'
                                         }
                                     ]
+                                },
+                                {
+                                    id: 6,
+                                    name: 'Attendance Entry',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Entry Type',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/attendance-entry/attendance_entry_type',
+                                            title: 'Attendance Entry Type',
+                                            description: 'Manage attendance entry types'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Login Privileges',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/attendance-entry/login-privileges',
+                                            title: 'Login Privileges',
+                                            description: 'Manage attendance login privileges'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Student Attendance',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/attendance-entry/student-attendance',
+                                            title: 'Student Attendance',
+                                            description: 'Enter student attendance'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 7,
+                                    name: 'Student TC',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Apply TC',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/student-transfer-certificate/apply',
+                                            title: 'Apply TC',
+                                            description: 'Apply for Student Transfer Certificate'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Cancel TC',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/student-transfer-certificate/cancel',
+                                            title: 'Cancel TC',
+                                            description: 'Cancel Student Transfer Certificate'
+                                        }
+                                    ]
                                 }
                             ]
                         },
@@ -389,8 +443,8 @@ export async function getUserAccessibleModules() {
                                             name: 'Admission Form',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/admission-form',
-                                            title: 'Master Class',
-                                            description: 'Manage Master Class Details'
+                                            title: 'Admission Form',
+                                            description: 'Apply For Admission'
                                         }
                                     ]
                                 },
@@ -1431,22 +1485,22 @@ export async function getUserAccessibleModules() {
                                             title: 'Toppers List Report',
                                             description: 'View Toppers List Details'
                                         },
-                                        // {
-                                        //     id: 80,
-                                        //     name: 'Exam Login Privileges Report',
-                                        //     icon: 'BookOpen',
-                                        //     url: '/Exam/exam-module/reports/exam-login-privileges-report',
-                                        //     title: 'Exam Login Privileges Report',
-                                        //     description: 'View Exam Login Privileges Details'
-                                        // },
-                                        // {
-                                        //     id: 81,
-                                        //     name: 'Marks Entry Report',
-                                        //     icon: 'BookOpen',
-                                        //     url: '/Exam/exam-module/reports/marks-entry-report',
-                                        //     title: 'Marks Entry Report',
-                                        //     description: 'View Marks Entry Report Details'
-                                        // },
+                                        {
+                                            id: 80,
+                                            name: 'Exam Login Privileges Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/exam-login-privileges-report',
+                                            title: 'Exam Login Privileges Report',
+                                            description: 'View Exam Login Privileges Details'
+                                        },
+                                        {
+                                            id: 81,
+                                            name: 'Marks Entry Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/marks-entry-report',
+                                            title: 'Marks Entry Report',
+                                            description: 'View Marks Entry Report Details'
+                                        },
                                         {
                                             id: 82,
                                             name: 'Tabulation Report',
