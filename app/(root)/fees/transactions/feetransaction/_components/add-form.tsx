@@ -249,8 +249,10 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                     searchfilter: studentSearch,
                     asmcL_ID: selectedclassId ?? 0,
                     asmS_Id: selectedSectionId ?? 0,
-                    amsT_SOL: left === false ? 'S' : 'L'
+                    amsT_SOL: left === true ? 'L' : deactive === true ? 'D' : 'S'
                 };
+
+                console.log('student details payload', JSON.stringify(payload));
                 const studentsArray = await searchStudentName(payload);
                 const studentsData = JSON.parse(JSON.stringify(studentsArray.feeStudentSearch || []));
                 setStudents(studentsData || []);
@@ -519,8 +521,10 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
     const handleCheckboxChange = (checked: boolean, type: 'left' | 'inactive' | 'class' | 'section') => {
         if (type === 'left') {
             setLeft(checked);
+            setDeative(false);
         } else if (type === 'inactive') {
             setDeative(checked);
+            setLeft(false);
         } else if (type === 'class') {
             setClass(checked);
             if (!checked) {
@@ -534,7 +538,50 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                 setClass(false);
             }
         }
+
+        // Clear student search and reset student selection when filters change
+        setStudentSearch('');
+        setSelectedStudent(null);
+        setStudents([]);
+        setTerms([]);
+        SetStudentDetails([]);
+        SetFeeDetails([]);
+        setselectedTerm([]);
     };
+
+    // // Find this useEffect (around line 298) and update its dependencies
+    // useEffect(() => {
+    //     if (!studentSearch.trim()) {
+    //         setStudents([]);
+    //         return;
+    //     }
+
+    //     const fetchStudents = async () => {
+    //         setLoadingStudents(true);
+    //         try {
+    //             const payload = {
+    //                 asmaY_Id: selectedAsmayId,
+    //                 filterinitialdata: filterType,
+    //                 searchfilter: studentSearch,
+    //                 asmcL_ID: selectedclassId ?? 0,
+    //                 asmS_Id: selectedSectionId ?? 0,
+    //                 amsT_SOL: left === false ? 'S' : 'L',
+    //                 // Add deactive flag if needed by your API
+    //                 amsT_Status: deactive ? 'I' : 'A' // Assuming 'I' for inactive, 'A' for active
+    //             };
+    //             const studentsArray = await searchStudentName(payload);
+    //             const studentsData = JSON.parse(JSON.stringify(studentsArray.feeStudentSearch || []));
+    //             setStudents(studentsData || []);
+    //         } catch (error) {
+    //             console.error('Failed to fetch students:', error);
+    //             setStudents([]);
+    //         } finally {
+    //             setLoadingStudents(false);
+    //         }
+    //     };
+
+    //     fetchStudents();
+    // }, [studentSearch, selectedAsmayId, filterType, selectedclassId, selectedSectionId, left, deactive]); // Add left and deactive to dependencies
 
     const onSubmit = async () => {
         if (feeHeads.filter((f) => selectedHeads[f.fmA_Id]).length === 0) {
