@@ -1886,23 +1886,23 @@ export async function getUserAccessibleModules() {
                                             description: 'Map Religion & Category'
                                         }
                                     ]
-                                }
-                                ,
-                                {
-                                    id: 2,
-                                    name: 'Employee',
-                                    icon: 'User',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Employee Register',
-                                            icon: 'UserPlus',
-                                            url: '/hrms/employee',
-                                            title: 'Employee Register',
-                                            description: 'Manage Employee Registration'
-                                        }
-                                    ]
                                 },
+                                // ,
+                                // {
+                                //     id: 2,
+                                //     name: 'Employee',
+                                //     icon: 'User',
+                                //     pages: [
+                                //         {
+                                //             id: 1,
+                                //             name: 'Employee Register',
+                                //             icon: 'UserPlus',
+                                //             url: '/hrms/employee',
+                                //             title: 'Employee Register',
+                                //             description: 'Manage Employee Registration'
+                                //         }
+                                //     ]
+                                // }
                                 {
                                     id: 3,
                                     name: 'Transactions',
@@ -1948,6 +1948,15 @@ export async function getUserAccessibleModules() {
                                             title: 'Mass Updation',
                                             description: 'Bulk Update Employee Data'
                                         },
+                                        // ,
+                                        // {
+                                        //     id: 5,
+                                        //     name: 'Mass Updation',
+                                        //     icon: 'RefreshCw',
+                                        //     url: '/hrms/transactions/mass-updation',
+                                        //     title: 'Mass Updation',
+                                        //     description: 'Bulk Update Employee Data'
+                                        // },
                                         // {
                                         //     id: 6,
                                         //     name: 'Salary Advance',
@@ -1965,8 +1974,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Employee Loans'
                                         }
                                     ]
-                                }
-                                ,
+                                },
                                 {
                                     id: 4,
                                     name: 'Reports',
@@ -1979,7 +1987,7 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/cumulative-salary-report',
                                             title: 'Cumulative Salary Report',
                                             description: 'Cumulative Salary Analysis'
-                                        }
+                                        },
                                         //,
                                         // {
                                         //     id: 2,
@@ -2125,7 +2133,7 @@ export async function getUserAccessibleModules() {
                                         //     title: 'Retirement Report',
                                         //     description: 'Employee Retirement Report'
                                         // }
-                                        , {
+                                        {
                                             id: 20,
                                             name: 'Department Salary Report',
                                             icon: 'Building2',
