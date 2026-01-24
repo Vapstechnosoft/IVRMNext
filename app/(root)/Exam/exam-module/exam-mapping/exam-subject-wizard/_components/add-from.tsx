@@ -78,6 +78,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
     // dropdown states
     const [categories, setCategories] = useState<ICategory[]>([]);
+    const [categoriesLoading, setCategoriesLoading] = useState(false);
     const [exams, setExams] = useState<{ EME_Id: number; EME_ExamName: string; checked?: boolean }[]>([]);
     const [subjects, setSubjects] = useState<any[]>([]);
     const [gradeList, setGradeList] = useState<IMasterGrade[]>([]);
@@ -165,11 +166,14 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
         if (!watchYear) return;
         async function fetchRelated() {
             try {
+                setCategoriesLoading(true);
                 const { data: cats } = await getCategoryDropDowByExamYearCategoryList(30, Number(watchYear));
                 setCategories(Array.isArray(cats) ? cats : []);
             } catch (err: any) {
                 toast.error(err?.message ?? 'Failed to load categories');
                 setCategories([]);
+            } finally {
+                setCategoriesLoading(false);
             }
         }
         fetchRelated();
@@ -878,11 +882,21 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                         <SelectValue placeholder='Select Category' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {categories.map((c) => (
-                                            <SelectItem key={c.eyC_Id} value={c.eyC_Id.toString()}>
-                                                {c.emcA_CategoryName}
+                                        {categoriesLoading ? (
+                                            <SelectItem value='loading' disabled>
+                                                Loading Categories...
                                             </SelectItem>
-                                        ))}
+                                        ) : categories.length === 0 ? (
+                                            <SelectItem value='error' disabled>
+                                                No Categories Found
+                                            </SelectItem>
+                                        ) : (
+                                            categories.map((c) => (
+                                                <SelectItem key={c.eyC_Id} value={c.eyC_Id.toString()}>
+                                                    {c.emcA_CategoryName}
+                                                </SelectItem>
+                                            ))
+                                        )}
                                     </SelectContent>
                                 </Select>
 
