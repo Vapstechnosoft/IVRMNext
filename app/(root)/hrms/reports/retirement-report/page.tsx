@@ -251,6 +251,7 @@ export default function DepartmentSalaryReportPage() {
             mockLetter: '1',
             todate: '',
             formated: 'format1',
+            typeOrEmployee: 'type',
             type: '',
             employee: '',
             selectedHeaders: []
@@ -258,10 +259,10 @@ export default function DepartmentSalaryReportPage() {
         mode: 'onChange'
     });
 
-    const selectedFormat = watch('formated');
-    const selectedstatus = watch('status');
-    const selectedtypeOrEmployee = watch('typeOrEmployee');
-    const selectedHeaders = watch('selectedHeaders');
+    const selectedFormat = watch('formated') as string;
+    const selectedstatus = watch('status') as string;
+    const selectedtypeOrEmployee = watch('typeOrEmployee') as string;
+    const selectedHeaders = (watch('selectedHeaders') as string[]) || [];
 
     // Mapping of header names to data field keys
     const headerFieldMap: { [key: string]: string } = {
@@ -308,7 +309,8 @@ export default function DepartmentSalaryReportPage() {
             designation: [],
             fromdate: '',
             todate: '',
-            formated: ''
+            formated: '',
+            typeOrEmployee: 'type'
         });
         setReportData([]);
         toast.info('Form has been reset');
@@ -358,15 +360,15 @@ export default function DepartmentSalaryReportPage() {
                                                 render={({ field }) => (
                                                     <RadioGroup
                                                         onValueChange={field.onChange}
-                                                        value={field.value}
+                                                        value={field.value as string}
                                                         className='flex justify-center gap-4 rounded-md p-3 shadow-md '>
                                                         {formatedOptions.map((option) => (
                                                             <div
                                                                 key={option.value}
                                                                 className='flex cursor-pointer items-center space-x-3 transition-colors hover:bg-accent/50'>
-                                                                <RadioGroupItem value={option.value} id={`letter-${option.value}`} />
+                                                                <RadioGroupItem value={option.value} id={`format-${option.value}`} />
                                                                 <Label
-                                                                    htmlFor={`letter-${option.value}`}
+                                                                    htmlFor={`format-${option.value}`}
                                                                     className='flex-1 cursor-pointer font-normal text-sm'>
                                                                     {option.label}
                                                                 </Label>
@@ -505,15 +507,15 @@ export default function DepartmentSalaryReportPage() {
                                                     render={({ field }) => (
                                                         <RadioGroup
                                                             onValueChange={field.onChange}
-                                                            value={field.value}
+                                                            value={field.value as string}
                                                             className='flex justify-center gap-4 rounded-md p-3 shadow-md '>
                                                             {statusOptions.map((option) => (
                                                                 <div
                                                                     key={option.value}
                                                                     className='flex cursor-pointer items-center space-x-3 transition-colors hover:bg-accent/50'>
-                                                                    <RadioGroupItem value={option.value} id={`letter-${option.value}`} />
+                                                                    <RadioGroupItem value={option.value} id={`status-${option.value}`} />
                                                                     <Label
-                                                                        htmlFor={`letter-${option.value}`}
+                                                                        htmlFor={`status-${option.value}`}
                                                                         className='flex-1 cursor-pointer font-normal text-sm'>
                                                                         {option.label}
                                                                     </Label>
@@ -532,15 +534,15 @@ export default function DepartmentSalaryReportPage() {
                                                     render={({ field }) => (
                                                         <RadioGroup
                                                             onValueChange={field.onChange}
-                                                            value={field.value}
+                                                            value={field.value as string}
                                                             className='flex justify-center gap-4 rounded-md p-3 shadow-md '>
                                                             {typeOrEmployeeOptions.map((option) => (
                                                                 <div
                                                                     key={option.value}
                                                                     className='flex cursor-pointer items-center space-x-3 transition-colors hover:bg-accent/50'>
-                                                                    <RadioGroupItem value={option.value} id={`letter-${option.value}`} />
+                                                                    <RadioGroupItem value={option.value} id={`type-emp-${option.value}`} />
                                                                     <Label
-                                                                        htmlFor={`letter-${option.value}`}
+                                                                        htmlFor={`type-emp-${option.value}`}
                                                                         className='flex-1 cursor-pointer font-normal text-sm'>
                                                                         {option.label}
                                                                     </Label>
@@ -562,7 +564,7 @@ export default function DepartmentSalaryReportPage() {
                                                             name='type'
                                                             control={control}
                                                             render={({ field }) => (
-                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                <Select onValueChange={field.onChange} value={field.value as string}>
                                                                     <SelectTrigger className='w-full'>
                                                                         <SelectValue placeholder='Select Employee Type' />
                                                                     </SelectTrigger>
@@ -598,7 +600,7 @@ export default function DepartmentSalaryReportPage() {
                                                             name='employee'
                                                             control={control}
                                                             render={({ field }) => (
-                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                <Select onValueChange={field.onChange} value={field.value as string}>
                                                                     <SelectTrigger className='w-full'>
                                                                         <SelectValue placeholder='Select Employee' />
                                                                     </SelectTrigger>

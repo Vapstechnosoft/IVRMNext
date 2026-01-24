@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMasterDepartments, useMasterDesignations, useMasterGroupTypes, useMasterMonths, useMasterYears } from '@/hooks/hrms/useReports';
+import { useReportDepartments, useReportDesignations, useReportGroupTypes } from '@/hooks/hrms/useReports';
+import { useLeaveYearDropdown, useMonthDropdown } from '@/hooks/hrms/useMasters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Printer, RefreshCw, Search } from 'lucide-react';
 import { useState } from 'react';
@@ -27,7 +28,7 @@ type LoanReportFormFields = {
 };
 
 // Zod schema for form validation
-export const LoanReportSchema = z
+const LoanReportSchema = z
     .object({
         groupType: z.array(z.string()).min(1, 'Select at least one group type'),
         department: z.array(z.string()).min(1, 'Select at least one department'),
@@ -107,51 +108,6 @@ export default function LoanReportPage() {
     const [isSearching, setIsSearching] = useState(false);
     const [reportData, setReportData] = useState<any>(null);
 
-    const { data: masterGroupTypes, isLoading: masterGroupTypesLoading, isError: masterGroupTypesError } = useMasterGroupTypes();
-
-    const { data: masterDepartments, isLoading: masterDepartmentsLoading, isError: masterDepartmentsError } = useMasterDepartments();
-
-    const { data: masterDesignations, isLoading: masterDesignationsLoading, isError: masterDesignationsError } = useMasterDesignations();
-
-    const { data: masterMonths, isLoading: masterMonthsLoading, isError: masterMonthsError } = useMasterMonths();
-
-    const { data: masterYears, isLoading: masterYearsLoading, isError: masterYearsError } = useMasterYears();
-
-    const groupTypeOptions =
-        masterGroupTypes?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-
-    const DepartmentsOptions =
-        masterDepartments?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-
-    const DesignationOptions =
-        masterDesignations?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-
-    const MonthsOptions =
-        masterMonths?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-
-    const YearsOptions =
-        masterYears?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-
-    const EmployeeOptions = mockEmployees.map((emp) => ({
-        value: emp.key,
-        label: emp.value
-    }));
-
     const {
         control,
         handleSubmit,
@@ -174,6 +130,58 @@ export default function LoanReportPage() {
     });
 
     const watchReportType = watch('reportType');
+    const watchedGroupType = watch('groupType');
+    const watchedDepartment = watch('department');
+
+    const groupTypeIds = watchedGroupType?.join(',') || '';
+    const deptIds = watchedDepartment?.join(',') || '';
+
+    const { data: masterGroupTypes, isLoading: masterGroupTypesLoading, isError: masterGroupTypesError } = useReportGroupTypes();
+
+    const { data: masterDepartments, isLoading: masterDepartmentsLoading, isError: masterDepartmentsError } = useReportDepartments(groupTypeIds);
+
+    const { data: masterDesignations, isLoading: masterDesignationsLoading, isError: masterDesignationsError } = useReportDesignations(groupTypeIds, deptIds);
+
+    const { data: masterMonths, isLoading: masterMonthsLoading, isError: masterMonthsError } = useMonthDropdown();
+
+    const { data: masterYears, isLoading: masterYearsLoading, isError: masterYearsError } = useLeaveYearDropdown();
+
+    const groupTypeOptions =
+        masterGroupTypes?.data?.map((item: any) => ({
+            value: item.key.toString(),
+            label: item.value
+        })) || [];
+
+    const DepartmentsOptions =
+        masterDepartments?.data?.map((item: any) => ({
+            value: item.hrmD_Id.toString(),
+            label: item.hrmD_DepartmentName
+        })) || [];
+
+    const DesignationOptions =
+        masterDesignations?.data?.map((item: any) => ({
+            value: item.hrmdeS_Id.toString(),
+            label: item.hrmdeS_DesignationName
+        })) || [];
+
+    const MonthsOptions =
+        masterMonths?.data?.map((item: any) => ({
+            value: item.key.toString(),
+            label: item.value
+        })) || [];
+
+    const YearsOptions =
+        masterYears?.data?.map((item: any) => ({
+            value: item.hrmlY_Id.toString(),
+            label: item.hrmlY_LeaveYear
+        })) || [];
+
+    const EmployeeOptions = mockEmployees.map((emp) => ({
+        value: emp.key,
+        label: emp.value
+    }));
+
+
 
     const onSearch = async (data: LoanReportFormFields) => {
         setIsSearching(true);

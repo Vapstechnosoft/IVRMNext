@@ -19,17 +19,10 @@ import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
+import { EmployeeOfferLaterFields, EmployeeOfferLaterSchema } from './schemas';
+
 // Define the form schema and types
-export const EmployeeOfferLaterSchema = z.object({
-    groupType: z.string().min(1, 'Group Type is required'),
-    department: z.string().min(1, 'Department is required'),
-    designation: z.string().min(1, 'Designation is required'),
-    month: z.string().optional(),
-    year: z.string().optional(),
-    employee: z.string().min(1, 'Employee is required'),
-    mockLetter: z.string().min(1, 'Letter type is required')
-});
-export type EmployeeOfferLaterFields = z.infer<typeof EmployeeOfferLaterSchema>;
+
 
 const mockEmployees = [
     { key: '1208', value: 'ANUSHA T' },
@@ -837,9 +830,9 @@ export default function SalaryCertificatePage() {
                                                     <td className='border border-white-300 px-4 py-2 text-right text-sm'>
                                                         {earnings[index]
                                                             ? `₹${earnings[index].Amount.toLocaleString('en-IN', {
-                                                                  minimumFractionDigits: 2,
-                                                                  maximumFractionDigits: 2
-                                                              })}`
+                                                                minimumFractionDigits: 2,
+                                                                maximumFractionDigits: 2
+                                                            })}`
                                                             : ''}
                                                     </td>
                                                     <td className='border border-white-300 px-4 py-2 text-sm'>
@@ -848,9 +841,9 @@ export default function SalaryCertificatePage() {
                                                     <td className='border border-white-300 px-4 py-2 text-right text-sm'>
                                                         {deductions[index]
                                                             ? `₹${deductions[index].Amount.toLocaleString('en-IN', {
-                                                                  minimumFractionDigits: 2,
-                                                                  maximumFractionDigits: 2
-                                                              })}`
+                                                                minimumFractionDigits: 2,
+                                                                maximumFractionDigits: 2
+                                                            })}`
                                                             : ''}
                                                     </td>
                                                 </tr>

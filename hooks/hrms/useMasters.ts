@@ -50,7 +50,7 @@ import { getGroupTypeSetOrder, getMasterGroupType, getMasterGroupTypeById } from
 
 // ... (skipping to line 433 where useMasterGroupType is defined)
 
-import { getLeaveYearSetOrder, getMasterLeaveYear } from '@/server/hrms/hrmsConfig/master/leave-year';
+import { getLeaveYearDropdown, getLeaveYearSetOrder, getMasterLeaveYear } from '@/server/hrms/hrmsConfig/master/leave-year';
 import { getMasterLoan, getMasterLoanById } from '@/server/hrms/hrmsConfig/master/loan';
 import { getMasterMaritalStatus, getMasterMaritalStatusById } from '@/server/hrms/hrmsConfig/master/marital-status';
 import {
@@ -270,7 +270,7 @@ export function useMasterCourseLegacy(roleId: number, searchParams?: ApiSearchpa
                 queryKey: [HRMS_QUERY_KEYS.MASTER_COURSE]
             });
         },
-        onError: (error: any) => {}
+        onError: (error: any) => { }
     });
     const toggleMutation = useMutation({
         mutationFn: (data: { HRMC_Id: number; HRMC_ActiveFlag: boolean; MI_Id?: number }) => {
@@ -284,7 +284,7 @@ export function useMasterCourseLegacy(roleId: number, searchParams?: ApiSearchpa
                 queryKey: [HRMS_QUERY_KEYS.MASTER_COURSE]
             });
         },
-        onError: (error: any) => {}
+        onError: (error: any) => { }
     });
     const refetchAll = () => {
         queryClient.invalidateQueries({
@@ -476,6 +476,23 @@ export function useMasterLeaveYear(searchParams?: ApiSearchparams) {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR]
+            });
+        }
+    };
+}
+
+export function useLeaveYearDropdown() {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR, 'dropdown'],
+            queryFn: async () => getLeaveYearDropdown(),
+            staleTime: 1000 * 60 * 5
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR, 'dropdown']
             });
         }
     };

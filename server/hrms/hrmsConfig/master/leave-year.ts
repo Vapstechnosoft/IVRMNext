@@ -29,3 +29,8 @@ export async function updateLeaveYearSetorder(data: Array<{ id: number; order: n
     const url = '/api/MasterLeaveYear/update_leave_year_order_number';
     return await api.put<any>('hrms', url, data);
 }
+
+export async function getLeaveYearDropdown() {
+    const url = '/api/MasterDropDown/leave_year_drop_down';
+    return await api.get<any[]>('hrms', url);
+}

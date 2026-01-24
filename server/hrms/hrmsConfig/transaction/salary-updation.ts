@@ -14,7 +14,12 @@ import type {
     SalaryUpdationOnloadRequest,
     SalaryUpdationOnloadResponse,
     SalaryUpdationSaveRequest,
-    SalaryUpdationSaveResponse
+    SalaryUpdationSaveResponse,
+    SalaryUpdationUpdateItem,
+    SalaryUpdationUpdateRequest,
+    SalaryUpdationUpdateResponse,
+    EarningResultItem,
+    DeductionResultItem
 } from '@/types/hrms/salary-updation';
 
 function mapGroupType(item: any) {
@@ -283,9 +288,29 @@ export async function filterSalaryUpdationEmployees(data: SalaryUpdationFilterRe
                 HRME_EmployeeFirstName: item.hrmE_EmployeeFirstName,
                 HRME_EmployeeMiddleName: item.hrmE_EmployeeMiddleName,
                 HRME_EmployeeLastName: item.hrmE_EmployeeLastName,
-                // Pass through the results for grid display
-                earningResult: item.earningResult || [],
-                deductionResult: item.deductionResult || []
+                // Map the results to PascalCase
+                earningResult: (item.earningResult || []).map((e: any) => ({
+                    HREED_Id: e.hreeD_Id || e.HREED_Id,
+                    MI_Id: e.mI_Id || e.MI_Id,
+                    HRME_Id: e.hrmE_Id || e.HRME_Id,
+                    HRMED_Id: e.hrmeD_Id || e.HRMED_Id,
+                    HREED_Amount: e.hreeD_Amount ?? e.HREED_Amount,
+                    HREED_Percentage: e.hreeD_Percentage || e.HREED_Percentage,
+                    HREED_ActiveFlag: e.hreeD_ActiveFlag ?? e.HREED_ActiveFlag,
+                    HREED_MaxApplicableFlg: e.hreeD_MaxApplicableFlg ?? e.HREED_MaxApplicableFlg,
+                    HREED_ApplicableMaxValue: e.hreeD_ApplicableMaxValue ?? e.HREED_ApplicableMaxValue
+                })),
+                deductionResult: (item.deductionResult || []).map((d: any) => ({
+                    HREED_Id: d.hreeD_Id || d.HREED_Id,
+                    MI_Id: d.mI_Id || d.MI_Id,
+                    HRME_Id: d.hrmE_Id || d.HRME_Id,
+                    HRMED_Id: d.hrmeD_Id || d.HRMED_Id,
+                    HREED_Amount: d.hreeD_Amount ?? d.HREED_Amount,
+                    HREED_Percentage: d.hreeD_Percentage || d.HREED_Percentage,
+                    HREED_ActiveFlag: d.hreeD_ActiveFlag ?? d.HREED_ActiveFlag,
+                    HREED_MaxApplicableFlg: d.hreeD_MaxApplicableFlg ?? d.HREED_MaxApplicableFlg,
+                    HREED_ApplicableMaxValue: d.hreeD_ApplicableMaxValue ?? d.HREED_ApplicableMaxValue
+                }))
             }));
 
             return {
@@ -546,4 +571,39 @@ export async function getHeadDropdown() {
         console.error('Error fetching heads:', error);
         return { headdropdown: [] };
     }
+}
+
+
+
+// Helper to map UI earning/deduction items to Backend API format
+function mapToUpdateItem(item: any, userId: number): SalaryUpdationUpdateItem {
+    return {
+        hreeD_Id: item.HREED_Id,
+        mI_Id: item.MI_Id,
+        hrmE_Id: item.HRME_Id,
+        hrmeD_Id: item.HRMED_Id,
+        hreeD_Amount: item.HREED_Amount,
+        hreeD_Percentage: item.HREED_Percentage || '0',
+        hreeD_ActiveFlag: item.HREED_ActiveFlag,
+        hreeD_MaxApplicableFlg: item.HREED_MaxApplicableFlg,
+        hreeD_ApplicableMaxValue: item.HREED_ApplicableMaxValue,
+        updatedDate: new Date().toISOString(),
+        hreeD_UpdatedBy: userId,
+    };
+}
+
+export async function updateEmployeesEarningsAndDeductions(data: { earningResult?: any[], deductionResult?: any[], LoginUserId: number }) {
+    console.log('📥 [SALARY UPDATION - BACKEND] Update request payload size (earnings):', data.earningResult?.length);
+    console.log('📥 [SALARY UPDATION - BACKEND] Update request payload size (deductions):', data.deductionResult?.length);
+
+    const url = '/api/SalaryUpdation/update_employees_earnings_and_deductions';
+
+    // Map PascalCase UI objects to camelCase Backend objects
+    const userId = data.LoginUserId;
+    const requestBody: SalaryUpdationUpdateRequest = {
+        earnings: (data.earningResult || []).map(item => mapToUpdateItem(item, userId)),
+        deductions: (data.deductionResult || []).map(item => mapToUpdateItem(item, userId))
+    };
+
+    return await api.put<any>('hrms', url, requestBody);
 }

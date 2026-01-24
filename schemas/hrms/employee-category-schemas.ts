@@ -34,6 +34,7 @@ export const EmployeeDetailSchema = z.object({
     status: z.string().optional().default('all'),
     formated: z.string().optional().default('format1'),
     mockLetter: z.string().optional().default('1'),
+    typeOrEmployee: z.string().optional().default('type'),
     type: z.string().optional(),
     employee: z.string().optional(),
     selectedHeaders: z.array(z.string()).optional().default([])

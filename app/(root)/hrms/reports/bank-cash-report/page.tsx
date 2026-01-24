@@ -8,20 +8,23 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
-    useMasterDepartments,
-    useMasterDesignations,
-    useMasterGroupTypes,
+    useReportDepartments,
+    useReportDesignations,
+    useReportGroupTypes,
     useMasterMonths,
     useMasterPaymentModeList,
     useMasterYears
 } from '@/hooks/hrms/useReports';
-
-import { zodResolver } from '@hookform/resolvers/zod';
-import { RefreshCw, Search } from 'lucide-react';
+import { RefreshCw, Search, Loader2, Download, Printer } from 'lucide-react';
 import { useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
+
+interface SelectOption {
+    value: string;
+    label: string;
+}
 
 const BankCashReportSchema = z.object({
     groupType: z.array(z.string()).min(1, 'Group type is required'),
@@ -191,64 +194,13 @@ const mockApiResponse = {
     ]
 };
 
+import { zodResolver } from '@hookform/resolvers/zod';
+
+
 export default function BankCashReportPage() {
     const [isSearching, setIsSearching] = useState(false);
     const [reportData, setReportData] = useState<any[]>([]);
     const [selectedPaymentType, setSelectedPaymentType] = useState<string>('Bank');
-
-    const { data: masterGroupTypes, isLoading: masterGroupTypesLoading, isError: masterGroupTypesError } = useMasterGroupTypes();
-
-    const { data: masterDepartments, isLoading: masterDepartmentsLoading, isError: masterDepartmentsError } = useMasterDepartments();
-
-    const { data: masterDesignations, isLoading: masterDesignationsLoading, isError: masterDesignationsError } = useMasterDesignations();
-
-    const { data: masterMonths, isLoading: masterMonthsLoading, isError: masterMonthsError } = useMasterMonths();
-
-    const { data: masterYears, isLoading: masterYearsLoading, isError: masterYearsError } = useMasterYears();
-
-    const {
-        data: masterPaymentModeList,
-        isLoading: masterPaymentModeListLoading,
-        isError: masterPaymentModeListError
-    } = useMasterPaymentModeList();
-
-    const groupTypeOptions =
-        masterGroupTypes?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-
-    const DeaparmentsOptions =
-        masterDepartments?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-
-    const DesignationOptions =
-        masterDesignations?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-
-    const MonthsOptions =
-        masterMonths?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-
-    const YearsOptions =
-        masterYears?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-
-    const PaymentModeListOptions =
-        masterPaymentModeList?.data
-            ?.map((item: any) => ({
-                value: item.key,
-                label: item.value
-            }))
-            .sort((a, b) => a.label.localeCompare(b.label)) || [];
 
     const {
         control,
@@ -267,6 +219,75 @@ export default function BankCashReportPage() {
         },
         mode: 'onChange'
     });
+
+    const watchedGroupTypes = useWatch({ control, name: 'groupType' }) || [];
+    const watchedDepartments = useWatch({ control, name: 'department' }) || [];
+
+    const groupTypeIds = watchedGroupTypes.join(',');
+    const deptIds = watchedDepartments.join(',');
+
+    const { data: masterGroupTypes, isLoading: masterGroupTypesLoading, isError: masterGroupTypesError } = useReportGroupTypes();
+
+    const {
+        data: masterDepartments,
+        isLoading: masterDepartmentsLoading,
+        isError: masterDepartmentsError
+    } = useReportDepartments(groupTypeIds);
+
+    const {
+        data: masterDesignations,
+        isLoading: masterDesignationsLoading,
+        isError: masterDesignationsError
+    } = useReportDesignations(groupTypeIds, deptIds);
+
+    const { data: masterMonths, isLoading: masterMonthsLoading, isError: masterMonthsError } = useMasterMonths();
+
+    const { data: masterYears, isLoading: masterYearsLoading, isError: masterYearsError } = useMasterYears();
+
+    const {
+        data: masterPaymentModeList,
+        isLoading: masterPaymentModeListLoading,
+        isError: masterPaymentModeListError
+    } = useMasterPaymentModeList();
+
+    const groupTypeOptions: SelectOption[] =
+        masterGroupTypes?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const DeaparmentsOptions: SelectOption[] =
+        masterDepartments?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const DesignationOptions: SelectOption[] =
+        masterDesignations?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const MonthsOptions: SelectOption[] =
+        masterMonths?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const YearsOptions: SelectOption[] =
+        masterYears?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const PaymentModeListOptions: SelectOption[] =
+        masterPaymentModeList?.data
+            ?.map((item: any) => ({
+                value: item.key,
+                label: item.value
+            }))
+            .sort((a: SelectOption, b: SelectOption) => a.label.localeCompare(b.label)) || [];
+
 
     const onSearch = async (data: FormFields) => {
         setIsSearching(true);
@@ -299,7 +320,7 @@ export default function BankCashReportPage() {
 
     const calculateTotal = () => {
         if (reportData.length === 0) return 0;
-        return reportData.reduce((sum, emp) => sum + (emp.netSalary || 0), 0);
+        return reportData.reduce((sum: number, emp: any) => sum + (emp.netSalary || 0), 0);
     };
 
     const totalNetSalary = calculateTotal();
@@ -428,7 +449,7 @@ export default function BankCashReportPage() {
                                         ) : PaymentModeListOptions.length === 0 ? (
                                             <div className='text-sm text-white-500'>No payment modes available</div>
                                         ) : (
-                                            PaymentModeListOptions.map((option) => (
+                                            PaymentModeListOptions.map((option: SelectOption) => (
                                                 <div key={option.value} className='flex items-center space-x-2'>
                                                     <RadioGroupItem value={option.value} id={option.value.toLowerCase()} />
                                                     <Label htmlFor={option.value.toLowerCase()} className='cursor-pointer font-normal'>

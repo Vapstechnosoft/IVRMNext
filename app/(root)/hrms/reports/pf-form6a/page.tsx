@@ -37,7 +37,7 @@ const tableProps = {
     establishmentCode: 'PF',
     establishmentAddress: 'Basaveshwara Talkies rd, Gayatri circle, karantaka, 577501'
 };
-export const PFform6aSchema = z
+const PFform6aSchema = z
     .object({
         fromDate: z.string().min(1, 'From Date is required'),
         toDate: z.string().min(1, 'To Date is required')
@@ -46,7 +46,7 @@ export const PFform6aSchema = z
         message: 'From Date cannot be greater than To Date',
         path: ['toDate']
     });
-export default function DepartmentSalaryReportPage() {
+export default function PFForm6aPage() {
     const [isSearching, setIsSearching] = useState(false);
     const [reportData, setReportData] = useState<any>(null);
 

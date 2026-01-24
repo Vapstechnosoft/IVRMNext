@@ -11,6 +11,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMasterDepartments, useMasterDesignations, useMasterEmployeeTypes, useMasterGroupTypes } from '@/hooks/hrms/useReports';
 import { cn } from '@/lib/utils';
+import { EmployeeDetailSchema } from '@/schemas/hrms/employee-category-schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, RefreshCw, Search } from 'lucide-react';
@@ -18,21 +19,6 @@ import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
-
-const EmployeeDetailSchema = z.object({
-    groupType: z.array(z.string()),
-    department: z.array(z.string()),
-    designation: z.array(z.string()),
-    fromdate: z.string(),
-    todate: z.string(),
-    status: z.string(),
-    mockLetter: z.string(),
-    formated: z.string(),
-    typeOrEmployee: z.string().optional(),
-    type: z.string().optional(),
-    employee: z.string().optional(),
-    selectedHeaders: z.array(z.string())
-});
 
 type FormFields = z.infer<typeof EmployeeDetailSchema>;
 const mockletter = [
@@ -273,10 +259,10 @@ export default function DepartmentSalaryReportPage() {
         mode: 'onChange'
     });
 
-    const selectedFormat = watch('formated');
-    const selectedstatus = watch('status');
-    const selectedtypeOrEmployee = watch('typeOrEmployee');
-    const selectedHeaders = watch('selectedHeaders');
+    const selectedFormat = watch('formated') as string;
+    const selectedstatus = watch('status') as string;
+    const selectedtypeOrEmployee = watch('typeOrEmployee') as string;
+    const selectedHeaders = (watch('selectedHeaders') as string[]) || [];
 
     // Mapping of header names to data field keys
     const headerFieldMap: { [key: string]: string } = {
@@ -379,9 +365,9 @@ export default function DepartmentSalaryReportPage() {
                                                             <div
                                                                 key={option.value}
                                                                 className='flex cursor-pointer items-center space-x-3 transition-colors hover:bg-accent/50'>
-                                                                <RadioGroupItem value={option.value} id={`letter-${option.value}`} />
+                                                                <RadioGroupItem value={option.value} id={`format-${option.value}`} />
                                                                 <Label
-                                                                    htmlFor={`letter-${option.value}`}
+                                                                    htmlFor={`format-${option.value}`}
                                                                     className='flex-1 cursor-pointer font-normal text-sm'>
                                                                     {option.label}
                                                                 </Label>
@@ -399,7 +385,7 @@ export default function DepartmentSalaryReportPage() {
                                                     render={({ field }) => (
                                                         <RadioGroup
                                                             onValueChange={field.onChange}
-                                                            value={field.value}
+                                                            value={field.value as string}
                                                             className='flex justify-center gap-4 rounded-md p-3 shadow-md '>
                                                             {MockLetterOptions.map((option) => (
                                                                 <div
@@ -487,9 +473,9 @@ export default function DepartmentSalaryReportPage() {
                                             <div className='flex items-center space-x-2'>
                                                 <Checkbox
                                                     checked={selectedRangeTypes.includes('working')}
-                                                    onCheckedChange={(checked) => {
-                                                        setSelectedRangeTypes((prev) =>
-                                                            checked ? [...prev, 'working'] : prev.filter((x) => x !== 'working')
+                                                    onCheckedChange={(checked: boolean) => {
+                                                        setSelectedRangeTypes((prev: string[]) =>
+                                                            checked ? [...prev, 'working'] : prev.filter((x: string) => x !== 'working')
                                                         );
                                                     }}
                                                 />
@@ -497,13 +483,12 @@ export default function DepartmentSalaryReportPage() {
                                                     Working
                                                 </Label>
                                             </div>
-
                                             <div className='flex items-center space-x-2'>
                                                 <Checkbox
                                                     checked={selectedRangeTypes.includes('left')}
-                                                    onCheckedChange={(checked) =>
-                                                        setSelectedRangeTypes((prev) =>
-                                                            checked ? [...prev, 'left'] : prev.filter((x) => x !== 'left')
+                                                    onCheckedChange={(checked: boolean) =>
+                                                        setSelectedRangeTypes((prev: string[]) =>
+                                                            checked ? [...prev, 'left'] : prev.filter((x: string) => x !== 'left')
                                                         )
                                                     }
                                                 />
@@ -520,15 +505,15 @@ export default function DepartmentSalaryReportPage() {
                                                     render={({ field }) => (
                                                         <RadioGroup
                                                             onValueChange={field.onChange}
-                                                            value={field.value}
+                                                            value={field.value as string}
                                                             className='flex justify-center gap-4 rounded-md p-3 shadow-md '>
                                                             {statusOptions.map((option) => (
                                                                 <div
                                                                     key={option.value}
                                                                     className='flex cursor-pointer items-center space-x-3 transition-colors hover:bg-accent/50'>
-                                                                    <RadioGroupItem value={option.value} id={`letter-${option.value}`} />
+                                                                    <RadioGroupItem value={option.value} id={`status-${option.value}`} />
                                                                     <Label
-                                                                        htmlFor={`letter-${option.value}`}
+                                                                        htmlFor={`status-${option.value}`}
                                                                         className='flex-1 cursor-pointer font-normal text-sm'>
                                                                         {option.label}
                                                                     </Label>
@@ -547,15 +532,15 @@ export default function DepartmentSalaryReportPage() {
                                                     render={({ field }) => (
                                                         <RadioGroup
                                                             onValueChange={field.onChange}
-                                                            value={field.value}
+                                                            value={field.value as string}
                                                             className='flex justify-center gap-4 rounded-md p-3 shadow-md '>
                                                             {typeOrEmployeeOptions.map((option) => (
                                                                 <div
                                                                     key={option.value}
                                                                     className='flex cursor-pointer items-center space-x-3 transition-colors hover:bg-accent/50'>
-                                                                    <RadioGroupItem value={option.value} id={`letter-${option.value}`} />
+                                                                    <RadioGroupItem value={option.value} id={`type-emp-${option.value}`} />
                                                                     <Label
-                                                                        htmlFor={`letter-${option.value}`}
+                                                                        htmlFor={`type-emp-${option.value}`}
                                                                         className='flex-1 cursor-pointer font-normal text-sm'>
                                                                         {option.label}
                                                                     </Label>
@@ -577,7 +562,7 @@ export default function DepartmentSalaryReportPage() {
                                                             name='type'
                                                             control={control}
                                                             render={({ field }) => (
-                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                <Select onValueChange={field.onChange} value={field.value as string}>
                                                                     <SelectTrigger className='w-full'>
                                                                         <SelectValue placeholder='Select Employee Type' />
                                                                     </SelectTrigger>
@@ -613,7 +598,7 @@ export default function DepartmentSalaryReportPage() {
                                                             name='employee'
                                                             control={control}
                                                             render={({ field }) => (
-                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                <Select onValueChange={field.onChange} value={field.value as string}>
                                                                     <SelectTrigger className='w-full'>
                                                                         <SelectValue placeholder='Select Employee' />
                                                                     </SelectTrigger>

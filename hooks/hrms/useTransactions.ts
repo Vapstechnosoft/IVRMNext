@@ -16,7 +16,7 @@ import { getSalaryAdvanceById, getSalaryAdvanceDetailsByEmployee, getSalaryAdvan
 import { approveSalaries, getSalaryApprovalOnload, searchSalaryApprovalEmployees } from '@/server/hrms/hrmsConfig/transaction/salary-approval';
 import { generateSalaryForSelectedEmployees, getSalaryCalculationOnload, searchSalaryCalculationBySelection } from '@/server/hrms/hrmsConfig/transaction/salary-calculation';
 import { deleteSalaryIncrement, getSalaryIncrementOnload, saveSalaryIncrement } from '@/server/hrms/hrmsConfig/transaction/salary-increment';
-import { deleteSalaryUpdation, filterSalaryUpdationEmployees, getSalaryUpdationDepartments, getSalaryUpdationDesignations, getSalaryUpdationEmployeeDetailsBySelection, getSalaryUpdationList, getSalaryUpdationOnload, saveSalaryUpdation } from '@/server/hrms/hrmsConfig/transaction/salary-updation';
+import { deleteSalaryUpdation, filterSalaryUpdationEmployees, getSalaryUpdationDepartments, getSalaryUpdationDesignations, getSalaryUpdationEmployeeDetailsBySelection, getSalaryUpdationList, getSalaryUpdationOnload, saveSalaryUpdation, updateEmployeesEarningsAndDeductions } from '@/server/hrms/hrmsConfig/transaction/salary-updation';
 import { getEmployeeDetailsBySelection, getMassUpdationDepartments, getMassUpdationDesignations, getMassUpdationOnload, saveMassUpdation, searchMassUpdationEmployees } from '@/server/hrms/hrmsConfig/transaction/mass-updation';
 import type {
     EmployeeDetailsResponse,
@@ -759,6 +759,33 @@ export function useGetSalaryUpdationGroupTypes() {
         }
     });
 }
+
+/**
+ * Update employees earnings and deductions (Batch Save)
+ */
+export function useUpdateEmployeesEarningsAndDeductions() {
+    const queryClient = useQueryClient();
+    return useMutation<any, Error, { earningResult?: any[], deductionResult?: any[], LoginUserId: number }>({
+        mutationFn: (data) => {
+            return updateEmployeesEarningsAndDeductions(data).then((res: any) => {
+                if (!res.success) {
+                    throw new Error(res.message);
+                }
+                return res.data;
+            });
+        },
+        onSuccess: () => {
+            toast.success('Changes saved successfully');
+            queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_UPDATION_ONLOAD]
+            });
+        },
+        onError: (error) => {
+            toast.error(error.message || 'Failed to save changes.');
+        }
+    });
+}
+
 // ============================================================================
 // MASS UPDATION
 // ============================================================================
@@ -785,10 +812,11 @@ export function useSaveMassUpdation() {
                 if (!res.success) {
                     throw new Error(res.message);
                 }
-                return res.data!;
+                // If data is null, provide the message in a compatible object
+                return res.data || { retrunMsg: res.message } as any;
             }),
         onSuccess: (data) => {
-            toast.success(data.retrunMsg || 'Mass updation completed successfully!');
+            toast.success(data?.retrunMsg || 'Mass updation completed successfully!');
             queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASS_UPDATION_ONLOAD]
             });
@@ -807,28 +835,22 @@ export function useSearchMassUpdationEmployees() {
                 }
                 return res.data!;
             }),
-        onSuccess: (data) => {
-            toast.success(data.retrunMsg || 'Employees loaded successfully!');
-        },
         onError: (error) => {
-            toast.error(error.message || 'Failed to search employees.');
+            toast.error(error.message || 'Failed to search employees for mass updation.');
         }
     });
 }
 export function useGetEmployeeDetailsBySelection() {
     return useMutation<MassUpdationOnloadResponse, Error, MassUpdationSearchRequest>({
         mutationFn: (data: MassUpdationSearchRequest) =>
-            getEmployeeDetailsBySelection(data).then((res: any) => {
+            getEmployeeDetailsBySelection(data).then((res) => {
                 if (!res.success) {
                     throw new Error(res.message);
                 }
                 return res.data!;
             }),
-        onSuccess: (data) => {
-            toast.success(data.retrunMsg || 'Employee details loaded successfully!');
-        },
         onError: (error) => {
-            toast.error(error.message || 'Failed to get employee details.');
+            toast.error(error.message || 'Failed to get employee details for mass updation.');
         }
     });
 }
@@ -843,7 +865,7 @@ export function useGetMassUpdationDepartments() {
                 return res.data!;
             }),
         onError: (error) => {
-            toast.error(error.message || 'Failed to get departments.');
+            toast.error(error.message || 'Failed to get departments for mass updation.');
         }
     });
 }
@@ -858,9 +880,7 @@ export function useGetMassUpdationDesignations() {
                 return res.data!;
             }),
         onError: (error) => {
-            toast.error(error.message || 'Failed to get designations.');
+            toast.error(error.message || 'Failed to get designations for mass updation.');
         }
     });
 }
-
-

@@ -18,6 +18,7 @@ interface CollapsibleSectionProps {
     keepContentMounted?: boolean;
     isOpen?: boolean;
     onToggle?: () => void;
+    rightElement?: ReactNode;
 }
 
 export function CollapsibleSection({
@@ -31,7 +32,8 @@ export function CollapsibleSection({
     contentClassName = '',
     variant = 'default',
     size = 'md',
-    keepContentMounted = true
+    keepContentMounted = true,
+    rightElement
 }: CollapsibleSectionProps) {
     const [isOpen, setIsOpen] = useState(defaultOpen);
     const [hasBeenOpened, setHasBeenOpened] = useState(defaultOpen);
@@ -75,11 +77,18 @@ export function CollapsibleSection({
                                 {description && <p className='text-muted-foreground text-sm'>{description}</p>}
                             </div>
                         )}
-                        <Button variant='ghost' size='sm' className='ml-auto h-8 w-8 p-0'>
-                            <ChevronRight
-                                className={`h-4 w-4 transform transition-transform duration-200 ${isOpen ? 'rotate-90' : 'rotate-0'}`}
-                            />
-                        </Button>
+                        <div className="flex items-center gap-2 ml-auto">
+                            {rightElement && (
+                                <div onClick={(e) => e.stopPropagation()}>
+                                    {rightElement}
+                                </div>
+                            )}
+                            <Button variant='ghost' size='sm' className='h-8 w-8 p-0'>
+                                <ChevronRight
+                                    className={`h-4 w-4 transform transition-transform duration-200 ${isOpen ? 'rotate-90' : 'rotate-0'}`}
+                                />
+                            </Button>
+                        </div>
                     </CardHeader>
                 </CollapsibleTrigger>
 
