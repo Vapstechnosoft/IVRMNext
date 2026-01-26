@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
-import type { GroupItem } from './add-from';
+import type { GroupItem } from './add-form';
 
 export function ViewExamsModal({ group, onClose }: { group: GroupItem; onClose: () => void }) {
     return (

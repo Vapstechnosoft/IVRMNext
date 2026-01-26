@@ -7,7 +7,8 @@ import type {
     IPromotionCategory,
     IPromotionalGroupDetails,
     IPromotionalGroupMappedExamDetails,
-    IPromotionalSubjectDetails
+    IPromotionalSubjectDetails,
+    IPromotionDetailsByIdResponse
 } from '@/types/exam/exam-module/exam-mapping';
 export async function getPromotionalSettings(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
@@ -78,7 +79,7 @@ export async function viewIndividualPromotionDetails(emp_Id: number) {
 
 export async function getIndividualPromotionDetailsById(emp_Id: number) {
     const url = `/promotion_setting/individual_promotion_details_by_id/${emp_Id}`;
-    return await api.get('exam', url);
+    return await api.get<IPromotionDetailsByIdResponse>('exam', url);
 }
 
 /* =========================================================
