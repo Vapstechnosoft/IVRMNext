@@ -1,252 +1,217 @@
 'use client';
-import { Button } from '@/components/ui/button';
-import { FormError } from '@/components/ui/extension/field';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { format } from 'date-fns';
-import { CalendarIcon, RefreshCw, Search } from 'lucide-react';
+
 import { useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormProvider } from '@/components/ui/form/form-provider';
+import { Label } from '@/components/ui/extension/field';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Button } from '@/components/ui/button';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { exportToExcel } from '@/lib/export-to-file';
+import { usePFForm6A } from '@/hooks/hrms/useReports';
+import { Loader2, Search, Download } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { CalendarYear } from '@/components/ui/calendar_year';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { z } from 'zod';
-import PFChallan from './_components/columns';
+interface FilterFormValues {
+    fromDate: Date | undefined;
+    toDate: Date | undefined;
+}
 
-type FormFields = z.infer<typeof PFform6aSchema>;
+export default function PFForm6APage() {
+    return (
+        <FormProvider>
+            <PFForm6AContent />
+        </FormProvider>
+    );
+}
 
-const tableProps = {
-    records: [
-        {
-            serialNo: 1,
-            accountNo: 'MH/56789/123',
-            memberName: 'RAHUL KUMAR SHARMA',
-            wagesDAFoodConcession: 50000,
-            workerContribution: 6000,
-            epfDiff: 833,
-            pensionFund8_33: 4165,
-            refundAdvance: 0,
-            higherVoluntaryContribution: 0,
-            remarks: ''
-        }
-    ],
-    establishmentName: 'Vidya Vikasa Vidya Samsthe (R)',
-    establishmentCode: 'PF',
-    establishmentAddress: 'Basaveshwara Talkies rd, Gayatri circle, karantaka, 577501'
-};
-const PFform6aSchema = z
-    .object({
-        fromDate: z.string().min(1, 'From Date is required'),
-        toDate: z.string().min(1, 'To Date is required')
-    })
-    .refine((data) => new Date(data.fromDate) <= new Date(data.toDate), {
-        message: 'From Date cannot be greater than To Date',
-        path: ['toDate']
-    });
-export default function PFForm6aPage() {
-    const [isSearching, setIsSearching] = useState(false);
-    const [reportData, setReportData] = useState<any>(null);
-
-    const {
-        control,
-        handleSubmit,
-        reset,
-        watch,
-        formState: { errors, isSubmitting }
-    } = useForm<FormFields>({
-        resolver: zodResolver(PFform6aSchema),
+function PFForm6AContent() {
+    const [reportData, setReportData] = useState<any[] | null>(null);
+    const { control, handleSubmit } = useForm<FilterFormValues>({
         defaultValues: {
-            fromDate: '',
-            toDate: ''
-        },
-        mode: 'onChange'
+            fromDate: undefined,
+            toDate: undefined
+        }
     });
 
-    const fromDate = watch('fromDate');
-    const toDate = watch('toDate');
+    const { mutate: generateReport, isPending } = usePFForm6A();
 
-    const onSearch = async (data: FormFields) => {
-        setIsSearching(true);
-        try {
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-
-            if (data.fromDate) {
-                const fromDateObj = new Date(data.fromDate);
-            }
-
-            setReportData(tableProps);
-
-            toast.success('Report generated successfully!');
-        } catch (error: any) {
-            toast.error(error.message || 'Failed to generate report');
-        } finally {
-            setIsSearching(false);
+    const onSubmit = (data: FilterFormValues) => {
+        if (!data.fromDate || !data.toDate) {
+            toast.error('Please select both From and To dates');
+            return;
         }
+
+        generateReport({
+            fromDate: data.fromDate.toISOString(),
+            toDate: data.toDate.toISOString()
+        }, {
+            onSuccess: (res) => {
+                if (res.success && res.data) {
+                    const data = Array.isArray(res.data) ? res.data : (res.data.alldata || res.data.list || []);
+                    setReportData(data);
+                    toast.success('Report generated successfully');
+                } else {
+                    toast.error(res.message || 'No data found');
+                }
+            }
+        });
     };
 
-    const handleReset = () => {
-        reset({
-            fromDate: '',
-            toDate: ''
-        });
-        setReportData(null);
-        toast.info('Form has been reset');
+    const handleExport = () => {
+        if (!reportData || reportData.length === 0) {
+            toast.error('No data to export');
+            return;
+        }
+
+        const exportColumns = [
+            { label: 'PF Account No', value: 'hrmE_PFAccNo' },
+            { label: 'UAN No', value: 'hrmE_PFuAN' },
+            { label: 'Employee Name', value: 'empName' },
+            { label: 'Wages', value: 'amountofWages' },
+            { label: 'Basic', value: 'basicvalue' },
+            { label: 'DA', value: 'davalue' },
+            { label: 'EPF', value: 'hreS_EPF' },
+            { label: 'FPF', value: 'hreS_FPF' },
+            { label: 'Ac 21', value: 'hreS_Ac21' },
+            { label: 'Ac 22', value: 'hreS_Ac22' },
+            { label: 'Ac 5', value: 'hreS_Ac5' }
+        ];
+
+        const processedContent = reportData.map((row: any) => ({
+            ...row,
+            empName: `${row.hrmE_EmployeeFirstName || ''} ${row.hrmE_EmployeeMiddleName || ''} ${row.hrmE_EmployeeLastName || ''}`.trim()
+        }));
+
+        exportToExcel('PF_Form_6A', JSON.stringify(exportColumns), JSON.stringify(processedContent));
     };
-    const handleCancel = () => {
-        setReportData(null);
-    };
-    const handlePrint = () => {
-        window.print();
-    };
+
+    const columns = [
+        {
+            id: 'slNo',
+            header: 'SL.No',
+            cell: ({ row }: any) => row.index + 1
+        },
+        {
+            accessorKey: 'hrmE_PFAccNo',
+            header: 'PF Acc No'
+        },
+        {
+            accessorKey: 'hrmE_PFuAN',
+            header: 'UAN'
+        },
+        {
+            header: 'Employee Name',
+            cell: ({ row }: any) => {
+                const e = row.original;
+                return `${e.hrmE_EmployeeFirstName || ''} ${e.hrmE_EmployeeMiddleName || ''} ${e.hrmE_EmployeeLastName || ''}`.trim();
+            }
+        },
+        {
+            accessorKey: 'amountofWages',
+            header: 'Wages',
+            cell: ({ row }: any) => Number(row.original.amountofWages || 0).toFixed(2)
+        },
+        {
+            accessorKey: 'basicvalue',
+            header: 'Basic',
+            cell: ({ row }: any) => Number(row.original.basicvalue || 0).toFixed(2)
+        },
+        {
+            accessorKey: 'davalue',
+            header: 'DA',
+            cell: ({ row }: any) => Number(row.original.davalue || 0).toFixed(2)
+        },
+        {
+            accessorKey: 'hreS_EPF',
+            header: 'EPF',
+            cell: ({ row }: any) => Number(row.original.hreS_EPF || 0).toFixed(2)
+        },
+        {
+            accessorKey: 'hreS_FPF',
+            header: 'FPF',
+            cell: ({ row }: any) => Number(row.original.hreS_FPF || 0).toFixed(2)
+        },
+        {
+            accessorKey: 'hreS_Ac21',
+            header: 'Ac 21',
+            cell: ({ row }: any) => Number(row.original.hreS_Ac21 || 0).toFixed(2)
+        },
+        {
+            accessorKey: 'hreS_Ac22',
+            header: 'Ac 22',
+            cell: ({ row }: any) => Number(row.original.hreS_Ac22 || 0).toFixed(2)
+        },
+        {
+            accessorKey: 'hreS_Ac5',
+            header: 'Ac 5',
+            cell: ({ row }: any) => Number(row.original.hreS_Ac5 || 0).toFixed(2)
+        }
+    ];
 
     return (
-        <div className='min-h-screen p-8'>
-            <div className='container space-y-4 p-1'>
-                <CollapsibleSection
-                    title='PF Form6A'
-                    defaultOpen={true}
-                    variant='outline'
-                    size='md'
-                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                    <div className='space-y-6'>
-                        <div className='flex justify-center'>
-                            <div className='flex justify-center gap-2 '>
-                                <div>
-                                    <Label className='font-medium text-sm text-white-900'>
-                                        From Date<span className='text-red-600'>*</span>
-                                    </Label>
+        <div className='container min-h-screen space-y-4 p-2'>
+            <div className='flex items-center justify-between'>
+                <h2 className='text-2xl font-bold tracking-tight'>PF Form 6A Report</h2>
+            </div>
 
-                                    <Controller
-                                        name='fromDate'
-                                        control={control}
-                                        render={({ field }) => (
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <Button
-                                                        type='button'
-                                                        variant='outline'
-                                                        className={cn(
-                                                            'w-full justify-start text-left font-normal',
-                                                            !field.value && 'text-muted-foreground'
-                                                        )}>
-                                                        <CalendarIcon className='mr-2 h-4 w-4' />
-                                                        {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'From date'}
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className='w-auto p-0' align='start'>
-                                                    <CalendarYear
-                                                        mode='single'
-                                                        selected={field.value ? new Date(field.value) : undefined}
-                                                        onSelect={(date: Date | undefined) => field.onChange(date?.toISOString() ?? '')}
-                                                        captionLayout='dropdown'
-                                                        fromYear={2000}
-                                                        toYear={2050}
-                                                    />
-                                                </PopoverContent>
-                                            </Popover>
-                                        )}
-                                    />
-                                    {errors.fromDate && <FormError>{errors.fromDate.message}</FormError>}
-                                </div>
-                                <div>
-                                    <Label className='font-medium text-sm text-white-900'>
-                                        To Date<span className='text-red-600'>*</span>
-                                    </Label>
-                                    <Controller
-                                        name='toDate'
-                                        control={control}
-                                        render={({ field }) => (
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <Button
-                                                        type='button'
-                                                        variant='outline'
-                                                        className={cn(
-                                                            'w-full justify-start text-left font-normal',
-                                                            !field.value && 'text-muted-foreground'
-                                                        )}>
-                                                        <CalendarIcon className='mr-2 h-4 w-4' />
-                                                        {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'To date'}
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className='w-auto p-0' align='start'>
-                                                    <CalendarYear
-                                                        mode='single'
-                                                        selected={field.value ? new Date(field.value) : undefined}
-                                                        onSelect={(date: Date | undefined) => field.onChange(date?.toISOString() ?? '')}
-                                                        captionLayout='dropdown'
-                                                        fromYear={2000}
-                                                        toYear={2050}
-                                                    />
-                                                </PopoverContent>
-                                            </Popover>
-                                        )}
-                                    />
-                                    {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
-                                </div>
-                            </div>
+            <CollapsibleSection defaultOpen={true} title="Report Criteria" variant='outline' className='shadow-sm'>
+                <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                    <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
+                        <div className='space-y-2'>
+                            <Label>From Date <span className='text-destructive'>*</span></Label>
+                            <Controller name='fromDate' control={control} render={({ field }) => (
+                                <DatePicker
+                                    date={field.value}
+                                    setDate={field.onChange}
+                                    placeholder="Select From Date"
+                                />
+                            )} />
                         </div>
 
-                        <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-center'>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                onClick={handleReset}
-                                disabled={isSearching || isSubmitting}
-                                className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                                Reset
-                            </Button>
-                            <Button
-                                type='submit'
-                                onClick={handleSubmit(onSearch)}
-                                disabled={isSearching || isSubmitting}
-                                className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
-                                {isSearching ? (
-                                    <>
-                                        <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
-                                        Searching...
-                                    </>
-                                ) : (
-                                    <div className='flex items-center'>
-                                        <Search className='mr-2 h-4 w-4' />
-                                        Search
-                                    </div>
-                                )}
-                            </Button>
+                        <div className='space-y-2'>
+                            <Label>To Date <span className='text-destructive'>*</span></Label>
+                            <Controller name='toDate' control={control} render={({ field }) => (
+                                <DatePicker
+                                    date={field.value}
+                                    setDate={field.onChange}
+                                    placeholder="Select To Date"
+                                />
+                            )} />
                         </div>
                     </div>
-                </CollapsibleSection>
 
-                {/* FIXED: Changed from isSearching to reportData */}
-                {reportData && fromDate && toDate && (
-                    <CollapsibleSection
-                        title='PF Form6A'
-                        defaultOpen={true}
-                        variant='outline'
-                        size='md'
-                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                        <PFChallan
-                            records={reportData.records || []}
-                            establishmentName={reportData.establishmentName}
-                            establishmentCode={reportData.establishmentCode}
-                            establishmentAddress={reportData.establishmentAddress}
-                            financialYear={(() => {
-                                const fromYear = new Date(fromDate).getFullYear();
-                                const toYear = new Date(toDate).getFullYear();
-                                return `${fromYear}-${toYear}`;
-                            })()}
-                            periodFrom={format(new Date(fromDate), 'dd MMMM, yyyy')}
-                            periodTo={format(new Date(toDate), 'dd MMMM, yyyy')}
-                            onCancel={handleCancel}
-                            onPrint={handlePrint}
-                            isLoading={false}
-                        />
-                    </CollapsibleSection>
-                )}
-            </div>
+                    <div className='flex justify-end'>
+                        <Button type='submit' disabled={isPending} className='w-32'>
+                            {isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
+                            Generate
+                        </Button>
+                    </div>
+                </form>
+            </CollapsibleSection>
+
+            {reportData && (
+                <CollapsibleSection title="Report Details" defaultOpen={true} className='shadow-md border'
+                    rightElement={
+                        <div className='flex gap-2'>
+                            <Button variant='outline' size='sm' onClick={handleExport} className='gap-2'>
+                                <Download className='h-4 w-4' />
+                                Export
+                            </Button>
+                        </div>
+                    }
+                >
+                    <GenericDataTable
+                        data={reportData}
+                        columns={columns}
+                        totalItems={reportData.length}
+                        isPaginationRequired={false}
+                        isSearchRequired={false}
+                        isLoading={isPending}
+                    />
+                </CollapsibleSection>
+            )}
         </div>
     );
 }

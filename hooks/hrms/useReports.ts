@@ -17,6 +17,10 @@ import {
     searchEmployeeAdvanceReport
 } from '@/server/hrms/hrmsConfig/reports/advance-report';
 import {
+    getEmployeeContributionReportOnload,
+    searchEmployeeContributionDetails
+} from '@/server/hrms/hrmsConfig/reports/employee-contribution-report';
+import {
     getBankCashReportOnload,
     searchBankCashReport
 } from '@/server/hrms/hrmsConfig/reports/bank-cash-report';
@@ -29,7 +33,35 @@ import {
     getMasterPaymentModeList,
     getMasterYears
 } from '@/server/hrms/master';
+import {
+    getEmployeeStrengthReportOnload,
+    searchEmployeeStrengthReport,
+} from '@/server/hrms/hrmsConfig/reports/employee-strength-report';
+import {
+    getEmployeesByFilter,
+    getEmployeeLetterDetails
+} from '@/server/hrms/reports/employee-offer-letter';
+import {
+    getESIReportOnload,
+    searchESIReport
+} from '@/server/hrms/hrmsConfig/reports/esi-report';
+import {
+    getPFChallan,
+    getESIReport,
+    getPFForm10,
+    getPFForm5,
+    getPFForm6A,
+    type ESIReportRequest,
+    type PFForm10Request,
+    type PFForm5Request,
+    type PFChallanRequest,
+    type PFForm6ARequest
+} from '@/server/hrms/reports/esi-pf-reports';
+import {
+    getPFChallanReportOnload,
+} from '@/server/hrms/hrmsConfig/reports/pf-challan-report';
 import { toast } from 'sonner';
+
 
 export function useCumulativeSalaryReport() {
     return useMutation({
@@ -174,6 +206,120 @@ export function useSearchEmployeeAdvanceReport() {
         mutationFn: (data: any) => searchEmployeeAdvanceReport(data),
         onError: (error: Error) => {
             toast.error(error.message || 'Failed to search employee advance report');
+        }
+    });
+}
+
+export function useEmployeeStrengthReport() {
+    return useMutation({
+        mutationFn: (data: any) => searchEmployeeStrengthReport(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch strength report');
+        }
+    });
+}
+
+export function useEmployeeStrengthOnload(MI_Id: number, LogInUserId: number) {
+    return useQuery({
+        queryKey: ['employee-strength-report-onload', MI_Id, LogInUserId],
+        queryFn: () => getEmployeeStrengthReportOnload(MI_Id, LogInUserId),
+        staleTime: 1000 * 60 * 10
+    });
+}
+
+export function useReportEmployees(designationId: number, deptId: number, groupTypeId: number) {
+    return useQuery({
+        queryKey: ['report-employees-filter', designationId, deptId, groupTypeId],
+        queryFn: () => getEmployeesByFilter(designationId, deptId, groupTypeId),
+        enabled: !!designationId && !!deptId && !!groupTypeId,
+        staleTime: 1000 * 60 * 5
+    });
+}
+
+export function useEmployeeLetterDetails() {
+    return useMutation({
+        mutationFn: ({ designationId, deptId, groupTypeId, employeeId }: { designationId: number, deptId: number, groupTypeId: number, employeeId: number }) =>
+            getEmployeeLetterDetails(designationId, deptId, groupTypeId, employeeId),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch details');
+        }
+    });
+}
+
+export function useESIReport() {
+    return useMutation({
+        mutationFn: (data: ESIReportRequest) => getESIReport(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch ESI report');
+        }
+    });
+}
+
+export function useESIReportOnload(MI_Id: number, LogInUserId: number) {
+    return useQuery({
+        queryKey: ['esi-report-onload', MI_Id, LogInUserId],
+        queryFn: () => getESIReportOnload(MI_Id, LogInUserId),
+        staleTime: 1000 * 60 * 10
+    });
+}
+
+export function usePFForm10() {
+    return useMutation({
+        mutationFn: (data: PFForm10Request) => getPFForm10(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch PF Form 10');
+        }
+    });
+}
+
+export function usePFForm5() {
+    return useMutation({
+        mutationFn: (data: PFForm5Request) => getPFForm5(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch PF Form 5');
+        }
+    });
+}
+
+export function usePFChallan() {
+    return useMutation({
+        mutationFn: (data: PFChallanRequest) => getPFChallan(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch PF Challan');
+        }
+    });
+}
+
+export function usePFChallanOnload(MI_Id: number) {
+    return useQuery({
+        queryKey: ['pf-challan-onload', MI_Id],
+        queryFn: () => getPFChallanReportOnload(MI_Id),
+        staleTime: 1000 * 60 * 10
+    });
+}
+
+export function usePFForm6A() {
+    return useMutation({
+        mutationFn: (data: PFForm6ARequest) => getPFForm6A(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch PF Form 6A');
+        }
+    });
+}
+
+export function useEmployeeContributionOnload(MI_Id: number, LogInUserId: number) {
+    return useQuery({
+        queryKey: ['employee-contribution-onload', MI_Id, LogInUserId],
+        queryFn: () => getEmployeeContributionReportOnload(MI_Id, LogInUserId),
+        staleTime: 1000 * 60 * 10
+    });
+}
+
+export function useSearchEmployeeContribution() {
+    return useMutation({
+        mutationFn: (data: any) => searchEmployeeContributionDetails(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to fetch employee contribution');
         }
     });
 }

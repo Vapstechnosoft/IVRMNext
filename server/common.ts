@@ -2013,14 +2013,14 @@ export async function getUserAccessibleModules() {
                                         //     title: 'Salary Slip',
                                         //     description: 'Generate Salary Slips'
                                         // },
-                                        // {
-                                        //     id: 5,
-                                        //     name: 'Employee Contribution',
-                                        //     icon: 'Coins',
-                                        //     url: '/hrms/reports/employee-contribution',
-                                        //     title: 'Employee Contribution',
-                                        //     description: 'Employee Contribution Report'
-                                        // },
+                                        {
+                                            id: 5,
+                                            name: 'E-PF Contribution Register',
+                                            icon: 'Coins',
+                                            url: '/hrms/reports/e-pf-contribution-register',
+                                            title: 'E-PF Contribution Register',
+                                            description: 'E-PF Contribution Register Report'
+                                        },
                                         // {
                                         //     id: 6,
                                         //     name: 'Employee Salary Details',
@@ -2029,22 +2029,22 @@ export async function getUserAccessibleModules() {
                                         //     title: 'Employee Salary Details',
                                         //     description: 'Detailed Salary Information'
                                         // },
-                                        // {
-                                        //     id: 7,
-                                        //     name: 'Employee Strength',
-                                        //     icon: 'Users',
-                                        //     url: '/hrms/reports/employee-strength',
-                                        //     title: 'Employee Strength',
-                                        //     description: 'Employee Strength Report'
-                                        // },
-                                        // {
-                                        //     id: 8,
-                                        //     name: 'ESI Report',
-                                        //     icon: 'Shield',
-                                        //     url: '/hrms/reports/esi-report',
-                                        //     title: 'ESI Report',
-                                        //     description: 'ESI Contribution Report'
-                                        // },
+                                        {
+                                            id: 7,
+                                            name: 'Employee Strength',
+                                            icon: 'Users',
+                                            url: '/hrms/reports/employee-strength',
+                                            title: 'Employee Strength',
+                                            description: 'Employee Strength Report'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'ESI Report',
+                                            icon: 'Shield',
+                                            url: '/hrms/reports/esi-report',
+                                            title: 'ESI Report',
+                                            description: 'ESI Contribution Report'
+                                        },
                                         // {
                                         //     id: 9,
                                         //     name: 'Head Wise Report',
@@ -2077,38 +2077,38 @@ export async function getUserAccessibleModules() {
                                         //     title: 'Salary Certificate',
                                         //     description: 'Generate Salary Certificates'
                                         // },
-                                        // {
-                                        //     id: 13,
-                                        //     name: 'PF Challan',
-                                        //     icon: 'FileCheck',
-                                        //     url: '/hrms/reports/pf-challan',
-                                        //     title: 'PF Challan',
-                                        //     description: 'Provident Fund Challan'
-                                        // },
-                                        // {
-                                        //     id: 14,
-                                        //     name: 'Form 10',
-                                        //     icon: 'FileType',
-                                        //     url: '/hrms/reports/pf-form-10',
-                                        //     title: 'Form 10',
-                                        //     description: 'Provident Fund Form 10'
-                                        // },
-                                        // {
-                                        //     id: 15,
-                                        //     name: 'Form 5',
-                                        //     icon: 'FileType',
-                                        //     url: '/hrms/reports/pf-form-5',
-                                        //     title: 'Form 5',
-                                        //     description: 'Provident Fund Form 5'
-                                        // },
-                                        // {
-                                        //     id: 16,
-                                        //     name: 'PF Form6A',
-                                        //     icon: 'FileType',
-                                        //     url: '/hrms/reports/pf-form6a',
-                                        //     title: 'PF Form6A',
-                                        //     description: 'Provident Fund Form 6A'
-                                        // },
+                                        {
+                                            id: 13,
+                                            name: 'PF Challan',
+                                            icon: 'FileCheck',
+                                            url: '/hrms/reports/pf-challan',
+                                            title: 'PF Challan',
+                                            description: 'Provident Fund Challan'
+                                        },
+                                        {
+                                            id: 14,
+                                            name: 'Form 10',
+                                            icon: 'FileType',
+                                            url: '/hrms/reports/pf-form-10',
+                                            title: 'Form 10',
+                                            description: 'Provident Fund Form 10'
+                                        },
+                                        {
+                                            id: 15,
+                                            name: 'Form 5',
+                                            icon: 'FileType',
+                                            url: '/hrms/reports/pf-form-5',
+                                            title: 'Form 5',
+                                            description: 'Provident Fund Form 5'
+                                        },
+                                        {
+                                            id: 16,
+                                            name: 'PF Form6A',
+                                            icon: 'FileType',
+                                            url: '/hrms/reports/pf-form6a',
+                                            title: 'PF Form6A',
+                                            description: 'Provident Fund Form 6A'
+                                        },
                                         // {
                                         //     id: 17,
                                         //     name: 'PF Form3A',
@@ -2149,15 +2149,17 @@ export async function getUserAccessibleModules() {
                                         //     url: '/hrms/reports/advance-report',
                                         //     title: 'Advance Report',
                                         //     description: 'View Advance Reports'
-                                        // },
-                                        // {
-                                        //     id: 22,
-                                        //     name: 'Employee offer letter',
-                                        //     icon: 'FileText',
-                                        //     url: '/hrms/reports/employee-offer-letter',
-                                        //     title: 'Employee offer letter',
-                                        //     description: 'Generate Offer Letters'
-                                        // },
+                                        // }
+                                        ,
+                                        {
+                                            id: 22,
+                                            name: 'Employee offer letter',
+                                            icon: 'FileText',
+                                            url: '/hrms/reports/employee-offer-letter',
+                                            title: 'Employee offer letter',
+                                            description: 'Generate Offer Letters'
+                                        }
+                                        //,
                                         // {
                                         //     id: 23,
                                         //     name: 'Loan Report',
