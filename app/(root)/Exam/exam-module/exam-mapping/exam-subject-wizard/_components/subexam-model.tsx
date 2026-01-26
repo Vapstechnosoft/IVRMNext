@@ -103,7 +103,11 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
         }));
 
         const finalList = shouldSort
-            ? [...list].sort((a, b) => (Number(a.emsE_SubExamOrder) || 0) - (Number(b.emsE_SubExamOrder) || 0))
+            ? [...list].sort((a, b) => {
+                const orderA = Number(a.emsE_SubExamOrder) || 999999;
+                const orderB = Number(b.emsE_SubExamOrder) || 999999;
+                return orderA - orderB;
+            })
             : list;
 
         replace(finalList);
@@ -159,9 +163,11 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
         const reorderedIds = new Set(reorderedList.map((r: any) => r.emsE_Id));
         const remaining = currentList.filter((x: any) => !reorderedIds.has(x.emsE_Id));
 
-        const finalList = [...reorderedList, ...remaining].sort(
-            (a, b) => (Number(a.emsE_SubExamOrder) || 0) - (Number(b.emsE_SubExamOrder) || 0)
-        );
+        const finalList = [...reorderedList, ...remaining].sort((a, b) => {
+            const orderA = Number(a.EMSE_SubExamOrder) || Number(a.emsE_SubExamOrder) || 999999;
+            const orderB = Number(b.EMSE_SubExamOrder) || Number(b.emsE_SubExamOrder) || 999999;
+            return orderA - orderB;
+        });
 
         replace(finalList);
         toast.success('Sub-Exam order saved successfully.');
@@ -371,6 +377,7 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
             EYCESSE_ExemptedPer: Number(r.eycessS_ExemptedPer) || 0,
             EYCESSE_ActiveFlg: !!r.eycessS_ActiveFlg,
             emsE_SubExamOrder: index + 1,
+            EMSE_SubExamOrder: index + 1,
             EYCESSS_MarksFlg: !!r.eycessS_MarksFlg,
             EYCESSS_GradesFlg: !!r.eycessS_GradesFlg,
             EYCESSS_AplResultFlg: !!r.eycessS_AplResultFlg,

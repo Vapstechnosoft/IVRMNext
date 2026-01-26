@@ -450,6 +450,11 @@ export interface IPromotionSetting {
     emP_BestOfApplicableFlg: boolean;
 }
 
+export interface IPromotionCategory {
+    eyC_Id: number;
+    emcA_CategoryName: string;
+}
+
 export interface IExamPromotionalSettingDetails {
     eycsE_Id: number; // Subject Mapping ID  (Row ID)
     eycE_Id: number; // Parent ExamId (FK)
