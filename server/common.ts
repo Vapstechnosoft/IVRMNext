@@ -942,6 +942,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Fee Staff Other Transaction',
                                             description: 'Fee Staff Other Transaction'
                                         }
+                                        // {
+                                        //     id: 519,
+                                        //     name: 'Fee Transaction',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/transactions/feetransactionstthomas',
+                                        //     title: 'Fee Transaction',
+                                        //     description: 'Fee Transaction'
+                                        // }
                                     ]
                                 },
                                 {

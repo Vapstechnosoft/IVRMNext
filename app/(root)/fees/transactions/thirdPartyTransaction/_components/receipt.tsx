@@ -5,6 +5,7 @@ import { receiptView } from '@/server/fees/trasactions/thirdPartyTrasaction';
 import type { IFeeThirdPartyTransaction } from '@/types/fees/transactions/transactions';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
+import Portal from '../../feetransaction/_components/portal';
 
 interface IInstituteDetails {
     institute_logo?: string;
@@ -199,39 +200,40 @@ export default function ReceiptPage({ rowData, onClose }: ReceiptPageProps) {
     const asmaY_Year = d.asmaY_Year;
 
     return (
-        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'>
-            <div className='relative max-h-[90vh] w-full max-w-6xl overflow-auto rounded-lg bg-white shadow-2xl'>
-                <div ref={receiptRef} className='p-8'>
-                    <div className='grid grid-cols-1 gap-8 lg:grid-cols-2'>
-                        {/* School Copy */}
-                        <div className='border-2 border-gray-300 p-6'>
-                            {/* <div className="mb-4 text-right">
+        <Portal>
+            <div className='fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4'>
+                <div className='relative max-h-[90vh] w-full max-w-6xl overflow-auto rounded-lg bg-white shadow-2xl'>
+                    <div ref={receiptRef} className='p-8'>
+                        <div className='grid grid-cols-1 gap-8 lg:grid-cols-2'>
+                            {/* School Copy */}
+                            <div className='border-2 border-gray-300 p-6'>
+                                {/* <div className="mb-4 text-right">
                 <span className="font-bold text-violet-700">SCHOOL COPY</span>
               </div> */}
-                            {/* Logo */}
-                            <div className='flex justify-center'>
-                                {logo ? (
-                                    <Image src={logo} width={450} height={90} alt='logo' />
-                                ) : (
-                                    <div className='h-20 w-20 rounded-full bg-gray-200' />
-                                )}
-                            </div>
-
-                            <InstituteHeader />
-                            <div className='mb-4 text-center'>
-                                <span className='font-bold text-violet-700'>SCHOOL COPY</span>
-                            </div>
-
-                            <div className='mb-4 space-y-1 text-sm'>
-                                <div className='flex justify-between'>
-                                    <span>
-                                        <strong>Receipt No:</strong> {receiptNo}
-                                    </span>
-                                    <span>
-                                        <strong>Date:</strong> {date}
-                                    </span>
+                                {/* Logo */}
+                                <div className='flex justify-center'>
+                                    {logo ? (
+                                        <Image src={logo} width={450} height={90} alt='logo' />
+                                    ) : (
+                                        <div className='h-20 w-20 rounded-full bg-gray-200' />
+                                    )}
                                 </div>
-                                {/* <div className="flex justify-between">
+
+                                <InstituteHeader />
+                                <div className='mb-4 text-center'>
+                                    <span className='font-bold text-violet-700'>SCHOOL COPY</span>
+                                </div>
+
+                                <div className='mb-4 space-y-1 text-sm'>
+                                    <div className='flex justify-between'>
+                                        <span>
+                                            <strong>Receipt No:</strong> {receiptNo}
+                                        </span>
+                                        <span>
+                                            <strong>Date:</strong> {date}
+                                        </span>
+                                    </div>
+                                    {/* <div className="flex justify-between">
                   <span>
                     <strong>Student Name:</strong> {}
                   </span>
@@ -239,111 +241,111 @@ export default function ReceiptPage({ rowData, onClose }: ReceiptPageProps) {
                     <strong>Class:</strong> {}
                   </span>
                 </div> */}
-                                <div className='flex justify-between'>
-                                    <span>
-                                        <strong>Year:</strong> {asmaY_Year}
-                                    </span>
-                                    <span>
-                                        <strong> Name:</strong> {studentname}
-                                    </span>
+                                    <div className='flex justify-between'>
+                                        <span>
+                                            <strong>Year:</strong> {asmaY_Year}
+                                        </span>
+                                        <span>
+                                            <strong> Name:</strong> {studentname}
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <table className='mt-4 w-full border-collapse text-sm'>
-                                <thead>
-                                    <tr className='bg-blue-700 text-white'>
-                                        <th className='border p-1'>SLNO</th>
-                                        <th className='border p-1'>Head Name</th>
-                                        <th className='border p-1'>Fee Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td className='border p-1 text-center'>1</td>
-                                        <td className='border p-1'>{headName}</td>
-                                        <td className='border p-1'>{amount}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <br />
-                            <div className='mb-4'>
-                                <h6 className='mb-2 font-bold'>Payment Detail</h6>
-                                <table className='mt-1 w-full border-collapse text-sm'>
+                                <table className='mt-4 w-full border-collapse text-sm'>
                                     <thead>
                                         <tr className='bg-blue-700 text-white'>
                                             <th className='border p-1'>SLNO</th>
-                                            <th className='border p-1'>Mode</th>
-                                            <th className='border p-1'>Cheque.No</th>
-                                            <th className='border p-1'>Amount</th>
-                                            <th className='border p-1'>Bank</th>
-                                            <th className='border p-1'>Date</th>
+                                            <th className='border p-1'>Head Name</th>
+                                            <th className='border p-1'>Fee Amount</th>
                                         </tr>
                                     </thead>
-
                                     <tbody>
                                         <tr>
                                             <td className='border p-1 text-center'>1</td>
-                                            <td className='border p-1'>{paymode}</td>
-                                            <td className='border p-1'>{chequeNo}</td>
+                                            <td className='border p-1'>{headName}</td>
                                             <td className='border p-1'>{amount}</td>
-                                            <td className='border p-1'>{bank}</td>
-                                            <td className='border p-1'>{chequeDate}</td>
                                         </tr>
                                     </tbody>
                                 </table>
-                            </div>
+                                <br />
+                                <div className='mb-4'>
+                                    <h6 className='mb-2 font-bold'>Payment Detail</h6>
+                                    <table className='mt-1 w-full border-collapse text-sm'>
+                                        <thead>
+                                            <tr className='bg-blue-700 text-white'>
+                                                <th className='border p-1'>SLNO</th>
+                                                <th className='border p-1'>Mode</th>
+                                                <th className='border p-1'>Cheque.No</th>
+                                                <th className='border p-1'>Amount</th>
+                                                <th className='border p-1'>Bank</th>
+                                                <th className='border p-1'>Date</th>
+                                            </tr>
+                                        </thead>
 
-                            {/* <div className="mb-4 text-sm">
+                                        <tbody>
+                                            <tr>
+                                                <td className='border p-1 text-center'>1</td>
+                                                <td className='border p-1'>{paymode}</td>
+                                                <td className='border p-1'>{chequeNo}</td>
+                                                <td className='border p-1'>{amount}</td>
+                                                <td className='border p-1'>{bank}</td>
+                                                <td className='border p-1'>{chequeDate}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                {/* <div className="mb-4 text-sm">
                 <strong>Amount Received (in Words):</strong>{" "}
                 {convertNumberToWords(paidAmount)} Rupees Only/-
               </div> */}
-                            <div className='mb-4 text-sm'>
-                                <strong>Amount Received (in Words):</strong> {convertNumberToWords(amount)} Rupees Only/-
-                            </div>
+                                <div className='mb-4 text-sm'>
+                                    <strong>Amount Received (in Words):</strong> {convertNumberToWords(amount)} Rupees Only/-
+                                </div>
 
-                            <div className='mb-4 text-sm'>
-                                <strong>Remarks:</strong> {remarks}
-                            </div>
+                                <div className='mb-4 text-sm'>
+                                    <strong>Remarks:</strong> {remarks}
+                                </div>
 
-                            {/* <div className="mb-4 text-xs">
+                                {/* <div className="mb-4 text-xs">
                 <strong>Note:</strong> This receipt is valid subject to
                 realisation of Cheque
               </div> */}
 
-                            <div className='mt-8 text-right'>
-                                <p className='font-bold'>AUTHORISED SIGNATORY</p>
+                                <div className='mt-8 text-right'>
+                                    <p className='font-bold'>AUTHORISED SIGNATORY</p>
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Parent Copy - Now Uses Dynamic Logo Only */}
-                        <div className='border-2 border-gray-300 p-6'>
-                            {/* <div className="mb-4 text-right">
+                            {/* Parent Copy - Now Uses Dynamic Logo Only */}
+                            <div className='border-2 border-gray-300 p-6'>
+                                {/* <div className="mb-4 text-right">
                 <span className="font-bold text-violet-700">PARENT COPY</span>
               </div>
               <InstituteHeader /> */}
-                            <div className='flex justify-center'>
-                                {logo ? (
-                                    <Image src={logo} width={450} height={90} alt='logo' />
-                                ) : (
-                                    <div className='h-20 w-20 rounded-full bg-gray-200' />
-                                )}
-                            </div>
-
-                            <InstituteHeader />
-                            <div className='mb-4 text-center'>
-                                <span className='font-bold text-violet-700'>PARENT COPY</span>
-                            </div>
-
-                            <div className='mb-4 space-y-1 text-sm'>
-                                <div className='flex justify-between'>
-                                    <span>
-                                        <strong>Receipt No:</strong> {receiptNo}
-                                    </span>
-                                    <span>
-                                        <strong>Date:</strong> {date}
-                                    </span>
+                                <div className='flex justify-center'>
+                                    {logo ? (
+                                        <Image src={logo} width={450} height={90} alt='logo' />
+                                    ) : (
+                                        <div className='h-20 w-20 rounded-full bg-gray-200' />
+                                    )}
                                 </div>
-                                {/* <div className="flex justify-between">
+
+                                <InstituteHeader />
+                                <div className='mb-4 text-center'>
+                                    <span className='font-bold text-violet-700'>PARENT COPY</span>
+                                </div>
+
+                                <div className='mb-4 space-y-1 text-sm'>
+                                    <div className='flex justify-between'>
+                                        <span>
+                                            <strong>Receipt No:</strong> {receiptNo}
+                                        </span>
+                                        <span>
+                                            <strong>Date:</strong> {date}
+                                        </span>
+                                    </div>
+                                    {/* <div className="flex justify-between">
                   <span>
                     <strong>Student Name:</strong> {}
                   </span>
@@ -351,89 +353,90 @@ export default function ReceiptPage({ rowData, onClose }: ReceiptPageProps) {
                     <strong>Class:</strong> {}
                   </span>
                 </div> */}
-                                <div className='flex justify-between'>
-                                    <span>
-                                        <strong>Year:</strong> {asmaY_Year}
-                                    </span>
-                                    <span>
-                                        <strong> Name:</strong> {studentname}
-                                    </span>
+                                    <div className='flex justify-between'>
+                                        <span>
+                                            <strong>Year:</strong> {asmaY_Year}
+                                        </span>
+                                        <span>
+                                            <strong> Name:</strong> {studentname}
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <table className='mt-4 w-full border-collapse text-sm'>
-                                <thead>
-                                    <tr className='bg-blue-700 text-white'>
-                                        <th className='border p-1'>SLNO</th>
-                                        <th className='border p-1'>Head Name</th>
-                                        <th className='border p-1'>Fee Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td className='border p-1 text-center'>1</td>
-                                        <td className='border p-1'>{headName}</td>
-                                        <td className='border p-1'>{amount}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <br />
-                            <div className='mb-4'>
-                                <h6 className='mb-2 font-bold'>Payment Detail</h6>
-                                <table className='mt-1 w-full border-collapse text-sm'>
+                                <table className='mt-4 w-full border-collapse text-sm'>
                                     <thead>
                                         <tr className='bg-blue-700 text-white'>
                                             <th className='border p-1'>SLNO</th>
-                                            <th className='border p-1'>Mode</th>
-                                            <th className='border p-1'>Cheque.No</th>
-                                            <th className='border p-1'>Amount</th>
-                                            <th className='border p-1'>Bank</th>
-                                            <th className='border p-1'>Date</th>
+                                            <th className='border p-1'>Head Name</th>
+                                            <th className='border p-1'>Fee Amount</th>
                                         </tr>
                                     </thead>
-
                                     <tbody>
                                         <tr>
                                             <td className='border p-1 text-center'>1</td>
-                                            <td className='border p-1'>{paymode}</td>
-                                            <td className='border p-1'>{chequeNo}</td>
-                                            <td className='border p-1 '>{amount}</td>
-                                            <td className='border p-1'>{bank}</td>
-                                            <td className='border p-1'>{chequeDate}</td>
+                                            <td className='border p-1'>{headName}</td>
+                                            <td className='border p-1'>{amount}</td>
                                         </tr>
                                     </tbody>
                                 </table>
-                            </div>
+                                <br />
+                                <div className='mb-4'>
+                                    <h6 className='mb-2 font-bold'>Payment Detail</h6>
+                                    <table className='mt-1 w-full border-collapse text-sm'>
+                                        <thead>
+                                            <tr className='bg-blue-700 text-white'>
+                                                <th className='border p-1'>SLNO</th>
+                                                <th className='border p-1'>Mode</th>
+                                                <th className='border p-1'>Cheque.No</th>
+                                                <th className='border p-1'>Amount</th>
+                                                <th className='border p-1'>Bank</th>
+                                                <th className='border p-1'>Date</th>
+                                            </tr>
+                                        </thead>
 
-                            {/* <div className="mb-4 text-sm">
+                                        <tbody>
+                                            <tr>
+                                                <td className='border p-1 text-center'>1</td>
+                                                <td className='border p-1'>{paymode}</td>
+                                                <td className='border p-1'>{chequeNo}</td>
+                                                <td className='border p-1 '>{amount}</td>
+                                                <td className='border p-1'>{bank}</td>
+                                                <td className='border p-1'>{chequeDate}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                {/* <div className="mb-4 text-sm">
                 <strong>Amount Received (in Words):</strong>{" "}
                 {convertNumberToWords(paidAmount)} Rupees Only/-
               </div> */}
 
-                            <div className='mb-4 text-sm'>
-                                <strong>Amount Received (in Words):</strong> {convertNumberToWords(amount)} Rupees Only/-
-                            </div>
+                                <div className='mb-4 text-sm'>
+                                    <strong>Amount Received (in Words):</strong> {convertNumberToWords(amount)} Rupees Only/-
+                                </div>
 
-                            <div className='mb-4 text-sm'>
-                                <strong>Remarks:</strong> {remarks}
-                            </div>
+                                <div className='mb-4 text-sm'>
+                                    <strong>Remarks:</strong> {remarks}
+                                </div>
 
-                            <div className='mt-8 text-right'>
-                                <p className='font-bold'>AUTHORISED SIGNATORY</p>
+                                <div className='mt-8 text-right'>
+                                    <p className='font-bold'>AUTHORISED SIGNATORY</p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div className='sticky bottom-0 z-10 flex justify-end gap-2 border-t bg-white p-4 print:hidden'>
-                    <Button onClick={handlePrint} variant='default'>
-                        Print
-                    </Button>
-                    <Button onClick={onClose} variant='outline'>
-                        Close
-                    </Button>
+                    <div className='sticky bottom-0 z-10 flex justify-end gap-2 border-t bg-white p-4 print:hidden'>
+                        <Button onClick={handlePrint} variant='default'>
+                            Print
+                        </Button>
+                        <Button onClick={onClose} variant='outline'>
+                            Close
+                        </Button>
+                    </div>
                 </div>
             </div>
-        </div>
+        </Portal>
     );
 }
