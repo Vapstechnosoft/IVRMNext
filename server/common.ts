@@ -4259,7 +4259,15 @@ export async function getUserAccessibleModules() {
                                             url: '/coe/report/coereport',
                                             title: 'COE Report',
                                             description: 'Manage COE Report'
-                                        } 
+                                        } ,
+                                        {
+                                            id: 2,
+                                            name: 'COE Month End Report',
+                                            icon: 'Settings',
+                                            url: '/coe/report/coemonthendreport',
+                                            title: 'COE Month End Report',
+                                            description: 'Manage COE Month End Report'
+                                        }
                                     ]
                                 } 
                             ]

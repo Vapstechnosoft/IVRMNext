@@ -25,5 +25,24 @@ export const coeReportSchema = {
         asmaY_Id: z.number({ required_error: 'Academic year is required' }),
         asmcl_Id: z.number().optional(),
         month:z.number().optional(),
-    })
+    }),
 };
+
+export const coeMonthEndReportSchema = {
+    addOrUpdate: z.object({
+        asmaY_Id: z.number({ required_error: 'Academic year is required' }),
+        ieName: z.string().optional(),
+        month:z.string().optional(),
+    }),
+};
+
+
+
+
+
+
+
+
+
+
+
