@@ -727,6 +727,8 @@ export default function FeeDefaulterReport() {
                 };
             }
 
+            console.log('Payload for Fee Defaulter Report:', JSON.stringify(payload));
+
             const reportArray = await getfeedefaluerreport(payload);
             const studentDataArray = (reportArray as any)?.data?.list?.studentalldata;
             const studentGroupDataArray = (reportArray as any)?.data?.list?.groupalldata;

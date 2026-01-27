@@ -234,13 +234,19 @@ function CalendarCell({
         row.original[field] = localDate;
         setDate(selected);
     };
-
+    const formatDDMMYYYY = (date: Date) => {
+        const dd = String(date.getDate()).padStart(2, '0');
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const yyyy = date.getFullYear();
+        return `${dd}/${mm}/${yyyy}`;
+    };
     return (
         <Popover>
             <PopoverTrigger asChild>
                 <div className='flex cursor-pointer items-center gap-2 rounded-md border bg-white px-2 py-1'>
                     <CalendarIcon className='h-4 w-4 text-gray-500' />
-                    <span>{date ? date.toLocaleDateString() : '-'}</span>
+                    {/* <span>{date ? date.toLocaleDateString() : '-'}</span> */}
+                    <span>{date ? formatDDMMYYYY(date) : '-'}</span>
                 </div>
             </PopoverTrigger>
             <PopoverContent className='p-0'>

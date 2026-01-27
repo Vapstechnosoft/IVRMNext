@@ -292,6 +292,8 @@ export default function AddFeeOpeningBalanceForm({
                 TempHeadList: [{ FTI_Id: installmentId ? Number(installmentId) : 0 }]
             };
 
+            console.log('Payload to submit:', JSON.stringify(payload));
+
             const res = await addOrUpdateFeeOpeningBalance(payload);
             if (res.success || res.returnval) {
                 toast.success('Opening balance saved successfully!');
