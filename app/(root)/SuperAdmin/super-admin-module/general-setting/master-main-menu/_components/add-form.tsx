@@ -81,8 +81,9 @@ export default function AddMasterMainMenuForm({ onSuccess, initialData }: AddMas
             } else {
                 toast.error(result.message || 'Failed to save data');
             }
-        } catch (error) {
-            toast.error('An unexpected error occurred');
+        } catch (error: any) {
+            console.error("Client Error:", error);
+            toast.error(error?.message || 'An unexpected error occurred');
         } finally {
             setIsLoading(false);
         }

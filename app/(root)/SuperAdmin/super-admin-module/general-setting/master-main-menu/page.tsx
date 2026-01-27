@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Spinner } from '@/components/ui/spinner';
 
+import { useSearchParams } from 'next/navigation';
+
 export default function MasterMainMenuPage() {
     return (
         <FormProvider<IMasterMainMenu>>
@@ -34,21 +36,37 @@ export default function MasterMainMenuPage() {
 function MasterMainMenuPageContent() {
     const { openAddForm } = useFormContext<IMasterMainMenu>();
     const [data, setData] = useState<IMasterMainMenu[]>([]);
+    const [totalRecords, setTotalRecords] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
 
+    const searchParams = useSearchParams();
+    const page = parseInt(searchParams.get('page') || '1');
+    const pageSize = parseInt(searchParams.get('page_size') || '10');
+
+    // Fetch data when page/pageSize changes
     const fetchData = () => {
         setIsLoading(true);
-        getMasterMainMenuData().then(res => {
+        getMasterMainMenuData(page, pageSize).then((res: any) => {
             if (res.success) {
                 setData(res.data || []);
+                setTotalRecords(res.total || 0);
+
+                // Debug log
+                console.log(`Fetched Page ${page}, Size ${pageSize}, Total ${res.total}, Records ${res.data?.length}`);
+            } else {
+                toast.error(res.message || 'Failed to load grid data');
             }
+            setIsLoading(false);
+        }).catch(err => {
+            console.error("Fetch error:", err);
+            toast.error('An error occurred while loading data');
             setIsLoading(false);
         });
     };
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [page, pageSize]); // Refetch when page/pageSize changes
 
     const refreshData = () => {
         fetchData();
@@ -79,7 +97,7 @@ function MasterMainMenuPageContent() {
                         data={data}
                         columns={columns}
                         isLoading={isLoading}
-                        totalItems={data.length}
+                        totalItems={totalRecords}
                     />
                 </div>
             </CollapsibleSection>
@@ -120,10 +138,11 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
                 closeDeleteForm();
                 onRefresh();
             } else {
-                if (res.message && res.message.toLowerCase().includes('already mapping')) {
-                    toast.error('This record is already mapped and cannot be deleted.');
+                if (res.message && (res.message.toLowerCase().includes('mapping') || res.message.toLowerCase().includes('exist'))) {
+                    toast.error('Cannot delete menu. Sub menu or institute mapping exists');
                 } else {
-                    toast.error(res.message || 'Failed to delete record');
+                    // Fallback to the same message as per user request for generic failures which are likely dependency issues
+                    toast.error('Cannot delete menu. Sub menu or institute mapping exists');
                 }
             }
         } catch (error) {

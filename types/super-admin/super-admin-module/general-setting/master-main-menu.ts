@@ -6,6 +6,19 @@ export interface IMasterMainMenu {
     modulename: string; // For display in grid
 }
 
+export interface IMasterMainMenuResponse {
+    success: boolean;
+    message: string;
+    data: {
+        totalRecords: number;
+        page: number;
+        pageSize: number;
+        records: IMasterMainMenu[];
+    };
+    total: number | null;
+    page_size: number | null;
+}
+
 export interface IModuleDropdownItem {
     ivrmM_Id: number;
     ivrmM_ModuleName: string;

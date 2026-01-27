@@ -4,10 +4,10 @@ import React, { useState } from 'react';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { usePageMapping } from './mapping-context';
 import { Button } from '@/components/ui/button';
-import { SaveIcon, XIcon, Trash2 } from 'lucide-react'; // Added Trash2
+import { SaveIcon, XIcon, Trash2 } from 'lucide-react';
 import Swal from 'sweetalert2';
-import { ColumnDef } from '@tanstack/react-table';
 import { IPageMappingData } from '@/types/super-admin/super-admin-module/general-setting/page-mapping';
+import { ColumnDef } from '@tanstack/react-table';
 
 export default function SuperAdminGrid() {
     const { selectedModuleId, cartPages, removeFromCart, saveCart, clearCart } = usePageMapping();
@@ -89,7 +89,6 @@ export default function SuperAdminGrid() {
                     isLoading={false}
                     isPaginationRequired={false} // Client side pagination visual only if needed, here passing paginated data
                     totalItems={totalItems}
-                // No meta needed as columns logic is local
                 />
             </div>
 
