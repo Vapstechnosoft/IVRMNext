@@ -517,3 +517,7 @@ export const PORTAL_QUERY_KEYS = {
     STUDENT_PORTAL_FEEDBACK: 'student_portal_feedback',
     COE_LIST: 'coe_list'
 };
+
+export const COE_QUERY_KEYS = {
+    MASTER_EVENT_COE: 'master_event_coe'
+};

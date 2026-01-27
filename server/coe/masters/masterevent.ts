@@ -1,0 +1,21 @@
+ 'use server';
+ 
+ import { api, getSearchParamsUrl } from '@/lib/apiService';
+ import type { ApiSearchparams } from '@/types';
+import { MasterEventCoe } from '@/types/coe/masterevent';
+ 
+ export async function getMasterEventCoe(searchParams?: ApiSearchparams) {
+     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'coemE_EventName,coemE_EventDesc');
+     const url = `/master_coe/event_details_grid?${urlParams}`;
+     return await api.get<MasterEventCoe[]>('coe', url);
+ }
+
+  export async function saveMasterEvent(payload:any) {
+     const url = '/master_coe/addOrUpdate_master_event';
+     return await api.post<any[]>('coe', url,payload);
+ }
+
+   export async function getCoeReport(payload:any) {
+     const url = '/coe_report/coe_report';
+     return await api.post<any[]>('coe', url,payload);
+ }
