@@ -22,7 +22,7 @@ interface RolePrivilegesListProps {
     onSearch?: (value: string) => void;
 }
 
-export function RolePrivilegesList({ data, onDelete, isLoading, totalItems, pagination, onSearch }: RolePrivilegesListProps) {
+export function RolePrivilegesList({ data, onDelete, isLoading = true, totalItems, pagination = { pageIndex: 1, pageSize: 10, onPageChange: () => { }, onPageSizeChange: () => { } }, onSearch }: RolePrivilegesListProps) {
     const [searchTerm, setSearchTerm] = React.useState('');
 
     const columns: ColumnDef<IRolePrivilegeMapping>[] = [
@@ -90,7 +90,6 @@ export function RolePrivilegesList({ data, onDelete, isLoading, totalItems, pagi
                     isLoading={isLoading}
                     totalItems={totalItems}
                     isPaginationRequired={true}
-                    pagination={pagination}
                 />
             </div>
         </div>

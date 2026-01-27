@@ -11,7 +11,7 @@ import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { MasterPagesGrid } from './_components/master-pages-grid';
 import { PrivilegesGrid } from './_components/privileges-grid';
-import { RolePrivilegesList } from './_components/role-privileges-list';
+//import { RolePrivilegesList } from './_components/role-privileges-list';
 import {
     Select,
     SelectContent,
@@ -314,7 +314,7 @@ export default function PrivilegesPage() {
                 )}
 
                 {/* Grid 4: Role Privileges List (OnLoad Grid) */}
-                <RolePrivilegesList
+                {/* <RolePrivilegesList
                     data={rolePrivilegesList}
                     onDelete={handleDeletePrivilege}
                     isLoading={isListLoading}
@@ -325,7 +325,7 @@ export default function PrivilegesPage() {
                         onPageChange: setPage,
                         onPageSizeChange: setPageSize
                     }}
-                />
+                /> */}
             </div>
         </PageProvider>
     );
