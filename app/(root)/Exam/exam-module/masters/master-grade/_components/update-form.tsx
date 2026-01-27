@@ -429,7 +429,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                             size='sm'
                                             onClick={() => {
                                                 const last = watch('grade_list')[index];
-                                                console.log(last);
+                                                console.info(last);
                                                 if (
                                                     last.emgD_Name.trim() === '' ||
                                                     last.emgD_From === null ||

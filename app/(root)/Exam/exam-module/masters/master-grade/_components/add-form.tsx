@@ -50,6 +50,7 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
         }
     });
 
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const [isOrderSaving, setIsOrderSaving] = useState(false);
     const { fields, append, remove } = useFieldArray({
         control,
@@ -342,7 +343,7 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                                 size='sm'
                                                 onClick={() => {
                                                     const last = watch('grade_list')[index];
-                                                    console.log('last', last);
+                                                    console.info('last', last);
                                                     if (
                                                         last.emgD_Name.trim() === '' ||
                                                         last.emgD_From === null ||

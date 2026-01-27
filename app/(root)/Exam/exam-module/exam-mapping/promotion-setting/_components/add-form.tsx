@@ -452,7 +452,7 @@ export default function AddPromotionalSettingForm({
     const updateSubjectGroups = (groups: GroupItem[]) => {
         if (!activeSubject) return;
 
-        console.log('Updating groups for subject:', activeSubject.ismS_SubjectName, groups);
+        console.info('Updating groups for subject:', activeSubject.ismS_SubjectName, groups);
 
         setSubjects((prev) =>
             prev.map((subject) => (subject.ismS_Id === activeSubject.ismS_Id ? { ...subject, pro_exams_group_list: groups } : subject))
@@ -471,7 +471,7 @@ export default function AddPromotionalSettingForm({
         const currentGroups = activeSubject.pro_exams_group_list || [];
         const updatedGroups = [...currentGroups, group];
 
-        console.log('Adding group to subject:', activeSubject.ismS_SubjectName, group);
+        console.info('Adding group to subject:', activeSubject.ismS_SubjectName, group);
 
         setSubjects((prev) =>
             prev.map((subject) =>
@@ -577,7 +577,7 @@ export default function AddPromotionalSettingForm({
         }
 
         const payload = buildPayload();
-        console.log('Save payload:', JSON.stringify(payload, null, 2));
+        console.info('Save payload:', JSON.stringify(payload, null, 2));
         const response = await addOrUpdatePromotionSettings(payload);
         if (response.success) {
             toast.success(response.message || 'Promotion Setting saved successfully');

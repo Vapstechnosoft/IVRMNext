@@ -7,9 +7,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useSaveEmployeeLoan } from '@/hooks/hrms/useTransactions';
+import { getEmployeeLoanById } from '@/server/hrms/hrmsConfig/transaction/employee-loan';
 import { cn } from '@/lib/utils';
 import { EMPLOYEE_LOAN_VALIDATION } from '@/lib/validation/hrms-transaction-validation';
-import type { EmployeeLoanItem, EmployeeLoanOnloadResponse } from '@/types/hrms/employee-loan';
+import type { EmployeeLoanItem, EmployeeLoanMastersResponse } from '@/types/hrms/employee-loan';
 import { format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
@@ -28,7 +29,7 @@ interface EmployeeLoanForm {
 }
 interface UpdateFormProps {
     selectedRow: EmployeeLoanItem | null;
-    onloadData: EmployeeLoanOnloadResponse | undefined;
+    onloadData: EmployeeLoanMastersResponse | undefined;
     onSuccess: () => void;
     className?: string;
 }
@@ -68,20 +69,41 @@ export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSucc
         defaultValue: 0
     });
     const isEmployeeSelected = watchedEmployeeId && watchedEmployeeId > 0;
+
     useEffect(() => {
-        if (selectedRow) {
-            reset({
-                employeeId: selectedRow.HRME_Id,
-                loanTypeId: selectedRow.HRMLN_Id,
-                amount: selectedRow.HREL_LoanAmount,
-                installments: selectedRow.HREL_LoanInsallments,
-                startDate: selectedRow.HREL_AppliedDate ? format(new Date(selectedRow.HREL_AppliedDate), 'yyyy-MM-dd') : '',
-                modeOfPayment: selectedRow.HREL_ModeOfPayment || '',
-                referenceNo: selectedRow.HREL_ReferenceNo || '',
-                loanInterest: selectedRow.HREL_LoanInterest || 0,
-                loanEMI: selectedRow.HREL_LaonEMI || 0
-            });
-        }
+        let isMounted = true;
+        const fetchLoanDetails = async () => {
+            if (selectedRow) {
+                try {
+                    console.log('Fetching details for Loan ID:', selectedRow.HREL_Id);
+                    const response = await getEmployeeLoanById(selectedRow.HREL_Id);
+
+                    if (isMounted && response.success && response.data) {
+                        const loan = response.data;
+                        console.log('Fetched Loan Details:', loan);
+                        reset({
+                            employeeId: loan.HRME_Id || 0,
+                            loanTypeId: loan.HRMLN_Id || 0,
+                            amount: loan.HREL_LoanAmount || 0,
+                            installments: Number(loan.HREL_LoanInsallments),
+                            startDate: loan.HREL_AppliedDate ? format(new Date(loan.HREL_AppliedDate), 'yyyy-MM-dd') : '',
+                            modeOfPayment: loan.HREL_ModeOfPayment || '',
+                            referenceNo: String(loan.HREL_ReferenceNo || ''),
+                            loanInterest: loan.HREL_LoanInterest || 0,
+                            loanEMI: Number(loan.HREL_LaonEMI || 0)
+                        });
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch loan details:', error);
+                }
+            }
+        };
+
+        fetchLoanDetails();
+
+        return () => {
+            isMounted = false;
+        };
     }, [selectedRow, reset]);
     const onSubmit: SubmitHandler<EmployeeLoanForm> = async (data: EmployeeLoanForm) => {
         if (!selectedRow) {
@@ -144,8 +166,7 @@ export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSucc
                                                 .filter((emp) => emp?.HRME_Id != null)
                                                 .map((employee) => (
                                                     <SelectItem key={employee.HRME_Id} value={employee.HRME_Id.toString()}>
-                                                        {employee.HRME_EmployeeCode} - {employee.HRME_EmployeeFirstName}{' '}
-                                                        {employee.HRME_EmployeeMiddleName || ''} {employee.HRME_EmployeeLastName || ''}
+                                                        {employee.HRME_EmployeeFirstName}
                                                     </SelectItem>
                                                 ))
                                         ) : (

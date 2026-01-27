@@ -47,7 +47,7 @@ export default function UpdateCoScholasticActivityAreaMapping({ rowData, onSucce
     });
 
     const { refetchAll } = useCoScholasticActivityAreaMapping();
-    const { control, handleSubmit, reset, setValue, formState, getValues } = methods;
+    const { control, handleSubmit, reset, formState } = methods;
     const { isSubmitting, errors } = formState;
 
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
@@ -55,9 +55,13 @@ export default function UpdateCoScholasticActivityAreaMapping({ rowData, onSucce
     const [activity, setActivity] = useState<{ ecacT_Id: number; ecacT_SkillName: string }[]>([]);
     const [activityArea, setActivityArea] = useState<{ ecactA_Id: number; ecactA_SkillArea: string }[]>([]);
 
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const { data: gradesData, isLoading: loadingGrades, error: gradesError } = useMasterGradeDropdownList();
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const { data: areaData, isLoading: loadingArea, error: activityAreaError } = useCoScholasticActivityAreaDropDown();
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const { data: activityData, isLoading: loadingActivity, error: activityError } = useCoScholasticActivityDropDown();
 
     // Grades
@@ -110,10 +114,9 @@ export default function UpdateCoScholasticActivityAreaMapping({ rowData, onSucce
     // --- FIXED: Proper reset trigger ---
     useEffect(() => {
         // Run only if dropdowns have loaded
-        // biome-ignore lint/suspicious/noSelfCompare: <explanation>
         const allDropdownsLoaded = academicYear?.data
             ? academicYear.data.length
-            : 0 > 0 && grades.length > 0 && activity.length > 0 && activityArea.length > 0;
+            : 0 && grades.length > 0 && activity.length > 0 && activityArea.length > 0;
 
         if (rowData && allDropdownsLoaded) {
             reset({

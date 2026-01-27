@@ -2,12 +2,12 @@
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import type { EmployeeLoanOnloadResponse } from '@/types/hrms/employee-loan';
+import type { EmployeeLoanMastersResponse } from '@/types/hrms/employee-loan';
 import { X } from 'lucide-react';
 import AddEmployeeLoanForm from './add-form';
 import UpdateEmployeeLoanForm from './update-form';
 interface FormSectionsProps {
-    onloadData: EmployeeLoanOnloadResponse | undefined;
+    onloadData: EmployeeLoanMastersResponse | undefined;
     onSuccess: () => void;
 }
 export default function FormSections({ onloadData, onSuccess }: FormSectionsProps) {

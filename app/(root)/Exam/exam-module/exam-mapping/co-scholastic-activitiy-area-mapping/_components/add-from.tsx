@@ -25,11 +25,7 @@ interface CoScholasticActivityAreaMappingFormProps {
     className?: string;
     editData?: Partial<FormFields>;
 }
-export default function AddCoScholasticActivityAreaMapping({
-    onSuccess,
-    className = '',
-    editData
-}: CoScholasticActivityAreaMappingFormProps) {
+export default function AddCoScholasticActivityAreaMapping({ onSuccess }: CoScholasticActivityAreaMappingFormProps) {
     const orgId = 30;
     const { refetchAll } = useCoScholasticActivityAreaMapping();
     const [grades, setGrades] = useState<{ emgR_Id: number; emgR_GradeName: string }[]>([]);
@@ -37,8 +33,11 @@ export default function AddCoScholasticActivityAreaMapping({
     const [activityArea, setActivityArea] = useState<{ ecactA_Id: number; ecactA_SkillArea: string }[]>([]);
 
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const { data: gradesData, isLoading: loadingGrades, error: gradesError } = useMasterGradeDropdownList();
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const { data: areaData, isLoading: loadingArea, error: activityAreaError } = useCoScholasticActivityAreaDropDown();
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const { data: activityData, isLoading: loadingActivity, error: activityError } = useCoScholasticActivityDropDown();
 
     const methods = useForm<FormFields>({
@@ -120,7 +119,7 @@ export default function AddCoScholasticActivityAreaMapping({
                 ecactaM_IndicatorDescription: data.ecactaM_IndicatorDescription ?? '',
                 ecactaM_ActiveFlag: data.ecactaM_ActiveFlag
             };
-            console.log('Submitting payload:', payload);
+            console.info('Submitting payload:', payload);
             const res = await addOrUpdateCoScholasticActivityAreaMapping(payload);
 
             if (res?.success) {

@@ -5,67 +5,102 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useActivateDeactivateEmployeeLoan, useEmployeeLoanList } from '@/hooks/hrms/useTransactions';
+import { useActivateDeactivateEmployeeLoan, useEmployeeLoanGrid, useEmployeeLoanMasters } from '@/hooks/hrms/useTransactions';
 import type { EmployeeDropdown, EmployeeLoanItem, MasterLoanDropdown } from '@/types/hrms/employee-loan';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { Plus } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { ActionsCell } from './_components/actions-cell';
 import FormSections from './_components/form-sections';
+
 export default function EmployeeLoanPage() {
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [searchQuery, setSearchQuery] = useState('');
+
+    // Fetch Masters (Dropdowns, Config)
     const {
-        data: loanData,
-        isLoading,
-        error,
-        refetch
-    } = useEmployeeLoanList({
-        page: 1,
-        page_size: 10,
-        search_query: '',
-        search_column: '',
-        sort_direction: '',
-        is_export: false,
+        data: mastersData,
+        isLoading: isMastersLoading,
+        refetch: refetchMasters
+    } = useEmployeeLoanMasters({
         MIID: 30,
         LoginUserId: 0,
         UserRole: ''
     });
-    // Debug logging for errors
+
+    // Fetch Grid Data (Employee Loans List)
+    const {
+        data: gridData,
+        isLoading: isGridLoading,
+        refetch: refetchGrid
+    } = useEmployeeLoanGrid({
+        page,
+        page_size: pageSize,
+        search_query: searchQuery,
+        MIID: 30
+    });
+
+    const isLoading = isMastersLoading || isGridLoading;
+
+    // Refresh both on mutation success
+    const refetchAll = () => {
+        refetchMasters();
+        refetchGrid();
+    };
+
     return (
         <FormProvider<EmployeeLoanItem>>
-            <EmployeeLoanPageContent loanData={loanData} isLoading={isLoading} refetch={refetch} />
+            <EmployeeLoanPageContent
+                mastersData={mastersData}
+                gridData={gridData}
+                isLoading={isLoading}
+                refetch={refetchAll}
+            />
         </FormProvider>
     );
 }
+
 function EmployeeLoanPageContent({
-    loanData,
+    mastersData,
+    gridData,
     isLoading,
     refetch
 }: {
-    loanData: any;
+    mastersData: any;
+    gridData: any;
     isLoading: boolean;
     refetch: () => void;
 }) {
     const { openAddForm } = useFormContext<EmployeeLoanItem>();
     const toggleMutation = useActivateDeactivateEmployeeLoan();
-    const loans = loanData?.emploanList || [];
-    const employees = loanData?.employeedropdown || [];
-    const loanTypes = loanData?.masterloandropdown || [];
-    const _paymentModes = loanData?.modeOfPaymentdropdown || [];
-    // Debug logging
+
+    // Masters
+    const employees = mastersData?.employeedropdown || [];
+    const loanTypes = mastersData?.masterloandropdown || [];
+
+    // Grid
+    const loans = gridData?.emploanList || [];
+    // Note: totalItems/pagination handling can be added if DataTable supports server-side props
+
     const handleToggleActive = async (id: number, currentStatus: boolean) => {
         toggleMutation.mutate(
             {
                 HREL_Id: id,
-                MI_Id: 30
+                MI_Id: 30,
+                HREL_ActiveFlag: !currentStatus
             },
             {
                 onSuccess: () => {
                     toast.success(`Employee loan ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
+                    refetch();
                 }
             }
         );
     };
+
     const getEmployeeName = (employeeId: number) => {
         const employee = employees.find((emp: EmployeeDropdown) => emp?.HRME_Id === employeeId);
         if (!employee) return 'Unknown Employee';
@@ -74,14 +109,17 @@ function EmployeeLoanPageContent({
         const lastName = employee.HRME_EmployeeLastName || '';
         return `${firstName} ${middleName} ${lastName}`.trim() || 'Unknown Employee';
     };
+
     const getEmployeeCode = (employeeId: number) => {
         const employee = employees.find((emp: EmployeeDropdown) => emp?.HRME_Id === employeeId);
         return employee?.HRME_EmployeeCode || 'Unknown';
     };
+
     const getLoanTypeName = (loanTypeId: number) => {
         const loanType = loanTypes.find((type: MasterLoanDropdown) => type?.HRMLN_Id === loanTypeId);
         return loanType?.HRML_LoanType || 'Unknown Loan Type';
     };
+
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -95,6 +133,7 @@ function EmployeeLoanPageContent({
                         Add Employee Loan
                     </Button>
                 </div>
+
                 <CollapsibleSection
                     defaultOpen={true}
                     variant='default'
@@ -109,8 +148,9 @@ function EmployeeLoanPageContent({
                         getLoanTypeName={getLoanTypeName}
                     />
                 </CollapsibleSection>
+
                 {/* Forms Section - Moved after table */}
-                <FormSections onloadData={loanData} onSuccess={refetch} />
+                <FormSections onloadData={mastersData} onSuccess={refetch} />
             </div>
         </div>
     );
@@ -146,14 +186,15 @@ function EmployeeLoanTable({
         },
         {
             id: 'employee',
-            accessorKey: 'HRME_Id',
+            accessorKey: 'EmployeeFullName',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Employee' />,
             cell: ({ row }) => {
-                const employeeId = row.getValue('employee') as number;
+                const employeeName = row.getValue('employee') as string;
+                const employeeCode = row.original.HRME_EmployeeCode;
                 return (
                     <div>
-                        <div className='font-medium'>{getEmployeeName(employeeId)}</div>
-                        <div className='text-muted-foreground text-sm'>{getEmployeeCode(employeeId)}</div>
+                        <div className='font-medium'>{employeeName}</div>
+                        {employeeCode && <div className='text-muted-foreground text-sm'>{employeeCode}</div>}
                     </div>
                 );
             },
@@ -162,9 +203,9 @@ function EmployeeLoanTable({
         },
         {
             id: 'loanType',
-            accessorKey: 'HRMLN_Id',
+            accessorKey: 'HRML_LoanType',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Loan Type' />,
-            cell: ({ row }) => <div>{getLoanTypeName(row.getValue('loanType'))}</div>,
+            cell: ({ row }) => <div>{row.getValue('loanType')}</div>,
             enableSorting: true,
             enableHiding: true
         },

@@ -1,562 +1,601 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
-import { Download, Printer } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { FormError } from '@/components/ui/extension/field';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Label } from '@/components/ui/label';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMasterDepartments, useMasterDesignations, useMasterGroupTypes, useMasterMonths, useMasterYears } from '@/hooks/hrms/useReports';
+import { type FormFields, SalaryCertificateSchema } from '@/schemas/hrms/employee-category-schemas';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Printer, RefreshCw, Search } from 'lucide-react';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import {
-    type Department,
-    type Designation,
-    type Employee,
-    type GroupType,
-    SalaryCertificateFilters,
-    type SalaryCertificateFilters as SalaryCertificateFiltersType
-} from './_components/filters';
-// Salary certificate data structure
-interface SalaryCertificate extends BaseEntity {
-    employeeId: number;
-    employeeCode: string;
-    employeeName: string;
-    departmentName: string;
-    designationName: string;
-    month: string;
-    year: string;
-    basicSalary: number;
-    allowances: number;
-    grossSalary: number;
-    deductions: number;
-    netSalary: number;
-    certificateDate: string;
-    certificateNumber: string;
-}
+
+const mockEmployees = [
+    { key: '1208', value: 'ANUSHA T' },
+    { key: 'EMP002', value: 'KIRAN KUMAR' },
+    { key: 'EMP003', value: 'PALLAVI C' },
+    { key: 'EMP004', value: 'RAFIQ' },
+    { key: 'EMP005', value: 'NATARAJA' }
+];
+
+const mockApiResponse = {
+    institutionDetails: {
+        mI_Name: 'Vidya Vikasa Vidya Samsthe (R)',
+        mI_Address1: 'Basaveshwara Talkies rd',
+        mI_Address2: 'Gayatri circle',
+        mI_Address3: 'karantaka',
+        mI_Pincode: 577501,
+        mI_ContactDetails: 'Ph No: 8194220904 Email Id : vvvsoffice@gmail.com'
+    },
+    currentemployeeDetails: {
+        hrmE_EmployeeFirstName: 'ANUSHA ',
+        hrmE_EmployeeLastName: 'T',
+        hrmE_EmployeeCode: 'VVS015'
+    },
+    designationName: 'Asst. Teacher',
+    employeeSalaryslipDetails: [
+        {
+            HRMED_EarnDedFlag: 'Earning',
+            HRMED_Name: 'BASIC PAY',
+            Amount: 7020.0
+        },
+        {
+            HRMED_EarnDedFlag: 'Earning',
+            HRMED_Name: 'HRA',
+            Amount: 1404.0
+        },
+        {
+            HRMED_EarnDedFlag: 'Earning',
+            HRMED_Name: 'DA',
+            Amount: 2808.0
+        },
+        {
+            HRMED_EarnDedFlag: 'Earning',
+            HRMED_Name: 'OTHER ALLOWANCE',
+            Amount: 2268.0
+        },
+        {
+            HRMED_EarnDedFlag: 'Deduction',
+            HRMED_Name: 'PF CONT',
+            Amount: 1179.0
+        },
+        {
+            HRMED_EarnDedFlag: 'Deduction',
+            HRMED_Name: 'ESIC CONT',
+            Amount: 0.0
+        },
+        {
+            HRMED_EarnDedFlag: 'Deduction',
+            HRMED_Name: 'PT',
+            Amount: 0.0
+        },
+        {
+            HRMED_EarnDedFlag: 'Deduction',
+            HRMED_Name: 'TDS',
+            Amount: 0.0
+        }
+    ]
+};
+
 export default function SalaryCertificatePage() {
-    // Database instances
-    const groupTypeDB = createLocalCrud<GroupType>('master:group-type');
-    const departmentDB = createLocalCrud<Department>('master:department');
-    const designationDB = createLocalCrud<Designation>('master:designation');
-    const employeeDB = createLocalCrud<Employee>('employee:register');
-    const _certificateDB = createLocalCrud<SalaryCertificate>('report:salary-certificate');
-    // State
-    const [groupTypes, setGroupTypes] = useState<GroupType[]>([]);
-    const [departments, setDepartments] = useState<Department[]>([]);
-    const [designations, setDesignations] = useState<Designation[]>([]);
-    const [employees, setEmployees] = useState<Employee[]>([]);
-    const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
-    const [_isLoading, setIsLoading] = useState(true);
-    const [showCertificate, setShowCertificate] = useState(false);
-    const [filters, setFilters] = useState<SalaryCertificateFiltersType>({
-        groupType: 'All',
-        department: 'All',
-        designation: 'All',
-        month: '',
-        year: '',
-        selectedEmployee: ''
-    });
-    // Load data on mount
-    useEffect(() => {
-        loadData();
-    }, []);
-    const loadData = () => {
-        try {
-            // Load master data
-            let groupList = groupTypeDB.list();
-            if (groupList.length === 0) {
-                const mockData = generateMockGroupTypes();
-                mockData.forEach((group) => groupTypeDB.create(group));
-                groupList = groupTypeDB.list(); // Reload data after creating mock records
-            }
-            setGroupTypes(groupList.filter((g) => g.isActive));
-            let deptList = departmentDB.list();
-            if (deptList.length === 0) {
-                const mockData = generateMockDepartments();
-                mockData.forEach((dept) => departmentDB.create(dept));
-                deptList = departmentDB.list(); // Reload data after creating mock records
-            }
-            setDepartments(deptList.filter((d) => d.isActive));
-            let desigList = designationDB.list();
-            if (desigList.length === 0) {
-                const mockData = generateMockDesignations();
-                mockData.forEach((desig) => designationDB.create(desig));
-                desigList = designationDB.list(); // Reload data after creating mock records
-            }
-            setDesignations(desigList.filter((d) => d.isActive));
-            // Load employees
-            let empList = employeeDB.list();
-            if (empList.length === 0) {
-                const mockData = generateMockEmployees();
-                mockData.forEach((emp) => employeeDB.create(emp));
-                empList = employeeDB.list(); // Reload data after creating mock records
-            }
-            setEmployees(empList);
-            setFilteredEmployees(empList);
-        } catch (_error) {
-            toast.error('Failed to load data');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-    // Generate mock data
-    const generateMockGroupTypes = (): Omit<GroupType, 'id' | 'createdAt'>[] => {
-        return [
-            {
-                groupType: 'Test NON Teaching',
-                groupCode: 'TNT',
-                order: 1,
-                isActive: true
-            },
-            {
-                groupType: 'Test Insurance',
-                groupCode: 'TI',
-                order: 2,
-                isActive: true
-            },
-            { groupType: 'Teaching', groupCode: 'T', order: 3, isActive: true },
-            {
-                groupType: 'Owner of the company',
-                groupCode: 'OC',
-                order: 4,
-                isActive: true
-            },
-            { groupType: 'Non Teaching', groupCode: 'NT', order: 5, isActive: true },
-            {
-                groupType: 'Administrative',
-                groupCode: 'ADM',
-                order: 6,
-                isActive: true
-            },
-            { groupType: 'test', groupCode: 'TST', order: 7, isActive: true }
-        ];
-    };
-    const generateMockDepartments = (): Omit<Department, 'id' | 'createdAt'>[] => {
-        return [
-            {
-                departmentName: 'Teaching',
-                internalTrainingHours: '40',
-                order: 1,
-                isActive: true
-            },
-            {
-                departmentName: 'JUNIOR SCHOOL',
-                internalTrainingHours: '35',
-                order: 2,
-                isActive: true
-            },
-            {
-                departmentName: 'SENIOR SCHOOL',
-                internalTrainingHours: '40',
-                order: 3,
-                isActive: true
-            },
-            {
-                departmentName: 'OFFICE STAFF',
-                internalTrainingHours: '40',
-                order: 4,
-                isActive: true
-            },
-            {
-                departmentName: 'Service Staff',
-                internalTrainingHours: '40',
-                order: 5,
-                isActive: true
-            },
-            {
-                departmentName: 'Administrative',
-                internalTrainingHours: '40',
-                order: 6,
-                isActive: true
-            },
-            {
-                departmentName: 'Chief executive officer',
-                internalTrainingHours: '40',
-                order: 7,
-                isActive: true
-            },
-            {
-                departmentName: 'Principal',
-                internalTrainingHours: '40',
-                order: 8,
-                isActive: true
-            }
-        ];
-    };
-    const generateMockDesignations = (): Omit<Designation, 'id' | 'createdAt'>[] => {
-        return [
-            {
-                designationName: 'Assistant Teacher',
-                basicAmount: '25000',
-                sanctionedSeats: '10',
-                displaySanctionedSeats: true,
-                order: 1,
-                isActive: true
-            },
-            {
-                designationName: 'Principal',
-                basicAmount: '60000',
-                sanctionedSeats: '1',
-                displaySanctionedSeats: true,
-                order: 2,
-                isActive: true
-            },
-            {
-                designationName: 'Vice Principal',
-                basicAmount: '50000',
-                sanctionedSeats: '2',
-                displaySanctionedSeats: true,
-                order: 3,
-                isActive: true
-            },
-            {
-                designationName: 'Office Assistant',
-                basicAmount: '20000',
-                sanctionedSeats: '5',
-                displaySanctionedSeats: true,
-                order: 4,
-                isActive: true
-            },
-            {
-                designationName: 'System Manager',
-                basicAmount: '40000',
-                sanctionedSeats: '2',
-                displaySanctionedSeats: true,
-                order: 5,
-                isActive: true
-            },
-            {
-                designationName: 'Teacher Helper',
-                basicAmount: '15000',
-                sanctionedSeats: '8',
-                displaySanctionedSeats: true,
-                order: 6,
-                isActive: true
-            },
-            {
-                designationName: 'Electrician',
-                basicAmount: '18000',
-                sanctionedSeats: '3',
-                displaySanctionedSeats: true,
-                order: 7,
-                isActive: true
-            },
-            {
-                designationName: 'Ayah',
-                basicAmount: '12000',
-                sanctionedSeats: '5',
-                displaySanctionedSeats: true,
-                order: 8,
-                isActive: true
-            }
-        ];
-    };
-    const generateMockEmployees = (): Omit<Employee, 'id' | 'createdAt'>[] => {
-        return [
-            {
-                employeeCode: 'EMP001',
-                employeeName: 'MR SUDIPTA RANJAN BHADURI',
-                groupTypeId: 3,
-                departmentId: 2,
-                designationId: 1,
-                departmentName: 'JUNIOR SCHOOL',
-                designationName: 'Assistant Teacher',
-                dateOfJoining: '2020-01-15',
-                basicSalary: 25000,
-                allowances: 7500,
-                deductions: 3250,
-                grossSalary: 32500,
-                netSalary: 29250
-            },
-            {
-                employeeCode: 'EMP002',
-                employeeName: 'MS RUPLEKHA CHATTERJEE',
-                groupTypeId: 6,
-                departmentId: 4,
-                designationId: 2,
-                departmentName: 'OFFICE STAFF',
-                designationName: 'Principal',
-                dateOfJoining: '2018-06-10',
-                basicSalary: 60000,
-                allowances: 18000,
-                deductions: 7800,
-                grossSalary: 78000,
-                netSalary: 70200
-            },
-            {
-                employeeCode: 'EMP003',
-                employeeName: 'MR JOHN SHAH',
-                groupTypeId: 3,
-                departmentId: 3,
-                designationId: 1,
-                departmentName: 'SENIOR SCHOOL',
-                designationName: 'Assistant Teacher',
-                dateOfJoining: '2019-03-20',
-                basicSalary: 25000,
-                allowances: 7500,
-                deductions: 3250,
-                grossSalary: 32500,
-                netSalary: 29250
-            },
-            {
-                employeeCode: 'EMP004',
-                employeeName: 'MRS BHASWATI DAS',
-                groupTypeId: 5,
-                departmentId: 5,
-                designationId: 6,
-                departmentName: 'Service Staff',
-                designationName: 'Teacher Helper',
-                dateOfJoining: '2021-09-01',
-                basicSalary: 15000,
-                allowances: 4500,
-                deductions: 1950,
-                grossSalary: 19500,
-                netSalary: 17550
-            },
-            {
-                employeeCode: 'EMP005',
-                employeeName: 'MR SANTANU MUKHERJEE',
-                groupTypeId: 5,
-                departmentId: 4,
-                designationId: 5,
-                departmentName: 'OFFICE STAFF',
-                designationName: 'System Manager',
-                dateOfJoining: '2017-04-12',
-                basicSalary: 40000,
-                allowances: 12000,
-                deductions: 5200,
-                grossSalary: 52000,
-                netSalary: 46800
-            }
-        ];
-    };
-    // Cascading filter logic
-    const availableDepartments = useMemo(() => {
-        if (filters.groupType === 'All') return departments;
-        // In a real app, departments would be filtered by groupType relationship
-        return departments;
-    }, [filters.groupType, departments]);
-    const availableDesignations = useMemo(() => {
-        if (filters.department === 'All') return designations;
-        // In a real app, designations would be filtered by department relationship
-        return designations;
-    }, [filters.department, designations]);
-    // Filter employees based on selected criteria
-    useEffect(() => {
-        let filtered = employees;
-        if (filters.groupType !== 'All') {
-            const selectedGroupType = groupTypes.find((g) => g.groupType === filters.groupType);
-            if (selectedGroupType) {
-                filtered = filtered.filter((emp) => emp.groupTypeId === selectedGroupType.id);
-            }
-        }
-        if (filters.department !== 'All') {
-            const selectedDepartment = departments.find((d) => d.departmentName === filters.department);
-            if (selectedDepartment) {
-                filtered = filtered.filter((emp) => emp.departmentId === selectedDepartment.id);
-            }
-        }
-        if (filters.designation !== 'All') {
-            const selectedDesignation = designations.find((d) => d.designationName === filters.designation);
-            if (selectedDesignation) {
-                filtered = filtered.filter((emp) => emp.designationId === selectedDesignation.id);
-            }
-        }
-        setFilteredEmployees(filtered);
-    }, [filters.groupType, filters.department, filters.designation, employees, groupTypes, departments, designations]);
-    const handleFilterChange = (key: keyof SalaryCertificateFilters, value: string) => {
-        const newFilters = { ...filters, [key]: value };
-        // Reset dependent filters when parent changes
-        if (key === 'groupType') {
-            newFilters.department = 'All';
-            newFilters.designation = 'All';
-            newFilters.selectedEmployee = '';
-        } else if (key === 'department') {
-            newFilters.designation = 'All';
-            newFilters.selectedEmployee = '';
-        } else if (key === 'designation') {
-            newFilters.selectedEmployee = '';
-        }
-        setFilters(newFilters);
-    };
-    const handleGenerateSlip = () => {
-        if (!filters.month || !filters.year || !filters.selectedEmployee) {
-            toast.error('Please select month, year, and employee');
-            return;
-        }
-        setShowCertificate(true);
-        toast.success('Salary certificate generated');
-    };
-    const handleCancel = () => {
-        setFilters({
-            groupType: 'All',
-            department: 'All',
-            designation: 'All',
+    const [isSearching, setIsSearching] = useState(false);
+    const [reportData, setReportData] = useState<any>(null);
+
+    const { data: masterGroupTypes, isLoading: masterGroupTypesLoading, isError: masterGroupTypesError } = useMasterGroupTypes();
+
+    const { data: masterDepartments, isLoading: masterDepartmentsLoading, isError: masterDepartmentsError } = useMasterDepartments();
+
+    const { data: masterDesignations, isLoading: masterDesignationsLoading, isError: masterDesignationsError } = useMasterDesignations();
+
+    const { data: masterMonths, isLoading: masterMonthsLoading, isError: masterMonthsError } = useMasterMonths();
+
+    const { data: masterYears, isLoading: masterYearsLoading, isError: masterYearsError } = useMasterYears();
+
+    const groupTypeOptions =
+        masterGroupTypes?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const DepartmentsOptions =
+        masterDepartments?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const DesignationOptions =
+        masterDesignations?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const MonthsOptions =
+        masterMonths?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const YearsOptions =
+        masterYears?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const EmployeeOptions = mockEmployees.map((emp) => ({
+        value: emp.key,
+        label: emp.value
+    }));
+
+    const {
+        control,
+        handleSubmit,
+        reset,
+        formState: { errors, isSubmitting }
+    } = useForm<FormFields>({
+        resolver: zodResolver(SalaryCertificateSchema),
+        defaultValues: {
+            groupType: [],
+            department: [],
+            designation: [],
             month: '',
             year: '',
-            selectedEmployee: ''
-        });
-        setShowCertificate(false);
-        toast.info('Filters cleared');
+            employee: ''
+        },
+        mode: 'onChange'
+    });
+
+    const onSearch = async (data: FormFields) => {
+        setIsSearching(true);
+        try {
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+
+            toast.success('Salary certificate generated successfully!');
+            setReportData(mockApiResponse);
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to generate certificate');
+        } finally {
+            setIsSearching(false);
+        }
     };
-    const handleExport = () => {
-        toast.success('Salary certificate exported');
+
+    const handleReset = () => {
+        reset({
+            groupType: [],
+            department: [],
+            designation: [],
+            month: '',
+            year: '',
+            employee: ''
+        });
+        setReportData(null);
+        toast.info('Form has been reset');
     };
     const handlePrint = () => {
         window.print();
         toast.success('Print dialog opened');
     };
-    // Get selected employee details
-    const selectedEmployeeDetails = useMemo(() => {
-        if (!filters.selectedEmployee) return null;
-        return employees.find((emp) => emp.id.toString() === filters.selectedEmployee);
-    }, [filters.selectedEmployee, employees]);
+
+    const calculateGrossEarning = () => {
+        if (!reportData) return 0;
+        return reportData.employeeSalaryslipDetails
+            .filter((item: any) => item.HRMED_EarnDedFlag === 'Earning')
+            .reduce((sum: number, item: any) => sum + item.Amount, 0);
+    };
+
+    const calculateTotalDeductions = () => {
+        if (!reportData) return 0;
+        return reportData.employeeSalaryslipDetails
+            .filter((item: any) => item.HRMED_EarnDedFlag === 'Deduction')
+            .reduce((sum: number, item: any) => sum + item.Amount, 0);
+    };
+
+    const calculateNetSalary = () => {
+        return calculateGrossEarning() - calculateTotalDeductions();
+    };
+
+    const getTodayDate = () => {
+        const today = new Date();
+        return today.toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+    };
+
+    const grossEarning = calculateGrossEarning();
+    const totalDeductions = calculateTotalDeductions();
+    const netSalary = calculateNetSalary();
+
     return (
-        <div className='space-y-6'>
-            {/* Report Configuration Section */}
-            <SalaryCertificateFilters
-                filters={filters}
-                groupTypes={groupTypes}
-                availableDepartments={availableDepartments}
-                availableDesignations={availableDesignations}
-                filteredEmployees={filteredEmployees}
-                onFilterChange={handleFilterChange}
-                onGenerate={handleGenerateSlip}
-                onCancel={handleCancel}
-            />
-            {/* Certificate Results */}
-            {showCertificate && selectedEmployeeDetails && (
-                <div className='space-y-4'>
-                    {/* Certificate Header */}
-                    <div className='flex items-center justify-between rounded-lg border bg-card p-4'>
-                        <div>
-                            <h3 className='font-semibold text-foreground text-lg'>
-                                Salary Certificate - {selectedEmployeeDetails.employeeName}
-                            </h3>
-                            <p className='text-muted-foreground text-sm'>
-                                Period: {filters.month} {filters.year} | Employee Code: {selectedEmployeeDetails.employeeCode}
-                            </p>
-                        </div>
-                        <div className='flex gap-2'>
-                            <Button variant='outline' onClick={handleExport} prefix={<Download className='size-4' />}>
-                                Export
-                            </Button>
-                            <Button variant='outline' onClick={handlePrint} prefix={<Printer className='size-4' />}>
-                                Print
-                            </Button>
-                        </div>
-                    </div>
-                    {/* Salary Summary Cards */}
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Basic Salary</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-foreground text-lg'>
-                                    ₹{selectedEmployeeDetails.basicSalary.toLocaleString()}
-                                </div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Allowances</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-foreground text-lg'>
-                                    ₹{selectedEmployeeDetails.allowances.toLocaleString()}
-                                </div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Deductions</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-lg text-red-600'>
-                                    ₹{selectedEmployeeDetails.deductions.toLocaleString()}
-                                </div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Net Salary</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-green-600 text-lg'>
-                                    ₹{selectedEmployeeDetails.netSalary.toLocaleString()}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                    {/* Salary Certificate */}
-                    <div className='rounded-lg border bg-card p-8'>
-                        <div className='space-y-6 text-center'>
+        <div className='min-h-screen p-8'>
+            <div className='container space-y-4 p-1'>
+                <CollapsibleSection
+                    title='Salary Certificate'
+                    defaultOpen={true}
+                    variant='outline'
+                    size='md'
+                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                    <div className='space-y-6'>
+                        <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
                             <div className='space-y-2'>
-                                <h1 className='font-bold text-2xl text-foreground'>VAPS SCHOOL</h1>
-                                <h2 className='font-semibold text-foreground text-xl'>SALARY CERTIFICATE</h2>
+                                <Label htmlFor='group-type' className='font-medium text-sm text-white-900'>
+                                    Group Type: <span className='text-red-500'>*</span>
+                                </Label>
+                                {masterGroupTypesLoading ? (
+                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
+                                ) : groupTypeOptions.length === 0 ? (
+                                    <div className='text-sm text-white-500'>No group types available</div>
+                                ) : masterGroupTypesError ? (
+                                    <SelectItem value='error' disabled>
+                                        Error loading data
+                                    </SelectItem>
+                                ) : (
+                                    <>
+                                        <Controller
+                                            name='groupType'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <MultiSelect
+                                                    options={groupTypeOptions}
+                                                    defaultValue={field.value}
+                                                    onValueChange={field.onChange}
+                                                    placeholder='Select Group Types'
+                                                    className='w-full'
+                                                    maxHeight={240}
+                                                />
+                                            )}
+                                        />
+                                        {errors.groupType && <FormError>{errors.groupType.message}</FormError>}
+                                    </>
+                                )}
                             </div>
-                            <div className='mx-auto max-w-2xl space-y-4 text-left'>
-                                <p className='text-sm'>
-                                    <strong>Certificate No:</strong> SC/{filters.year}/{String(selectedEmployeeDetails.id).padStart(4, '0')}
-                                </p>
-                                <p className='text-sm'>
-                                    This is to certify that <strong>{selectedEmployeeDetails.employeeName}</strong>
-                                    (Employee Code: <strong>{selectedEmployeeDetails.employeeCode}</strong>) is employed with our
-                                    organization as <strong>{selectedEmployeeDetails.designationName}</strong>
-                                    in the <strong>{selectedEmployeeDetails.departmentName}</strong> department.
-                                </p>
-                                <div className='space-y-2 border-t border-b py-4'>
-                                    <h3 className='font-semibold text-sm'>
-                                        Salary Details for {filters.month} {filters.year}:
-                                    </h3>
-                                    <div className='grid grid-cols-2 gap-4 text-sm'>
-                                        <div className='space-y-1'>
-                                            <div className='flex justify-between'>
-                                                <span>Basic Salary:</span>
-                                                <span>₹{selectedEmployeeDetails.basicSalary.toLocaleString()}</span>
-                                            </div>
-                                            <div className='flex justify-between'>
-                                                <span>Allowances:</span>
-                                                <span>₹{selectedEmployeeDetails.allowances.toLocaleString()}</span>
-                                            </div>
-                                            <div className='flex justify-between font-semibold'>
-                                                <span>Gross Salary:</span>
-                                                <span>₹{selectedEmployeeDetails.grossSalary.toLocaleString()}</span>
-                                            </div>
-                                        </div>
-                                        <div className='space-y-1'>
-                                            <div className='flex justify-between'>
-                                                <span>Deductions:</span>
-                                                <span>₹{selectedEmployeeDetails.deductions.toLocaleString()}</span>
-                                            </div>
-                                            <div className='flex justify-between font-semibold text-green-600'>
-                                                <span>Net Salary:</span>
-                                                <span>₹{selectedEmployeeDetails.netSalary.toLocaleString()}</span>
-                                            </div>
-                                        </div>
-                                    </div>
+
+                            <div className='space-y-2'>
+                                <Label htmlFor='department' className='font-medium text-sm text-white-900'>
+                                    Department: <span className='text-red-500'>*</span>
+                                </Label>
+                                {masterDepartmentsLoading ? (
+                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
+                                ) : DepartmentsOptions.length === 0 ? (
+                                    <div className='text-sm text-white-500'>No departments available</div>
+                                ) : masterDepartmentsError ? (
+                                    <SelectItem value='error' disabled>
+                                        Error loading data
+                                    </SelectItem>
+                                ) : (
+                                    <>
+                                        <Controller
+                                            name='department'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <MultiSelect
+                                                    options={DepartmentsOptions}
+                                                    defaultValue={field.value}
+                                                    onValueChange={field.onChange}
+                                                    placeholder='Select Departments'
+                                                    className='w-full'
+                                                    maxHeight={240}
+                                                />
+                                            )}
+                                        />
+                                        {errors.department && <FormError>{errors.department.message}</FormError>}
+                                    </>
+                                )}
+                            </div>
+
+                            <div className='space-y-2'>
+                                <Label htmlFor='designation' className='font-medium text-sm text-white-900'>
+                                    Designation: <span className='text-red-500'>*</span>
+                                </Label>
+                                {masterDesignationsLoading ? (
+                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
+                                ) : DesignationOptions.length === 0 ? (
+                                    <div className='text-sm text-white-500'>No designations available</div>
+                                ) : masterDesignationsError ? (
+                                    <SelectItem value='error' disabled>
+                                        Error loading data
+                                    </SelectItem>
+                                ) : (
+                                    <>
+                                        <Controller
+                                            name='designation'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <MultiSelect
+                                                    options={DesignationOptions}
+                                                    defaultValue={field.value}
+                                                    onValueChange={field.onChange}
+                                                    placeholder='Select Designations'
+                                                    className='w-full'
+                                                    maxHeight={240}
+                                                />
+                                            )}
+                                        />
+                                        {errors.designation && <FormError>{errors.designation.message}</FormError>}
+                                    </>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className='flex justify-center'>
+                            <div className='grid w-full max-w-2xl grid-cols-1 gap-6 md:grid-cols-2'>
+                                <div className='space-y-2'>
+                                    <Label htmlFor='month' className='font-medium text-sm text-white-900'>
+                                        Month: <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <Controller
+                                        name='month'
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                <SelectTrigger className='w-full'>
+                                                    <SelectValue placeholder='Select Month' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {masterMonthsLoading ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading...
+                                                        </SelectItem>
+                                                    ) : masterMonthsError ? (
+                                                        <SelectItem value='error' disabled>
+                                                            Error loading data
+                                                        </SelectItem>
+                                                    ) : (
+                                                        MonthsOptions?.map((opt: any) => (
+                                                            <SelectItem key={opt.value} value={opt.value}>
+                                                                {opt.label}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                        )}
+                                    />
+                                    {errors.month && <FormError>{errors.month.message}</FormError>}
                                 </div>
-                                <p className='text-sm'>This certificate is issued for official purposes as requested by the employee.</p>
-                                <div className='pt-6'>
-                                    <p className='text-sm'>
-                                        Date: <strong>{new Date().toLocaleDateString()}</strong>
-                                    </p>
-                                </div>
-                                <div className='flex justify-between pt-8'>
-                                    <div className='text-sm'>
-                                        <div className='font-semibold'>Employee Signature</div>
-                                        <div className='mt-8 w-32 border-gray-300 border-t' />
-                                    </div>
-                                    <div className='text-right text-sm'>
-                                        <div className='font-semibold'>Authorized Signatory</div>
-                                        <div className='mt-2'>HR Department</div>
-                                        <div>VAPS SCHOOL</div>
-                                        <div className='mt-6 ml-auto w-32 border-gray-300 border-t' />
-                                    </div>
+
+                                <div className='space-y-2'>
+                                    <Label htmlFor='year' className='font-medium text-sm text-white-900'>
+                                        Year: <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <Controller
+                                        name='year'
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                <SelectTrigger className='w-full'>
+                                                    <SelectValue placeholder='Select Year' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {masterYearsLoading ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading...
+                                                        </SelectItem>
+                                                    ) : masterYearsError ? (
+                                                        <SelectItem value='error' disabled>
+                                                            Error loading data
+                                                        </SelectItem>
+                                                    ) : (
+                                                        YearsOptions?.map((opt: any) => (
+                                                            <SelectItem key={opt.value} value={opt.value}>
+                                                                {opt.label}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                        )}
+                                    />
+                                    {errors.year && <FormError>{errors.year.message}</FormError>}
                                 </div>
                             </div>
                         </div>
+
+                        <div className='flex justify-center'>
+                            <div className='w-full max-w-md space-y-2'>
+                                <Label htmlFor='employee' className='font-medium text-sm text-white-900'>
+                                    Employee: <span className='text-red-500'>*</span>
+                                </Label>
+                                <Controller
+                                    name='employee'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                            <SelectTrigger className='w-full'>
+                                                <SelectValue placeholder='Select Employee' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {EmployeeOptions.map((opt: any) => (
+                                                    <SelectItem key={opt.value} value={opt.value}>
+                                                        {opt.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
+                                {errors.employee && <FormError>{errors.employee.message}</FormError>}
+                            </div>
+                        </div>
+
+                        <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-center'>
+                            <Button
+                                type='button'
+                                variant='outline'
+                                onClick={handleReset}
+                                disabled={isSearching || isSubmitting}
+                                className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                                Reset
+                            </Button>
+                            <Button
+                                type='button'
+                                onClick={handleSubmit(onSearch)}
+                                disabled={isSearching || isSubmitting}
+                                className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
+                                {isSearching ? (
+                                    <>
+                                        <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
+                                        Searching...
+                                    </>
+                                ) : (
+                                    <div className='flex items-center'>
+                                        <Search className='mr-2 h-4 w-4' />
+                                        Search
+                                    </div>
+                                )}
+                            </Button>
+                        </div>
                     </div>
-                </div>
-            )}
+                </CollapsibleSection>
+
+                {reportData && (
+                    <CollapsibleSection
+                        title='Salary Certificate'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='space-y-6 p-6 '>
+                            <div className='space-y-4'>
+                                <Label className='mx-auto block text-center text-gray-600 underline'>Salary Certificate</Label>
+
+                                <p className='text-justify leading-relaxed'>
+                                    This is to certify that Mr/Ms.{' '}
+                                    <span className='font-semibold'>
+                                        {reportData.currentemployeeDetails.hrmE_EmployeeFirstName}
+                                        {reportData.currentemployeeDetails.hrmE_EmployeeLastName}
+                                    </span>{' '}
+                                    (Employee Code:{' '}
+                                    <span className='font-semibold'>{reportData.currentemployeeDetails.hrmE_EmployeeCode}</span>) is working
+                                    in Our Institution as a <span className='font-semibold'>{reportData.designationName}</span> and his/her
+                                    monthly emoluments are as follows.
+                                </p>
+                            </div>
+
+                            {/* Salary Table */}
+                            <div className='overflow-x-auto rounded-lg border'>
+                                <table className='w-full border-collapse'>
+                                    <thead>
+                                        <tr className='border-white-300 border-b-2 bg-white-100'>
+                                            <th className='border border-white-300 px-4 py-3 text-left font-semibold text-sm'>
+                                                Pay & Allowance
+                                            </th>
+                                            <th className='border border-white-300 px-4 py-3 text-right font-semibold text-sm'>Amount</th>
+                                            <th className='border border-white-300 px-4 py-3 text-left font-semibold text-sm'>
+                                                Deductions
+                                            </th>
+                                            <th className='border border-white-300 px-4 py-3 text-right font-semibold text-sm'>Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {(() => {
+                                            const earnings = reportData.employeeSalaryslipDetails.filter(
+                                                (item: any) => item.HRMED_EarnDedFlag === 'Earning'
+                                            );
+                                            const deductions = reportData.employeeSalaryslipDetails.filter(
+                                                (item: any) => item.HRMED_EarnDedFlag === 'Deduction'
+                                            );
+                                            const maxRows = Math.max(earnings.length, deductions.length);
+
+                                            return Array.from({ length: maxRows }).map((_, index) => (
+                                                <tr key={index} className='hover:bg-white-50'>
+                                                    <td className='border border-white-300 px-4 py-2 text-sm'>
+                                                        {earnings[index]?.HRMED_Name || ''}
+                                                    </td>
+                                                    <td className='border border-white-300 px-4 py-2 text-right text-sm'>
+                                                        {earnings[index]
+                                                            ? `₹${earnings[index].Amount.toLocaleString('en-IN', {
+                                                                  minimumFractionDigits: 2,
+                                                                  maximumFractionDigits: 2
+                                                              })}`
+                                                            : ''}
+                                                    </td>
+                                                    <td className='border border-white-300 px-4 py-2 text-sm'>
+                                                        {deductions[index]?.HRMED_Name || ''}
+                                                    </td>
+                                                    <td className='border border-white-300 px-4 py-2 text-right text-sm'>
+                                                        {deductions[index]
+                                                            ? `₹${deductions[index].Amount.toLocaleString('en-IN', {
+                                                                  minimumFractionDigits: 2,
+                                                                  maximumFractionDigits: 2
+                                                              })}`
+                                                            : ''}
+                                                    </td>
+                                                </tr>
+                                            ));
+                                        })()}
+
+                                        <tr className='border-white-400 border-t-2 bg-white-200 font-bold'>
+                                            <td className='border border-white-300 px-4 py-3 text-sm'>Gross Earning:</td>
+                                            <td className='border border-white-300 px-4 py-3 text-right text-sm'>
+                                                ₹
+                                                {grossEarning.toLocaleString('en-IN', {
+                                                    minimumFractionDigits: 2,
+                                                    maximumFractionDigits: 2
+                                                })}
+                                            </td>
+                                            <td className='border border-white-300 px-4 py-3 text-sm'>Gross Deduction:</td>
+                                            <td className='border border-white-300 px-4 py-3 text-right text-sm'>
+                                                ₹
+                                                {totalDeductions.toLocaleString('en-IN', {
+                                                    minimumFractionDigits: 2,
+                                                    maximumFractionDigits: 2
+                                                })}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div className='flex justify-end'>
+                                <div className='rounded-lg border bg-white-50 px-6 py-4'>
+                                    <div className='flex items-center gap-4'>
+                                        <span className='font-semibold text-lg'>Net Salary:</span>
+                                        <span className='font-bold text-gray-600 text-xl'>
+                                            ₹
+                                            {netSalary.toLocaleString('en-IN', {
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2
+                                            })}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className='flex items-end justify-between border-t pt-6'>
+                                <div>
+                                    <p className='font-medium text-sm'>Date: {getTodayDate()}</p>
+                                </div>
+                                <div className='text-right'>
+                                    <div className='mb-16' />
+                                    <p className='font-semibold'>Principal</p>
+                                </div>
+                            </div>
+
+                            {/* Action Buttons at Bottom */}
+                            <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-center'>
+                                <Button
+                                    type='button'
+                                    variant='outline'
+                                    onClick={handleReset}
+                                    className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                                    Cancel
+                                </Button>
+                                <Button
+                                    type='button'
+                                    onClick={handlePrint}
+                                    className='no-print order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
+                                    <Printer className='mr-2 h-4 w-4' />
+                                    Print
+                                </Button>
+                            </div>
+                        </div>
+                    </CollapsibleSection>
+                )}
+            </div>
         </div>
     );
 }

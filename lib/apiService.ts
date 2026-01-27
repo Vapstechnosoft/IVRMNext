@@ -20,12 +20,30 @@ export interface ApiArrayResponse<T> extends Partial<PaginationData> {
     } | null;
     [key: string]: unknown;
 }
+// biome-ignore lint/style/useNodejsImportProtocol: <explanation>
+// import https from 'https'; // Removed to avoid client-side bundling errors
 import { signOut } from '@/lib/auth';
 import type { ApiSearchparams } from '@/types';
 import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios';
 
 // Define available API base URLs
-export type ApiBaseUrlKey = 'default' | 'preadmission' | 'admission' | 'fees' | 'exam' | 'hrms' | 'hrmsfrontoffice' | 'hmslms';
+
+export type ApiBaseUrlKey =
+    | 'default'
+    | 'preadmission'
+    | 'admission'
+    | 'fees'
+    | 'exam'
+    | 'hrms'
+    | 'hrmsfrontoffice'
+    | 'hmslms'
+    | 'library'
+    | 'timetable'
+    | 'inventory'
+    | 'sports'
+    | 'alumni'
+    | 'sadmin'
+    | 'portal';
 
 class ApiService {
     private instances: Map<string, AxiosInstance>;
@@ -43,14 +61,22 @@ class ApiService {
             exam: process.env.NEXT_PUBLIC_EXAM_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             hrms: process.env.NEXT_PUBLIC_HRMS_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             hrmsfrontoffice: process.env.NEXT_PUBLIC_HRMS_FRONTOFFICE_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
-            hmslms: process.env.NEXT_PUBLIC_HRMS_LMS_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || ''
+            hmslms: process.env.NEXT_PUBLIC_HRMS_LMS_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+
+            library: process.env.NEXT_PUBLIC_LIBRARY_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            timetable: process.env.NEXT_PUBLIC_TIMETABLE_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            inventory: process.env.NEXT_PUBLIC_INVENTORY_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            sports: process.env.NEXT_PUBLIC_SPORTS_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            alumni: process.env.NEXT_PUBLIC_ALUMNI_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            sadmin: process.env.NEXT_PUBLIC_SADMIN_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            portal: process.env.NEXT_PUBLIC_PORTAL_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || ''
         };
 
-        // Debug: Log base URLs in development
+        // Debug: info base URLs in development
         if (process.env.NODE_ENV === 'development') {
-            console.log('🔵 [API SERVICE] Base URLs initialized:');
-            console.log('🔵 [API SERVICE] hmslms:', this.baseUrls.hmslms || 'NOT SET');
-            console.log('🔵 [API SERVICE] NEXT_PUBLIC_HRMS_LMS_BASE_URL:', process.env.NEXT_PUBLIC_HRMS_LMS_BASE_URL || 'NOT SET');
+            console.info('🔵 [API SERVICE] Base URLs initialized:');
+            console.info('🔵 [API SERVICE] hmslms:', this.baseUrls.hmslms || 'NOT SET');
+            console.info('🔵 [API SERVICE] NEXT_PUBLIC_HRMS_LMS_BASE_URL:', process.env.NEXT_PUBLIC_HRMS_LMS_BASE_URL || 'NOT SET');
         }
 
         // Initialize default instance
@@ -81,13 +107,13 @@ class ApiService {
 
             // Add SSL bypass for localhost in development mode
             if (isLocalhost && process.env.NODE_ENV === 'development' && typeof window === 'undefined') {
-               
+
                 const https = require('https');
                 config.httpsAgent = new https.Agent({
                     rejectUnauthorized: false // Bypass SSL certificate validation
                 });
 
-                console.log('🔵 [API SERVICE] SSL bypass enabled for:', baseURL);
+                console.info('🔵 [API SERVICE] SSL bypass enabled for:', baseURL);
             }
 
             const instance = axios.create(config);
@@ -164,6 +190,7 @@ class ApiService {
 
             // Return a more helpful error message
             return (
+                // biome-ignore lint/style/useTemplate: <explanation>
                 `SSL Certificate Error: ${error.message}. ` +
                 'For local development, make sure the ApiService is configured to bypass SSL validation.'
             );
@@ -184,8 +211,8 @@ class ApiService {
             const baseURL = instance.defaults.baseURL;
             const fullUrl = `${baseURL}${url}`;
 
-            console.log('🌐 [API SERVICE] Request initiated');
-            console.log('📤 [API SERVICE] Request details:', {
+            console.info('🌐 [API SERVICE] Request initiated');
+            console.info('📤 [API SERVICE] Request details:', {
                 method,
                 baseUrlKey,
                 baseURL: baseURL || 'NOT SET - Check environment variable',
@@ -203,7 +230,7 @@ class ApiService {
             }
 
             if (data && method === 'POST') {
-                console.log('📦 [API SERVICE] Request payload:', JSON.stringify(data, null, 2));
+                console.info('📦 [API SERVICE] Request payload:', JSON.stringify(data, null, 2));
             }
 
             const startTime = Date.now();
@@ -215,8 +242,8 @@ class ApiService {
             });
             const duration = Date.now() - startTime;
 
-            console.log('✅ [API SERVICE] Response received');
-            console.log('📥 [API SERVICE] Response details:', {
+            console.info('✅ [API SERVICE] Response received');
+            console.info('📥 [API SERVICE] Response details:', {
                 status: response.status,
                 statusText: response.statusText,
                 duration: `${duration}ms`,
@@ -226,7 +253,7 @@ class ApiService {
             });
 
             if (response.data) {
-                console.log('📊 [API SERVICE] Response data structure:', {
+                console.info('📊 [API SERVICE] Response data structure:', {
                     hasSuccess: 'success' in response.data,
                     hasMessage: 'message' in response.data,
                     hasData: 'data' in response.data,

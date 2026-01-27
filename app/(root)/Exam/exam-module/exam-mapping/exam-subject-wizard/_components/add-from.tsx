@@ -103,7 +103,9 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     const { data: gradeData, error: gradeError } = useMasterGradeDropdownList();
     const { data: response } = useExamSubjectWizardDetails(30, rowData?.eycE_Id ? rowData?.eycE_Id : 0);
     const { refetchAll } = useExamSubjectWizard();
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const { data: masterSubSubject, isLoading: masterSubSubjectLoading } = useMasterSubSubjectDropdownList();
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const { data: masterSubExam, isLoading: masterSubExamLoading } = useMasterSubExamDropdownList();
     const router = useRouter();
     const convertToISO = (dateStr: string) => {
@@ -220,6 +222,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 }
 
                 if (mappedExams.length === 0) toast.info('No Exams mapped to this Category.');
+                // biome-ignore lint/correctness/noUnusedVariables: <explanation>
             } catch (err) {
                 setExams([]);
                 toast.error('Failed to load exams.');
@@ -350,7 +353,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                             // ---------------------------
                             // Sub-Subject Mapping
                             if (updated.EYCES_SubSubjectFlg && !updated.EYCES_SubExamFlg) {
-                                console.log(30, updated.EYCES_Id);
+                                console.info(30, updated.EYCES_Id);
                                 const { data: mappedList } = await getSubSubjectsMappedList(30, updated.EYCES_Id);
                                 if (mappedList?.length) {
                                     console.log('mapped subsubjectData', mappedList);
@@ -382,7 +385,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                             // Sub-Subject-Sub-Exam Mapping
                             if (updated.EYCES_SubSubjectFlg && updated.EYCES_SubExamFlg) {
                                 const { data: mappedList } = await getSubSubjectsAndSubExamsMappedList(30, updated.EYCES_Id);
-                                console.log('mapped subsubjectData', mappedList);
+                                console.info('mapped subsubjectData', mappedList);
                                 if (mappedList?.length) {
                                     updated.subSubjectSubExamConfig = mappedList.map((item: any) => ({
                                         ...mapToSubSubjeSubExamctConfig(item),
@@ -397,11 +400,12 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                         }
 
                         setSubjects(updatedSubjects);
-                        console.log('updatedSubjects', updatedSubjects);
+                        console.info('updatedSubjects', updatedSubjects);
                     } else {
                         setSubjects(formattedSubjects);
                     }
                 }
+                // biome-ignore lint/correctness/noUnusedVariables: <explanation>
             } catch (err) {
                 const fallback = [
                     {
@@ -452,7 +456,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 };
             });
 
-            console.log('open subexammodel updatedList', updatedList);
+            console.info('open subexammodel updatedList', updatedList);
             setSubExamModalState({
                 open: true,
                 subject: {
@@ -460,6 +464,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                     list: updatedList
                 }
             });
+            // biome-ignore lint/correctness/noUnusedVariables: <explanation>
         } catch (error) {
             setSubExamModalState({
                 open: true,
@@ -587,7 +592,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 s.ISMS_Id === subjectId ? { ...s, subSubjectConfig: selectedList, EYCES_SubSubjectFlg: selectedList.length > 0 } : s
             )
         );
-        console.log('subSubjectList **', subSubjectList);
+        console.info('subSubjectList **', subSubjectList);
         setSubSubjects((prev: IMasterSubSubject[]) =>
             prev.map((sub) => {
                 const matched = subSubjectList.find((l: any) => l.emsS_Id === sub.emsS_Id);
@@ -617,13 +622,13 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                     : s
             )
         );
-        console.log('add-form subExamList **', subExamList);
+        console.info('add-form subExamList **', subExamList);
         const subExamList_ = subExamList.map((item, index) => ({
             ...item,
             emsE_SubExamOrder: index + 1,
             EMSE_SubExamOrder: index + 1
         }));
-        console.log('add-form subExamList_ ** after update', subExamList_);
+        console.info('add-form subExamList_ ** after update', subExamList_);
 
         setSubExams((prev: IMasterSubExam[]) =>
             prev.map((exam) => {
@@ -644,15 +649,15 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     };
 
     const handleSaveSubSubjectSubExam = (subjectId: number, selectedList: any[]) => {
-        console.log('selectedList **', selectedList);
-        console.log('subjectId **', subjectId);
-        console.log('subjects **', subjects);
+        console.info('selectedList **', selectedList);
+        console.info('subjectId **', subjectId);
+        console.info('subjects **', subjects);
         setSubjects((prev) =>
             prev.map((s) =>
                 s.ISMS_Id === subjectId ? { ...s, subSubjectSubExamConfig: selectedList, EYCES_SubSubjectFlg: selectedList.length > 0 } : s
             )
         );
-        console.log('subjects **', subjects);
+        console.info('subjects **', subjects);
         setSubSubjectSubExamModalState({ open: false });
         toast.info('SubSubject and SubExam Data saved successfully.');
     };

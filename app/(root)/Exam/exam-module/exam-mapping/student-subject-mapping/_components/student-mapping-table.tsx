@@ -14,8 +14,14 @@ import {
     AlertDialogDescription,
     AlertDialogFooter,
     AlertDialogHeader,
-    AlertDialogTitle,
+    AlertDialogTitle
 } from '@/components/ui/alert-dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
+import { Trash2 } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { forwardRef } from 'react';
 import { toast } from 'sonner';
 
 /* Reusable Cells */
@@ -134,7 +140,9 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
 }, ref) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [localStudents, setLocalStudents] = useState<Student[]>([]);
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const [getList, setGetList] = useState<Map<number, Set<number>>>(new Map());
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const [getRemovedList, setGetRemovedList] = useState<Map<number, Set<number>>>(new Map());
     const [selectedStudents, setSelectedStudents] = useState<Set<number>>(new Set());
     const [disabledStudents, setDisabledStudents] = useState<Set<number>>(new Set());
@@ -209,14 +217,9 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
             const admNo = normalize(s.amsT_AdmNo || '');
             const rollNo = String(s.amaY_RollNo || '');
 
-            return (
-                name.includes(query) ||
-                admNo.includes(query) ||
-                rollNo.includes(query)
-            );
+            return name.includes(query) || admNo.includes(query) || rollNo.includes(query);
         });
     }, [localStudents, searchTerm]);
-
 
     /** Get current checked state for a student-subject */
     const getCurrentCheckedState = useCallback(
@@ -363,13 +366,13 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
             // Auto-select student if at least one subject is checked
             const newCount = checked ? currentCount + 1 : currentCount - 1;
             if (newCount > 0 && !selectedStudents.has(studentId)) {
-                setSelectedStudents(prev => {
+                setSelectedStudents((prev) => {
                     const newSet = new Set(prev);
                     newSet.add(studentId);
                     return newSet;
                 });
             } else if (newCount === 0 && selectedStudents.has(studentId)) {
-                setSelectedStudents(prev => {
+                setSelectedStudents((prev) => {
                     const newSet = new Set(prev);
                     newSet.delete(studentId);
                     return newSet;
@@ -384,21 +387,15 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
     /** Toggle all subjects for all filtered students */
     const toggleSubjectAll = useCallback(
         async (subjectId: number, checked: boolean) => {
-            let toastShown = false;
+            // biome-ignore lint/correctness/noUnusedVariables: <explanation>
+            const toastShown = false;
 
             for (const student of filteredStudents) {
-                if (
-                    !selectedStudents.has(student.amsT_Id) ||
-                    disabledStudents.has(student.amsT_Id)
-                ) {
+                if (!selectedStudents.has(student.amsT_Id) || disabledStudents.has(student.amsT_Id)) {
                     continue;
                 }
 
-                const response = await handleIndividualChange(
-                    student.amsT_Id,
-                    subjectId,
-                    checked
-                );
+                const response = await handleIndividualChange(student.amsT_Id, subjectId, checked);
 
                 if (response === 'beyond') {
                     break; // 🛑 STOP immediately
@@ -497,8 +494,8 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
         (subjectId: number): boolean => {
             if (filteredStudents.length === 0) return false;
 
-            return filteredStudents.every((student) =>
-                selectedStudents.has(student.amsT_Id) && getCurrentCheckedState(student.amsT_Id, subjectId)
+            return filteredStudents.every(
+                (student) => selectedStudents.has(student.amsT_Id) && getCurrentCheckedState(student.amsT_Id, subjectId)
             );
         },
         [filteredStudents, getCurrentCheckedState, selectedStudents]
@@ -506,7 +503,7 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
 
     /** Handle student selection checkbox change */
     const handleStudentSelectionChange = useCallback((studentId: number, checked: boolean) => {
-        setSelectedStudents(prev => {
+        setSelectedStudents((prev) => {
             const newSet = new Set(prev);
             if (checked) {
                 newSet.add(studentId);
@@ -518,36 +515,40 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
     }, []);
 
     /** Handle select all students checkbox */
-    const handleSelectAllStudents = useCallback((checked: boolean) => {
-        setSelectedStudents(prev => {
-            const newSet = new Set(prev);
-            if (checked) {
-                filteredStudents.forEach(student => {
-                    if (!disabledStudents.has(student.amsT_Id)) {
-                        newSet.add(student.amsT_Id);
-                    }
-                });
-            } else {
-                filteredStudents.forEach(student => {
-                    newSet.delete(student.amsT_Id);
-                });
-            }
-            return newSet;
-        });
-    }, [filteredStudents, disabledStudents]);
+    const handleSelectAllStudents = useCallback(
+        (checked: boolean) => {
+            setSelectedStudents((prev) => {
+                const newSet = new Set(prev);
+                if (checked) {
+                    filteredStudents.forEach((student) => {
+                        if (!disabledStudents.has(student.amsT_Id)) {
+                            newSet.add(student.amsT_Id);
+                        }
+                    });
+                } else {
+                    filteredStudents.forEach((student) => {
+                        newSet.delete(student.amsT_Id);
+                    });
+                }
+                return newSet;
+            });
+        },
+        [filteredStudents, disabledStudents]
+    );
 
     /** Check if all filtered students are selected */
     const isAllStudentsSelected = useMemo(() => {
         if (filteredStudents.length === 0) return false;
-        return filteredStudents.every(student =>
-            selectedStudents.has(student.amsT_Id) || disabledStudents.has(student.amsT_Id)
-        );
+        return filteredStudents.every((student) => selectedStudents.has(student.amsT_Id) || disabledStudents.has(student.amsT_Id));
     }, [filteredStudents, selectedStudents, disabledStudents]);
 
     /** Check if student has at least one subject checked */
-    const hasAtLeastOneSubjectChecked = useCallback((studentId: number) => {
-        return getCheckedSubjectCount(studentId) > 0;
-    }, [getCheckedSubjectCount]);
+    const hasAtLeastOneSubjectChecked = useCallback(
+        (studentId: number) => {
+            return getCheckedSubjectCount(studentId) > 0;
+        },
+        [getCheckedSubjectCount]
+    );
 
     /** Handle delete student confirmation */
     const handleDeleteStudent = useCallback((student: Student) => {
@@ -559,14 +560,14 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
     const confirmDeleteStudent = useCallback(() => {
         if (studentToDelete) {
             // Disable the student row
-            setDisabledStudents(prev => {
+            setDisabledStudents((prev) => {
                 const newSet = new Set(prev);
                 newSet.add(studentToDelete.id);
                 return newSet;
             });
 
             // Remove student from selected list
-            setSelectedStudents(prev => {
+            setSelectedStudents((prev) => {
                 const newSet = new Set(prev);
                 newSet.delete(studentToDelete.id);
                 return newSet;
@@ -581,10 +582,13 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
     }, [studentToDelete]);
 
     /** Check if delete icon should be shown for student */
-    const shouldShowDeleteIcon = useCallback((student: Student) => {
-        // Only show for initially mapped students who are not already disabled
-        return initialMappedStudents.has(student.amsT_Id) && !disabledStudents.has(student.amsT_Id);
-    }, [initialMappedStudents, disabledStudents]);
+    const shouldShowDeleteIcon = useCallback(
+        (student: Student) => {
+            // Only show for initially mapped students who are not already disabled
+            return initialMappedStudents.has(student.amsT_Id) && !disabledStudents.has(student.amsT_Id);
+        },
+        [initialMappedStudents, disabledStudents]
+    );
 
     if (isloading) {
         return (
@@ -671,6 +675,7 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
                                 const isDisabled = disabledStudents.has(student.amsT_Id);
                                 const isSelected = selectedStudents.has(student.amsT_Id);
                                 const showDelete = shouldShowDeleteIcon(student);
+                                // biome-ignore lint/correctness/noUnusedVariables: <explanation>
                                 const hasSubjectsChecked = hasAtLeastOneSubjectChecked(student.amsT_Id);
 
                                 return (
@@ -690,10 +695,11 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
                                                     className='h-5 w-5'
                                                 />
                                                 {showDelete && (
+                                                    // biome-ignore lint/a11y/useButtonType: <explanation>
                                                     <button
                                                         onClick={() => handleDeleteStudent(student)}
                                                         disabled={isDisabled}
-                                                        className='text-red-500 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed'
+                                                        className='text-red-500 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50'
                                                         title='Remove student mappings'
                                                     >
                                                         <Trash2 size={16} />
@@ -713,8 +719,7 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
                                         {subjects.map((subject) => (
                                             <TableCell
                                                 key={`student-${student.amsT_Id}-subject-${subject.id}`}
-                                                className={cn('text-center', isDisabled && 'opacity-50')}
-                                            >
+                                                className={cn('text-center', isDisabled && 'opacity-50')}>
                                                 <div className='flex justify-center'>
                                                     <Checkbox
                                                         checked={getCurrentCheckedState(student.amsT_Id, subject.id)}
@@ -739,24 +744,19 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Do You Want To Remove This Record
-                        </AlertDialogDescription>
+                        <AlertDialogDescription>Do You Want To Remove This Record</AlertDialogDescription>
                     </AlertDialogHeader>
                     {studentToDelete && (
                         <div className='py-4'>
                             <div className='font-medium text-gray-800'>{studentToDelete.name}</div>
-                            <div className='text-sm text-gray-600 mt-2'>
+                            <div className='mt-2 text-gray-600 text-sm'>
                                 This action will disable the student row and you won't be able to access it anymore.
                             </div>
                         </div>
                     )}
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={confirmDeleteStudent}
-                            className='bg-red-500 hover:bg-red-600 text-white'
-                        >
+                        <AlertDialogAction onClick={confirmDeleteStudent} className='bg-red-500 text-white hover:bg-red-600'>
                             Yes, Remove it!
                         </AlertDialogAction>
                     </AlertDialogFooter>

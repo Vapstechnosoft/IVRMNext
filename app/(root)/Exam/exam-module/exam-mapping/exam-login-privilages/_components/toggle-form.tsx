@@ -41,7 +41,7 @@ export default function ToggleLoginPrivilegeForm({ rowData, elpId, asmclId, asms
 
     const onSubmit: SubmitHandler<FormFields> = async () => {
         try {
-            console.log(rowData.elpS_Id);
+            console.info(rowData.elpS_Id);
             const response = await toggleExamLoginPrivilege(Number(rowData.elpS_Id));
             if (response.success) {
                 toast.success(response.message);

@@ -7,8 +7,8 @@ import { cn } from '@/lib/utils';
 import { format, isValid, parse } from 'date-fns';
 import { Calendar } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { FormError, Label } from './extension/field';
 import { toast } from 'sonner';
+import { FormError, Label } from './extension/field';
 
 interface DateFieldProps {
     field: any;
@@ -21,7 +21,16 @@ interface DateFieldProps {
     restricted_fromfieldName?: string;
 }
 
-export const DateField: React.FC<DateFieldProps> = ({ field, fieldState, label, placeholder = 'Pick a date', fromDate, toDate, restricted_tofieldName, restricted_fromfieldName }) => {
+export const DateField: React.FC<DateFieldProps> = ({
+    field,
+    fieldState,
+    label,
+    placeholder = 'Pick a date',
+    fromDate,
+    toDate,
+    restricted_tofieldName,
+    restricted_fromfieldName
+}) => {
     const [isOpen, setIsOpen] = useState(false);
 
     const parseInputDate = (val: any): Date | null => {

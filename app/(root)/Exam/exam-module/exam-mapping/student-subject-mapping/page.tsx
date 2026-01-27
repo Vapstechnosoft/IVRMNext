@@ -109,7 +109,7 @@ function StudentSubjectMappingContent() {
     const [payload, setPayload] = useState<Payload | null>(null);
     const [subjectGroups, setSubjectGroups] = useState<any[]>([]);
 
-    const [loadingClasses, setLoadingClasses] = useState(false);
+    const [loadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
     const [loadingCategories, setLoadingCategories] = useState(false);
     const [loadingSG, setLoadingSG] = useState(false);
@@ -173,7 +173,7 @@ function StudentSubjectMappingContent() {
             try {
                 const { data: response } = await getCategoryDropDowByExamYearCategoryList(MI_Id, watchedAcademicYear);
                 const cats: any[] = Array.isArray(response) ? response : [];
-                console.log('cats', cats);
+                console.info('cats', cats);
                 const normalized = cats.map((c) => ({
                     emcA_Id: c.emcA_Id ?? c.eyC_Id,
                     emcA_CategoryName: c.emcA_CategoryName ?? c.eyC_CategoryName
@@ -206,11 +206,11 @@ function StudentSubjectMappingContent() {
         const fetchSubjectGroups = async () => {
             setLoadingSG(true);
             try {
-                console.log('watchedAcademicYear', watchedAcademicYear);
-                console.log('watchedCategory', watchedCategory);
+                console.info('watchedAcademicYear', watchedAcademicYear);
+                console.info('watchedCategory', watchedCategory);
                 const data = await getSubjectlistByCatGroupClass(watchedAcademicYear, watchedCategory);
                 const safeData = Array.isArray(data) ? data : (data?.data ?? []);
-                console.log('safeData', safeData);
+                console.info('safeData', safeData);
                 setSubjectGroups(safeData.grouplist);
                 setClasses(safeData.classlist);
                 if (safeData.classlist.length === 0) {
@@ -259,7 +259,7 @@ function StudentSubjectMappingContent() {
             const response = await getStudentsForSubjectMapping(params);
             const success = response?.success ?? false;
             const data = Array.isArray(response?.data) ? response?.data : [];
-            console.log('search response **', data);
+            console.info('search response **', data);
 
             if (!success || data?.length === 0) {
                 toast.error(response?.message ?? 'No data found');
@@ -414,19 +414,21 @@ function StudentSubjectMappingContent() {
                                                         <SelectItem value='error' disabled>
                                                             Select Category
                                                         </SelectItem>
-                                                    ) :
-                                                        loadingClasses ? (
-                                                            <SelectItem value='loading' disabled>
-                                                                Loading...
+                                                    ) : loadingClasses ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading...
+                                                        </SelectItem>
+                                                    ) : classes.length === 0 ? (
+                                                        <SelectItem value='error' disabled>
+                                                            No classes found
+                                                        </SelectItem>
+                                                    ) : (
+                                                        classes.map((c) => (
+                                                            <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
+                                                                {c.asmcL_ClassName}
                                                             </SelectItem>
-                                                        ) : classes.length === 0 ?
-                                                            <SelectItem value='error' disabled>No classes found</SelectItem> : (
-                                                                classes.map((c) => (
-                                                                    <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
-                                                                        {c.asmcL_ClassName}
-                                                                    </SelectItem>
-                                                                ))
-                                                            )}
+                                                        ))
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                             {fieldState.error && <p className='mt-1 text-red-500 text-xs'>{fieldState.error.message}</p>}
@@ -458,7 +460,6 @@ function StudentSubjectMappingContent() {
 
                             {/* RIGHT */}
                             <div className='space-y-4'>
-
                                 <Controller
                                     control={control}
                                     name='emcA_Id'
@@ -479,26 +480,23 @@ function StudentSubjectMappingContent() {
                                                         <SelectItem value='loading' disabled>
                                                             Loading...
                                                         </SelectItem>
-                                                    ) :
-                                                        categories.length === 0 ? (
-                                                            <SelectItem value='error' disabled>
-                                                                No categories found
+                                                    ) : categories.length === 0 ? (
+                                                        <SelectItem value='error' disabled>
+                                                            No categories found
+                                                        </SelectItem>
+                                                    ) : (
+                                                        categories.map((c) => (
+                                                            <SelectItem key={c.emcA_Id} value={String(c.emcA_Id)}>
+                                                                {c.emcA_CategoryName}
                                                             </SelectItem>
-                                                        ) :
-                                                            (
-                                                                categories.map((c) => (
-                                                                    <SelectItem key={c.emcA_Id} value={String(c.emcA_Id)}>
-                                                                        {c.emcA_CategoryName}
-                                                                    </SelectItem>
-                                                                ))
-                                                            )}
+                                                        ))
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                             {fieldState.error && <p className='mt-1 text-red-500 text-xs'>{fieldState.error.message}</p>}
                                         </div>
                                     )}
                                 />
-
 
                                 <Controller
                                     control={control}
@@ -520,15 +518,21 @@ function StudentSubjectMappingContent() {
                                                         <SelectItem value='loading' disabled>
                                                             Loading...
                                                         </SelectItem>
-                                                    ) :
-                                                        !watchedClass ? (<SelectItem value='error' disabled>Select Class</SelectItem>) :
-                                                            sections.length === 0 ? (<SelectItem value='error' disabled>No sections found</SelectItem>) : (
-                                                                sections.map((s) => (
-                                                                    <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
-                                                                        {s.asmC_SectionName}
-                                                                    </SelectItem>
-                                                                ))
-                                                            )}
+                                                    ) : !watchedClass ? (
+                                                        <SelectItem value='error' disabled>
+                                                            Select Class
+                                                        </SelectItem>
+                                                    ) : sections.length === 0 ? (
+                                                        <SelectItem value='error' disabled>
+                                                            No sections found
+                                                        </SelectItem>
+                                                    ) : (
+                                                        sections.map((s) => (
+                                                            <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
+                                                                {s.asmC_SectionName}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                             {fieldState.error && <p className='mt-1 text-red-500 text-xs'>{fieldState.error.message}</p>}
@@ -626,13 +630,11 @@ function StudentSubjectMappingContent() {
                                         subject_group_id: undefined,
                                         Left_Flag: true,
                                         Deactive_Flag: true
-
                                     } as any);
                                     setClasses([]);
                                     setCategories([]);
                                     setSections([]);
-                                }}
-                            >
+                                }}>
                                 CANCEL
                             </Button>
                             <Button type='button' className='px-8 py-2 shadow-lg' onClick={handleSearch} disabled={isLoading}>

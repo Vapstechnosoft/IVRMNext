@@ -11,6 +11,9 @@ interface FormContextType<T = any> {
     isDetailsViewOpen: boolean; // 👈 New for Grade details view
     isOrderDetailsOpen: boolean;
     isMappedviewOpen: boolean;
+    isFacilityViewOpen: boolean;
+    isWardenViewOpen: boolean;
+    isDocumentViewOpen: boolean;
     selectedRow: T | null;
 
     // Actions
@@ -28,6 +31,12 @@ interface FormContextType<T = any> {
     closeOrderDetails: () => void;
     openMappedview: (row: T) => void;
     closeMappedview: () => void;
+    openFacilityView: (row: T) => void;
+    closeFacilityView: () => void;
+    openWardenView: (row: T) => void;
+    closeWardenView: () => void;
+    openDocumentView: (row: T) => void;
+    closeDocumentView: () => void;
     closeAllForms: () => void;
 
     // Refs for scrolling
@@ -57,6 +66,9 @@ export function FormProvider<T = any>({
     const [isDetailsViewOpen, setIsDetailsViewOpen] = useState(false); //  New state
     const [isOrderDetailsOpen, setIsOrderDetailsOpen] = useState(false); // New state
     const [isMappedviewOpen, setIsMappedviewOpen] = useState(false);
+    const [isFacilityViewOpen, setIsFacilityViewOpen] = useState(false);
+    const [isWardenViewOpen, setIsWardenViewOpen] = useState(false);
+    const [isDocumentViewOpen, setIsDocumentViewOpen] = useState(false);
     const [selectedRow, setSelectedRow] = useState<T | null>(null);
 
     const addFormRef = useRef<HTMLDivElement>(null);
@@ -93,6 +105,9 @@ export function FormProvider<T = any>({
         setIsDetailsViewOpen(false); //  Close details view also
         setIsOrderDetailsOpen(false);
         setIsMappedviewOpen(false);
+        setIsFacilityViewOpen(false);
+        setIsWardenViewOpen(false);
+        setIsDocumentViewOpen(false);
         setSelectedRow(null);
         scrollToTop();
     }, [scrollToTop]);
@@ -192,6 +207,51 @@ export function FormProvider<T = any>({
         scrollToTop();
     }, [scrollToTop]);
 
+    const openFacilityView = useCallback(
+        (row: T) => {
+            closeAllForms();
+            setSelectedRow(row);
+            setIsFacilityViewOpen(true);
+        },
+        [closeAllForms]
+    );
+
+    const closeFacilityView = useCallback(() => {
+        setIsFacilityViewOpen(false);
+        setSelectedRow(null);
+        scrollToTop();
+    }, [scrollToTop]);
+
+    const openWardenView = useCallback(
+        (row: T) => {
+            closeAllForms();
+            setSelectedRow(row);
+            setIsWardenViewOpen(true);
+        },
+        [closeAllForms]
+    );
+
+    const closeWardenView = useCallback(() => {
+        setIsWardenViewOpen(false);
+        setSelectedRow(null);
+        scrollToTop();
+    }, [scrollToTop]);
+
+    const openDocumentView = useCallback(
+        (row: T) => {
+            closeAllForms();
+            setSelectedRow(row);
+            setIsDocumentViewOpen(true);
+        },
+        [closeAllForms]
+    );
+
+    const closeDocumentView = useCallback(() => {
+        setIsDocumentViewOpen(false);
+        setSelectedRow(null);
+        scrollToTop();
+    }, [scrollToTop]);
+
     return (
         <FormContext.Provider
             value={{
@@ -202,6 +262,9 @@ export function FormProvider<T = any>({
                 isDetailsViewOpen, //  Include this
                 isOrderDetailsOpen, //  Include this
                 isMappedviewOpen,
+                isFacilityViewOpen,
+                isWardenViewOpen,
+                isDocumentViewOpen,
                 selectedRow,
                 openAddForm,
                 closeAddForm,
@@ -217,6 +280,12 @@ export function FormProvider<T = any>({
                 closeOrderDetails,
                 openMappedview,
                 closeMappedview,
+                openFacilityView,
+                closeFacilityView,
+                openWardenView,
+                closeWardenView,
+                openDocumentView,
+                closeDocumentView,
                 closeAllForms,
                 addFormRef,
                 editFormRef

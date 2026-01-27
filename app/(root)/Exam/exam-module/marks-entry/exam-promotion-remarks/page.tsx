@@ -51,6 +51,7 @@ const PromotionRemarksSchema = z.object({
         .optional()
 });
 
+// biome-ignore lint/correctness/noUnusedVariables: <explanation>
 type FormData = z.infer<typeof PromotionRemarksSchema>;
 
 const MI_ID = 30; // You might want to get this from user context or environment
@@ -171,6 +172,7 @@ function PromotionRemarksContent() {
                 setSelectedTerm(undefined);
                 // Clear form errors when academic year changes
                 setFormErrors((prev) => ({ ...prev, academicYear: '' }));
+                // biome-ignore lint/correctness/noUnusedVariables: <explanation>
             } catch (err) {
                 toast.error('Failed to load classes');
             } finally {
@@ -199,6 +201,7 @@ function PromotionRemarksContent() {
                 setSelectedTerm(undefined);
                 // Clear form errors when class changes
                 setFormErrors((prev) => ({ ...prev, class: '' }));
+                // biome-ignore lint/correctness/noUnusedVariables: <explanation>
             } catch (err) {
                 toast.error('Failed to load sections');
             } finally {
@@ -422,7 +425,7 @@ function PromotionRemarksContent() {
                     ecterE_Remarks: student.remarks || '' // Ensure it's always a string
                 }))
             };
-            console.log('payload saveData', saveData);
+            console.info('payload saveData', saveData);
             const response = await addOrUpdateTermWiseRemarks(saveData);
 
             if (response.success) {
