@@ -111,7 +111,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
         const fetchEditData = async () => {
             if (!rowData?.elP_Id || employeeData?.data.length === 0 || classTeachersData?.data.length === 0 || subjects.length === 0)
                 return;
-
+            reset();
             setIsLoadingEditData(true);
             try {
                 // Set edit mode

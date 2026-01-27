@@ -3,7 +3,7 @@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useImperativeHandle } from 'react';
 import { forwardRef } from 'react';
 import { Trash2 } from 'lucide-react';
 import {
@@ -110,8 +110,12 @@ interface Props {
     deactive_Flag: boolean;
 }
 
+export interface StudentMappingTableHandle {
+    reset: () => void;
+}
+
 /* ================== MAIN COMPONENT ================== */
-export default function StudentSubjectMappingTable({
+const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(({
     students,
     subjects,
     onUpdateMapping,
@@ -127,7 +131,7 @@ export default function StudentSubjectMappingTable({
     left_Flag,
     deactive_Flag,
     maxApplicableSubjects = 2
-}: Props) {
+}, ref) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [localStudents, setLocalStudents] = useState<Student[]>([]);
     const [getList, setGetList] = useState<Map<number, Set<number>>>(new Map());
@@ -145,7 +149,8 @@ export default function StudentSubjectMappingTable({
     const getRemovedListRef = useRef<Map<number, Set<number>>>(new Map());
 
     // Initialize local state from props
-    useEffect(() => {
+    // Initialize local state from props (Logic extracted for reuse)
+    const initializeState = useCallback(() => {
         if (students && students.length > 0) {
             setLocalStudents(students);
 
@@ -173,8 +178,20 @@ export default function StudentSubjectMappingTable({
             // Initialize get_Removed_list as empty
             setGetRemovedList(new Map());
             getRemovedListRef.current = new Map();
+            setDisabledStudents(new Set());
         }
     }, [students]);
+
+    useEffect(() => {
+        initializeState();
+    }, [initializeState]);
+
+    useImperativeHandle(ref, () => ({
+        reset: () => {
+            initializeState();
+            toast.info('Grid selection reset');
+        }
+    }));
 
     /** 🔍 SEARCH FILTER */
     const normalize = (value: string) =>
@@ -747,4 +764,8 @@ export default function StudentSubjectMappingTable({
             </AlertDialog>
         </div>
     );
-}
+});
+
+StudentSubjectMappingTable.displayName = 'StudentSubjectMappingTable';
+
+export default StudentSubjectMappingTable;

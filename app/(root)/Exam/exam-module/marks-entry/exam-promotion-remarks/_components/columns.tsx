@@ -6,7 +6,8 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
 
 export const PromotionRemarksColumns = (
-    updateStudent: (id: number, remarks: string) => void
+    updateStudent: (id: number, remarks: string) => void,
+    validationErrors: Record<number, string>
 ): ColumnDef<IPromotionRemarksGrid>[] => [
         // SELECT
         {
@@ -50,7 +51,7 @@ export const PromotionRemarksColumns = (
         {
             accessorKey: 'admNo',
             header: ({ column }) => (
-                <DataTableColumnHeader column={column} title="Adm.No" />
+                <DataTableColumnHeader column={column} title="Admission No" />
             ),
             cell: ({ row }) => <span>{row.original.admNo}</span>
         },
@@ -65,7 +66,8 @@ export const PromotionRemarksColumns = (
                 <span className="font-semibold uppercase">
                     {row.original.studentName}
                 </span>
-            )
+            ),
+            enableSorting: false
         },
         {
             accessorKey: 'remarks',
@@ -74,6 +76,7 @@ export const PromotionRemarksColumns = (
             ),
             cell: ({ row }) => {
                 const { studentId, remarks } = row.original;
+                const isSelected = row.getIsSelected();
 
                 // Local state inside the cell
                 const [localValue, setLocalValue] = useState(remarks ?? '');
@@ -91,23 +94,32 @@ export const PromotionRemarksColumns = (
                     updateStudent(studentId, value); // call update immediately on change
                 };
 
-                return (
-                    <Select
-                        value={localValue}
-                        onValueChange={handleChange} // no onBlur needed
-                    >
-                        <SelectTrigger className="w-[250px] bg-white border border-blue-400 focus-visible:ring-blue-500">
-                            <SelectValue placeholder="--Select--" />
-                        </SelectTrigger>
+                const errorMessage = validationErrors[studentId];
 
-                        <SelectContent>
-                            {OPTIONS.map((o) => (
-                                <SelectItem key={o} value={o}>
-                                    {o}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                return (
+                    <div className="space-y-1">
+                        <Select
+                            value={localValue}
+                            onValueChange={handleChange} // no onBlur needed
+                        >
+                            <SelectTrigger className={`w-[250px] bg-white border ${errorMessage ? 'border-red-500 hover:border-red-600' : 'border-blue-400 focus-visible:ring-blue-500'}`}>
+                                <SelectValue placeholder="--Select--" />
+                            </SelectTrigger>
+
+                            <SelectContent>
+                                {OPTIONS.map((o) => (
+                                    <SelectItem key={o} value={o}>
+                                        {o}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {errorMessage && (
+                            <p className="text-[10px] font-medium text-red-500 animate-in fade-in slide-in-from-top-1">
+                                {errorMessage}
+                            </p>
+                        )}
+                    </div>
                 );
             },
             enableSorting: false,

@@ -614,9 +614,13 @@ export default function AddPromotionalSettingForm({
             setBestApplicable(false);
             setBestOff(null);
             setPromotionType('P');
-            toast.info('Form reset');
+            setPromotionType('P');
+            // Only show toast if something was reset (e.g. year was selected)
+            if (selectedYear !== 0) {
+                toast.info('Form reset');
+            }
         }
-    }, [rowData, initialState]);
+    }, [rowData, initialState, selectedYear]);
 
     // Check if table should be visible
     const isTableVisible = promotionType !== 'F' && selectedCategory && subjects.length > 0;
@@ -645,11 +649,17 @@ export default function AddPromotionalSettingForm({
                         {/* Academic Year */}
                         <div>
                             <Label>Academic Year *</Label>
-                            <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(Number(v))}>
+                            <Select
+                                key={selectedYear}
+                                value={selectedYear !== 0 ? String(selectedYear) : undefined}
+                                onValueChange={(v) => setSelectedYear(Number(v))}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Academic Year' />
                                 </SelectTrigger>
                                 <SelectContent>
+                                    <SelectItem value='0' disabled>
+                                        --Select--
+                                    </SelectItem>
                                     {academicYearLoading ? (
                                         <SelectItem value='__loading' disabled>
                                             Loading Academic Year...
@@ -669,6 +679,7 @@ export default function AddPromotionalSettingForm({
                         <div>
                             <Label>Category *</Label>
                             <Select
+                                key={selectedCategory}
                                 value={selectedCategory ? String(selectedCategory) : '__none'}
                                 onValueChange={(v) => setSelectedCategory(v && v !== '__none' ? Number(v) : null)}>
                                 <SelectTrigger>
@@ -691,6 +702,7 @@ export default function AddPromotionalSettingForm({
                         <div>
                             <Label>Grade *</Label>
                             <Select
+                                key={selectedGrade}
                                 value={selectedGrade || '__none'}
                                 onValueChange={(v) => setSelectedGrade(v && v !== '__none' ? v : null)}>
                                 <SelectTrigger>

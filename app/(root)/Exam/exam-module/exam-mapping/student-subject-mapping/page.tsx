@@ -14,10 +14,10 @@ import {
     getStudentsForSubjectMapping,
     getSubjectlistByCatGroupClass
 } from '@/server/exam/exam-module/exam-mapping/student-subject-mapping';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import StudentSubjectMappingTable from './_components/student-mapping-table';
+import StudentSubjectMappingTable, { StudentMappingTableHandle } from './_components/student-mapping-table';
 
 type FormValues = {
     asmaY_Id?: number;
@@ -119,9 +119,9 @@ function StudentSubjectMappingContent() {
     const [isGridOpen, setIsGridOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [userId] = useState<number>(1); // You should get this from auth context
+    const tableRef = useRef<StudentMappingTableHandle>(null);
 
     const MI_Id = 30;
-    const FIXED_EMG_ID = 118;
 
     // Set default academic year
     useEffect(() => {
@@ -254,7 +254,7 @@ function StudentSubjectMappingContent() {
                 //  EMCA_Id: form.emcA_Id,
                 Left_Flag: form.Left_Flag ?? true,
                 Deactive_Flag: form.Deactive_Flag ?? true,
-                EMG_Id: FIXED_EMG_ID
+                EMG_Id: form.subject_group_id ?? 0
             };
             const response = await getStudentsForSubjectMapping(params);
             const success = response?.success ?? false;
@@ -405,8 +405,7 @@ function StudentSubjectMappingContent() {
                                             <Select
                                                 key={field.value}
                                                 value={field.value ? String(field.value) : undefined}
-                                                onValueChange={(v) => field.onChange(Number(v))}
-                                                disabled={!watchedAcademicYear || loadingClasses}>
+                                                onValueChange={(v) => field.onChange(Number(v))}>
                                                 <SelectTrigger className='h-10'>
                                                     <SelectValue placeholder='Select Class' />
                                                 </SelectTrigger>
@@ -471,8 +470,7 @@ function StudentSubjectMappingContent() {
                                             <Select
                                                 key={field.value}
                                                 value={field.value ? String(field.value) : undefined}
-                                                onValueChange={(v) => field.onChange(Number(v))}
-                                                disabled={loadingCategories}>
+                                                onValueChange={(v) => field.onChange(Number(v))}>
                                                 <SelectTrigger className='h-10'>
                                                     <SelectValue placeholder='Select Category' />
                                                 </SelectTrigger>
@@ -513,8 +511,7 @@ function StudentSubjectMappingContent() {
                                             <Select
                                                 key={field.value}
                                                 value={field.value ? String(field.value) : undefined}
-                                                onValueChange={(v) => field.onChange(Number(v))}
-                                                disabled={!watchedClass || loadingSections}>
+                                                onValueChange={(v) => field.onChange(Number(v))}>
                                                 <SelectTrigger className='h-10'>
                                                     <SelectValue placeholder='Select Section' />
                                                 </SelectTrigger>
@@ -544,12 +541,11 @@ function StudentSubjectMappingContent() {
                                     name='subject_group_id'
                                     render={({ field, fieldState }) => (
                                         <div>
-                                            <Label className='mb-1 block font-medium text-slate-700 text-sm'>Subject Group</Label>
+                                            <Label className='mb-1 block font-medium text-slate-700 text-sm'>Subject Group <span className='text-red-500'>*</span></Label>
                                             <Select
                                                 key={field.value}
                                                 value={field.value ? String(field.value) : undefined}
-                                                onValueChange={(v) => field.onChange(Number(v))}
-                                                disabled={!watchedCategory || loadingSG}>
+                                                onValueChange={(v) => field.onChange(Number(v))}>
                                                 <SelectTrigger className='h-10'>
                                                     <SelectValue placeholder={loadingSG ? 'Loading...' : 'Select Subject Group'} />
                                                 </SelectTrigger>
@@ -649,6 +645,7 @@ function StudentSubjectMappingContent() {
                     {isGridOpen && (
                         <CollapsibleSection defaultOpen variant='default' size='lg' className='shadow-lg'>
                             <StudentSubjectMappingTable
+                                ref={tableRef}
                                 students={students}
                                 subjects={subjects}
                                 onUpdateMapping={handleUpdateMapping}
@@ -659,7 +656,7 @@ function StudentSubjectMappingContent() {
                                 asmaY_Id={getValues('asmaY_Id') || 0}
                                 asmcL_Id={getValues('asmcL_Id') || 0}
                                 asmS_Id={getValues('asmS_Id') || 0}
-                                emG_Id={getValues('subject_group_id') || FIXED_EMG_ID}
+                                emG_Id={getValues('subject_group_id') || 0}
                                 emE_Id={getValues('eme_Id') || 0}
                                 userId={userId}
                                 left_Flag={getValues('Left_Flag') ?? true}
@@ -667,7 +664,7 @@ function StudentSubjectMappingContent() {
                             />
 
                             <div className='flex w-fit justify-end gap-3 border-t p-4'>
-                                <Button variant='outline' onClick={() => setIsGridOpen(false)}>
+                                <Button variant='outline' onClick={() => tableRef.current?.reset()}>
                                     Cancel
                                 </Button>
                                 <Button type='submit' onClick={handleSave}>

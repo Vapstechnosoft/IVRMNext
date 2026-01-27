@@ -228,7 +228,19 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
     };
 
     const handleClear = () => {
-        reset();
+        reset({
+            Type: type,
+            asmaY_Id: 0,
+            emcA_Id: 0,
+            emG_Id: 0,
+            ismS_Id: 0,
+            asmcL_Id: 0,
+            asmS_Id: 0,
+            mob_flg: false,
+            mail_flg: false,
+            Left_Flag: false,
+            Deactive_Flag: false
+        });
         setCategories([]);
         setGroups([]);
         setSubjects([]);
@@ -352,8 +364,8 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                                     field.value === 'All'
                                                         ? 'All'
                                                         : field.value && field.value !== 0
-                                                          ? String(field.value)
-                                                          : undefined
+                                                            ? String(field.value)
+                                                            : undefined
                                                 }
                                                 onValueChange={(v) => field.onChange(v === 'All' ? 'All' : Number(v))}>
                                                 <SelectTrigger>

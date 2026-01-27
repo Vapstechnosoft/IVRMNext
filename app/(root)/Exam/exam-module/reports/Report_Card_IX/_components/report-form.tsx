@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type ReportCardIXSchema, reportCardIXSchema } from '@/schemas/exam/exam-module/reports';
 import { getClasses, getDetails, getReportDetails, getSections, getStudents } from '@/server/exam/exam-module/reports/Report_Card_IX';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -29,7 +30,8 @@ const GROUPS = [
 ];
 
 export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
-    const [years, setYears] = useState<any[]>([]);
+    const { data: academicData, isLoading: academicYearLoading } = useAcademicYearDropdown();
+    const academicYears = academicData?.data || [];
     const [classes, setClasses] = useState<any[]>([]);
     const [sections, setSections] = useState<any[]>([]);
     const [students, setStudents] = useState<any[]>([]);
@@ -70,17 +72,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
 
     // Initial Data
     useEffect(() => {
-        getDetails()
-            .then((res) => {
-                if (res.acdlist && res.acdlist.length === 0) toast.info('No Academic Years found');
-                setYears(res.acdlist);
-                setLoading(false);
-            })
-            .catch((err) => {
-                console.error(err);
-                toast.error('Failed to load initial data');
-                setLoading(false);
-            });
+        setLoading(false);
     }, []);
 
     // Load Classes
@@ -162,7 +154,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
             const result = await getReportDetails(data);
             const enrichedParams = {
                 ...data,
-                ASMAY_Year: years.find((y) => String(y.asmaY_Id) === data.ASMAY_Id)?.asmaY_Year,
+                ASMAY_Year: academicYears.find((y: any) => String(y.asmaY_Id) === data.ASMAY_Id)?.asmaY_Year,
                 ASMCL_Id_Name: classes.find((c) => String(c.asmcL_Id) === data.ASMCL_Id)?.asmcL_ClassName,
                 ASMS_Id_Name: sections.find((s) => String(s.asmS_Id) === data.ASMS_Id)?.asmC_SectionName
             };
@@ -207,36 +199,44 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                     <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                         {/* Left Column */}
                         <div className='space-y-4'>
-                            {/* Academic Year */}
                             <div className='space-y-2'>
-                                <Label>
-                                    Academic Year <span className='text-red-500'>*</span>
-                                </Label>
                                 <Controller
                                     control={control}
                                     name='ASMAY_Id'
                                     render={({ field, fieldState }) => (
-                                        <>
-                                            <Select onValueChange={field.onChange} value={field.value}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder='Select Academic Year' />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {years.length === 0 ? (
-                                                        <SelectItem value='empty' disabled>
-                                                            No Academic Years found
-                                                        </SelectItem>
-                                                    ) : (
-                                                        years.map((year) => (
-                                                            <SelectItem key={year.asmaY_Id} value={String(year.asmaY_Id)}>
-                                                                {year.asmaY_Year}
+                                        <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+                                            <Label className='font-medium text-sm sm:w-32'>
+                                                Academic Year <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <div className='flex-1'>
+                                                <Select
+                                                    key={field.value}
+                                                    onValueChange={field.onChange}
+                                                    value={field.value ? String(field.value) : ''}>
+                                                    <SelectTrigger className='w-full'>
+                                                        <SelectValue placeholder='Select Academic Year' />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {academicYearLoading ? (
+                                                            <SelectItem value='0' disabled>
+                                                                Academic Years are loading...
                                                             </SelectItem>
-                                                        ))
-                                                    )}
-                                                </SelectContent>
-                                            </Select>
-                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                        </>
+                                                        ) : academicYears.length === 0 ? (
+                                                            <SelectItem value='0' disabled>
+                                                                No Academic Years found
+                                                            </SelectItem>
+                                                        ) : (
+                                                            academicYears.map((y: any) => (
+                                                                <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                                                    {y.asmaY_Year}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
+                                                    </SelectContent>
+                                                </Select>
+                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                            </div>
+                                        </div>
                                     )}
                                 />
                             </div>

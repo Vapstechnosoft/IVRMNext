@@ -11,10 +11,11 @@ import {
     getStudentList,
     onchangeActivities,
     onchangeSkills,
-    saveCCEStudentMarks
+    saveCCEStudentMarks,
+    getTermOrExams
 } from '@/server/exam/exam-module/exam-mapping/student-transaction-cce';
-import { getCoScholasticActivities } from '@/server/exam/exam-module/masters/co-scholastic-activity';
-import { getMasterLifeSkills } from '@/server/exam/exam-module/masters/life-skills';
+import { getCoScholasticActivities, getCoScholasticActivityDropdownList } from '@/server/exam/exam-module/masters/co-scholastic-activity';
+import { getMasterLifeSkillDrpdownList, getMasterLifeSkills } from '@/server/exam/exam-module/masters/life-skills';
 import {
     getClassDropDownByAcademicYearlist,
     getExamsDropDownByAcademicYearandClassandSectionlist,
@@ -29,7 +30,8 @@ import type {
     ISection,
     ISkillArea,
     ISkillName,
-    IStudentTransaction
+    IStudentTransaction,
+    ITerm
 } from '@/types/exam/exam-module/exam-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RotateCcw, Search } from 'lucide-react';
@@ -82,13 +84,14 @@ function StudentTransactionContent() {
     const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
     const [classes, setClasses] = useState<IClass[]>([]);
     const [sections, setSections] = useState<ISection[]>([]);
-    const [examTerms, setExamTerms] = useState<IExamMaster[]>([]);
+    const [examTerms, setExamTerms] = useState<ITerm[]>([]);
     const [exams, setExams] = useState<IExamMaster[]>([]);
     const [skillNames, setSkillNames] = useState<ISkillName[]>([]);
     const [activityNames, setActivityNames] = useState<IActivityName[]>([]);
     const [skillAreas, setSkillAreas] = useState<ISkillArea[]>([]);
     const [activityAreas, setActivityAreas] = useState<IActivityArea[]>([]);
     const [students, setStudents] = useState<IStudentTransaction[]>([]);
+    const [originalStudents, setOriginalStudents] = useState<IStudentTransaction[]>([]);
     const [savedScores, setSavedScores] = useState<ISavedScore[]>([]);
     const [selectedStudentIds, setSelectedStudentIds] = useState<number[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -134,6 +137,7 @@ function StudentTransactionContent() {
         setSkillAreas([]);
         setActivityAreas([]);
         setStudents([]);
+        setOriginalStudents([]);
         setSavedScores([]);
         setShowTable(false);
         setSelectedStudentIds([]);
@@ -237,7 +241,12 @@ function StudentTransactionContent() {
         const fetchExamData = async () => {
             setLoadingExamData(true);
             try {
-                const response = await getExamsDropDownByAcademicYearandClassandSectionlist(watchAcademicYear, watchClass, watchSection);
+                const response = await getTermOrExams({
+                    ASMAY_Id: watchAcademicYear,
+                    ASMCL_Id: watchClass,
+                    ASMS_Id: watchSection,
+                    EXAM_TERMWISE_FLAG: watchExamType === 'TermWise' ? 1 : 0
+                });
 
                 if (response.data) {
                     if (watchExamType === 'TermWise') {
@@ -282,7 +291,7 @@ function StudentTransactionContent() {
             setLoadingNames(true);
             try {
                 if (watchSkillActivity === 'Skills') {
-                    const response = await getMasterLifeSkills(30);
+                    const response = await getMasterLifeSkillDrpdownList(30);
                     const skillsList = Array.isArray(response.data) ? response.data : [];
                     setSkillNames(skillsList);
                     console.log('skillsList', skillsList);
@@ -290,7 +299,7 @@ function StudentTransactionContent() {
                     setSkillAreas([]);
                     setActivityAreas([]);
                 } else {
-                    const CcActivities_response = await getCoScholasticActivities();
+                    const CcActivities_response = await getCoScholasticActivityDropdownList();
                     const activitiesList = Array.isArray(CcActivities_response.data) ? CcActivities_response.data : [];
                     setActivityNames(activitiesList);
                     console.log('activitiesList', activitiesList);
@@ -470,6 +479,7 @@ function StudentTransactionContent() {
                 });
 
                 setStudents(studentsWithScores);
+                setOriginalStudents(studentsWithScores);
                 setSavedScores(savedData);
 
                 // Automatically select students who already have saved scores
@@ -516,6 +526,7 @@ function StudentTransactionContent() {
         setSkillAreas([]);
         setActivityAreas([]);
         setStudents([]);
+        setOriginalStudents([]);
         setSavedScores([]);
         setShowTable(false);
         setSelectedStudentIds([]);
@@ -534,6 +545,15 @@ function StudentTransactionContent() {
         }
 
         toast.info('Form reset successfully');
+    };
+
+    // Handle grid reset (only resets grid changes)
+    const handleGridReset = () => {
+        setStudents(originalStudents);
+        const savedStudentIds = savedScores.map((s: any) => s.amsT_Id);
+        setSelectedStudentIds(savedStudentIds);
+        setIsSelectAll(savedStudentIds.length === originalStudents.length && originalStudents.length > 0);
+        toast.info('Grid changes reset');
     };
 
     // Handle save scores
@@ -604,6 +624,7 @@ function StudentTransactionContent() {
             console.log('Save payload:', payload);
 
             const result = await saveCCEStudentMarks(payload);
+            console.log('Save result:', result);
 
             if (result.success || result.returnVal === 'saved') {
                 toast.success(verifyFlag ? 'Record verified successfully' : 'Record saved successfully');
@@ -918,8 +939,8 @@ function StudentTransactionContent() {
                                                             </SelectItem>
                                                         ) : (
                                                             examTerms.map((term) => (
-                                                                <SelectItem key={term.emE_Id} value={term.emE_Id.toString()}>
-                                                                    {term.emE_ExamName}
+                                                                <SelectItem key={term.ecT_Id} value={term.ecT_Id.toString()}>
+                                                                    {term.ecT_TermName}
                                                                 </SelectItem>
                                                             ))
                                                         )}
@@ -989,8 +1010,8 @@ function StudentTransactionContent() {
                                                                 </SelectItem>
                                                             ) : (
                                                                 examTerms.map((exam) => (
-                                                                    <SelectItem key={exam.emE_Id} value={exam.emE_Id.toString()}>
-                                                                        {exam.emE_ExamName}
+                                                                    <SelectItem key={exam.ecT_Id} value={exam.ecT_Id.toString()}>
+                                                                        {exam.ecT_TermName}
                                                                     </SelectItem>
                                                                 ))
                                                             )
@@ -1300,7 +1321,7 @@ function StudentTransactionContent() {
                                 />
 
                                 <div className='mx-auto mt-8 flex w-fit justify-center gap-4'>
-                                    <Button type='button' onClick={handleReset} variant='outline' className='px-8 py-2 font-medium shadow'>
+                                    <Button type='button' onClick={handleGridReset} variant='outline' className='px-8 py-2 font-medium shadow'>
                                         RESET
                                     </Button>
                                     <Button
