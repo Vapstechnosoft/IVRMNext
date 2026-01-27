@@ -9,9 +9,10 @@ import { Plus, X } from 'lucide-react';
 import { useInvTSales } from '@/hooks/inventory/transactions/use-inv-t-sales';
 import type { IInvTSales } from '@/types/inventory/transactions/inv-t-sales';
 import AddSalesForm from './_components/add-form';
-import { getColumns } from './_components/columns';
+import { invTSalesColumns } from './_components/columns';
 // import UpdateSalesForm from './_components/update-form';
 // import ViewSalesDetailsModal from './_components/view-details-modal';
+import { ToggleSalesModal } from './_components/toggle-modal';
 import { Heading } from '@/components/layout/heading';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -43,30 +44,16 @@ function InvTSalesPageContent({
     const {
         openAddForm,
         openEditForm,
-        openDeleteForm,
         openToggleForm,
         openDetailsView,
         selectedRow,
         isDetailsViewOpen,
-        closeDetailsView
+        closeDetailsView,
+        isToggleFormOpen,
+        closeToggleForm
     } = useFormContext<IInvTSales>();
 
-    const { deleteMutation, toggleActiveMutation } = useInvTSales();
-
-    const columns = getColumns({
-        onEdit: openEditForm,
-        onDelete: (item) => {
-            if (confirm('Are you sure you want to delete this Sales record?')) {
-                deleteMutation.mutate(item);
-            }
-        },
-        onToggleActive: (item) => {
-            if (confirm(`Are you sure you want to ${item.invmsL_ActiveFlg ? 'deactivate' : 'activate'} this Sales record?`)) {
-                toggleActiveMutation.mutate(item);
-            }
-        },
-        onView: openDetailsView
-    });
+    // const { deleteMutation, toggleActiveMutation } = useInvTSales(); // Moved to columns component
 
     const tableProps = useDataTableProps(response?.data, {
         dataKey: 'get_Sale',
@@ -101,7 +88,7 @@ function InvTSalesPageContent({
                     <GenericDataTable<IInvTSales>
                         {...tableProps}
                         data={response?.data?.get_Sale || []}
-                        columns={columns}
+                        columns={invTSalesColumns}
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
@@ -111,6 +98,10 @@ function InvTSalesPageContent({
                         errorTitle='Error Loading Sales Data'
                     />
                 </CollapsibleSection>
+
+                {isToggleFormOpen && selectedRow && (
+                    <ToggleSalesModal rowData={selectedRow} onClose={closeToggleForm} />
+                )}
 
                 {/* {isDetailsViewOpen && selectedRow && (
                     <ViewSalesDetailsModal

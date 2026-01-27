@@ -1,66 +1,77 @@
 'use client';
-
+import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { useInvMasterGroup } from '@/hooks/inventory/masters/use-inv-master-group';
 import type { IInvMasterMainGroup } from '@/types/inventory/masters/inv-master-group';
 import { Plus, X } from 'lucide-react';
-import { InvMasterMainGroupColumns } from './columns';
-import MainGroupForm, { ToggleMainGroupForm } from './main-group-form';
+import { useSearchParams } from 'next/navigation';
+import { InvMasterMainGroupColumns } from './_components/main-group-columns'; // Updated import path
+import MainGroupForm, { ToggleMainGroupForm } from './_components/main-group-form'; // Updated import path
 
-interface MainGroupTabProps {
-    data: IInvMasterMainGroup[];
-}
-
-export default function MainGroupTab({ data }: MainGroupTabProps) {
+export default function InvMasterMainGroupPage() {
     return (
         <FormProvider<IInvMasterMainGroup>>
-            <MainGroupTabContent data={data} />
+            <MainGroupPageContent />
         </FormProvider>
     );
 }
 
-function MainGroupTabContent({ data }: { data: IInvMasterMainGroup[] }) {
+function MainGroupPageContent() {
+    const searchParams = useSearchParams();
+    const params = Object.fromEntries(searchParams.entries());
+    const { data: response, isLoading } = useInvMasterGroup(params);
     const { openAddForm } = useFormContext<IInvMasterMainGroup>();
-    const tableProps = {
-        data,
-        totalItems: data.length,
-        success: true
-    };
+
+    const tableProps = useDataTableProps(response?.data, {
+        dataKey: 'get_maingroup',
+        totalKey: 'maingroupTotal'
+    });
 
     return (
-        <div className='space-y-4 p-1'>
-            {/* Header Actions */}
-            <div className='flex justify-end'>
-                <Button
-                    type='button'
-                    onClick={openAddForm}
-                    className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                    <Plus className='h-4 w-4' />
-                    Add Main Group
-                </Button>
+        <div className='min-h-screen'>
+            <div className='container space-y-4 p-1'>
+                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+                    <div className='space-y-1'>
+                        <Heading title='Main Group Master' description='Manage Main Groups' />
+                    </div>
+                </div>
+
+                <div className='space-y-4 p-1'>
+                    {/* Header Actions */}
+                    <div className='flex justify-end'>
+                        <Button
+                            type='button'
+                            onClick={openAddForm}
+                            className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                            <Plus className='h-4 w-4' />
+                            Add Main Group
+                        </Button>
+                    </div>
+
+                    {/* Data Table */}
+                    <CollapsibleSection
+                        defaultOpen={true}
+                        variant='default'
+                        size='lg'
+                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                        <GenericDataTable<IInvMasterMainGroup>
+                            {...tableProps}
+                            columns={InvMasterMainGroupColumns}
+                            isLoading={isLoading}
+                            columnPinning={{ right: ['actions'] }}
+                            loadingMessage='Loading Main Groups...'
+                            noDataTitle='No Main Groups Found'
+                            noDataDescription='Create your first Main Group'
+                        />
+                    </CollapsibleSection>
+
+                    {/* Forms */}
+                    <FormSections />
+                </div>
             </div>
-
-            {/* Data Table */}
-            <CollapsibleSection
-                defaultOpen={true}
-                variant='default'
-                size='lg'
-                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                <GenericDataTable<IInvMasterMainGroup>
-                    {...tableProps}
-                    columns={InvMasterMainGroupColumns}
-                    isLoading={false} // Data is passed from parent page which handles loading
-                    columnPinning={{ right: ['actions'] }}
-                    loadingMessage='Loading Main Groups...'
-                    noDataTitle='No Main Groups Found'
-                    noDataDescription='Create your first Main Group'
-                />
-            </CollapsibleSection>
-
-            {/* Forms */}
-            <FormSections />
         </div>
     );
 }

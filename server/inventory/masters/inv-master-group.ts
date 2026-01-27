@@ -80,73 +80,155 @@ const DUMMY_ITEM_GROUPS: IInvMasterItemGroup[] = [
 
 export async function fetchInvMasterGroupData(searchParams?: ApiSearchparams): Promise<{ success: boolean; message?: string; data?: IInvMasterGroupLoadResponse }> {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/INV_MasterGroup/getloaddata?${urlParams}`;
+    const mainGroupListUrl = `/api/INV_MasterGroupFacade/loadMainGroup?${urlParams}`;
+    const mainGroupDropdownUrl = `/api/INV_MasterGroupFacade/loadMainGroupDropdown`;
 
     try {
-        const response = await api.get<any>('inventory', url);
+        const [mainGroupResponse, mainGroupDropdownResponse] = await Promise.all([
+            api.post<any>('inventory', mainGroupListUrl, {}),
+            api.post<any>('inventory', mainGroupDropdownUrl, {})
+        ]);
 
-        if (response.success) {
-            return response;
-        }
+        const extractData = (res: any): any[] => {
+            if (!res) return [];
+            if (Array.isArray(res)) return res;
+            if (res.data && Array.isArray(res.data)) return res.data;
+            if (res.data?.$values && Array.isArray(res.data.$values)) return res.data.$values;
+            if (res.data?.data && Array.isArray(res.data.data)) return res.data.data;
+            return [];
+        };
 
-        // Dummy Data Fallback
+        const rawMainGroups = extractData(mainGroupResponse);
+        const rawMainGroupDropdown = extractData(mainGroupDropdownResponse);
+
+        const normalizeMainGroup = (list: any[]) => list.map(item => ({
+            invmG_Id: item.invmG_Id ?? item.INVMG_Id ?? item.id ?? item.invmg_id ?? 0,
+            invmG_GroupName: item.invmG_GroupName ?? item.INVMG_GroupName ?? item.groupName ?? item.invmg_groupname ?? '',
+            invmG_AliasName: item.invmG_AliasName ?? item.INVMG_AliasName ?? item.aliasName ?? item.invmg_aliasname ?? '',
+            invmG_GroupPrefix: item.invmG_GroupPrefix ?? item.INVMG_GroupPrefix ?? item.groupPrefix ?? '',
+            invmG_GroupSuffix: item.invmG_GroupSuffix ?? item.INVMG_GroupSuffix ?? item.groupSuffix ?? '',
+            invmG_GroupStartingNo: item.invmG_GroupStartingNo ?? item.INVMG_GroupStartingNo ?? item.groupStartingNo ?? '',
+            invmG_ActiveFlg: item.invmG_ActiveFlg ?? item.INVMG_ActiveFlg ?? item.activeFlg ?? item.invmg_activeflg ?? false,
+            invmG_Level: item.invmG_Level ?? item.INVMG_Level ?? item.level ?? item.invmg_level ?? '',
+            invmG_MGUGIGFlg: item.invmG_MGUGIGFlg ?? item.INVMG_MGUGIGFlg ?? item.mgugigFlg ?? '',
+            invmG_ParentId: item.invmG_ParentId ?? item.INVMG_ParentId ?? item.parentId ?? 0
+        }));
+
+        const mainGroups = normalizeMainGroup(rawMainGroups);
+        const mainGroupDropdown = normalizeMainGroup(rawMainGroupDropdown);
+
         return {
             success: true,
-            message: 'Data fetched successfully (Dummy)',
             data: {
-                get_maingroup: DUMMY_MAIN_GROUPS,
-                get_maingroupdd: DUMMY_MAIN_GROUPS,
-                get_usergroup: DUMMY_USER_GROUPS,
-                get_itemgroup: DUMMY_ITEM_GROUPS,
-                get_usergp: DUMMY_USER_GROUPS,
-                maingroupTotal: DUMMY_MAIN_GROUPS.length,
-                usergroupTotal: DUMMY_USER_GROUPS.length,
-                itemgroupTotal: DUMMY_ITEM_GROUPS.length,
+                success: true,
+                get_maingroup: mainGroups,
+                get_maingroupdd: mainGroupDropdown,
+                get_usergroup: [],
+                get_itemgroup: [],
+                get_usergp: [],
+                maingroupTotal: mainGroupResponse.total || mainGroups.length,
+                usergroupTotal: 0,
+                itemgroupTotal: 0,
             }
         };
     } catch (error) {
         console.error('Error fetching Master Group data:', error);
         return {
-            success: true,
-            message: 'Data fetched successfully (Dummy Fallback)',
+            success: false,
+            message: 'Failed to fetch Master Group data',
             data: {
-                get_maingroup: DUMMY_MAIN_GROUPS,
-                get_maingroupdd: DUMMY_MAIN_GROUPS,
-                get_usergroup: DUMMY_USER_GROUPS,
-                get_itemgroup: DUMMY_ITEM_GROUPS,
-                get_usergp: DUMMY_USER_GROUPS,
-                maingroupTotal: DUMMY_MAIN_GROUPS.length,
-                usergroupTotal: DUMMY_USER_GROUPS.length,
-                itemgroupTotal: DUMMY_ITEM_GROUPS.length,
+                get_maingroup: [],
+                get_maingroupdd: [],
+                get_usergroup: [],
+                get_itemgroup: [],
+                get_usergp: [],
+                maingroupTotal: 0,
+                usergroupTotal: 0,
+                itemgroupTotal: 0,
             }
         };
     }
 }
 
 export async function saveInvMasterMainGroup(data: any) {
-    const url = `/INV_MasterGroup/savedetails`;
-    const payload = {
-        ...data,
-        INVMG_MGUGIGFlg: "MG"
+    const params = new URLSearchParams();
+    const mapping: Record<string, string> = {
+        invmG_Id: 'INVMG_Id',
+        invmG_GroupName: 'INVMG_GroupName',
+        invmG_AliasName: 'INVMG_AliasName',
+        invmG_GroupPrefix: 'INVMG_GroupPrefix',
+        invmG_GroupSuffix: 'INVMG_GroupSuffix',
+        invmG_GroupStartingNo: 'INVMG_GroupStartingNo',
+        invmG_ActiveFlg: 'INVMG_ActiveFlg'
     };
-    // return await api.post<any>('inventory', url, payload);
-    return { returnval: true, invmG_Id: data.invmG_Id || 100, returnduplicatestatus: '' };
+
+    for (const key in data) {
+        const apiKey = mapping[key] || key;
+        const val = data[key];
+        // Skip ID if it's 0 (new record)
+        if (apiKey === 'INVMG_Id' && (val === 0 || !val)) continue;
+
+        if (val !== undefined && val !== null) {
+            params.append(apiKey, val.toString());
+        }
+    }
+    params.append('INVMG_MGUGIGFlg', 'MG');
+
+    const url = `/api/INV_MasterGroupFacade/savedetails?${params.toString()}`;
+    return await api.post<any>('inventory', url, {});
 }
 
 export async function saveInvMasterUserGroup(data: any) {
-    const url = `/INV_MasterGroup/savedetailsUG`;
-    // return await api.post<any>('inventory', url, data);
-    return { returnval: true, invmG_Id: data.invmG_Id || 101, returnduplicatestatus: '' };
+    const params = new URLSearchParams();
+    const mapping: Record<string, string> = {
+        invmG_Id: 'INVMG_Id',
+        invmG_GroupName: 'INVMG_GroupName',
+        invmG_AliasName: 'INVMG_AliasName',
+        invmG_ParentId: 'INVMG_ParentId',
+        invmG_ActiveFlg: 'INVMG_ActiveFlg'
+    };
+
+    for (const key in data) {
+        const apiKey = mapping[key] || key;
+        const val = data[key];
+
+        // Skip ID if it's 0 (new record)
+        if (apiKey === 'INVMG_Id' && (val === 0 || !val)) continue;
+
+        if (val !== undefined && val !== null) {
+            params.append(apiKey, val.toString());
+        }
+    }
+    // Remove INVMG_MGUGIGFlg as it is not in the user provided example for savedetailsUG
+
+    const url = `/api/INV_MasterGroupFacade/savedetailsUG?${params.toString()}`;
+    return await api.post<any>('inventory', url, {});
 }
 
 export async function saveInvMasterItemGroup(data: any) {
-    const url = `/INV_MasterGroup/savedetailsIG`;
-    // return await api.post<any>('inventory', url, data);
-    return { returnval: true, invmG_Id: data.invmG_Id || 102, returnduplicatestatus: '' };
+    const params = new URLSearchParams();
+    const mapping: Record<string, string> = {
+        invmG_Id: 'INVMG_Id',
+        invmG_GroupName: 'INVMG_GroupName',
+        invmG_AliasName: 'INVMG_AliasName',
+        invmG_ParentId: 'INVMG_ParentId',
+        invmG_ActiveFlg: 'INVMG_ActiveFlg'
+    };
+
+    for (const key in data) {
+        const apiKey = mapping[key] || key;
+        const val = data[key];
+        if (val !== undefined && val !== null) {
+            params.append(apiKey, val.toString());
+        }
+    }
+    params.append('INVMG_MGUGIGFlg', 'IG');
+
+    const url = `/api/INV_MasterGroupFacade/savedetailsIG?${params.toString()}`;
+    return await api.post<any>('inventory', url, {});
 }
 
 export async function deactivateInvMasterGroup(data: any) {
-    const url = `/INV_MasterGroup/deactive`;
-    // return await api.post<any>('inventory', url, data);
-    return { returnval: true };
+    const url = `/api/INV_MasterGroupFacade/deactive?id=${data.invmG_Id}`;
+    return await api.post<any>('inventory', url, {});
 }

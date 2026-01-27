@@ -2511,7 +2511,7 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
-                 {
+                {
                     id: 9,
                     name: 'Inventory',
                     icon: 'Users',
@@ -2552,11 +2552,27 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 4,
-                                            name: 'Group',
+                                            name: 'Main Group',
                                             icon: 'Users',
-                                            url: '/inventory/inventory-module/masters/inv-master-group',
-                                            title: 'Inventory Master Group',
-                                            description: 'Manage Inventory Group, User Group & Item Group'
+                                            url: '/inventory/inventory-module/masters/inv-master-main-group',
+                                            title: 'Inventory Master Main Group',
+                                            description: 'Manage Inventory Main Group'
+                                        },
+                                        {
+                                            id: 104,
+                                            name: 'User Group',
+                                            icon: 'Users',
+                                            url: '/inventory/inventory-module/masters/inv-master-user-group',
+                                            title: 'Inventory Master User Group',
+                                            description: 'Manage Inventory User Group'
+                                        },
+                                        {
+                                            id: 204,
+                                            name: 'Item Group',
+                                            icon: 'Users',
+                                            url: '/inventory/inventory-module/masters/inv-master-item-group',
+                                            title: 'Inventory Master Item Group',
+                                            description: 'Manage Inventory Item Group'
                                         },
                                         {
                                             id: 1105,
@@ -2573,6 +2589,14 @@ export async function getUserAccessibleModules() {
                                             url: '/inventory/inventory-module/masters/inv-item-store-mapping',
                                             title: 'Item Store Mapping',
                                             description: 'Manage Item Store Mapping Details'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Item',
+                                            icon: 'Users',
+                                            url: '/inventory/inventory-module/masters/inv-master-item',
+                                            title: 'Inventory Master Item',
+                                            description: 'Manage Inventory Master Item Details'
                                         }
                                     ]
                                 },

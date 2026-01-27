@@ -9,6 +9,7 @@ import type { InvTItemConsumption } from '@/types/inventory/transactions/inv-t-i
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { useCallback } from 'react';
+import { useInvTItemConsumption } from '@/hooks/inventory/transactions/use-inv-t-item-consumption';
 
 export const invTItemConsumptionColumns: ColumnDef<InvTItemConsumption>[] = [
     {
@@ -54,7 +55,11 @@ export const invTItemConsumptionColumns: ColumnDef<InvTItemConsumption>[] = [
         header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
         cell: ({ row }) => {
             const status = row.original.invmiC_ActiveFlg;
-            return <Badge variant={status ? 'default' : 'destructive'}>{status ? 'Active' : 'Inactive'}</Badge>;
+            return (
+                <Badge className={status ? 'bg-purple-600 hover:bg-purple-700' : 'bg-red-600 hover:bg-red-700'}>
+                    {status ? 'Active' : 'Inactive'}
+                </Badge>
+            );
         }
     },
     {
@@ -67,20 +72,25 @@ export const invTItemConsumptionColumns: ColumnDef<InvTItemConsumption>[] = [
 ];
 
 function ActionButtonsClient({ rowData }: { rowData: InvTItemConsumption }) {
-    const { openEditForm, openToggleForm, openDetailsView } = useFormContext<InvTItemConsumption>();
+    const { openEditForm, openDetailsView, openToggleForm } = useFormContext<InvTItemConsumption>();
+    const { deleteMutation } = useInvTItemConsumption();
 
     const handleEdit = useCallback(() => openEditForm(rowData), [openEditForm, rowData]);
-    const handleToggle = useCallback(() => openToggleForm(rowData), [openToggleForm, rowData]);
+
+    const handleToggle = useCallback(() => {
+        openToggleForm(rowData);
+    }, [openToggleForm, rowData]);
+
     const handleView = useCallback(() => openDetailsView(rowData), [openDetailsView, rowData]);
 
     return (
         <div className='flex justify-center gap-2'>
             <ActionButtons
                 rowData={rowData}
-                buttons={{ edit: true, delete: false, toggle: true}}
+                buttons={{ edit: true, delete: false, toggle: true }}
                 onEdit={handleEdit}
                 onToggle={handleToggle}
-                
+                onView={handleView}
                 toggleConditionKey='invmiC_ActiveFlg'
             />
         </div>

@@ -1,119 +1,102 @@
 'use client';
 
-import type { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, SquarePen, Trash2, Eye, Power } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IInvTGRN } from '@/types/inventory/transactions/inv-t-grn';
+import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
+import { useCallback } from 'react';
+import { useInvTGRN } from '@/hooks/inventory/transactions/use-inv-t-grn';
 
-interface ColumnsProps {
-    onEdit: (item: IInvTGRN) => void;
-    onDelete: (item: IInvTGRN) => void;
-    onToggleActive: (item: IInvTGRN) => void;
-    onView: (item: IInvTGRN) => void;
-}
-
-export const getColumns = ({
-    onEdit,
-    onDelete,
-    onToggleActive,
-    onView
-}: ColumnsProps): ColumnDef<IInvTGRN>[] => [
-        {
-            accessorKey: 'sno',
-            header: 'SL.No.',
-            cell: ({ row }) => row.index + 1
+export const invTGRNColumns: ColumnDef<IInvTGRN>[] = [
+    {
+        accessorKey: 'sno',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SL.No.' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            return <div>{pageIndex * pageSize + row.index + 1}</div>;
         },
-        {
-            accessorKey: 'invmS_StoreName',
-            header: 'Store Name'
-        },
-        {
-            accessorKey: 'invmS_SupplierName',
-            header: 'Supplier Name'
-        },
-        {
-            accessorKey: 'invmgrN_GRNNo',
-            header: 'GRN No.'
-        },
-        {
-            accessorKey: 'invmgrN_KitNo',
-            header: 'Kit No.'
-        },
-        {
-            accessorKey: 'invmgrN_InvoiceNo',
-            header: 'Invoice No.'
-        },
-        {
-            accessorKey: 'invmgrN_PurchaseDate',
-            header: 'Purchase Date',
-            cell: ({ row }) => {
-                const date = row.original.invmgrN_PurchaseDate;
-                return date ? format(new Date(date), 'dd/MM/yyyy') : '-';
-            }
-        },
-        {
-            accessorKey: 'invmgrN_PurchaseValue',
-            header: 'Purchase Value',
-            cell: ({ row }) => Number(row.original.invmgrN_PurchaseValue).toFixed(2)
-        },
-        {
-            accessorKey: 'invmgrN_TotDiscount',
-            header: 'Total Discount',
-            cell: ({ row }) => Number(row.original.invmgrN_TotDiscount).toFixed(2)
-        },
-        {
-            accessorKey: 'invmgrN_TotTaxAmt',
-            header: 'Total Tax',
-            cell: ({ row }) => Number(row.original.invmgrN_TotTaxAmt).toFixed(2)
-        },
-        {
-            accessorKey: 'invmgrN_TotalAmount',
-            header: 'Total Amount',
-            cell: ({ row }) => Number(row.original.invmgrN_TotalAmount).toFixed(2)
-        },
-        {
-            id: 'actions',
-            header: 'Action',
-            cell: ({ row }) => {
-                const item = row.original;
-
-                return (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant='ghost' className='h-8 w-8 p-0'>
-                                <MoreHorizontal className='h-4 w-4' />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align='end'>
-                            <DropdownMenuItem onClick={() => onEdit(item)}>
-                                <SquarePen className='mr-2 h-4 w-4' />
-                                Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onView(item)}>
-                                <Eye className='mr-2 h-4 w-4' />
-                                View Details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onToggleActive(item)}>
-                                <Power className='mr-2 h-4 w-4' />
-                                {item.invmgrN_ActiveFlg ? 'Deactivate' : 'Activate'}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                onClick={() => onDelete(item)}
-                                className='text-destructive focus:text-destructive'
-                            >
-                                <Trash2 className='mr-2 h-4 w-4' />
-                                Delete
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                );
-            }
+        enableSorting: false
+    },
+    {
+        accessorKey: 'invmS_StoreName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Store Name' />,
+        cell: ({ row }) => <div>{row.getValue('invmS_StoreName')}</div>
+    },
+    {
+        accessorKey: 'invmS_SupplierName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Supplier Name' />,
+        cell: ({ row }) => <div>{row.getValue('invmS_SupplierName')}</div>
+    },
+    {
+        accessorKey: 'invmgrN_GRNNo',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='GRN No.' />,
+        cell: ({ row }) => <div>{row.getValue('invmgrN_GRNNo')}</div>
+    },
+    {
+        accessorKey: 'invmgrN_InvoiceNo',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Invoice No.' />,
+        cell: ({ row }) => <div>{row.getValue('invmgrN_InvoiceNo')}</div>
+    },
+    {
+        accessorKey: 'invmgrN_PurchaseDate',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Purchase Date' />,
+        cell: ({ row }) => {
+            const date = row.original.invmgrN_PurchaseDate;
+            return <div>{date ? format(new Date(date), 'dd/MM/yyyy') : '-'}</div>;
         }
-    ];
+    },
+    {
+        accessorKey: 'invmgrN_TotalAmount',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Amount' className='text-right' />,
+        cell: ({ row }) => <div className='text-right'>{Number(row.getValue('invmgrN_TotalAmount')).toFixed(2)}</div>
+    },
+    {
+        accessorKey: 'invtgrN_ActiveFlg',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
+        cell: ({ row }) => {
+            const status = row.original.invtgrN_ActiveFlg;
+            return (
+                <Badge className={status ? 'bg-purple-600 hover:bg-purple-700' : 'bg-red-600 hover:bg-red-700'}>
+                    {status ? 'Active' : 'Inactive'}
+                </Badge>
+            );
+        }
+    },
+    {
+        id: 'actions',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
+        accessorFn: (row) => row,
+        enableSorting: false,
+        cell: ({ row }) => <InvTGRNActionButtons rowData={row.original} />
+    }
+];
+
+function InvTGRNActionButtons({ rowData }: { rowData: IInvTGRN }) {
+    const { openEditForm, openDetailsView, openToggleForm } = useFormContext<IInvTGRN>();
+    const { deleteMutation, toggleActiveMutation } = useInvTGRN();
+
+    const handleEdit = useCallback(() => openEditForm(rowData), [openEditForm, rowData]);
+    const handleView = useCallback(() => openDetailsView(rowData), [openDetailsView, rowData]);
+
+    const handleToggle = useCallback(() => {
+        openToggleForm(rowData);
+    }, [openToggleForm, rowData]);
+
+    return (
+        <div className='flex justify-center gap-2'>
+            <ActionButtons
+                rowData={rowData}
+                buttons={{ edit: true, delete: false, toggle: true, view: true }}
+                onEdit={handleEdit}
+                onToggle={handleToggle}
+                onView={handleView}
+                toggleConditionKey='invtgrN_ActiveFlg'
+            />
+        </div>
+    );
+}

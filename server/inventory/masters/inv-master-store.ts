@@ -5,114 +5,99 @@ import type { ApiSearchparams } from '@/types';
 import type { IInvMasterStore, IEmployeeDropdown } from '@/types/inventory/masters/inv-master-store';
 
 export async function getInvMasterStore(searchParams?: ApiSearchparams) {
+    console.log("getInvMasterStore: TRIGGERED (POST Mode).");
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/INV_MasterStore/getloaddata?${urlParams}`;
+
+    // URLs - appended query string because C# [FromQuery] reads from URL even on POST
+    const storeListUrl = `/api/INV_MasterStoreFacade/GetStoreList?${urlParams}`;
+    const employeeListUrl = `/api/INV_MasterStoreFacade/GetEmployeeList`;
 
     try {
-        const response = await api.get<{ get_store: IInvMasterStore[]; empname_list: IEmployeeDropdown[] }>('inventory', url);
+        const [storeResponse, employeeResponse] = await Promise.all([
+            api.post<any>('inventory', storeListUrl, {}),
+            api.post<any>('inventory', employeeListUrl, {})
+        ]);
 
-        // If API returns success but no data, or if we want to ensure some data is always present for testing
-        if (response.success && response.data && response.data.get_store && response.data.get_store.length > 0) {
-            return response;
-        }
+        const extractData = (res: any) => {
+            if (Array.isArray(res)) return res;
+            if (res?.data && Array.isArray(res.data)) return res.data;
+            if (res?.data?.$values && Array.isArray(res.data.$values)) return res.data.$values;
+            if (res?.data?.get_store && Array.isArray(res.data.get_store)) return res.data.get_store;
+            if (res?.get_store && Array.isArray(res.get_store)) return res.get_store;
+            return [];
+        };
 
-        // Return 20 rows of dummy data if API data is empty
-        let dummyStores: IInvMasterStore[] = Array.from({ length: 20 }, (_, i) => ({
-            invmsT_Id: i + 1,
-            invmS_StoreName: `Store ${String.fromCharCode(65 + (i % 26))} - ${i + 1}`,
-            invmS_StoreLocation: `Location ${i + 1}, Block ${String.fromCharCode(65 + (i % 4))}`,
-            invmS_ContactPerson: `Person ${i + 1}`,
-            invmS_ContactNo: `90000000${(i + 10).toString().slice(-2)}`,
-            invmS_ActiveFlg: i % 4 !== 0,
-            hrmE_Id: 100 + (i % 5) + 1,
-            employeename: `Employee ${(i % 5) + 1}`
+        const rawStores = extractData(storeResponse);
+        const rawEmployees = extractData(employeeResponse);
+
+        const stores: IInvMasterStore[] = rawStores.map((store: any) => ({
+            invmsT_Id: store.invmsT_Id || store.INVMST_Id || store.INVMS_Id || store.invmS_Id || store.Id || 0,
+            invmS_StoreName: store.invmS_StoreName || store.INVMS_StoreName || store.StoreName || '',
+            invmS_StoreLocation: store.invmS_StoreLocation || store.INVMS_StoreLocation || store.StoreLocation || '',
+            invmS_ContactPerson: store.invmS_ContactPerson || store.INVMS_ContactPerson || store.ContactPerson || '',
+            invmS_ContactNo: store.invmS_ContactNo || store.INVMS_ContactNo || store.ContactNo || '',
+            invmS_ActiveFlg: store.invmS_ActiveFlg ?? store.INVMST_ActiveFlg ?? store.INVMS_ActiveFlg ?? store.ActiveFlg ?? false,
+            hrmE_Id: store.hrmE_Id || store.HRME_Id || 0,
+            employeename: store.employeename || store.EMPLOYEENAME || store.EmployeeName || ''
         }));
 
-        const dummyEmployees: IEmployeeDropdown[] = Array.from({ length: 5 }, (_, i) => ({
-            hrmE_Id: 100 + i + 1,
-            employeename: `Employee ${i + 1}`,
-            hrmE_MobileNo: `98765432${(10 + i).toString().slice(-2)}`
+        const employees: IEmployeeDropdown[] = rawEmployees.map((emp: any) => ({
+            hrmE_Id: emp.hrmE_Id || emp.HRME_Id || 0,
+            employeename: emp.employeename || emp.EMPLOYEENAME || emp.EmployeeName || '',
+            hrmE_MobileNo: emp.hrmE_MobileNo || emp.HRME_MobileNo || emp.MobileNo || ''
         }));
-
-        // Apply Search
-        const search = searchParams?.search_query?.toString().toLowerCase();
-        if (search) {
-            dummyStores = dummyStores.filter(item =>
-                item.invmS_StoreName.toLowerCase().includes(search) ||
-                item.invmS_StoreLocation.toLowerCase().includes(search) ||
-                item.invmS_ContactPerson?.toLowerCase().includes(search) ||
-                item.invmS_ContactNo.toLowerCase().includes(search)
-            );
-        }
-
-        const totalItems = dummyStores.length;
-
-        // Apply Pagination
-        const page = Number(searchParams?.page) || 1;
-        const pageSize = Number(searchParams?.page_size) || 10;
-        const startIndex = (page - 1) * pageSize;
-        dummyStores = dummyStores.slice(startIndex, startIndex + pageSize);
 
         return {
             success: true,
-            message: 'Data fetched successfully (Expanded Dummy Data)!!',
             data: {
-                get_store: dummyStores,
-                empname_list: dummyEmployees,
-                total: totalItems
+                get_store: stores,
+                empname_list: employees,
+                total: storeResponse?.total || stores.length
             }
         } as any;
-    } catch (error) {
-        console.error('Error fetching Store data:', error);
 
-        let dummyStores: IInvMasterStore[] = Array.from({ length: 20 }, (_, i) => ({
-            invmsT_Id: i + 1,
-            invmS_StoreName: `Store ${String.fromCharCode(65 + (i % 26))} - ${i + 1} (EF)`,
-            invmS_StoreLocation: `Location ${i + 1}, Block ${String.fromCharCode(65 + (i % 4))}`,
-            invmS_ContactPerson: `Person ${i + 1}`,
-            invmS_ContactNo: `90000000${(i + 10).toString().slice(-2)}`,
-            invmS_ActiveFlg: i % 4 !== 0,
-            hrmE_Id: 100 + (i % 5) + 1,
-            employeename: `Employee ${(i % 5) + 1}`
-        }));
-
-        // Apply Search
-        const search = searchParams?.search_query?.toString().toLowerCase();
-        if (search) {
-            dummyStores = dummyStores.filter(item =>
-                item.invmS_StoreName.toLowerCase().includes(search) ||
-                item.invmS_StoreLocation.toLowerCase().includes(search)
-            );
-        }
-
-        const totalItems = dummyStores.length;
-
-        // Apply Pagination
-        const page = Number(searchParams?.page) || 1;
-        const pageSize = Number(searchParams?.page_size) || 10;
-        const startIndex = (page - 1) * pageSize;
-        dummyStores = dummyStores.slice(startIndex, startIndex + pageSize);
-
+    } catch (error: any) {
+        console.error('getInvMasterStore: FAILED', error);
         return {
-            success: true,
-            message: 'Data fetched successfully (Expanded Dummy Data - Error Fallback)!!',
-            data: {
-                get_store: dummyStores,
-                empname_list: [
-                    { hrmE_Id: 101, employeename: 'John Doe', hrmE_MobileNo: '9876543210' }
-                ],
-                total: totalItems
-            }
-        } as any;
+            success: false,
+            data: { get_store: [], empname_list: [], total: 0 }
+        };
     }
 }
 
 export async function saveInvMasterStore(data: any) {
-    const url = `/INV_MasterStore/savedetails`;
-    return await api.post<any>('inventory', url, data);
+    const params = new URLSearchParams();
+
+    // Mapping internal camelCase keys to PascalCase keys required by API
+    const mapping: Record<string, string> = {
+        invmsT_Id: 'INVMST_Id',
+        invmS_StoreName: 'INVMS_StoreName',
+        invmS_StoreLocation: 'INVMS_StoreLocation',
+        invmS_ContactPerson: 'INVMS_ContactPerson',
+        invmS_ContactNo: 'INVMS_ContactNo',
+        hrmE_Id: 'HRME_Id',
+        invmS_ActiveFlg: 'INVMST_ActiveFlg'
+    };
+
+    for (const key in data) {
+        const apiKey = mapping[key] || key;
+        const val = data[key];
+
+        // Skip ID if it's 0 (new record)
+        if (apiKey === 'INVMST_Id' && (val === 0 || !val)) continue;
+
+        if (val !== undefined && val !== null) {
+            params.append(apiKey, val.toString());
+        }
+    }
+
+    const url = `/api/INV_MasterStoreFacade/savedetails?${params.toString()}`;
+    console.log("saveInvMasterStore: Posting to", url);
+    return await api.post<any>('inventory', url, {});
 }
 
 export async function deactivateInvMasterStore(data: IInvMasterStore) {
-    const url = `/INV_MasterStore/deactive`;
-    return await api.post<any>('inventory', url, data);
+    const url = `/api/INV_MasterStoreFacade/deactive?id=${data.invmsT_Id}`;
+    console.log("deactivateInvMasterStore: Posting to", url);
+    return await api.post<any>('inventory', url, {});
 }
