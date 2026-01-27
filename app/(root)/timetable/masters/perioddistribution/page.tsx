@@ -79,10 +79,6 @@ export default function PeriodDistributionPage() {
 
     return (
         <div className='space-y-4 p-1'>
-            <CollapsibleSection title='Period Distribution' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
-                <PeriodDistributionForm onSuccess={handleSave} />
-            </CollapsibleSection>
-
             <CollapsibleSection
                 title='Grid View'
                 defaultOpen={true}
@@ -101,6 +97,10 @@ export default function PeriodDistributionPage() {
                     noDataDescription='No period distribution records found'
                     errorTitle='Error Loading Data'
                 />
+            </CollapsibleSection>
+
+            <CollapsibleSection title='Period Distribution' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
+                <PeriodDistributionForm onSuccess={handleSave} />
             </CollapsibleSection>
         </div>
     );

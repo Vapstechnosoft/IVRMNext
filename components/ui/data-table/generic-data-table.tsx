@@ -47,6 +47,8 @@ interface GenericDataTableProps<T> {
     searchQuery?: string;
 
     defaultVisibility?: { [key: string]: boolean };
+    scrollable?: boolean;
+    maxHeight?: string;
 }
 
 export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<any>>(function GenericDataTable<T>(
@@ -71,8 +73,10 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         ErrorIcon = Database,
         LoadingComponent,
         ErrorComponent,
-        showSearchColumns = false
+        showSearchColumns = false,
         // manualPagination = true
+        scrollable = false,
+        maxHeight = '600px'
     }: GenericDataTableProps<T>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -160,6 +164,8 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                 maxSelectableRows={maxSelectableRows}
                 showSearchColumns={showSearchColumns}
                 //manualPagination={manualPagination}
+                scrollable={scrollable}
+                maxHeight={maxHeight}
                 onRowSelectionChange={(selectedRows) => {
                     if (onRowSelectionChange) {
                         onRowSelectionChange(selectedRows);

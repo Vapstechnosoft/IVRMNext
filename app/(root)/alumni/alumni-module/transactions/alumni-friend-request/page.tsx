@@ -22,15 +22,15 @@ export default function AlumniFriendRequestPage() {
                 const dataArray = Array.isArray(res.data) ? res.data : res.data.searchResult || [];
                 // Map backend fields (lowercase) to frontend fields (PascalCase)
                 const list = dataArray.map((item: any) => {
-                    const requestDate = item.alsfrnD_RequestDate || item.ALSFRND_RequestDate;
+                    const requestDate = item.alsfrnD_RequestDate || item.ALSFRND_RequestDate || item.alsfrnd_requestdate;
                     return {
-                        ALMST_Id: item.almsT_Id || item.amst_Id || item.student_id || item.ALMST_Id,
+                        ALMST_Id: item.almsT_Id || item.amst_Id || item.student_id || item.ALMST_Id || item.amst_admno,
                         studentname: item.studentname,
-                        ASMAY_Year: item.asmaY_Year || item.ASMAY_Year,
-                        ALSFRND_RequestDate: item.alsfrnD_RequestDate || item.ALSFRND_RequestDate,
-                        ALSFRND_AcceptedDate: item.alsfrnD_AcceptedDate || item.ALSFRND_AcceptedDate,
-                        ALSFRND_AcceptFlag: item.alsfrnD_AcceptFlag || item.ALSFRND_AcceptFlag,
-                        checktru: requestDate !== null,
+                        ASMAY_Year: item.asmaY_Year || item.ASMAY_Year || item.asmay_year || item.asmcl_classname,
+                        ALSFRND_RequestDate: item.alsfrnD_RequestDate || item.ALSFRND_RequestDate || item.alsfrnd_requestdate,
+                        ALSFRND_AcceptedDate: item.alsfrnD_AcceptedDate || item.ALSFRND_AcceptedDate || item.alsfrnd_accepteddate,
+                        ALSFRND_AcceptFlag: item.alsfrnD_AcceptFlag || item.ALSFRND_AcceptFlag || item.alsfrnd_acceptflag,
+                        checktru: requestDate !== null && requestDate !== undefined,
                         selected: false
                     };
                 });
@@ -54,7 +54,7 @@ export default function AlumniFriendRequestPage() {
             // Mapping to new DTO payload structure
             const payload = {
                 field: [values.field],
-                Operator: [values.operator],
+                operator: [values.operator],
                 value: [values.value],
                 condition: ['AND'] // Providing default condition
             };
@@ -64,13 +64,13 @@ export default function AlumniFriendRequestPage() {
                 const dataArray = Array.isArray(res.data) ? res.data : res.data.searchResult || [];
                 // Map backend fields (lowercase) to frontend fields (PascalCase)
                 const list = dataArray.map((item: any) => ({
-                    ALMST_Id: item.almsT_Id || item.amst_Id || item.student_id || item.ALMST_Id,
+                    ALMST_Id: item.almsT_Id || item.amst_Id || item.student_id || item.ALMST_Id || item.amst_admno,
                     studentname: item.studentname,
-                    ASMAY_Year: item.asmaY_Year || item.ASMAY_Year,
-                    ALSFRND_RequestDate: item.alsfrnD_RequestDate || item.ALSFRND_RequestDate,
-                    ALSFRND_AcceptedDate: item.alsfrnD_AcceptedDate || item.ALSFRND_AcceptedDate,
-                    ALSFRND_AcceptFlag: item.alsfrnD_AcceptFlag || item.ALSFRND_AcceptFlag,
-                    checktru: (item.alsfrnD_RequestDate || item.ALSFRND_RequestDate) !== null,
+                    ASMAY_Year: item.asmaY_Year || item.ASMAY_Year || item.asmay_year || item.asmcl_classname,
+                    ALSFRND_RequestDate: item.alsfrnD_RequestDate || item.ALSFRND_RequestDate || item.alsfrnd_requestdate,
+                    ALSFRND_AcceptedDate: item.alsfrnD_AcceptedDate || item.ALSFRND_AcceptedDate || item.alsfrnd_accepteddate,
+                    ALSFRND_AcceptFlag: item.alsfrnD_AcceptFlag || item.ALSFRND_AcceptFlag || item.alsfrnd_acceptflag,
+                    checktru: (item.alsfrnD_RequestDate || item.ALSFRND_RequestDate || item.alsfrnd_requestdate) !== null && (item.alsfrnD_RequestDate || item.ALSFRND_RequestDate || item.alsfrnd_requestdate) !== undefined,
                     selected: false
                 }));
                 setSearchResult(list);

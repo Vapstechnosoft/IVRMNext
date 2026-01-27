@@ -91,14 +91,14 @@ export interface EmployeeStrengthReportOnloadResponse {
  */
 export interface EmployeeStrengthReportSearchRequest {
     MI_Id: number;
-    designationselected: number[];
-    departmentselected: number[];
-    groupTypeselected: number[];
-    AllEmployee: boolean;
-    Departmentwise: boolean;
-    LeftEmployee: boolean;
-    FromDate: string;
-    ToDate: string;
+    designationSelected: number[];
+    departmentSelected: number[];
+    groupTypeSelected: number[];
+    allEmployee: boolean;
+    departmentwise: boolean;
+    leftEmployee: boolean;
+    fromDate: string;
+    toDate: string;
 }
 
 /**

@@ -187,31 +187,61 @@ export const gradeMasterSchema = z
             }
         ),
         hrmG_PayScaleFrom: z
-            .union([z.string(), z.number()])
-            .transform((val) => (typeof val === 'string' ? Number.parseFloat(val) : val))
-            .refine((val) => !Number.isNaN(val) && val >= 0 && val <= 9999999999, {
-                message: 'Pay Scale From must be between 0 and 9999999999'
+            .union([
+                z.number({ invalid_type_error: 'Pay Scale From is required', required_error: 'Pay Scale From is required' }),
+                z.string().transform((val) => {
+                    const parsed = Number.parseFloat(val);
+                    return Number.isNaN(parsed) ? undefined : parsed;
+                })
+            ])
+            .transform((val) => val)
+            .refine((val) => val !== undefined && val !== null && !Number.isNaN(val), {
+                message: 'Pay Scale From is required'
+            })
+            .refine((val) => (val as number) >= 0 && (val as number) <= 999999, {
+                message: 'Pay Scale From must be between 0 and 999999'
             }),
         hrmG_PayScaleTo: z
-            .union([z.string(), z.number()])
-            .transform((val) => (typeof val === 'string' ? Number.parseFloat(val) : val))
-            .refine((val) => !Number.isNaN(val) && val >= 0 && val <= 9999999999, {
-                message: 'Pay Scale To must be between 0 and 9999999999'
+            .union([
+                z.number({ invalid_type_error: 'Pay Scale To is required', required_error: 'Pay Scale To is required' }),
+                z.string().transform((val) => {
+                    const parsed = Number.parseFloat(val);
+                    return Number.isNaN(parsed) ? undefined : parsed;
+                })
+            ])
+            .transform((val) => val)
+            .refine((val) => val !== undefined && val !== null && !Number.isNaN(val), {
+                message: 'Pay Scale To is required'
+            })
+            .refine((val) => (val as number) >= 0 && (val as number) <= 999999, {
+                message: 'Pay Scale To must be between 0 and 999999'
             }),
         hrmG_IncrementOf: z
-            .union([z.string(), z.number()])
-            .transform((val) => (typeof val === 'string' ? Number.parseFloat(val) : val))
-            .refine((val) => !Number.isNaN(val) && val >= 0 && val <= 999, {
-                message: 'Increment must be between 0 and 999'
+            .union([
+                z.number({ invalid_type_error: 'Increment is required', required_error: 'Increment is required' }),
+                z.string().transform((val) => {
+                    const parsed = Number.parseFloat(val);
+                    return Number.isNaN(parsed) ? undefined : parsed;
+                })
+            ])
+            .transform((val) => val)
+            .refine((val) => val !== undefined && val !== null && !Number.isNaN(val), {
+                message: 'Increment is required'
+            })
+            .refine((val) => (val as number) >= 0 && (val as number) <= 999999, {
+                message: 'Increment must be between 0 and 999999'
             }),
         hrmG_Order: z.number().optional()
     })
     .refine(
         (data) => {
-            return data.hrmG_PayScaleFrom < data.hrmG_PayScaleTo;
+            // Pay Scale To must be greater than Pay Scale From
+            // Handle edge cases where values might be undefined
+            if (data.hrmG_PayScaleFrom === undefined || data.hrmG_PayScaleTo === undefined) return true;
+            return data.hrmG_PayScaleTo > data.hrmG_PayScaleFrom;
         },
         {
-            message: 'Pay Scale From must be less than Pay Scale To',
+            message: 'Pay Scale To must be greater than Pay Scale From',
             path: ['hrmG_PayScaleTo']
         }
     );

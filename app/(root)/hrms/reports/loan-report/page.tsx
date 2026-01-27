@@ -1,405 +1,654 @@
 'use client';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useFilterEmployeesForLoanReport, useGetEmployeeLoanDetails, useLoanReportOnload } from '@/hooks/hrms/useReports';
-import type { EmployeeDropdown } from '@/types/hrms/reports/loan-report';
-import { useEffect, useMemo, useState } from 'react';
+
+import { Button } from '@/components/ui/button';
+import { FormError } from '@/components/ui/extension/field';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Label } from '@/components/ui/label';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useReportDepartments, useReportDesignations, useReportGroupTypes } from '@/hooks/hrms/useReports';
+import { useLeaveYearDropdown, useMonthDropdown } from '@/hooks/hrms/useMasters';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Printer, RefreshCw, Search } from 'lucide-react';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import type { EmployeeLoanRecord } from './_components/columns';
-import { type LoanFilters, LoanReportFilters } from './_components/filters';
-import { PrintableLoanSheet } from './_components/printable-sheet';
-export default function LoanReportPage() {
-    const MI_Id = HRMS_MI_ID;
-    const roleId = 0;
-    const LogInUserId = 0;
-    // React Query hooks
-    const { data: onloadData, isLoading: isLoadingOnload } = useLoanReportOnload(MI_Id, roleId, LogInUserId);
-    const filterMutation = useFilterEmployeesForLoanReport();
-    const searchMutation = useGetEmployeeLoanDetails();
-    // Memoize arrays to prevent unnecessary re-renders
-    const groupTypes = useMemo(() => onloadData?.data?.groupTypedropdown || [], [onloadData?.data?.groupTypedropdown]);
-    const departments = useMemo(() => onloadData?.data?.departmentdropdown || [], [onloadData?.data?.departmentdropdown]);
-    const designations = useMemo(() => onloadData?.data?.designationdropdown || [], [onloadData?.data?.designationdropdown]);
-    const months = useMemo(() => onloadData?.data?.monthdropdown || [], [onloadData?.data?.monthdropdown]);
-    const years = useMemo(() => onloadData?.data?.leaveyeardropdown || [], [onloadData?.data?.leaveyeardropdown]);
-    // State
-    const [loanRecords, setLoanRecords] = useState<EmployeeLoanRecord[]>([]);
-    const [filteredRecords, setFilteredRecords] = useState<EmployeeLoanRecord[]>([]);
-    const [employees, setEmployees] = useState<EmployeeDropdown[]>([]);
-    const [showReport, setShowReport] = useState(false);
-    const [filters, setFilters] = useState<LoanFilters>({
-        reportScope: 'all',
-        selectedGroupTypes: [],
-        selectedDepartments: [],
-        selectedDesignations: [],
-        selectedEmployee: '',
-        month: '',
-        year: ''
+import { z } from 'zod';
+
+// Define the form fields type
+type LoanReportFormFields = {
+    groupType: string[];
+    department: string[];
+    designation: string[];
+    reportType: 'All' | 'Individual';
+    month: string;
+    year: string;
+    employee: string;
+};
+
+// Zod schema for form validation
+const LoanReportSchema = z
+    .object({
+        groupType: z.array(z.string()).min(1, 'Select at least one group type'),
+        department: z.array(z.string()).min(1, 'Select at least one department'),
+        designation: z.array(z.string()).min(1, 'Select at least one designation'),
+        reportType: z.enum(['All', 'Individual']),
+        month: z.string().min(1, 'Month is required').optional().or(z.literal('')),
+        year: z.string().min(1, 'Year is required').optional().or(z.literal('')),
+        employee: z.string().min(1, 'Employee is required').optional().or(z.literal(''))
+    })
+    .refine((data) => (data.reportType === 'All' && data.month && data.year) || (data.reportType === 'Individual' && data.employee), {
+        message: 'Please fill all required fields based on report type',
+        path: ['reportType']
     });
-    // Show error if API fails
-    useEffect(() => {
-        if (onloadData && !onloadData.success) {
-            const errorMessage = onloadData?.message || 'Failed to load loan report data. Please check if the API endpoint is available.';
-            toast.error(errorMessage);
-        }
-    }, [onloadData]);
-    // Debug: Log when showReport changes
-    useEffect(() => {
-        // showReport state tracked for UI updates
-    }, [showReport]);
-    // Filter employees when filters change (for Individual mode)
-    useEffect(() => {
-        if (filters.reportScope === 'individual') {
-            const hasFilters =
-                filters.selectedGroupTypes.length > 0 || filters.selectedDepartments.length > 0 || filters.selectedDesignations.length > 0;
-            if (hasFilters) {
-                const request = {
-                    MI_Id,
-                    roleId,
-                    LogInUserId,
-                    hrmgT_IdList: filters.selectedGroupTypes.length > 0 ? filters.selectedGroupTypes : [],
-                    hrmD_IdList: filters.selectedDepartments.length > 0 ? filters.selectedDepartments : [],
-                    hrmdeS_IdList: filters.selectedDesignations.length > 0 ? filters.selectedDesignations : []
-                };
-                filterMutation.mutate(request, {
-                    onSuccess: (response) => {
-                        if (response.success && response.data?.employeedropdown) {
-                            setEmployees(response.data.employeedropdown || []);
-                        } else {
-                            setEmployees([]);
-                        }
-                    },
-                    onError: (_error) => {
-                        setEmployees([]);
-                    }
-                });
-            } else {
-                setEmployees([]);
-            }
-        } else {
-            setEmployees([]);
-            setFilters((prev) => ({ ...prev, selectedEmployee: '' }));
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filters.reportScope, filters.selectedGroupTypes, filters.selectedDepartments, filters.selectedDesignations]);
-    // Filter records based on selected criteria
-    useEffect(() => {
-        // Filtering will be done on the backend via API
-        setFilteredRecords(loanRecords);
-    }, [loanRecords]);
-    const handleFilterChange = (newFilters: LoanFilters) => {
-        setFilters(newFilters);
-    };
-    const handleSearch = () => {
-        // Show the sheet template immediately, even without data
-        setShowReport(true);
-        setLoanRecords([]);
-        setFilteredRecords([]);
-        // Show immediate feedback
-        toast.info('Generating report...');
-        // Validate and show warnings, but don't block
-        if (filters.reportScope === 'individual') {
-            if (!filters.selectedEmployee) {
-                toast.warning('Please select an employee for accurate results');
-            }
-        } else {
-            // For "All" scope, month and year are recommended
-            if (!filters.month || !filters.year) {
-                toast.warning('Please select month and year for accurate results');
-            }
-        }
-        // Only call API if we have minimum required filters
-        const hasMinimumFilters = filters.reportScope === 'individual' ? filters.selectedEmployee : filters.month && filters.year;
-        if (!hasMinimumFilters) {
-            // Show empty sheet template
-            toast.info('Showing report template. Please select filters and search again for data.');
-            return;
-        }
-        const request = {
-            MI_Id,
-            roleId,
-            LogInUserId,
-            hrmgT_IdList: filters.selectedGroupTypes.length > 0 ? filters.selectedGroupTypes : [],
-            hrmD_IdList: filters.selectedDepartments.length > 0 ? filters.selectedDepartments : [],
-            hrmdeS_IdList: filters.selectedDesignations.length > 0 ? filters.selectedDesignations : [],
-            hrmE_Id: filters.reportScope === 'individual' && filters.selectedEmployee ? Number.parseInt(filters.selectedEmployee) : 0
-        };
-        searchMutation.mutate(request, {
-            onSuccess: (response) => {
-                if (response.success && response.data) {
-                    // Process the response data to populate loan records
-                    const employeeLoanDetails = response.data.employeeSalaryslipDetails || [];
-                    const loanTotalAmount = response.data.EmploanTotalAmount || [];
-                    const responseData = response.data;
-                    // Transform API response to EmployeeLoanRecord format
-                    // The API response structure contains loan data in employeeSalaryslipDetails with Values object
-                    const records: EmployeeLoanRecord[] = [];
-                    // Helper function to extract value from item (handles Values object structure)
-                    const getValue = (item: any, key: string, defaultValue: any = 0) => {
-                        // Check if item has Values object (API structure)
-                        if (item?.Values && typeof item.Values === 'object') {
-                            return item.Values[key] ?? defaultValue;
-                        }
-                        // Otherwise check direct properties
-                        return item?.[key] ?? defaultValue;
-                    };
-                    // Map employeeSalaryslipDetails if available
-                    if (Array.isArray(employeeLoanDetails) && employeeLoanDetails.length > 0) {
-                        employeeLoanDetails.forEach((item: any, index: number) => {
-                            // Extract loan data from the item or Values object
-                            const loanAmount =
-                                getValue(item, 'HREL_LoanAmount') ||
-                                getValue(item, 'loanAmount') ||
-                                getValue(item, 'HRELT_LoanAmount') ||
-                                responseData.HREL_LoanAmount ||
-                                responseData.HRELT_LoanAmount ||
-                                0;
-                            const approvedAmount = loanAmount; // Assuming approved amount equals loan amount if not specified
-                            const interestRate = getValue(item, 'interestRate') || getValue(item, 'HREL_InterestRate') || 0;
-                            const loanTenureStr = getValue(item, 'HREL_LoanInsallments') || responseData.HREL_LoanInsallments || '';
-                            const loanTenure = loanTenureStr ? Number.parseInt(String(loanTenureStr)) : 0;
-                            const emiAmount = getValue(item, 'emiAmount') || getValue(item, 'HREL_EMIAmount') || 0;
-                            const paidAmount = getValue(item, 'paidAmount') || getValue(item, 'HREL_PaidAmount') || 0;
-                            const remainingAmount =
-                                getValue(item, 'HREL_TotalPending') || responseData.HREL_TotalPending || approvedAmount - paidAmount;
-                            // Determine status based on remaining amount and other factors
-                            let status: 'Pending' | 'Approved' | 'Rejected' | 'Active' | 'Completed' | 'Defaulted' = 'Pending';
-                            if (remainingAmount === 0 && paidAmount > 0) {
-                                status = 'Completed';
-                            } else if (paidAmount > 0 && remainingAmount > 0) {
-                                status = 'Active';
-                            } else if (loanAmount > 0 && paidAmount === 0) {
-                                status = 'Approved';
-                            }
-                            // Calculate total interest and total payable amount
-                            const totalInterest = getValue(item, 'totalInterest') || (loanAmount * interestRate * loanTenure) / (12 * 100);
-                            const totalPayableAmount = approvedAmount + totalInterest;
-                            const paidEMIs = getValue(item, 'paidEMIs') || Math.floor(paidAmount / (emiAmount || 1));
-                            const remainingEMIs = loanTenure - paidEMIs;
-                            // Get employee details from item, Values, or response top-level
-                            const employeeCode =
-                                getValue(item, 'HRME_EmployeeCode') ||
-                                getValue(item, 'employeeCode') ||
-                                responseData.hrme_employeecode ||
-                                '';
-                            const employeeFirstName =
-                                getValue(item, 'HRME_EmployeeFirstName') ||
-                                getValue(item, 'employeeFirstName') ||
-                                responseData.hrmE_EmployeeFirstName ||
-                                '';
-                            const employeeMiddleName =
-                                getValue(item, 'HRME_EmployeeMiddleName') || getValue(item, 'employeeMiddleName') || '';
-                            const employeeLastName = getValue(item, 'HRME_EmployeeLastName') || getValue(item, 'employeeLastName') || '';
-                            const employeeName = `${employeeFirstName} ${employeeMiddleName} ${employeeLastName}`.trim() || employeeCode;
-                            const groupType = getValue(item, 'HRMGT_EmployeeGroupType') || getValue(item, 'groupType') || 'N/A';
-                            const department = getValue(item, 'HRMD_DepartmentName') || getValue(item, 'department') || 'N/A';
-                            const designation = getValue(item, 'HRMDES_DesignationName') || getValue(item, 'designation') || 'N/A';
-                            const basicSalary = getValue(item, 'HRME_BasicSalary') || getValue(item, 'basicSalary') || 0;
-                            const loanToSalaryRatio = basicSalary > 0 ? Math.round((loanAmount / basicSalary) * 100) : 0;
-                            // Get loan type from item, Values, or response top-level
-                            const loanType =
-                                getValue(item, 'HRML_LoanType') ||
-                                getValue(item, 'loanType') ||
-                                responseData.HRML_LoanType ||
-                                'Personal Loan';
-                            // Get dates
-                            const loanApplicationDate =
-                                getValue(item, 'HREL_ApplicationDate') || getValue(item, 'loanApplicationDate') || '';
-                            const loanStartDate = getValue(item, 'HREL_StartDate') || getValue(item, 'loanStartDate') || '';
-                            const loanEndDate = getValue(item, 'HREL_EndDate') || getValue(item, 'loanEndDate') || '';
-                            const approvalDate = getValue(item, 'HREL_ApprovalDate') || getValue(item, 'approvalDate') || '';
-                            const approvedBy = getValue(item, 'HREL_ApprovedBy') || getValue(item, 'approvedBy') || '';
-                            const guarantor = getValue(item, 'guarantor') || '';
-                            const loanPurpose = getValue(item, 'HREL_Purpose') || getValue(item, 'loanPurpose') || '';
-                            // Get month and year from item, Values, or response top-level
-                            const month = filters.month || getValue(item, 'HRELT_Month') || responseData.HRELT_Month || '';
-                            const year =
-                                filters.year || getValue(item, 'HRELT_Year')?.toString() || responseData.HRELT_Year?.toString() || '';
-                            records.push({
-                                id: Number(getValue(item, 'HREL_Id') || getValue(item, 'HRELT_Id') || index) || index + 1,
-                                employeeCode: employeeCode,
-                                employeeName: employeeName,
-                                groupType: groupType,
-                                department: department,
-                                designation: designation,
-                                loanApplicationDate: loanApplicationDate,
-                                loanType:
-                                    (loanType as
-                                        | 'Personal Loan'
-                                        | 'Home Loan'
-                                        | 'Vehicle Loan'
-                                        | 'Education Loan'
-                                        | 'Emergency Loan'
-                                        | 'Medical Loan') || 'Personal Loan',
-                                loanAmount: Math.round(loanAmount),
-                                approvedAmount: Math.round(approvedAmount),
-                                interestRate: Math.round(interestRate * 100) / 100,
-                                loanTenure: loanTenure,
-                                emiAmount: Math.round(emiAmount),
-                                loanStartDate: loanStartDate,
-                                loanEndDate: loanEndDate,
-                                totalInterest: Math.round(totalInterest),
-                                totalPayableAmount: Math.round(totalPayableAmount),
-                                paidAmount: Math.round(paidAmount),
-                                remainingAmount: Math.round(remainingAmount),
-                                paidEMIs: paidEMIs,
-                                remainingEMIs: remainingEMIs,
-                                status: status,
-                                approvalDate: approvalDate,
-                                approvedBy: approvedBy,
-                                guarantor: guarantor,
-                                loanPurpose: loanPurpose,
-                                month: month,
-                                year: year,
-                                basicSalary: Math.round(basicSalary),
-                                loanToSalaryRatio: loanToSalaryRatio
-                            });
-                        });
-                    }
-                    // If no records from employeeSalaryslipDetails, try EmploanTotalAmount
-                    if (records.length === 0 && Array.isArray(loanTotalAmount) && loanTotalAmount.length > 0) {
-                        loanTotalAmount.forEach((item: any, index: number) => {
-                            // Similar mapping logic - EmploanTotalAmount may have aggregated data
-                            const loanAmount =
-                                getValue(item, 'HREL_LoanAmount') ||
-                                getValue(item, 'HRELT_LoanAmount') ||
-                                responseData.HREL_LoanAmount ||
-                                responseData.HRELT_LoanAmount ||
-                                0;
-                            const remainingAmount = getValue(item, 'HREL_TotalPending') || responseData.HREL_TotalPending || 0;
-                            const employeeCode = getValue(item, 'HRME_EmployeeCode') || responseData.hrme_employeecode || '';
-                            const employeeName =
-                                getValue(item, 'HRME_EmployeeFirstName') || responseData.hrmE_EmployeeFirstName || employeeCode;
-                            if (loanAmount > 0) {
-                                records.push({
-                                    id: index + 1000000, // Use a large number to avoid conflicts
-                                    employeeCode: employeeCode,
-                                    employeeName: employeeName,
-                                    groupType: 'N/A',
-                                    department: 'N/A',
-                                    designation: 'N/A',
-                                    loanApplicationDate: '',
-                                    loanType:
-                                        (responseData.HRML_LoanType as
-                                            | 'Personal Loan'
-                                            | 'Home Loan'
-                                            | 'Vehicle Loan'
-                                            | 'Education Loan'
-                                            | 'Emergency Loan'
-                                            | 'Medical Loan') || 'Personal Loan',
-                                    loanAmount: Math.round(loanAmount),
-                                    approvedAmount: Math.round(loanAmount),
-                                    interestRate: 0,
-                                    loanTenure: 0,
-                                    emiAmount: 0,
-                                    loanStartDate: '',
-                                    loanEndDate: '',
-                                    totalInterest: 0,
-                                    totalPayableAmount: Math.round(loanAmount),
-                                    paidAmount: Math.round(loanAmount - remainingAmount),
-                                    remainingAmount: Math.round(remainingAmount),
-                                    paidEMIs: 0,
-                                    remainingEMIs: 0,
-                                    status: remainingAmount === 0 ? 'Completed' : 'Active',
-                                    approvalDate: '',
-                                    approvedBy: '',
-                                    guarantor: '',
-                                    loanPurpose: '',
-                                    month: filters.month || responseData.HRELT_Month || '',
-                                    year: filters.year || responseData.HRELT_Year?.toString() || '',
-                                    basicSalary: 0,
-                                    loanToSalaryRatio: 0
-                                });
-                            }
-                        });
-                    }
-                    // Always update records and show report (sheet is already shown)
-                    setLoanRecords(records);
-                    setFilteredRecords(records);
-                    if (records.length > 0) {
-                        toast.success(`Employee Loan Report generated successfully. Found ${records.length} loan record(s).`);
-                    } else {
-                        toast.warning('No loan data found for selected criteria. Showing empty report template.');
-                    }
-                } else {
-                    // Even on API error, keep the sheet visible
-                    toast.error(response.message || 'Failed to generate loan report. Showing empty report template.');
-                }
-            },
-            onError: (error) => {
-                // Keep the sheet visible even on error
-                toast.error(error.message || 'Failed to generate loan report. Showing empty report template.');
-            }
-        });
-    };
-    const handleCancel = () => {
-        setFilters({
-            reportScope: 'all',
-            selectedGroupTypes: [],
-            selectedDepartments: [],
-            selectedDesignations: [],
-            selectedEmployee: '',
+
+const mockEmployees = [
+    { key: 'VVS015', value: 'ANUSHA T' },
+    { key: 'VVS023', value: 'KIRAN KUMAR' },
+    { key: 'VVS031', value: 'PALLAVI C' },
+    { key: 'VVS042', value: 'RAFIQ' },
+    { key: 'VVS056', value: 'NATARAJA' }
+];
+
+const mockLoanData = [
+    {
+        employeeName: 'ANUSHA T',
+        employeeId: 'VVS015',
+        department: 'Teaching',
+        loanAmount: 50000,
+        loanPurpose: 'Personal Emergency',
+        installments: 12,
+        applicationDate: '15/08/2024',
+        status: 'Approved'
+    },
+    {
+        employeeName: 'KIRAN KUMAR',
+        employeeId: 'VVS023',
+        department: 'Administration',
+        loanAmount: 75000,
+        loanPurpose: 'Education',
+        installments: 24,
+        applicationDate: '22/09/2024',
+        status: 'Pending'
+    },
+    {
+        employeeName: 'PALLAVI C',
+        employeeId: 'VVS031',
+        department: 'Teaching',
+        loanAmount: 30000,
+        loanPurpose: 'Medical',
+        installments: 10,
+        applicationDate: '10/10/2024',
+        status: 'Approved'
+    },
+    {
+        employeeName: 'RAFIQ',
+        employeeId: 'VVS042',
+        department: 'Support Staff',
+        loanAmount: 25000,
+        loanPurpose: 'Home Repair',
+        installments: 8,
+        applicationDate: '05/11/2024',
+        status: 'Rejected'
+    },
+    {
+        employeeName: 'NATARAJA',
+        employeeId: 'VVS056',
+        department: 'Administration',
+        loanAmount: 100000,
+        loanPurpose: 'Vehicle Purchase',
+        installments: 36,
+        applicationDate: '20/11/2024',
+        status: 'Approved'
+    }
+];
+
+export default function LoanReportPage() {
+    const [isSearching, setIsSearching] = useState(false);
+    const [reportData, setReportData] = useState<any>(null);
+
+    const {
+        control,
+        handleSubmit,
+        reset,
+        setValue,
+        watch,
+        formState: { errors, isSubmitting }
+    } = useForm<LoanReportFormFields>({
+        resolver: zodResolver(LoanReportSchema),
+        defaultValues: {
+            groupType: [],
+            department: [],
+            designation: [],
+            reportType: 'All',
             month: '',
-            year: ''
-        });
-        setEmployees([]);
-        setLoanRecords([]);
-        setFilteredRecords([]);
-        setShowReport(false);
-        toast.info('Filters cleared');
+            year: '',
+            employee: ''
+        },
+        mode: 'onChange'
+    });
+
+    const watchReportType = watch('reportType');
+    const watchedGroupType = watch('groupType');
+    const watchedDepartment = watch('department');
+
+    const groupTypeIds = watchedGroupType?.join(',') || '';
+    const deptIds = watchedDepartment?.join(',') || '';
+
+    const { data: masterGroupTypes, isLoading: masterGroupTypesLoading, isError: masterGroupTypesError } = useReportGroupTypes();
+
+    const { data: masterDepartments, isLoading: masterDepartmentsLoading, isError: masterDepartmentsError } = useReportDepartments(groupTypeIds);
+
+    const { data: masterDesignations, isLoading: masterDesignationsLoading, isError: masterDesignationsError } = useReportDesignations(groupTypeIds, deptIds);
+
+    const { data: masterMonths, isLoading: masterMonthsLoading, isError: masterMonthsError } = useMonthDropdown();
+
+    const { data: masterYears, isLoading: masterYearsLoading, isError: masterYearsError } = useLeaveYearDropdown();
+
+    const groupTypeOptions =
+        masterGroupTypes?.data?.map((item: any) => ({
+            value: item.key.toString(),
+            label: item.value
+        })) || [];
+
+    const DepartmentsOptions =
+        masterDepartments?.data?.map((item: any) => ({
+            value: item.hrmD_Id.toString(),
+            label: item.hrmD_DepartmentName
+        })) || [];
+
+    const DesignationOptions =
+        masterDesignations?.data?.map((item: any) => ({
+            value: item.hrmdeS_Id.toString(),
+            label: item.hrmdeS_DesignationName
+        })) || [];
+
+    const MonthsOptions =
+        masterMonths?.data?.map((item: any) => ({
+            value: item.key.toString(),
+            label: item.value
+        })) || [];
+
+    const YearsOptions =
+        masterYears?.data?.map((item: any) => ({
+            value: item.hrmlY_Id.toString(),
+            label: item.hrmlY_LeaveYear
+        })) || [];
+
+    const EmployeeOptions = mockEmployees.map((emp) => ({
+        value: emp.key,
+        label: emp.value
+    }));
+
+
+
+    const onSearch = async (data: LoanReportFormFields) => {
+        setIsSearching(true);
+        try {
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+
+            let filteredData = mockLoanData;
+            if (data.reportType === 'Individual' && data.employee) {
+                filteredData = mockLoanData.filter((loan) => loan.employeeId === data.employee);
+            }
+
+            toast.success('Loan report generated successfully!');
+            setReportData(filteredData);
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to generate report');
+        } finally {
+            setIsSearching(false);
+        }
     };
-    const isLoading = isLoadingOnload || filterMutation.isPending || searchMutation.isPending;
-    const handleExport = () => {
-        // TODO: Implement Excel export functionality
-        toast.success('Employee Loan Report exported successfully');
+
+    const handleReset = () => {
+        reset({
+            groupType: [],
+            department: [],
+            designation: [],
+            reportType: 'All',
+            month: '',
+            year: '',
+            employee: ''
+        });
+        setReportData(null);
+        toast.info('Form has been reset');
     };
     const handlePrint = () => {
         window.print();
+        toast.success('Print dialog opened');
+    };
+
+    const handleReportTypeChange = (value: 'All' | 'Individual') => {
+        setValue('reportType', value);
+
+        // Clear fields based on selection
+        if (value === 'All') {
+            setValue('employee', '');
+        } else {
+            setValue('month', '');
+            setValue('year', '');
+        }
+    };
+
+    const getTodayDate = () => {
+        const today = new Date();
+        return today.toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+    };
+
+    const getStatusColor = (status: string) => {
+        switch (status.toLowerCase()) {
+            case 'approved':
+                return 'text-green-600 font-semibold';
+            case 'pending':
+                return 'text-yellow-600 font-semibold';
+            case 'rejected':
+                return 'text-red-600 font-semibold';
+            default:
+                return 'text-gray-600';
+        }
     };
     return (
-        <div className='space-y-6'>
-            {/* Report Configuration Section */}
-            <LoanReportFilters
-                filters={filters}
-                groupTypes={groupTypes}
-                departments={departments}
-                designations={designations}
-                months={months}
-                years={years}
-                employees={employees}
-                isLoading={isLoading}
-                onFilterChange={handleFilterChange}
-                onSearch={handleSearch}
-                onCancel={handleCancel}
-            />
-            {/* Report Results - Printable Sheet */}
-            {showReport && (
-                <div className='mt-4'>
-                    <div className='mb-2 rounded bg-blue-50 p-2 text-blue-800 text-xs'>
-                        Report Sheet Visible - Records: {filteredRecords.length}
+        <div className='min-h-screen p-8'>
+            <div className='container space-y-4 p-1'>
+                <CollapsibleSection
+                    title='Employee Loan Report'
+                    defaultOpen={true}
+                    variant='outline'
+                    size='md'
+                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                    <div className='space-y-6'>
+                        <div className='mt-2 flex justify-center'>
+                            <div className='space-y-2'>
+                                <Controller
+                                    name='reportType'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <RadioGroup
+                                            onValueChange={(value: 'All' | 'Individual') => {
+                                                handleReportTypeChange(value);
+                                                field.onChange(value);
+                                            }}
+                                            value={field.value}
+                                            className='flex items-center gap-6'>
+                                            <div className='flex items-center space-x-2'>
+                                                <RadioGroupItem value='All' id='all' />
+                                                <Label htmlFor='all' className='cursor-pointer font-normal'>
+                                                    All
+                                                </Label>
+                                            </div>
+                                            <div className='flex items-center space-x-2'>
+                                                <RadioGroupItem value='Individual' id='individual' />
+                                                <Label htmlFor='individual' className='cursor-pointer font-normal'>
+                                                    Individual
+                                                </Label>
+                                            </div>
+                                        </RadioGroup>
+                                    )}
+                                />
+                                {errors.reportType && <FormError>{errors.reportType.message}</FormError>}
+                            </div>
+                        </div>
+
+                        <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
+                            <div className='space-y-2'>
+                                <Label htmlFor='group-type' className='font-medium text-sm text-white-900'>
+                                    Group Type: <span className='text-red-500'>*</span>
+                                </Label>
+                                {masterGroupTypesLoading ? (
+                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
+                                ) : groupTypeOptions.length === 0 ? (
+                                    <div className='text-sm text-white-500'>No group types available</div>
+                                ) : masterGroupTypesError ? (
+                                    <SelectItem value='error' disabled>
+                                        Error loading data
+                                    </SelectItem>
+                                ) : (
+                                    <>
+                                        <Controller
+                                            name='groupType'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <MultiSelect
+                                                    options={groupTypeOptions}
+                                                    defaultValue={field.value}
+                                                    onValueChange={field.onChange}
+                                                    placeholder='Select Group Types'
+                                                    className='w-full'
+                                                    maxHeight={240}
+                                                />
+                                            )}
+                                        />
+                                        {errors.groupType && <FormError>{errors.groupType.message}</FormError>}
+                                    </>
+                                )}
+                            </div>
+
+                            <div className='space-y-2'>
+                                <Label htmlFor='department' className='font-medium text-sm text-white-900'>
+                                    Department: <span className='text-red-500'>*</span>
+                                </Label>
+                                {masterDepartmentsLoading ? (
+                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
+                                ) : DepartmentsOptions.length === 0 ? (
+                                    <div className='text-sm text-white-500'>No departments available</div>
+                                ) : masterDepartmentsError ? (
+                                    <SelectItem value='error' disabled>
+                                        Error loading data
+                                    </SelectItem>
+                                ) : (
+                                    <>
+                                        <Controller
+                                            name='department'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <MultiSelect
+                                                    options={DepartmentsOptions}
+                                                    defaultValue={field.value}
+                                                    onValueChange={field.onChange}
+                                                    placeholder='Select Departments'
+                                                    className='w-full'
+                                                    maxHeight={240}
+                                                />
+                                            )}
+                                        />
+                                        {errors.department && <FormError>{errors.department.message}</FormError>}
+                                    </>
+                                )}
+                            </div>
+
+                            <div className='space-y-2'>
+                                <Label htmlFor='designation' className='font-medium text-sm text-white-900'>
+                                    Designation: <span className='text-red-500'>*</span>
+                                </Label>
+                                {masterDesignationsLoading ? (
+                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
+                                ) : DesignationOptions.length === 0 ? (
+                                    <div className='text-sm text-white-500'>No designations available</div>
+                                ) : masterDesignationsError ? (
+                                    <SelectItem value='error' disabled>
+                                        Error loading data
+                                    </SelectItem>
+                                ) : (
+                                    <>
+                                        <Controller
+                                            name='designation'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <MultiSelect
+                                                    options={DesignationOptions}
+                                                    defaultValue={field.value}
+                                                    onValueChange={field.onChange}
+                                                    placeholder='Select Designations'
+                                                    className='w-full'
+                                                    maxHeight={240}
+                                                />
+                                            )}
+                                        />
+                                        {errors.designation && <FormError>{errors.designation.message}</FormError>}
+                                    </>
+                                )}
+                            </div>
+                        </div>
+
+                        {watchReportType === 'All' ? (
+                            <div className='flex justify-center'>
+                                <div className='grid w-full max-w-2xl grid-cols-1 gap-6 md:grid-cols-2'>
+                                    <div className='space-y-2'>
+                                        <Label htmlFor='month' className='font-medium text-sm text-white-900'>
+                                            Month: <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <Controller
+                                            name='month'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                    <SelectTrigger className='w-full'>
+                                                        <SelectValue placeholder='Select Month' />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {masterMonthsLoading ? (
+                                                            <SelectItem value='loading' disabled>
+                                                                Loading...
+                                                            </SelectItem>
+                                                        ) : masterMonthsError ? (
+                                                            <SelectItem value='error' disabled>
+                                                                Error loading data
+                                                            </SelectItem>
+                                                        ) : (
+                                                            MonthsOptions?.map((opt: any) => (
+                                                                <SelectItem key={opt.value} value={opt.value}>
+                                                                    {opt.label}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
+                                        />
+                                        {errors.month && <FormError>{errors.month.message}</FormError>}
+                                    </div>
+
+                                    <div className='space-y-2'>
+                                        <Label htmlFor='year' className='font-medium text-sm text-white-900'>
+                                            Year: <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <Controller
+                                            name='year'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                    <SelectTrigger className='w-full'>
+                                                        <SelectValue placeholder='Select Year' />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {masterYearsLoading ? (
+                                                            <SelectItem value='loading' disabled>
+                                                                Loading...
+                                                            </SelectItem>
+                                                        ) : masterYearsError ? (
+                                                            <SelectItem value='error' disabled>
+                                                                Error loading data
+                                                            </SelectItem>
+                                                        ) : (
+                                                            YearsOptions?.map((opt: any) => (
+                                                                <SelectItem key={opt.value} value={opt.value}>
+                                                                    {opt.label}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
+                                        />
+                                        {errors.year && <FormError>{errors.year.message}</FormError>}
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className='flex justify-center'>
+                                <div className='w-full max-w-md space-y-2'>
+                                    <Label htmlFor='employee' className='font-medium text-sm text-white-900'>
+                                        Employee: <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <Controller
+                                        name='employee'
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                <SelectTrigger className='w-full'>
+                                                    <SelectValue placeholder='Select Employee' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {EmployeeOptions.map((opt: any) => (
+                                                        <SelectItem key={opt.value} value={opt.value}>
+                                                            {opt.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        )}
+                                    />
+                                    {errors.employee && <FormError>{errors.employee.message}</FormError>}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-center'>
+                            <Button
+                                type='button'
+                                variant='outline'
+                                onClick={handleReset}
+                                disabled={isSearching || isSubmitting}
+                                className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                                Reset
+                            </Button>
+                            <Button
+                                type='button'
+                                onClick={handleSubmit(onSearch)}
+                                disabled={isSearching || isSubmitting}
+                                className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
+                                {isSearching ? (
+                                    <>
+                                        <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
+                                        Searching...
+                                    </>
+                                ) : (
+                                    <div className='flex items-center'>
+                                        <Search className='mr-2 h-4 w-4' />
+                                        Search
+                                    </div>
+                                )}
+                            </Button>
+                        </div>
                     </div>
-                    <PrintableLoanSheet
-                        records={filteredRecords}
-                        institutionName={onloadData?.data?.institutionDetails?.MI_Name}
-                        institutionAddress={
-                            onloadData?.data?.institutionDetails?.MI_Address1
-                                ? `${onloadData.data.institutionDetails.MI_Address1}${onloadData.data.institutionDetails.MI_Address2 ? `, ${onloadData.data.institutionDetails.MI_Address2}` : ''}${onloadData.data.institutionDetails.MI_Address3 ? `, ${onloadData.data.institutionDetails.MI_Address3}` : ''}${onloadData.data.institutionDetails.MI_Pincode ? `, ${onloadData.data.institutionDetails.MI_Pincode}` : ''}`
-                                : undefined
-                        }
-                        month={filters.month}
-                        year={filters.year}
-                        employeeName={
-                            filters.reportScope === 'individual' && filters.selectedEmployee
-                                ? employees.find((e) => e.HRME_Id.toString() === filters.selectedEmployee)
-                                    ? `${employees.find((e) => e.HRME_Id.toString() === filters.selectedEmployee)?.HRME_EmployeeFirstName || ''} ${employees.find((e) => e.HRME_Id.toString() === filters.selectedEmployee)?.HRME_EmployeeMiddleName || ''} ${employees.find((e) => e.HRME_Id.toString() === filters.selectedEmployee)?.HRME_EmployeeLastName || ''}`.trim()
-                                    : undefined
-                                : undefined
-                        }
-                        reportScope={filters.reportScope}
-                        onPrint={handlePrint}
-                        onExport={handleExport}
-                    />
-                </div>
-            )}
+                </CollapsibleSection>
+
+                {reportData && reportData.length > 0 && (
+                    <CollapsibleSection
+                        title='Loan Report'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='space-y-6 p-6'>
+                            <div className='text-center'>
+                                <h2 className='font-bold text-2xl'>Employee Loan Report</h2>
+                                <p className='text-gray-600 text-sm'>Generated on: {getTodayDate()}</p>
+                            </div>
+
+                            <div className='overflow-x-auto rounded-lg border'>
+                                <table className='w-full border-collapse'>
+                                    <thead>
+                                        <tr className='border-white-300 border-b-2 bg-white-100'>
+                                            <th className='border border-white-300 px-4 py-3 text-center font-semibold text-sm'>SI. No</th>
+                                            <th className='border border-white-300 px-4 py-3 text-left font-semibold text-sm'>
+                                                Employee Name
+                                            </th>
+                                            <th className='border border-white-300 px-4 py-3 text-left font-semibold text-sm'>
+                                                Employee ID
+                                            </th>
+                                            <th className='border border-white-300 px-4 py-3 text-left font-semibold text-sm'>
+                                                Department
+                                            </th>
+                                            <th className='border border-white-300 px-4 py-3 text-right font-semibold text-sm'>
+                                                Loan Amount
+                                            </th>
+                                            <th className='border border-white-300 px-4 py-3 text-left font-semibold text-sm'>
+                                                Loan Purpose
+                                            </th>
+                                            <th className='border border-white-300 px-4 py-3 text-center font-semibold text-sm'>
+                                                Installments
+                                            </th>
+                                            <th className='border border-white-300 px-4 py-3 text-center font-semibold text-sm'>
+                                                Application Date
+                                            </th>
+                                            <th className='border border-white-300 px-4 py-3 text-center font-semibold text-sm'>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {reportData.map((loan: any, index: number) => (
+                                            <tr key={index} className='hover:bg-white-50'>
+                                                <td className='border border-white-300 px-4 py-2 text-center text-sm'>{index + 1}</td>
+                                                <td className='border border-white-300 px-4 py-2 text-sm'>{loan.employeeName}</td>
+                                                <td className='border border-white-300 px-4 py-2 text-sm'>{loan.employeeId}</td>
+                                                <td className='border border-white-300 px-4 py-2 text-sm'>{loan.department}</td>
+                                                <td className='border border-white-300 px-4 py-2 text-right text-sm'>
+                                                    ₹
+                                                    {loan.loanAmount.toLocaleString('en-IN', {
+                                                        minimumFractionDigits: 2,
+                                                        maximumFractionDigits: 2
+                                                    })}
+                                                </td>
+                                                <td className='border border-white-300 px-4 py-2 text-sm'>{loan.loanPurpose}</td>
+                                                <td className='border border-white-300 px-4 py-2 text-center text-sm'>
+                                                    {loan.installments}
+                                                </td>
+                                                <td className='border border-white-300 px-4 py-2 text-center text-sm'>
+                                                    {loan.applicationDate}
+                                                </td>
+                                                <td
+                                                    className={`border border-white-300 px-4 py-2 text-center text-sm ${getStatusColor(
+                                                        loan.status
+                                                    )}`}>
+                                                    {loan.status}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div className='mt-4 flex items-end justify-between pt-6'>
+                                <div>
+                                    <p className='font-medium text-sm'>Date: {getTodayDate()}</p>
+                                </div>
+                                <div className='text-center'>
+                                    <div className='mb-16' />
+                                    <div className='border-gray-400 border-t pt-2'>
+                                        <p className='font-semibold'>Manager/HR Signature</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-center'>
+                                <Button
+                                    type='button'
+                                    variant='outline'
+                                    onClick={handleReset}
+                                    className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                                    Cancel
+                                </Button>
+                                <Button
+                                    type='button'
+                                    onClick={handlePrint}
+                                    className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
+                                    <Printer className='mr-2 h-4 w-4' />
+                                    Print
+                                </Button>
+                            </div>
+                        </div>
+                    </CollapsibleSection>
+                )}
+
+                {reportData && reportData.length === 0 && (
+                    <CollapsibleSection
+                        title='Loan Report'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='p-6 text-center'>
+                            <p className='text-gray-500'>No loan records found for the selected criteria.</p>
+                        </div>
+                    </CollapsibleSection>
+                )}
+            </div>
         </div>
     );
 }
