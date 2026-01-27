@@ -60,6 +60,15 @@ import {
 import {
     getPFChallanReportOnload,
 } from '@/server/hrms/hrmsConfig/reports/pf-challan-report';
+import {
+    getSalarySlipOnload,
+    filterEmployeesByYearMonth,
+    generateSalarySlip
+} from '@/server/hrms/hrmsConfig/reports/salary-slip-report';
+import type {
+    SalarySlipFilterRequest,
+    SalarySlipGenerateRequest
+} from '@/types/hrms/reports/salary-slip-report';
 import { toast } from 'sonner';
 
 
@@ -320,6 +329,41 @@ export function useSearchEmployeeContribution() {
         mutationFn: (data: any) => searchEmployeeContributionDetails(data),
         onError: (error: Error) => {
             toast.error(error.message || 'Failed to fetch employee contribution');
+        }
+    });
+}
+
+/**
+ * Hook for Salary Slip Onload
+ */
+export function useSalarySlipOnload(MI_Id: number, LogInUserId: number) {
+    return useQuery({
+        queryKey: ['salary-slip-onload', MI_Id, LogInUserId],
+        queryFn: () => getSalarySlipOnload(MI_Id, LogInUserId),
+        staleTime: 1000 * 60 * 10
+    });
+}
+
+/**
+ * Hook for Filtering Employees for Salary Slip
+ */
+export function useFilterEmployeesByYearMonth() {
+    return useMutation({
+        mutationFn: (data: SalarySlipFilterRequest) => filterEmployeesByYearMonth(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to filter employees');
+        }
+    });
+}
+
+/**
+ * Hook for Generating Salary Slip
+ */
+export function useGenerateSalarySlip() {
+    return useMutation({
+        mutationFn: (data: SalarySlipGenerateRequest) => generateSalarySlip(data),
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to generate salary slip');
         }
     });
 }

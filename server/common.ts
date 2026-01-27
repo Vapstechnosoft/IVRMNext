@@ -2005,14 +2005,14 @@ export async function getUserAccessibleModules() {
                                         //     title: 'Employee Profile',
                                         //     description: 'Employee Profile Report'
                                         // },
-                                        // {
-                                        //     id: 4,
-                                        //     name: 'Salary Slip',
-                                        //     icon: 'Receipt',
-                                        //     url: '/hrms/reports/salary-slip',
-                                        //     title: 'Salary Slip',
-                                        //     description: 'Generate Salary Slips'
-                                        // },
+                                        {
+                                            id: 4,
+                                            name: 'Salary Slip',
+                                            icon: 'Receipt',
+                                            url: '/hrms/reports/salary-slip',
+                                            title: 'Salary Slip',
+                                            description: 'Generate Salary Slips'
+                                        },
                                         {
                                             id: 5,
                                             name: 'E-PF Contribution Register',
