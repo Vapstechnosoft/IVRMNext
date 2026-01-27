@@ -1,11 +1,4 @@
-// app/exam/student-subject-mapping/_components/student-mapping-table.tsx
 'use client';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
-import { useCallback, useEffect, useMemo, useRef, useState, useImperativeHandle } from 'react';
-import { forwardRef } from 'react';
-import { Trash2 } from 'lucide-react';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -20,7 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Trash2 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { forwardRef } from 'react';
 import { toast } from 'sonner';
 
