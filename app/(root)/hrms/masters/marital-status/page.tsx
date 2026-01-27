@@ -7,7 +7,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useMasterMaritalStatus } from '@/hooks/hrms/useMasters';
 import type { IMasterMaritalStatusList } from '@/types/hrms/hrms-config/master';
 import { Plus, X } from 'lucide-react';
-import { use } from 'react';
+import { useEffect, useState } from 'react';
 import AddMaritalStatusForm from './_components/add-form';
 import { columns } from './_components/columns';
 import ToggleMasterMaritalStatusForm from './_components/toggle-form';
@@ -16,7 +16,16 @@ import UpdateMaritalStatusForm from './_components/update-form';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterMaritalStatusPage(props: { searchParams: SearchParams }) {
-    const searchParams = use(props.searchParams);
+    const [searchParams, setSearchParams] = useState<any>({});
+
+    useEffect(() => {
+        const fetchParams = async () => {
+            const params = await props.searchParams;
+            setSearchParams(params);
+        };
+        fetchParams();
+    }, [props.searchParams]);
+
     const { data: response, isLoading, error } = useMasterMaritalStatus(searchParams);
 
     return (

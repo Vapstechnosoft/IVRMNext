@@ -7,7 +7,8 @@ import {
     getFeesDefaulterReportClassList,
     getFeesDefaulterReportSectionList,
     getFeesGroupDropDown,
-    getFeesTermDropDown
+    getFeesTermDropDown,
+    mastersettinglist
 } from '@/server/fees/reports/fee_DefaulterReport';
 import {
     getFeeInstallmentReportBusRouteDropdown,
@@ -396,6 +397,23 @@ export const feeReceiptLogo = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_FEE_RECEIPT_REPORT_LOGO]
+            });
+        }
+    };
+};
+
+export const usemastersettinglist = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.MASTER_SETTING_LIST],
+            queryFn: async () => mastersettinglist(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.MASTER_SETTING_LIST]
             });
         }
     };

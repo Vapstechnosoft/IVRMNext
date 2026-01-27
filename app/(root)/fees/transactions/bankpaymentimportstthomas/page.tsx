@@ -5,6 +5,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFeeRefundableList, useopeningacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
+import { saveBankCopyData } from '@/server/fees/trasactions/fee_bankpaymentimport';
 import type { IFeeReceiptImportDelate } from '@/types/fees/transactions/transactions';
 import { Search, Upload, X } from 'lucide-react';
 import { use, useEffect, useRef, useState } from 'react';
@@ -39,6 +40,7 @@ export default function BankFeesReceiptImport(props: { searchParams: SearchParam
     const [tableHeaders, setTableHeaders] = useState<string[]>([]);
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [filename, setFilename] = useState<string>('');
+    const [isSaving, setIsSaving] = useState(false);
 
     const { data: response, isLoading, error } = useFeeRefundableList(Number(selectedAsmayId), searchParams);
     const { data: academicYearData, isLoading: loadingYears } = useopeningacademicyerdropdowndatafee();
@@ -49,6 +51,44 @@ export default function BankFeesReceiptImport(props: { searchParams: SearchParam
         }
     }, [loadingYears, academicYearData, selectedAsmayId]);
 
+    // Process Excel data using Angular logic
+    // const processExcelData = (data: any[], headers: string[]) => {
+    //     const datanew: ProcessedData = [];
+
+    //     for (let i = 0; i < data.length; i++) {
+    //         // Check if NARRATION exists and contains "#"
+    //         if (data[i].NARRATION?.includes('#')) {
+    //             const split = data[i].NARRATION.split('#');
+
+    //             // Check if split has more than 2 elements (Angular logic)
+    //             if (split.length > 2) {
+    //                 // Extract data according to Angular logic
+    //                 const admissionNumber = split[1].slice(2); // Remove first 2 characters
+    //                 const studentName = split[2];
+
+    //                 // Process DEPOSIT amount - remove commas and convert to number
+    //                 let depositAmount = 0;
+    //                 if (data[i].DEPOSIT) {
+    //                     const depositStr = String(data[i].DEPOSIT).split(',').join('');
+    //                     depositAmount = Number(depositStr) || 0;
+    //                 }
+
+    //                 datanew.push({
+    //                     FYP_Date: data[i].undefined || data[i].Date || data[i].DATE || '',
+    //                     AMST_AdmNo: admissionNumber,
+    //                     Student_Name: studentName,
+    //                     FYP_Tot_Amount: depositAmount,
+    //                     FYP_Bank_Or_Cash: 'C' // Hardcoded as "C" per Angular logic
+    //                 });
+    //             }
+    //         }
+    //     }
+
+    //     // Sort by FYP_Tot_Amount in descending order (Angular logic)
+    //     datanew.sort((a, b) => b.FYP_Tot_Amount - a.FYP_Tot_Amount);
+
+    //     return datanew;
+    // };
     // Process Excel data using Angular logic
     const processExcelData = (data: any[], headers: string[]) => {
         const datanew: ProcessedData = [];
@@ -71,8 +111,32 @@ export default function BankFeesReceiptImport(props: { searchParams: SearchParam
                         depositAmount = Number(depositStr) || 0;
                     }
 
+                    // Get the date - try multiple possible column names
+                    let dateValue = '';
+
+                    // First, try to find date in the row object
+                    if (data[i].__EMPTY || data[i].__EMPTY_1 || data[i]['']) {
+                        // For Excel files without proper headers, dates might be in __EMPTY columns
+                        dateValue = data[i].__EMPTY || data[i].__EMPTY_1 || data[i][''] || '';
+                    } else if (data[i].Date || data[i].DATE) {
+                        // Try common date column names
+                        dateValue = data[i].Date || data[i].DATE || '';
+                    } else if (headers[0] && data[i][headers[0]]) {
+                        // Try the first column header
+                        dateValue = data[i][headers[0]] || '';
+                    } else {
+                        // Check all properties in the row for a date-like value
+                        for (const key in data[i]) {
+                            const value = data[i][key];
+                            if (typeof value === 'string' && value.match(/\d{1,2}\/\d{1,2}\/\d{4}/)) {
+                                dateValue = value;
+                                break;
+                            }
+                        }
+                    }
+
                     datanew.push({
-                        FYP_Date: data[i].undefined || data[i].Date || data[i].DATE || '',
+                        FYP_Date: dateValue,
                         AMST_AdmNo: admissionNumber,
                         Student_Name: studentName,
                         FYP_Tot_Amount: depositAmount,
@@ -87,7 +151,6 @@ export default function BankFeesReceiptImport(props: { searchParams: SearchParam
 
         return datanew;
     };
-
     // Handle Excel file upload
     const selectFileForUpload = (input: HTMLInputElement) => {
         if (!input.files || !input.files[0]) {
@@ -180,7 +243,7 @@ export default function BankFeesReceiptImport(props: { searchParams: SearchParam
 
             setImportedData(formattedData);
 
-            toast.success(`Processed ${processed.length} valid records from "${sheetName}"`);
+            //toast.success(`Processed ${processed.length} valid records from "${sheetName}"`);
         } catch (error) {
             toast.error('Error loading sheet data');
             console.error('Sheet load error:', error);
@@ -228,6 +291,7 @@ export default function BankFeesReceiptImport(props: { searchParams: SearchParam
     };
 
     const handleReportClick = async () => {
+        setIsSaving(true); // Start loading
         if (!selectedAsmayId) {
             toast.error('Please select an Academic Year');
             return;
@@ -243,38 +307,158 @@ export default function BankFeesReceiptImport(props: { searchParams: SearchParam
             return;
         }
 
+        // const formatDateForAPI = (dateString: string) => {
+        //     if (!dateString) return '';
+
+        //     try {
+        //         // If date is already in YYYY/MM/DD format, return as is
+        //         if (dateString.match(/^\d{4}\/\d{2}\/\d{2}$/)) {
+        //             return dateString;
+        //         }
+
+        //         // If date is in DD/MM/YYYY format, convert it
+        //         if (dateString.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
+        //             const parts = dateString.split('/');
+        //             if (parts.length === 3) {
+        //                 const day = parts[0].padStart(2, '0');
+        //                 const month = parts[1].padStart(2, '0');
+        //                 const year = parts[2];
+        //                 return `${year}/${month}/${day}`;
+        //             }
+        //         }
+
+        //         // Try to parse as Date object
+        //         const date = new Date(dateString);
+        //         if (!Number.isNaN(date.getTime())) {
+        //             const year = date.getFullYear();
+        //             const month = String(date.getMonth() + 1).padStart(2, '0');
+        //             const day = String(date.getDate()).padStart(2, '0');
+        //             return `${year}/${month}/${day}`;
+        //         }
+
+        //         return dateString; // Return original if we can't parse it
+        //     } catch (error) {
+        //         console.error('Error formatting date:', error);
+        //         return dateString;
+        //     }
+        // };
+        const formatDateForAPI = (dateString: string) => {
+            if (!dateString) return '';
+
+            try {
+                // If date is already in ISO format, return as is
+                if (dateString.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)) {
+                    return dateString;
+                }
+
+                // If date is in DD/MM/YYYY format, convert to Date object
+                if (dateString.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
+                    const parts = dateString.split('/');
+                    if (parts.length === 3) {
+                        const day = parts[0].padStart(2, '0');
+                        const month = parts[1].padStart(2, '0');
+                        const year = parts[2];
+                        // Create date object (note: month is 0-indexed in JS)
+                        const date = new Date(`${year}-${month}-${day}T00:00:00.000Z`);
+                        return date.toISOString();
+                    }
+                }
+
+                // If date is in YYYY/MM/DD format, convert to Date object
+                if (dateString.match(/^\d{4}\/\d{2}\/\d{2}$/)) {
+                    const parts = dateString.split('/');
+                    if (parts.length === 3) {
+                        const year = parts[0];
+                        const month = parts[1];
+                        const day = parts[2];
+                        const date = new Date(`${year}-${month}-${day}T00:00:00.000Z`);
+                        return date.toISOString();
+                    }
+                }
+
+                // Try to parse as Date object for any other format
+                const date = new Date(dateString);
+                if (Number.isNaN(date.getTime())) {
+                    return date.toISOString();
+                }
+
+                // If all else fails, try to create a date from the string with time component
+                const dateWithTime = new Date(dateString + 'T00:00:00.000Z');
+                if (Number.isNaN(dateWithTime.getTime())) {
+                    return dateWithTime.toISOString();
+                }
+
+                return dateString; // Return original if we can't parse it
+            } catch (error) {
+                console.error('Error formatting date:', error);
+                return dateString;
+            }
+        };
+
         try {
-            // Prepare data for API call (similar to Angular logic)
-            const data1 = {
-                newlstget1: processedData
+            // Prepare data in the required format
+            const feeReceiptimport = processedData.map((item) => ({
+                amsT_AdmNo: item.AMST_AdmNo,
+                fyP_Date: formatDateForAPI(item.FYP_Date), // Need to format date properly
+                fyP_Tot_Amount: item.FYP_Tot_Amount,
+                fyP_Bank_Or_Cash: item.FYP_Bank_Or_Cash
+            }));
+
+            // Create the final payload
+            const payload = {
+                asmaY_Id: selectedAsmayId,
+                feeReceiptimport: feeReceiptimport
             };
+            const js = JSON.stringify(payload);
+            console.log('Payload to be sent:', js); // For debugging
 
-            // Uncomment and implement your API service call
-            // const response = await apiService.create("FeeReceiptImportStthomas/checkvalidation", data1);
-            // if (response.stuStatus && response.stuStatus !== "") {
-            //     toast.error(response.stuStatus);
-            //     clearImportedData();
-            // } else {
-            //     setIsReportGenerated(true);
-            //     toast.success('Data validated successfully');
-            // }
+            const response = await saveBankCopyData(payload);
 
-            // For now, just show success
-            setIsReportGenerated(true);
-            toast.success(`${processedData.length} records Saved successfully`);
+            if (response) {
+                // Check returnval first (false means success based on your response)
+                if (response.returnval === false) {
+                    // Build success message with counts
+                    const successMessage = `Data saved successfully! 
+                Saved: ${response.suscnt || 0}, 
+                Duplicates: ${response.dupcnt || 0}, 
+                Failed: ${response.failcnt || 0}`;
 
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000);
+                    toast.success(successMessage);
+                    // setIsSaving(false);
+                    // setIsReportGenerated(false);
+                    // clearImportedData();
+                    // Additional success details if needed
+                    if (response.fyP_Receipt_No) {
+                        console.log('Receipt Number:', response.fyP_Receipt_No);
+                    }
+                    if (response.fmG_Id) {
+                        console.log('Fee Master Group ID:', response.fmG_Id);
+                    }
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    // If returnval is true or not false, show error
+                    toast.error('Failed to save data. Please try again.');
+                }
+            } else {
+                toast.error('No response received from server');
+            }
+            // setTimeout(() => {
+            //     window.location.reload();
+            // }, 1000);
         } catch (error) {
             toast.error('Error processing data');
             console.error('Processing error:', error);
         }
     };
 
+    // Helper function to format date from DD/MM/YYYY to YYYY/MM/DD
+
     const handleResetClick = () => {
         setIsReportGenerated(false);
         clearImportedData();
+        window.location.reload();
     };
 
     const handleRemoveFile = () => {
@@ -285,7 +469,7 @@ export default function BankFeesReceiptImport(props: { searchParams: SearchParam
     return (
         <>
             <FormProvider<IFeeReceiptImportDelate>>
-                <FeesReceiptImportDeletePageContent
+                <FeesReceiptImportBankCopyPageContent
                     isLoading={isLoading}
                     error={error}
                     selectedAsmayId={selectedAsmayId}
@@ -310,13 +494,14 @@ export default function BankFeesReceiptImport(props: { searchParams: SearchParam
                     searchQuery={searchQuery}
                     setSearchQuery={setSearchQuery}
                     filename={filename}
+                    isSaving={isSaving}
                 />
             </FormProvider>
         </>
     );
 }
 
-function FeesReceiptImportDeletePageContent({
+function FeesReceiptImportBankCopyPageContent({
     isLoading,
     error,
     academicYearData,
@@ -340,7 +525,8 @@ function FeesReceiptImportDeletePageContent({
     tableHeaders,
     searchQuery,
     setSearchQuery,
-    filename
+    filename,
+    isSaving
 }: {
     isLoading: boolean;
     error: any;
@@ -366,6 +552,7 @@ function FeesReceiptImportDeletePageContent({
     searchQuery: string;
     setSearchQuery: (query: string) => void;
     filename: string;
+    isSaving: boolean;
 }) {
     const { openAddForm } = useFormContext<IFeeReceiptImportDelate>();
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -605,12 +792,28 @@ function FeesReceiptImportDeletePageContent({
                         {/* Buttons Section */}
                         <div className='mt-6 flex flex-col items-center justify-center gap-4 rounded-lg border bg-white p-6 shadow-sm'>
                             <div className='flex items-center gap-4'>
-                                <Button
+                                {/* <Button
                                     type='button'
                                     onClick={onSave}
                                     disabled={!shouldShowTableContent}
                                     className='shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                                     {isReportGenerated ? 'Update' : 'Save'}
+                                </Button> */}
+                                <Button
+                                    type='button'
+                                    onClick={onSave}
+                                    disabled={!shouldShowTableContent || isSaving}
+                                    className='shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100'>
+                                    {isSaving ? (
+                                        <>
+                                            {/* <span className="animate-spin mr-2">⏳</span> */}
+                                            Saving...
+                                        </>
+                                    ) : isReportGenerated ? (
+                                        'Update'
+                                    ) : (
+                                        'Save'
+                                    )}
                                 </Button>
                                 <Button variant='outline' onClick={onResetClick} type='button'>
                                     Reset

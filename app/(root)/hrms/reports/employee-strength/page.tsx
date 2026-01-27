@@ -1,330 +1,350 @@
 'use client';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useEmployeeStrengthReportOnload, useSearchEmployeeStrengthReport } from '@/hooks/hrms/useReports';
-import { format } from 'date-fns';
-import { useEffect, useMemo, useState } from 'react';
+
+import { useState, useMemo } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormProvider } from '@/components/ui/form/form-provider';
+import { Label } from '@/components/ui/extension/field';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { DatePicker } from '@/components/ui/date-picker';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import {
+    useEmployeeStrengthReport,
+    useReportDepartments,
+    useReportDesignations,
+    useReportGroupTypes,
+    useEmployeeStrengthOnload
+} from '@/hooks/hrms/useReports';
+import { Loader2, Search, Download, Printer } from 'lucide-react';
 import { toast } from 'sonner';
-import { EmployeeStrengthFilters, type StrengthReportFilters } from './_components/filters';
-import { EmployeeStrengthReportTemplate } from './_components/report-template';
-// Employee strength data structure
-interface EmployeeStrengthRecord {
-    id?: string;
-    departmentName: string;
-    designationName: string;
-    groupType: string;
-    totalEmployees: number;
-    activeEmployees: number;
-    leftEmployees: number;
-    newJoinees: number;
-    maleEmployees: number;
-    femaleEmployees: number;
-    dateRange: string;
+import { format } from 'date-fns';
+import { exportToExcel } from '@/lib/export-to-file';
+import { printEmployeeStrengthReport } from './_components/print-utils';
+
+interface FilterFormValues {
+    groupType: string[];
+    department: string[];
+    designation: string[];
+    allEmployee: boolean;
+    departmentwise: boolean;
+    leftEmployee: boolean;
+    fromDate: Date | undefined;
+    toDate: Date | undefined;
 }
+
 export default function EmployeeStrengthReportPage() {
-    const roleId = HRMS_MI_ID;
-    // React Query hooks
-    const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = useEmployeeStrengthReportOnload(roleId, 0);
-    const searchMutation = useSearchEmployeeStrengthReport();
-    // State
-    const [strengthRecords, setStrengthRecords] = useState<EmployeeStrengthRecord[]>([]);
-    const [filteredRecords, setFilteredRecords] = useState<EmployeeStrengthRecord[]>([]);
-    const [showReport, setShowReport] = useState(false);
-    const [schoolName, setSchoolName] = useState<string>('');
-    const [schoolAddress, setSchoolAddress] = useState<string>('');
-    // Memoize dropdown data from API
-    const groupTypes = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).groupTypedropdown || [];
-    }, [onloadData?.data]);
-    const departments = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).departmentdropdown || [];
-    }, [onloadData?.data]);
-    const designations = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).designationdropdown || [];
-    }, [onloadData?.data]);
-    const [filters, setFilters] = useState<StrengthReportFilters>({
-        groupType: 'All',
-        department: 'All',
-        designation: 'All',
-        employeeCategories: {
+    return (
+        <FormProvider>
+            <EmployeeStrengthReportContent />
+        </FormProvider>
+    );
+}
+
+function EmployeeStrengthReportContent() {
+    const [reportData, setReportData] = useState<any>(null);
+    const { control, handleSubmit, watch, setValue } = useForm<FilterFormValues>({
+        defaultValues: {
+            groupType: [],
+            department: [],
+            designation: [],
             allEmployee: false,
-            departmentWise: false,
-            leftEmployee: false
-        },
-        fromDate: null,
-        toDate: null
+            departmentwise: false,
+            leftEmployee: false,
+            fromDate: new Date(),
+            toDate: new Date()
+        }
     });
-    // Show error if API fails
-    useEffect(() => {
-        if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
-            const errorMessage =
-                onloadError?.message ||
-                onloadData?.message ||
-                'Failed to load employee strength report data. Please check if the API endpoint is available.';
-            toast.error(errorMessage);
-        }
-    }, [onloadError, isLoadingOnload, onloadData]);
-    // Map API data to component format
-    const mappedGroupTypes = useMemo(() => {
-        return groupTypes.map((gt: any) => ({
-            id: gt.HRMGT_Id,
-            groupType: gt.HRMGT_EmployeeGroupType || gt.HRMGT_Code || '',
-            groupCode: gt.HRMGT_Code || '',
-            order: gt.HRMGT_Order || 0,
-            isActive: gt.HRMGT_ActiveFlag !== false
-        }));
-    }, [groupTypes]);
-    const mappedDepartments = useMemo(() => {
-        return departments.map((dept: any) => ({
-            id: dept.HRMD_Id,
-            departmentName: dept.HRMD_DepartmentName || '',
-            internalTrainingHours: dept.HRMD_InternalTrainingMinimumHrs?.toString() || '0',
-            order: dept.HRMD_Order || 0,
-            isActive: dept.HRMD_ActiveFlag !== false
-        }));
-    }, [departments]);
-    const mappedDesignations = useMemo(() => {
-        return designations.map((desig: any) => ({
-            id: desig.HRMDES_Id,
-            designationName: desig.HRMDES_DesignationName || '',
-            basicAmount: desig.HRMDES_BasicAmount?.toString() || '0',
-            sanctionedSeats: desig.HRMDES_SanctionedSeats?.toString() || '0',
-            displaySanctionedSeats: desig.HRMDES_DisplaySanctionedSeatsFlag || false,
-            order: desig.HRMDES_Order || 0,
-            isActive: desig.HRMDES_ActiveFlag !== false
-        }));
-    }, [designations]);
-    // Cascading filter logic
-    const availableDepartments = useMemo(() => {
-        if (filters.groupType === 'All') return mappedDepartments;
-        // In a real app, departments would be filtered by groupType relationship
-        return mappedDepartments;
-    }, [filters.groupType, mappedDepartments]);
-    const availableDesignations = useMemo(() => {
-        if (filters.department === 'All') return mappedDesignations;
-        // In a real app, designations would be filtered by department relationship
-        return mappedDesignations;
-    }, [filters.department, mappedDesignations]);
-    // Filter strength records based on selected criteria
-    useEffect(() => {
-        let filtered = strengthRecords;
-        if (filters.groupType !== 'All') {
-            filtered = filtered.filter((record) => record.groupType === filters.groupType);
-        }
-        if (filters.department !== 'All') {
-            filtered = filtered.filter((record) => record.departmentName === filters.department);
-        }
-        if (filters.designation !== 'All') {
-            filtered = filtered.filter((record) => record.designationName === filters.designation);
-        }
-        // Apply employee category filters
-        if (
-            !filters.employeeCategories.allEmployee &&
-            !filters.employeeCategories.departmentWise &&
-            !filters.employeeCategories.leftEmployee
-        ) {
-            // If no categories selected, show all
-            setFilteredRecords(filtered);
+
+    const watchedGroupType = watch('groupType');
+    const watchedDepartment = watch('department');
+    const watchedAllEmployee = watch('allEmployee');
+    const watchedDepartmentwise = watch('departmentwise');
+    const watchedLeftEmployee = watch('leftEmployee');
+
+    // Queries - Using generic cascading hooks for reliable loading (ref Cumulative Report)
+    const { data: onloadData } = useEmployeeStrengthOnload(30, Number(localStorage.getItem('userId')) || 0);
+    const { data: groupTypesData } = useReportGroupTypes();
+
+    const groupTypeIds = watchedGroupType?.join(',') || '';
+    const { data: departmentsData } = useReportDepartments(groupTypeIds);
+
+    const deptIds = watchedDepartment?.join(',') || '';
+    const { data: designationsData } = useReportDesignations(groupTypeIds, deptIds);
+
+    const { mutate: generateReport, isPending } = useEmployeeStrengthReport();
+
+    const onSubmit = (data: FilterFormValues) => {
+        if (data.groupType.length === 0 || data.department.length === 0 || data.designation.length === 0) {
+            toast.error('Please select Group Type, Department and Designation');
             return;
         }
-        let categoryFiltered: EmployeeStrengthRecord[] = [];
-        if (filters.employeeCategories.allEmployee) {
-            categoryFiltered = [...filtered];
-        }
-        if (filters.employeeCategories.departmentWise) {
-            // Group by department for department-wise view
-            categoryFiltered = [...filtered];
-        }
-        if (filters.employeeCategories.leftEmployee) {
-            // Filter to show only records with left employees
-            categoryFiltered = filtered.filter((record) => record.leftEmployees > 0);
-        }
-        setFilteredRecords(categoryFiltered);
-    }, [filters, strengthRecords]);
-    const handleFilterChange = (key: keyof Omit<StrengthReportFilters, 'employeeCategories' | 'fromDate' | 'toDate'>, value: string) => {
-        const newFilters = { ...filters, [key]: value };
-        // Reset dependent filters when parent changes
-        if (key === 'groupType') {
-            newFilters.department = 'All';
-            newFilters.designation = 'All';
-        } else if (key === 'department') {
-            newFilters.designation = 'All';
-        }
-        setFilters(newFilters);
-    };
-    const handleDateChange = (key: 'fromDate' | 'toDate', date: Date | null) => {
-        setFilters((prev) => ({
-            ...prev,
-            [key]: date
-        }));
-    };
-    const handleCategoryChange = (category: keyof StrengthReportFilters['employeeCategories'], checked: boolean) => {
-        const newCategories = {
-            ...filters.employeeCategories,
-            [category]: checked
+
+        const payload = {
+            MI_Id: 30,
+            designationSelected: data.designation.map(Number),
+            departmentSelected: data.department.map(Number),
+            groupTypeSelected: data.groupType.map(Number),
+            fromDate: data.fromDate ? format(data.fromDate, 'yyyy-MM-dd') : '',
+            toDate: data.toDate ? format(data.toDate, 'yyyy-MM-dd') : '',
+            allEmployee: data.allEmployee,
+            departmentwise: data.departmentwise,
+            leftEmployee: data.leftEmployee
         };
-        // If "All Employee" is checked, uncheck others
-        if (category === 'allEmployee' && checked) {
-            newCategories.departmentWise = false;
-            newCategories.leftEmployee = false;
-        }
-        // If others are checked, uncheck "All Employee"
-        else if ((category === 'departmentWise' || category === 'leftEmployee') && checked) {
-            newCategories.allEmployee = false;
-        }
-        setFilters((prev) => ({
-            ...prev,
-            employeeCategories: newCategories
-        }));
-    };
-    const handleSearch = () => {
-        // Always show report template when search is clicked, even without data or on errors
-        setShowReport(true);
-        // Only validate dates if "All Employee" is not selected
-        if (!filters.employeeCategories.allEmployee) {
-            if (!filters.fromDate || !filters.toDate) {
-                toast.error('Please select from and to dates');
-                return;
-            }
-        }
-        // Prepare search request
-        const searchRequest = {
-            MI_Id: roleId,
-            designationselected:
-                filters.designation !== 'All' && mappedDesignations.find((d: any) => d.designationName === filters.designation)
-                    ? [mappedDesignations.find((d: any) => d.designationName === filters.designation)!.id]
-                    : [],
-            departmentselected:
-                filters.department !== 'All' && mappedDepartments.find((d: any) => d.departmentName === filters.department)
-                    ? [mappedDepartments.find((d: any) => d.departmentName === filters.department)!.id]
-                    : [],
-            groupTypeselected:
-                filters.groupType !== 'All' && mappedGroupTypes.find((g: any) => g.groupType === filters.groupType)
-                    ? [mappedGroupTypes.find((g: any) => g.groupType === filters.groupType)!.id]
-                    : [],
-            AllEmployee: filters.employeeCategories.allEmployee,
-            Departmentwise: filters.employeeCategories.departmentWise,
-            LeftEmployee: filters.employeeCategories.leftEmployee,
-            FromDate: filters.fromDate ? filters.fromDate.toISOString() : '',
-            ToDate: filters.toDate ? filters.toDate.toISOString() : ''
-        };
-        searchMutation.mutate(searchRequest, {
-            onSuccess: (response) => {
-                if (response.success && response.data) {
-                    // Extract institution details from API response
-                    const institutionDetails = (response.data as any).institutionDetails || onloadData?.data?.institutionDetails;
-                    if (institutionDetails) {
-                        setSchoolName(institutionDetails.MI_Name || '');
-                        const addressParts = [];
-                        if (institutionDetails.MI_Address1) addressParts.push(institutionDetails.MI_Address1);
-                        if (institutionDetails.MI_Address2) addressParts.push(institutionDetails.MI_Address2);
-                        if (institutionDetails.MI_Address3) addressParts.push(institutionDetails.MI_Address3);
-                        if (institutionDetails.MI_Pincode) addressParts.push(institutionDetails.MI_Pincode);
-                        setSchoolAddress(addressParts.join(', ') || '');
-                    }
-                    // Map API response to EmployeeStrengthRecord format
-                    const employeeDetails = response.data.employeeDetails || [];
-                    const mappedRecords: EmployeeStrengthRecord[] = employeeDetails.map((emp: any, index: number) => ({
-                        id: `emp-${index}`,
-                        departmentName: emp.departmentName || emp.HRMD_DepartmentName || '',
-                        designationName: emp.designationName || emp.HRMDES_DesignationName || '',
-                        groupType: emp.groupType || emp.HRMGT_EmployeeGroupType || '',
-                        totalEmployees: emp.totalEmployees || 0,
-                        activeEmployees: emp.activeEmployees || emp.totalWorkingEmployees || 0,
-                        leftEmployees: emp.leftEmployees || emp.totalLeftEmployees || 0,
-                        newJoinees: emp.newJoinees || 0,
-                        maleEmployees: emp.maleEmployees || 0,
-                        femaleEmployees: emp.femaleEmployees || 0,
-                        dateRange:
-                            filters.fromDate && filters.toDate
-                                ? `${format(filters.fromDate, 'dd-MM-yyyy')} to ${format(filters.toDate, 'dd-MM-yyyy')}`
-                                : ''
-                    }));
-                    setStrengthRecords(mappedRecords);
-                    toast.success('Employee strength report generated successfully');
+
+        generateReport(payload, {
+            onSuccess: (res) => {
+                if (res.success && res.data) {
+                    setReportData(res.data);
+                    toast.success('Report generated successfully');
                 } else {
-                    toast.error(response.message || 'Failed to generate employee strength report');
+                    toast.error(res.message || 'No data found');
                 }
-            },
-            onError: (error: Error) => {
-                toast.error(error.message || 'Failed to generate employee strength report');
             }
         });
     };
-    const handleCancel = () => {
-        setFilters({
-            groupType: 'All',
-            department: 'All',
-            designation: 'All',
-            employeeCategories: {
-                allEmployee: false,
-                departmentWise: false,
-                leftEmployee: false
-            },
-            fromDate: null,
-            toDate: null
-        });
-        setShowReport(false);
-        setStrengthRecords([]);
-        setFilteredRecords([]);
-        setSchoolName('');
-        setSchoolAddress('');
-        toast.info('Filters cleared');
-    };
+
     const handleExport = () => {
-        toast.success('Employee strength report exported');
-    };
-    const handlePrint = () => {
-        window.print();
-        toast.success('Print dialog opened');
-    };
-    // Extract institution details from onload data if available
-    useEffect(() => {
-        if (onloadData?.data) {
-            const institutionDetails = (onloadData.data as any).institutionDetails;
-            if (institutionDetails) {
-                setSchoolName(institutionDetails.MI_Name || '');
-                const addressParts = [];
-                if (institutionDetails.MI_Address1) addressParts.push(institutionDetails.MI_Address1);
-                if (institutionDetails.MI_Address2) addressParts.push(institutionDetails.MI_Address2);
-                if (institutionDetails.MI_Address3) addressParts.push(institutionDetails.MI_Address3);
-                if (institutionDetails.MI_Pincode) addressParts.push(institutionDetails.MI_Pincode);
-                setSchoolAddress(addressParts.join(', ') || '');
-            }
+        const dataForExport = reportData?.employeeDetails || reportData?.alldata || reportData?.list || (Array.isArray(reportData) ? reportData : []);
+        if (!dataForExport || dataForExport.length === 0) {
+            toast.error('No data to export');
+            return;
         }
-    }, [onloadData]);
+
+        const exportColumns = [
+            { label: 'SL.No', value: 'slNo' },
+            { label: 'Group Type', value: 'groupTypeName' },
+            { label: 'Department', value: 'departmentName' },
+            ...(!watchedDepartmentwise && !watchedLeftEmployee ? [{ label: 'Designation', value: 'designationName' }] : []),
+            { label: 'Total No. of Emp', value: 'totalEmployees' }
+        ];
+
+        const processedContent = dataForExport.map((row: any, index: number) => ({
+            ...row,
+            slNo: index + 1
+        }));
+
+        exportToExcel('EmployeeStrengthReport', JSON.stringify(exportColumns), JSON.stringify(processedContent));
+    };
+
+    const handlePrint = () => {
+        if (!reportData) {
+            toast.error('No data to print');
+            return;
+        }
+        printEmployeeStrengthReport(reportData, watchedDepartmentwise, watchedLeftEmployee);
+    };
+
+    const columns = useMemo(() => {
+        if (!reportData) return [];
+
+        const baseColumns = [
+            {
+                id: 'serialNumber',
+                header: 'Sl.No',
+                cell: ({ row }: any) => row.index + 1,
+            },
+            {
+                accessorKey: 'groupTypeName',
+                header: 'Group Type',
+            },
+            {
+                accessorKey: 'departmentName',
+                header: 'Department',
+            }
+        ];
+
+        if (!watchedDepartmentwise && !watchedLeftEmployee) {
+            baseColumns.push({
+                accessorKey: 'designationName',
+                header: 'Designation',
+            } as any);
+        }
+
+        baseColumns.push({
+            accessorKey: 'totalEmployees',
+            header: 'Total No. of Emp',
+            cell: ({ row }: any) => <div className="text-right">{row.original.totalEmployees}</div>
+        } as any);
+
+        return baseColumns;
+    }, [reportData, watchedDepartmentwise, watchedLeftEmployee]);
+
+    const totalEmployeesSum = useMemo(() => {
+        const dataArr = reportData?.employeeDetails || reportData?.alldata || reportData?.list || (Array.isArray(reportData) ? reportData : []);
+        return dataArr?.reduce((sum: number, item: any) => sum + (item.totalEmployees || item.total_employees || 0), 0) || 0;
+    }, [reportData]);
+
     return (
-        <div className='space-y-6'>
-            {/* Report Configuration Section */}
-            <EmployeeStrengthFilters
-                filters={filters}
-                groupTypes={mappedGroupTypes}
-                availableDepartments={availableDepartments}
-                availableDesignations={availableDesignations}
-                onFilterChange={handleFilterChange}
-                onCategoryChange={handleCategoryChange}
-                onDateChange={handleDateChange}
-                onSearch={handleSearch}
-                onCancel={handleCancel}
-                onExport={handleExport}
-                onPrint={handlePrint}
-            />
-            {/* Report Results */}
-            {showReport && (
-                <EmployeeStrengthReportTemplate
-                    schoolName={schoolName}
-                    schoolAddress={schoolAddress}
-                    reportData={filteredRecords}
-                    isLoading={searchMutation.isPending}
-                    onPrint={handlePrint}
-                    onExport={handleExport}
-                    onCancel={handleCancel}
-                />
+        <div className='container min-h-screen space-y-4 p-2'>
+            <div className='flex items-center justify-between'>
+                <h2 className='text-2xl font-bold tracking-tight'>Employee Strength Report</h2>
+            </div>
+
+            <CollapsibleSection defaultOpen={true} title="Report Criteria" variant='outline' className='shadow-sm'>
+                <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                    <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
+                        {/* Group Type */}
+                        <div className='space-y-2'>
+                            <Label>Group Type <span className='text-destructive'>*</span></Label>
+                            <Controller name='groupType' control={control} render={({ field }) => (
+                                <MultiSelect
+                                    options={groupTypesData?.data?.map((gt: any) => ({
+                                        label: gt.value,
+                                        value: gt.key.toString()
+                                    })) || []}
+                                    defaultValue={field.value}
+                                    onValueChange={(vals) => {
+                                        field.onChange(vals);
+                                        setValue('department', []);
+                                        setValue('designation', []);
+                                    }}
+                                    placeholder="Select Group Types"
+                                />
+                            )} />
+                        </div>
+
+                        {/* Department */}
+                        <div className='space-y-2'>
+                            <Label>Department <span className='text-destructive'>*</span></Label>
+                            <Controller name='department' control={control} render={({ field }) => (
+                                <MultiSelect
+                                    options={departmentsData?.data?.map((d: any) => ({
+                                        label: d.hrmD_DepartmentName,
+                                        value: d.hrmD_Id.toString()
+                                    })) || []}
+                                    defaultValue={field.value}
+                                    onValueChange={(vals) => {
+                                        field.onChange(vals);
+                                        setValue('designation', []);
+                                    }}
+                                    placeholder="Select Departments"
+                                    disabled={!watchedGroupType.length}
+                                />
+                            )} />
+                        </div>
+
+                        {/* Designation */}
+                        <div className='space-y-2'>
+                            <Label>Designation <span className='text-destructive'>*</span></Label>
+                            <Controller name='designation' control={control} render={({ field }) => (
+                                <MultiSelect
+                                    options={designationsData?.data?.map((d: any) => ({
+                                        label: d.hrmdeS_DesignationName,
+                                        value: d.hrmdeS_Id.toString()
+                                    })) || []}
+                                    defaultValue={field.value}
+                                    onValueChange={field.onChange}
+                                    placeholder="Select Designations"
+                                    disabled={!watchedDepartment.length}
+                                />
+                            )} />
+                        </div>
+                    </div>
+
+                    <div className='grid grid-cols-1 gap-6 lg:grid-cols-3 bg-muted/30 p-4 rounded-lg border'>
+                        <div className='flex flex-col space-y-4'>
+                            <div className='flex items-center space-x-2'>
+                                <Controller name='allEmployee' control={control} render={({ field }) => (
+                                    <Checkbox id="allEmployee" checked={field.value} onCheckedChange={field.onChange} />
+                                )} />
+                                <Label htmlFor="allEmployee" className="cursor-pointer">All Employee</Label>
+                            </div>
+                            <div className='flex items-center space-x-2'>
+                                <Controller name='departmentwise' control={control} render={({ field }) => (
+                                    <Checkbox id="departmentwise" checked={field.value} onCheckedChange={field.onChange} />
+                                )} />
+                                <Label htmlFor="departmentwise" className="cursor-pointer">Department wise</Label>
+                            </div>
+                            <div className='flex items-center space-x-2'>
+                                <Controller name='leftEmployee' control={control} render={({ field }) => (
+                                    <Checkbox id="leftEmployee" checked={field.value} onCheckedChange={field.onChange} />
+                                )} />
+                                <Label htmlFor="leftEmployee" className="cursor-pointer">Left Employee</Label>
+                            </div>
+                        </div>
+
+                        {!watchedAllEmployee && (
+                            <>
+                                <div className='space-y-2'>
+                                    <Label>From Date</Label>
+                                    <Controller name='fromDate' control={control} render={({ field }) => (
+                                        <DatePicker date={field.value} setDate={field.onChange} placeholder="Select From Date" />
+                                    )} />
+                                </div>
+                                <div className='space-y-2'>
+                                    <Label>To Date</Label>
+                                    <Controller name='toDate' control={control} render={({ field }) => (
+                                        <DatePicker date={field.value} setDate={field.onChange} placeholder="Select To Date" />
+                                    )} />
+                                </div>
+                            </>
+                        )}
+                    </div>
+
+                    <div className='flex justify-end gap-2'>
+                        <Button type='button' variant="outline" onClick={() => setValue('groupType', [])}>Cancel</Button>
+                        <Button type='submit' disabled={isPending} className='w-32'>
+                            {isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
+                            Search
+                        </Button>
+                    </div>
+                </form>
+            </CollapsibleSection>
+
+            {reportData && (
+                <CollapsibleSection title="Report Details" defaultOpen={true} className='shadow-md border'
+                    rightElement={
+                        <div className='flex gap-2'>
+                            <Button variant='outline' size='sm' onClick={handleExport} className='gap-2'>
+                                <Download className='h-4 w-4' />
+                                Export
+                            </Button>
+                            <Button variant='outline' size='sm' onClick={handlePrint} className='gap-2'>
+                                <Printer className='h-4 w-4' />
+                                Print
+                            </Button>
+                        </div>
+                    }
+                >
+                    <div className="space-y-4">
+                        <div className="text-center space-y-1 py-4 border-b">
+                            <h3 className="text-xl font-bold">{reportData.institutionDetails?.mI_Name}</h3>
+                            <p className="text-sm text-muted-foreground">
+                                {reportData.institutionDetails?.mI_Address1} {reportData.institutionDetails?.mI_Address2} {reportData.institutionDetails?.mI_Address3}
+                            </p>
+                            <p className="text-sm text-muted-foreground">{reportData.institutionDetails?.mI_Pincode}</p>
+                            <h4 className="text-lg font-semibold pt-2">Employee Strength Report</h4>
+                        </div>
+
+                        <GenericDataTable
+                            data={reportData?.employeeDetails || reportData?.alldata || reportData?.list || (Array.isArray(reportData) ? reportData : [])}
+                            columns={columns}
+                            totalItems={(reportData?.employeeDetails || reportData?.alldata || reportData?.list || (Array.isArray(reportData) ? reportData : [])).length}
+                            isPaginationRequired={false}
+                            isSearchRequired={false}
+                            showSearchColumns={false}
+                            isLoading={isPending}
+                        />
+
+                        {/* Footer Summary */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-muted/20 rounded-lg border">
+                            <div className="space-y-1">
+                                <p className="text-xs text-muted-foreground uppercase font-semibold">Total Employees</p>
+                                <p className="text-2xl font-bold">{totalEmployeesSum}</p>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-xs text-muted-foreground uppercase font-semibold">Working Employees</p>
+                                <p className="text-2xl font-bold text-green-600">{reportData.totalWorkingEmployees || 0}</p>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-xs text-muted-foreground uppercase font-semibold">Left Employees</p>
+                                <p className="text-2xl font-bold text-red-600">{reportData.totalLeftEmployees || 0}</p>
+                            </div>
+                        </div>
+                    </div>
+                </CollapsibleSection>
             )}
         </div>
     );

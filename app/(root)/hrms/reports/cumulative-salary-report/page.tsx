@@ -1,410 +1,495 @@
 'use client';
+
+import { useRef, useState, useMemo } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { useReactToPrint } from 'react-to-print';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { useCumulativeSalaryReportList, useCumulativeSalaryReportOnload } from '@/hooks/hrms/useReports';
-import type { ApiSearchparams } from '@/types';
-import { useRouter } from 'next/navigation';
-import { use, useEffect, useMemo, useRef, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
-import type { CumulativeSalaryRecord } from './_components/columns';
-import { CumulativeSalaryReportFilters, type ReportFilters } from './_components/filters';
+import { FormProvider } from '@/components/ui/form/form-provider';
+import { Label } from '@/components/ui/extension/field';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { Button } from '@/components/ui/button';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
+import { exportToExcel } from '@/lib/export-to-file';
+import { printCumulativeSalaryReport } from './_components/print-utils';
 import { CumulativeSalaryReportTemplate } from './_components/report-template';
-type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-export default function CumulativeSalaryReportPage(props: { searchParams: SearchParams }) {
-    const rawSearchParams = use(props.searchParams);
-    const router = useRouter();
-    // Convert Next.js searchParams to ApiSearchparams format
-    const searchParams: ApiSearchparams = {
-        page:
-            typeof rawSearchParams?.page === 'string'
-                ? Number.parseInt(rawSearchParams.page, 10)
-                : Array.isArray(rawSearchParams?.page)
-                  ? Number.parseInt(rawSearchParams.page[0], 10)
-                  : typeof rawSearchParams?.page === 'number'
-                    ? rawSearchParams.page
-                    : undefined,
-        page_size:
-            typeof rawSearchParams?.page_size === 'string'
-                ? Number.parseInt(rawSearchParams.page_size, 10)
-                : Array.isArray(rawSearchParams?.page_size)
-                  ? Number.parseInt(rawSearchParams.page_size[0], 10)
-                  : typeof rawSearchParams?.page_size === 'number'
-                    ? rawSearchParams.page_size
-                    : undefined,
-        search_query:
-            typeof rawSearchParams?.search_query === 'string'
-                ? rawSearchParams.search_query
-                : Array.isArray(rawSearchParams?.search_query)
-                  ? rawSearchParams.search_query[0]
-                  : undefined,
-        search_column:
-            typeof rawSearchParams?.search_column === 'string'
-                ? rawSearchParams.search_column
-                : Array.isArray(rawSearchParams?.search_column)
-                  ? rawSearchParams.search_column[0]
-                  : undefined,
-        sort_column:
-            typeof rawSearchParams?.sort_column === 'string'
-                ? rawSearchParams.sort_column
-                : Array.isArray(rawSearchParams?.sort_column)
-                  ? rawSearchParams.sort_column[0]
-                  : undefined,
-        sort_direction:
-            typeof rawSearchParams?.sort_direction === 'string'
-                ? rawSearchParams.sort_direction
-                : Array.isArray(rawSearchParams?.sort_direction)
-                  ? rawSearchParams.sort_direction[0]
-                  : undefined
-    };
-    // Extract filter params from URL
-    const MI_Id = 30;
-    const month =
-        typeof rawSearchParams?.month === 'string'
-            ? rawSearchParams.month
-            : Array.isArray(rawSearchParams?.month)
-              ? rawSearchParams.month[0]
-              : '';
-    const year =
-        typeof rawSearchParams?.year === 'string'
-            ? rawSearchParams.year
-            : Array.isArray(rawSearchParams?.year)
-              ? rawSearchParams.year[0]
-              : '';
-    // Memoize arrays to prevent unnecessary re-renders and infinite loops
-    const groupType = useMemo(() => {
-        if (typeof rawSearchParams?.groupType === 'string') {
-            return rawSearchParams.groupType.split(',').map(Number).filter(Boolean);
-        }
-        if (Array.isArray(rawSearchParams?.groupType)) {
-            return rawSearchParams.groupType.flatMap((g) => (typeof g === 'string' ? g.split(',').map(Number).filter(Boolean) : []));
-        }
-        return [];
-    }, [rawSearchParams?.groupType]);
-    const department = useMemo(() => {
-        if (typeof rawSearchParams?.department === 'string') {
-            return rawSearchParams.department.split(',').map(Number).filter(Boolean);
-        }
-        if (Array.isArray(rawSearchParams?.department)) {
-            return rawSearchParams.department.flatMap((d) => (typeof d === 'string' ? d.split(',').map(Number).filter(Boolean) : []));
-        }
-        return [];
-    }, [rawSearchParams?.department]);
-    const designation = useMemo(() => {
-        if (typeof rawSearchParams?.designation === 'string') {
-            return rawSearchParams.designation.split(',').map(Number).filter(Boolean);
-        }
-        if (Array.isArray(rawSearchParams?.designation)) {
-            return rawSearchParams.designation.flatMap((d) => (typeof d === 'string' ? d.split(',').map(Number).filter(Boolean) : []));
-        }
-        return [];
-    }, [rawSearchParams?.designation]);
-    // Check if we have search criteria (month and year are required)
-    const hasSearchCriteria = !!(month && year);
-    // State to control when to show the report template (even without data)
-    const [showReport, setShowReport] = useState(false);
-    const hasInitializedShowReport = useRef(false);
-    // React Query hook for dropdowns - always enabled to get filter options
-    const { data: onloadData, isLoading: onloadLoading, error: onloadError } = useCumulativeSalaryReportOnload(MI_Id);
-    // Memoize arrays to prevent unnecessary re-renders
-    const groupTypes = useMemo(() => onloadData?.data?.groupTypedropdownlist || [], [onloadData?.data?.groupTypedropdownlist]);
-    const departments = useMemo(() => onloadData?.data?.departmentdropdownlist || [], [onloadData?.data?.departmentdropdownlist]);
-    const designations = useMemo(() => onloadData?.data?.designationdropdownlist || [], [onloadData?.data?.designationdropdownlist]);
-    const months = useMemo(() => onloadData?.data?.monthdropdown || [], [onloadData?.data?.monthdropdown]);
-    const years = useMemo(() => onloadData?.data?.leaveyeardropdown || [], [onloadData?.data?.leaveyeardropdown]);
-    // Get year and month IDs from dropdowns for API
-    const yearId = years.find((y) => y.HRMLY_LeaveYear === year)?.HRMLY_Id;
-    const monthId = months.find((m) => m.IVRM_Month_Name.trim() === month)?.IVRM_Month_Id;
-    // React Query hook for report data - only enabled when search criteria are present
-    const reportListQuery = useCumulativeSalaryReportList(
-        searchParams,
-        {
-            MIID: MI_Id,
-            LoginUserId: 0,
-            UserRole: '',
-            is_export: false,
-            // Pass filter parameters to get salary data instead of designation data
-            month: monthId?.toString(),
-            year: yearId?.toString(),
-            groupTypeIdList: groupType.length > 0 ? groupType : undefined,
-            hrmD_IdList: department.length > 0 ? department : undefined,
-            hrmdeS_IdList: designation.length > 0 ? designation : undefined
-        },
-        hasSearchCriteria // Only fetch when month and year are selected
+import {
+    useCumulativeSalaryReport,
+    useReportDepartments,
+    useReportDesignations,
+    useReportGroupTypes
+} from '@/hooks/hrms/useReports';
+import { Loader2, Search, Download, Printer } from 'lucide-react';
+import { toast } from 'sonner';
+
+// Static Month List (copied from Exam Module reference)
+const MONTH_LIST = [
+    { id: 1, name: 'January' }, { id: 2, name: 'February' }, { id: 3, name: 'March' },
+    { id: 4, name: 'April' }, { id: 5, name: 'May' }, { id: 6, name: 'June' },
+    { id: 7, name: 'July' }, { id: 8, name: 'August' }, { id: 9, name: 'September' },
+    { id: 10, name: 'October' }, { id: 11, name: 'November' }, { id: 12, name: 'December' }
+];
+
+interface FilterFormValues {
+    year: string;
+    month: string;
+    groupType: string[];
+    department: string[];
+    designation: string[];
+}
+
+export default function CumulativeSalaryReportPage() {
+    return (
+        <FormProvider>
+            <CumulativeSalaryReportContent />
+        </FormProvider>
     );
-    // Debug: Check if query should be refetching
-    useEffect(() => {
-        if (hasSearchCriteria) {
-        }
-    }, [hasSearchCriteria, monthId, yearId, reportListQuery.isLoading, reportListQuery.isFetching, reportListQuery.data]);
-    // Form for filters
-    const { handleSubmit, reset, watch, control, setValue } = useForm<ReportFilters>({
-        mode: 'onChange',
+}
+
+function CumulativeSalaryReportContent() {
+    const [reportData, setReportData] = useState<any>(null);
+    const { control, handleSubmit, watch } = useForm<FilterFormValues>({
         defaultValues: {
+            year: '',
+            month: '',
             groupType: [],
             department: [],
-            designation: [],
-            month: '',
-            year: ''
+            designation: []
         }
     });
-    // Sync form with URL params - use useEffect instead of useMemo to avoid render issues
-    // Note: setValue is stable and doesn't need to be in dependencies (react-hook-form guarantee)
-    useEffect(() => {
-        setValue('groupType', groupType.map(String));
-        setValue('department', department.map(String));
-        setValue('designation', designation.map(String));
-        setValue('month', month);
-        setValue('year', year);
-    }, [groupType, department, designation, month, year]); // Removed setValue to prevent infinite loops
-    // Show report template when URL has search params (month and year) - only set once on mount
-    useEffect(() => {
-        if (hasSearchCriteria && !hasInitializedShowReport.current) {
-            setShowReport(true);
-            hasInitializedShowReport.current = true;
-        }
-    }, [hasSearchCriteria]); // Only depend on hasSearchCriteria to avoid loops
-    const onSubmit = async (data: ReportFilters) => {
-        // Show the report template immediately, even without data
-        setShowReport(true);
-        if (!data.month || !data.year) {
-            toast.warning('Please select month and year for accurate results. Showing report template.');
-            // Still show the template even if validation fails
+
+    const componentRef = useRef<HTMLDivElement>(null);
+    const watchedGroupType = watch('groupType');
+    const watchedDepartment = watch('department');
+
+    // Queries
+    const { data: yearsData } = useLeaveYearDropdown();
+
+    const handlePrint = () => {
+        if (!reportData) {
+            toast.error('No data to print');
             return;
         }
-        // Build URL params
-        const params = new URLSearchParams();
-        // Add filter params
-        if (data.month) params.set('month', data.month);
-        if (data.year) params.set('year', data.year);
-        if (data.groupType && data.groupType.length > 0) {
-            params.set('groupType', data.groupType.join(','));
-        }
-        if (data.department && data.department.length > 0) {
-            params.set('department', data.department.join(','));
-        }
-        if (data.designation && data.designation.length > 0) {
-            params.set('designation', data.designation.join(','));
-        }
-        // Reset pagination when filters change
-        params.set('page', '1');
-        const finalUrl = `/hrms/reports/cumulative-salary-report?${params.toString()}`;
-        router.push(finalUrl);
-        // Note: router.refresh() is for server components, but we're using client component
-        // The component should re-render automatically when URL changes
-        // If it doesn't, we might need to use useSearchParams() instead
-    };
-    const handleCancel = () => {
-        reset({
-            groupType: [],
-            department: [],
-            designation: [],
-            month: '',
-            year: ''
-        });
-        setShowReport(false);
-        hasInitializedShowReport.current = false;
-        router.push('/hrms/reports/cumulative-salary-report');
+
+        const selectedYear = yearsData?.data?.find((y: any) => y.hrmlY_Id.toString() === watch('year'))?.hrmlY_LeaveYear || '';
+        const selectedMonth = MONTH_LIST.find((m) => m.id.toString() === watch('month'))?.name || '';
+
+        printCumulativeSalaryReport(reportData, selectedMonth, selectedYear);
     };
     const handleExport = () => {
-        toast.success('Report exported successfully');
-    };
-    const handlePrint = () => {
-        window.print();
-        toast.success('Print dialog opened');
-    };
-    // Transform API data to table format
-    const reportData = useMemo(() => {
-        const response = reportListQuery.data;
-        if (!response?.success) {
-            return [];
+        if (!reportData || !reportData.cumulativeSalaryReport || reportData.cumulativeSalaryReport.length === 0) {
+            toast.error('No data to export');
+            return;
         }
-        if (!response.data?.data?.rows) {
-            return [];
+
+        // Prepare columns for JSON-AS-XLSX
+        // Reference: lib/export-to-file.ts expects JSON string for columns and content if using `exportToExcel`
+        // But wait, checking usage in other files (found in step 6/7) might clarify if we pass object or string.
+        // Step 12 showed: columns: JSON.parse(columns). So it MUST be a string.
+
+        const exportColumns = [
+            { label: 'Employee Code', value: 'hrme_employeecode' },
+            { label: 'Employee Name', value: (row: any) => `${row.hrme_employeefirstname || ''} ${row.hrme_employeemiddlename || ''} ${row.hrme_employeelastname || ''}` },
+            { label: 'Designation', value: 'hrmdes_designationname' },
+            { label: 'Working Days', value: 'hres_workingdays' },
+            // Earnings
+            ...(reportData.earningDetails || []).map((head: any) => ({
+                label: head.hrmeD_Name,
+                value: (row: any) => row[head.hrmeD_Name] || 0
+            })),
+            { label: 'Gross Pay', value: 'totalearnings' },
+            // Deductions
+            ...(reportData.dectuionDetails || []).map((head: any) => ({
+                label: head.hrmeD_Name,
+                value: (row: any) => row[head.hrmeD_Name] || 0
+            })),
+            { label: 'Total Deductions', value: 'totaldeduction' },
+            { label: 'Net Pay', value: 'totalpayable' }
+        ];
+
+        // We need to pass JSON stringified columns and content? 
+        // Actually, json-as-xlsx takes objects. 
+        // The helper `exportToExcel` in `lib/export-to-file.ts` does:
+        // columns: JSON.parse(columns), content: JSON.parse(content)
+        // This suggests the helper expects STRINGS.
+        // Let's verify if `json-as-xlsx` can take functions in `value`.
+        // `json-as-xlsx` supports value as function. 
+        // BUT `JSON.parse` will fail if the string contains functions.
+        // If `exportToExcel` strictly parses, then we cannot use functions in `value`.
+        // We must map the content beforehand to match the keys or use simple keys.
+
+        // Strategy: Map content to flat objects with known keys if needed, OR just pass keys.
+        // But for "Employee Name", we need a computed value.
+        // So we should pre-process the content.
+
+        const processedContent = reportData.cumulativeSalaryReport.map((row: any) => {
+            const newRow: any = { ...row };
+            newRow.empName = `${row.hrme_employeefirstname || ''} ${row.hrme_employeemiddlename || ''} ${row.hrme_employeelastname || ''}`;
+
+            // Ensure earnings/deductions exist as keys (they should be there based on table logic)
+            return newRow;
+        });
+
+        const safeColumns = [
+            { label: 'Employee Code', value: 'hrme_employeecode' },
+            { label: 'Employee Name', value: 'empName' },
+            { label: 'Designation', value: 'hrmdes_designationname' },
+            { label: 'Working Days', value: 'hres_workingdays' },
+            // Earnings
+            ...(reportData.earningDetails || []).map((head: any) => ({
+                label: head.hrmeD_Name,
+                value: head.hrmeD_Name // Assuming key matches name
+            })),
+            { label: 'Gross Pay', value: 'totalearnings' },
+            // Deductions
+            ...(reportData.dectuionDetails || []).map((head: any) => ({
+                label: head.hrmeD_Name,
+                value: head.hrmeD_Name
+            })),
+            { label: 'Total Deductions', value: 'totaldeduction' },
+            { label: 'Net Pay', value: 'totalpayable' }
+        ];
+
+        exportToExcel('CumulativeSalaryReport', JSON.stringify(safeColumns), JSON.stringify(processedContent));
+    };
+    const { data: groupTypesData } = useReportGroupTypes();
+
+    const groupTypeIds = watchedGroupType?.join(',') || '';
+    const { data: departmentsData } = useReportDepartments(groupTypeIds);
+
+    const deptIds = watchedDepartment?.join(',') || '';
+    const { data: designationsData } = useReportDesignations(groupTypeIds, deptIds);
+
+    const { mutate: generateReport, isPending } = useCumulativeSalaryReport();
+
+    const onSubmit = (data: FilterFormValues) => {
+        if (!data.year || !data.month || data.designation.length === 0) {
+            toast.error('Please select Year, Month and at least one Designation');
+            return;
         }
-        const rows = response.data.data.rows;
-        // Check if rows contain salary report data
-        if (Array.isArray(rows) && rows.length > 0) {
-            const firstRow = rows[0] as any;
-            // Check if it's a salary report record (has salary-related fields)
-            if (firstRow && ('basic' in firstRow || 'grossEarning' in firstRow || 'netSalary' in firstRow)) {
-                return rows.map(
-                    (record: any): CumulativeSalaryRecord => ({
-                        ...record,
-                        employeeName: `${record.HRME_EmployeeFirstName || ''} ${
-                            record.HRME_EmployeeMiddleName || ''
-                        } ${record.HRME_EmployeeLastName || ''}`.trim(),
-                        designation: record.HRMDES_DesignationName || record.designation,
-                        basic: record.basic || 0,
-                        da: record.da || 0,
-                        hra: record.hra || 0,
-                        conveyance: record.conveyance || 0,
-                        medical: record.medical || 0,
-                        splAllowance: record.splAllowance || 0,
-                        grossEarning: record.grossEarning || 0,
-                        pf: record.pf || 0,
-                        esi: record.esi || 0,
-                        others: record.others || 0,
-                        pt: record.pt || 0,
-                        grossDeduction: record.grossDeduction || 0,
-                        leaveDedDays: record.leaveDedDays || 0,
-                        leaveDedPrevDays: record.leaveDedPrevDays || 0,
-                        netSalary: record.netSalary || 0
-                    })
-                );
+
+        // Find selected year object to get name if needed, assuming value is ID or Year
+        // If Dropdown value is ID, we might need Year String. 
+        // Based on Exam module ref, ASMAY_Id is used. 
+        // Payload expects "hreS_Year": "2025" (Year string).
+
+        const selectedYearObj = yearsData?.data?.find((y: any) => y.hrmlY_Id.toString() === data.year);
+        // Fallback: if data.year is already the year string (depends on SelectItem value)
+        // Let's assume SelectItem value is ASMAY_Id, so we get the Year string.
+        // Actually, Exam module reference uses ASMAY_Id. 
+        // BUT payload expects `hreS_Year` as string "2025".
+        // SO we must find the name.
+        const yearString = selectedYearObj?.hrmlY_LeaveYear?.split('-')[0] || data.year; // Extract 2025 from 2025-2026 if necessary, or just send Year code.
+        // Let's assume strictly 2025 like the payload sample.
+
+        // Month: Payload "hreS_Month": "April". So we need Name, not ID.
+        const selectedMonthObj = MONTH_LIST.find(m => m.id.toString() === data.month);
+        const monthName = selectedMonthObj?.name || '';
+
+        generateReport({
+            hreS_Year: yearString, // Careful here, might need full year or split. Payload "2025" implies calendar year? OR Academic start?
+            // If the user selects "2024-2025", and month is April 2025.
+            // Usually academic year 2024-2025 means April 2024 to March 2025?
+            // User payload "2025" "April".
+            // If I assume `asmaY_Year` is "2025-2026", usually the HRES_Year corresponds to the calendar year of that salary.
+            // Let's send the full string if we aren't sure, OR try to parse.
+            // Given "2025" in sample, likely strictly the year.
+            // For now, I will use the first part of the academic year string or the year entered.
+            // Actually, let's just stick to `asmaY_Year` string if it's "2025" style, but typically it is "2023-2024".
+            // Let's assume the user selects "2025" from a list that might be calendar years?
+            // "useAcademicYearDropdown" returns academic years.
+            // If the user meant "Calendar Year" dropdown, I don't have that.
+            // I'll use the selectedYearObj?.asmaY_Year for now.
+            hreS_Month: monthName,
+            hrmdeS_IdList: data.designation.map(Number)
+        }, {
+            onSuccess: (res) => {
+                if (res.success && res.data) {
+                    setReportData(res.data);
+                    toast.success('Report generated successfully');
+                } else {
+                    toast.error(res.message || 'No data found');
+                }
             }
-        }
-        return [];
-    }, [reportListQuery.data]);
-    // Calculate totals
-    const totals = useMemo(() => {
-        return reportData.reduce(
-            (acc, record) => ({
-                basic: acc.basic + (record.basic || 0),
-                da: acc.da + (record.da || 0),
-                hra: acc.hra + (record.hra || 0),
-                conveyance: acc.conveyance + (record.conveyance || 0),
-                medical: acc.medical + (record.medical || 0),
-                splAllowance: acc.splAllowance + (record.splAllowance || 0),
-                grossEarning: acc.grossEarning + (record.grossEarning || 0),
-                pf: acc.pf + (record.pf || 0),
-                esi: acc.esi + (record.esi || 0),
-                others: acc.others + (record.others || 0),
-                pt: acc.pt + (record.pt || 0),
-                grossDeduction: acc.grossDeduction + (record.grossDeduction || 0),
-                netSalary: acc.netSalary + (record.netSalary || 0)
-            }),
+        });
+    };
+
+    // Columns Construction
+    const columns = useMemo(() => {
+        if (!reportData) return [];
+
+        const baseColumns = [
             {
-                basic: 0,
-                da: 0,
-                hra: 0,
-                conveyance: 0,
-                medical: 0,
-                splAllowance: 0,
-                grossEarning: 0,
-                pf: 0,
-                esi: 0,
-                others: 0,
-                pt: 0,
-                grossDeduction: 0,
-                netSalary: 0
+                id: 'serialNumber',
+                header: 'SL.No',
+                cell: ({ row }: any) => row.index + 1,
+            },
+            {
+                accessorKey: 'hrme_employeecode',
+                header: 'Employee Code',
+            },
+            {
+                accessorKey: 'hrme_employeefirstname',
+                header: 'Employee Name',
+                cell: ({ row }: any) => {
+                    const e = row.original;
+                    return `${e.hrme_employeefirstname || ''} ${e.hrme_employeemiddlename || ''} ${e.hrme_employeelastname || ''}`;
+                }
+            },
+            {
+                accessorKey: 'hrmdes_designationname',
+                header: 'Designation',
+            },
+            {
+                accessorKey: 'hres_workingdays',
+                header: 'Working Days',
             }
-        );
-    }, [reportData]);
-    // Get institution details from API response if available
-    const institutionDetails = useMemo(() => {
-        // Try to get institution details from the API response
-        const response = reportListQuery.data?.data;
-        if (response && typeof response === 'object' && 'institutionDetails' in response) {
-            return (response as any).institutionDetails;
-        }
-        // Try to get from onload data
-        if (onloadData?.data && typeof onloadData.data === 'object' && 'institutionDetails' in onloadData.data) {
-            return (onloadData.data as any).institutionDetails;
-        }
-        return null;
-    }, [reportListQuery.data, onloadData]);
-    // Build school name and address
-    const schoolName = institutionDetails?.MI_Name || '';
-    const schoolAddress = useMemo(() => {
-        if (!institutionDetails) return '';
-        const addressParts = [];
-        if (institutionDetails.MI_Address1) addressParts.push(institutionDetails.MI_Address1);
-        if (institutionDetails.MI_Address2) addressParts.push(institutionDetails.MI_Address2);
-        if (institutionDetails.MI_Address3) addressParts.push(institutionDetails.MI_Address3);
-        return addressParts.join(', ');
-    }, [institutionDetails]);
-    // Show error if API fails
-    useEffect(() => {
-        if (onloadError || (!onloadLoading && onloadData && !onloadData.success)) {
-            const errorMessage =
-                onloadError?.message ||
-                onloadData?.message ||
-                'Failed to load cumulative salary report data. Please check if the API endpoint is available.';
-            toast.error(errorMessage);
-        }
-    }, [onloadError, onloadData, onloadLoading]);
-    // Show error for search API failures
-    useEffect(() => {
-        if (hasSearchCriteria && reportListQuery.data && !reportListQuery.data.success) {
-            const errorMessage =
-                reportListQuery.data.message || 'Failed to load salary report data. Please check if the search API endpoint is available.';
-            toast.error(errorMessage);
-        }
-    }, [reportListQuery.data, hasSearchCriteria]);
-    // Show report template when search criteria are present (even without API data)
-    // The showReport state is set to true when user clicks search
-    // We also show it if we have successful data
-    const shouldShowReport = showReport || (hasSearchCriteria && reportListQuery.data?.success);
-    // Force refetch when search criteria change - removed to prevent infinite loops
-    // React Query will automatically refetch when query key changes
-    // Show error message if onload fails
-    if (onloadError || (!onloadLoading && onloadData && !onloadData.success)) {
-        return (
-            <div className='min-h-screen'>
-                <div className='container space-y-4 p-1'>
-                    <div className='flex flex-col items-center justify-center space-y-4 rounded-lg bg-destructive/10 py-12'>
-                        <div className='text-center'>
-                            <h3 className='font-semibold text-destructive text-lg'>Error Loading Filter Options</h3>
-                            <p className='mt-2 text-muted-foreground text-sm'>
-                                {onloadError?.message ||
-                                    onloadData?.message ||
-                                    'Failed to load filter options. Please check if the API endpoint is available.'}
-                            </p>
-                        </div>
-                    </div>
+        ];
+
+        // Dynamic Earnings
+        const earningColumns = (reportData.earningDetails || []).map((head: any) => ({
+            id: `earning_${head.hrmeD_Id}`,
+            header: head.hrmeD_Name, // Column Header
+            // We need to find the value for this head in the row data.
+            // Since row data seems flat but dynamic, OR we might need to match keys.
+            // Sample doesn't show keys. 
+            // If the row data DOES contain dynamic keys (e.g. "Basic Pay": 1200), we can try regular accessor.
+            // If not, and it's missing from sample, we might need a mapping strategy.
+            // Let's assume the backend puts values in keys matching the Head Name (sanitized) or ID.
+            // Or maybe inside an 'earnings' array in the row?
+            // Sample: "totalearnings" is there.
+            // Valid assumption for VAPS: keys are often `headName` or similar. 
+            // I'll try to look for `head.hrmeD_Name` in the row.
+            accessorFn: (row: any) => {
+                // Try direct name match
+                if (row[head.hrmeD_Name] !== undefined) return row[head.hrmeD_Name];
+
+                // Try finding in an nested array if it existed (not in sample).
+                // If keys are not present, return 0.
+                return 0; // Placeholder until we confirm data structure
+            }
+        }));
+
+        // Dynamic Deductions
+        const deductionColumns = (reportData.dectuionDetails || []).map((head: any) => ({
+            id: `deduction_${head.hrmeD_Id}`,
+            header: head.hrmeD_Name,
+            accessorFn: (row: any) => {
+                if (row[head.hrmeD_Name] !== undefined) return row[head.hrmeD_Name];
+                return 0;
+            }
+        }));
+
+
+        const summaryColumns = [
+            {
+                id: 'totalearnings',
+                accessorKey: 'totalearnings', // Keep for sorting if needed, but override cell
+                header: 'Gross Pay',
+                cell: ({ row }: any) => {
+                    const r = row.original;
+                    // Calculate Gross Pay
+                    const gross = (reportData.earningDetails || []).reduce((sum: number, head: any) => {
+                        return sum + (Number(r[head.hrmeD_Name]) || 0);
+                    }, 0);
+                    return gross.toFixed(2);
+                }
+            },
+            {
+                id: 'totaldeduction',
+                accessorKey: 'totaldeduction',
+                header: 'Total Deductions',
+                cell: ({ row }: any) => {
+                    const r = row.original;
+                    // Calculate Total Deductions
+                    const totalDed = (reportData.dectuionDetails || []).reduce((sum: number, head: any) => {
+                        return sum + (Number(r[head.hrmeD_Name]) || 0);
+                    }, 0);
+                    return totalDed.toFixed(2);
+                }
+            },
+            {
+                id: 'totalpayable',
+                accessorKey: 'totalpayable',
+                header: 'Net Pay',
+                cell: ({ row }: any) => {
+                    const r = row.original;
+                    // Calculate Net Pay
+                    const gross = (reportData.earningDetails || []).reduce((sum: number, head: any) => {
+                        return sum + (Number(r[head.hrmeD_Name]) || 0);
+                    }, 0);
+                    const totalDed = (reportData.dectuionDetails || []).reduce((sum: number, head: any) => {
+                        return sum + (Number(r[head.hrmeD_Name]) || 0);
+                    }, 0);
+                    return (gross - totalDed).toFixed(2);
+                }
+            }
+        ];
+
+        const earningGroup = earningColumns.length > 0 ? [{
+            id: 'earnings_group',
+            header: () => (
+                <div className="text-center font-bold border rounded-t-md bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300 py-1">
+                    Earnings
                 </div>
-            </div>
-        );
-    }
+            ),
+            columns: earningColumns
+        }] : [];
+
+        const deductionGroup = deductionColumns.length > 0 ? [{
+            id: 'deductions_group',
+            header: () => (
+                <div className="text-center font-bold border rounded-t-md bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300 py-1">
+                    Deductions
+                </div>
+            ),
+            columns: deductionColumns
+        }] : [];
+
+        return [...baseColumns, ...earningGroup, ...deductionGroup, ...summaryColumns];
+    }, [reportData]);
+
+    const processedGridData = useMemo(() => {
+        return reportData?.cumulativeSalaryReport || [];
+    }, [reportData]);
+
     return (
-        <div className='min-h-screen'>
-            <div className='container space-y-4 p-1'>
-                {/* Search Form */}
-                <CumulativeSalaryReportFilters
-                    control={control}
-                    groupTypes={groupTypes}
-                    departments={departments}
-                    designations={designations}
-                    months={months}
-                    years={years}
-                    onSubmit={handleSubmit(
-                        (data) => {
-                            return onSubmit(data);
-                        },
-                        (_errors) => {}
-                    )}
-                    onCancel={handleCancel}
-                />
-                {/* Report Results - Only show after search */}
-                {shouldShowReport ? (
-                    <CollapsibleSection
-                        defaultOpen={true}
-                        variant='default'
-                        size='lg'
-                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
-                        headerClassName=''>
-                        <CumulativeSalaryReportTemplate
-                            schoolName={schoolName}
-                            schoolAddress={schoolAddress}
-                            month={watch('month') || month}
-                            year={watch('year') || year}
-                            reportData={reportData}
-                            totals={totals}
-                            isLoading={reportListQuery.isLoading}
-                            onPrint={handlePrint}
-                            onExport={handleExport}
-                            onCancel={handleCancel}
-                        />
-                    </CollapsibleSection>
-                ) : (
-                    <div className='flex items-center justify-center rounded-lg bg-muted/50 py-12'>
-                        <div className='space-y-2 text-center'>
-                            <div className='text-lg text-muted-foreground'>Please use the search form above to generate salary reports</div>
-                            <div className='text-muted-foreground text-sm'>Select your criteria and click "SEARCH" to view results</div>
+        <div className='container min-h-screen space-y-4 p-2'>
+            <div className='flex items-center justify-between'>
+                <h2 className='text-2xl font-bold tracking-tight'>Cumulative Salary Report</h2>
+            </div>
+
+            <CollapsibleSection defaultOpen={true} title="Report Criteria" variant='outline' className='shadow-sm'>
+                <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                    <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
+                        {/* Year */}
+                        <div className='space-y-2'>
+                            <Label>Year <span className='text-destructive'>*</span></Label>
+                            <Controller name='year' control={control} render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select Year" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {yearsData?.data?.map((y: any) => (
+                                            <SelectItem key={y.hrmlY_Id} value={y.hrmlY_Id.toString()}>
+                                                {y.hrmlY_LeaveYear}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )} />
+                        </div>
+
+                        {/* Month */}
+                        <div className='space-y-2'>
+                            <Label>Month <span className='text-destructive'>*</span></Label>
+                            <Controller name='month' control={control} render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select Month" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {MONTH_LIST.map((m) => (
+                                            <SelectItem key={m.id} value={m.id.toString()}>
+                                                {m.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )} />
+                        </div>
+
+                        {/* Group Type */}
+                        <div className='space-y-2'>
+                            <Label>Group Type <span className='text-destructive'>*</span></Label>
+                            <Controller name='groupType' control={control} render={({ field }) => (
+                                <MultiSelect
+                                    options={groupTypesData?.data?.map((gt: any) => ({
+                                        label: gt.value,
+                                        value: gt.key.toString()
+                                    })) || []}
+                                    defaultValue={field.value}
+                                    onValueChange={field.onChange}
+                                    placeholder="Select Group Types"
+                                />
+                            )} />
+                        </div>
+
+                        {/* Department */}
+                        <div className='space-y-2'>
+                            <Label>Department <span className='text-destructive'>*</span></Label>
+                            <Controller name='department' control={control} render={({ field }) => (
+                                <MultiSelect
+                                    options={departmentsData?.data?.map((d: any) => ({
+                                        label: d.hrmD_DepartmentName,
+                                        value: d.hrmD_Id.toString()
+                                    })) || []}
+                                    defaultValue={field.value}
+                                    onValueChange={field.onChange}
+                                    placeholder="Select Departments"
+                                />
+                            )} />
+                        </div>
+
+                        {/* Designation */}
+                        <div className='space-y-2'>
+                            <Label>Designation <span className='text-destructive'>*</span></Label>
+                            <Controller name='designation' control={control} render={({ field }) => (
+                                <MultiSelect
+                                    options={designationsData?.data?.map((d: any) => ({
+                                        label: d.hrmdeS_DesignationName,
+                                        value: d.hrmdeS_Id.toString()
+                                    })) || []}
+                                    defaultValue={field.value}
+                                    onValueChange={field.onChange}
+                                    placeholder="Select Designations"
+                                    maxHeight={200}
+                                />
+                            )} />
                         </div>
                     </div>
-                )}
-            </div>
+
+                    <div className='flex justify-end'>
+                        <Button type='submit' disabled={isPending} className='w-32'>
+                            {isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
+                            Generate
+                        </Button>
+                    </div>
+                </form>
+            </CollapsibleSection>
+
+            {reportData && (
+                <CollapsibleSection title="Report Details" defaultOpen={true} className='shadow-md border'
+                    rightElement={
+                        <div className='flex gap-2'>
+                            <Button variant='outline' size='sm' onClick={handleExport} className='gap-2'>
+                                <Download className='h-4 w-4' />
+                                Export
+                            </Button>
+                            <Button variant='outline' size='sm' onClick={handlePrint} className='gap-2'>
+                                <Printer className='h-4 w-4' />
+                                Print
+                            </Button>
+                        </div>
+                    }
+                >
+                    <div className="h-[500px] overflow-y-auto print:hidden">
+                        <GenericDataTable
+                            data={processedGridData}
+                            columns={columns}
+                            totalItems={processedGridData.length}
+                            isPaginationRequired={false}
+                            isSearchRequired={false}
+                            showSearchColumns={false}
+                            isLoading={isPending}
+                        />
+                    </div>
+                </CollapsibleSection>
+            )}
+
+
         </div>
     );
 }

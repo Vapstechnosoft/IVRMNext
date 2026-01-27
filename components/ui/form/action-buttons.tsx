@@ -17,7 +17,11 @@ interface ActionButtonsProps {
     onEdit?: (data: any) => void;
     onDelete?: (data: any) => void;
     onToggle?: (data: any, newState: boolean) => void;
-    onView?: (data: any) => void;
+    disabled?: {
+        edit?: boolean;
+        delete?: boolean;
+        toggle?: boolean;
+    };
     toggleConditionKey?: string;
     className?: string;
     size?: 'sm' | 'default' | 'lg';
@@ -26,11 +30,12 @@ interface ActionButtonsProps {
 
 export function ActionButtons({
     rowData,
-    buttons = { edit: true, delete: false, toggle: false, view: false },
+    buttons = { edit: true, delete: false, toggle: false },
+    disabled = { edit: false, delete: false, toggle: false },
     onEdit,
     onDelete,
     onToggle,
-    onView,
+  
     toggleConditionKey = 'active_flag',
     className = '',
     size = 'sm',
@@ -58,32 +63,12 @@ export function ActionButtons({
         }
     };
 
-    const handleView = () => {
-        if (onView) {
-            onView(rowData);
-        }
-    };
+    
 
     return (
         <TooltipProvider>
             <div className={`flex items-center gap-3 ${className}`}>
-                {/* View Button */}
-                {buttons.view && (
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant={variant}
-                                size={size}
-                                onClick={handleView}
-                                className='h-8 w-8 p-0 transition-all duration-200 hover:bg-blue-50 hover:text-blue-600'>
-                                <Eye className='h-4 w-4' />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>View Details</p>
-                        </TooltipContent>
-                    </Tooltip>
-                )}
+                
 
                 {/* Edit Button */}
                 {buttons.edit && (
@@ -93,7 +78,8 @@ export function ActionButtons({
                                 variant={variant}
                                 size={size}
                                 onClick={handleEdit}
-                                className='h-8 w-8 p-0 transition-all duration-200 hover:bg-orange-50 hover:text-orange-600'>
+                                disabled={disabled.edit}
+                                className='h-8 w-8 p-0 transition-all duration-200 hover:bg-blue-50 hover:text-blue-600'>
                                 <Edit className='h-4 w-4' />
                             </Button>
                         </TooltipTrigger>
@@ -106,7 +92,7 @@ export function ActionButtons({
                 {/* Status Label and Toggle Switch */}
                 {buttons.toggle && (
                     <div className='flex items-center gap-2'>
-                        <span className={`text-sm font-medium ${isActive ? 'text-green-700' : 'text-red-600'}`}>
+                        <span className={`font-medium text-sm ${isActive ? 'text-green-700' : 'text-red-600'}`}>
                             {isActive ? 'Active' : 'Inactive'}
                         </span>
                         <Switch

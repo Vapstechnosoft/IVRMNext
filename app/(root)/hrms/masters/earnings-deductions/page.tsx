@@ -6,7 +6,8 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useMasterEarningsDeductions } from '@/hooks/hrms/useMasters';
 import type { IMasterEarningsDeductionsList } from '@/types/hrms/hrms-config/master';
 import { Plus, X } from 'lucide-react';
-import { use, useMemo, useState } from 'react';
+import { parseAsString, useQueryState } from 'nuqs';
+import { useEffect, useMemo, useState } from 'react';
 import AddEarningsDeductionsForm from './_components/add-form';
 import { columns } from './_components/columns';
 import ReorderEarningsDeductionsForm from './_components/reorder-form';
@@ -16,12 +17,43 @@ import UpdateEarningsDeductionsForm from './_components/update-form';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterEarningsDeductionsPage(props: { searchParams: SearchParams }) {
-    const searchParams = use(props.searchParams);
+    const [initialSearchParams, setInitialSearchParams] = useState<any>({});
+    const [filterCategory, setFilterCategory] = useQueryState('category', parseAsString.withDefault('all'));
+
+    useEffect(() => {
+        const fetchParams = async () => {
+            const params = await props.searchParams;
+            setInitialSearchParams(params);
+        };
+        fetchParams();
+    }, [props.searchParams]);
+
+    const searchParams = useMemo(() => {
+        // Exclude internal category and any existing search params to ensure a clean request for 'all'
+        const { category, search_query, search_column, ...rest } = initialSearchParams;
+
+        if (filterCategory !== 'all') {
+            return {
+                ...rest,
+                search_query: filterCategory,
+                search_column: 'hrmeD_EarnDedFlag'
+            };
+        }
+
+        return rest;
+    }, [initialSearchParams, filterCategory]);
+
     const { data: response, isLoading, error } = useMasterEarningsDeductions(searchParams);
 
     return (
         <FormProvider<IMasterEarningsDeductionsList>>
-            <MasterEarningsDeductionsPageContent response={response} isLoading={isLoading} error={error} />
+            <MasterEarningsDeductionsPageContent
+                response={response}
+                isLoading={isLoading}
+                error={error}
+                filterCategory={filterCategory}
+                setFilterCategory={setFilterCategory}
+            />
         </FormProvider>
     );
 }
@@ -29,41 +61,19 @@ export default function MasterEarningsDeductionsPage(props: { searchParams: Sear
 function MasterEarningsDeductionsPageContent({
     response,
     isLoading,
-    error
+    error,
+    filterCategory,
+    setFilterCategory
 }: {
     response: any;
     isLoading: boolean;
     error: any;
+    filterCategory: string;
+    setFilterCategory: (value: string) => void;
 }) {
     const { openAddForm } = useFormContext<IMasterEarningsDeductionsList>();
-    // Memoize arrays to prevent unnecessary re-renders
-    const rows: IMasterEarningsDeductionsList[] = useMemo(() => {
-        const data = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
-        return data;
-    }, [response]);
-    const [filterCategory, setFilterCategory] = useState<string>('all');
-    const filteredRows = useMemo(() => {
-        if (filterCategory === 'all') {
-            return rows;
-        }
-        const filtered = rows.filter((row) => {
-            const rowValue = String(row.hrmeD_EarnDedFlag || '').trim();
-            const filterValue = filterCategory.trim();
-            return rowValue === filterValue;
-        });
-        return filtered;
-    }, [rows, filterCategory]);
     const tableProps = useDataTableProps(response);
-    const filteredTableProps = useMemo(() => {
-        if (filterCategory === 'all') {
-            return tableProps;
-        }
-        return {
-            ...tableProps,
-            data: filteredRows,
-            totalItems: filteredRows.length
-        };
-    }, [tableProps, filteredRows, filterCategory]);
+
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -81,11 +91,6 @@ function MasterEarningsDeductionsPageContent({
                             <option value='Arrear'>Arrears</option>
                             <option value='Gross'>Gross</option>
                         </select>
-                        {filterCategory !== 'all' && (
-                            <span className='text-muted-foreground text-sm'>
-                                Showing {filteredRows.length} of {rows.length} items
-                            </span>
-                        )}
                     </div>
                     {/* Action Buttons */}
                     <div className='flex gap-2'>
@@ -108,7 +113,7 @@ function MasterEarningsDeductionsPageContent({
                         <ReorderEarningsDeductionsForm />
                     </div>
                     <GenericDataTable<IMasterEarningsDeductionsList>
-                        {...filteredTableProps}
+                        {...tableProps}
                         columns={columns}
                         isLoading={isLoading}
                         error={error}

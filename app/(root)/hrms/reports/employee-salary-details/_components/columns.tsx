@@ -9,19 +9,7 @@ export interface MonthlySalaryDetail extends BaseEntity {
     month: string;
     year: string;
     basicSalary: number;
-    allowances: number;
-    deductions: number;
-    grossSalary: number;
     netSalary: number;
-    workingDays: number;
-    presentDays: number;
-    absentDays: number;
-    overtimeHours: number;
-    overtimeAmount: number;
-    bonuses: number;
-    pfDeduction: number;
-    esiDeduction: number;
-    professionalTax: number;
 }
 export const getMonthlySalaryDetailColumns = (
     onViewDetails: (monthData: MonthlySalaryDetail) => void

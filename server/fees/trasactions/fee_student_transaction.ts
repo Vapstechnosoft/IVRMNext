@@ -6,7 +6,7 @@ import type { IFeePreAdmissionTransactionDetails, Ifeetransaction } from '@/type
 
 export async function getFeeStudentTransactionDetails(asmaY_Id: number, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/FeeStudentTransaction/fee-details?ASMAY_Id=${asmaY_Id || 231}&${urlParams}`;
+    const url = `/FeeStudentTransaction/fee-details?ASMAY_Id=${asmaY_Id || 0}&${urlParams}`;
     return await api.post<Ifeetransaction[]>('fees', url);
 }
 
@@ -53,4 +53,8 @@ export async function deletefeeTransaction(payload: any) {
 export async function updateFeeStudentTransactionDetails(payload: any) {
     const url = '/FeeStudentTransaction/fee-edit-transaction';
     return await api.post<any[]>('fees', url, payload);
+}
+export async function updateFeeStudentCurrentAcademicDetails(amst_Id: number, asmay_Id: number) {
+    const url = `/FeeStudentTransaction/fee-stud-Profile?AMST_Id=${amst_Id}&ASMAY_Id=${asmay_Id}`;
+    return await api.get<any[]>('fees', url);
 }

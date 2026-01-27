@@ -114,14 +114,14 @@ export default function UpdateMasterTermsPeriodForm({ onSuccess, feeheadname = '
         try {
             const { asmay_Id, fmt_id, filterType } = data;
             const payload = {
-                mi_id: 30,
+                // mi_id: 30,
                 asmay_Id: asmay_Id,
                 fmt_id: fmt_id,
                 fmtP_Year: data.fmtP_Year,
                 feeflag: filterType,
                 fmtP_FROM_MONTH: data.from_Month,
                 fmtP_TO_MONTH: data.to_Month,
-                user_id: 21602,
+                // user_id: 21602,
                 fmtP_Id: row.fmtP_Id
             };
 

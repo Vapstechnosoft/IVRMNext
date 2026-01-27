@@ -42,16 +42,16 @@ export async function getSalarySlipOnload(
 }
 /**
  * Filter employees by year and month
- * POST /api/EmployeeSalarySlipGenerationFacade/GetEmployeeDetailsByLeaveYearAndMonthNew
- * Request: { MI_Id: number, LogInUserId: number, HRES_Year: string, HRES_Month: string }
- * Response: Returns employees in employeedropdown field
+ * POST /api/ReportEmployeeSalarySlipGeneration/get_employee_list_by_leave_year_and_month
+ * Request: { MI_Id?: number, LogInUserId?: number, hreS_Year: string, hreS_Month: string, hrmdes_ids: string, hrmd_ids: string, hrmgt_ids: string }
+ * Response: Returns employees in data field
  */
 export async function filterEmployeesByYearMonth(
     requestBody: SalarySlipFilterRequest
 ): Promise<ApiResponse<SalarySlipResponse>> {
     const response = await api.post<SalarySlipResponse>(
         'hrms',
-        '/api/EmployeeSalarySlipGenerationFacade/GetEmployeeDetailsByLeaveYearAndMonthNew',
+        '/api/ReportEmployeeSalarySlipGeneration/get_employee_list_by_leave_year_and_month',
         requestBody
     );
     // The backend returns raw data, not wrapped in ApiResponse format
@@ -64,14 +64,14 @@ export async function filterEmployeesByYearMonth(
     const rawResponse = response as unknown as SalarySlipResponse;
     return {
         success: true,
-        message: rawResponse?.retrunMsg || 'Filter completed successfully',
+        message: 'Filter completed successfully',
         data: rawResponse
     };
 }
 /**
  * Generate employee salary slip
- * POST /api/EmployeeSalarySlipGenerationFacade/GenerateEmployeeSalarySlipNew
- * Request: { MI_Id: number, HRES_Year: string, HRES_Month: string, empid: number[], hrmdeS_IdList: number[], hrmD_IdList: number[], groupTypeIdList: number[] }
+ * POST /api/ReportEmployeeSalarySlipGeneration/generate_employee_salary_slip
+ * Request: { MI_Id?: number, hreS_Year: string, hreS_Month: string, empid: number[], hrmdeS_IdList: number[], hrmD_IdList: number[], groupTypeIdList: number[] }
  * Note: Arrays should be empty [] when no values are selected, not [0]
  */
 export async function generateSalarySlip(
@@ -79,7 +79,7 @@ export async function generateSalarySlip(
 ): Promise<ApiResponse<SalarySlipResponse>> {
     const response = await api.post<SalarySlipResponse>(
         'hrms',
-        '/api/EmployeeSalarySlipGenerationFacade/GenerateEmployeeSalarySlipNew',
+        '/api/ReportEmployeeSalarySlipGeneration/generate_employee_salary_slip',
         requestBody
     );
     // The backend returns raw data, not wrapped in ApiResponse format
@@ -92,7 +92,7 @@ export async function generateSalarySlip(
     const rawResponse = response as unknown as SalarySlipResponse;
     return {
         success: true,
-        message: rawResponse?.retrunMsg || 'Salary slip generated successfully',
+        message: 'Salary slip generated successfully',
         data: rawResponse
     };
 }

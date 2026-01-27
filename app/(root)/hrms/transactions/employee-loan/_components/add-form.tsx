@@ -9,7 +9,7 @@ import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useSaveEmployeeLoan } from '@/hooks/hrms/useTransactions';
 import { cn } from '@/lib/utils';
 import { hrmsTransactionSchemas } from '@/schemas/hrms/transaction';
-import type { EmployeeLoanOnloadResponse } from '@/types/hrms/employee-loan';
+import type { EmployeeLoanMastersResponse } from '@/types/hrms/employee-loan';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
@@ -19,7 +19,7 @@ import { toast } from 'sonner';
 import type { z } from 'zod';
 type EmployeeLoanForm = z.infer<typeof hrmsTransactionSchemas.employeeLoan.form>;
 interface AddFormProps {
-    onloadData: EmployeeLoanOnloadResponse | undefined;
+    onloadData: EmployeeLoanMastersResponse | undefined;
     onSuccess: () => void;
     className?: string;
 }
@@ -75,8 +75,7 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
             HREL_LaonEMI: data.loanEMI || 0,
             HREL_LoanInterest: data.loanInterest || 0,
             HREL_ModeOfPayment: data.modeOfPayment || '',
-            HREL_ReferenceNo: data.referenceNo || 0,
-            ASMAY_Id: 0
+            HREL_ReferenceNo: data.referenceNo || ''
         };
         saveLoan(loanData, {
             onSuccess: () => {
@@ -113,8 +112,7 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                                                 .filter((emp) => emp?.HRME_Id != null)
                                                 .map((employee) => (
                                                     <SelectItem key={employee.HRME_Id} value={employee.HRME_Id.toString()}>
-                                                        {employee.HRME_EmployeeCode} - {employee.HRME_EmployeeFirstName}{' '}
-                                                        {employee.HRME_EmployeeMiddleName || ''} {employee.HRME_EmployeeLastName || ''}
+                                                        {employee.HRME_EmployeeFirstName}
                                                     </SelectItem>
                                                 ))
                                         ) : (

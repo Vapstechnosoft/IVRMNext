@@ -1,5 +1,4 @@
 'use client';
-import { Badge } from '@/components/ui/badge';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
@@ -37,22 +36,6 @@ export const religionCategoryMappingColumns: ColumnDef<IMasterReligionCategoryMa
             return <div className='font-medium'>{category}</div>;
         },
         enableSorting: true
-    },
-    {
-        accessorKey: 'ircC_ActiveFlg',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-        cell: ({ row }) => {
-            const isActive = row.getValue('ircC_ActiveFlg') as boolean;
-            return (
-                <Badge variant={isActive ? 'default' : 'secondary'} className='font-medium'>
-                    {isActive ? 'Active' : 'Inactive'}
-                </Badge>
-            );
-        },
-        enableSorting: true,
-        filterFn: (row, id, value) => {
-            return value.includes(row.getValue(id));
-        }
     },
     {
         id: 'actions',

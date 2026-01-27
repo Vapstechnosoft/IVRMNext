@@ -1,459 +1,351 @@
 'use client';
-import { Button } from '@/components/ui/button';
+
+import { useState } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { useFilterEmployeeOfferAndExperienceData, useGetEmployeeDetailsBySelection } from '@/hooks/hrms/useReports';
-import { createLocalCrud } from '@/lib/localdb';
-import { format } from 'date-fns';
-import { Printer, X } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
-import { toast } from 'sonner';
+import { FormProvider } from '@/components/ui/form/form-provider';
+import { Label } from '@/components/ui/extension/field';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Input } from '@/components/ui/input';
 import {
-    type Department,
-    type Designation,
-    type Employee,
-    EmployeeOfferLetterFilters,
-    type GroupType,
-    type OfferLetterFilters
-} from './_components/filters';
+    useReportDepartments,
+    useReportDesignations,
+    useReportGroupTypes,
+    useReportEmployees,
+    useEmployeeLetterDetails
+} from '@/hooks/hrms/useReports';
+import { Loader2, Search, Printer } from 'lucide-react';
+import { toast } from 'sonner';
+import { LetterRenderer } from './_components/letter-templates';
+import { printEmployeeLetter } from './_components/print-utils';
+
+interface FilterFormValues {
+    groupTypeId: string;
+    departmentId: string;
+    designationId: string;
+    employeeId: string;
+    letterType: string;
+    hrmeR_Current_Date: Date | undefined;
+    hrmE_DOJ: Date | undefined;
+    hrmeR_DOI: Date | undefined;
+    hrmeR_DOR: Date | undefined;
+    DoResignation: Date | undefined;
+    hrmeR_DOd: Date | undefined;
+    hrmeR_DOter: Date | undefined;
+    hrmeR_DOp: Date | undefined;
+    bankaddress: string;
+    staffLevel: string;
+    startingBasic: string;
+    staffDesignation: string;
+}
+
+const LETTER_TYPES = [
+    { label: 'Teaching Staff Offer Letter', value: 'offerletter' },
+    { label: 'Non Teaching Staff Offer Letter', value: 'Non Teaching offerletter' },
+    { label: 'Experience Certificate', value: 'experienceletter' },
+    { label: 'Service Certificate', value: 'servicecertificate' },
+    { label: 'Teaching Staff Appointment Letter', value: 'appontmentletter' },
+    { label: 'Non Teaching Staff Appointment Letter', value: 'nonteachingappontmentletter' },
+    { label: 'Confirmation Letter', value: 'confirmationletter' },
+    { label: 'Termination Letter', value: 'Terminationletter' },
+    { label: 'Relieving Letter', value: 'relievingLetter' },
+    { label: 'Account Opening', value: 'accountopening' }
+];
+
 export default function EmployeeOfferLetterPage() {
-    // API hooks
-    const filterMutation = useFilterEmployeeOfferAndExperienceData();
-    const searchMutation = useGetEmployeeDetailsBySelection();
-    // Database instances (for dropdowns - group types, departments, designations)
-    const groupTypeDB = createLocalCrud<GroupType>('master:group-type');
-    const departmentDB = createLocalCrud<Department>('master:department');
-    const designationDB = createLocalCrud<Designation>('master:designation');
-    const employeeDB = createLocalCrud<Employee>('master:employee');
-    // State
-    const [groupTypes, setGroupTypes] = useState<GroupType[]>([]);
-    const [departments, setDepartments] = useState<Department[]>([]);
-    const [designations, setDesignations] = useState<Designation[]>([]);
-    const [employees, setEmployees] = useState<Employee[]>([]);
-    const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
-    const [_isLoading, setIsLoading] = useState(true);
-    const [showReport, setShowReport] = useState(false);
-    const [filters, setFilters] = useState<OfferLetterFilters>({
-        type: '',
-        department: '',
-        designation: '',
-        selectedEmployee: '',
-        currentDate: new Date(),
-        reportType: 'Experience Certificate'
-    });
-    // Load data on mount
-    useEffect(() => {
-        loadData();
-    }, []);
-    const loadData = () => {
-        try {
-            // Load master data
-            let groupList = groupTypeDB.list();
-            if (groupList.length === 0) {
-                const mockData = generateMockGroupTypes();
-                mockData.forEach((group) => groupTypeDB.create(group));
-                groupList = groupTypeDB.list();
-            }
-            setGroupTypes(groupList.filter((g) => g.isActive));
-            let deptList = departmentDB.list();
-            if (deptList.length === 0) {
-                const mockData = generateMockDepartments();
-                mockData.forEach((dept) => departmentDB.create(dept));
-                deptList = departmentDB.list();
-            }
-            setDepartments(deptList.filter((d) => d.isActive));
-            let desigList = designationDB.list();
-            if (desigList.length === 0) {
-                const mockData = generateMockDesignations();
-                mockData.forEach((desig) => designationDB.create(desig));
-                desigList = designationDB.list();
-            }
-            setDesignations(desigList.filter((d) => d.isActive));
-            // Load employees
-            let empList = employeeDB.list();
-            if (empList.length === 0) {
-                const mockData = generateMockEmployees();
-                mockData.forEach((emp) => employeeDB.create(emp));
-                empList = employeeDB.list();
-            }
-            setEmployees(empList);
-            setFilteredEmployees(empList);
-        } catch (_error) {
-            toast.error('Failed to load data');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-    // Generate mock data
-    const generateMockGroupTypes = (): Omit<GroupType, 'id' | 'createdAt'>[] => {
-        return [
-            { groupType: 'Teaching', groupCode: 'T', order: 1, isActive: true },
-            { groupType: 'Non Teaching', groupCode: 'NT', order: 2, isActive: true },
-            { groupType: 'Administrative', groupCode: 'ADM', order: 3, isActive: true }
-        ];
-    };
-    const generateMockDepartments = (): Omit<Department, 'id' | 'createdAt'>[] => {
-        return [
-            { departmentName: 'Teaching', internalTrainingHours: '40', order: 1, isActive: true },
-            { departmentName: 'JUNIOR SCHOOL', internalTrainingHours: '35', order: 2, isActive: true },
-            { departmentName: 'SENIOR SCHOOL', internalTrainingHours: '40', order: 3, isActive: true },
-            { departmentName: 'OFFICE STAFF', internalTrainingHours: '40', order: 4, isActive: true }
-        ];
-    };
-    const generateMockDesignations = (): Omit<Designation, 'id' | 'createdAt'>[] => {
-        return [
-            {
-                designationName: 'Senior yoga teacher',
-                basicAmount: '50000',
-                sanctionedSeats: '5',
-                displaySanctionedSeats: true,
-                order: 1,
-                isActive: true
-            },
-            {
-                designationName: 'Principal',
-                basicAmount: '100000',
-                sanctionedSeats: '1',
-                displaySanctionedSeats: true,
-                order: 2,
-                isActive: true
-            },
-            {
-                designationName: 'Assistant Teacher',
-                basicAmount: '40000',
-                sanctionedSeats: '10',
-                displaySanctionedSeats: true,
-                order: 3,
-                isActive: true
-            },
-            {
-                designationName: 'Vice Principal',
-                basicAmount: '80000',
-                sanctionedSeats: '2',
-                displaySanctionedSeats: true,
-                order: 4,
-                isActive: true
-            }
-        ];
-    };
-    const generateMockEmployees = (): Omit<Employee, 'id' | 'createdAt'>[] => {
-        return [
-            {
-                employeeCode: 'EMP001',
-                employeeName: 'chandrakala j k',
-                employeeFirstName: 'chandrakala',
-                employeeMiddleName: 'j',
-                employeeLastName: 'k',
-                groupTypeId: 1,
-                departmentId: 1,
-                designationId: 1,
-                departmentName: 'Teaching',
-                designationName: 'Senior yoga teacher',
-                dateOfJoining: '2021-05-01',
-                employmentType: 'Permanent',
-                gender: 'Female'
-            }
-        ];
-    };
-    // Filter employees using API when filters change
-    useEffect(() => {
-        // Only call API if we have at least one filter selected
-        if (!filters.type && !filters.department && !filters.designation) {
-            setFilteredEmployees([]);
-            setEmployees([]);
-            return;
-        }
-        // Find IDs for selected filters
-        const selectedType = groupTypes.find((gt) => gt.groupType === filters.type);
-        const selectedDept = departments.find((d) => d.departmentName === filters.department);
-        const selectedDesig = designations.find((d) => d.designationName === filters.designation);
-        const filterRequest = {
-            MI_Id: 30,
-            HRMGT_Id: selectedType?.id || 0,
-            HRMD_Id: selectedDept?.id || 0,
-            HRMDES_Id: selectedDesig?.id || 0,
-            LogInUserId: 0
-        };
-        filterMutation.mutate(filterRequest, {
-            onSuccess: (response) => {
-                if (response.success && response.data) {
-                    const employeeList = response.data.employeedropdown || [];
-                    const mappedEmployees: Employee[] = employeeList.map((emp: any) => ({
-                        id: emp.HRME_Id || 0,
-                        createdAt: new Date(),
-                        employeeCode: emp.HRME_EmployeeCode || '',
-                        employeeName:
-                            `${emp.HRME_EmployeeFirstName || ''} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`.trim(),
-                        employeeFirstName: emp.HRME_EmployeeFirstName || '',
-                        employeeMiddleName: emp.HRME_EmployeeMiddleName,
-                        employeeLastName: emp.HRME_EmployeeLastName || '',
-                        groupTypeId: emp.HRMGT_Id || 0,
-                        departmentId: emp.HRMD_Id || 0,
-                        designationId: emp.HRMDES_Id || 0,
-                        departmentName: emp.HRMD_DepartmentName || '',
-                        designationName: emp.HRMDES_DesignationName || '',
-                        dateOfJoining: emp.HRME_DOJ ? emp.HRME_DOJ.split('T')[0] : '',
-                        dateOfLeaving: emp.HRME_DOL ? emp.HRME_DOL.split('T')[0] : undefined,
-                        employmentType:
-                            emp.HRMET_EmployeeType === 'Permanent'
-                                ? 'Permanent'
-                                : emp.HRMET_EmployeeType === 'Probationary'
-                                  ? 'Probationary'
-                                  : 'Permanent',
-                        gender: (emp.IVRMMG_GenderName === 'Male' ? 'Male' : emp.IVRMMG_GenderName === 'Female' ? 'Female' : undefined) as
-                            | 'Male'
-                            | 'Female'
-                            | 'Other'
-                            | undefined
-                    }));
-                    setEmployees(mappedEmployees);
-                    setFilteredEmployees(mappedEmployees);
-                } else {
-                    toast.error(response.message || 'Failed to filter employees');
-                    setEmployees([]);
-                    setFilteredEmployees([]);
-                }
-            },
-            onError: (error: any) => {
-                toast.error(error?.message || 'Failed to filter employees');
-                setEmployees([]);
-                setFilteredEmployees([]);
-            }
-        });
-    }, [filters.type, filters.department, filters.designation, groupTypes, departments, designations]);
-    const handleFilterChange = (key: keyof OfferLetterFilters, value: any) => {
-        setFilters((prev) => ({ ...prev, [key]: value }));
-        // Reset employee when filters change
-        if (key !== 'selectedEmployee' && key !== 'currentDate' && key !== 'reportType') {
-            setFilters((prev) => ({ ...prev, selectedEmployee: '' }));
-        }
-    };
-    const handleSearch = () => {
-        if (!filters.selectedEmployee) {
-            toast.error('Please select an employee');
-            return;
-        }
-        if (!filters.type || !filters.department || !filters.designation) {
-            toast.error('Please select Type, Department, and Designation');
-            return;
-        }
-        // Find IDs for selected filters
-        const selectedType = groupTypes.find((gt) => gt.groupType === filters.type);
-        const selectedDept = departments.find((d) => d.departmentName === filters.department);
-        const selectedDesig = designations.find((d) => d.designationName === filters.designation);
-        const searchRequest = {
-            MI_Id: 30,
-            HRMGT_Id: selectedType?.id || 0,
-            HRMD_Id: selectedDept?.id || 0,
-            HRMDES_Id: selectedDesig?.id || 0,
-            LogInUserId: 0
-        };
-        searchMutation.mutate(searchRequest, {
-            onSuccess: (response) => {
-                if (response.success && response.data) {
-                    const employeeList = response.data.employeedropdown || [];
-                    const mappedEmployees: Employee[] = employeeList.map((emp: any) => ({
-                        id: emp.HRME_Id || 0,
-                        createdAt: new Date(),
-                        employeeCode: emp.HRME_EmployeeCode || '',
-                        employeeName:
-                            `${emp.HRME_EmployeeFirstName || ''} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`.trim(),
-                        employeeFirstName: emp.HRME_EmployeeFirstName || '',
-                        employeeMiddleName: emp.HRME_EmployeeMiddleName,
-                        employeeLastName: emp.HRME_EmployeeLastName || '',
-                        groupTypeId: emp.HRMGT_Id || 0,
-                        departmentId: emp.HRMD_Id || 0,
-                        designationId: emp.HRMDES_Id || 0,
-                        departmentName: emp.HRMD_DepartmentName || '',
-                        designationName: emp.HRMDES_DesignationName || '',
-                        dateOfJoining: emp.HRME_DOJ ? emp.HRME_DOJ.split('T')[0] : '',
-                        dateOfLeaving: emp.HRME_DOL ? emp.HRME_DOL.split('T')[0] : undefined,
-                        employmentType:
-                            emp.HRMET_EmployeeType === 'Permanent'
-                                ? 'Permanent'
-                                : emp.HRMET_EmployeeType === 'Probationary'
-                                  ? 'Probationary'
-                                  : 'Permanent',
-                        gender: (emp.IVRMMG_GenderName === 'Male' ? 'Male' : emp.IVRMMG_GenderName === 'Female' ? 'Female' : undefined) as
-                            | 'Male'
-                            | 'Female'
-                            | 'Other'
-                            | undefined
-                    }));
-                    // Update employees list and find selected employee
-                    setEmployees(mappedEmployees);
-                    const selectedEmp = mappedEmployees.find((emp) => emp.id.toString() === filters.selectedEmployee);
-                    if (selectedEmp) {
-                        setShowReport(true);
-                        toast.success(`${filters.reportType} generated successfully`);
-                    } else {
-                        toast.error('Selected employee not found in the filtered results');
-                    }
-                } else {
-                    toast.error(response.message || 'Failed to get employee details');
-                }
-            },
-            onError: (error: any) => {
-                toast.error(error?.message || 'Failed to get employee details');
-            }
-        });
-    };
-    const handleCancel = () => {
-        setFilters({
-            type: '',
-            department: '',
-            designation: '',
-            selectedEmployee: '',
-            currentDate: new Date(),
-            reportType: 'Experience Certificate'
-        });
-        setShowReport(false);
-        toast.info('Filters cleared');
-    };
-    const handlePrint = () => {
-        window.print();
-        toast.success('Print dialog opened');
-    };
-    // Get selected employee details
-    const selectedEmployeeDetails = useMemo(() => {
-        if (!filters.selectedEmployee) return null;
-        return employees.find((emp) => emp.id.toString() === filters.selectedEmployee) || null;
-    }, [filters.selectedEmployee, employees]);
-    // Format employee name with title (Mr/Ms)
-    const getEmployeeNameWithTitle = (employee: Employee | null) => {
-        if (!employee) return '';
-        const title = employee.gender === 'Male' ? 'Mr' : employee.gender === 'Female' ? 'Ms' : 'Mr/Ms';
-        const fullName = `${employee.employeeFirstName} ${employee.employeeMiddleName || ''} ${employee.employeeLastName || ''}`.trim();
-        return `${title}.${fullName}`;
-    };
     return (
-        <div className='space-y-6'>
-            {/* Report Configuration Section */}
-            <EmployeeOfferLetterFilters
-                filters={filters}
-                groupTypes={groupTypes}
-                departments={departments}
-                designations={designations}
-                filteredEmployees={filteredEmployees}
-                onFilterChange={handleFilterChange}
-                onSearch={handleSearch}
-                onCancel={handleCancel}
-            />
-            {/* Report Results */}
-            {showReport && selectedEmployeeDetails && (
-                <CollapsibleSection
-                    title='EMPLOYEE OFFER AND EXPERIENCE REPORT'
-                    description={`${filters.reportType} - ${selectedEmployeeDetails.employeeName}`}
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <div className='space-y-6'>
-                        {/* Experience Certificate */}
-                        {filters.reportType === 'Experience Certificate' && (
-                            <div className='rounded-lg border bg-white p-8'>
-                                <div className='space-y-6'>
-                                    {/* Date */}
-                                    <div className='text-right text-sm'>
-                                        <span className='font-semibold'>DATE: {format(filters.currentDate, 'dd-MM-yyyy')}</span>
-                                    </div>
-                                    {/* Heading */}
-                                    <div className='text-center'>
-                                        <h2 className='font-bold text-lg uppercase'>TO WHOMSOEVER IT MAY CONCERN</h2>
-                                    </div>
-                                    {/* Certificate Content */}
-                                    <div className='mx-auto max-w-3xl space-y-4 text-sm leading-relaxed'>
-                                        <p className='text-justify'>
-                                            This is to certify that <strong>{getEmployeeNameWithTitle(selectedEmployeeDetails)}</strong> is
-                                            a{' '}
-                                            <strong>
-                                                {selectedEmployeeDetails.employmentType === 'Permanent' ||
-                                                selectedEmployeeDetails.employmentType === 'Probationary'
-                                                    ? selectedEmployeeDetails.employmentType
-                                                    : 'Permanent'}
-                                            </strong>{' '}
-                                            employee of Our Institution working as a{' '}
-                                            <strong>{selectedEmployeeDetails.designationName}</strong> since{' '}
-                                            <strong>{format(new Date(selectedEmployeeDetails.dateOfJoining), 'dd-MM-yyyy')}</strong>.
-                                        </p>
-                                        {selectedEmployeeDetails.dateOfLeaving && (
-                                            <p className='text-justify'>
-                                                The employee served from{' '}
-                                                <strong>{format(new Date(selectedEmployeeDetails.dateOfJoining), 'dd-MM-yyyy')}</strong> to{' '}
-                                                <strong>{format(new Date(selectedEmployeeDetails.dateOfLeaving), 'dd-MM-yyyy')}</strong>.
-                                            </p>
-                                        )}
-                                    </div>
-                                    {/* Signature Section */}
-                                    <div className='mt-12 flex flex-col items-end space-y-2 text-sm'>
-                                        <div className='font-semibold'>Mrs. Phebe Sheela Rani</div>
-                                        <div>MANAGER</div>
-                                    </div>
+        <FormProvider>
+            <EmployeeOfferLetterContent />
+        </FormProvider>
+    );
+}
+
+function EmployeeOfferLetterContent() {
+    const [letterDetails, setLetterDetails] = useState<any>(null);
+    const { control, handleSubmit, watch, setValue } = useForm<FilterFormValues>({
+        defaultValues: {
+            groupTypeId: '',
+            departmentId: '',
+            designationId: '',
+            employeeId: '',
+            letterType: 'offerletter',
+            hrmeR_Current_Date: new Date(),
+            hrmE_DOJ: undefined,
+            hrmeR_DOI: undefined,
+            hrmeR_DOR: undefined,
+            DoResignation: undefined,
+            hrmeR_DOd: undefined,
+            hrmeR_DOter: undefined,
+            hrmeR_DOp: undefined,
+            bankaddress: '',
+            staffLevel: '',
+            startingBasic: '',
+            staffDesignation: ''
+        }
+    });
+
+    const watchedGroupType = watch('groupTypeId');
+    const watchedDepartment = watch('departmentId');
+    const watchedDesignation = watch('designationId');
+    const watchedLetterType = watch('letterType');
+
+    // Queries
+    const { data: groupTypesData } = useReportGroupTypes();
+    const { data: departmentsData } = useReportDepartments(watchedGroupType);
+    const { data: designationsData } = useReportDesignations(watchedGroupType, watchedDepartment);
+
+    const { data: employeesData } = useReportEmployees(
+        Number(watchedDesignation),
+        Number(watchedDepartment),
+        Number(watchedGroupType)
+    );
+
+    const { mutate: fetchDetails, isPending } = useEmployeeLetterDetails();
+
+    const onSubmit = (data: FilterFormValues) => {
+        if (!data.employeeId || !data.letterType) {
+            toast.error('Please select an Employee and Letter Type');
+            return;
+        }
+
+        fetchDetails({
+            designationId: Number(data.designationId),
+            deptId: Number(data.departmentId),
+            groupTypeId: Number(data.groupTypeId),
+            employeeId: Number(data.employeeId)
+        }, {
+            onSuccess: (res) => {
+                if (res.success && res.data) {
+                    setLetterDetails(res.data);
+                    toast.success('Details fetched successfully');
+                } else {
+                    toast.error(res.message || 'No data found');
+                }
+            }
+        });
+    };
+
+    const handlePrint = () => {
+        if (!letterDetails) {
+            toast.error('Please search for an employee first');
+            return;
+        }
+        printEmployeeLetter(letterDetails, watch());
+    };
+
+    return (
+        <div className='container min-h-screen space-y-4 p-2'>
+            <div className='flex items-center justify-between'>
+                <h2 className='text-2xl font-bold tracking-tight'>Employee Offer and Experience Report</h2>
+            </div>
+
+            <CollapsibleSection defaultOpen={true} title="Report Criteria" variant='outline' className='shadow-sm'>
+                <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                    <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
+                        {/* 左：Filter dropdowns */}
+                        <div className='space-y-4 border p-4 rounded-lg bg-muted/10'>
+                            <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                                <div className='space-y-2'>
+                                    <Label>Group Type <span className='text-destructive'>*</span></Label>
+                                    <Controller name='groupTypeId' control={control} render={({ field }) => (
+                                        <Select onValueChange={(val) => { field.onChange(val); setValue('departmentId', ''); setValue('designationId', ''); setValue('employeeId', ''); }} value={field.value}>
+                                            <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                                            <SelectContent>
+                                                {groupTypesData?.data?.map((gt: any) => (
+                                                    <SelectItem key={gt.key} value={gt.key.toString()}>{gt.value}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    )} />
+                                </div>
+
+                                <div className='space-y-2'>
+                                    <Label>Department <span className='text-destructive'>*</span></Label>
+                                    <Controller name='departmentId' control={control} render={({ field }) => (
+                                        <Select onValueChange={(val) => { field.onChange(val); setValue('designationId', ''); setValue('employeeId', ''); }} value={field.value} disabled={!watchedGroupType}>
+                                            <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                                            <SelectContent>
+                                                {departmentsData?.data?.map((d: any) => (
+                                                    <SelectItem key={d.hrmD_Id} value={d.hrmD_Id.toString()}>{d.hrmD_DepartmentName}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    )} />
+                                </div>
+
+                                <div className='space-y-2'>
+                                    <Label>Designation <span className='text-destructive'>*</span></Label>
+                                    <Controller name='designationId' control={control} render={({ field }) => (
+                                        <Select onValueChange={(val) => { field.onChange(val); setValue('employeeId', ''); }} value={field.value} disabled={!watchedDepartment}>
+                                            <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                                            <SelectContent>
+                                                {designationsData?.data?.map((d: any) => (
+                                                    <SelectItem key={d.hrmdeS_Id} value={d.hrmdeS_Id.toString()}>{d.hrmdeS_DesignationName}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    )} />
+                                </div>
+
+                                <div className='space-y-2'>
+                                    <Label>Employee <span className='text-destructive'>*</span></Label>
+                                    <Controller name='employeeId' control={control} render={({ field }) => (
+                                        <Select onValueChange={field.onChange} value={field.value} disabled={!watchedDesignation}>
+                                            <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                                            <SelectContent>
+                                                {employeesData?.data?.map((e: any) => (
+                                                    <SelectItem key={e.hrmE_Id} value={e.hrmE_Id.toString()}>
+                                                        {e.employeeName}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    )} />
                                 </div>
                             </div>
-                        )}
-                        {/* Offer Letter */}
-                        {filters.reportType === 'Offer Letter' && (
-                            <div className='rounded-lg border bg-white p-8'>
-                                <div className='space-y-6'>
-                                    {/* Date */}
-                                    <div className='text-right text-sm'>
-                                        <span className='font-semibold'>DATE: {format(filters.currentDate, 'dd-MM-yyyy')}</span>
-                                    </div>
-                                    {/* Employee Details */}
-                                    <div className='space-y-1 text-sm'>
-                                        <div>
-                                            <strong>{getEmployeeNameWithTitle(selectedEmployeeDetails)}</strong>
-                                        </div>
-                                        <div>Employee Code: {selectedEmployeeDetails.employeeCode}</div>
-                                        {selectedEmployeeDetails.departmentName && <div>{selectedEmployeeDetails.departmentName}</div>}
-                                    </div>
-                                    {/* Subject */}
-                                    <div className='space-y-2 text-sm'>
-                                        <div>
-                                            <strong>Subject: Offer of Employment</strong>
-                                        </div>
-                                    </div>
-                                    {/* Letter Content */}
-                                    <div className='mx-auto max-w-3xl space-y-4 text-sm leading-relaxed'>
-                                        <p className='text-justify'>Dear {selectedEmployeeDetails.employeeFirstName},</p>
-                                        <p className='text-justify'>
-                                            We are pleased to offer you the position of{' '}
-                                            <strong>{selectedEmployeeDetails.designationName}</strong> in the{' '}
-                                            <strong>{selectedEmployeeDetails.departmentName}</strong> department at our institution.
-                                        </p>
-                                        <p className='text-justify'>
-                                            Your employment will commence from <strong>{format(filters.currentDate, 'dd-MM-yyyy')}</strong>.
-                                            We are confident that your skills and experience will be a valuable addition to our team.
-                                        </p>
-                                        <p className='text-justify'>
-                                            Please confirm your acceptance of this offer by signing and returning a copy of this letter
-                                            within 7 days.
-                                        </p>
-                                        <p className='text-justify'>We look forward to welcoming you to our organization.</p>
-                                    </div>
-                                    {/* Signature Section */}
-                                    <div className='mt-12 flex flex-col items-end space-y-2 text-sm'>
-                                        <div className='font-semibold'>Mrs. Phebe Sheela Rani</div>
-                                        <div>MANAGER</div>
-                                        <div>VAPS SCHOOL</div>
-                                    </div>
+
+                            <div className='grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2'>
+                                <div className='space-y-2'>
+                                    <Label>Current Date <span className='text-destructive'>*</span></Label>
+                                    <Controller name='hrmeR_Current_Date' control={control} render={({ field }) => (
+                                        <DatePicker date={field.value} setDate={field.onChange} />
+                                    )} />
                                 </div>
+                                <div className='space-y-2'>
+                                    <Label>Date of Joining</Label>
+                                    <Controller name='hrmE_DOJ' control={control} render={({ field }) => (
+                                        <DatePicker date={field.value} setDate={field.onChange} />
+                                    )} />
+                                </div>
+                                <div className='space-y-2'>
+                                    <Label>Date of Interview</Label>
+                                    <Controller name='hrmeR_DOI' control={control} render={({ field }) => (
+                                        <DatePicker date={field.value} setDate={field.onChange} />
+                                    )} />
+                                </div>
+                                <div className='space-y-2'>
+                                    <Label>Date of Response</Label>
+                                    <Controller name='hrmeR_DOR' control={control} render={({ field }) => (
+                                        <DatePicker date={field.value} setDate={field.onChange} />
+                                    )} />
+                                </div>
+                                {watchedLetterType === 'relievingLetter' && (
+                                    <div className='space-y-2'>
+                                        <Label>Date of Resignation</Label>
+                                        <Controller name='DoResignation' control={control} render={({ field }) => (
+                                            <DatePicker date={field.value} setDate={field.onChange} />
+                                        )} />
+                                    </div>
+                                )}
+                                {watchedLetterType === 'Terminationletter' && (
+                                    <>
+                                        <div className='space-y-2'>
+                                            <Label>Date of Due</Label>
+                                            <Controller name='hrmeR_DOd' control={control} render={({ field }) => (
+                                                <DatePicker date={field.value} setDate={field.onChange} />
+                                            )} />
+                                        </div>
+                                        <div className='space-y-2'>
+                                            <Label>Last Working Day</Label>
+                                            <Controller name='hrmeR_DOter' control={control} render={({ field }) => (
+                                                <DatePicker date={field.value} setDate={field.onChange} />
+                                            )} />
+                                        </div>
+                                        <div className='space-y-2'>
+                                            <Label>Date of Probation</Label>
+                                            <Controller name='hrmeR_DOp' control={control} render={({ field }) => (
+                                                <DatePicker date={field.value} setDate={field.onChange} />
+                                            )} />
+                                        </div>
+                                    </>
+                                )}
+                                {(watchedLetterType === 'offerletter' || watchedLetterType === 'Non Teaching offerletter' || watchedLetterType === 'appontmentletter' || watchedLetterType === 'nonteachingappontmentletter') && (
+                                    <>
+                                        <div className='space-y-2'>
+                                            <Label>Staff Category Level</Label>
+                                            <Controller name='staffLevel' control={control} render={({ field }) => (
+                                                <Input {...field} placeholder="Enter Level" />
+                                            )} />
+                                        </div>
+                                        <div className='space-y-2'>
+                                            <Label>Starting Basic</Label>
+                                            <Controller name='startingBasic' control={control} render={({ field }) => (
+                                                <Input {...field} placeholder="Enter Salary" />
+                                            )} />
+                                        </div>
+                                        <div className='space-y-2'>
+                                            <Label>Designation (Override)</Label>
+                                            <Controller name='staffDesignation' control={control} render={({ field }) => (
+                                                <Input {...field} placeholder="Enter Designation" />
+                                            )} />
+                                        </div>
+                                    </>
+                                )}
+                                {watchedLetterType === 'accountopening' && (
+                                    <div className='col-span-full space-y-2'>
+                                        <Label>Bank Address</Label>
+                                        <Controller name='bankaddress' control={control} render={({ field }) => (
+                                            <textarea
+                                                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                                placeholder="Enter Bank Address"
+                                                {...field}
+                                            />
+                                        )} />
+                                    </div>
+                                )}
                             </div>
-                        )}
-                        {/* Action Buttons */}
-                        <div className='flex justify-center gap-2 border-t pt-4'>
-                            <Button variant='outline' onClick={handlePrint}>
-                                <Printer className='mr-2 h-4 w-4' />
-                                PRINT
-                            </Button>
-                            <Button variant='outline' onClick={handleCancel}>
-                                <X className='mr-2 h-4 w-4' />
-                                CANCEL
-                            </Button>
+                        </div>
+
+                        {/* 右：Letter Type radios */}
+                        <div className='space-y-4 border p-4 rounded-lg bg-muted/10'>
+                            <Label className='font-bold'>Select Letter Type</Label>
+                            <Controller name='letterType' control={control} render={({ field }) => (
+                                <RadioGroup onValueChange={field.onChange} value={field.value} className='grid grid-cols-1 md:grid-cols-2 gap-2'>
+                                    {LETTER_TYPES.map((type) => (
+                                        <div key={type.value} className="flex items-center space-x-2 p-1 hover:bg-muted/20 rounded">
+                                            <RadioGroupItem value={type.value} id={`type-${type.value}`} />
+                                            <Label htmlFor={`type-${type.value}`} className="cursor-pointer text-xs">{type.label}</Label>
+                                        </div>
+                                    ))}
+                                </RadioGroup>
+                            )} />
                         </div>
                     </div>
-                </CollapsibleSection>
-            )}
-        </div>
+
+                    <div className='flex justify-end gap-2'>
+                        <Button type='button' variant="outline" onClick={() => { setValue('groupTypeId', ''); setLetterDetails(null); }}>Cancel</Button>
+                        <Button type='submit' disabled={isPending} className='w-32'>
+                            {isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
+                            Search
+                        </Button>
+                    </div>
+                </form>
+            </CollapsibleSection>
+
+            {
+                letterDetails && (
+                    <CollapsibleSection title="Letter Preview" defaultOpen={true} className='shadow-md border'
+                        rightElement={
+                            <Button variant='outline' size='sm' onClick={handlePrint} className='gap-2'>
+                                <Printer className='h-4 w-4' />
+                                Print
+                            </Button>
+                        }
+                    >
+                        <div className="bg-muted p-4 sm:p-8 flex justify-center overflow-x-auto">
+                            <div className="shadow-2xl border bg-white" style={{ width: '8.5in', minHeight: '11in' }}>
+                                <LetterRenderer details={letterDetails} formData={watch()} setValue={setValue} />
+                            </div>
+                        </div>
+                        <div className="text-center mt-4">
+                            <p className="text-sm text-muted-foreground italic">Note: Some fields (Level, Salary) are editable in the printed version if manual entry is required.</p>
+                        </div>
+                    </CollapsibleSection>
+                )
+            }
+        </div >
     );
 }
