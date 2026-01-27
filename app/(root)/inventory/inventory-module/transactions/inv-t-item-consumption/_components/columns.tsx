@@ -1,15 +1,14 @@
-
 'use client';
 
 import { Badge } from '@/components/ui/badge';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import { useInvTItemConsumption } from '@/hooks/inventory/transactions/use-inv-t-item-consumption';
 import type { InvTItemConsumption } from '@/types/inventory/transactions/inv-t-item-consumption';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { useCallback } from 'react';
-import { useInvTItemConsumption } from '@/hooks/inventory/transactions/use-inv-t-item-consumption';
 
 export const invTItemConsumptionColumns: ColumnDef<InvTItemConsumption>[] = [
     {
@@ -90,7 +89,6 @@ function ActionButtonsClient({ rowData }: { rowData: InvTItemConsumption }) {
                 buttons={{ edit: true, delete: false, toggle: true }}
                 onEdit={handleEdit}
                 onToggle={handleToggle}
-                onView={handleView}
                 toggleConditionKey='invmiC_ActiveFlg'
             />
         </div>
