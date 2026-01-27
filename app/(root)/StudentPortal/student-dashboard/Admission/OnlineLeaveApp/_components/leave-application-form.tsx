@@ -92,9 +92,9 @@ export default function LeaveApplicationForm({
         }
     }, [initialData, form]);
 
-    if (!student) {
-        return null;
-    }
+    // if (!student) {
+    //     return null;
+    // }
 
     return (
         <div className="rounded-xl border bg-card text-card-foreground shadow">
@@ -116,7 +116,7 @@ export default function LeaveApplicationForm({
                                 Student Name :
                             </label>
                             <div className="col-span-2 text-sm font-semibold">
-                                {student.amsT_FirstName}
+                                {student?.amsT_FirstName || <span className="text-muted-foreground italic">Loading...</span>}
                             </div>
                         </div>
                         <div className="grid grid-cols-3 items-center gap-4">
@@ -124,7 +124,7 @@ export default function LeaveApplicationForm({
                                 Class :
                             </label>
                             <div className="col-span-2 text-sm">
-                                {student.asmcL_ClassName}
+                                {student?.asmcL_ClassName || "-"}
                             </div>
                         </div>
                         <div className="grid grid-cols-3 items-center gap-4">
@@ -132,7 +132,7 @@ export default function LeaveApplicationForm({
                                 Section :
                             </label>
                             <div className="col-span-2 text-sm">
-                                {student.asmC_SectionName}
+                                {student?.asmC_SectionName || "-"}
                             </div>
                         </div>
                     </div>
@@ -144,7 +144,7 @@ export default function LeaveApplicationForm({
                                 Reg No. :
                             </label>
                             <div className="col-span-2 text-sm">
-                                {student.amsT_RegistrationNo}
+                                {student?.amsT_RegistrationNo || "-"}
                             </div>
                         </div>
                         <div className="grid grid-cols-3 items-center gap-4">
@@ -152,7 +152,7 @@ export default function LeaveApplicationForm({
                                 Email :
                             </label>
                             <div className="col-span-2 text-sm">
-                                {student.amsT_emailId}
+                                {student?.amsT_emailId || "-"}
                             </div>
                         </div>
                         <div className="grid grid-cols-3 items-center gap-4">
@@ -160,7 +160,7 @@ export default function LeaveApplicationForm({
                                 Phone :
                             </label>
                             <div className="col-span-2 text-sm">
-                                {student.amsT_MobileNo}
+                                {student?.amsT_MobileNo || "-"}
                             </div>
                         </div>
                     </div>

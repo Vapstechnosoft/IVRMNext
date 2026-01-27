@@ -53,3 +53,8 @@ export interface ExamReportPayload {
     EME_Id?: number;
     ISMS_Id?: number;
 }
+
+export interface ExamReportLoadData {
+    studetiallist: AcademicYear[];
+    rcode: string | number;
+}

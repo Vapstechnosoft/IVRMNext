@@ -1,115 +1,97 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { LeaveApplyPayload, LeaveLoadData } from './types';
+import { LeaveApplyPayload, LeaveLoadData, OnlineLeaveApp_DTO } from './types';
 
-// Mock Data
-const MOCK_STUDENT_DETAILS = [
-    {
-        asmS_Id: 101,
-        asmcL_Id: 10,
-        asmcL_ClassName: "X",
-        asmC_SectionName: "A",
-        amsT_Id: 500,
-        amsT_FirstName: "John Doe",
-        amsT_RegistrationNo: "REG2023001",
-        amsT_MobileNo: 9876543210,
-        amsT_emailId: "john.doe@example.com"
-    }
-];
-
-let MOCK_LEAVE_APPLICATIONS = [
-    {
-        aslA_Id: 1,
-        asmS_Id: 101,
-        aslA_Flag: "Leave",
-        aslA_ApplyDate: "2023-10-01T00:00:00",
-        aslA_FromDate: "2023-10-05T00:00:00",
-        aslA_ToDate: "2023-10-06T00:00:00",
-        aslA_Reason: "Fever",
-        aslA_Status: "Approved",
-        aslA_ActiveFlag: true,
-        aslA_LeaveId: 1001,
-        amsT_FirstName: "John Doe",
-        asmcL_ClassName: "X",
-        asmC_SectionName: "A"
-    },
-    {
-        aslA_Id: 2,
-        asmS_Id: 101,
-        aslA_Flag: "OnStudy",
-        aslA_ApplyDate: "2023-11-10T00:00:00",
-        aslA_FromDate: "2023-11-15T00:00:00",
-        aslA_ToDate: "2023-11-15T00:00:00",
-        aslA_Reason: "Math Olympiad",
-        aslA_Status: "Pending",
-        aslA_ActiveFlag: true,
-        aslA_LeaveId: 1002,
-        amsT_FirstName: "John Doe",
-        asmcL_ClassName: "X",
-        asmC_SectionName: "A"
-    }
-];
+const CONTROLLER = 'OnlineLeaveApp';
 
 export async function getLeaveLoadData(): Promise<LeaveLoadData> {
-    console.info('Fetching Leave load data (mock)');
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    try {
+        const response = await api.get<any>('portal', `/${CONTROLLER}/get-leave-details`);
 
-    return {
-        roletype: "Student",
-        studentdetails: MOCK_STUDENT_DETAILS,
-        allstuddata: MOCK_LEAVE_APPLICATIONS
-    };
+        // Debug logs
+        if (response.data) {
+            console.log("DEBUG: Raw API Data:", JSON.stringify(response.data).substring(0, 500));
+        }
+
+        const data = response.data;
+
+        // Handle case sensitivity issues by checking for variations
+        const studentdetails = data?.studentdetails || data?.studentDetails || data?.StudentDetails || [];
+        const allstuddata = data?.allstuddata || data?.allStudData || data?.Allstuddata || data?.AllStudData || [];
+        const roletype = data?.roletype || data?.roleType || data?.RoleType || "";
+
+        return {
+            roletype: roletype,
+            studentdetails: studentdetails,
+            allstuddata: allstuddata
+        };
+    } catch (error) {
+        console.error("Error fetching Leave load data:", error);
+        // Return empty structure to prevent crash
+        return {
+            roletype: "",
+            studentdetails: [],
+            allstuddata: []
+        };
+    }
 }
 
 export async function applyLeave(data: LeaveApplyPayload) {
-    console.info('Applying Leave (mock):', data);
-    await new Promise(resolve => setTimeout(resolve, 800));
+    try {
+        const payload: OnlineLeaveApp_DTO = {
+            aslA_Id: data.ASLA_Id,
+            aslA_ApplyDate: data.ASLA_ApplyDate,
+            aslA_FromDate: data.ASLA_FromDate,
+            aslA_ToDate: data.ASLA_ToDate,
+            aslA_Flag: data.ASLA_Flag,
+            aslA_LeaveId: data.ASLA_LeaveId,
+            aslA_Reason: data.ASLA_Reason
+        };
 
-    // Simulate saving
-    const newLeave = {
-        aslA_Id: data.ASLA_Id || Math.floor(Math.random() * 1000) + 10,
-        asmS_Id: 101,
-        aslA_Flag: data.ASLA_Flag,
-        aslA_ApplyDate: data.ASLA_ApplyDate,
-        aslA_FromDate: data.ASLA_FromDate,
-        aslA_ToDate: data.ASLA_ToDate,
-        aslA_Reason: data.ASLA_Reason,
-        aslA_Status: "Pending",
-        aslA_ActiveFlag: true,
-        aslA_LeaveId: data.ASLA_LeaveId || 0,
-        amsT_FirstName: "John Doe",
-        asmcL_ClassName: "X",
-        asmC_SectionName: "A"
-    };
-
-    // Update mock store (in-memory only for this session, resets on restart obviously)
-    // In a real server action, this wouldn't persist across reloads without a DB, 
-    // but for the UI flow it works.
-    if (data.ASLA_Id && data.ASLA_Id > 0) {
-        // Edit
-        MOCK_LEAVE_APPLICATIONS = MOCK_LEAVE_APPLICATIONS.map(l => l.aslA_Id === data.ASLA_Id ? { ...l, ...newLeave, aslA_Status: l.aslA_Status } : l);
-    } else {
-        // Add
-        MOCK_LEAVE_APPLICATIONS = [newLeave, ...MOCK_LEAVE_APPLICATIONS];
+        const response = await api.post<OnlineLeaveApp_DTO>('portal', `/${CONTROLLER}/get-leave-apply-details`, payload);
+        return {
+            returnval: response.data?.returnval ?? false,
+            // duplicate: false // API doesn't seem to return duplicate flag in DTO, assuming returnval handles success
+        };
+    } catch (error) {
+        console.error("Error applying Leave:", error);
+        return {
+            returnval: false
+        };
     }
-
-    return {
-        returnval: true,
-        duplicate: false
-    };
 }
 
 export async function cancelLeave(leaveId: number) {
-    console.info('Cancelling Leave (mock):', leaveId);
-    await new Promise(resolve => setTimeout(resolve, 500));
+    try {
+        const payload: OnlineLeaveApp_DTO = {
+            aslA_Id: leaveId
+        };
+        const response = await api.post<OnlineLeaveApp_DTO>('portal', `/${CONTROLLER}/cancel-leave`, payload);
+        return {
+            returnval: response.data?.returnval ?? false
+        };
+    } catch (error) {
+        console.error("Error cancelling Leave:", error);
+        return {
+            returnval: false
+        };
+    }
+}
 
-    MOCK_LEAVE_APPLICATIONS = MOCK_LEAVE_APPLICATIONS.map(l =>
-        l.aslA_Id === leaveId ? { ...l, aslA_Status: "Cancelled" } : l
-    );
-
-    return {
-        returnval: true
-    };
+export async function deactiveLeave(leaveId: number) {
+    try {
+        const payload: OnlineLeaveApp_DTO = {
+            aslA_Id: leaveId
+        };
+        const response = await api.post<OnlineLeaveApp_DTO>('portal', `/${CONTROLLER}/deactive-leave`, payload);
+        return {
+            returnval: response.data?.returnval ?? false
+        };
+    } catch (error) {
+        console.error("Error deactivating Leave:", error);
+        return {
+            returnval: false
+        };
+    }
 }

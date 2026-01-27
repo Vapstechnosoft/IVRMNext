@@ -18,8 +18,10 @@ export interface StudentComplaint {
     document_Pathnew?: string;
 }
 
+
 export interface ComplaintLoadData {
     yearlist: AcademicYear[];
     studentdivlist: StudentComplaint[];
     asmaY_Id: number;
 }
+

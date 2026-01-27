@@ -15,7 +15,7 @@ import {
 import { LeaveApplication, StudentDetails } from './types';
 
 export default function OnlineLeaveAppPage() {
-    const { status } = useSession();
+    const { status, data: session } = useSession();
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -30,7 +30,21 @@ export default function OnlineLeaveAppPage() {
             if (result) {
                 if (result.studentdetails && result.studentdetails.length > 0) {
                     setStudent(result.studentdetails[0]);
+                } else if (!student && session?.user) {
+                    // Fallback to session data if API returns empty
+                    setStudent({
+                        amsT_Id: 0,
+                        asmS_Id: 0,
+                        asmcL_Id: 0,
+                        asmcL_ClassName: "",
+                        asmC_SectionName: "",
+                        amsT_FirstName: session.user.name || "",
+                        amsT_RegistrationNo: "",
+                        amsT_MobileNo: 0,
+                        amsT_emailId: session.user.email || ""
+                    });
                 }
+
                 if (result.allstuddata) {
                     setLeaveApplications(result.allstuddata);
                 }
@@ -111,6 +125,27 @@ export default function OnlineLeaveAppPage() {
         return <div className="flex h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
     }
 
+    // if (!student && !isLoading) {
+    //     return (
+    //         <div className="flex flex-col items-center justify-center p-8 text-center bg-card rounded-lg border m-4 shadow-sm">
+    //             <div className="bg-yellow-100 p-3 rounded-full mb-4">
+    //                 <AlertTriangle className="h-8 w-8 text-yellow-600" />
+    //             </div>
+    //             <h3 className="text-xl font-semibold mb-2">No Student Data Found</h3>
+    //             <p className="text-muted-foreground max-w-md mx-auto">
+    //                 We couldn't retrieve the student details. Please try reloading the page or contact the administrator.
+    //             </p>
+    //             <Button 
+    //                 variant="outline" 
+    //                 className="mt-6" 
+    //                 onClick={() => window.location.reload()}
+    //             >
+    //                 Reload Page
+    //             </Button>
+    //         </div>
+    //     );
+    // }
+
     return (
         <div className="space-y-6">
             <LeaveApplicationForm
@@ -135,11 +170,17 @@ export default function OnlineLeaveAppPage() {
                             </div>
                         </CardHeader>
                         <CardContent>
-                            <LeaveDetailsGrid
-                                data={leaveApplications}
-                                onCancelLeave={handleCancelLeave}
-                                onEditLeave={handleEditLeave}
-                            />
+                            {leaveApplications.length > 0 ? (
+                                <LeaveDetailsGrid
+                                    data={leaveApplications}
+                                    onCancelLeave={handleCancelLeave}
+                                    onEditLeave={handleEditLeave}
+                                />
+                            ) : (
+                                <div className="text-center p-8 text-muted-foreground border-2 border-dashed rounded-lg">
+                                    No leave records found.
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </div>

@@ -1,3 +1,23 @@
+
+export interface OnlineLeaveApp_DTO {
+    aslA_Id?: number;
+    asmS_Id?: number;
+    aslA_Flag?: string;
+    aslA_ApplyDate?: string;
+    aslA_FromDate?: string;
+    aslA_ToDate?: string;
+    aslA_Reason?: string;
+    aslA_Status?: string;
+    aslA_LeaveId?: number;
+    trans_id?: number;
+    returnval?: boolean;
+    studentdetails?: StudentDetails[];
+    leave_name?: string;
+    user_id?: number;
+    roleId?: number;
+    allstuddata?: LeaveApplication[];
+}
+
 export interface StudentDetails {
     asmS_Id: number;
     asmcL_Id: number;
@@ -24,13 +44,14 @@ export interface LeaveApplication {
     amsT_FirstName?: string;
     asmcL_ClassName?: string;
     asmC_SectionName?: string;
+    aslA_LeaveName?: string;
 }
 
 export interface LeaveLoadData {
     roletype: string;
     studentdetails: StudentDetails[];
     allstuddata: LeaveApplication[];
-    pendingleave?: LeaveApplication[]; // For staff/principal view if needed later
+    pendingleave?: LeaveApplication[];
 }
 
 export interface LeaveApplyPayload {

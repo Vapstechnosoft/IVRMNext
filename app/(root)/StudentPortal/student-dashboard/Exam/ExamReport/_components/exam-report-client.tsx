@@ -14,11 +14,17 @@ import { Loader2, Search } from 'lucide-react';
 
 interface ExamReportClientProps {
     initialYears: AcademicYear[];
+    rcode: string | number;
 }
 
-export default function ExamReportClient({ initialYears }: ExamReportClientProps) {
+export default function ExamReportClient({ initialYears, rcode }: ExamReportClientProps) {
     // State
-    const [years, setYears] = useState<AcademicYear[]>(initialYears);
+    const [years, setYears] = useState<AcademicYear[]>(initialYears || []);
+
+    useEffect(() => {
+        console.log('Exam Report Loaded', { rcode });
+    }, [rcode]);
+
     const [detailsrdo, setDetailsrdo] = useState<'EWAS' | 'SWAE' | 'ESW' | 'OVERALL'>('EWAS');
 
     // Selections
