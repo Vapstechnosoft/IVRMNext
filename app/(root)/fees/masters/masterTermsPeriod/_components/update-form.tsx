@@ -36,11 +36,27 @@ export default function UpdateMasterTermsPeriodForm({ onSuccess, feeheadname = '
 
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+    const monthOrder: Record<string, number> = {
+        Jan: 1,
+        Feb: 2,
+        Mar: 3,
+        Apr: 4,
+        May: 5,
+        Jun: 6,
+        Jul: 7,
+        Aug: 8,
+        Sep: 9,
+        Oct: 10,
+        Nov: 11,
+        Dec: 12
+    };
+
     const {
         control,
         reset,
         setValue,
         handleSubmit,
+        watch,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterTermPeriodSchema.addOrUpdate),
@@ -55,6 +71,8 @@ export default function UpdateMasterTermsPeriodForm({ onSuccess, feeheadname = '
             filterType: row.feeFlag || ''
         }
     });
+    const fromMonth = watch('from_Month');
+    const toMonth = watch('to_Month');
 
     function OnReset() {
         refetchAll();
@@ -111,6 +129,11 @@ export default function UpdateMasterTermsPeriodForm({ onSuccess, feeheadname = '
 
     // Submit Handler
     const onSubmit = async (data: FormFields) => {
+        if (monthOrder[data.from_Month] >= monthOrder[data.to_Month]) {
+            toast.error('From Month must be earlier than To Month');
+            return;
+        }
+
         try {
             const { asmay_Id, fmt_id, filterType } = data;
             const payload = {
