@@ -52,7 +52,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
     const methods = useForm<FormFields>({
         resolver: zodResolver(examLoginPrivilegesSchema.addOrUpdate),
         defaultValues: {
-            asmaY_Id: 231,
+            asmaY_Id: 0,
             hrmE_Id: 0,
             ivrmulF_Id: 0,
             asmcL_Id: 0,
@@ -92,6 +92,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
     const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
     const [editMode, setEditMode] = useState<'add' | 'edit'>('add');
     const [isLoadingEditData, setIsLoadingEditData] = useState(false);
+    const [originalDetails, setOriginalDetails] = useState<DetailRow[]>([]);
 
     const asmaY_Id = watch('asmaY_Id');
     const hrmE_Id = watch('hrmE_Id');
@@ -110,9 +111,10 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
     // Effect to handle edit when rowData is provided
     useEffect(() => {
         const fetchEditData = async () => {
-            setIsLoadingEditData(true);
             if (!rowData?.elP_Id || employeeData?.data.length === 0 || classTeachersData?.data.length === 0 || subjects.length === 0)
                 return;
+
+            setIsLoadingEditData(true);
             try {
                 // Set edit mode
                 setEditMode('edit');
@@ -122,9 +124,9 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                 const editData = await getExamLoginPrivilegesEditDetails(rowData.elP_Id, rowData.asmcL_Id, rowData.asmS_Id);
                 if (editData?.success && Array.isArray(editData.data) && editData.data.length > 0) {
                     const editList = Array.isArray(editData.data) ? editData.data : [editData.data];
-                    const isClassTeacher = editList?.[0]?.elP_Flg === 'st' || editList?.[0]?.elP_Flg === 'others';
+                    const isSubjectTeacherOrOthers = editList?.[0]?.elP_Flg === 'st' || editList?.[0]?.elP_Flg === 'others';
 
-                    const s_Data = isClassTeacher ? classTeachersData : employeeData;
+                    const s_Data = isSubjectTeacherOrOthers ? employeeData : classTeachersData;
                     const sourceData = Array.isArray(s_Data?.data) ? s_Data.data : s_Data?.data;
                     const employee = sourceData?.find((emp: any) => {
                         if (!editList?.length) return false;
@@ -228,7 +230,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                             user_id: userId,
                             year: yearInfo?.asmaY_Year || '',
                             emp_name: employeeName,
-                            emp_Id: employee?.hrmE_Id || 0,
+                            emp_Id: employee?.hrmE_Id || editList[0]?.hrmE_Id || 0,
                             elpflg: entryType,
                             clas: group.class,
                             secs: group.section,
@@ -238,6 +240,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                     });
 
                     setDetails(detailRows);
+                    setOriginalDetails(JSON.parse(JSON.stringify(detailRows))); // Deep copy to prevent reference issues
                 } else {
                     toast.error('No record found for editing');
                     resetToAddMode();
@@ -386,8 +389,8 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
             Array.isArray(v.classList) && v.classList.length
                 ? v.classList
                 : v.asmcL_Id
-                  ? classes.filter((c) => c.asmcL_Id === v.asmcL_Id)
-                  : [];
+                    ? classes.filter((c) => c.asmcL_Id === v.asmcL_Id)
+                    : [];
 
         if (rawClasses.length === 0) {
             toast.error('No classes selected');
@@ -408,9 +411,9 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
         // FIXED: Use emsS_Id instead of issS_Id
         const selectedSSubjects: any[] = Array.isArray(v.subSubjectList)
             ? v.subSubjectList.map((ss: any) => ({
-                  emsS_Id: ss.emsS_Id,
-                  emsS_SubSubjectName: ss.emsS_SubSubjectName || ''
-              }))
+                emsS_Id: ss.emsS_Id,
+                emsS_SubSubjectName: ss.emsS_SubSubjectName || ''
+            }))
             : [];
 
         const rows: DetailRow[] = [];
@@ -731,6 +734,8 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                         setValue('sectionList', []);
                                         setValue('classList', []);
                                         setValue('hrmE_Id', 0);
+                                        setValue('ivrmulF_Id', 0);
+                                        setValue('asmaY_Id', 0);
                                         setValue('subjectList', []);
                                         setValue('subSubjectList', []);
                                         setEditingId(null);
@@ -768,8 +773,9 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                     disabled={editingId !== null || editMode === 'edit'}
                                     render={({ field, fieldState }) => (
                                         <div className='w-full'>
-                                            <Label>Academic Year *</Label>
+                                            <Label>Academic Year <span className='text-red-500'>*</span></Label>
                                             <Select
+                                                key={field.value}
                                                 onValueChange={(v) => field.onChange(Number(v))}
                                                 value={field.value ? String(field.value) : ''}>
                                                 <SelectTrigger>
@@ -804,9 +810,10 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                     disabled={editingId !== null || editMode === 'edit'}
                                     render={({ field, fieldState }) => (
                                         <div className='w-full'>
-                                            <Label>Employee Name *</Label>
+                                            <Label>Employee Name <span className='text-red-500'>*</span></Label>
 
                                             <Select
+                                                key={field.value}
                                                 value={field.value ? String(field.value) : ''}
                                                 onValueChange={(v) => {
                                                     const selectedId = Number(v);
@@ -877,6 +884,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                 label='Classes'
                                                 height='200px'
                                                 isSearchRequired
+                                                isRequired={true}
                                                 disabled={disableClassSection || activeTab === 0 || editMode === 'edit'}
                                                 error={fieldState?.error?.message}
                                                 isLoading={masterClassLoading}
@@ -908,6 +916,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                 label='Subjects'
                                                 height='200px'
                                                 isSearchRequired
+                                                isRequired={true}
                                                 error={fieldState?.error?.message}
                                                 isLoading={masterSubjectLoading}
                                             />
@@ -923,8 +932,9 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                     disabled={editingId !== null || editMode === 'edit'}
                                     render={({ field, fieldState }) => (
                                         <div className='w-full'>
-                                            <Label>User Name *</Label>
+                                            <Label>User Name <span className='text-red-500'>*</span></Label>
                                             <Select
+                                                key={field.value}
                                                 onValueChange={(v) => field.onChange(Number(v))}
                                                 value={field.value ? String(field.value) : ''}>
                                                 <SelectTrigger>
@@ -976,6 +986,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                 label='Sections'
                                                 height='200px'
                                                 isSearchRequired
+                                                isRequired={true}
                                                 disabled={disableClassSection || activeTab === 0 || editMode === 'edit'}
                                                 error={fieldState?.error?.message}
                                                 isLoading={masterSectionLoading}
@@ -1053,9 +1064,29 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                             type='button'
                                             variant='outline'
                                             onClick={() => {
-                                                reset();
-                                                setDetails([]);
-                                                setEditMode('add');
+                                                reset({
+                                                    asmaY_Id: 0,
+                                                    hrmE_Id: 0,
+                                                    ivrmulF_Id: 0,
+                                                    asmcL_Id: 0,
+                                                    sectionList: [],
+                                                    subjectList: [],
+                                                    subSubjectList: [],
+                                                    entryType: 'BY_CLASS_TEACHER',
+                                                    remarks: '',
+                                                    elp_ActiveFlag: true
+                                                });
+                                                if (editMode !== 'edit') {
+                                                    setDetails([]);
+                                                    setEditMode('add');
+                                                } else {
+                                                    // Revert to original data in edit mode
+                                                    setDetails(JSON.parse(JSON.stringify(originalDetails)));
+                                                    toast.info('Reverted to original saved data');
+                                                }
+                                                setActiveTab(0);
+                                                setDisableClassSection(false);
+                                                setEditingId(null);
                                             }}>
                                             Reset
                                         </Button>
@@ -1084,8 +1115,8 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                 ? 'Updating...'
                                                 : 'Saving...'
                                             : editMode === 'edit'
-                                              ? 'Update'
-                                              : 'Save'}
+                                                ? 'Update'
+                                                : 'Save'}
                                     </Button>
 
                                     {editMode === 'edit' && (

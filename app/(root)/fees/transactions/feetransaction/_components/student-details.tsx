@@ -113,6 +113,7 @@ export default function StudentProfileModal({ isOpen, onClose, asmay_Id, amst_Id
     const [parentDetails, setParentDetails] = useState<ParentDetailsFromFeeTransaction[]>([]);
     const [attendanceDetails, setAttendanceDetails] = useState<AttendanceDetailsFromFeeTransaction[]>([]);
     const [subjectDetails, setSubjectDetails] = useState<SubjectDetailsFromFeeTransaction[]>([]);
+    const [libraryDetails, setLibraryDetails] = useState<any[]>([]);
     const [feeDetails, setFeeDetails] = useState<feeDetailsFromFeeTransaction[]>([]);
     const [_classTeacherDetails, setClassTeacherDetails] = useState<classTeacherDetailsFromFeeTransaction[]>([]);
     const [isProcessing, setIsProcessing] = useState(false);
@@ -153,6 +154,7 @@ export default function StudentProfileModal({ isOpen, onClose, asmay_Id, amst_Id
                     const subjectData = JSON.parse(JSON.stringify(response.viewstudentsubjectdetails || []));
                     const classTeacherData = JSON.parse(JSON.stringify(response.classteacher_lists || []));
                     const viewFeeDetails = JSON.parse(JSON.stringify(response.viewFeeDetails || []));
+                    const libraryDetails = JSON.parse(JSON.stringify(response.librarydetails || []));
 
                     setStudentJoinedDetails(parsedData);
                     setAcademicDetails(academicData);
@@ -161,6 +163,7 @@ export default function StudentProfileModal({ isOpen, onClose, asmay_Id, amst_Id
                     setSubjectDetails(subjectData);
                     setClassTeacherDetails(classTeacherData);
                     setFeeDetails(viewFeeDetails);
+                    setLibraryDetails(libraryDetails);
                 } else {
                     setStudentJoinedDetails([]);
                     setAcademicDetails([]);
@@ -501,10 +504,10 @@ export default function StudentProfileModal({ isOpen, onClose, asmay_Id, amst_Id
                 return (
                     <div className='space-y-4'>
                         <h3 className='font-semibold text-lg text-primary'>Library Details</h3>
-                        {subjectDetails.length > 0 ? (
+                        {libraryDetails.length > 0 ? (
                             <div className='rounded-lg border border-gray-200 p-4'>
                                 <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
-                                    {subjectDetails.map((item, idx) => (
+                                    {libraryDetails.map((item, idx) => (
                                         <div
                                             key={idx}
                                             className='flex items-center justify-between rounded border border-gray-100 bg-gray-50 p-3'>

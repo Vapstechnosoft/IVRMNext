@@ -4,12 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useFeeOtherStudent } from '@/hooks/fees/useMasters';
+import { masterFeeOtherStudentSchema } from '@/schemas/fees/masters';
 import { saveFeeOtherStudent } from '@/server/fees/masters/fee_other_student';
 import type { MasterFeeOtherStudentType } from '@/types/fees/masters/masters';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { RotateCcw, Save } from 'lucide-react';
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import type { z } from 'zod';
 
 interface UpdateFeeOtherStudentFromProps {
     onSuccess?: () => void;
@@ -18,12 +21,12 @@ interface UpdateFeeOtherStudentFromProps {
     onClose?: () => void;
 }
 
-interface FormData {
-    studentName: string;
-    mobileno: string;
-    emailno: string;
-}
-
+// interface FormData {
+//     studentName: string;
+//     mobileno: string;
+//     emailno: string;
+// }
+type FormFields = z.infer<typeof masterFeeOtherStudentSchema.addOrUpdate>;
 export default function UpdtaeFeeOtherStudentFrom({ onSuccess, className = '', selectedRow, onClose }: UpdateFeeOtherStudentFromProps) {
     const { refetchAll } = useFeeOtherStudent();
     const {
@@ -32,7 +35,8 @@ export default function UpdtaeFeeOtherStudentFrom({ onSuccess, className = '', s
         reset,
         watch,
         formState: { errors, isSubmitting, isValid }
-    } = useForm<FormData>({
+    } = useForm<FormFields>({
+        resolver: zodResolver(masterFeeOtherStudentSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
             studentName: '',
@@ -53,7 +57,7 @@ export default function UpdtaeFeeOtherStudentFrom({ onSuccess, className = '', s
         });
     }, [selectedRow]);
 
-    const onsubmit = async () => {
+    const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         const buildpayload = () => {
             return {
                 // mI_Id: 30,
@@ -89,7 +93,7 @@ export default function UpdtaeFeeOtherStudentFrom({ onSuccess, className = '', s
         <div className={`${className} w-full`}>
             <Card className='mx-auto w-full max-w-4xl border-gray-300 shadow-md'>
                 <CardContent className='p-6'>
-                    <form onSubmit={handleSubmit(onsubmit)} className='space-y-6'>
+                    <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                         <InputText
                             label='Name'
                             required
@@ -152,7 +156,7 @@ export default function UpdtaeFeeOtherStudentFrom({ onSuccess, className = '', s
                                 Reset
                             </Button>
 
-                            <Button type='submit' disabled={isSubmitting || !isValid} className='flex items-center gap-2'>
+                            <Button type='submit' disabled={isSubmitting} className='flex items-center gap-2'>
                                 <Save className='h-4 w-4' />
                                 {isSubmitting ? 'Updating...' : 'Update'}
                             </Button>

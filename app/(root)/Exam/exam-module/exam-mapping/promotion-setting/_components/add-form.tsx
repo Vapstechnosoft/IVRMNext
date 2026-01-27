@@ -10,13 +10,18 @@ import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import {
     addOrUpdatePromotionSettings,
     getExamSubjectsByCategoryId,
-    getPromotionCategoryByAcademicYear
+    getIndividualPromotionDetailsById,
+    getPromotionCategoryByAcademicYear,
+    viewIndividualSubjectGroups,
+    viewSubjectsGroupExams
 } from '@/server/exam/exam-module/exam-mapping/promotional-setting';
+import { useMasterGradeDropdownList } from '@/hooks/exam/exammodule/usemasters';
 import { Eye } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { ViewExamsModal } from './group-mapped-exam-model';
 import { ViewGroupsModal } from './group-mapping-model';
+import type { IPromotionSetting, IPromotionCategory } from '@/types/exam/exam-module/exam-mapping';
 
 /**
  * Types
@@ -65,11 +70,6 @@ type ExamItem = {
     ConvertionReqOrNot?: boolean;
 };
 
-type PromotionCategory = {
-    eyC_Id: number;
-    emcA_CategoryName: string;
-};
-
 type GradeItem = {
     emgR_Id: string;
     emgR_GradeName: string;
@@ -100,7 +100,13 @@ type PromotionPayload = {
 /**
  * Main component
  */
-export default function AddPromotionalSettingForm() {
+export default function AddPromotionalSettingForm({
+    rowData,
+    onSuccess
+}: {
+    rowData?: IPromotionSetting;
+    onSuccess?: () => void;
+}) {
     // Form state
     const [selectedYear, setSelectedYear] = useState<number>(0);
     const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
@@ -116,15 +122,12 @@ export default function AddPromotionalSettingForm() {
     const [promotionType, setPromotionType] = useState<'M' | 'P' | 'T' | 'F'>('P');
 
     // Data state
-    const [categories, setCategories] = useState<PromotionCategory[]>([]);
-    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
-    const [grades, setGrades] = useState<GradeItem[]>([
-        { emgR_Id: '1', emgR_GradeName: 'Grade 1' },
-        { emgR_Id: '2', emgR_GradeName: 'Grade 2' },
-        { emgR_Id: '3', emgR_GradeName: 'Grade 3' },
-        { emgR_Id: '4', emgR_GradeName: 'Grade 4' },
-        { emgR_Id: '5', emgR_GradeName: 'Grade 5' }
-    ]);
+    const [categories, setCategories] = useState<IPromotionCategory[]>([]);
+
+    // Grades hook
+    const { data: gradeDataList, error: gradeError } = useMasterGradeDropdownList();
+    const grades = gradeDataList?.data || [];
+
     const [subjects, setSubjects] = useState<SubjectRow[]>([]);
     const [exams, setExams] = useState<ExamItem[]>([]);
 
@@ -144,26 +147,33 @@ export default function AddPromotionalSettingForm() {
 
     // Loading
     const { data: academicYear, isLoading: academicYearLoading } = useAcademicYearDropdown();
+    const [isEditLoading, setIsEditLoading] = useState(false);
 
-    // Load categories when year changes
-    useEffect(() => {
-        if (!selectedYear) return;
+    // Save initial state for reset in edit mode
+    const [initialState, setInitialState] = useState<any>(null);
 
-        const loadCategories = async () => {
-            try {
-                const response = await getPromotionCategoryByAcademicYear(selectedYear, 0, 0);
-                const safeCats = Array.isArray(response?.data) ? response.data : [];
-                setCategories(safeCats);
-                setSelectedCategory(null);
-                setSubjects([]);
-            } catch (error) {
-                console.error('Error loading categories:', error);
-                toast.error('Failed to load categories');
+    // Load categories
+    const fetchCategories = useCallback(async (yearId: number, categoryName?: string, categoryId?: number) => {
+        try {
+            const response = await getPromotionCategoryByAcademicYear(yearId, 0);
+            const safeCats = Array.isArray(response?.data) ? response.data : [];
+            if (categoryName && categoryId) {
+                safeCats.push({ emcA_CategoryName: categoryName, eyC_Id: categoryId });
             }
-        };
+            setCategories(safeCats);
+        } catch (error) {
+            console.error('Error loading categories:', error);
+            toast.error('Failed to load categories');
+        }
+    }, []);
 
-        loadCategories();
-    }, [selectedYear]);
+    // Load categories when year changes (only for non-initialization case)
+    useEffect(() => {
+        if (!selectedYear || isEditLoading || rowData) return;
+        fetchCategories(selectedYear);
+        setSelectedCategory(null);
+        setSubjects([]);
+    }, [selectedYear, fetchCategories, isEditLoading]);
 
     // Load subjects when category changes
     const loadSubjects = useCallback(async (categoryId: number) => {
@@ -176,33 +186,33 @@ export default function AddPromotionalSettingForm() {
 
             const subjectsData = Array.isArray(payload.subjectlist)
                 ? payload.subjectlist.map(
-                      (subject: any): SubjectRow => ({
-                          ismS_Id: subject.ismS_Id,
-                          ismS_SubjectName: subject.ismS_SubjectName,
-                          ismS_SubjectCode: subject.ismS_SubjectCode || null,
-                          EMPS_MaxMarks: subject.empS_MaxMarks || subject.ismS_Max_Marks || null,
-                          EMPS_MinMarks: subject.empS_MinMarks || subject.ismS_Min_Marks || null,
-                          EMPS_ConvertForMarks: subject.empS_ConvertForMarks || null,
-                          EMPS_AppToResultFlg: subject.empS_AppToResultFlg ?? true,
-                          EMGR_Id: subject.emgR_Id || null,
-                          EMPS_Id: subject.empS_Id,
-                          checkedvalue: false
-                      })
-                  )
+                    (subject: any): SubjectRow => ({
+                        ismS_Id: subject.ismS_Id,
+                        ismS_SubjectName: subject.ismS_SubjectName,
+                        ismS_SubjectCode: subject.ismS_SubjectCode || null,
+                        EMPS_MaxMarks: subject.empS_MaxMarks || subject.ismS_Max_Marks || null,
+                        EMPS_MinMarks: subject.empS_MinMarks || subject.ismS_Min_Marks || null,
+                        EMPS_ConvertForMarks: subject.empS_ConvertForMarks || null,
+                        EMPS_AppToResultFlg: subject.empS_AppToResultFlg ?? true,
+                        EMGR_Id: subject.emgR_Id || null,
+                        EMPS_Id: subject.empS_Id,
+                        checkedvalue: false
+                    })
+                )
                 : [];
 
             const examsData = Array.isArray(payload.examlist)
                 ? payload.examlist.map(
-                      (exam: any): ExamItem => ({
-                          emE_Id: exam.emE_Id,
-                          emE_ExamName: exam.emE_ExamName,
-                          emE_ExamCode: exam.emE_ExamCode,
-                          checked: false,
-                          ForMaxMarkrs: 0,
-                          ForMaxMarkrs_Temp: 0,
-                          ConvertionReqOrNot: false
-                      })
-                  )
+                    (exam: any): ExamItem => ({
+                        emE_Id: exam.emE_Id,
+                        emE_ExamName: exam.emE_ExamName,
+                        emE_ExamCode: exam.emE_ExamCode,
+                        checked: false,
+                        ForMaxMarkrs: 0,
+                        ForMaxMarkrs_Temp: 0,
+                        ConvertionReqOrNot: false
+                    })
+                )
                 : [];
 
             setSubjects(subjectsData);
@@ -213,17 +223,148 @@ export default function AddPromotionalSettingForm() {
             setHeaderMinMarks('');
             setHeaderConvertMarks('');
             setHeaderGrade('__none');
+
+            return { subjectsData, examsData };
         } catch (error) {
             console.error('Error loading subjects:', error);
             toast.error('Failed to load subjects and exams');
+            return null;
         }
     }, []);
 
     useEffect(() => {
-        if (selectedCategory) {
+        if (selectedCategory && !rowData) {
             loadSubjects(selectedCategory);
         }
-    }, [selectedCategory, loadSubjects]);
+    }, [selectedCategory, loadSubjects, rowData]);
+
+    // Initialize Edit Mode
+    useEffect(() => {
+        if (rowData) {
+            const initEdit = async () => {
+                try {
+                    setIsEditLoading(true);
+                    // Set basic fields
+                    setSelectedYear(rowData.asmaY_Id);
+
+                    // Fetch categories for this year
+                    await fetchCategories(rowData.asmaY_Id, rowData.emcA_CategoryName, rowData.eyC_Id);
+
+
+                    setSelectedCategory(rowData.eyC_Id);
+                    setSelectedGrade(String(rowData.emgR_Id));
+
+                    setPassToIndividual(rowData.emP_PassToIndSubjectFlg);
+                    setPassToOverall(rowData.emP_PassToOverallFlag);
+                    setPromotionType(rowData.emP_MarksPerFlg as any);
+
+                    setBestApplicable(rowData.emP_BestOfApplicableFlg);
+                    setBestOff(rowData.emP_BestOf);
+
+                    // Fetch fresh subjects for the category
+                    const masterData = await loadSubjects(rowData.eyC_Id);
+                    if (!masterData) {
+                        setIsEditLoading(false);
+                        return;
+                    }
+
+                    // Fetch saved details
+                    const response = await getIndividualPromotionDetailsById(rowData.emP_Id);
+
+                    let finalSubjects = masterData.subjectsData;
+
+                    if (response.success && response.data) {
+                        const { categoryDetails, promotionSubjects } = response.data;
+
+                        if (categoryDetails) {
+                            setSelectedYear(categoryDetails.asmaY_Id);
+                            setSelectedCategory(categoryDetails.eyC_Id);
+                            setSelectedGrade(String(categoryDetails.emgR_Id));
+                            setPassToIndividual(categoryDetails.emP_PassToIndSubjectFlg);
+                            setPassToOverall(categoryDetails.emP_PassToOverallFlag);
+                            setPromotionType(categoryDetails.emP_MarksPerFlg as any);
+                            setBestApplicable(categoryDetails.emP_BestOfApplicableFlg);
+                            setBestOff(categoryDetails.emP_BestOf);
+                        }
+
+                        if (promotionSubjects) {
+                            const { promotion_Subject_List, promotion_SubGroup_List, group_Exam_List } = promotionSubjects;
+
+                            finalSubjects = masterData.subjectsData.map((subject) => {
+                                const savedSub = promotion_Subject_List?.find((s: any) => s.ismS_Id === subject.ismS_Id);
+                                if (savedSub) {
+                                    // Map groups for this subject
+                                    const groups = promotion_SubGroup_List
+                                        ?.filter((g: any) => g.empS_Id === savedSub.empS_Id)
+                                        .map((g: any) => {
+                                            // Map exams for this group
+                                            const exams = group_Exam_List
+                                                ?.filter((e: any) => e.empsG_Id === g.empsG_Id)
+                                                .map((e: any) => ({
+                                                    emE_Id: e.emE_Id,
+                                                    emE_ExamName: e.emE_ExamName,
+                                                    EMPSGE_ForMaxMarkrs: e.empsgE_ForMaxMarkrs,
+                                                    EMPSGE_ConvertionReqOrNot: e.empsgE_ConvertionReqOrNot
+                                                }));
+
+                                            return {
+                                                id: g.empsG_Id,
+                                                EMPSG_Id: g.empsG_Id,
+                                                EMPSG_GroupName: g.empsG_GroupName,
+                                                EMPSG_DisplayName: g.empsG_DisplayName,
+                                                EMPSG_PercentValue: g.empsG_PercentValue,
+                                                EMPSG_MarksValue: g.empsG_MarksValue,
+                                                EMPSG_MaxOff: g.empsG_MaxOff,
+                                                EMPSG_BestOff: g.empsG_BestOff,
+                                                EMPSG_Order: g.empsG_Order,
+                                                EMPSG_RoundOffFlag: g.empsG_RoundOffFlag,
+                                                Exm_M_Prom_Subj_Group_Exams_master: exams || []
+                                            };
+                                        });
+
+                                    return {
+                                        ...subject,
+                                        checkedvalue: true,
+                                        EMPS_MaxMarks: savedSub.empS_MaxMarks,
+                                        EMPS_MinMarks: savedSub.empS_MinMarks,
+                                        EMPS_ConvertForMarks: savedSub.empS_ConvertForMarks,
+                                        EMPS_AppToResultFlg: savedSub.empS_AppToResultFlg,
+                                        EMGR_Id: savedSub.emgR_Id ? String(savedSub.emgR_Id) : subject.EMGR_Id,
+                                        EMPS_SubjOrder: savedSub.empS_SubjOrder,
+                                        EMPS_Id: savedSub.empS_Id,
+                                        pro_exams_group_list: groups || []
+                                    };
+                                }
+                                return subject;
+                            });
+                        }
+                    }
+
+                    setSubjects(finalSubjects);
+                    console.log('finalSubjects', finalSubjects);
+                    setInitialState({
+                        selectedYear: rowData.asmaY_Id,
+                        selectedCategory: rowData.eyC_Id,
+                        selectedGrade: String(rowData.emgR_Id),
+                        passToIndividual: rowData.emP_PassToIndSubjectFlg,
+                        passToOverall: rowData.emP_PassToOverallFlag,
+                        promotionType: rowData.emP_MarksPerFlg as any,
+                        bestApplicable: rowData.emP_BestOfApplicableFlg,
+                        bestOff: rowData.emP_BestOf,
+                        subjects: finalSubjects
+                    });
+
+                } catch (error) {
+                    console.error('Error initializing edit:', error);
+                    toast.error('Failed to load details for editing');
+                } finally {
+                    setIsEditLoading(false);
+                }
+            };
+
+            initEdit();
+        }
+    }, [rowData, loadSubjects, fetchCategories]);
 
     // Toggle all subjects
     const toggleAllSubjects = () => {
@@ -360,13 +501,13 @@ export default function AddPromotionalSettingForm() {
                 EMPS_MinMarks: subject.EMPS_MinMarks || 0,
                 EMPS_ConvertForMarks: subject.EMPS_ConvertForMarks || 0,
                 EMPS_AppToResultFlg: subject.EMPS_AppToResultFlg,
-                EMGR_Id: subject.EMGR_Id || grades[0]?.emgR_Id || '',
+                EMGR_Id: subject.EMGR_Id || (grades[0]?.emgR_Id ? String(grades[0]?.emgR_Id) : '') || '',
                 EMPS_SubjOrder: subject.EMPS_SubjOrder || 1,
                 pro_exams_group_list: subject.pro_exams_group_list || []
             }));
 
         return {
-            EMP_Id: 0, // New record
+            EMP_Id: rowData ? rowData.emP_Id : 0, // Use rowData.emP_Id for edit, 0 for new
             ASMAY_Id: selectedYear,
             EYC_Id: selectedCategory || 0,
             EMGR_Id: selectedGrade,
@@ -440,25 +581,42 @@ export default function AddPromotionalSettingForm() {
         const response = await addOrUpdatePromotionSettings(payload);
         if (response.success) {
             toast.success(response.message || 'Promotion Setting saved successfully');
+            if (onSuccess) onSuccess();
+            else handleReset();
         } else {
             toast.error(response.message || 'Failed to save Promotion Setting');
         }
     };
 
     // Handle reset
-    const handleReset = () => {
-        setSelectedYear(0);
-        setSelectedCategory(null);
-        setSelectedGrade(null);
-        setSubjects([]);
-        setSelectAll(false);
-        setPassToIndividual(false);
-        setPassToOverall(false);
-        setBestApplicable(false);
-        setBestOff(null);
-        setPromotionType('P');
-        toast.info('Form reset');
-    };
+    const handleReset = useCallback(() => {
+        if (rowData && initialState) {
+            // Revert to initial state in edit mode
+            setSelectedYear(initialState.selectedYear);
+            setSelectedCategory(initialState.selectedCategory);
+            setSelectedGrade(initialState.selectedGrade);
+            setPassToIndividual(initialState.passToIndividual);
+            setPassToOverall(initialState.passToOverall);
+            setPromotionType(initialState.promotionType);
+            setBestApplicable(initialState.bestApplicable);
+            setBestOff(initialState.bestOff);
+            setSubjects(initialState.subjects);
+            toast.info('Reverted to original values');
+        } else {
+            // Clear all for Add mode
+            setSelectedYear(0);
+            setSelectedCategory(null);
+            setSelectedGrade(null);
+            setSubjects([]);
+            setSelectAll(false);
+            setPassToIndividual(false);
+            setPassToOverall(false);
+            setBestApplicable(false);
+            setBestOff(null);
+            setPromotionType('P');
+            toast.info('Form reset');
+        }
+    }, [rowData, initialState]);
 
     // Check if table should be visible
     const isTableVisible = promotionType !== 'F' && selectedCategory && subjects.length > 0;
@@ -470,7 +628,15 @@ export default function AddPromotionalSettingForm() {
     }, []);
 
     return (
-        <div>
+        <div className='relative'>
+            {isEditLoading && (
+                <div className='absolute inset-0 z-50 flex items-center justify-center bg-white/50 backdrop-blur-sm'>
+                    <div className='flex flex-col items-center gap-2'>
+                        <div className='h-8 w-8 animate-spin rounded-full border-b-2 border-primary border-t-2'></div>
+                        <p className='font-medium text-sm'>Loading data...</p>
+                    </div>
+                </div>
+            )}
             <CollapsibleSection defaultOpen>
                 {/* TOP SECTION - 2 columns */}
                 <div className='mb-6 grid grid-cols-1 gap-6 md:grid-cols-2'>
@@ -535,7 +701,7 @@ export default function AddPromotionalSettingForm() {
                                         --Select--
                                     </SelectItem>
                                     {grades.map((grade) => (
-                                        <SelectItem key={grade.emgR_Id} value={grade.emgR_Id}>
+                                        <SelectItem key={grade.emgR_Id} value={grade.emgR_Id.toString()}>
                                             {grade.emgR_GradeName}
                                         </SelectItem>
                                     ))}
@@ -750,7 +916,7 @@ export default function AddPromotionalSettingForm() {
                                                 <SelectContent>
                                                     <SelectItem value='__keep'>— Keep existing —</SelectItem>
                                                     {grades.map((grade) => (
-                                                        <SelectItem key={grade.emgR_Id} value={grade.emgR_Id}>
+                                                        <SelectItem key={grade.emgR_Id} value={grade.emgR_Id.toString()}>
                                                             {grade.emgR_GradeName}
                                                         </SelectItem>
                                                     ))}
@@ -888,7 +1054,7 @@ export default function AddPromotionalSettingForm() {
                                                     <SelectContent>
                                                         <SelectItem value='__none'>--Select--</SelectItem>
                                                         {grades.map((grade) => (
-                                                            <SelectItem key={grade.emgR_Id} value={grade.emgR_Id}>
+                                                            <SelectItem key={grade.emgR_Id} value={grade.emgR_Id.toString()}>
                                                                 {grade.emgR_GradeName}
                                                             </SelectItem>
                                                         ))}
@@ -951,7 +1117,8 @@ export default function AddPromotionalSettingForm() {
                     }}
                     onSave={updateSubjectGroups}
                     onAddGroup={addGroupToSubject}
-                    onOpenExams={openExamsModal} //promotionType={promotionType}
+                    onOpenExams={openExamsModal}
+                    promotionType={promotionType}
                 />
             )}
 

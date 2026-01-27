@@ -9,6 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
+import { toast } from 'sonner';
 
 interface ReportFormProps {
     onReportGenerated: (data: any) => void;
@@ -21,6 +22,9 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     const [sections, setSections] = useState<any[]>([]);
     const [exams, setExams] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadingClasses, setLoadingClasses] = useState(false);
+    const [loadingSections, setLoadingSections] = useState(false);
+    const [loadingExams, setLoadingExams] = useState(false);
 
     const methods = useForm<MarksEntryReportSchema>({
         resolver: zodResolver(marksEntryReportSchema),
@@ -36,42 +40,90 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
 
     // Initial Data
     useEffect(() => {
-        getDetails().then((res) => {
-            setYears(res.acdlist);
-            setLoading(false);
-        });
+        getDetails()
+            .then((res) => {
+                setYears(res.acdlist || []);
+                if (!res.acdlist || res.acdlist.length === 0) {
+                    toast.info('No Academic Years found');
+                }
+                setLoading(false);
+            })
+            .catch((err) => {
+                console.error(err);
+                toast.error('Failed to load initial data');
+                setLoading(false);
+            });
     }, []);
 
     // Load Classes on Year Change
     useEffect(() => {
         if (watchYear) {
-            getClasses(watchYear).then((res) => {
-                setClasses(res.ctlist);
-            });
+            setLoadingClasses(true);
+            getClasses(watchYear)
+                .then((res) => {
+                    setClasses(res.ctlist || []);
+                    if (!res.ctlist || res.ctlist.length === 0) {
+                        toast.info('No Classes found');
+                    }
+                    setLoadingClasses(false);
+                })
+                .catch((err) => {
+                    console.error(err);
+                    toast.error('Failed to load classes');
+                    setLoadingClasses(false);
+                });
             setValue('ASMCL_Id', '');
             setValue('ASMS_Id', '');
             setValue('EME_Id', '');
+        } else {
+            setClasses([]);
         }
     }, [watchYear, setValue]);
 
     // Load Sections on Class Change
     useEffect(() => {
         if (watchClass) {
-            getSections(watchClass).then((res) => {
-                setSections(res.seclist);
-            });
+            setLoadingSections(true);
+            getSections(watchClass)
+                .then((res) => {
+                    setSections(res.seclist || []);
+                    if (!res.seclist || res.seclist.length === 0) {
+                        toast.info('No Sections found');
+                    }
+                    setLoadingSections(false);
+                })
+                .catch((err) => {
+                    console.error(err);
+                    toast.error('Failed to load sections');
+                    setLoadingSections(false);
+                });
             setValue('ASMS_Id', '');
             setValue('EME_Id', '');
+        } else {
+            setSections([]);
         }
     }, [watchClass, setValue]);
 
     // Load Exams on Section Change
     useEffect(() => {
         if (watchSection) {
-            getExams(watchSection).then((res) => {
-                setExams(res.examlist);
-            });
+            setLoadingExams(true);
+            getExams(watchSection)
+                .then((res) => {
+                    setExams(res.examlist || []);
+                    if (!res.examlist || res.examlist.length === 0) {
+                        toast.info('No Exams found');
+                    }
+                    setLoadingExams(false);
+                })
+                .catch((err) => {
+                    console.error(err);
+                    toast.error('Failed to load exams');
+                    setLoadingExams(false);
+                });
             setValue('EME_Id', '');
+        } else {
+            setExams([]);
         }
     }, [watchSection, setValue]);
 
@@ -112,16 +164,22 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                     name='ASMAY_Id'
                                     render={({ field, fieldState }) => (
                                         <>
-                                            <Select onValueChange={field.onChange} value={field.value}>
+                                            <Select key={field.value} onValueChange={field.onChange} value={field.value}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Academic Year' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {years.map((year) => (
-                                                        <SelectItem key={year.asmaY_Id} value={String(year.asmaY_Id)}>
-                                                            {year.asmaY_Year}
+                                                    {years.length === 0 ? (
+                                                        <SelectItem value='0' disabled>
+                                                            No Academic Years found
                                                         </SelectItem>
-                                                    ))}
+                                                    ) : (
+                                                        years.map((year) => (
+                                                            <SelectItem key={year.asmaY_Id} value={String(year.asmaY_Id)}>
+                                                                {year.asmaY_Year}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -140,16 +198,30 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                     name='ASMCL_Id'
                                     render={({ field, fieldState }) => (
                                         <>
-                                            <Select onValueChange={field.onChange} value={field.value}>
+                                            <Select
+                                                key={field.value}
+                                                onValueChange={field.onChange}
+                                                value={field.value}
+                                                disabled={!watchYear}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Class' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {classes.map((cls) => (
-                                                        <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>
-                                                            {cls.asmcL_ClassName}
+                                                    {loadingClasses ? (
+                                                        <SelectItem value='0' disabled>
+                                                            Classes are loading...
                                                         </SelectItem>
-                                                    ))}
+                                                    ) : classes.length === 0 ? (
+                                                        <SelectItem value='0' disabled>
+                                                            No Classes found
+                                                        </SelectItem>
+                                                    ) : (
+                                                        classes.map((cls) => (
+                                                            <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>
+                                                                {cls.asmcL_ClassName}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -168,16 +240,30 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                     name='ASMS_Id'
                                     render={({ field, fieldState }) => (
                                         <>
-                                            <Select onValueChange={field.onChange} value={field.value}>
+                                            <Select
+                                                key={field.value}
+                                                onValueChange={field.onChange}
+                                                value={field.value}
+                                                disabled={!watchClass}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Section' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {sections.map((sec) => (
-                                                        <SelectItem key={sec.asmS_Id} value={String(sec.asmS_Id)}>
-                                                            {sec.asmC_SectionName}
+                                                    {loadingSections ? (
+                                                        <SelectItem value='0' disabled>
+                                                            Sections are loading...
                                                         </SelectItem>
-                                                    ))}
+                                                    ) : sections.length === 0 ? (
+                                                        <SelectItem value='0' disabled>
+                                                            No Sections found
+                                                        </SelectItem>
+                                                    ) : (
+                                                        sections.map((sec) => (
+                                                            <SelectItem key={sec.asmS_Id} value={String(sec.asmS_Id)}>
+                                                                {sec.asmC_SectionName}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -196,16 +282,30 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                     name='EME_Id'
                                     render={({ field, fieldState }) => (
                                         <>
-                                            <Select onValueChange={field.onChange} value={field.value}>
+                                            <Select
+                                                key={field.value}
+                                                onValueChange={field.onChange}
+                                                value={field.value}
+                                                disabled={!watchSection}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Exam' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {exams.map((ex) => (
-                                                        <SelectItem key={ex.emE_Id} value={String(ex.emE_Id)}>
-                                                            {ex.emE_ExamName}
+                                                    {loadingExams ? (
+                                                        <SelectItem value='0' disabled>
+                                                            Exams are loading...
                                                         </SelectItem>
-                                                    ))}
+                                                    ) : exams.length === 0 ? (
+                                                        <SelectItem value='0' disabled>
+                                                            No Exams found
+                                                        </SelectItem>
+                                                    ) : (
+                                                        exams.map((ex) => (
+                                                            <SelectItem key={ex.emE_Id} value={String(ex.emE_Id)}>
+                                                                {ex.emE_ExamName}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}

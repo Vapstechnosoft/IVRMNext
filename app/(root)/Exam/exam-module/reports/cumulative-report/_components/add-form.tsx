@@ -71,7 +71,12 @@ export default function CumulativeReportForm({
     const [students, setStudents] = useState<{ amsT_AdmNo: number; amsT_Id: number; studentName?: string | null }[]>([]);
     const [allStudentsSelected, setAllStudentsSelected] = useState(false);
 
-    const { data: academicData, error: academicError } = useAcademicYearDropdown();
+    const [loadingClasses, setLoadingClasses] = useState(false);
+    const [loadingSections, setLoadingSections] = useState(false);
+    const [loadingExams, setLoadingExams] = useState(false);
+    const [loadingStudents, setLoadingStudents] = useState(false);
+
+    const { data: academicData, error: academicError, isLoading: academicYearLoading } = useAcademicYearDropdown();
 
     const selectedYear = useWatch({ control, name: 'asmaY_Id' });
     const selectedClass = useWatch({ control, name: 'asmcL_Id' });
@@ -99,6 +104,7 @@ export default function CumulativeReportForm({
         if (!selectedYear) return;
         (async () => {
             try {
+                setLoadingClasses(true);
                 const { data } = await getClassDropDownByAcademicYearlist(selectedYear);
                 setClasses(Array.isArray(data) ? data : []);
                 setValue('asmcL_Id', 0);
@@ -108,6 +114,8 @@ export default function CumulativeReportForm({
                 setAllStudentsSelected(false);
             } catch {
                 toast.error('Failed to load classes');
+            } finally {
+                setLoadingClasses(false);
             }
         })();
     }, [selectedYear, setValue]);
@@ -117,6 +125,7 @@ export default function CumulativeReportForm({
         if (!selectedYear || !selectedClass) return;
         (async () => {
             try {
+                setLoadingSections(true);
                 const { data } = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass);
                 setSections(Array.isArray(data) ? data : []);
                 setValue('asmS_Id', 0);
@@ -125,6 +134,8 @@ export default function CumulativeReportForm({
                 setAllStudentsSelected(false);
             } catch {
                 toast.error('Failed to load sections');
+            } finally {
+                setLoadingSections(false);
             }
         })();
     }, [selectedYear, selectedClass, setValue]);
@@ -134,11 +145,14 @@ export default function CumulativeReportForm({
         if (!selectedYear || !selectedClass || !selectedSection) return;
         (async () => {
             try {
+                setLoadingExams(true);
                 const { data } = await getExamsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, selectedSection);
                 setExams(Array.isArray(data) ? data : []);
                 setValue('emE_Id', 0);
             } catch {
                 toast.error('Failed to load exams');
+            } finally {
+                setLoadingExams(false);
             }
         })();
     }, [selectedYear, selectedClass, selectedSection, setValue]);
@@ -148,6 +162,7 @@ export default function CumulativeReportForm({
         if (!selectedYear || !selectedClass || !selectedSection) return;
         (async () => {
             try {
+                setLoadingStudents(true);
                 const { data } = await getStudentsDropDownByAcademicYearandClassandSectionlist(
                     selectedYear,
                     selectedClass,
@@ -161,6 +176,8 @@ export default function CumulativeReportForm({
                 setAllStudentsSelected(false);
             } catch {
                 toast.error('Failed to load students');
+            } finally {
+                setLoadingStudents(false);
             }
         })();
     }, [selectedYear, selectedClass, selectedSection, setValue]);
@@ -229,17 +246,28 @@ export default function CumulativeReportForm({
                                             </Label>
                                             <div className='flex-1'>
                                                 <Select
+                                                    key={field.value}
                                                     onValueChange={(v) => field.onChange(Number(v))}
                                                     value={field.value ? String(field.value) : ''}>
                                                     <SelectTrigger className='w-full'>
                                                         <SelectValue placeholder='Select Academic Year' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {academicYears.map((y) => (
-                                                            <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                                {y.asmaY_Year}
+                                                        {academicYearLoading ? (
+                                                            <SelectItem value='0' disabled>
+                                                                Academic Years are loading...
                                                             </SelectItem>
-                                                        ))}
+                                                        ) : academicYears.length === 0 ? (
+                                                            <SelectItem value='0' disabled>
+                                                                No Academic Years found
+                                                            </SelectItem>
+                                                        ) : (
+                                                            academicYears.map((y) => (
+                                                                <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                                                    {y.asmaY_Year}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -259,17 +287,28 @@ export default function CumulativeReportForm({
                                             </Label>
                                             <div className='flex-1'>
                                                 <Select
+                                                    key={field.value}
                                                     onValueChange={(v) => field.onChange(Number(v))}
                                                     value={field.value ? String(field.value) : ''}>
                                                     <SelectTrigger className='w-full'>
                                                         <SelectValue placeholder='Select Class' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {classes.map((c) => (
-                                                            <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
-                                                                {c.asmcL_ClassName}
+                                                        {loadingClasses ? (
+                                                            <SelectItem value='0' disabled>
+                                                                Classes are loading...
                                                             </SelectItem>
-                                                        ))}
+                                                        ) : classes.length === 0 ? (
+                                                            <SelectItem value='0' disabled>
+                                                                No Classes found
+                                                            </SelectItem>
+                                                        ) : (
+                                                            classes.map((c) => (
+                                                                <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
+                                                                    {c.asmcL_ClassName}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -289,17 +328,28 @@ export default function CumulativeReportForm({
                                             </Label>
                                             <div className='flex-1'>
                                                 <Select
+                                                    key={field.value}
                                                     onValueChange={(v) => field.onChange(Number(v))}
                                                     value={field.value ? String(field.value) : ''}>
                                                     <SelectTrigger className='w-full'>
                                                         <SelectValue placeholder='Select Section' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {sections.map((s) => (
-                                                            <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
-                                                                {s.asmC_SectionName}
+                                                        {loadingSections ? (
+                                                            <SelectItem value='0' disabled>
+                                                                Sections are loading...
                                                             </SelectItem>
-                                                        ))}
+                                                        ) : sections.length === 0 ? (
+                                                            <SelectItem value='0' disabled>
+                                                                No Sections found
+                                                            </SelectItem>
+                                                        ) : (
+                                                            sections.map((s) => (
+                                                                <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
+                                                                    {s.asmC_SectionName}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -319,17 +369,28 @@ export default function CumulativeReportForm({
                                             </Label>
                                             <div className='flex-1'>
                                                 <Select
+                                                    key={field.value}
                                                     onValueChange={(v) => field.onChange(Number(v))}
                                                     value={field.value ? String(field.value) : ''}>
                                                     <SelectTrigger className='w-full'>
                                                         <SelectValue placeholder='Select Exam' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {exams.map((e) => (
-                                                            <SelectItem key={e.emE_Id} value={String(e.emE_Id)}>
-                                                                {e.emE_ExamName}
+                                                        {loadingExams ? (
+                                                            <SelectItem value='0' disabled>
+                                                                Exams are loading...
                                                             </SelectItem>
-                                                        ))}
+                                                        ) : exams.length === 0 ? (
+                                                            <SelectItem value='0' disabled>
+                                                                No Exams found
+                                                            </SelectItem>
+                                                        ) : (
+                                                            exams.map((e) => (
+                                                                <SelectItem key={e.emE_Id} value={String(e.emE_Id)}>
+                                                                    {e.emE_ExamName}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}

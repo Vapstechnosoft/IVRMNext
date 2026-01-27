@@ -19,6 +19,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { PromotionRemarksColumns } from './_components/columns';
+import { fieldGroupVariants } from '@/components/ui/extension/field';
 
 // Zod Schema for validation
 const PromotionRemarksSchema = z.object({
@@ -398,24 +399,44 @@ function PromotionRemarksContent() {
     const handleAcademicYearChange = (value: string) => {
         const numValue = value !== 'none' ? Number(value) : undefined;
         setSelectedAcademicYear(numValue);
+        setClasses([]);
+        setSelectedClass(undefined);
+        setSections([]);
+        setSelectedSectionId(undefined);
+        setTerms([]);
+        setSelectedTerm(undefined);
+        setStudents([]);
+        setIsStudentsGridOpen(false);
         setFormErrors((prev) => ({ ...prev, academicYear: '' }));
     };
 
     const handleClassChange = (value: string) => {
         const numValue = value !== 'none' ? Number(value) : undefined;
         setSelectedClass(numValue);
+        setSections([]);
+        setSelectedSectionId(undefined);
+        setTerms([]);
+        setSelectedTerm(undefined);
+        setStudents([]);
+        setIsStudentsGridOpen(false);
         setFormErrors((prev) => ({ ...prev, class: '' }));
     };
 
     const handleSectionChange = (value: string) => {
         const numValue = value !== 'none' ? Number(value) : undefined;
         setSelectedSectionId(numValue);
+        setTerms([]);
+        setSelectedTerm(undefined);
+        setStudents([]);
+        setIsStudentsGridOpen(false);
         setFormErrors((prev) => ({ ...prev, section: '' }));
     };
 
     const handleTermChange = (value: string) => {
         const numValue = value !== 'none' && value !== 'disabled' ? Number(value) : undefined;
         setSelectedTerm(numValue);
+        setStudents([]);
+        setIsStudentsGridOpen(false);
         setFormErrors((prev) => ({ ...prev, term: '' }));
     };
 
@@ -432,12 +453,13 @@ function PromotionRemarksContent() {
                     <div className='mb-4 flex w-max gap-2 rounded-full bg-gray-200 p-1'>
                         <button
                             type='button'
-                            className={`rounded-full px-6 py-2 font-medium text-sm transition-colors duration-200 ${
-                                activeTab === 0 ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'
-                            }`}
+                            className={`rounded-full px-6 py-2 font-medium text-sm transition-colors duration-200 ${activeTab === 0 ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'
+                                }`}
                             onClick={() => {
                                 setActiveTab(0);
                                 setSelectedTerm(undefined);
+                                setTerms([]);
+                                setStudents([]);
                                 setFormErrors((prev) => ({ ...prev, term: '' }));
                                 setIsStudentsGridOpen(false);
                             }}>
@@ -445,12 +467,13 @@ function PromotionRemarksContent() {
                         </button>
                         <button
                             type='button'
-                            className={`rounded-full px-6 py-2 font-medium text-sm transition-colors duration-200 ${
-                                activeTab === 1 ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'
-                            }`}
+                            className={`rounded-full px-6 py-2 font-medium text-sm transition-colors duration-200 ${activeTab === 1 ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'
+                                }`}
                             onClick={() => {
                                 setActiveTab(1);
                                 setSelectedTerm(undefined);
+                                setTerms([]);
+                                setStudents([]);
                                 setFormErrors((prev) => ({ ...prev, term: '' }));
                                 setIsStudentsGridOpen(false);
                             }}>
@@ -471,22 +494,22 @@ function PromotionRemarksContent() {
                                 value={selectedAcademicYear ? String(selectedAcademicYear) : ''}
                                 onValueChange={handleAcademicYearChange}>
                                 <SelectTrigger className='h-10' id='academic-year-trigger'>
-                                    <SelectValue placeholder='Select Academic Year' />
+                                    <SelectValue placeholder={loadingAcademic ? 'loading.....' : 'Select Academic Year'} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {loadingAcademic
                                         ? [
-                                              <SelectItem value='loading' key='loading'>
-                                                  Loading...
-                                              </SelectItem>
-                                          ]
+                                            <SelectItem value='loading' key='loading'>
+                                                loading.....
+                                            </SelectItem>
+                                        ]
                                         : academicYears.length === 0
-                                          ? [
+                                            ? [
                                                 <SelectItem value='none' key='empty'>
                                                     -- No academic years --
                                                 </SelectItem>
                                             ]
-                                          : academicYears.map((y) => (
+                                            : academicYears.map((y) => (
                                                 <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
                                                     {y.asmaY_Year}
                                                 </SelectItem>
@@ -506,32 +529,32 @@ function PromotionRemarksContent() {
                                 onValueChange={handleClassChange}
                                 disabled={!selectedAcademicYear || loadingClasses}>
                                 <SelectTrigger className='h-10' id='class-select-trigger'>
-                                    <SelectValue placeholder='Select Class' />
+                                    <SelectValue placeholder={loadingClasses ? 'loading.....' : 'Select Class'} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {!selectedAcademicYear
                                         ? [
-                                              <SelectItem value='none' key='empty'>
-                                                  -- Select Academic Year first --
-                                              </SelectItem>
-                                          ]
+                                            <SelectItem value='none' key='empty'>
+                                                -- Select Academic Year first --
+                                            </SelectItem>
+                                        ]
                                         : loadingClasses
-                                          ? [
+                                            ? [
                                                 <SelectItem value='loading' key='loading'>
-                                                    Loading classes...
+                                                    loading.....
                                                 </SelectItem>
                                             ]
-                                          : classes.length === 0
-                                            ? [
-                                                  <SelectItem value='none' key='empty'>
-                                                      -- No classes --
-                                                  </SelectItem>
-                                              ]
-                                            : classes.map((c) => (
-                                                  <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
-                                                      {c.asmcL_ClassName}
-                                                  </SelectItem>
-                                              ))}
+                                            : classes.length === 0
+                                                ? [
+                                                    <SelectItem value='none' key='empty'>
+                                                        -- No classes --
+                                                    </SelectItem>
+                                                ]
+                                                : classes.map((c) => (
+                                                    <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
+                                                        {c.asmcL_ClassName}
+                                                    </SelectItem>
+                                                ))}
                                 </SelectContent>
                             </Select>
                             {formErrors.class && <p className='mt-1 text-red-500 text-sm'>{formErrors.class}</p>}
@@ -547,22 +570,22 @@ function PromotionRemarksContent() {
                                 onValueChange={handleSectionChange}
                                 disabled={!selectedClass || loadingSections}>
                                 <SelectTrigger className='h-10' id='section-select-trigger'>
-                                    <SelectValue placeholder='Select Section' />
+                                    <SelectValue placeholder={loadingSections ? 'loading.....' : 'Select Section'} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {loadingSections
                                         ? [
-                                              <SelectItem value='loading' key='loading'>
-                                                  Loading sections...
-                                              </SelectItem>
-                                          ]
+                                            <SelectItem value='loading' key='loading'>
+                                                loading.....
+                                            </SelectItem>
+                                        ]
                                         : sections.length === 0
-                                          ? [
+                                            ? [
                                                 <SelectItem value='none' key='empty'>
                                                     -- No sections --
                                                 </SelectItem>
                                             ]
-                                          : sections.map((s) => (
+                                            : sections.map((s) => (
                                                 <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
                                                     {s.asmC_SectionName}
                                                 </SelectItem>
@@ -587,35 +610,35 @@ function PromotionRemarksContent() {
                                             activeTab === 1
                                                 ? '-- Disabled for Overall --'
                                                 : loadingTerms
-                                                  ? 'Loading terms...'
-                                                  : 'Select Term'
+                                                    ? 'loading.....'
+                                                    : 'Select Term'
                                         }
                                     />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {activeTab === 1
                                         ? [
-                                              <SelectItem value='disabled' key='disabled'>
-                                                  -- Disabled for Overall --
-                                              </SelectItem>
-                                          ]
+                                            <SelectItem value='disabled' key='disabled'>
+                                                -- Disabled for Overall --
+                                            </SelectItem>
+                                        ]
                                         : loadingTerms
-                                          ? [
+                                            ? [
                                                 <SelectItem value='loading' key='loading'>
-                                                    Loading terms...
+                                                    loading.....
                                                 </SelectItem>
                                             ]
-                                          : terms.length === 0
-                                            ? [
-                                                  <SelectItem value='none' key='empty'>
-                                                      -- No terms --
-                                                  </SelectItem>
-                                              ]
-                                            : terms.map((t) => (
-                                                  <SelectItem key={t.ecT_Id} value={String(t.ecT_Id)}>
-                                                      {t.ecT_TermName}
-                                                  </SelectItem>
-                                              ))}
+                                            : terms.length === 0
+                                                ? [
+                                                    <SelectItem value='none' key='empty'>
+                                                        -- No terms --
+                                                    </SelectItem>
+                                                ]
+                                                : terms.map((t) => (
+                                                    <SelectItem key={t.ecT_Id} value={String(t.ecT_Id)}>
+                                                        {t.ecT_TermName}
+                                                    </SelectItem>
+                                                ))}
                                 </SelectContent>
                             </Select>
                             {formErrors.term && <p className='mt-1 text-red-500 text-sm'>{formErrors.term}</p>}
