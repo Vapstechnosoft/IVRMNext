@@ -19,3 +19,11 @@ export const masterEventCoeSchema = {
         })
     })
 };
+
+export const coeReportSchema = {
+    addOrUpdate: z.object({
+        asmaY_Id: z.number({ required_error: 'Academic year is required' }),
+        asmcl_Id: z.number().optional(),
+        month:z.number().optional(),
+    })
+};
