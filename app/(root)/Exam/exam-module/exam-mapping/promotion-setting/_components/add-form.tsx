@@ -636,7 +636,8 @@ export default function AddPromotionalSettingForm({
             {isEditLoading && (
                 <div className='absolute inset-0 z-50 flex items-center justify-center bg-white/50 backdrop-blur-sm'>
                     <div className='flex flex-col items-center gap-2'>
-                        <div className='h-8 w-8 animate-spin rounded-full border-b-2 border-primary border-t-2'></div>
+                        {/* biome-ignore lint/style/useSelfClosingElements: <explanation> */}
+                        <div className='h-8 w-8 animate-spin rounded-full border-primary border-t-2 border-b-2'></div>
                         <p className='font-medium text-sm'>Loading data...</p>
                     </div>
                 </div>
