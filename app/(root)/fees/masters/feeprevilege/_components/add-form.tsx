@@ -291,6 +291,7 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
         setGroupOptions([]);
         setUserOptions([]);
         setHeadOptions([]);
+        //setRoleOptions([]);
 
         // IMPORTANT: Force refetch groups with undefined academic year
         // This will clear the cached data for the previous academic year
@@ -493,7 +494,7 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
                         )}
 
                         {/* Role */}
-                        <div>
+                        <div key={`role-${resetKey}`}>
                             <Label htmlFor='roles'>
                                 Role <span className='text-red-500'>*</span>
                             </Label>
@@ -503,7 +504,7 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
                                     setValue('users', []);
                                     setUserSearch('');
                                 }}
-                                value={roles}
+                                value={roles || ''}
                                 disabled={isLoadingDropdowns}>
                                 <SelectTrigger
                                     id='roles'

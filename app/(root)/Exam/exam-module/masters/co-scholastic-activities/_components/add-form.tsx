@@ -85,7 +85,7 @@ export default function AddCoScholasticActivityForm({ onSuccess, className = '' 
                             error={errors.ecacT_SkillCode?.message}
                             onInput={(e) => {
                                 const input = e.currentTarget;
-                                input.value = input.value.replace(/[^0-9]/g, '');
+                                input.value = input.value.replace(/[^A-Za-z0-9]/g, '');
                             }}
                         />
                     </div>

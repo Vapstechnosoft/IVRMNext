@@ -417,6 +417,8 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                                                     : ''
                                             }
                                             //   disabled={classloading}
+
+                                            disabled={!asmay_Id}
                                         >
                                             <SelectTrigger className='min-w-[400px] text-center'>
                                                 <SelectValue placeholder='--Select Class --' />
@@ -467,6 +469,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                                                     : ''
                                             }
                                             //   disabled={secloading}
+                                            disabled={!asmay_Id || !asmcl_Id}
                                         >
                                             <SelectTrigger className='min-w-[400px] text-center'>
                                                 <SelectValue placeholder='--Select Section --' />
@@ -545,7 +548,8 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
 
                                             key={field.value}
                                             value={field.value && field.value !== 0 ? String(field.value) : undefined}
-                                            onValueChange={(val) => field.onChange(Number(val))}>
+                                            onValueChange={(val) => field.onChange(Number(val))}
+                                            disabled={!asmay_Id || !asmcl_Id || !asms_Id}>
                                             <SelectTrigger className='min-w-[400px] text-center'>
                                                 <SelectValue placeholder='--Select student --' />
                                             </SelectTrigger>
