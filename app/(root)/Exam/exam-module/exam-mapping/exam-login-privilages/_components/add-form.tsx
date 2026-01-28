@@ -888,6 +888,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                 disabled={disableClassSection || activeTab === 0 || editMode === 'edit'}
                                                 error={fieldState?.error?.message}
                                                 isLoading={masterClassLoading}
+                                                resetKey={activeTab}
                                             />
                                         );
                                     }}
@@ -919,6 +920,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                 isRequired={true}
                                                 error={fieldState?.error?.message}
                                                 isLoading={masterSubjectLoading}
+                                                resetKey={activeTab}
                                             />
                                         );
                                     }}
@@ -990,6 +992,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                 disabled={disableClassSection || activeTab === 0 || editMode === 'edit'}
                                                 error={fieldState?.error?.message}
                                                 isLoading={masterSectionLoading}
+                                                resetKey={activeTab}
                                             />
                                         );
                                     }}
@@ -1026,6 +1029,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                 isSearchRequired
                                                 error={fieldState?.error?.message}
                                                 isLoading={masterSubSubjectLoading}
+                                                resetKey={activeTab}
                                             />
                                         );
                                     }}
