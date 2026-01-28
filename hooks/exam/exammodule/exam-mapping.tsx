@@ -347,7 +347,7 @@ export const usePromotionalSetting = (searchParams?: ApiSearchparams) => {
     return {
         ...useQuery({
             queryKey: [EXAM_QUERY_KEYS.PROMOTIONAL_SETTING_GRID, searchParams ?? {}],
-            queryFn: async () => getPromotionalSettings(),
+            queryFn: async () => getPromotionalSettings(searchParams),
             staleTime: 0
         }),
 

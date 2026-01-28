@@ -9,15 +9,15 @@ import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { StudentTransactionSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import {
     getStudentList,
+    getTermOrExams,
     onchangeActivities,
     onchangeSkills,
     saveCCEStudentMarks
 } from '@/server/exam/exam-module/exam-mapping/student-transaction-cce';
-import { getCoScholasticActivities } from '@/server/exam/exam-module/masters/co-scholastic-activity';
-import { getMasterLifeSkills } from '@/server/exam/exam-module/masters/life-skills';
+import { getCoScholasticActivityDropdownList } from '@/server/exam/exam-module/masters/co-scholastic-activity';
+import { getMasterLifeSkillDrpdownList } from '@/server/exam/exam-module/masters/life-skills';
 import {
     getClassDropDownByAcademicYearlist,
-    getExamsDropDownByAcademicYearandClassandSectionlist,
     getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import type {
@@ -29,7 +29,8 @@ import type {
     ISection,
     ISkillArea,
     ISkillName,
-    IStudentTransaction
+    IStudentTransaction,
+    ITerm
 } from '@/types/exam/exam-module/exam-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RotateCcw, Search } from 'lucide-react';
@@ -82,13 +83,14 @@ function StudentTransactionContent() {
     const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
     const [classes, setClasses] = useState<IClass[]>([]);
     const [sections, setSections] = useState<ISection[]>([]);
-    const [examTerms, setExamTerms] = useState<IExamMaster[]>([]);
+    const [examTerms, setExamTerms] = useState<ITerm[]>([]);
     const [exams, setExams] = useState<IExamMaster[]>([]);
     const [skillNames, setSkillNames] = useState<ISkillName[]>([]);
     const [activityNames, setActivityNames] = useState<IActivityName[]>([]);
     const [skillAreas, setSkillAreas] = useState<ISkillArea[]>([]);
     const [activityAreas, setActivityAreas] = useState<IActivityArea[]>([]);
     const [students, setStudents] = useState<IStudentTransaction[]>([]);
+    const [originalStudents, setOriginalStudents] = useState<IStudentTransaction[]>([]);
     const [savedScores, setSavedScores] = useState<ISavedScore[]>([]);
     const [selectedStudentIds, setSelectedStudentIds] = useState<number[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -134,6 +136,7 @@ function StudentTransactionContent() {
         setSkillAreas([]);
         setActivityAreas([]);
         setStudents([]);
+        setOriginalStudents([]);
         setSavedScores([]);
         setShowTable(false);
         setSelectedStudentIds([]);
@@ -237,7 +240,12 @@ function StudentTransactionContent() {
         const fetchExamData = async () => {
             setLoadingExamData(true);
             try {
-                const response = await getExamsDropDownByAcademicYearandClassandSectionlist(watchAcademicYear, watchClass, watchSection);
+                const response = await getTermOrExams({
+                    ASMAY_Id: watchAcademicYear,
+                    ASMCL_Id: watchClass,
+                    ASMS_Id: watchSection,
+                    EXAM_TERMWISE_FLAG: watchExamType === 'TermWise' ? 1 : 0
+                });
 
                 if (response.data) {
                     if (watchExamType === 'TermWise') {
@@ -282,7 +290,7 @@ function StudentTransactionContent() {
             setLoadingNames(true);
             try {
                 if (watchSkillActivity === 'Skills') {
-                    const response = await getMasterLifeSkills(30);
+                    const response = await getMasterLifeSkillDrpdownList(30);
                     const skillsList = Array.isArray(response.data) ? response.data : [];
                     setSkillNames(skillsList);
                     console.log('skillsList', skillsList);
@@ -290,7 +298,7 @@ function StudentTransactionContent() {
                     setSkillAreas([]);
                     setActivityAreas([]);
                 } else {
-                    const CcActivities_response = await getCoScholasticActivities();
+                    const CcActivities_response = await getCoScholasticActivityDropdownList();
                     const activitiesList = Array.isArray(CcActivities_response.data) ? CcActivities_response.data : [];
                     setActivityNames(activitiesList);
                     console.log('activitiesList', activitiesList);
@@ -470,6 +478,7 @@ function StudentTransactionContent() {
                 });
 
                 setStudents(studentsWithScores);
+                setOriginalStudents(studentsWithScores);
                 setSavedScores(savedData);
 
                 // Automatically select students who already have saved scores
@@ -516,6 +525,7 @@ function StudentTransactionContent() {
         setSkillAreas([]);
         setActivityAreas([]);
         setStudents([]);
+        setOriginalStudents([]);
         setSavedScores([]);
         setShowTable(false);
         setSelectedStudentIds([]);
@@ -534,6 +544,15 @@ function StudentTransactionContent() {
         }
 
         toast.info('Form reset successfully');
+    };
+
+    // Handle grid reset (only resets grid changes)
+    const handleGridReset = () => {
+        setStudents(originalStudents);
+        const savedStudentIds = savedScores.map((s: any) => s.amsT_Id);
+        setSelectedStudentIds(savedStudentIds);
+        setIsSelectAll(savedStudentIds.length === originalStudents.length && originalStudents.length > 0);
+        toast.info('Grid changes reset');
     };
 
     // Handle save scores
@@ -604,6 +623,7 @@ function StudentTransactionContent() {
             console.log('Save payload:', payload);
 
             const result = await saveCCEStudentMarks(payload);
+            console.log('Save result:', result);
 
             if (result.success || result.returnVal === 'saved') {
                 toast.success(verifyFlag ? 'Record verified successfully' : 'Record saved successfully');
@@ -678,10 +698,11 @@ function StudentTransactionContent() {
                                         <>
                                             <button
                                                 type='button'
-                                                className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${field.value === 'TermWise'
-                                                    ? 'bg-purple-600 text-white'
-                                                    : 'bg-transparent text-gray-600 hover:bg-gray-100'
-                                                    }`}
+                                                className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${
+                                                    field.value === 'TermWise'
+                                                        ? 'bg-purple-600 text-white'
+                                                        : 'bg-transparent text-gray-600 hover:bg-gray-100'
+                                                }`}
                                                 onClick={() => {
                                                     field.onChange('TermWise');
                                                     setValue('emE_Id', 0);
@@ -692,10 +713,11 @@ function StudentTransactionContent() {
                                             </button>
                                             <button
                                                 type='button'
-                                                className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${field.value === 'ExamWise'
-                                                    ? 'bg-purple-600 text-white'
-                                                    : 'bg-transparent text-gray-600 hover:bg-gray-100'
-                                                    }`}
+                                                className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${
+                                                    field.value === 'ExamWise'
+                                                        ? 'bg-purple-600 text-white'
+                                                        : 'bg-transparent text-gray-600 hover:bg-gray-100'
+                                                }`}
                                                 onClick={() => {
                                                     field.onChange('ExamWise');
                                                     setValue('examTermId', 0);
@@ -730,8 +752,7 @@ function StudentTransactionContent() {
                                                     clearDependentFields();
                                                     setClasses([]);
                                                     setValue('classId', 0);
-                                                }}
-                                            >
+                                                }}>
                                                 <SelectTrigger id='academic-year'>
                                                     <SelectValue
                                                         placeholder={loadingAcademicYears ? 'loading.....' : 'Select Academic Year'}
@@ -787,8 +808,7 @@ function StudentTransactionContent() {
                                                     setSections([]);
                                                     setStudents([]);
                                                     setShowTable(false);
-                                                }}
-                                            >
+                                                }}>
                                                 <SelectTrigger id='class'>
                                                     <SelectValue placeholder={loadingClasses ? 'loading.....' : 'Select Class'} />
                                                 </SelectTrigger>
@@ -839,16 +859,9 @@ function StudentTransactionContent() {
                                                     setValue('areaId', 0);
                                                     setStudents([]);
                                                     setShowTable(false);
-                                                }}
-                                            >
+                                                }}>
                                                 <SelectTrigger id='section'>
-                                                    <SelectValue
-                                                        placeholder={
-                                                            loadingSections
-                                                                ? 'loading.....'
-                                                                : 'Select Section'
-                                                        }
-                                                    />
+                                                    <SelectValue placeholder={loadingSections ? 'loading.....' : 'Select Section'} />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {loadingSections ? (
@@ -896,16 +909,9 @@ function StudentTransactionContent() {
                                                         setValue('areaId', 0);
                                                         setStudents([]);
                                                         setShowTable(false);
-                                                    }}
-                                                >
+                                                    }}>
                                                     <SelectTrigger id='exam-term'>
-                                                        <SelectValue
-                                                            placeholder={
-                                                                loadingExamData
-                                                                    ? 'loading.....'
-                                                                    : 'Select Exam Term'
-                                                            }
-                                                        />
+                                                        <SelectValue placeholder={loadingExamData ? 'loading.....' : 'Select Exam Term'} />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {loadingExamData ? (
@@ -918,8 +924,8 @@ function StudentTransactionContent() {
                                                             </SelectItem>
                                                         ) : (
                                                             examTerms.map((term) => (
-                                                                <SelectItem key={term.emE_Id} value={term.emE_Id.toString()}>
-                                                                    {term.emE_ExamName}
+                                                                <SelectItem key={term.ecT_Id} value={term.ecT_Id.toString()}>
+                                                                    {term.ecT_TermName}
                                                                 </SelectItem>
                                                             ))
                                                         )}
@@ -954,16 +960,9 @@ function StudentTransactionContent() {
                                                         setValue('areaId', 0);
                                                         setStudents([]);
                                                         setShowTable(false);
-                                                    }}
-                                                >
+                                                    }}>
                                                     <SelectTrigger id='exam'>
-                                                        <SelectValue
-                                                            placeholder={
-                                                                loadingExamData
-                                                                    ? 'loading.....'
-                                                                    : 'Select Exam'
-                                                            }
-                                                        />
+                                                        <SelectValue placeholder={loadingExamData ? 'loading.....' : 'Select Exam'} />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {loadingExamData ? (
@@ -989,8 +988,8 @@ function StudentTransactionContent() {
                                                                 </SelectItem>
                                                             ) : (
                                                                 examTerms.map((exam) => (
-                                                                    <SelectItem key={exam.emE_Id} value={exam.emE_Id.toString()}>
-                                                                        {exam.emE_ExamName}
+                                                                    <SelectItem key={exam.ecT_Id} value={exam.ecT_Id.toString()}>
+                                                                        {exam.ecT_TermName}
                                                                     </SelectItem>
                                                                 ))
                                                             )
@@ -1066,8 +1065,7 @@ function StudentTransactionContent() {
                                                         setValue('areaId', 0);
                                                         setStudents([]);
                                                         setShowTable(false);
-                                                    }}
-                                                >
+                                                    }}>
                                                     <SelectTrigger id='Skills-name'>
                                                         <SelectValue placeholder={loadingNames ? 'loading.....' : 'Select Skills Name'} />
                                                     </SelectTrigger>
@@ -1116,10 +1114,11 @@ function StudentTransactionContent() {
                                                         setValue('areaId', 0);
                                                         setStudents([]);
                                                         setShowTable(false);
-                                                    }}
-                                                >
+                                                    }}>
                                                     <SelectTrigger id='Activities-name'>
-                                                        <SelectValue placeholder={loadingNames ? 'loading.....' : 'Select Activities Name'} />
+                                                        <SelectValue
+                                                            placeholder={loadingNames ? 'loading.....' : 'Select Activities Name'}
+                                                        />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {loadingNames ? (
@@ -1165,8 +1164,7 @@ function StudentTransactionContent() {
                                                         field.onChange(numValue !== 0 ? numValue : 0);
                                                         setStudents([]);
                                                         setShowTable(false);
-                                                    }}
-                                                >
+                                                    }}>
                                                     <SelectTrigger id='Skills-area'>
                                                         <SelectValue placeholder={loadingAreas ? 'loading.....' : 'Select Skill Area'} />
                                                     </SelectTrigger>
@@ -1214,10 +1212,11 @@ function StudentTransactionContent() {
                                                         field.onChange(numValue !== 0 ? numValue : 0);
                                                         setStudents([]);
                                                         setShowTable(false);
-                                                    }}
-                                                >
+                                                    }}>
                                                     <SelectTrigger id='Activities-area'>
-                                                        <SelectValue placeholder={loadingAreas ? 'loading.....' : 'Select Activities Area'} />
+                                                        <SelectValue
+                                                            placeholder={loadingAreas ? 'loading.....' : 'Select Activities Area'}
+                                                        />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {loadingAreas ? (
@@ -1247,10 +1246,7 @@ function StudentTransactionContent() {
 
                         {/* Search Button */}
                         <div className='mx-auto mt-8 flex w-fit justify-center gap-4'>
-                            <Button
-                                type='submit'
-
-                                className='px-8 py-2 font-medium text-white shadow'>
+                            <Button type='submit' className='px-8 py-2 font-medium text-white shadow'>
                                 {isLoading ? (
                                     <span className='flex items-center gap-2'>
                                         <Search className='h-4 w-4' />
@@ -1300,7 +1296,11 @@ function StudentTransactionContent() {
                                 />
 
                                 <div className='mx-auto mt-8 flex w-fit justify-center gap-4'>
-                                    <Button type='button' onClick={handleReset} variant='outline' className='px-8 py-2 font-medium shadow'>
+                                    <Button
+                                        type='button'
+                                        onClick={handleGridReset}
+                                        variant='outline'
+                                        className='px-8 py-2 font-medium shadow'>
                                         RESET
                                     </Button>
                                     <Button

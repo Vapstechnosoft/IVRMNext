@@ -71,13 +71,13 @@ export const StudentTransactionColumns = ({
     },
     {
         accessorKey: 'rollNumber',
-        header: 'Roll No.',
+        header: () => <div className='text-center'>Roll No.</div>,
         cell: ({ row }) => <div className='text-center'>{row.original.rollNumber}</div>,
         size: 100
     },
     {
         accessorKey: 'score',
-        header: 'Score',
+        header: () => <div className='text-center'>Score</div>,
         cell: ({ row }) => {
             const student = row.original;
             const isChecked = selectedStudentIds.includes(student.amsT_Id);

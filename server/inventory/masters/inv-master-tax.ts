@@ -1,10 +1,10 @@
 'use server';
 
-import { api, getSearchParamsUrl } from '@/lib/apiService';
+import { api, getSearchParamsUrl, type ApiResponse } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type { IInvMasterTax, IInvMasterTaxLedger, IInvMasterTaxLedgerDTO } from '@/types/inventory/masters/inv-master-tax';
 
-export async function getInvMasterTax(searchParams?: ApiSearchparams) {
+export async function getInvMasterTax(searchParams?: ApiSearchparams): Promise<ApiResponse<any>> {
     console.log("getInvMasterTax: Function called");
     const urlParams = getSearchParamsUrl(searchParams);
     const url = `/INV_MasterTaxFacade/loadtaxlist?${urlParams}`;
@@ -17,14 +17,14 @@ export async function getInvMasterTax(searchParams?: ApiSearchparams) {
         // Ensure data exists
         if (!response.data) {
             console.warn("getInvMasterTax: No data received");
-            return { success: false, data: [], total: 0 };
+            return { success: false, data: [], total: 0, message: 'No data received' } as ApiResponse<any>;
         }
 
         return response;
     } catch (error) {
         console.error("getInvMasterTax: API call failed", error);
         // Return a safe fallback so the UI doesn't crash, but logged the error
-        return { success: false, data: [], total: 0 };
+        return { success: false, data: [], total: 0, message: 'Error fetching data' } as ApiResponse<any>;
     }
 }
 

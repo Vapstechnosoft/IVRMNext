@@ -6,8 +6,8 @@ import type { IInvMasterItemGroup } from '@/types/inventory/masters/inv-master-g
 
 export async function fetchItemGroupData(searchParams?: ApiSearchparams): Promise<{ success: boolean; message?: string; data?: { get_itemgroup: IInvMasterItemGroup[]; get_usergroup: any[]; itemgroupTotal: number } }> {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const itemGroupListUrl = `/api/INV_MasterGroupFacade/loadItemGroup?${urlParams}`;
-    const userGroupDropdownUrl = `/api/INV_MasterGroupFacade/loadUserGroupDropdown`;
+    const itemGroupListUrl = `/INV_MasterGroupFacade/loadItemGroup?${urlParams}`;
+    const userGroupDropdownUrl = `/INV_MasterGroupFacade/loadUserGroupDropdown`;
 
     try {
         const [itemGroupResponse, userGroupDropdownResponse] = await Promise.all([
