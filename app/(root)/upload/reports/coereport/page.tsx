@@ -28,6 +28,7 @@ import type { z } from 'zod';
 import { FormError } from '@/components/ui/extension/field';
 import { feesStudentTransactionSchema } from '@/schemas/fees/trasactions';
 import { useRef, useState } from 'react';
+import { coeReportSchema } from '@/schemas/coe/master';
 
 
 // Checkbox with full indeterminate support
@@ -43,7 +44,7 @@ const Checkbox = ({ checked, indeterminate, onCheckedChange, ...props }: any) =>
     return <BaseCheckbox ref={ref} checked={checked} onCheckedChange={onCheckedChange} {...props} />;
 };
 
-type FormFields = z.infer<typeof feesStudentTransactionSchema.addOrUpdate>;
+type FormFields = z.infer<typeof coeReportSchema.addOrUpdate>;
 
 interface IAcademicYear {
     asmaY_Id: string | number;
@@ -59,7 +60,7 @@ export default function coeReport() {
         control,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(feesStudentTransactionSchema.addOrUpdate),
+        resolver: zodResolver(coeReportSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
             asmaY_Id: undefined
