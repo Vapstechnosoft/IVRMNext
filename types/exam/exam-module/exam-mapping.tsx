@@ -814,6 +814,12 @@ export interface IExamMaster {
     TotalMarksCount?: number;
 }
 
+export interface ITerm {
+    ecT_Id: number;
+    ecT_TermName: string;
+    Selected?: boolean;
+}
+
 export interface IClass {
     asmcL_Id: number;
     asmcL_ClassName: string;

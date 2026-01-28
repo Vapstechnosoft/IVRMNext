@@ -56,6 +56,7 @@ export default function SubSubjectModal({
         mode: 'onChange' // Enable validation on change
     });
 
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const { control, handleSubmit, reset, getValues, setValue, formState, setError, clearErrors, watch, trigger } = methods;
     const { errors } = formState;
 
@@ -133,6 +134,7 @@ export default function SubSubjectModal({
 
     // Validation functions
     const validateRowManually = useCallback(
+        // biome-ignore lint/correctness/noUnusedVariables: <explanation>
         (row: SubSubject, idx: number) => {
             const rowErrs: Record<string, string> = {};
 
@@ -310,7 +312,7 @@ export default function SubSubjectModal({
             setIsOrderSaving(true);
             const currentList = getValues('subsubject_list') ?? [];
 
-            console.log(
+            console.info(
                 'Before reorder - Current list:',
                 currentList.map((item) => ({
                     id: item.emsS_Id,
@@ -319,7 +321,7 @@ export default function SubSubjectModal({
                 }))
             );
 
-            console.log(
+            console.info(
                 'Updated data from modal:',
                 updatedData.map((item) => ({
                     id: item.id || item.emsS_Id,
@@ -358,7 +360,7 @@ export default function SubSubjectModal({
                 };
             });
 
-            console.log(
+            console.info(
                 'After reorder - New list:',
                 reorderedList.map((item) => ({
                     id: item.emsS_Id,
@@ -437,6 +439,7 @@ export default function SubSubjectModal({
         onClose,
         subject
     ]);
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const sortedSubSubjects = useMemo(() => {
         const list = getValues('subsubject_list') ?? [];
 

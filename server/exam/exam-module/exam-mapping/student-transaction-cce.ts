@@ -23,5 +23,13 @@ export async function onchangeActivities(params: any) {
 
 // Load skill areas when skill is selected
 export async function onchangeSkills(params: any) {
-    return await api.get<any>('exam', `/student_transaction/onchangeskills/30/${params.ASMAY_Id}/${params.ECS_Id}`);
+    return await api.get<any>('exam', `/student_transaction/onchange_skills/30/${params.ASMAY_Id}/${params.ECS_Id}`);
+}
+
+// Get term and exam names
+export async function getTermOrExams(params: any) {
+    return await api.get<any>(
+        'exam',
+        `/student_transaction/get_term_or_exams/${params.ASMAY_Id}/${params.ASMCL_Id}/${params.ASMS_Id}/${params.EXAM_TERMWISE_FLAG}`
+    );
 }

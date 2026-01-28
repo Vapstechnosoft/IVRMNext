@@ -452,7 +452,7 @@ export default function AddPromotionalSettingForm({
     const updateSubjectGroups = (groups: GroupItem[]) => {
         if (!activeSubject) return;
 
-        console.log('Updating groups for subject:', activeSubject.ismS_SubjectName, groups);
+        console.info('Updating groups for subject:', activeSubject.ismS_SubjectName, groups);
 
         setSubjects((prev) =>
             prev.map((subject) => (subject.ismS_Id === activeSubject.ismS_Id ? { ...subject, pro_exams_group_list: groups } : subject))
@@ -471,7 +471,7 @@ export default function AddPromotionalSettingForm({
         const currentGroups = activeSubject.pro_exams_group_list || [];
         const updatedGroups = [...currentGroups, group];
 
-        console.log('Adding group to subject:', activeSubject.ismS_SubjectName, group);
+        console.info('Adding group to subject:', activeSubject.ismS_SubjectName, group);
 
         setSubjects((prev) =>
             prev.map((subject) =>
@@ -577,7 +577,7 @@ export default function AddPromotionalSettingForm({
         }
 
         const payload = buildPayload();
-        console.log('Save payload:', JSON.stringify(payload, null, 2));
+        console.info('Save payload:', JSON.stringify(payload, null, 2));
         const response = await addOrUpdatePromotionSettings(payload);
         if (response.success) {
             toast.success(response.message || 'Promotion Setting saved successfully');
@@ -614,9 +614,13 @@ export default function AddPromotionalSettingForm({
             setBestApplicable(false);
             setBestOff(null);
             setPromotionType('P');
-            toast.info('Form reset');
+            setPromotionType('P');
+            // Only show toast if something was reset (e.g. year was selected)
+            if (selectedYear !== 0) {
+                toast.info('Form reset');
+            }
         }
-    }, [rowData, initialState]);
+    }, [rowData, initialState, selectedYear]);
 
     // Check if table should be visible
     const isTableVisible = promotionType !== 'F' && selectedCategory && subjects.length > 0;
@@ -632,7 +636,8 @@ export default function AddPromotionalSettingForm({
             {isEditLoading && (
                 <div className='absolute inset-0 z-50 flex items-center justify-center bg-white/50 backdrop-blur-sm'>
                     <div className='flex flex-col items-center gap-2'>
-                        <div className='h-8 w-8 animate-spin rounded-full border-b-2 border-primary border-t-2'></div>
+                        {/* biome-ignore lint/style/useSelfClosingElements: <explanation> */}
+                        <div className='h-8 w-8 animate-spin rounded-full border-primary border-t-2 border-b-2'></div>
                         <p className='font-medium text-sm'>Loading data...</p>
                     </div>
                 </div>
@@ -645,11 +650,17 @@ export default function AddPromotionalSettingForm({
                         {/* Academic Year */}
                         <div>
                             <Label>Academic Year *</Label>
-                            <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(Number(v))}>
+                            <Select
+                                key={selectedYear}
+                                value={selectedYear !== 0 ? String(selectedYear) : undefined}
+                                onValueChange={(v) => setSelectedYear(Number(v))}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Academic Year' />
                                 </SelectTrigger>
                                 <SelectContent>
+                                    <SelectItem value='0' disabled>
+                                        --Select--
+                                    </SelectItem>
                                     {academicYearLoading ? (
                                         <SelectItem value='__loading' disabled>
                                             Loading Academic Year...
@@ -669,6 +680,7 @@ export default function AddPromotionalSettingForm({
                         <div>
                             <Label>Category *</Label>
                             <Select
+                                key={selectedCategory}
                                 value={selectedCategory ? String(selectedCategory) : '__none'}
                                 onValueChange={(v) => setSelectedCategory(v && v !== '__none' ? Number(v) : null)}>
                                 <SelectTrigger>
@@ -691,6 +703,7 @@ export default function AddPromotionalSettingForm({
                         <div>
                             <Label>Grade *</Label>
                             <Select
+                                key={selectedGrade}
                                 value={selectedGrade || '__none'}
                                 onValueChange={(v) => setSelectedGrade(v && v !== '__none' ? v : null)}>
                                 <SelectTrigger>

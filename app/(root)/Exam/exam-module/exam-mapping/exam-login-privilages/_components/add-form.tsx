@@ -65,6 +65,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
         }
     });
 
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const { control, handleSubmit, reset, watch, setValue, getValues, formState, trigger } = methods;
     const { errors, isSubmitted } = formState;
 
@@ -101,6 +102,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
     const { data: employeeData, isLoading: employeeDataLoading } = useEmployeeDropdownList();
     const { data: userList, isLoading: userListLoading } = useUserDropdownList();
     const { data: masterSection, isLoading: masterSectionLoading } = useMasterSectionDropdown();
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const { data: masterClass, isLoading: masterClassLoading, refetchAll: refetchMasterClass } = useMasterClassDropdown();
     const { data: masterSubject, isLoading: masterSubjectLoading } = useGetMasterSubjectDropdownList();
     const { data: masterSubSubject, isLoading: masterSubSubjectLoading } = useMasterSubSubjectDropdownList();
@@ -111,13 +113,13 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
         const fetchEditData = async () => {
             if (!rowData?.elP_Id || employeeData?.data.length === 0 || classTeachersData?.data.length === 0 || subjects.length === 0)
                 return;
-
+            reset();
             setIsLoadingEditData(true);
             try {
                 // Set edit mode
                 setEditMode('edit');
                 setDisableClassSection(true);
-                console.log(rowData.elP_Id, rowData.asmcL_Id, rowData.asmS_Id);
+                console.info(rowData.elP_Id, rowData.asmcL_Id, rowData.asmS_Id);
                 // Call API to get edit details
                 const editData = await getExamLoginPrivilegesEditDetails(rowData.elP_Id, rowData.asmcL_Id, rowData.asmS_Id);
                 if (editData?.success && Array.isArray(editData.data) && editData.data.length > 0) {
@@ -135,7 +137,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
 
                     const userId = editList[0].ivrmulF_Id;
                     const subSubjectItem = subSubjects?.find((sub: any) => sub.ismSS_Id === editList[0].ismSS_Id);
-                    console.log(employee);
+                    console.info(employee);
                     // Determine entry type based on elP_Flg
                     let entryType = 'BY_CLASS_TEACHER';
                     if (editList[0].elP_Flg === 'st') {
@@ -220,6 +222,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                     });
 
                     // Create detail rows
+                    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
                     classSectionMap.forEach((group, key) => {
                         detailRows.push({
                             id: makeUniqueId(),
@@ -300,7 +303,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
         }
         if (userList && Array.isArray(userList.data)) {
             setUserLogins(userList.data);
-            console.log('userLogins', userList?.data);
+            console.info('userLogins', userList?.data);
         }
     }, [classTeachersData, userList]);
 
@@ -465,6 +468,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
         toast.info(`${filtered.length} Login Privileges added`);
     }
 
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     function handleDeleteRow(id: string) {
         setDetails((prev) => prev.filter((r) => r.id !== id));
     }
@@ -532,6 +536,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
         toast.info('Row deleted successfully');
     };
 
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const onSubmit: SubmitHandler<FormFields> = async (formData) => {
         if (details.length === 0) {
             toast.error('Add at least one row to save');
@@ -578,7 +583,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                 action: editMode === 'edit' ? 'edit' : 'ADD'
             };
 
-            console.log('Login privileges payload:', payload);
+            console.info('Login privileges payload:', payload);
 
             const res = await addorUpdateExamLoginPrivileges(payload as any);
 
@@ -824,7 +829,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                     const userCode = extractCode(selectedEmployee.hrmE_EmployeeName);
 
                                                     const user = userLogins.find((u: any) => extractCode(u.hrmE_EmployeeName) === userCode);
-                                                    console.log('user', user);
+                                                    console.info('user', user);
 
                                                     setValue('ivrmulF_Id', user?.ivrmulF_Id ?? 0);
                                                 }}>

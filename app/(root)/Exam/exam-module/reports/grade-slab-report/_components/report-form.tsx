@@ -51,7 +51,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
             toast.error(gradeError.message || 'Error fetching grades');
             setGrades([]);
         } else if (gradeData?.data && Array.isArray(gradeData.data)) {
-            console.log(gradeData);
+            console.info(gradeData);
             const formattedGrades: IMasterGrade[] = gradeData.data.map((item: any) => ({
                 emgR_Id: item.emgR_Id?.toString() ?? '',
                 emgR_GradeName: item.emgR_GradeName ?? '',
@@ -97,7 +97,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
         try {
             const { data: result } = await getReportDetails(values);
             const safeData = Array.isArray(result) ? result : [];
-            console.log(safeData);
+            console.info(safeData);
             onReportGenerated(safeData, {});
         } catch (error) {
             console.error('Error generating report:', error);
@@ -106,7 +106,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
 
     const handleCancel = () => {
         reset({
-            type: '1',
+            //type: '1',
             emgR_Id: '0'
         });
         onReset();

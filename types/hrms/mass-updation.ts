@@ -70,6 +70,7 @@ export interface MassUpdationOnloadResponse {
 export interface MassUpdationOnloadRequest {
     MI_Id: number;
     roleId: number;
+    LogInUserId: number;
 }
 
 // Save Request
@@ -91,7 +92,7 @@ export interface MassUpdationSaveRequest {
 }
 
 // Save Response
-export interface MassUpdationSaveResponse extends MassUpdationOnloadResponse {}
+export interface MassUpdationSaveResponse extends MassUpdationOnloadResponse { }
 
 // Search Request
 export interface MassUpdationSearchRequest {
@@ -101,4 +102,5 @@ export interface MassUpdationSearchRequest {
     groupTypeIdList: number[];
     hrmD_IdList: number[];
     hrmdeS_IdList: number[];
+    HRMED_Id?: number;
 }

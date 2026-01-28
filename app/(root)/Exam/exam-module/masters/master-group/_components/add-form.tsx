@@ -112,6 +112,7 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
               }
     });
 
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const { errors, isSubmitting, touchedFields, isSubmitted } = formState;
 
     // -------------------------

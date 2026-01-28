@@ -3,6 +3,18 @@ export const QUERY_KEYS = {
     USER_NOTIFICATION: 'user_notification'
 };
 
+export const INVENTORY_QUERY_KEYS = {
+    INV_MASTER_STORE: 'INV_MASTER_STORE',
+    INV_MASTER_SUPPLIER: 'INV_MASTER_SUPPLIER',
+    INV_MASTER_TAX: 'INV_MASTER_TAX',
+    INV_MASTER_GROUP: 'INV_MASTER_GROUP'
+};
+
+export const SUPER_ADMIN_QUERY_KEYS = {
+    SUPER_ADMIN_MASTER: 'super_admin_master',
+    SUPER_ADMIN_MASTER_ORDER: 'super_admin_master_order'
+};
+
 export const ADMISSION_QUERY_KEYS = {
     MASTER_CLASS: 'master_class',
     MASTER_CATEGORY: 'master_category',
@@ -341,6 +353,7 @@ export const HRMS_QUERY_KEYS = {
     MASTER_SPECIALIZATION: 'hrms_master_specialization',
     MASTER_PROFESSIONAL_TAX: 'hrms_master_professional_tax',
     MASTER_EARNINGS_DEDUCTIONS: 'hrms_master_earnings_deductions',
+    MASTER_EARNINGS_DEDUCTIONS_SET_ORDER: 'hrms_master_earnings_deductions_set_order',
     MASTER_PAYROLL_STANDARD: 'hrms_master_payroll_standard',
     GROUP_DEPT_DESSG_MAPPING: 'hrms_group_dept_dessg_mapping',
     RELIGION_CATEGORY_MAPPING: 'hrms_religion_category_mapping',
@@ -453,5 +466,54 @@ export const HRMS_QUERY_KEYS = {
     LEAVE_BALANCE: 'leave_leave_balance',
     LEAVE_HISTORY: 'leave_leave_history',
     APPLY_LEAVE: 'leave_apply_leave',
-    LEAVE_APPROVAL: 'leave_leave_approval'
+    LEAVE_APPROVAL: 'leave_leave_approval',
+
+    // Master drop down
+    MASTER_GROUP_TYPES: 'hrms_master_group_type',
+    MASTER_DEAPARTMENTS: 'hrms_master_departments',
+    MASTER_DESIGNATIONS: 'hrms_master_designation',
+    MASTER_MONTHS: 'hrms_master_months',
+    MASTER_YEARS: 'hrms_master_years',
+
+    MASTER_EMPLOYEE_TYPES: 'hrms_master_employee_types',
+
+    MASTER_BANK_LIST: 'hrms_master_bank_list',
+    MASTER_PAYMENT_MODE_LIST: 'hrms_master_payment_mode_list'
+};
+
+export const LIBRARY_QUERY_KEYS = {
+    MASTER_LIBRARY_LIST_DATA: 'master_library_list_data',
+    MASTER_VENDOR_LIST_DATA: 'master_vendor_list_data',
+    MASTER_PUBLISHER_LIST_DATA: 'master_publisher_list_data',
+    MASTER_CATEGORY_LIST_DATA: 'master_category_list_data',
+
+    MASTER_AUTHOR_LIST_DATA: 'master_author_list_data',
+    MASTER_LANGUAGE_LIST_DATA: 'master_language_list_data',
+
+    MASTER_ACCESSORIES: 'master_accessories',
+    // Book Transaction
+    BOOK_TRANSACTION: 'book_transaction',
+    STUDENT_DETAILS: 'student_details',
+    STAFF_DETAILS: 'staff_details',
+    BOOK_DETAILS: 'book_details',
+    SEARCH_BOOKS: 'search_books',
+    STUDENTS_BY_CLASS: 'students_by_class',
+    STAFF_BY_DEPARTMENT: 'staff_by_department',
+    DESIGNATIONS_BY_DEPARTMENT: 'designations_by_department',
+    SHOW_FINE: 'show_fine',
+    BOOK_AVAILABILITY: 'book_availability',
+    MASTER_SUBJECT_LIST_DATA: 'master_library_subject_data',
+    LIBRARY_MASTER_SUBJECT_DROPDOWNDATADETAILS: 'library_master_subject_dropdowndetails',
+
+    // Lost Books
+    LIBRARY_LOST_BOOK_GRID: 'library_lost_book_grid',
+    LIBRARY_ACADEMIC_YEAR_DROPDOWN: 'library_academic_year_dropdown',
+    LIBRARY_LOST_BOOK_LIST: 'library_lost_book_list'
+};
+export const PORTAL_QUERY_KEYS = {
+    CLASS_WORK_UPLOADED: 'class_work_uploaded',
+    HOME_WORK_UPLOADED: 'home_work_uploaded',
+
+    STUDENT_PORTAL_FEEDBACK: 'student_portal_feedback',
+    COE_LIST: 'coe_list'
 };

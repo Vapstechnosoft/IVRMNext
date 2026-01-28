@@ -46,6 +46,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
 
     const { refetchAll } = useExamTermAndExamMapping();
     const { control, handleSubmit, reset, setValue, formState, watch } = methods;
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const { isSubmitting, errors } = formState;
 
     const [addedRows, setAddedRows] = useState<FormFields['exam_term']>([]);

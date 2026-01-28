@@ -81,7 +81,7 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
             return;
         }
         const rawList = subject.list ?? [];
-        console.log('rawList **', rawList);
+        console.info('rawList **', rawList);
 
         const shouldSort = rawList.some((l: any) => Number(l.emsE_SubExamOrder) > 0);
         const list = (subject.list ?? []).map((l: any) => ({

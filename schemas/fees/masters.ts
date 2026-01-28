@@ -790,6 +790,15 @@ export const masterTermPeriodSchema = {
             message: 'From Month and To Month cannot be the same',
             path: ['to_Month'] // error will show under To Month
         }),
+    //  .refine(
+    //     (data) =>
+    //         monthOrder[data.from_Month] <
+    //         monthOrder[data.to_Month],
+    //     {
+    //         message: 'From Month must be earlier than To Month',
+    //         path: ['to_Month']
+    //     }
+    // ),
     delete: z.object({
         fmtP_Id: deleteIdSchema('fmtP_Id')
     })

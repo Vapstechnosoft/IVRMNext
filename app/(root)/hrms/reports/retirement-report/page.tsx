@@ -1,497 +1,845 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataTable } from '@/components/ui/data-table/data-table';
-import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
-import { differenceInYears } from 'date-fns';
+import { CalendarYear } from '@/components/ui/calendar_year';
+import { Checkbox } from '@/components/ui/checkbox';
+import { FormError } from '@/components/ui/extension/field';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Label } from '@/components/ui/label';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMasterDepartments, useMasterDesignations, useMasterEmployeeTypes, useMasterGroupTypes } from '@/hooks/hrms/useReports';
+import { cn } from '@/lib/utils';
+import { EmployeeDetailSchema } from '@/schemas/hrms/employee-category-schemas';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { Calculator, CalendarIcon, Clock, Download, Printer, UserCheck, Users } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { CalendarIcon, RefreshCw, Search } from 'lucide-react';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { type RetirementRecord as RetirementRecordColumn, getRetirementColumns, headerFields } from './_components/columns';
-import { type RetirementFilters, RetirementReportFilters } from './_components/filters';
-// Retirement Report data structure
-interface RetirementRecord extends BaseEntity {
-    employeeCode: string;
-    employeeName: string;
-    fatherName: string;
-    mobileNo: string;
-    emailId: string;
-    dateOfBirth: string;
-    dateOfJoining: string;
-    dateOfLeaving?: string;
-    employeeType: string;
-    department: string;
-    designation: string;
-    basicSalary: number;
-    currentAge: number;
-    serviceYears: number;
-    retirementDate: string;
-    yearsToRetirement: number;
-    pfBalance: number;
-    gratuityAmount: number;
-    leaveBalance: number;
-    status: 'Working' | 'Left' | 'Retired';
-    retirementEligible: boolean;
-}
-// Retirement Summary
-interface RetirementSummary {
-    totalEmployees: number;
-    workingEmployees: number;
-    leftEmployees: number;
-    retiredEmployees: number;
-    eligibleForRetirement: number;
-    retiringThisYear: number;
-    totalPFBalance: number;
-    totalGratuityAmount: number;
-    averageServiceYears: number;
-}
-export default function RetirementReportPage() {
-    // Database instances
-    const retirementDB = createLocalCrud<RetirementRecord>('report:retirement');
-    // State
-    const [retirementRecords, setRetirementRecords] = useState<RetirementRecord[]>([]);
-    const [filteredRecords, setFilteredRecords] = useState<RetirementRecord[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [showReport, setShowReport] = useState(false);
-    const [filters, setFilters] = useState<RetirementFilters>({
-        selectedHeaders: [],
-        format: 'format1',
-        dateFilter: 'dateOfBirth',
-        fromDate: new Date('2025-01-01'),
-        toDate: new Date('2025-12-31'),
-        employeeStatus: 'working',
-        reportScope: 'all',
-        // Format 2 filters
-        selectedGroupTypes: [],
-        selectedDepartments: [],
-        selectedDesignations: []
+import type { z } from 'zod';
+
+type FormFields = z.infer<typeof EmployeeDetailSchema>;
+const mockletter = [
+    { key: '1', value: 'Date of Birth' },
+    { key: '2', value: 'Date of Joining' },
+    { key: '3', value: 'Date of Leaving' }
+];
+const formated = [
+    { key: 'format1', value: 'Format 1' },
+    { key: 'format2', value: 'Format 2' }
+];
+const status = [
+    { key: 'all', value: 'All' },
+    { key: 'individual', value: 'Individual' }
+];
+const typeOrEmployee = [
+    { key: 'type', value: 'Type' },
+    { key: 'employee', value: 'Employee' }
+];
+const mockEmployees = [
+    { key: '1208', value: 'ANUSHA T' },
+    { key: 'EMP002', value: 'KIRAN KUMAR' },
+    { key: 'EMP003', value: 'PALLAVI C' },
+    { key: 'EMP004', value: 'RAFIQ' },
+    { key: 'EMP005', value: 'NATARAJA' }
+];
+const availableHeaders = [
+    'Employee Code',
+    'Employee Name',
+    'Father Name,	Mobile No.',
+    'Email Id',
+    'Date Of Birth',
+    'Employee Type',
+    'Group Type',
+    'Department',
+    'Designation	Grade',
+    'Biometric',
+    'Code',
+    'Photo',
+    'Date Of Join',
+    'Date Of Left',
+    'Date Of Confirmation',
+    'Expected Retirement Date',
+    'Blood Group',
+    'PAN Card No.',
+    'Aadhar Card No'
+];
+const mockApiResponse = {
+    employeeSalaryslipDetails: [
+        {
+            hrmD_Id: 80,
+            hrmD_code: 'EMP001',
+            hrmD_Name: 'John Doe',
+            hrmD_FatherName: 'Father Name 1',
+            hrmD_MobileNo: '9876543210',
+            hrmD_EmailId: 'john@example.com',
+            hrmD_DateOfBirth: '1990-01-01',
+            hrmD_EmergencyContact: '9876543211',
+            hrmD_DateOfConfirmation: '2023-01-01',
+            hrmD_EmployeeType: 'Permanent',
+            hrmD_GroupType: 'Teaching Staff',
+            hrmD_DepartmentName: 'Teaching',
+            hrmD_Designation: 'Senior Teacher',
+            hrmD_Status: 'Active',
+            hrmD_DateOfJoining: '2022-01-01',
+            hrmD_DateOfLeaving: '',
+            hrmD_ReasonForLeaving: '',
+            hrmD_Remarks: 'Good performance',
+            hrmD_Address: '123 Main St',
+            hrmD_Qualification: 'M.Ed',
+            hrmD_Experience: '5 years',
+            hrmD_WorkingDays: 22,
+            hrmD_Lop: 0
+        },
+        {
+            hrmD_Id: 84,
+            hrmD_code: 'EMP002',
+            hrmD_Name: 'John Smith',
+            hrmD_FatherName: 'Father Name 2',
+            hrmD_MobileNo: '9876543220',
+            hrmD_EmailId: 'smith@example.com',
+            hrmD_DateOfBirth: '1985-05-15',
+            hrmD_EmergencyContact: '9876543221',
+            hrmD_DateOfConfirmation: '2023-06-01',
+            hrmD_EmployeeType: 'Contract',
+            hrmD_GroupType: 'Non Teaching Staff',
+            hrmD_DepartmentName: 'Non Teaching',
+            hrmD_Designation: 'Admin',
+            hrmD_Status: 'Active',
+            hrmD_DateOfJoining: '2023-01-01',
+            hrmD_DateOfLeaving: '',
+            hrmD_ReasonForLeaving: '',
+            hrmD_Remarks: '',
+            hrmD_Address: '456 Oak Ave',
+            hrmD_Qualification: 'B.Com',
+            hrmD_Experience: '3 years',
+            hrmD_WorkingDays: 31,
+            hrmD_Lop: 5
+        },
+        {
+            hrmD_Id: 84,
+            hrmD_code: 'EMP002',
+            hrmD_Name: 'John Smith',
+            hrmD_FatherName: 'Father Name 2',
+            hrmD_MobileNo: '9876543220',
+            hrmD_EmailId: 'smith@example.com',
+            hrmD_DateOfBirth: '1985-05-15',
+            hrmD_EmergencyContact: '9876543221',
+            hrmD_DateOfConfirmation: '2023-06-01',
+            hrmD_EmployeeType: 'Contract',
+            hrmD_GroupType: 'Non Teaching Staff',
+            hrmD_DepartmentName: 'Non Teaching',
+            hrmD_Designation: 'Admin',
+            hrmD_Status: 'Active',
+            hrmD_DateOfJoining: '2023-01-01',
+            hrmD_DateOfLeaving: '',
+            hrmD_ReasonForLeaving: '',
+            hrmD_Remarks: '',
+            hrmD_Address: '456 Oak Ave',
+            hrmD_Qualification: 'B.Com',
+            hrmD_Experience: '3 years',
+            hrmD_WorkingDays: 31,
+            hrmD_Lop: 5
+        },
+        {
+            hrmD_Id: 84,
+            hrmD_code: 'EMP002',
+            hrmD_Name: 'John Smith',
+            hrmD_FatherName: 'Father Name 2',
+            hrmD_MobileNo: '9876543220',
+            hrmD_EmailId: 'smith@example.com',
+            hrmD_DateOfBirth: '1985-05-15',
+            hrmD_EmergencyContact: '9876543221',
+            hrmD_DateOfConfirmation: '2023-06-01',
+            hrmD_EmployeeType: 'Contract',
+            hrmD_GroupType: 'Non Teaching Staff',
+            hrmD_DepartmentName: 'Non Teaching',
+            hrmD_Designation: 'Admin',
+            hrmD_Status: 'Active',
+            hrmD_DateOfJoining: '2023-01-01',
+            hrmD_DateOfLeaving: '',
+            hrmD_ReasonForLeaving: '',
+            hrmD_Remarks: '',
+            hrmD_Address: '456 Oak Ave',
+            hrmD_Qualification: 'B.Com',
+            hrmD_Experience: '3 years',
+            hrmD_WorkingDays: 31,
+            hrmD_Lop: 5
+        }
+    ]
+};
+
+export default function DepartmentSalaryReportPage() {
+    const [isSearching, setIsSearching] = useState(false);
+    const [reportData, setReportData] = useState<any[]>([]);
+    const [fromDate, setFromDate] = useState<string>('');
+    const [toDate, setToDate] = useState<string>('');
+    const [selectedRangeTypes, setSelectedRangeTypes] = useState<string[]>([]);
+
+    const { data: masterGroupTypes, isLoading: masterGroupTypesLoading, isError: masterGroupTypesError } = useMasterGroupTypes();
+
+    const { data: masterDepartments, isLoading: masterDepartmentsLoading, isError: masterDepartmentsError } = useMasterDepartments();
+
+    const { data: masterDesignations, isLoading: masterDesignationsLoading, isError: masterDesignationsError } = useMasterDesignations();
+    const { data: masterEmployeeTypes, isLoading: masterEmployeeTypeLoading, isError: masterEmployeeTypeError } = useMasterEmployeeTypes();
+
+    const groupTypeOptions =
+        masterGroupTypes?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const DeaparmentsOptions =
+        masterDepartments?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+    const employeeTypeOptions =
+        masterEmployeeTypes?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const DesignationOptions =
+        masterDesignations?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const MockLetterOptions =
+        mockletter?.map((emp) => ({
+            value: emp.key,
+            label: emp.value
+        })) || [];
+
+    const formatedOptions =
+        formated?.map((emp) => ({
+            value: emp.key,
+            label: emp.value
+        })) || [];
+    const statusOptions =
+        status?.map((emp) => ({
+            value: emp.key,
+            label: emp.value
+        })) || [];
+    const typeOrEmployeeOptions =
+        typeOrEmployee?.map((emp) => ({
+            value: emp.key,
+            label: emp.value
+        })) || [];
+    const EmployeeOptions = mockEmployees.map((emp) => ({
+        value: emp.key,
+        label: emp.value
+    }));
+
+    const {
+        control,
+        handleSubmit,
+        reset,
+        watch,
+        formState: { errors, isSubmitting }
+    } = useForm<FormFields>({
+        resolver: zodResolver(EmployeeDetailSchema),
+        defaultValues: {
+            groupType: [],
+            department: [],
+            designation: [],
+            fromdate: '',
+            status: 'all',
+            mockLetter: '1',
+            todate: '',
+            formated: 'format1',
+            typeOrEmployee: 'type',
+            type: '',
+            employee: '',
+            selectedHeaders: []
+        },
+        mode: 'onChange'
     });
-    // Load data on mount
-    useEffect(() => {
-        loadData();
-    }, []);
-    const loadData = () => {
+
+    const selectedFormat = watch('formated') as string;
+    const selectedstatus = watch('status') as string;
+    const selectedtypeOrEmployee = watch('typeOrEmployee') as string;
+    const selectedHeaders = (watch('selectedHeaders') as string[]) || [];
+
+    // Mapping of header names to data field keys
+    const headerFieldMap: { [key: string]: string } = {
+        'Employee Code': 'hrmD_code',
+        'Employee Name': 'hrmD_Name',
+        'Father Name': 'hrmD_FatherName',
+        'Mobile No.': 'hrmD_MobileNo',
+        'Email Id': 'hrmD_EmailId',
+        'Date Of Birth': 'hrmD_DateOfBirth',
+        'Emergency Contact Number': 'hrmD_EmergencyContact',
+        'Date Of confirmation': 'hrmD_DateOfConfirmation',
+        'Employee Type': 'hrmD_EmployeeType',
+        'Group Type': 'hrmD_GroupType',
+        Department: 'hrmD_DepartmentName',
+        Designation: 'hrmD_Designation',
+        Status: 'hrmD_Status',
+        'Date Of Joining': 'hrmD_DateOfJoining',
+        'Date Of Leaving': 'hrmD_DateOfLeaving',
+        'Reason For Leaving': 'hrmD_ReasonForLeaving',
+        Remarks: 'hrmD_Remarks',
+        Address: 'hrmD_Address',
+        Qualification: 'hrmD_Qualification',
+        Experience: 'hrmD_Experience'
+    };
+
+    const onSearch = async () => {
+        setIsSearching(true);
         try {
-            // Load Retirement records
-            let recordList = retirementDB.list();
-            if (recordList.length === 0) {
-                const mockData = generateMockRetirementData();
-                mockData.forEach((record) => retirementDB.create(record));
-                recordList = retirementDB.list(); // Reload data after creating mock records
-            }
-            setRetirementRecords(recordList);
-        } catch (_error) {
-            toast.error('Failed to load data');
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+
+            toast.success('Report generated successfully!');
+            setReportData(mockApiResponse.employeeSalaryslipDetails);
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to generate report');
         } finally {
-            setIsLoading(false);
+            setIsSearching(false);
         }
     };
-    // Generate mock Retirement data
-    const generateMockRetirementData = (): Omit<RetirementRecord, 'id' | 'createdAt'>[] => {
-        const employees = [
-            {
-                code: 'EMP001',
-                name: 'MR SUDIPTA RANJAN BHADURI',
-                father: 'LATE RANJAN BHADURI',
-                mobile: '9876543210',
-                email: 'sudipta.bhaduri@vapsschool.com',
-                dob: '1960-03-15',
-                joining: '1985-04-01',
-                type: 'Teaching',
-                dept: 'Mathematics',
-                desig: 'Senior Teacher'
-            },
-            {
-                code: 'EMP002',
-                name: 'MS RUPLEKHA CHATTERJEE',
-                father: 'MR SUBRATA CHATTERJEE',
-                mobile: '9876543211',
-                email: 'ruplekha.chatterjee@vapsschool.com',
-                dob: '1965-07-22',
-                joining: '1990-06-15',
-                type: 'Teaching',
-                dept: 'English',
-                desig: 'Teacher'
-            },
-            {
-                code: 'EMP003',
-                name: 'MR JOHN SHAH',
-                father: 'MR DINESH SHAH',
-                mobile: '9876543212',
-                email: 'john.shah@vapsschool.com',
-                dob: '1958-11-10',
-                joining: '1982-08-20',
-                type: 'Teaching',
-                dept: 'Science',
-                desig: 'Head Teacher'
-            },
-            {
-                code: 'EMP004',
-                name: 'MRS BHASWATI DAS',
-                father: 'MR KRISHNA DAS',
-                mobile: '9876543213',
-                email: 'bhaswati.das@vapsschool.com',
-                dob: '1962-05-18',
-                joining: '1988-01-10',
-                type: 'Teaching',
-                dept: 'Social Studies',
-                desig: 'Teacher'
-            },
-            {
-                code: 'EMP005',
-                name: 'MR SANTANU MUKHERJEE',
-                father: 'MR BIMAL MUKHERJEE',
-                mobile: '9876543214',
-                email: 'santanu.mukherjee@vapsschool.com',
-                dob: '1963-09-25',
-                joining: '1990-11-25',
-                type: 'Non Teaching',
-                dept: 'Sports',
-                desig: 'Physical Education Teacher'
-            },
-            {
-                code: 'EMP006',
-                name: 'MRS PRIYA SHARMA',
-                father: 'MR RAJESH SHARMA',
-                mobile: '9876543215',
-                email: 'priya.sharma@vapsschool.com',
-                dob: '1964-12-03',
-                joining: '1992-03-12',
-                type: 'Teaching',
-                dept: 'Fine Arts',
-                desig: 'Art Teacher'
-            }
-        ];
-        const mockRecords: Omit<RetirementRecord, 'id' | 'createdAt'>[] = [];
-        employees.forEach((emp) => {
-            const dobDate = new Date(emp.dob);
-            const joiningDate = new Date(emp.joining);
-            const currentDate = new Date();
-            const retirementAge = 60; // Assuming retirement age is 60
-            const retirementDate = new Date(dobDate);
-            retirementDate.setFullYear(dobDate.getFullYear() + retirementAge);
-            const currentAge = differenceInYears(currentDate, dobDate);
-            const serviceYears = differenceInYears(currentDate, joiningDate);
-            const yearsToRetirement = Math.max(0, differenceInYears(retirementDate, currentDate));
-            const retirementEligible = currentAge >= 58; // Eligible 2 years before retirement
-            const hasLeft = Math.random() > 0.8; // 20% chance of having left
-            const hasRetired = currentAge >= retirementAge;
-            const status: 'Working' | 'Left' | 'Retired' = hasRetired ? 'Retired' : hasLeft ? 'Left' : 'Working';
-            const basicSalary = 45000 + Math.random() * 25000;
-            const pfBalance = serviceYears * 50000 + Math.random() * 100000;
-            const gratuityAmount = serviceYears > 5 ? (serviceYears * basicSalary * 15) / 26 : 0;
-            const leaveBalance = Math.floor(Math.random() * 30);
-            mockRecords.push({
-                employeeCode: emp.code,
-                employeeName: emp.name,
-                fatherName: emp.father,
-                mobileNo: emp.mobile,
-                emailId: emp.email,
-                dateOfBirth: emp.dob,
-                dateOfJoining: emp.joining,
-                dateOfLeaving: hasLeft && !hasRetired ? '2024-12-31' : undefined,
-                employeeType: emp.type,
-                department: emp.dept,
-                designation: emp.desig,
-                basicSalary: Math.round(basicSalary),
-                currentAge: currentAge,
-                serviceYears: serviceYears,
-                retirementDate: format(retirementDate, 'yyyy-MM-dd'),
-                yearsToRetirement: yearsToRetirement,
-                pfBalance: Math.round(pfBalance),
-                gratuityAmount: Math.round(gratuityAmount),
-                leaveBalance: leaveBalance,
-                status: status,
-                retirementEligible: retirementEligible
-            });
+
+    const handleReset = () => {
+        reset({
+            groupType: [],
+            department: [],
+            designation: [],
+            fromdate: '',
+            todate: '',
+            formated: '',
+            typeOrEmployee: 'type'
         });
-        return mockRecords;
+        setReportData([]);
+        toast.info('Form has been reset');
     };
-    // Filter records based on selected criteria
-    useEffect(() => {
-        let filtered = retirementRecords;
-        // Filter by employee status
-        if (filters.employeeStatus === 'working') {
-            filtered = filtered.filter((record) => record.status === 'Working');
-        } else if (filters.employeeStatus === 'left') {
-            filtered = filtered.filter((record) => record.status === 'Left' || record.status === 'Retired');
-        }
-        // Filter by date range
-        if (filters.fromDate && filters.toDate) {
-            filtered = filtered.filter((record) => {
-                let compareDate: Date;
-                switch (filters.dateFilter) {
-                    case 'dateOfBirth':
-                        compareDate = new Date(record.dateOfBirth);
-                        break;
-                    case 'dateOfJoining':
-                        compareDate = new Date(record.dateOfJoining);
-                        break;
-                    case 'dateOfLeaving':
-                        if (!record.dateOfLeaving) return false;
-                        compareDate = new Date(record.dateOfLeaving);
-                        break;
-                    default:
-                        compareDate = new Date(record.dateOfBirth);
-                }
-                return compareDate >= filters.fromDate! && compareDate <= filters.toDate!;
-            });
-        }
-        setFilteredRecords(filtered);
-    }, [filters, retirementRecords]);
-    const handleHeaderChange = (header: string, checked: boolean) => {
-        setFilters((prev) => ({
-            ...prev,
-            selectedHeaders: checked ? [...prev.selectedHeaders, header] : prev.selectedHeaders.filter((h) => h !== header)
-        }));
-    };
-    const handleHeaderSelectAll = (checked: boolean) => {
-        setFilters((prev) => ({
-            ...prev,
-            selectedHeaders: checked ? headerFields : []
-        }));
-    };
-    const handleFilterChange = (key: keyof RetirementFilters, value: any) => {
-        setFilters((prev) => ({ ...prev, [key]: value }));
-    };
-    const handleDateChange = (key: 'fromDate' | 'toDate', date: Date | undefined) => {
-        setFilters((prev) => ({ ...prev, [key]: date }));
-    };
-    const handleSearch = () => {
-        if (filters.selectedHeaders.length === 0) {
-            toast.error('Please select at least one header field');
-            return;
-        }
-        if (!filters.fromDate || !filters.toDate) {
-            toast.error('Please select both from and to dates');
-            return;
-        }
-        setShowReport(true);
-        toast.success('Retirement Report generated');
-    };
-    const handleCancel = () => {
-        setFilters({
-            selectedHeaders: [],
-            format: 'format1',
-            dateFilter: 'dateOfBirth',
-            fromDate: undefined,
-            toDate: undefined,
-            employeeStatus: 'working',
-            reportScope: 'all',
-            selectionType: null,
-            selectedType: '',
-            selectedEmployee: '',
-            selectedGroupTypes: [],
-            selectedDepartments: [],
-            selectedDesignations: []
-        });
-        setShowReport(false);
-        toast.info('Filters cleared');
-    };
-    const handleExport = () => {
-        toast.success('Retirement Report exported successfully');
-    };
-    const handlePrint = () => {
-        window.print();
-        toast.success('Print dialog opened');
-    };
-    // Calculate Retirement summary
-    const retirementSummary: RetirementSummary = useMemo(() => {
-        const workingEmployees = filteredRecords.filter((record) => record.status === 'Working').length;
-        const leftEmployees = filteredRecords.filter((record) => record.status === 'Left').length;
-        const retiredEmployees = filteredRecords.filter((record) => record.status === 'Retired').length;
-        const eligibleForRetirement = filteredRecords.filter((record) => record.retirementEligible).length;
-        const retiringThisYear = filteredRecords.filter((record) => record.yearsToRetirement <= 1 && record.yearsToRetirement >= 0).length;
-        const summary = filteredRecords.reduce(
-            (acc, record) => ({
-                totalEmployees: filteredRecords.length,
-                workingEmployees: workingEmployees,
-                leftEmployees: leftEmployees,
-                retiredEmployees: retiredEmployees,
-                eligibleForRetirement: eligibleForRetirement,
-                retiringThisYear: retiringThisYear,
-                totalPFBalance: acc.totalPFBalance + record.pfBalance,
-                totalGratuityAmount: acc.totalGratuityAmount + record.gratuityAmount,
-                averageServiceYears: 0 // Will be calculated after
-            }),
-            {
-                totalEmployees: 0,
-                workingEmployees: 0,
-                leftEmployees: 0,
-                retiredEmployees: 0,
-                eligibleForRetirement: 0,
-                retiringThisYear: 0,
-                totalPFBalance: 0,
-                totalGratuityAmount: 0,
-                averageServiceYears: 0
-            }
-        );
-        summary.averageServiceYears =
-            filteredRecords.length > 0
-                ? Math.round(filteredRecords.reduce((sum, record) => sum + record.serviceYears, 0) / filteredRecords.length)
-                : 0;
-        return summary;
-    }, [filteredRecords]);
-    // Dynamic table columns based on selected headers
-    const columns = useMemo(() => getRetirementColumns(filters.selectedHeaders), [filters.selectedHeaders]);
+
     return (
-        <div className='space-y-6'>
-            {/* Report Configuration Section */}
-            <RetirementReportFilters
-                filters={filters}
-                employeeTypes={[]} // TODO: Will be populated from API
-                employees={[]} // TODO: Will be populated from API
-                groupTypes={[]} // TODO: Will be populated from API
-                departments={[]} // TODO: Will be populated from API
-                designations={[]} // TODO: Will be populated from API
-                onFilterChange={handleFilterChange}
-                onHeaderChange={handleHeaderChange}
-                onHeaderSelectAll={handleHeaderSelectAll}
-                onDateChange={handleDateChange}
-                onSearch={handleSearch}
-                onCancel={handleCancel}
-                isLoading={isLoading}
-            />
-            {/* Report Results */}
-            {showReport && (
-                <div className='space-y-4'>
-                    {/* Report Header */}
-                    <div className='flex items-center justify-between rounded-lg border bg-card p-4'>
-                        <div>
-                            <h3 className='font-semibold text-foreground text-lg'>
-                                Employee Retirement Report - {filters.format.toUpperCase()}
-                            </h3>
-                            <p className='text-muted-foreground text-sm'>
-                                Total Employees: {filteredRecords.length} | Eligible for Retirement:{' '}
-                                {retirementSummary.eligibleForRetirement} | Retiring This Year: {retirementSummary.retiringThisYear}
-                            </p>
+        <div className='min-h-screen p-8'>
+            <div className='container space-y-4 p-1'>
+                <CollapsibleSection
+                    title='Employee Details'
+                    defaultOpen={true}
+                    variant='outline'
+                    size='md'
+                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                    <div className=''>
+                        <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+                            {/* Header Selection */}
+                            <div className='space-y-3'>
+                                <Label className='font-semibold'>
+                                    Header: <span className='text-red-500'>*</span>
+                                </Label>
+                                <Controller
+                                    name='selectedHeaders'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <MultiSelect
+                                            options={availableHeaders.map((header) => ({
+                                                label: header,
+                                                value: header
+                                            }))}
+                                            onValueChange={field.onChange}
+                                            defaultValue={field.value}
+                                            placeholder='Select headers to include in report'
+                                            className='w-full'
+                                            maxHeight={240}
+                                        />
+                                    )}
+                                />
+                            </div>
+                            <div className='space-y-3'>
+                                <div className='flex justify-center'>
+                                    <div className='space-y-3'>
+                                        <div className=''>
+                                            <Controller
+                                                name='formated'
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <RadioGroup
+                                                        onValueChange={field.onChange}
+                                                        value={field.value as string}
+                                                        className='flex justify-center gap-4 rounded-md p-3 shadow-md '>
+                                                        {formatedOptions.map((option) => (
+                                                            <div
+                                                                key={option.value}
+                                                                className='flex cursor-pointer items-center space-x-3 transition-colors hover:bg-accent/50'>
+                                                                <RadioGroupItem value={option.value} id={`format-${option.value}`} />
+                                                                <Label
+                                                                    htmlFor={`format-${option.value}`}
+                                                                    className='flex-1 cursor-pointer font-normal text-sm'>
+                                                                    {option.label}
+                                                                </Label>
+                                                            </div>
+                                                        ))}
+                                                    </RadioGroup>
+                                                )}
+                                            />
+                                        </div>
+                                        {selectedFormat !== 'format2' && (
+                                            <div className=''>
+                                                <Controller
+                                                    name='mockLetter'
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <RadioGroup
+                                                            onValueChange={field.onChange}
+                                                            value={field.value}
+                                                            className='flex justify-center gap-4 rounded-md p-3 shadow-md '>
+                                                            {MockLetterOptions.map((option) => (
+                                                                <div
+                                                                    key={option.value}
+                                                                    className='flex cursor-pointer items-center space-x-3 transition-colors hover:bg-accent/50'>
+                                                                    <RadioGroupItem value={option.value} id={`letter-${option.value}`} />
+                                                                    <Label
+                                                                        htmlFor={`letter-${option.value}`}
+                                                                        className='flex-1 cursor-pointer font-normal text-sm'>
+                                                                        {option.label}
+                                                                    </Label>
+                                                                </div>
+                                                            ))}
+                                                        </RadioGroup>
+                                                    )}
+                                                />
+                                            </div>
+                                        )}
+                                        {selectedFormat !== 'format2' && (
+                                            <div className='flex justify-center gap-2 '>
+                                                <div>
+                                                    <Label className='font-medium text-sm text-white-900'>
+                                                        From Date<span className='text-red-600'>*</span>
+                                                    </Label>
+
+                                                    <Popover>
+                                                        <PopoverTrigger asChild>
+                                                            <Button
+                                                                type='button'
+                                                                variant='outline'
+                                                                className={cn(
+                                                                    'w-full justify-start text-left font-normal',
+                                                                    !fromDate && 'text-muted-foreground'
+                                                                )}>
+                                                                <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                {fromDate ? format(new Date(fromDate), 'dd/MM/yyyy') : 'From date'}
+                                                            </Button>
+                                                        </PopoverTrigger>
+                                                        <PopoverContent className='w-auto p-0' align='start'>
+                                                            <CalendarYear
+                                                                mode='single'
+                                                                selected={fromDate ? new Date(fromDate) : undefined}
+                                                                onSelect={(date: Date | undefined) =>
+                                                                    setFromDate(date?.toISOString() ?? '')
+                                                                }
+                                                                captionLayout='dropdown'
+                                                                fromYear={2000}
+                                                                toYear={2050}
+                                                            />
+                                                        </PopoverContent>
+                                                    </Popover>
+                                                </div>
+                                                <div>
+                                                    <Label className='font-medium text-sm text-white-900'>
+                                                        To Date<span className='text-red-600'>*</span>
+                                                    </Label>
+                                                    <Popover>
+                                                        <PopoverTrigger asChild>
+                                                            <Button
+                                                                type='button'
+                                                                variant='outline'
+                                                                className={cn(
+                                                                    'w-full justify-start text-left font-normal',
+                                                                    !toDate && 'text-muted-foreground'
+                                                                )}>
+                                                                <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                {toDate ? format(new Date(toDate), 'dd/MM/yyyy') : 'To date'}
+                                                            </Button>
+                                                        </PopoverTrigger>
+                                                        <PopoverContent className='w-auto p-0' align='start'>
+                                                            <CalendarYear
+                                                                mode='single'
+                                                                selected={toDate ? new Date(toDate) : undefined}
+                                                                onSelect={(date: Date | undefined) => setToDate(date?.toISOString() ?? '')}
+                                                                captionLayout='dropdown'
+                                                                fromYear={2000}
+                                                                toYear={2050}
+                                                            />
+                                                        </PopoverContent>
+                                                    </Popover>
+                                                </div>
+                                            </div>
+                                        )}
+                                        <div className='mt-2 flex items-center justify-center gap-6 rounded-md p-2 shadow-md'>
+                                            <div className='flex items-center space-x-2'>
+                                                <Checkbox
+                                                    checked={selectedRangeTypes.includes('working')}
+                                                    onCheckedChange={(checked) => {
+                                                        setSelectedRangeTypes((prev) =>
+                                                            checked ? [...prev, 'working'] : prev.filter((x) => x !== 'working')
+                                                        );
+                                                    }}
+                                                />
+                                                <Label htmlFor='working' className='cursor-pointer font-normal'>
+                                                    Working
+                                                </Label>
+                                            </div>
+
+                                            <div className='flex items-center space-x-2'>
+                                                <Checkbox
+                                                    checked={selectedRangeTypes.includes('left')}
+                                                    onCheckedChange={(checked) =>
+                                                        setSelectedRangeTypes((prev) =>
+                                                            checked ? [...prev, 'left'] : prev.filter((x) => x !== 'left')
+                                                        )
+                                                    }
+                                                />
+                                                <Label htmlFor='left' className='cursor-pointer font-normal'>
+                                                    Left
+                                                </Label>
+                                            </div>
+                                        </div>
+                                        {selectedFormat !== 'format2' && (
+                                            <div className=''>
+                                                <Controller
+                                                    name='status'
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <RadioGroup
+                                                            onValueChange={field.onChange}
+                                                            value={field.value as string}
+                                                            className='flex justify-center gap-4 rounded-md p-3 shadow-md '>
+                                                            {statusOptions.map((option) => (
+                                                                <div
+                                                                    key={option.value}
+                                                                    className='flex cursor-pointer items-center space-x-3 transition-colors hover:bg-accent/50'>
+                                                                    <RadioGroupItem value={option.value} id={`status-${option.value}`} />
+                                                                    <Label
+                                                                        htmlFor={`status-${option.value}`}
+                                                                        className='flex-1 cursor-pointer font-normal text-sm'>
+                                                                        {option.label}
+                                                                    </Label>
+                                                                </div>
+                                                            ))}
+                                                        </RadioGroup>
+                                                    )}
+                                                />
+                                            </div>
+                                        )}
+                                        {selectedFormat !== 'format2' && selectedstatus !== 'all' && (
+                                            <div className=''>
+                                                <Controller
+                                                    name='typeOrEmployee'
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <RadioGroup
+                                                            onValueChange={field.onChange}
+                                                            value={field.value as string}
+                                                            className='flex justify-center gap-4 rounded-md p-3 shadow-md '>
+                                                            {typeOrEmployeeOptions.map((option) => (
+                                                                <div
+                                                                    key={option.value}
+                                                                    className='flex cursor-pointer items-center space-x-3 transition-colors hover:bg-accent/50'>
+                                                                    <RadioGroupItem value={option.value} id={`type-emp-${option.value}`} />
+                                                                    <Label
+                                                                        htmlFor={`type-emp-${option.value}`}
+                                                                        className='flex-1 cursor-pointer font-normal text-sm'>
+                                                                        {option.label}
+                                                                    </Label>
+                                                                </div>
+                                                            ))}
+                                                        </RadioGroup>
+                                                    )}
+                                                />
+                                            </div>
+                                        )}
+                                        {selectedFormat !== 'format2' && selectedstatus !== 'all' && (
+                                            <div>
+                                                {selectedtypeOrEmployee === 'type' && (
+                                                    <div className='space-y-2'>
+                                                        <Label htmlFor='type' className='font-medium text-sm text-white-900'>
+                                                            Type: <span className='text-red-500'>*</span>
+                                                        </Label>
+                                                        <Controller
+                                                            name='type'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select onValueChange={field.onChange} value={field.value as string}>
+                                                                    <SelectTrigger className='w-full'>
+                                                                        <SelectValue placeholder='Select Employee Type' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {masterEmployeeTypeError ? (
+                                                                            <SelectItem value='loading' disabled>
+                                                                                Loading...
+                                                                            </SelectItem>
+                                                                        ) : masterEmployeeTypeLoading ? (
+                                                                            <SelectItem value='error' disabled>
+                                                                                Error loading data
+                                                                            </SelectItem>
+                                                                        ) : (
+                                                                            employeeTypeOptions?.map((opt: any) => (
+                                                                                <SelectItem key={opt.value} value={opt.value}>
+                                                                                    {opt.label}
+                                                                                </SelectItem>
+                                                                            ))
+                                                                        )}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                        {errors.type && <FormError>{errors.type.message}</FormError>}
+                                                    </div>
+                                                )}
+                                                {selectedtypeOrEmployee === 'employee' && (
+                                                    <div className=' mt-3 space-y-2'>
+                                                        <Label htmlFor='employee' className='font-medium text-sm text-white-900'>
+                                                            Employee: <span className='text-red-500'>*</span>
+                                                        </Label>
+                                                        <Controller
+                                                            name='employee'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select onValueChange={field.onChange} value={field.value as string}>
+                                                                    <SelectTrigger className='w-full'>
+                                                                        <SelectValue placeholder='Select Employee' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {EmployeeOptions.map((opt: any) => (
+                                                                            <SelectItem key={opt.value} value={opt.value}>
+                                                                                {opt.label}
+                                                                            </SelectItem>
+                                                                        ))}
+                                                                    </SelectContent>
+                                                                    {/* <SelectContent>
+                                                                    {masterEmployeeLoading ? (
+                                                                        <SelectItem value='loading' disabled>
+                                                                            Loading...
+                                                                        </SelectItem>
+                                                                    ) : masterEmployeeError ? (
+                                                                        <SelectItem value='error' disabled>
+                                                                            Error loading data
+                                                                        </SelectItem>
+                                                                    ) : (
+                                                                        EmployeeOptions?.map((opt: any) => (
+                                                                            <SelectItem key={opt.value} value={opt.value}>
+                                                                                {opt.label}
+                                                                            </SelectItem>
+                                                                        ))
+                                                                    )}
+                                                                </SelectContent> */}
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                        {errors.employee && <FormError>{errors.employee.message}</FormError>}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div className='flex gap-2'>
-                            <Button variant='outline' onClick={handleExport} prefix={<Download className='size-4' />}>
-                                Export
+                        <div className='mb-5 grid grid-cols-1 gap-6 lg:grid-cols-3'>
+                            {selectedFormat !== 'format1' && (
+                                <div className='space-y-2'>
+                                    <Label htmlFor='group-type' className='font-medium text-sm text-white-900'>
+                                        Group Type: <span className='text-red-500'>*</span>
+                                    </Label>
+                                    {masterGroupTypesLoading ? (
+                                        <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
+                                    ) : groupTypeOptions.length === 0 ? (
+                                        <div className='text-sm text-white-500'>No group types available</div>
+                                    ) : masterGroupTypesError ? (
+                                        <SelectItem value='error' disabled>
+                                            Error loading data
+                                        </SelectItem>
+                                    ) : (
+                                        <div>
+                                            <Controller
+                                                name='groupType'
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <MultiSelect
+                                                        options={groupTypeOptions}
+                                                        defaultValue={field.value}
+                                                        onValueChange={field.onChange}
+                                                        placeholder='Select Group Types'
+                                                        className='w-full'
+                                                        maxHeight={240}
+                                                    />
+                                                )}
+                                            />
+                                            {errors.groupType && <FormError>{errors.groupType.message}</FormError>}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {selectedFormat !== 'format1' && (
+                                <div className='space-y-2'>
+                                    <Label htmlFor='department' className='font-medium text-sm text-white-900'>
+                                        Department: <span className='text-red-500'>*</span>
+                                    </Label>
+                                    {masterDepartmentsLoading ? (
+                                        <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
+                                    ) : DeaparmentsOptions.length === 0 ? (
+                                        <div className='text-sm text-white-500'>No departments available</div>
+                                    ) : masterDepartmentsError ? (
+                                        <SelectItem value='error' disabled>
+                                            Error loading data
+                                        </SelectItem>
+                                    ) : (
+                                        <div>
+                                            <Controller
+                                                name='department'
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <MultiSelect
+                                                        options={DeaparmentsOptions}
+                                                        defaultValue={field.value}
+                                                        onValueChange={field.onChange}
+                                                        placeholder='Select Departments'
+                                                        className='w-full'
+                                                        maxHeight={240}
+                                                    />
+                                                )}
+                                            />
+                                            {errors.department && <FormError>{errors.department.message}</FormError>}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {selectedFormat !== 'format1' && (
+                                <div className='space-y-2'>
+                                    <Label htmlFor='designation' className='font-medium text-sm text-white-900'>
+                                        Designation: <span className='text-red-500'>*</span>
+                                    </Label>
+                                    {masterDesignationsLoading ? (
+                                        <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
+                                    ) : DesignationOptions.length === 0 ? (
+                                        <div className='text-sm text-white-500'>No designations available</div>
+                                    ) : masterDesignationsError ? (
+                                        <SelectItem value='error' disabled>
+                                            Error loading data
+                                        </SelectItem>
+                                    ) : (
+                                        <div>
+                                            <Controller
+                                                name='designation'
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <MultiSelect
+                                                        options={DesignationOptions}
+                                                        defaultValue={field.value}
+                                                        onValueChange={field.onChange}
+                                                        placeholder='Select Designations'
+                                                        className='w-full'
+                                                        maxHeight={240}
+                                                    />
+                                                )}
+                                            />
+                                            {errors.designation && <FormError>{errors.designation.message}</FormError>}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                        <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-center'>
+                            <Button
+                                type='button'
+                                variant='outline'
+                                onClick={handleReset}
+                                disabled={isSearching || isSubmitting}
+                                className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                                Reset
                             </Button>
-                            <Button variant='outline' onClick={handlePrint} prefix={<Printer className='size-4' />}>
-                                Print
+                            <Button
+                                type='button'
+                                onClick={handleSubmit(onSearch)}
+                                disabled={isSearching || isSubmitting}
+                                className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
+                                {isSearching ? (
+                                    <div>
+                                        <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
+                                        Searching...
+                                    </div>
+                                ) : (
+                                    <div className='flex items-center'>
+                                        <Search className='mr-2 h-4 w-4' />
+                                        Search
+                                    </div>
+                                )}
                             </Button>
                         </div>
                     </div>
-                    {/* Summary Cards */}
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='flex items-center gap-1 text-muted-foreground text-sm'>
-                                    <Users className='h-3 w-3' />
-                                    Total Employees
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-foreground text-lg'>{retirementSummary.totalEmployees}</div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='flex items-center gap-1 text-muted-foreground text-sm'>
-                                    <UserCheck className='h-3 w-3' />
-                                    Working Employees
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-green-600 text-lg'>{retirementSummary.workingEmployees}</div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='flex items-center gap-1 text-muted-foreground text-sm'>
-                                    <Clock className='h-3 w-3' />
-                                    Eligible for Retirement
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-lg text-orange-600'>{retirementSummary.eligibleForRetirement}</div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Retiring This Year</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-lg text-red-600'>{retirementSummary.retiringThisYear}</div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                    {/* Detailed Summary */}
-                    <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className='flex items-center gap-2 text-sm'>
-                                    <Calculator className='h-4 w-4' />
-                                    Retirement Benefits Summary
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className='space-y-3'>
-                                <div className='flex justify-between'>
-                                    <span className='text-sm'>Total PF Balance:</span>
-                                    <span className='font-semibold'>₹{retirementSummary.totalPFBalance.toLocaleString()}</span>
-                                </div>
-                                <div className='flex justify-between'>
-                                    <span className='text-sm'>Total Gratuity Amount:</span>
-                                    <span className='font-semibold'>₹{retirementSummary.totalGratuityAmount.toLocaleString()}</span>
-                                </div>
-                                <div className='flex justify-between'>
-                                    <span className='text-sm'>Average Service Years:</span>
-                                    <span className='font-semibold'>{retirementSummary.averageServiceYears} years</span>
-                                </div>
-                                <div className='flex justify-between border-t pt-2'>
-                                    <span className='text-sm'>Total Retirement Benefits:</span>
-                                    <span className='font-semibold text-green-600'>
-                                        ₹{(retirementSummary.totalPFBalance + retirementSummary.totalGratuityAmount).toLocaleString()}
-                                    </span>
-                                </div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className='flex items-center gap-2 text-sm'>
-                                    <CalendarIcon className='h-4 w-4' />
-                                    Employee Status Distribution
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className='space-y-3'>
-                                <div className='flex justify-between'>
-                                    <span className='text-sm'>Working:</span>
-                                    <span className='font-semibold text-green-600'>{retirementSummary.workingEmployees}</span>
-                                </div>
-                                <div className='flex justify-between'>
-                                    <span className='text-sm'>Left:</span>
-                                    <span className='font-semibold text-red-600'>{retirementSummary.leftEmployees}</span>
-                                </div>
-                                <div className='flex justify-between'>
-                                    <span className='text-sm'>Retired:</span>
-                                    <span className='font-semibold text-blue-600'>{retirementSummary.retiredEmployees}</span>
-                                </div>
-                                <div className='flex justify-between border-t pt-2'>
-                                    <span className='text-sm'>Report Format:</span>
-                                    <span className='font-semibold'>{filters.format.toUpperCase()}</span>
-                                </div>
-                                <div className='flex justify-between'>
-                                    <span className='text-sm'>Date Filter:</span>
-                                    <span className='font-semibold capitalize'>{filters.dateFilter.replace(/([A-Z])/g, ' $1').trim()}</span>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                    {/* Data Table */}
-                    <DataTable
-                        isLoading={isLoading}
-                        columns={columns}
-                        data={filteredRecords as unknown as RetirementRecordColumn[]}
-                        totalItems={filteredRecords.length}
-                        showViewOptions={true}
-                        columnPinning={{ left: ['id'] }}
-                    />
-                </div>
-            )}
+                </CollapsibleSection>
+
+                {reportData.length > 0 && (
+                    <CollapsibleSection
+                        title='Employee Details'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='mt-2 space-x-4'>
+                            <div className='mb-4 text-center'>
+                                <h4 className='font-semibold'>Vidya Vikasa Vidya Samsthe (R)</h4>
+                                <p className='text-sm'>Basaveshwara Talkies rd,Gayatri circle,karantaka</p>
+                                <p className='text-sm'>Chitradurga - 577501.</p>
+                                <h5 className='font-semibold'>Employee Details Report</h5>
+                            </div>
+                            <div className='overflow-x-auto rounded-lg border'>
+                                <table className='w-full border-collapse'>
+                                    <thead>
+                                        <tr className='border-white-300 border-b-2 bg-white-100'>
+                                            <th className='border border-white-300 px-3 py-3 text-center font-semibold text-sm'>S.No</th>
+                                            {selectedHeaders && selectedHeaders.length > 0 ? (
+                                                selectedHeaders.map((header: string) => (
+                                                    <th
+                                                        key={header}
+                                                        className='border border-white-300 px-3 py-3 text-center font-semibold text-sm'>
+                                                        {header}
+                                                    </th>
+                                                ))
+                                            ) : (
+                                                <th className='border border-white-300 px-3 py-3 text-center font-semibold text-sm'>
+                                                    No headers selected
+                                                </th>
+                                            )}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {reportData.map((row: any, index: number) => (
+                                            <tr key={index} className='hover:bg-white-50'>
+                                                <td className='border border-white-300 px-3 py-2 text-center text-sm'>{index + 1}</td>
+                                                {selectedHeaders && selectedHeaders.length > 0 ? (
+                                                    selectedHeaders.map((header: string) => {
+                                                        const fieldKey = headerFieldMap[header];
+                                                        const cellValue = fieldKey ? row[fieldKey] : '';
+                                                        return (
+                                                            <td
+                                                                key={`${index}-${header}`}
+                                                                className='border border-white-300 px-3 py-2 text-left text-sm'>
+                                                                {cellValue || '-'}
+                                                            </td>
+                                                        );
+                                                    })
+                                                ) : (
+                                                    <td className='border border-white-300 px-3 py-2 text-left text-sm'>
+                                                        No headers selected
+                                                    </td>
+                                                )}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </CollapsibleSection>
+                )}
+            </div>
         </div>
     );
 }

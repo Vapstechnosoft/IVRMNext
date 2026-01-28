@@ -1,388 +1,305 @@
 'use client';
+
+import { useRef, useState, useMemo } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { useReactToPrint } from 'react-to-print';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormProvider } from '@/components/ui/form/form-provider';
+import { Label } from '@/components/ui/extension/field';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MultiSelect } from '@/components/ui/multi-select';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataTable } from '@/components/ui/data-table/data-table';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useESIReportOnload, useSearchESIReport } from '@/hooks/hrms/useReports';
-import { Download, Printer } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
+import { exportToExcel } from '@/lib/export-to-file';
+import {
+    useESIReport,
+    useReportDepartments,
+    useReportDesignations,
+    useReportGroupTypes
+} from '@/hooks/hrms/useReports';
+import { Loader2, Search, Download, Printer } from 'lucide-react';
 import { toast } from 'sonner';
-import { type ESIRecord as ESIRecordColumn, esiReportColumns } from './_components/columns';
-import { type ESIReportFilters as ESIFilters, ESIReportFilters } from './_components/filters';
-// ESI report data structure
-interface ESIRecord {
-    id?: string;
-    employeeCode: string;
-    employeeName: string;
-    groupTypeId: number;
-    departmentId: number;
-    designationId: number;
-    departmentName: string;
-    designationName: string;
-    esiNumber: string;
-    grossSalary: number;
-    esiEligibleSalary: number;
-    employeeESI: number;
-    employerESI: number;
-    totalESI: number;
-    month: string;
+
+const MONTH_LIST = [
+    { id: 1, name: 'January' }, { id: 2, name: 'February' }, { id: 3, name: 'March' },
+    { id: 4, name: 'April' }, { id: 5, name: 'May' }, { id: 6, name: 'June' },
+    { id: 7, name: 'July' }, { id: 8, name: 'August' }, { id: 9, name: 'September' },
+    { id: 10, name: 'October' }, { id: 11, name: 'November' }, { id: 12, name: 'December' }
+];
+
+interface FilterFormValues {
     year: string;
-    workingDays: number;
-    presentDays: number;
-    esiStatus: 'Active' | 'Inactive' | 'Exempted';
+    month: string;
+    groupType: string[];
+    department: string[];
+    designation: string[];
 }
+
 export default function ESIReportPage() {
-    const roleId = HRMS_MI_ID;
-    // React Query hooks
-    const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = useESIReportOnload(roleId, 0);
-    const searchMutation = useSearchESIReport();
-    // State
-    const [esiRecords, setESIRecords] = useState<ESIRecord[]>([]);
-    const [filteredRecords, setFilteredRecords] = useState<ESIRecord[]>([]);
-    const [showReport, setShowReport] = useState(false);
-    const [filters, setFilters] = useState<ESIFilters>({
-        groupType: 'All',
-        department: 'All',
-        designation: 'All',
-        month: '',
-        year: ''
+    return (
+        <FormProvider>
+            <ESIReportContent />
+        </FormProvider>
+    );
+}
+
+function ESIReportContent() {
+    const [reportData, setReportData] = useState<any>(null);
+    const { control, handleSubmit, watch, setValue } = useForm<FilterFormValues>({
+        defaultValues: {
+            year: '',
+            month: '',
+            groupType: [],
+            department: [],
+            designation: []
+        }
     });
-    // Memoize dropdown data from API
-    const groupTypes = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).groupTypedropdown || [];
-    }, [onloadData?.data]);
-    const departments = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).departmentdropdown || [];
-    }, [onloadData?.data]);
-    const designations = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).designationdropdown || [];
-    }, [onloadData?.data]);
-    const months = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).monthdropdown || [];
-    }, [onloadData?.data]);
-    const years = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).leaveyeardropdown || [];
-    }, [onloadData?.data]);
-    // Show error if API fails
-    useEffect(() => {
-        if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
-            const errorMessage =
-                onloadError?.message ||
-                onloadData?.message ||
-                'Failed to load ESI report data. Please check if the API endpoint is available.';
-            toast.error(errorMessage);
-        }
-    }, [onloadError, isLoadingOnload, onloadData]);
-    // Map API data to component format
-    const mappedGroupTypes = useMemo(() => {
-        return groupTypes.map((gt: any) => ({
-            id: gt.HRMGT_Id,
-            groupType: gt.HRMGT_EmployeeGroupType || gt.HRMGT_Code || '',
-            groupCode: gt.HRMGT_Code || '',
-            order: gt.HRMGT_Order || 0,
-            isActive: gt.HRMGT_ActiveFlag !== false
-        }));
-    }, [groupTypes]);
-    const mappedDepartments = useMemo(() => {
-        return departments.map((dept: any) => ({
-            id: dept.HRMD_Id,
-            departmentName: dept.HRMD_DepartmentName || '',
-            internalTrainingHours: dept.HRMD_InternalTrainingMinimumHrs?.toString() || '0',
-            order: dept.HRMD_Order || 0,
-            isActive: dept.HRMD_ActiveFlag !== false
-        }));
-    }, [departments]);
-    const mappedDesignations = useMemo(() => {
-        return designations.map((desig: any) => ({
-            id: desig.HRMDES_Id,
-            designationName: desig.HRMDES_DesignationName || '',
-            basicAmount: desig.HRMDES_BasicAmount?.toString() || '0',
-            sanctionedSeats: desig.HRMDES_SanctionedSeats?.toString() || '0',
-            displaySanctionedSeats: desig.HRMDES_DisplaySanctionedSeatsFlag || false,
-            order: desig.HRMDES_Order || 0,
-            isActive: desig.HRMDES_ActiveFlag !== false
-        }));
-    }, [designations]);
-    // Cascading filter logic
-    const availableDepartments = useMemo(() => {
-        if (filters.groupType === 'All') return mappedDepartments;
-        // In a real app, departments would be filtered by groupType relationship
-        return mappedDepartments;
-    }, [filters.groupType, mappedDepartments]);
-    const availableDesignations = useMemo(() => {
-        if (filters.department === 'All') return mappedDesignations;
-        // In a real app, designations would be filtered by department relationship
-        return mappedDesignations;
-    }, [filters.department, mappedDesignations]);
-    // Filter ESI records based on selected criteria
-    useEffect(() => {
-        let filtered = esiRecords;
-        if (filters.groupType !== 'All') {
-            const selectedGroupType = mappedGroupTypes.find((g: any) => g.groupType === filters.groupType);
-            if (selectedGroupType) {
-                filtered = filtered.filter((record) => record.groupTypeId === selectedGroupType.id);
-            }
-        }
-        if (filters.department !== 'All') {
-            const selectedDepartment = mappedDepartments.find((d: any) => d.departmentName === filters.department);
-            if (selectedDepartment) {
-                filtered = filtered.filter((record) => record.departmentId === selectedDepartment.id);
-            }
-        }
-        if (filters.designation !== 'All') {
-            const selectedDesignation = mappedDesignations.find((d: any) => d.designationName === filters.designation);
-            if (selectedDesignation) {
-                filtered = filtered.filter((record) => record.designationId === selectedDesignation.id);
-            }
-        }
-        if (filters.month) {
-            filtered = filtered.filter((record) => record.month === filters.month);
-        }
-        if (filters.year) {
-            filtered = filtered.filter((record) => record.year === filters.year);
-        }
-        setFilteredRecords(filtered);
-    }, [filters, esiRecords, mappedGroupTypes, mappedDepartments, mappedDesignations]);
-    const handleFilterChange = (newFilters: ESIFilters) => {
-        setFilters(newFilters);
-    };
-    const handleSearch = () => {
-        if (!filters.month || !filters.year) {
-            toast.error('Please select month and year');
+
+    const watchedGroupType = watch('groupType');
+    const watchedDepartment = watch('department');
+
+    // Queries - Reusing hooks from cumulative-salary-report for reliability
+    const { data: yearsData } = useLeaveYearDropdown();
+    const { data: groupTypesData } = useReportGroupTypes();
+
+    const groupTypeIds = watchedGroupType?.join(',') || '';
+    const { data: departmentsData } = useReportDepartments(groupTypeIds);
+
+    const deptIds = watchedDepartment?.join(',') || '';
+    const { data: designationsData } = useReportDesignations(groupTypeIds, deptIds);
+
+    const { mutate: generateReport, isPending } = useESIReport();
+
+    const onSubmit = (data: FilterFormValues) => {
+        if (!data.year || !data.month) {
+            toast.error('Please select Year and Month');
             return;
         }
-        // Find month ID from selected month name
-        const selectedMonthObj = months.find((m: any) => m.IVRM_Month_Name?.trim() === filters.month);
-        const monthId = selectedMonthObj?.IVRM_Month_Id?.toString() || '';
-        // Prepare search request
-        const searchRequest = {
-            MI_Id: roleId,
-            groupTypeselected:
-                filters.groupType !== 'All' && mappedGroupTypes.find((g: any) => g.groupType === filters.groupType)
-                    ? [mappedGroupTypes.find((g: any) => g.groupType === filters.groupType)!.id]
-                    : [],
-            departmentselected:
-                filters.department !== 'All' && mappedDepartments.find((d: any) => d.departmentName === filters.department)
-                    ? [mappedDepartments.find((d: any) => d.departmentName === filters.department)!.id]
-                    : [],
-            designationselected:
-                filters.designation !== 'All' && mappedDesignations.find((d: any) => d.designationName === filters.designation)
-                    ? [mappedDesignations.find((d: any) => d.designationName === filters.designation)!.id]
-                    : [],
-            HRES_Year: filters.year || '',
-            HRES_Month: monthId || ''
-        };
-        searchMutation.mutate(searchRequest, {
-            onSuccess: (response) => {
-                if (response.success && response.data) {
-                    // Map API response to ESIRecord format
-                    const employeeDetails = response.data.employeeDetails || [];
-                    const mappedRecords: ESIRecord[] = employeeDetails.map((emp: any, index: number) => ({
-                        id: `emp-${index}`,
-                        employeeCode: emp.HRME_EmployeeCode || emp.employeeCode || '',
-                        employeeName: emp.EmployeeName || emp.employeeName || '',
-                        groupTypeId: emp.HRMGT_Id || emp.groupTypeId || 0,
-                        departmentId: emp.HRMD_Id || emp.departmentId || 0,
-                        designationId: emp.HRMDES_Id || emp.designationId || 0,
-                        departmentName: emp.HRMD_DepartmentName || emp.departmentName || '',
-                        designationName: emp.HRMDES_DesignationName || emp.designationName || '',
-                        esiNumber: emp.HRME_ESIAccNo || emp.esiNumber || '',
-                        grossSalary: emp.basicAmount || emp.grossSalary || 0,
-                        esiEligibleSalary: emp.esiEligibleSalary || (emp.basicAmount > 21000 ? 21000 : emp.basicAmount) || 0,
-                        employeeESI: emp.EmployeeContibution || emp.employeeESI || 0,
-                        employerESI: emp.EmployerContibution || emp.employerESI || 0,
-                        totalESI: emp.totalAmount || emp.totalESI || 0,
-                        month: filters.month,
-                        year: filters.year,
-                        workingDays: emp.HRES_WorkingDays || emp.workingDays || 0,
-                        presentDays: emp.presentDays || 0,
-                        esiStatus: emp.HRME_ESIAccNo ? 'Active' : ('Inactive' as 'Active' | 'Inactive' | 'Exempted')
-                    }));
-                    setESIRecords(mappedRecords);
-                    setShowReport(true);
-                    toast.success('ESI report generated successfully');
+
+        const selectedYearObj = yearsData?.data?.find((y: any) => y.hrmlY_Id.toString() === data.year);
+        const yearString = selectedYearObj?.hrmlY_LeaveYear || data.year;
+
+        const selectedMonthObj = MONTH_LIST.find(m => m.id.toString() === data.month);
+        const monthName = selectedMonthObj?.name || '';
+
+        generateReport({
+            MI_Id: 30,
+            hreS_Year: yearString,
+            hreS_Month: monthName,
+            groupTypeselected: data.groupType.map(Number),
+            departmentselected: data.department.map(Number),
+            designationselected: data.designation.map(Number)
+        }, {
+            onSuccess: (res) => {
+                if (res.success && res.data) {
+                    setReportData(res.data);
+                    toast.success('Report generated successfully');
                 } else {
-                    toast.error(response.message || 'Failed to generate ESI report');
+                    toast.error(res.message || 'No data found');
                 }
-            },
-            onError: (error: Error) => {
-                toast.error(error.message || 'Failed to generate ESI report');
             }
         });
     };
-    const handleCancel = () => {
-        setFilters({
-            groupType: 'All',
-            department: 'All',
-            designation: 'All',
-            month: '',
-            year: ''
-        });
-        setESIRecords([]);
-        setFilteredRecords([]);
-        setShowReport(false);
-        toast.info('Filters cleared');
-    };
+
     const handleExport = () => {
-        toast.success('ESI report exported successfully');
+        const dataForExport = reportData?.employeeDetails || reportData?.alldata || reportData?.list || (Array.isArray(reportData) ? reportData : []);
+        if (!dataForExport || dataForExport.length === 0) {
+            toast.error('No data to export');
+            return;
+        }
+
+        const exportColumns = [
+            { label: 'Employee Code', value: 'hrmE_EmployeeCode' },
+            { label: 'Employee Name', value: 'employeeName' },
+            { label: 'Working Days', value: 'hreS_WorkingDays' },
+            { label: 'Basic Amount', value: 'basicamount' },
+            { label: 'Employee Contribution', value: 'employeeContibution' },
+            { label: 'Employer Contribution', value: 'employerContibution' },
+            { label: 'Total Amount', value: 'totalAmount' }
+        ];
+
+        const processedContent = dataForExport.map((row: any) => ({
+            ...row,
+            employeeName: row.employeeName || row.EmployeeName || `${row.hrmE_EmployeeFirstName || ''} ${row.hrmE_EmployeeMiddleName || ''} ${row.hrmE_EmployeeLastName || ''}`.trim(),
+            hreS_WorkingDays: row.hreS_WorkingDays || row.HRES_WorkingDays || 0
+        }));
+
+        exportToExcel('ESI_Report', JSON.stringify(exportColumns), JSON.stringify(processedContent));
     };
-    const handlePrint = () => {
-        window.print();
-        toast.success('Print dialog opened');
-    };
-    // Calculate ESI totals
-    const esiTotals = useMemo(() => {
-        return filteredRecords.reduce(
-            (acc, record) => ({
-                grossSalary: acc.grossSalary + record.grossSalary,
-                esiEligibleSalary: acc.esiEligibleSalary + record.esiEligibleSalary,
-                employeeESI: acc.employeeESI + record.employeeESI,
-                employerESI: acc.employerESI + record.employerESI,
-                totalESI: acc.totalESI + record.totalESI
-            }),
-            {
-                grossSalary: 0,
-                esiEligibleSalary: 0,
-                employeeESI: 0,
-                employerESI: 0,
-                totalESI: 0
-            }
-        );
-    }, [filteredRecords]);
+
+    const columns = [
+        {
+            id: 'slNo',
+            header: 'SL.No',
+            cell: ({ row }: any) => row.index + 1
+        },
+        {
+            accessorKey: 'hrmE_EmployeeCode',
+            header: 'Code'
+        },
+        {
+            accessorKey: 'employeeName',
+            header: 'Employee Name'
+        },
+        {
+            accessorKey: 'hreS_WorkingDays',
+            header: 'Days',
+            cell: ({ row }: any) => row.original.hreS_WorkingDays || row.original.HRES_WorkingDays || 0
+        },
+        {
+            accessorKey: 'basicamount',
+            header: 'Basic',
+            cell: ({ row }: any) => Number(row.original.basicamount || row.original.basicAmount || 0).toFixed(2)
+        },
+        {
+            accessorKey: 'employeeContibution',
+            header: 'Emp. Cont.',
+            cell: ({ row }: any) => Number(row.original.employeeContibution || row.original.EmployeeContibution || 0).toFixed(2)
+        },
+        {
+            accessorKey: 'employerContibution',
+            header: 'Empr. Cont.',
+            cell: ({ row }: any) => Number(row.original.employerContibution || row.original.EmployerContibution || 0).toFixed(2)
+        },
+        {
+            accessorKey: 'totalAmount',
+            header: 'Total',
+            cell: ({ row }: any) => Number(row.original.totalAmount || 0).toFixed(2)
+        }
+    ];
+
     return (
-        <div className='space-y-6'>
-            {/* Report Configuration Section */}
-            <ESIReportFilters
-                filters={filters}
-                groupTypes={mappedGroupTypes}
-                availableDepartments={availableDepartments}
-                availableDesignations={availableDesignations}
-                months={months}
-                years={years}
-                onFilterChange={handleFilterChange}
-                onSearch={handleSearch}
-                onCancel={handleCancel}
-                isLoading={isLoadingOnload}
-            />
-            {/* Report Results */}
-            {showReport && (
-                <div className='space-y-4'>
-                    {/* Report Header */}
-                    <div className='flex items-center justify-between rounded-lg border bg-card p-4'>
-                        <div>
-                            <h3 className='font-semibold text-foreground text-lg'>
-                                ESI Report - {filters.month} {filters.year}
-                            </h3>
-                            <p className='text-muted-foreground text-sm'>
-                                Total Records: {filteredRecords.length} employees | ESI Eligible:{' '}
-                                {filteredRecords.filter((r) => r.esiStatus === 'Active').length}
-                            </p>
+        <div className='container min-h-screen space-y-4 p-2'>
+            <div className='flex items-center justify-between'>
+                <h2 className='text-2xl font-bold tracking-tight'>ESI Report</h2>
+            </div>
+
+            <CollapsibleSection defaultOpen={true} title="Report Criteria" variant='outline' className='shadow-sm'>
+                <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                    <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
+                        <div className='space-y-2'>
+                            <Label>Year <span className='text-destructive'>*</span></Label>
+                            <Controller name='year' control={control} render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select Year" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {yearsData?.data?.map((y: any) => (
+                                            <SelectItem key={y.hrmlY_Id} value={y.hrmlY_Id.toString()}>
+                                                {y.hrmlY_LeaveYear}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )} />
                         </div>
+
+                        <div className='space-y-2'>
+                            <Label>Month <span className='text-destructive'>*</span></Label>
+                            <Controller name='month' control={control} render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select Month" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {MONTH_LIST.map((m: any) => (
+                                            <SelectItem key={m.id} value={m.id.toString()}>
+                                                {m.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )} />
+                        </div>
+
+                        <div className='space-y-2'>
+                            <Label>Group Type</Label>
+                            <Controller name='groupType' control={control} render={({ field }) => (
+                                <MultiSelect
+                                    options={groupTypesData?.data?.map((gt: any) => ({
+                                        label: gt.value,
+                                        value: gt.key.toString()
+                                    })) || []}
+                                    defaultValue={field.value}
+                                    onValueChange={(vals) => {
+                                        field.onChange(vals);
+                                        // Reset children
+                                        setValue('department', []);
+                                        setValue('designation', []);
+                                    }}
+                                    placeholder="Select Group Types"
+                                />
+                            )} />
+                        </div>
+
+                        <div className='space-y-2'>
+                            <Label>Department</Label>
+                            <Controller name='department' control={control} render={({ field }) => (
+                                <MultiSelect
+                                    options={departmentsData?.data?.map((d: any) => ({
+                                        label: d.hrmD_DepartmentName,
+                                        value: d.hrmD_Id.toString()
+                                    })) || []}
+                                    defaultValue={field.value}
+                                    onValueChange={(vals) => {
+                                        field.onChange(vals);
+                                        // Reset child
+                                        setValue('designation', []);
+                                    }}
+                                    placeholder="Select Departments"
+                                    disabled={!watchedGroupType.length}
+                                />
+                            )} />
+                        </div>
+
+                        <div className='space-y-2'>
+                            <Label>Designation</Label>
+                            <Controller name='designation' control={control} render={({ field }) => (
+                                <MultiSelect
+                                    options={designationsData?.data?.map((d: any) => ({
+                                        label: d.hrmdeS_DesignationName,
+                                        value: d.hrmdeS_Id.toString()
+                                    })) || []}
+                                    defaultValue={field.value}
+                                    onValueChange={field.onChange}
+                                    placeholder="Select Designations"
+                                    disabled={!watchedDepartment.length}
+                                />
+                            )} />
+                        </div>
+                    </div>
+
+                    <div className='flex justify-end'>
+                        <Button type='submit' disabled={isPending} className='w-32'>
+                            {isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
+                            Generate
+                        </Button>
+                    </div>
+                </form>
+            </CollapsibleSection>
+
+            {reportData && (
+                <CollapsibleSection title="Report Details" defaultOpen={true} className='shadow-md border'
+                    rightElement={
                         <div className='flex gap-2'>
-                            <Button variant='outline' onClick={handleExport} prefix={<Download className='size-4' />}>
+                            <Button variant='outline' size='sm' onClick={handleExport} className='gap-2'>
+                                <Download className='h-4 w-4' />
                                 Export
                             </Button>
-                            <Button variant='outline' onClick={handlePrint} prefix={<Printer className='size-4' />}>
-                                Print
-                            </Button>
                         </div>
-                    </div>
-                    {/* ESI Summary Cards */}
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5'>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Total Gross Salary</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-foreground text-lg'>₹{esiTotals.grossSalary.toLocaleString()}</div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>ESI Eligible Salary</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-foreground text-lg'>₹{esiTotals.esiEligibleSalary.toLocaleString()}</div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Employee ESI (0.75%)</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-blue-600 text-lg'>₹{esiTotals.employeeESI.toLocaleString()}</div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Employer ESI (3.25%)</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-lg text-orange-600'>₹{esiTotals.employerESI.toLocaleString()}</div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Total ESI</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-green-600 text-lg'>₹{esiTotals.totalESI.toLocaleString()}</div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                    {/* ESI Status Summary */}
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Active ESI Members</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-green-600 text-lg'>
-                                    {filteredRecords.filter((r) => r.esiStatus === 'Active').length}
-                                </div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Inactive Members</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-lg text-red-600'>
-                                    {filteredRecords.filter((r) => r.esiStatus === 'Inactive').length}
-                                </div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Exempted Members</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-gray-600 text-lg'>
-                                    {filteredRecords.filter((r) => r.esiStatus === 'Exempted').length}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                    {/* Data Table */}
-                    <DataTable
-                        isLoading={isLoadingOnload}
-                        columns={esiReportColumns}
-                        data={filteredRecords as unknown as ESIRecordColumn[]}
-                        totalItems={filteredRecords.length}
-                        showViewOptions={true}
-                        columnPinning={{ left: ['id'] }}
+                    }
+                >
+                    <GenericDataTable
+                        data={reportData?.employeeDetails || reportData?.alldata || reportData?.list || (Array.isArray(reportData) ? reportData : [])}
+                        columns={columns}
+                        totalItems={(reportData?.employeeDetails || reportData?.alldata || reportData?.list || (Array.isArray(reportData) ? reportData : [])).length}
+                        isPaginationRequired={false}
+                        isSearchRequired={false}
+                        isLoading={isPending}
                     />
-                </div>
+                </CollapsibleSection>
             )}
         </div>
     );

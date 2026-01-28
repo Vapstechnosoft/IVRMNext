@@ -416,9 +416,9 @@ export function ViewGroupsModal({
 
                     <div className='grid grid-cols-1 gap-6 p-5 md:grid-cols-2'>
                         {/* LEFT EXAM TABLE */}
-                        <div className='overflow-hidden rounded border shadow-sm'>
+                        <div className='max-h-[500px] overflow-auto rounded border shadow-sm'>
                             <table className='min-w-full border-collapse'>
-                                <thead className='bg-gray-100 text-sm'>
+                                <thead className='sticky top-0 z-10 bg-gray-100 text-sm'>
                                     <tr>
                                         <th className='w-12 p-2'>Select</th>
                                         <th className='p-2'>Exam Name</th>
@@ -464,7 +464,7 @@ export function ViewGroupsModal({
                             </table>
                             {/* General validation error for exams */}
                             {errors.exams && (
-                                <div className='border-red-200 border-t bg-red-50 p-2 text-red-500 text-sm'>{errors.exams}</div>
+                                <div className='sticky bottom-0 border-red-200 border-t bg-red-50 p-2 text-red-500 text-sm'>{errors.exams}</div>
                             )}
                         </div>
 
@@ -578,29 +578,6 @@ export function ViewGroupsModal({
                                     variant='outline'
                                     onClick={() => {
                                         resetForm();
-                                        setLeftExams([
-                                            {
-                                                id: 101,
-                                                name: 'Formative Assessment -04',
-                                                isSelected: false,
-                                                convertedMarks: '',
-                                                conversionRequired: false
-                                            },
-                                            {
-                                                id: 102,
-                                                name: 'Summative Assessment-02',
-                                                isSelected: false,
-                                                convertedMarks: '',
-                                                conversionRequired: false
-                                            },
-                                            {
-                                                id: 103,
-                                                name: 'Unit Test 1',
-                                                isSelected: false,
-                                                convertedMarks: '',
-                                                conversionRequired: false
-                                            }
-                                        ]);
                                     }}>
                                     Reset
                                 </Button>
