@@ -7,7 +7,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useMasterDepartment } from '@/hooks/hrms/useMasters';
 import type { IMasterDepartmentList } from '@/types/hrms/hrms-config/master';
 import { Plus, X } from 'lucide-react';
-import { use } from 'react';
+import { useEffect, useState } from 'react';
 import AddDepartmentForm from './_components/add-form';
 import { columns } from './_components/columns';
 import ReorderDepartmentForm from './_components/reorder-form';
@@ -17,7 +17,16 @@ import UpdateDepartmentForm from './_components/update-form';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterDepartmentPage(props: { searchParams: SearchParams }) {
-    const searchParams = use(props.searchParams);
+    const [searchParams, setSearchParams] = useState<any>({});
+
+    useEffect(() => {
+        const fetchParams = async () => {
+            const params = await props.searchParams;
+            setSearchParams(params);
+        };
+        fetchParams();
+    }, [props.searchParams]);
+
     const { data: response, isLoading, error } = useMasterDepartment(searchParams);
 
     return (

@@ -4,9 +4,11 @@ import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type {
     IPromotionSetting,
+    IPromotionCategory,
     IPromotionalGroupDetails,
     IPromotionalGroupMappedExamDetails,
-    IPromotionalSubjectDetails
+    IPromotionalSubjectDetails,
+    IPromotionDetailsByIdResponse
 } from '@/types/exam/exam-module/exam-mapping';
 export async function getPromotionalSettings(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
@@ -38,9 +40,9 @@ export async function getPromotionSubjectMappingList(searchParams?: ApiSearchpar
    PROMOTION CATEGORY BY ACADEMIC YEAR
 ========================================================= */
 
-export async function getPromotionCategoryByAcademicYear(asmay_Id: number, eycE_Id: number, emp_Id: number) {
-    const url = `/promotion_setting/promotion_category_by_academic_year/${asmay_Id}/${eycE_Id}/${emp_Id}`;
-    return await api.get('exam', url);
+export async function getPromotionCategoryByAcademicYear(asmay_Id: number, emp_Id: number) {
+    const url = `/promotion_setting/promotion_category_by_academic_year/${asmay_Id}/${emp_Id}`;
+    return await api.get<IPromotionCategory[]>('exam', url);
 }
 
 /* =========================================================
@@ -77,7 +79,7 @@ export async function viewIndividualPromotionDetails(emp_Id: number) {
 
 export async function getIndividualPromotionDetailsById(emp_Id: number) {
     const url = `/promotion_setting/individual_promotion_details_by_id/${emp_Id}`;
-    return await api.get('exam', url);
+    return await api.get<IPromotionDetailsByIdResponse>('exam', url);
 }
 
 /* =========================================================

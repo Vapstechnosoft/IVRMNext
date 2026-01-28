@@ -46,6 +46,7 @@ export const masterModeOfPaymentSchema = {
 };
 export const paymentgatewaydetailsSchema = {
     addOrUpdate: z.object({
+        institution_Name: z.string().optional(),
         fpgD_MerchantId: z.string().min(1, 'Merchant ID is required'),
         fpgD_SaltKey: z.string().min(1, 'Salt Key is required'),
         //fpgD_Image: z.string().min(1, 'Image is required'),
@@ -789,6 +790,15 @@ export const masterTermPeriodSchema = {
             message: 'From Month and To Month cannot be the same',
             path: ['to_Month'] // error will show under To Month
         }),
+    //  .refine(
+    //     (data) =>
+    //         monthOrder[data.from_Month] <
+    //         monthOrder[data.to_Month],
+    //     {
+    //         message: 'From Month must be earlier than To Month',
+    //         path: ['to_Month']
+    //     }
+    // ),
     delete: z.object({
         fmtP_Id: deleteIdSchema('fmtP_Id')
     })

@@ -15,7 +15,7 @@ const SelectSearchContext = React.createContext<{
 }>({
     searchable: true,
     searchQuery: '',
-    setSearchQuery: () => { },
+    setSearchQuery: () => {},
     filteredItems: new Set(),
     isMobile: false
 });
@@ -133,10 +133,7 @@ const Select = ({ children, searchable = true, onOpenChange, ...props }: SelectP
                 const [startYear, endYear] = text.split('-');
 
                 // ✅ STRICT: match ONLY from start of full year
-                if (
-                    startYear.startsWith(query) ||
-                    endYear.startsWith(query)
-                ) {
+                if (startYear.startsWith(query) || endYear.startsWith(query)) {
                     startsWithMatches.push(value);
                 }
 
@@ -144,15 +141,9 @@ const Select = ({ children, searchable = true, onOpenChange, ...props }: SelectP
             }
 
             // ✅ Normal string logic
-            if (
-                lowerText.startsWith(query) ||
-                lowerValue.startsWith(query)
-            ) {
+            if (lowerText.startsWith(query) || lowerValue.startsWith(query)) {
                 startsWithMatches.push(value);
-            } else if (
-                lowerText.includes(query) ||
-                lowerValue.includes(query)
-            ) {
+            } else if (lowerText.includes(query) || lowerValue.includes(query)) {
                 containsMatches.push(value);
             }
         });
@@ -160,8 +151,6 @@ const Select = ({ children, searchable = true, onOpenChange, ...props }: SelectP
         // ✅ Starts-with items come first
         setFilteredItems(new Set([...startsWithMatches, ...containsMatches]));
     }, [children, searchable, searchQuery, collectItemValues]);
-
-
 
     // Normalize common "empty" values to undefined so Radix shows placeholder.
     // Treat empty string, null, and numeric/string zero as empty (many forms use 0 as 'no selection').
@@ -287,7 +276,6 @@ const SelectSearch = React.forwardRef<HTMLInputElement, React.InputHTMLAttribute
             setSearchQuery(newValue);
         }, 300);
     };
-
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         // Prevent the select from closing when typing

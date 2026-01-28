@@ -8,7 +8,7 @@ import { DataTable } from '@/components/ui/data-table/data-table';
 import { Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import { useFeeMasterHead, useFeeMasterInstallment, useMasterAllFeeHead } from '@/hooks/fees/useMasters';
+import { useFeeMasterHead, useFeeMasterInstallment } from '@/hooks/fees/useMasters';
 import { masterClassSchema } from '@/schemas/fees/masters';
 import { getFeeGroupBeasedOnAcademicYear } from '@/server/fees/masters/groupsgrouping';
 import { addMasterYearlyGroupMapping } from '@/server/fees/masters/yearly_group_mapping';
@@ -128,16 +128,16 @@ export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingF
         return null;
     }, [academicYear, feeGroup]);
 
-    const { refetch: refetchAll } = useMasterAllFeeHead(
-        academicYear ? Number(academicYear) : 0,
-        apiSearchParams ? apiSearchParams : undefined
-    );
+    // const { refetch: refetchAll } = useMasterAllFeeHead(
+    //     academicYear ? Number(academicYear) : 0,
+    //     apiSearchParams ? apiSearchParams : undefined
+    // );
 
-    useEffect(() => {
-        if (academicYear && feeGroup) {
-            refetchAll();
-        }
-    }, [academicYear, feeGroup, refetchAll]);
+    // useEffect(() => {
+    //     if (academicYear && feeGroup) {
+    //         refetchAll();
+    //     }
+    // }, [academicYear, feeGroup, refetchAll]);
 
     const selectedAsmayId = watch('academicYear');
 
@@ -415,7 +415,7 @@ export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingF
                 fyghM_Id: 0
             }))
         };
-
+        console.log('Payload to save:', JSON.stringify(payload));
         try {
             const res = await addMasterYearlyGroupMapping(payload);
             const ok = res && (res.success === undefined || res.success === true);
@@ -426,7 +426,7 @@ export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingF
                     reset();
                     onSuccess?.();
 
-                    await refetchAll();
+                    //await refetchAll();
                 } catch (fetchErr) {
                     console.error('Error fetching table after save:', fetchErr);
                 }

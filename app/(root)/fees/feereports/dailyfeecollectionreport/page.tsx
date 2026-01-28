@@ -8,7 +8,6 @@ import type { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -16,6 +15,7 @@ import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 
 import { toast } from 'sonner';
 
+import { FeesCustomMultiSelectBox } from '@/components/ui/feesmultiselect';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useClassDropdownDropdown } from '@/hooks/fees/useReports';
 import { dailyFeeCollectionSchema } from '@/schemas/fees/reports';
@@ -819,7 +819,7 @@ export default function DailyFeeCollectionReportForm() {
 
                             {/* MULTI SELECT */}
                             <div className='flex-1'>
-                                <CustomMultiSelectBox
+                                <FeesCustomMultiSelectBox
                                     options={feeGroups.map((g) => ({
                                         label: g.fmG_GroupName,
                                         value: String(g.fmG_Id)
@@ -930,7 +930,7 @@ export default function DailyFeeCollectionReportForm() {
                                                       : val === 'B'
                                                         ? 'Cheque/DD'
                                                         : val === 'O'
-                                                          ? 'Online'
+                                                          ? 'Online Paid'
                                                           : val === 'Ecs'
                                                             ? 'ECS'
                                                             : val === 'S'

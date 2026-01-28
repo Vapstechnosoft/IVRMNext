@@ -6,7 +6,11 @@ import { getClassCategory, getMasterClassYearlyCategory } from '@/server/fees/ma
 import { getAcademicYearDropdown } from '@/server/fees/masters/class_yearly_category';
 
 import { getFeeTermHeadList, getheadsdropdown, getinstallmentsdropdown, gettermsdropdown } from '@/server/fees/masters/fee-term-heads';
-import { getpaymentgateway_dropdown, getpaymentgatewaydetails } from '@/server/fees/masters/fee_payment_gateway_details';
+import {
+    getpaymentgatewayInstitutionName,
+    getpaymentgateway_dropdown,
+    getpaymentgatewaydetails
+} from '@/server/fees/masters/fee_payment_gateway_details';
 import {
     getFeePrevilegeList,
     getGroupsDropdown,
@@ -1398,6 +1402,22 @@ export const feeCompanyFeeGroupMappingCompanyCompanyDropdown = (searchParams?: A
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_COMPANY_GROUP_MAPPING]
+            });
+        }
+    };
+};
+export const useMasterPaymentInstitutionName = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_PAYMENTGATEWAY_INSTITUTION_NAME],
+            queryFn: async () => getpaymentgatewayInstitutionName(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_PAYMENTGATEWAY_INSTITUTION_NAME]
             });
         }
     };

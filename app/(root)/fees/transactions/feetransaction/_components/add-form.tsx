@@ -16,8 +16,8 @@ import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { Checkbox } from '@/components/ui/checkbox';
-import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { InputText } from '@/components/ui/extension/input-text';
+import { FeesCustomMultiSelectBox } from '@/components/ui/feesmultiselect';
 import { useStudentClassDropDown, useStudentSectionDropDown } from '@/hooks/fees/useMasters';
 import { useFeeDefaulterReport } from '@/hooks/fees/useReports';
 import { useFeeMasterConfiguration, useFeeTransactionList } from '@/hooks/fees/useTrasactions';
@@ -32,6 +32,7 @@ import {
 import type {
     IFeeTDetails,
     IFeeTermDetails,
+    IStudentDisableList,
     IStudentSearchList,
     IStudentTDetails,
     IStudentTermList,
@@ -75,6 +76,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
     const [selectedStudent, setSelectedStudent] = useState<IStudentSearchList | null>(null);
     const [selectedTerm, setselectedTerm] = useState<string[]>([]);
     const [terms, setTerms] = useState<IStudentTermList[]>([]);
+    const [disableTerms, setDisableTerms] = useState<IStudentDisableList[]>([]);
     const [loadingTerm, setLoadingTerm] = useState(false);
     const [studentDetails, SetStudentDetails] = useState<IStudentTDetails[]>([]);
     const [feeDetails, SetFeeDetails] = useState<IFeeTDetails[]>([]);
@@ -247,8 +249,10 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                     searchfilter: studentSearch,
                     asmcL_ID: selectedclassId ?? 0,
                     asmS_Id: selectedSectionId ?? 0,
-                    amsT_SOL: left === false ? 'S' : 'L'
+                    amsT_SOL: left === true ? 'L' : deactive === true ? 'D' : 'S'
                 };
+
+                console.log('student details payload', JSON.stringify(payload));
                 const studentsArray = await searchStudentName(payload);
                 const studentsData = JSON.parse(JSON.stringify(studentsArray.feeStudentSearch || []));
                 setStudents(studentsData || []);
@@ -284,11 +288,13 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                 console.log('term details payload', JSON.stringify(payload));
                 const termArray = await getStudentDetails(payload);
                 const termList = JSON.parse(JSON.stringify(termArray.masterGroupDetails || []));
+                const disableTerms = JSON.parse(JSON.stringify(termArray.termDetails || []));
                 const studentDetails = JSON.parse(JSON.stringify(termArray.fillstudents || []));
                 const feeDetails = JSON.parse(JSON.stringify(termArray.showstaticticsdetails || []));
                 const studentUserNameArray = JSON.parse(JSON.stringify(termArray.filusernames || []));
                 // const studentAmountDetails = JSON.parse(JSON.stringify(termArray.fillstudentviewdetails || []));
                 setTerms(termList || []);
+                setDisableTerms(disableTerms || []);
                 SetStudentDetails(studentDetails || []);
                 SetFeeDetails(feeDetails || []);
                 SetStudentUserNameDetails(studentUserNameArray || []);
@@ -302,6 +308,21 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
         };
         fetchStudentsDetails();
     }, [selectedStudent]);
+
+    useEffect(() => {
+        if (terms.length === disableTerms.length && terms.length > 0) {
+            const updatedTerms = [...terms];
+            for (let i = 0; i < terms.length; i++) {
+                const matchingTerm = disableTerms.find((dt) => dt.fmtId === terms[i].fmT_Id);
+                if (matchingTerm && matchingTerm.netAmount <= matchingTerm.paid) {
+                    updatedTerms[i].disablepaisterms = true;
+                } else {
+                    updatedTerms[i].disablepaisterms = false;
+                }
+            }
+            setTerms(updatedTerms);
+        }
+    }, [disableTerms]);
 
     useEffect(() => {
         if (!selectedTerm || selectedTerm.length === 0) {
@@ -500,8 +521,10 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
     const handleCheckboxChange = (checked: boolean, type: 'left' | 'inactive' | 'class' | 'section') => {
         if (type === 'left') {
             setLeft(checked);
+            setDeative(false);
         } else if (type === 'inactive') {
             setDeative(checked);
+            setLeft(false);
         } else if (type === 'class') {
             setClass(checked);
             if (!checked) {
@@ -515,7 +538,50 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                 setClass(false);
             }
         }
+
+        // Clear student search and reset student selection when filters change
+        setStudentSearch('');
+        setSelectedStudent(null);
+        setStudents([]);
+        setTerms([]);
+        SetStudentDetails([]);
+        SetFeeDetails([]);
+        setselectedTerm([]);
     };
+
+    // // Find this useEffect (around line 298) and update its dependencies
+    // useEffect(() => {
+    //     if (!studentSearch.trim()) {
+    //         setStudents([]);
+    //         return;
+    //     }
+
+    //     const fetchStudents = async () => {
+    //         setLoadingStudents(true);
+    //         try {
+    //             const payload = {
+    //                 asmaY_Id: selectedAsmayId,
+    //                 filterinitialdata: filterType,
+    //                 searchfilter: studentSearch,
+    //                 asmcL_ID: selectedclassId ?? 0,
+    //                 asmS_Id: selectedSectionId ?? 0,
+    //                 amsT_SOL: left === false ? 'S' : 'L',
+    //                 // Add deactive flag if needed by your API
+    //                 amsT_Status: deactive ? 'I' : 'A' // Assuming 'I' for inactive, 'A' for active
+    //             };
+    //             const studentsArray = await searchStudentName(payload);
+    //             const studentsData = JSON.parse(JSON.stringify(studentsArray.feeStudentSearch || []));
+    //             setStudents(studentsData || []);
+    //         } catch (error) {
+    //             console.error('Failed to fetch students:', error);
+    //             setStudents([]);
+    //         } finally {
+    //             setLoadingStudents(false);
+    //         }
+    //     };
+
+    //     fetchStudents();
+    // }, [studentSearch, selectedAsmayId, filterType, selectedclassId, selectedSectionId, left, deactive]); // Add left and deactive to dependencies
 
     const onSubmit = async () => {
         if (feeHeads.filter((f) => selectedHeads[f.fmA_Id]).length === 0) {
@@ -1096,10 +1162,11 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                             </div>
 
                             <div className='w-80'>
-                                <CustomMultiSelectBox
+                                <FeesCustomMultiSelectBox
                                     options={terms.map((ex) => ({
                                         label: ex.fmG_GroupName,
-                                        value: ex.fmT_Id.toString()
+                                        value: ex.fmT_Id.toString(),
+                                        disabled: ex.disablepaisterms
                                     }))}
                                     isLoading={loadingTerm}
                                     disabled={amountCheck || filterType === 'Chal_no'}
@@ -1161,11 +1228,13 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                         Fee Details <span>➤</span>
                                     </span>
 
-                                    <span
-                                        className='flex cursor-pointer items-center gap-1 hover:underline'
-                                        onClick={() => setOpenStudentDetails(true)}>
-                                        Student Profile <span>➤</span>
-                                    </span>
+                                    {selectedStudent != null && (
+                                        <span
+                                            className='flex cursor-pointer items-center gap-1 hover:underline'
+                                            onClick={() => setOpenStudentDetails(true)}>
+                                            Student Profile <span>➤</span>
+                                        </span>
+                                    )}
                                 </div>
 
                                 {studentDetails.length > 0 && (
@@ -1204,13 +1273,13 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
 
                 {openFeeDetails && <FeeDetails onClose={() => setOpenFeeDetails(false)} data={feeDetails} loading={false} />}
 
-                {openStudentDetails && (
+                {openStudentDetails && selectedStudent != null && (
                     <StudentProfileModal
                         isOpen={!!openStudentDetails}
                         onClose={() => setOpenStudentDetails(false)}
                         data={openStudentDetails}
                         loading={false}
-                        amst_Id={Number(selectedStudent?.amst_Id)}
+                        amst_Id={Number(selectedStudent!.amst_Id)}
                         asmay_Id={Number(selectedAsmayId)}
                     />
                 )}

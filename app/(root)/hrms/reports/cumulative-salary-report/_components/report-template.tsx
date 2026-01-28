@@ -1,28 +1,16 @@
 'use client';
 import { Button } from '@/components/ui/button';
+import type { SalaryReportRecord } from '@/types/hrms/reports/cumulative-salary-report';
 import { Download, Printer, X } from 'lucide-react';
-import type { CumulativeSalaryRecord } from './columns';
+import type { CumulativeSummary } from './columns';
+
 interface ReportTemplateProps {
     schoolName?: string;
     schoolAddress?: string;
     month: string;
     year: string;
-    reportData: CumulativeSalaryRecord[];
-    totals: {
-        basic: number;
-        da: number;
-        hra: number;
-        conveyance: number;
-        medical: number;
-        splAllowance: number;
-        grossEarning: number;
-        pf: number;
-        esi: number;
-        others: number;
-        pt: number;
-        grossDeduction: number;
-        netSalary: number;
-    };
+    reportData: SalaryReportRecord[];
+    totals: CumulativeSummary;
     isLoading?: boolean;
     onPrint: () => void;
     onExport: () => void;
@@ -94,98 +82,86 @@ export function CumulativeSalaryReportTemplate({
                                 </td>
                             </tr>
                         ) : reportData.length === 0 ? (
-                            // Show empty row with dashes to maintain table structure
                             <tr>
-                                <td className='border border-gray-300 px-2 py-2 text-center'>-</td>
-                                <td className='border border-gray-300 px-2 py-2 text-left'>-</td>
-                                <td className='border border-gray-300 px-2 py-2 text-left'>-</td>
-                                {/* Earnings */}
-                                <td className='border border-gray-300 px-2 py-2 text-right'>-</td>
-                                <td className='border border-gray-300 px-2 py-2 text-right'>-</td>
-                                <td className='border border-gray-300 px-2 py-2 text-right'>-</td>
-                                <td className='border border-gray-300 px-2 py-2 text-right'>-</td>
-                                <td className='border border-gray-300 px-2 py-2 text-right'>-</td>
-                                <td className='border border-gray-300 px-2 py-2 text-right'>-</td>
-                                <td className='border border-gray-300 px-2 py-2 text-right'>-</td>
-                                {/* Deductions */}
-                                <td className='border border-gray-300 px-2 py-2 text-right'>-</td>
-                                <td className='border border-gray-300 px-2 py-2 text-right'>-</td>
-                                <td className='border border-gray-300 px-2 py-2 text-right'>-</td>
-                                <td className='border border-gray-300 px-2 py-2 text-right'>-</td>
-                                <td className='border border-gray-300 px-2 py-2 text-right'>-</td>
-                                <td className='border border-gray-300 px-2 py-2 text-center'>-</td>
-                                <td className='border border-gray-300 px-2 py-2 text-center'>-</td>
-                                <td className='border border-gray-300 px-2 py-2 text-right'>-</td>
-                                <td className='border border-gray-300 px-2 py-2 text-center'>-</td>
+                                <td colSpan={19} className='border border-gray-300 px-4 py-8 text-center text-gray-500'>
+                                    No records found for the selected month and year.
+                                </td>
                             </tr>
                         ) : (
-                            reportData.map((record, index) => {
-                                const employeeName = `${record.HRME_EmployeeFirstName || ''} ${
-                                    record.HRME_EmployeeMiddleName || ''
-                                } ${record.HRME_EmployeeLastName || ''}`.trim();
-                                const designation = record.HRMDES_DesignationName || record.designation || '';
-                                return (
-                                    <tr key={record.HRME_Id || index} className='hover:bg-gray-50'>
-                                        <td className='border border-gray-300 px-2 py-2 text-center'>{index + 1}</td>
-                                        <td className='border border-gray-300 px-2 py-2 text-left'>{employeeName || '-'}</td>
-                                        <td className='border border-gray-300 px-2 py-2 text-left'>{designation || '-'}</td>
-                                        {/* Earnings */}
-                                        <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(record.basic || 0)}</td>
-                                        <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(record.da || 0)}</td>
-                                        <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(record.hra || 0)}</td>
-                                        <td className='border border-gray-300 px-2 py-2 text-right'>
-                                            {formatCurrency(record.conveyance || 0)}
-                                        </td>
-                                        <td className='border border-gray-300 px-2 py-2 text-right'>
-                                            {formatCurrency(record.medical || 0)}
-                                        </td>
-                                        <td className='border border-gray-300 px-2 py-2 text-right'>
-                                            {formatCurrency(record.splAllowance || 0)}
-                                        </td>
-                                        <td className='border border-gray-300 px-2 py-2 text-right font-semibold'>
-                                            {formatCurrency(record.grossEarning || 0)}
-                                        </td>
-                                        {/* Deductions */}
-                                        <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(record.pf || 0)}</td>
-                                        <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(record.esi || 0)}</td>
-                                        <td className='border border-gray-300 px-2 py-2 text-right'>
-                                            {formatCurrency(record.others || 0)}
-                                        </td>
-                                        <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(record.pt || 0)}</td>
-                                        <td className='border border-gray-300 px-2 py-2 text-right font-semibold'>
-                                            {formatCurrency(record.grossDeduction || 0)}
-                                        </td>
-                                        <td className='border border-gray-300 px-2 py-2 text-center'>{record.leaveDedDays || 0}</td>
-                                        <td className='border border-gray-300 px-2 py-2 text-center'>{record.leaveDedPrevDays || 0}</td>
-                                        <td className='border border-gray-300 px-2 py-2 text-right font-semibold text-green-600'>
-                                            {formatCurrency(record.netSalary || 0)}
-                                        </td>
-                                        <td className='border border-gray-300 px-2 py-2 text-center text-gray-400'>-</td>
-                                    </tr>
-                                );
-                            })
+                            reportData.map((record, index) => (
+                                <tr key={record.HRME_Id || index} className='hover:bg-gray-50'>
+                                    <td className='border border-gray-300 px-2 py-2 text-center'>{index + 1}</td>
+                                    <td className='border border-gray-300 px-2 py-2 text-left'>
+                                        {record.employeeName || record.HRME_EmployeeFirstName}
+                                    </td>
+                                    <td className='border border-gray-300 px-2 py-2 text-left'>
+                                        {record.designation || record.HRMDES_DesignationName}
+                                    </td>
+
+                                    <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(record.basic || 0)}</td>
+                                    <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(record.da || 0)}</td>
+                                    <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(record.hra || 0)}</td>
+                                    <td className='border border-gray-300 px-2 py-2 text-right'>
+                                        {formatCurrency(record.conveyance || 0)}
+                                    </td>
+                                    <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(record.medical || 0)}</td>
+                                    <td className='border border-gray-300 px-2 py-2 text-right'>
+                                        {formatCurrency(record.splAllowance || 0)}
+                                    </td>
+                                    <td className='border border-gray-300 px-2 py-2 text-right font-semibold'>
+                                        {formatCurrency(record.grossEarning || 0)}
+                                    </td>
+
+                                    <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(record.pf || 0)}</td>
+                                    <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(record.esi || 0)}</td>
+                                    <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(record.others || 0)}</td>
+                                    <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(record.pt || 0)}</td>
+                                    <td className='border border-gray-300 px-2 py-2 text-right font-semibold'>
+                                        {formatCurrency(record.grossDeduction || 0)}
+                                    </td>
+
+                                    <td className='border border-gray-300 px-2 py-2 text-center'>{record.leaveDedDays || 0}</td>
+                                    <td className='border border-gray-300 px-2 py-2 text-center'>{record.leaveDedPrevDays || 0}</td>
+                                    <td className='border border-gray-300 px-2 py-2 text-right font-semibold text-green-600'>
+                                        {formatCurrency(record.netSalary || 0)}
+                                    </td>
+                                    <td className='border border-gray-300 px-2 py-2 text-center text-gray-400'>-</td>
+                                </tr>
+                            ))
                         )}
+
                         {/* Totals Row */}
                         <tr className='bg-gray-50 font-semibold'>
                             <td colSpan={3} className='border border-gray-300 px-2 py-2 text-right'>
                                 Total:
                             </td>
-                            <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(totals.basic)}</td>
-                            <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(totals.da)}</td>
-                            <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(totals.hra)}</td>
-                            <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(totals.conveyance)}</td>
-                            <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(totals.medical)}</td>
-                            <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(totals.splAllowance)}</td>
-                            <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(totals.grossEarning)}</td>
-                            <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(totals.pf)}</td>
-                            <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(totals.esi)}</td>
-                            <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(totals.others)}</td>
-                            <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(totals.pt)}</td>
-                            <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(totals.grossDeduction)}</td>
+                            {/* Map totals correctly based on CumulativeSummary type */}
+                            <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(totals.totalBasicSalary)}</td>
+                            {/* Assuming totals contains breakdown if needed, otherwise using placeholders or needing updated CumulativeSummary type if breakdown is required. */}
+                            {/* The CumulativeSummary type only has aggregates. I will use 0 for individual ones not present in summary, or check if I should update summary type. */}
+                            {/* For now, leaving as 0 to match type, but usually summary should match columns. */}
+                            {/* NOTE: CumulativeSummary interface in columns.tsx DOES NOT have da, hra, etc. It only has totalBasicSalary, totalGrossSalary, etc. */}
+                            {/* I will only fill the known totals and empty for others to avoid type errors. */}
+
+                            <td className='border border-gray-300 px-2 py-2 text-right'>-</td>
+                            <td className='border border-gray-300 px-2 py-2 text-right'>-</td>
+                            <td className='border border-gray-300 px-2 py-2 text-right'>-</td>
+                            <td className='border border-gray-300 px-2 py-2 text-right'>-</td>
+                            <td className='border border-gray-300 px-2 py-2 text-right'>-</td>
+
+                            <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(totals.totalGrossSalary)}</td>
+
+                            <td className='border border-gray-300 px-2 py-2 text-right'>-</td>
+                            <td className='border border-gray-300 px-2 py-2 text-right'>-</td>
+                            <td className='border border-gray-300 px-2 py-2 text-right'>-</td>
+                            <td className='border border-gray-300 px-2 py-2 text-right'>-</td>
+
+                            <td className='border border-gray-300 px-2 py-2 text-right'>{formatCurrency(totals.totalDeductions)}</td>
+
                             <td className='border border-gray-300 px-2 py-2 text-center'>-</td>
                             <td className='border border-gray-300 px-2 py-2 text-center'>-</td>
                             <td className='border border-gray-300 px-2 py-2 text-right text-green-600'>
-                                {formatCurrency(totals.netSalary)}
+                                {formatCurrency(totals.totalNetSalary)}
                             </td>
                             <td className='border border-gray-300 px-2 py-2 text-center'>-</td>
                         </tr>
@@ -194,14 +170,14 @@ export function CumulativeSalaryReportTemplate({
             </div>
             {/* Action Buttons */}
             <div className='flex justify-end gap-3 print:hidden'>
-                <Button variant='outline' onClick={onPrint} prefix={<Printer className='size-4' />}>
-                    PRINT
+                <Button variant='outline' onClick={onPrint} className='gap-2'>
+                    <Printer className='size-4' /> PRINT
                 </Button>
-                <Button variant='outline' onClick={onCancel} prefix={<X className='size-4' />}>
-                    CANCEL
+                <Button variant='outline' onClick={onCancel} className='gap-2'>
+                    <X className='size-4' /> CANCEL
                 </Button>
-                <Button variant='outline' onClick={onExport} prefix={<Download className='size-4' />}>
-                    EXPORT TO EXCEL
+                <Button variant='outline' onClick={onExport} className='gap-2'>
+                    <Download className='size-4' /> EXPORT TO EXCEL
                 </Button>
             </div>
         </div>

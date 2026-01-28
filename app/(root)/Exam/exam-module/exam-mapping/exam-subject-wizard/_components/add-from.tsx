@@ -78,6 +78,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
     // dropdown states
     const [categories, setCategories] = useState<ICategory[]>([]);
+    const [categoriesLoading, setCategoriesLoading] = useState(false);
     const [exams, setExams] = useState<{ EME_Id: number; EME_ExamName: string; checked?: boolean }[]>([]);
     const [subjects, setSubjects] = useState<any[]>([]);
     const [gradeList, setGradeList] = useState<IMasterGrade[]>([]);
@@ -102,7 +103,9 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     const { data: gradeData, error: gradeError } = useMasterGradeDropdownList();
     const { data: response } = useExamSubjectWizardDetails(30, rowData?.eycE_Id ? rowData?.eycE_Id : 0);
     const { refetchAll } = useExamSubjectWizard();
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const { data: masterSubSubject, isLoading: masterSubSubjectLoading } = useMasterSubSubjectDropdownList();
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const { data: masterSubExam, isLoading: masterSubExamLoading } = useMasterSubExamDropdownList();
     const router = useRouter();
     const convertToISO = (dateStr: string) => {
@@ -119,7 +122,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
         if (masterSubExam && Array.isArray(masterSubExam.data)) {
             setSubExams(masterSubExam.data);
         }
-    });
+    }, [masterSubExam]);
 
     // populate controlled dropdowns on mount / when data arrives
     useEffect(() => {
@@ -165,11 +168,14 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
         if (!watchYear) return;
         async function fetchRelated() {
             try {
+                setCategoriesLoading(true);
                 const { data: cats } = await getCategoryDropDowByExamYearCategoryList(30, Number(watchYear));
                 setCategories(Array.isArray(cats) ? cats : []);
             } catch (err: any) {
                 toast.error(err?.message ?? 'Failed to load categories');
                 setCategories([]);
+            } finally {
+                setCategoriesLoading(false);
             }
         }
         fetchRelated();
@@ -216,6 +222,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 }
 
                 if (mappedExams.length === 0) toast.info('No Exams mapped to this Category.');
+                // biome-ignore lint/correctness/noUnusedVariables: <explanation>
             } catch (err) {
                 setExams([]);
                 toast.error('Failed to load exams.');
@@ -346,11 +353,17 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                             // ---------------------------
                             // Sub-Subject Mapping
                             if (updated.EYCES_SubSubjectFlg && !updated.EYCES_SubExamFlg) {
-                                console.log(30, updated.EYCES_Id);
+                                console.info(30, updated.EYCES_Id);
                                 const { data: mappedList } = await getSubSubjectsMappedList(30, updated.EYCES_Id);
                                 if (mappedList?.length) {
                                     console.log('mapped subsubjectData', mappedList);
-                                    updated.subSubjectConfig = mappedList.map(mapToSubSubjectConfig);
+                                    updated.subSubjectConfig = mappedList.map((item: any) => ({
+                                        ...mapToSubSubjectConfig(item),
+                                        emsS_Order: item.emsS_Order ?? item.EMSS_Order ?? item.eycessS_SubSubjectOrder ?? 0,
+                                        // Ensure standard keys exist even if backend sends PascalCase
+                                        emsS_Id: item.emsS_Id ?? item.EMSS_Id,
+                                        emsS_SubSubjectName: item.emsS_SubSubjectName ?? item.EMSS_SubSubjectName
+                                    }));
                                 }
                             }
 
@@ -358,16 +371,28 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                             if (updated.EYCES_SubExamFlg && !updated.EYCES_SubSubjectFlg) {
                                 const { data: mappedList } = await getSubExamsMappedList(30, updated.EYCES_Id);
                                 if (mappedList?.length) {
-                                    updated.subExamConfig = mappedList.map(mapToSubExamConfig);
+                                    updated.subExamConfig = mappedList.map((item: any) => ({
+                                        ...mapToSubExamConfig(item),
+                                        emsE_SubExamOrder:
+                                            item.emsE_SubExamOrder ?? item.EMSE_SubExamOrder ?? item.eycessE_SubExamOrder ?? 0,
+                                        // Ensure standard keys exist
+                                        emsE_Id: item.emsE_Id ?? item.EMSE_Id,
+                                        emsE_SubExamName: item.emsE_SubExamName ?? item.EMSE_SubExamName
+                                    }));
                                 }
                             }
 
                             // Sub-Subject-Sub-Exam Mapping
                             if (updated.EYCES_SubSubjectFlg && updated.EYCES_SubExamFlg) {
                                 const { data: mappedList } = await getSubSubjectsAndSubExamsMappedList(30, updated.EYCES_Id);
-                                console.log('mapped subsubjectData', mappedList);
+                                console.info('mapped subsubjectData', mappedList);
                                 if (mappedList?.length) {
-                                    updated.subSubjectSubExamConfig = mappedList.map(mapToSubSubjeSubExamctConfig);
+                                    updated.subSubjectSubExamConfig = mappedList.map((item: any) => ({
+                                        ...mapToSubSubjeSubExamctConfig(item),
+                                        // Ensure ID and Order fields fallbacks
+                                        emsS_Id: item.emsS_Id ?? item.EMSS_Id,
+                                        emsE_Id: item.emsE_Id ?? item.EMSE_Id
+                                    }));
                                 }
                             }
 
@@ -375,11 +400,12 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                         }
 
                         setSubjects(updatedSubjects);
-                        console.log('updatedSubjects', updatedSubjects);
+                        console.info('updatedSubjects', updatedSubjects);
                     } else {
                         setSubjects(formattedSubjects);
                     }
                 }
+                // biome-ignore lint/correctness/noUnusedVariables: <explanation>
             } catch (err) {
                 const fallback = [
                     {
@@ -412,14 +438,17 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
             setSubExamModalState({ open: true, subject });
             const configList = Array.isArray(subject.subExamConfig) ? subject.subExamConfig : [];
 
-            console.log('open subexammodel subExams', subExams);
+            console.log('open subexammodel configList', configList);
+            console.log('open subexammodel configList', configList);
+            console.log('open subexammodel subExams (master)', subExams);
             const updatedList = subExams.map((item: any) => {
-                const cfg = configList.find((c: any) => c.EMSE_Id === item.emsE_Id);
+                const cfg = configList.find((c: any) => Number(c.EMSE_Id) === Number(item.emsE_Id));
 
                 if (!cfg) {
                     return { ...item, checkedvalue: false };
                 }
 
+                console.log('Found config for', item.emsE_Id, cfg);
                 return {
                     ...item,
                     ...cfg,
@@ -427,7 +456,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 };
             });
 
-            console.log('open subexammodel updatedList', updatedList);
+            console.info('open subexammodel updatedList', updatedList);
             setSubExamModalState({
                 open: true,
                 subject: {
@@ -435,6 +464,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                     list: updatedList
                 }
             });
+            // biome-ignore lint/correctness/noUnusedVariables: <explanation>
         } catch (error) {
             setSubExamModalState({
                 open: true,
@@ -562,7 +592,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 s.ISMS_Id === subjectId ? { ...s, subSubjectConfig: selectedList, EYCES_SubSubjectFlg: selectedList.length > 0 } : s
             )
         );
-        console.log('subSubjectList **', subSubjectList);
+        console.info('subSubjectList **', subSubjectList);
         setSubSubjects((prev: IMasterSubSubject[]) =>
             prev.map((sub) => {
                 const matched = subSubjectList.find((l: any) => l.emsS_Id === sub.emsS_Id);
@@ -570,7 +600,8 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 return matched
                     ? {
                         ...sub,
-                        emsS_Order: Number(matched.eycessS_SubSubjectOrder ?? 0)
+                        emsS_Order: Number(matched.eycessS_SubSubjectOrder ?? 0),
+                        EMSS_Order: Number(matched.eycessS_SubSubjectOrder ?? 0)
                     }
                     : sub;
             })
@@ -591,21 +622,23 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                     : s
             )
         );
-        console.log('add-form subExamList **', subExamList);
+        console.info('add-form subExamList **', subExamList);
         const subExamList_ = subExamList.map((item, index) => ({
             ...item,
-            emsE_SubExamOrder: index + 1
+            emsE_SubExamOrder: index + 1,
+            EMSE_SubExamOrder: index + 1
         }));
-        console.log('add-form subExamList_ ** after update', subExamList_);
+        console.info('add-form subExamList_ ** after update', subExamList_);
 
         setSubExams((prev: IMasterSubExam[]) =>
             prev.map((exam) => {
-                const matched = subExamList_.find((l: any) => l.emsE_Id === exam.emsE_Id);
+                const matched = subExamList_.find((l: any) => Number(l.emsE_Id) === Number(exam.emsE_Id));
 
                 return matched
                     ? {
                         ...exam,
-                        emsE_SubExamOrder: Number(matched.emsE_SubExamOrder ?? 0)
+                        emsE_SubExamOrder: Number(matched.emsE_SubExamOrder ?? 0),
+                        EMSE_SubExamOrder: Number(matched.EMSE_SubExamOrder ?? matched.emsE_SubExamOrder ?? 0)
                     }
                     : exam;
             })
@@ -616,15 +649,15 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     };
 
     const handleSaveSubSubjectSubExam = (subjectId: number, selectedList: any[]) => {
-        console.log('selectedList **', selectedList);
-        console.log('subjectId **', subjectId);
-        console.log('subjects **', subjects);
+        console.info('selectedList **', selectedList);
+        console.info('subjectId **', subjectId);
+        console.info('subjects **', subjects);
         setSubjects((prev) =>
             prev.map((s) =>
                 s.ISMS_Id === subjectId ? { ...s, subSubjectSubExamConfig: selectedList, EYCES_SubSubjectFlg: selectedList.length > 0 } : s
             )
         );
-        console.log('subjects **', subjects);
+        console.info('subjects **', subjects);
         setSubSubjectSubExamModalState({ open: false });
         toast.info('SubSubject and SubExam Data saved successfully.');
     };
@@ -640,19 +673,16 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 sub_exam_list: s.subExamConfig.map((se: any, idx: number) => ({
                     EYCESSE_Id: se.EYCESSE_Id ?? 0,
                     EYCES_Id: se.EYCES_Id ?? 0,
-                    ISMS_Id: s.ISMS_Id,
-                    EMSE_Id: se.EMSE_Id ?? se.emsE_Id ?? se.EMSE_Id,
                     EMGR_Id: Number(se.EMGR_Id) ?? Number(s.EMGR_Id) ?? s.EMGR_Id ?? null,
                     EYCESSE_MaxMarks: Number(se.EYCESSE_MaxMarks ?? se.eycessS_MaxMarks ?? 0) || 0,
                     EYCESSE_MinMarks: Number(se.EYCESSE_MinMarks ?? se.eycessS_MinMarks ?? 0) || 0,
                     EYCESSE_ExemptedFlg: !!(se.EYCESSE_ExemptedFlg ?? se.eycessS_ExemptedFlg),
                     EYCESSE_ExemptedPer: Number(se.EYCESSE_ExemptedPer ?? se.eycessS_ExemptedPer ?? 0) || 0,
                     EYCESSE_ActiveFlg: se.EYCESSE_ActiveFlg ?? true,
-                    emsE_SubExamOrder: se.emsE_SubExamOrder ?? idx + 1,
-                    EYCESSS_MarksFlg: !!(se.EYCESSS_MarksFlg ?? se.eycessS_MarksFlg),
-                    EYCESSS_GradesFlg: !!(se.EYCESSS_GradesFlg ?? se.eycessS_GradesFlg),
-                    EYCESSS_AplResultFlg: !!(se.EYCESSS_AplResultFlg ?? se.eycessS_AplResultFlg),
-                    EYCESSS_MarksEntryMax: Number(se.EYCESSS_MarksEntryMax ?? se.eycessS_MarksEntryMax ?? 0) || 0
+                    // Standardized payload format
+                    EMSE_Id: se.EMSE_Id ?? se.emsE_Id ?? se.EMSE_Id,
+                    EMSE_SubExamOrder: se.emsE_SubExamOrder ?? idx + 1,
+                    ISMS_Id: s.ISMS_Id
                 }))
             }));
     };
@@ -875,11 +905,21 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                         <SelectValue placeholder='Select Category' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {categories.map((c) => (
-                                            <SelectItem key={c.eyC_Id} value={c.eyC_Id.toString()}>
-                                                {c.emcA_CategoryName}
+                                        {categoriesLoading ? (
+                                            <SelectItem value='loading' disabled>
+                                                Loading Categories...
                                             </SelectItem>
-                                        ))}
+                                        ) : categories.length === 0 ? (
+                                            <SelectItem value='error' disabled>
+                                                No Categories Found
+                                            </SelectItem>
+                                        ) : (
+                                            categories.map((c) => (
+                                                <SelectItem key={c.eyC_Id} value={c.eyC_Id.toString()}>
+                                                    {c.emcA_CategoryName}
+                                                </SelectItem>
+                                            ))
+                                        )}
                                     </SelectContent>
                                 </Select>
 

@@ -15,7 +15,7 @@ import { addOrUpdateExamTermAndExamMapping } from '@/server/exam/exam-module/exa
 import { getCategoryDropDownByAcademicYearlist } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AlertTriangle, Trash2 } from 'lucide-react';
-import { AwaitedReactNode, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Controller, FormProvider, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -46,6 +46,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
 
     const { refetchAll } = useExamTermAndExamMapping();
     const { control, handleSubmit, reset, setValue, formState, watch } = methods;
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const { isSubmitting, errors } = formState;
 
     const [addedRows, setAddedRows] = useState<FormFields['exam_term']>([]);
@@ -490,6 +491,9 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                             label='Term Start Date'
                                             placeholder='Select Date'
                                             fromDate={today}
+                                            toDate={watch('ecT_TermEndDate') ? new Date(watch('ecT_TermEndDate')) : undefined}
+                                            restricted_tofieldName='Term End Date'
+                                            restricted_fromfieldName='Today'
                                         />
                                     )}
                                 />
@@ -506,6 +510,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                             fromDate={
                                                 methods.watch('ecT_TermStartDate') === '' ? today : new Date(watch('ecT_TermStartDate'))
                                             }
+                                            restricted_fromfieldName='Term Start Date'
                                         />
                                     )}
                                 />
@@ -519,6 +524,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                             label='Term Publish Date'
                                             placeholder='Select Date'
                                             fromDate={methods.watch('ecT_TermEndDate') === '' ? today : new Date(watch('ecT_TermEndDate'))}
+                                            restricted_fromfieldName='Term End Date'
                                         />
                                     )}
                                 />
@@ -549,7 +555,8 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                                         Error Loading Grades
                                                     </SelectItem>
                                                 ) : (
-                                                    Array.isArray(masterGrade?.data) && masterGrade?.data?.map((item: { emgR_Id: number; emgR_GradeName: string }) => (
+                                                    Array.isArray(masterGrade?.data) &&
+                                                    masterGrade?.data?.map((item: { emgR_Id: number; emgR_GradeName: string }) => (
                                                         <SelectItem key={item.emgR_Id} value={item.emgR_Id.toString()}>
                                                             {item.emgR_GradeName}
                                                         </SelectItem>

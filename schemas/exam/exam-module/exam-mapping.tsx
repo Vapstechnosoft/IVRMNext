@@ -356,6 +356,7 @@ const ExamItemSchema = z.object({
     EME_ActiveFlag: z.boolean().optional()
 });
 
+// biome-ignore lint/correctness/noUnusedVariables: <explanation>
 const YearlyCategoryExamSubjectSchema = z.object({
     EYCES_Id: z.number().int().nonnegative().optional(),
     EYCE_Id: z.number().int().nonnegative().optional(),

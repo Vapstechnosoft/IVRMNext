@@ -50,6 +50,7 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
         }
     });
 
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const [isOrderSaving, setIsOrderSaving] = useState(false);
     const { fields, append, remove } = useFieldArray({
         control,
@@ -65,6 +66,47 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
     }, [gradeName]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
+        // Validation: Check for duplicates and overlapping ranges
+        const names = new Set<string>();
+        const ranges: { from: number; to: number; name: string }[] = [];
+
+        for (const row of data.grade_list) {
+            // Check duplicate Name
+            const normalizedName = row.emgD_Name.trim().toLowerCase();
+            if (names.has(normalizedName)) {
+                toast.error(`Duplicate grade name found: ${row.emgD_Name}`);
+                return;
+            }
+            names.add(normalizedName);
+
+            // Validate Range
+            const from = Number(row.emgD_From);
+            const to = Number(row.emgD_To);
+
+            if (from >= to) {
+                toast.error(`Invalid range for ${row.emgD_Name}: 'From' (${from}) must be less than 'To' (${to})`);
+                return;
+            }
+
+            // Check overlap with existing ranges
+            for (const range of ranges) {
+                // Check for overlap: (StartA < EndB) and (EndA > StartB)
+                // Also check for boundary collisions if necessary, but strictly overlapping ranges are the main issue.
+                // Overlap: A.Start < B.End && A.End > B.Start
+                if (from < range.to && to > range.from) {
+                    toast.error(`Range for ${row.emgD_Name} (${from}-${to}) overlaps with ${range.name} (${range.from}-${range.to})`);
+                    return;
+                }
+
+                // Optional: Check for exact boundary matches that might be ambiguous (e.g. 90-100 and 90-95)
+                if (from === range.from || to === range.to) {
+                    toast.error(`Duplicate range boundaries found between ${row.emgD_Name} and ${range.name}`);
+                    return;
+                }
+            }
+            ranges.push({ from, to, name: row.emgD_Name });
+        }
+
         try {
             const payload = {
                 emgR_Id: 0,
@@ -285,18 +327,7 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                             />
                                         </td>
 
-                                        {/* Grade Points */}
-                                        <td className='border'>
-                                            <InputText
-                                                {...register(`grade_list.${index}.emgD_GradePoints`, {
-                                                    setValueAs: (v) =>
-                                                        v === '' || v === null ? null : Number.isNaN(Number(v)) ? null : Number(v)
-                                                })}
-                                                placeholder='Enter points'
-                                                error={errors.grade_list?.[index]?.emgD_GradePoints?.message}
-                                                type='number'
-                                            />
-                                        </td>
+
 
                                         {/* Remarks */}
                                         <td className='border'>
@@ -312,7 +343,7 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                                 size='sm'
                                                 onClick={() => {
                                                     const last = watch('grade_list')[index];
-                                                    console.log('last', last);
+                                                    console.info('last', last);
                                                     if (
                                                         last.emgD_Name.trim() === '' ||
                                                         last.emgD_From === null ||

@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -11,12 +12,11 @@ import {
     getSubjectsByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/marks-entry/exam-marks-entry';
 import { getExamsDropDownByAcademicYearandClassandSectionlist } from '@/server/exam/exam-module/reports/cumulative-report';
-import { useEffect, useMemo, useState } from 'react';
-import { toast } from 'sonner';
-import { type IStudentMarksRow, buildMarksEntryColumns } from './_components/columns';
-import { MarksCustomTable } from './_components/marks-entry-custom-table';
-import { Checkbox } from '@/components/ui/checkbox';
 import { X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import type { IStudentMarksRow } from './_components/columns';
+import { MarksCustomTable } from './_components/marks-entry-custom-table';
 
 /**
  * NOTE:
@@ -45,10 +45,14 @@ export interface ISubjectMeta {
    Replace with a real API call in production
    ------------------------- */
 async function fetchSubjectAndStudentsMock(
-    academicYearId: number | string,
-    classId: number | string,
-    sectionId: number | string,
-    examId?: number | string,
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
+    academicYearId: number,
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
+    classId: number,
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
+    sectionId: string,
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
+    examId?: number,
     subjectId?: number | string
 ) {
     let subjectData: any = {};
@@ -122,15 +126,15 @@ async function fetchSubjectAndStudentsMock(
             marks: '', // keep blank for main mark if subsub/subexam used
             subSubMarks: subjectData.subsubFlag
                 ? subjectData.subsubData.map((sub: { subsubId: any; maxMarks: number }) => ({
-                    subsubId: sub.subsubId,
-                    marks: '' // leave blank for entry
-                }))
+                      subsubId: sub.subsubId,
+                      marks: '' // leave blank for entry
+                  }))
                 : [],
             subExamMarks: subjectData.subexamFlag
                 ? subjectData.subexamData.map((se: { subexamId: any; maxMarks: number }) => ({
-                    subexamId: se.subexamId,
-                    marks: ''
-                }))
+                      subexamId: se.subexamId,
+                      marks: ''
+                  }))
                 : []
         };
     });
@@ -149,7 +153,7 @@ export default function MarksEntryPage() {
 
 function MarksEntryContent() {
     // Tabs: Individual/Overall
-    const [activeTab, setActiveTab] = useState<number>(0);
+    const [activeTab] = useState<number>(0);
 
     // dropdown data
     const { data: academicDropdownData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
@@ -169,9 +173,11 @@ function MarksEntryContent() {
 
     // data & table
     const [subjectMeta, setSubjectMeta] = useState<ISubjectMeta | null>(null);
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const [students, setStudents] = useState<IStudentMarksRow[]>([]);
     const [tableProps, setTableProps] = useState<ReturnType<typeof useDataTableProps> | null>(null);
     const [isStudentsGridOpen, setIsStudentsGridOpen] = useState(false);
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const [isLoading, setIsLoading] = useState(false);
 
     // loading flags
@@ -322,6 +328,7 @@ function MarksEntryContent() {
                         subjectName: x.ismS_SubjectName
                     }))
                 );
+                // biome-ignore lint/correctness/noUnusedVariables: <explanation>
             } catch (err) {
                 toast.error('Failed to load subjects');
             }
@@ -370,62 +377,62 @@ function MarksEntryContent() {
                 minMarks: s.minMarks !== undefined ? Number(s.minMarks) : undefined,
                 subsubData: Array.isArray(s.subsubData)
                     ? s.subsubData.map((x: any) => ({
-                        subsubId: Number(x.subsubId ?? x.subsubid ?? x.id),
-                        subsubName: String(x.subsubName ?? x.subsubName ?? x.subsubName ?? x.name ?? ''),
-                        maxMarks: Number(x.maxMarks ?? x.max ?? 0),
-                        minMarks: x.minMarks !== undefined ? Number(x.minMarks) : undefined
-                    }))
+                          subsubId: Number(x.subsubId ?? x.subsubid ?? x.id),
+                          subsubName: String(x.subsubName ?? x.subsubName ?? x.subsubName ?? x.name ?? ''),
+                          maxMarks: Number(x.maxMarks ?? x.max ?? 0),
+                          minMarks: x.minMarks !== undefined ? Number(x.minMarks) : undefined
+                      }))
                     : [],
                 subexamData: Array.isArray(s.subexamData)
                     ? s.subexamData.map((x: any) => ({
-                        subexamId: Number(x.subexamId ?? x.subexamid ?? x.id),
-                        subexamName: String(x.subexamName ?? x.subexamName ?? x.name ?? ''),
-                        maxMarks: Number(x.maxMarks ?? x.max ?? 0),
-                        minMarks: x.minMarks !== undefined ? Number(x.minMarks) : undefined
-                    }))
+                          subexamId: Number(x.subexamId ?? x.subexamid ?? x.id),
+                          subexamName: String(x.subexamName ?? x.subexamName ?? x.name ?? ''),
+                          maxMarks: Number(x.maxMarks ?? x.max ?? 0),
+                          minMarks: x.minMarks !== undefined ? Number(x.minMarks) : undefined
+                      }))
                     : []
             };
 
             // normalize students
             const students: IStudentMarksRow[] = Array.isArray(resp.studentData)
                 ? resp.studentData.map((st: any) => {
-                    const row: IStudentMarksRow = {
-                        studentID: st.studentID ?? st.studentId ?? 0,
-                        studentName: st.studentName ?? st.name ?? '',
-                        RegNo: st.RegNo ?? st.Reg_No ?? '',
-                        AdmissionNo: st.AdmissionNo ?? st.Admission_no ?? st.AdmissionNo ?? '',
-                        RollNo: st.RollNo ?? st.rollNo ?? 0
-                    };
+                      const row: IStudentMarksRow = {
+                          studentID: st.studentID ?? st.studentId ?? 0,
+                          studentName: st.studentName ?? st.name ?? '',
+                          RegNo: st.RegNo ?? st.Reg_No ?? '',
+                          AdmissionNo: st.AdmissionNo ?? st.Admission_no ?? st.AdmissionNo ?? '',
+                          RollNo: st.RollNo ?? st.rollNo ?? 0
+                      };
 
-                    if (!subjectMeta.subsubFlag && !subjectMeta.subexamFlag) {
-                        row.marks = st.marks === '' || st.marks === undefined ? '' : Number(st.marks);
-                    } else {
-                        if (subjectMeta.subsubFlag) {
-                            row.subSubMarks = subjectMeta.subsubData.map((ss) => {
-                                const found = Array.isArray(st.subSubMarks)
-                                    ? st.subSubMarks.find((x: any) => Number(x.subsubId ?? x.subsubid) === Number(ss.subsubId))
-                                    : undefined;
-                                return {
-                                    subsubId: ss.subsubId,
-                                    marks: found?.marks === '' || found?.marks === undefined ? '' : Number(found?.marks)
-                                };
-                            });
-                        }
-                        if (subjectMeta.subexamFlag) {
-                            row.subExamMarks = subjectMeta.subexamData.map((se) => {
-                                const found = Array.isArray(st.subExamMarks)
-                                    ? st.subExamMarks.find((x: any) => Number(x.subexamId ?? x.subexamid) === Number(se.subexamId))
-                                    : undefined;
-                                return {
-                                    subexamId: se.subexamId,
-                                    marks: found?.marks === '' || found?.marks === undefined ? '' : Number(found?.marks)
-                                };
-                            });
-                        }
-                    }
+                      if (!subjectMeta.subsubFlag && !subjectMeta.subexamFlag) {
+                          row.marks = st.marks === '' || st.marks === undefined ? '' : Number(st.marks);
+                      } else {
+                          if (subjectMeta.subsubFlag) {
+                              row.subSubMarks = subjectMeta.subsubData.map((ss) => {
+                                  const found = Array.isArray(st.subSubMarks)
+                                      ? st.subSubMarks.find((x: any) => Number(x.subsubId ?? x.subsubid) === Number(ss.subsubId))
+                                      : undefined;
+                                  return {
+                                      subsubId: ss.subsubId,
+                                      marks: found?.marks === '' || found?.marks === undefined ? '' : Number(found?.marks)
+                                  };
+                              });
+                          }
+                          if (subjectMeta.subexamFlag) {
+                              row.subExamMarks = subjectMeta.subexamData.map((se) => {
+                                  const found = Array.isArray(st.subExamMarks)
+                                      ? st.subExamMarks.find((x: any) => Number(x.subexamId ?? x.subexamid) === Number(se.subexamId))
+                                      : undefined;
+                                  return {
+                                      subexamId: se.subexamId,
+                                      marks: found?.marks === '' || found?.marks === undefined ? '' : Number(found?.marks)
+                                  };
+                              });
+                          }
+                      }
 
-                    return row;
-                })
+                      return row;
+                  })
                 : [];
 
             setSubjectMeta(subjectMeta);
@@ -454,6 +461,8 @@ function MarksEntryContent() {
     /* -------------------------
        Update handlers for marks (update state + tableProps)
        ------------------------- */
+
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const updateSimpleMark = (studentID: number, newMark: number | '') => {
         setStudents((prev) => {
             const updated = prev.map((r) => (r.studentID === studentID ? { ...r, marks: newMark } : r));
@@ -462,6 +471,7 @@ function MarksEntryContent() {
         });
     };
 
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const updateSubSubMark = (studentID: number, subsubId: number, newMark: number | '') => {
         setStudents((prev) => {
             const updated = prev.map((r) => {
@@ -477,6 +487,7 @@ function MarksEntryContent() {
         });
     };
 
+    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const updateSubExamMark = (studentID: number, subexamId: number, newMark: number | '') => {
         setStudents((prev) => {
             const updated = prev.map((r) => {
@@ -655,13 +666,13 @@ function MarksEntryContent() {
                     </div>
 
                     <div className='mt-3 text-sm'>
-                        <div className="inline-flex items-center gap-2">
+                        <div className='inline-flex items-center gap-2'>
                             <Checkbox
-                                id="calculate-marks"
+                                id='calculate-marks'
                                 checked={calculateMarks}
                                 onCheckedChange={(checked) => setCalculateMarks(!!checked)}
                             />
-                            <label htmlFor="calculate-marks" className="cursor-pointer">
+                            <label htmlFor='calculate-marks' className='cursor-pointer'>
                                 Do You Want Calculate Marks?
                             </label>
                         </div>
@@ -699,7 +710,7 @@ function MarksEntryContent() {
                                 EME_Id={selectedExam === undefined ? null : selectedExam}
                                 ISMS_Id={selectedSubjectId === undefined ? null : selectedSubjectId}
                                 onSave={async (data) => {
-                                    console.log('Saving data:', data)
+                                    console.info('Saving data:', data);
                                 }}
                                 onClose={() => setIsStudentsGridOpen(false)}
                             />

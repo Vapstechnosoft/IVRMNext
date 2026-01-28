@@ -34,3 +34,8 @@ export async function deletepaymentgatewaydetails(id: number) {
 
     return await api.delete('fees', url);
 }
+
+export async function getpaymentgatewayInstitutionName() {
+    const url = '/FeePaymentGatewayDetailsFacade/institution_name';
+    return await api.get<any[]>('fees', url);
+}

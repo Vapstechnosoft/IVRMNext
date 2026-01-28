@@ -91,24 +91,6 @@ export default function AddGroupTypeForm({ onSuccess, className = '' }: AddGroup
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
 
-                        <Controller
-                            name='hrmgT_Order'
-                            control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='Order'
-                                    id='hrmgT_Order'
-                                    value={field.value}
-                                    onChange={(value) => {
-                                        const numValue = value !== null && value !== undefined ? Number(value) : 0;
-                                        field.onChange(numValue);
-                                    }}
-                                    onBlur={field.onBlur}
-                                    error={errors.hrmgT_Order?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
-                        />
                     </div>
                 </div>
 

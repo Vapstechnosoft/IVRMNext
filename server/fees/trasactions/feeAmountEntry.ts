@@ -67,5 +67,23 @@ export async function getpaymentgateway_dropdown(searchParams?: ApiSearchparams)
 
 export async function getAmountentrydetails(asmay_id: number, fmcC_id: number, fmG_id: number) {
     const url = `/fee_amount_entry/getgroupmappedheads/${asmay_id}/${fmcC_id}/${fmG_id}`;
+    console.info('fee_amount_entry/getgroupmappedheads', url);
     return await api.get<IMasterAmountEntryDetails[]>('fees', url);
+}
+
+export async function getFineslabDetails(regular?: string, ecs?: string) {
+    const params = new URLSearchParams();
+
+    // Add parameters only if they have values
+    if (regular) {
+        params.append('regularfalg', regular);
+    }
+    if (ecs) {
+        params.append('ecsflag', ecs);
+    }
+
+    const queryString = params.toString();
+    const url = `/fee_amount_entry/getfineslablist${queryString ? `?${queryString}` : ''}`;
+    console.info('Fineslab Details URL:', url);
+    return await api.get<any>('fees', url);
 }

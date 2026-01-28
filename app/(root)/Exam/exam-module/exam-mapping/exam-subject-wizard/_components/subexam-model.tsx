@@ -81,7 +81,7 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
             return;
         }
         const rawList = subject.list ?? [];
-        console.log('rawList **', rawList);
+        console.info('rawList **', rawList);
 
         const shouldSort = rawList.some((l: any) => Number(l.emsE_SubExamOrder) > 0);
         const list = (subject.list ?? []).map((l: any) => ({
@@ -102,7 +102,13 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
             emsE_SubExamOrder: l.emsE_SubExamOrder
         }));
 
-        const finalList = shouldSort ? [...list].sort((a, b) => Number(a.emsE_SubExamOrder) - Number(b.emsE_SubExamOrder)) : list;
+        const finalList = shouldSort
+            ? [...list].sort((a, b) => {
+                const orderA = Number(a.emsE_SubExamOrder) || 999999;
+                const orderB = Number(b.emsE_SubExamOrder) || 999999;
+                return orderA - orderB;
+            })
+            : list;
 
         replace(finalList);
     }, [subject, reset, replace]);
@@ -122,17 +128,46 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
     const handleOrderSave = async (updatedData: any) => {
         setIsOrderSaving(true);
         const currentList = getValues('subexam_list') ?? [];
-        const reorderedList = (updatedData ?? []).map((item: any, index: number) => {
-            const matchId = item.id ?? item.emsE_Id;
-            const original = currentList.find((x: any) => x.emsE_Id === matchId) ?? item;
-            return { ...original, emsE_SubExamOrder: index + 1 };
+
+        // Create a lookup map with ALL current values
+        const currentMap = new Map();
+        currentList.forEach((item) => {
+            currentMap.set(item.emsE_Id, { ...item });
         });
 
+        // Build the reordered list preserving ALL original values
+        const reorderedList = (updatedData ?? []).map((updatedItem: any, index: number) => {
+            const itemId = updatedItem.id || updatedItem.emsE_Id;
+            const existingItem = currentMap.get(itemId);
+
+            if (existingItem) {
+                // Keep ALL existing values including grade, only update the order
+                return {
+                    ...existingItem,
+                    emsE_SubExamOrder: index + 1
+                };
+            }
+
+            // If item doesn't exist in current list (shouldn't happen), use updatedItem
+            // but make sure we have the correct ID
+            return {
+                ...updatedItem,
+                emsE_Id: itemId,
+                emsE_SubExamOrder: index + 1,
+                // Make sure grade is preserved
+                emgR_Id: updatedItem.emgR_Id || ''
+            };
+        });
+
+        // Add any items that were not in the updatedData list (just in case)
         const reorderedIds = new Set(reorderedList.map((r: any) => r.emsE_Id));
         const remaining = currentList.filter((x: any) => !reorderedIds.has(x.emsE_Id));
-        const finalList = [...reorderedList, ...remaining].sort(
-            (a, b) => Number(a.emsE_SubExamOrder ?? 0) - Number(b.emsE_SubExamOrder ?? 0)
-        );
+
+        const finalList = [...reorderedList, ...remaining].sort((a, b) => {
+            const orderA = Number(a.EMSE_SubExamOrder) || Number(a.emsE_SubExamOrder) || 999999;
+            const orderB = Number(b.EMSE_SubExamOrder) || Number(b.emsE_SubExamOrder) || 999999;
+            return orderA - orderB;
+        });
 
         replace(finalList);
         toast.success('Sub-Exam order saved successfully.');
@@ -342,6 +377,7 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
             EYCESSE_ExemptedPer: Number(r.eycessS_ExemptedPer) || 0,
             EYCESSE_ActiveFlg: !!r.eycessS_ActiveFlg,
             emsE_SubExamOrder: index + 1,
+            EMSE_SubExamOrder: index + 1,
             EYCESSS_MarksFlg: !!r.eycessS_MarksFlg,
             EYCESSS_GradesFlg: !!r.eycessS_GradesFlg,
             EYCESSS_AplResultFlg: !!r.eycessS_AplResultFlg,
@@ -370,8 +406,7 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
     );
 
     const updateRowValue = (idx: number, field: keyof SubExamItem, value: any) => {
-        const list = getValues('subexam_list').map((r, i) => (i === idx ? { ...r, [field]: value } : r));
-        setValue('subexam_list', list, { shouldDirty: true, shouldValidate: true });
+        setValue(`subexam_list.${idx}.${String(field)}` as any, value, { shouldDirty: true, shouldValidate: false });
         clearErrors(`subexam_list.${idx}.${String(field)}` as any);
     };
 
