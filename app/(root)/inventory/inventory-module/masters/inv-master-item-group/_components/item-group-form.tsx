@@ -11,13 +11,15 @@ import {
     SelectTrigger,
     SelectValue
 } from '@/components/ui/select';
-import { useInvMasterGroup } from '@/hooks/inventory/masters/use-inv-master-group';
+import { INVENTORY_QUERY_KEYS } from '@/constants/query-keys';
+
 import { invMasterItemGroupSchema, type InvMasterItemGroupType } from '@/schemas/inventory/masters/inv-master-group';
 import { deactivateInvMasterGroup, saveInvMasterItemGroup } from '@/server/inventory/masters/inv-master-group';
 import type { IInvMasterItemGroup } from '@/types/inventory/masters/inv-master-group';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -25,18 +27,11 @@ interface ItemGroupFormProps {
     onSuccess: () => void;
     initialData?: IInvMasterItemGroup;
     mode: 'add' | 'edit';
+    userGroupOptions: { label: string; value: string }[];
 }
 
-function ItemGroupForm({ onSuccess, initialData, mode }: ItemGroupFormProps) {
-    const { data: response, refetchAll } = useInvMasterGroup();
-
-    // Mapping user group options for dropdown
-    const userGroupOptions = useMemo(() => {
-        return (response?.data?.get_usergroup || []).map((item) => ({
-            label: item.invmG_GroupName,
-            value: item.invmG_Id.toString()
-        }));
-    }, [response]);
+function ItemGroupForm({ onSuccess, initialData, mode, userGroupOptions }: ItemGroupFormProps) {
+    const queryClient = useQueryClient();
 
     const {
         control,
@@ -70,15 +65,19 @@ function ItemGroupForm({ onSuccess, initialData, mode }: ItemGroupFormProps) {
     const onSubmit: SubmitHandler<InvMasterItemGroupType> = async (data) => {
         try {
             const result = await saveInvMasterItemGroup(data);
-            if (result.returnval) {
-                toast.success(mode === 'add' ? 'Record saved successfully' : 'Record updated successfully');
-                refetchAll();
+            if (result.returnval || result.success) {
+                toast.success(result.message || (mode === 'add' ? 'Record saved successfully' : 'Record updated successfully'));
+                await queryClient.invalidateQueries({ queryKey: [INVENTORY_QUERY_KEYS.INV_MASTER_GROUP] });
                 onSuccess();
                 if (mode === 'add') reset();
+
+                // If the user specifically meant a page reload:
+                // window.location.reload(); 
+                // But generally data refresh (invalidation) is preferred. I will assume invalidation is sufficient unless explicitly told otherwise for a SPA.
             } else if (result.returnduplicatestatus === 'Duplicate') {
                 toast.error('Record already exists');
             } else {
-                toast.error('Failed to save record');
+                toast.error(result.message || 'Failed to save record');
             }
         } catch (error: any) {
             toast.error(error.message || 'An error occurred');
@@ -146,18 +145,20 @@ function ItemGroupForm({ onSuccess, initialData, mode }: ItemGroupFormProps) {
     );
 }
 
-export function AddItemGroupForm({ onSuccess }: { onSuccess: () => void }) {
-    return <ItemGroupForm onSuccess={onSuccess} mode='add' />;
+export function AddItemGroupForm({ onSuccess, userGroupOptions }: { onSuccess: () => void; userGroupOptions: { label: string; value: string }[] }) {
+    return <ItemGroupForm onSuccess={onSuccess} mode='add' userGroupOptions={userGroupOptions} />;
 }
 
 export function UpdateItemGroupForm({
     selectedRow,
-    onSuccess
+    onSuccess,
+    userGroupOptions
 }: {
     selectedRow: IInvMasterItemGroup;
     onSuccess: () => void;
+    userGroupOptions: { label: string; value: string }[];
 }) {
-    return <ItemGroupForm onSuccess={onSuccess} initialData={selectedRow} mode='edit' />;
+    return <ItemGroupForm onSuccess={onSuccess} initialData={selectedRow} mode='edit' userGroupOptions={userGroupOptions} />;
 }
 
 interface ToggleItemGroupFormProps {
@@ -166,7 +167,7 @@ interface ToggleItemGroupFormProps {
 }
 
 export function ToggleItemGroupForm({ rowData, onClose }: ToggleItemGroupFormProps) {
-    const { refetchAll } = useInvMasterGroup();
+    const queryClient = useQueryClient();
     const isActive = rowData.invmG_ActiveFlg;
 
     const {
@@ -184,7 +185,7 @@ export function ToggleItemGroupForm({ rowData, onClose }: ToggleItemGroupFormPro
             const response = await deactivateInvMasterGroup(data);
             if (response.returnval) {
                 toast.success(isActive ? 'Item Group Deactivated' : 'Item Group Activated');
-                refetchAll();
+                queryClient.invalidateQueries({ queryKey: [INVENTORY_QUERY_KEYS.INV_MASTER_GROUP] });
                 onClose();
             } else {
                 toast.error('Failed to toggle status');

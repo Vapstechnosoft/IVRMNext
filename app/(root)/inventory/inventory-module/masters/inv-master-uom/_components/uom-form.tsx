@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
-import { FormError, Label } from '@/components/ui/extension/field';
+import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useInvMasterUom } from '@/hooks/inventory/masters/use-inv-master-uom';
 import { invMasterUOMSchema, type InvMasterUOMType } from '@/schemas/inventory/masters/inv-master-uom';
@@ -59,16 +59,21 @@ export default function UOMForm({ onSuccess, className = '', selectedRow }: UOMF
         }
     }, [selectedRow, setValue, reset]);
 
+    const onInvalid = (err: any) => {
+        console.error('UOMForm: Validation Errors:', err);
+    };
+
     const onSubmit: SubmitHandler<InvMasterUOMType> = async (data) => {
+        console.log('UOMForm: Submitting data:', data);
         try {
             const response = await saveInvMasterUOM(data);
-            if (response.returnval) {
+            if (response.success || response.returnval) {
                 toast.success(selectedRow ? 'UOM Updated Successfully' : 'UOM Saved Successfully');
                 reset();
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response.returnduplicatestatus || 'Failed to save UOM');
+                toast.error(response.message || (response.returnduplicatestatus as string) || 'Failed to save UOM');
             }
         } catch (error: any) {
             toast.error(error.message || 'An unexpected error occurred');
@@ -89,7 +94,7 @@ export default function UOMForm({ onSuccess, className = '', selectedRow }: UOMF
 
     return (
         <div className={`${className}`}>
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+            <form onSubmit={handleSubmit(onSubmit, onInvalid)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
@@ -165,13 +170,13 @@ export function ToggleUOMForm({ rowData, onClose }: ToggleUOMFormProps) {
 
     const onSubmit: SubmitHandler<any> = async (data) => {
         try {
-            const response = await deactivateInvMasterUOM(data);
-            if (response.returnval) {
+            const response = await deactivateInvMasterUOM(rowData);
+            if (response.success || response.returnval) {
                 toast.success(isActive ? 'UOM Deactivated' : 'UOM Activated');
                 refetchAll();
                 onClose();
             } else {
-                toast.error('Failed to toggle status');
+                toast.error(response.message || 'Failed to toggle status');
             }
         } catch (error: any) {
             toast.error(error.message || 'An unexpected error occurred');

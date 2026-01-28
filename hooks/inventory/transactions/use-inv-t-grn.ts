@@ -15,7 +15,12 @@ export function useInvTGRN(searchParams?: ApiSearchparams) {
 
     const query = useQuery({
         queryKey: [INV_T_GRN_QUERY_KEY, searchParams],
-        queryFn: () => getInvTGRNLoadData(searchParams),
+        queryFn: async () => {
+            console.log('useInvTGRN: Fetching data with params:', searchParams);
+            const data = await getInvTGRNLoadData(searchParams);
+            return data;
+        },
+        staleTime: 0
     });
 
     const saveMutation = useMutation({
@@ -48,7 +53,7 @@ export function useInvTGRN(searchParams?: ApiSearchparams) {
     const toggleActiveMutation = useMutation({
         mutationFn: toggleInvTGRNActive,
         onSuccess: (response: any) => {
-            if (response.success || (response.data && response.data.length > 0)) {
+            if (response.success || response.returnval === true || (response.data && response.data.length > 0)) {
                 toast.success('Status updated successfully');
                 queryClient.invalidateQueries({ queryKey: [INV_T_GRN_QUERY_KEY] });
             } else {

@@ -25,15 +25,37 @@ interface ToggleInvMasterStoreFormProps {
 export default function ToggleInvMasterStoreForm({ rowData, onClose }: ToggleInvMasterStoreFormProps) {
     const { refetchAll } = useInvMasterStore();
 
-    const handleToggle = useCallback(async () => {
+    const handleToggle = useCallback(async (e: React.MouseEvent<HTMLButtonElement>) => {
+        // Prevent dialog from closing immediately if we want to wait for success
+        // But inv-master-tax doesn't prevent default. I will stick to the logic requested.
+        // Actually, if I prevent default, I must manually close.
+        // inv-master-tax code:
+        /*
+            const handleToggle = useCallback(async () => {
+                try {
+                    const result = await deactivateInvMasterTax(rowData);
+                    if (result.success || result.returnval) {
+                        toast.success(result.message || 'Record status updated successfully');
+                        refetchAll();
+                        onClose();
+                    } else {
+                        toast.error(result.message || 'Failed to update status');
+                    }
+                } catch (error: any) {
+                    toast.error(error.message || 'An error occurred');
+                }
+            }, [rowData, refetchAll, onClose]);
+        */
+
+        // I will perform the exact same Update.
         try {
             const result = await deactivateInvMasterStore(rowData);
-            if (result.returnval) {
-                toast.success('Record status updated successfully');
+            if (result.success || result.returnval) {
+                toast.success(result.message || 'Record status updated successfully');
                 refetchAll();
                 onClose();
             } else {
-                toast.error('Failed to update status');
+                toast.error(result.message || 'Failed to update status');
             }
         } catch (error: any) {
             toast.error(error.message || 'An error occurred');

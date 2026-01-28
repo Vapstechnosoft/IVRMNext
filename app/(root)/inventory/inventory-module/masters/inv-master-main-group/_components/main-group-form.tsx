@@ -4,10 +4,14 @@ import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useInvMasterGroup } from '@/hooks/inventory/masters/use-inv-master-group';
 import { invMasterMainGroupSchema } from '@/schemas/inventory/masters/inv-master-group';
 import { deactivateInvMasterGroup, saveInvMasterMainGroup } from '@/server/inventory/masters/inv-master-group';
 import type { IInvMasterMainGroup } from '@/types/inventory/masters/inv-master-group';
+import { INVENTORY_QUERY_KEYS } from '@/constants/query-keys';
+import { useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
@@ -24,6 +28,7 @@ interface MainGroupFormProps {
 }
 
 export default function MainGroupForm({ onSuccess, className = '', selectedRow }: MainGroupFormProps) {
+    const queryClient = useQueryClient();
     const { refetchAll } = useInvMasterGroup();
 
     const {
@@ -71,13 +76,13 @@ export default function MainGroupForm({ onSuccess, className = '', selectedRow }
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const response = await saveInvMasterMainGroup(data);
-            if (response.returnval) {
+            if (response.success || response.returnval) {
                 toast.success(selectedRow ? 'Main Group Updated Successfully' : 'Main Group Saved Successfully');
                 reset();
-                refetchAll();
+                queryClient.invalidateQueries({ queryKey: [INVENTORY_QUERY_KEYS.INV_MASTER_GROUP] });
                 onSuccess?.();
             } else {
-                toast.error(response.returnduplicatestatus || 'Failed to save Main Group');
+                toast.error(response.message || (response.returnduplicatestatus as string) || 'Failed to save Main Group');
             }
         } catch (error: any) {
             toast.error(error.message || 'An unexpected error occurred');
@@ -102,38 +107,60 @@ export default function MainGroupForm({ onSuccess, className = '', selectedRow }
         <div className={`${className}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <InputText
-                            label='Group Name'
-                            required
-                            id='invmG_GroupName'
-                            {...register('invmG_GroupName')}
-                            error={errors.invmG_GroupName?.message}
-                        />
-                        <InputText
-                            label='Alias Name'
-                            id='invmG_AliasName'
-                            {...register('invmG_AliasName')}
-                            error={errors.invmG_AliasName?.message}
-                        />
-                        <InputText
-                            label='Group Prefix'
-                            id='invmG_GroupPrefix'
-                            {...register('invmG_GroupPrefix')}
-                            error={errors.invmG_GroupPrefix?.message}
-                        />
-                        <InputText
-                            label='Group Suffix'
-                            id='invmG_GroupSuffix'
-                            {...register('invmG_GroupSuffix')}
-                            error={errors.invmG_GroupSuffix?.message}
-                        />
-                        <InputText
-                            label='Group Starting No'
-                            id='invmG_GroupStartingNo'
-                            {...register('invmG_GroupStartingNo')}
-                            error={errors.invmG_GroupStartingNo?.message}
-                        />
+
+
+                    <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+                        <div className='flex flex-col gap-2'>
+                            <Label htmlFor='invmG_GroupName'>
+                                Group Name <span className='text-red-500'>*</span>
+                            </Label>
+                            <Input
+                                id='invmG_GroupName'
+                                {...register('invmG_GroupName')}
+                                className={errors.invmG_GroupName ? 'border-destructive' : ''}
+                            />
+                            {errors.invmG_GroupName && <FormError>{errors.invmG_GroupName.message}</FormError>}
+                        </div>
+
+                        <div className='flex flex-col gap-2'>
+                            <Label htmlFor='invmG_AliasName'>Alias Name</Label>
+                            <Input
+                                id='invmG_AliasName'
+                                {...register('invmG_AliasName')}
+                                className={errors.invmG_AliasName ? 'border-destructive' : ''}
+                            />
+                            {errors.invmG_AliasName && <FormError>{errors.invmG_AliasName.message}</FormError>}
+                        </div>
+
+                        <div className='flex flex-col gap-2'>
+                            <Label htmlFor='invmG_GroupPrefix'>Group Prefix</Label>
+                            <Input
+                                id='invmG_GroupPrefix'
+                                {...register('invmG_GroupPrefix')}
+                                className={errors.invmG_GroupPrefix ? 'border-destructive' : ''}
+                            />
+                            {errors.invmG_GroupPrefix && <FormError>{errors.invmG_GroupPrefix.message}</FormError>}
+                        </div>
+
+                        <div className='flex flex-col gap-2'>
+                            <Label htmlFor='invmG_GroupSuffix'>Group Suffix</Label>
+                            <Input
+                                id='invmG_GroupSuffix'
+                                {...register('invmG_GroupSuffix')}
+                                className={errors.invmG_GroupSuffix ? 'border-destructive' : ''}
+                            />
+                            {errors.invmG_GroupSuffix && <FormError>{errors.invmG_GroupSuffix.message}</FormError>}
+                        </div>
+
+                        <div className='flex flex-col gap-2'>
+                            <Label htmlFor='invmG_GroupStartingNo'>Group Starting No</Label>
+                            <Input
+                                id='invmG_GroupStartingNo'
+                                {...register('invmG_GroupStartingNo')}
+                                className={errors.invmG_GroupStartingNo ? 'border-destructive' : ''}
+                            />
+                            {errors.invmG_GroupStartingNo && <FormError>{errors.invmG_GroupStartingNo.message}</FormError>}
+                        </div>
                     </div>
 
                     {errors.root && <FormError>{errors.root.message}</FormError>}
@@ -171,7 +198,7 @@ interface ToggleMainGroupFormProps {
 }
 
 export function ToggleMainGroupForm({ rowData, onClose }: ToggleMainGroupFormProps) {
-    const { refetchAll } = useInvMasterGroup();
+    const queryClient = useQueryClient();
     const isActive = rowData.invmG_ActiveFlg;
 
     const {
@@ -187,12 +214,12 @@ export function ToggleMainGroupForm({ rowData, onClose }: ToggleMainGroupFormPro
     const onSubmit: SubmitHandler<any> = async (data) => {
         try {
             const response = await deactivateInvMasterGroup(data);
-            if (response.returnval) {
+            if (response.success || response.returnval) {
                 toast.success(isActive ? 'Main Group Deactivated' : 'Main Group Activated');
-                refetchAll();
+                queryClient.invalidateQueries({ queryKey: [INVENTORY_QUERY_KEYS.INV_MASTER_GROUP] });
                 onClose();
             } else {
-                toast.error('Failed to toggle status');
+                toast.error(response.message || 'Failed to toggle status');
             }
         } catch (error: any) {
             toast.error(error.message || 'An unexpected error occurred');

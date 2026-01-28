@@ -12,6 +12,7 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddItemConsumptionForm from './_components/add-form';
 import { invTItemConsumptionColumns } from './_components/columns';
+import { ToggleItemConsumptionModal } from './_components/toggle-modal';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -53,7 +54,9 @@ function InvTItemConsumptionPageContent({
         closeAddForm,
         closeEditForm,
         addFormRef,
-        editFormRef
+        editFormRef,
+        isToggleFormOpen,
+        closeToggleForm
     } = useFormContext<InvTItemConsumption>();
 
     const { deleteMutation } = useInvTItemConsumption();
@@ -128,6 +131,10 @@ function InvTItemConsumptionPageContent({
                             </div>
                         </CollapsibleSection>
                     </div>
+                )}
+
+                {isToggleFormOpen && selectedRow && (
+                    <ToggleItemConsumptionModal rowData={selectedRow} onClose={closeToggleForm} />
                 )}
 
                 <CollapsibleSection
