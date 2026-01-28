@@ -4272,6 +4272,58 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
+                },
+                {
+                    id: 26,
+                    name: 'BirthDay',
+                    icon: 'Settings',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'BirthDay',
+                            icon: 'Settings',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Master',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'BirthDay',
+                                            icon: 'Settings',
+                                            url: '/birthday/master/masterbirthday',
+                                            title: 'Master BirthDay',
+                                            description: 'Manage Master BirthDay Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Report',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Student BirthDay Report',
+                                            icon: 'Settings',
+                                            url: '/birthday/report/studentbirthdayreport',
+                                            title: 'Student BirthDay Report',
+                                            description: 'Manage Student BirthDay Report'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Staff BirthDay Report',
+                                            icon: 'Settings',
+                                            url: '/birthday/report/staffbirthdayreport',
+                                            title: 'Staff BirthDay Report',
+                                            description: 'Manage Staff BirthDay Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
                 }
             ]
         };
