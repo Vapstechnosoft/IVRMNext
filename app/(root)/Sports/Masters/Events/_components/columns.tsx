@@ -1,20 +1,12 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IMasterEvent } from '@/types/sports/masters/events';
 import type { ColumnDef, Row } from '@tanstack/react-table';
-import { Edit, MoreHorizontal, Power } from 'lucide-react';
 
 /* ============================================
    Actions Cell Component
@@ -24,45 +16,17 @@ function ActionsCell({ row }: { row: Row<IMasterEvent> }) {
     const { openEditForm, openToggleForm } = useFormContext<IMasterEvent>();
 
     return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant='ghost' className='h-8 w-8 p-0'>
-                    <span className='sr-only'>Open menu</span>
-                    <MoreHorizontal className='h-4 w-4' />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align='end'>
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => openEditForm(data)}>
-                    <Edit className='mr-2 h-4 w-4' />
-                    Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => openToggleForm(data)}>
-                    <Power className='mr-2 h-4 w-4' />
-                    {data.spccmE_ActiveFlag ? 'Deactivate' : 'Activate'}
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
-    );
-}
-
-/* ============================================
-   Status Cell Component
-   ============================================ */
-function StatusCell({ row }: { row: Row<IMasterEvent> }) {
-    const data = row.original;
-    const { openToggleForm } = useFormContext<IMasterEvent>();
-
-    const status = data.spccmE_ActiveFlag;
-
-    return (
-        <div
-            className={`cursor-pointer rounded-full px-2 py-1 text-center text-xs font-semibold ${status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                }`}
-            onClick={() => openToggleForm(data)}>
-            {status ? 'Active' : 'Inactive'}
-        </div>
+        <ActionButtons
+            rowData={data}
+            buttons={{
+                edit: true,
+                toggle: true,
+                delete: false
+            }}
+            onEdit={() => openEditForm(data)}
+            onToggle={() => openToggleForm(data)}
+            toggleConditionKey='spccmE_ActiveFlag'
+        />
     );
 }
 
@@ -103,7 +67,14 @@ export const MasterEventColumns: ColumnDef<IMasterEvent>[] = [
     {
         accessorKey: 'spccmE_ActiveFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-        cell: StatusCell
+        cell: ({ row }) => {
+            const isActive = row.getValue('spccmE_ActiveFlag');
+            return (
+                <Badge variant={isActive ? 'success' : 'destructive'} className='font-semibold'>
+                    {isActive ? 'Active' : 'Deactivated'}
+                </Badge>
+            );
+        }
     },
     {
         id: 'actions',
