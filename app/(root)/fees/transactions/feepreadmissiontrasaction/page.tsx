@@ -32,27 +32,29 @@ export default function FeePreadmissionTransactionPage(props: { searchParams: Se
     useEffect(() => {
         if (loadingYears || !academicYearData?.data?.length) return;
 
-        const years = academicYearData.data;
+        // const years = academicYearData.data;
 
-        // Priority 1: URL parameter (asmay_Id or id)
-        if (urlAsmayId && years.some((y: any) => y.asmaY_Id === urlAsmayId)) {
-            setSelectedAsmayId(urlAsmayId);
-            return;
-        }
+        // // Priority 1: URL parameter (asmay_Id or id)
+        // if (urlAsmayId && years.some((y: any) => y.asmaY_Id === urlAsmayId)) {
+        //     setSelectedAsmayId(urlAsmayId);
+        //     return;
+        // }
 
-        // Priority 2: Current active academic year (from API flag: asmaY_IsCurrent)
-        const currentYear = years.find((y: any) => y.asmaY_IsCurrent === true);
-        if (currentYear) {
-            setSelectedAsmayId(currentYear.asmaY_Id);
-            return;
-        }
+        // // Priority 2: Current active academic year (from API flag: asmaY_IsCurrent)
+        // const currentYear = years.find((y: any) => y.asmaY_IsCurrent === true);
+        // if (currentYear) {
+        //     setSelectedAsmayId(currentYear.asmaY_Id);
+        //     return;
+        // }
 
-        // Priority 3: Fallback to the most recent year by ID (higher ID = newer)
-        const latestYear = years.slice().sort((a: any, b: any) => b.asmaY_Id - a.asmaY_Id)[0];
+        // // Priority 3: Fallback to the most recent year by ID (higher ID = newer)
+        // const latestYear = years.slice().sort((a: any, b: any) => b.asmaY_Id - a.asmaY_Id)[0];
 
-        if (latestYear) {
-            setSelectedAsmayId(latestYear.asmaY_Id);
-        }
+        // if (latestYear) {
+        //     setSelectedAsmayId(latestYear.asmaY_Id);
+        // }
+
+        setSelectedAsmayId(Number(academicYearData.data[0].asmaY_Id));
     }, [academicYearData, loadingYears, urlAsmayId]);
 
     const resolvedSearchParams = Object.fromEntries(Object.entries(searchParams || {}).filter(([_, v]) => v != null));

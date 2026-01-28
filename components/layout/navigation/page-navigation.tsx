@@ -61,7 +61,7 @@ const getPageIconWithFallback = (iconName: string | null | undefined, pageName: 
         'Employee Details': User,
         'Employee Profile': Users,
         'Salary Slip': ReceiptText,
-        'Employee Contribution': DollarSign,
+        'E-PF Contribution Register': DollarSign,
         'Employee Salary Details': DollarSign,
         'Employee Strength': Users,
         'ESI Report': Shield,
@@ -184,6 +184,7 @@ export function PageNavigation() {
     return (
         <AnimatePresence>
             <motion.div
+                className='no-print'
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
@@ -206,13 +207,13 @@ export function PageNavigation() {
                                 ref={pageScrollRef}
                                 className='scrollbar-hide flex flex-1 gap-3 overflow-x-auto px-1 py-2'
                                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                                {activeNavigation.pages.map((page: any) => {
+                                {activeNavigation.pages.map((page: any, index: number) => {
                                     const isCurrentPage = pathname === page.url;
                                     const IconComponent = getPageIconWithFallback(page.icon, page.name);
 
                                     return (
                                         <Link
-                                            key={page.id}
+                                            key={`${page.id}-${index}`}
                                             href={page.url}
                                             onClick={() => {
                                                 setPageName(page.name);

@@ -243,10 +243,22 @@ export default function UpdateFeePrivilegeForm({ onSuccess, selectedRow, classNa
 
     useEffect(() => {
         if (masterHeadName?.data && Array.isArray(masterHeadName.data)) {
-            const opts = masterHeadName.data.map((h: any) => ({
-                value: h.fmH_Id.toString(),
-                label: h.fmH_FeeName
-            }));
+            // const opts = masterHeadName.data.map((h: any) => ({
+            //     value: h.fmH_Id.toString(),
+            //     label: h.fmH_FeeName
+            // }));
+            const opts = Array.from(
+                new Map(
+                    masterHeadName.data.map((h: any) => [
+                        h.fmH_Id, // unique key
+                        {
+                            value: h.fmH_Id.toString(),
+                            label: h.fmH_FeeName
+                        }
+                    ])
+                ).values()
+            );
+
             setHeadOptions(opts);
         } else {
             setHeadOptions([]);

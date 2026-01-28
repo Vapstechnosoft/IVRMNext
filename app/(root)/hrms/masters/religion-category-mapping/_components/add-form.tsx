@@ -3,8 +3,11 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useCasteCategoryDropdown, useReligionDropdown } from '@/hooks/hrms/useEmployeeRegister';
-import { useReligionCategoryMapping } from '@/hooks/hrms/useMasters';
+import {
+    useMasterCasteCategoryDropdown,
+    useMasterReligionDropdown,
+    useReligionCategoryMapping
+} from '@/hooks/hrms/useMasters';
 import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
 import type { ICasteCategoryDropdown, IReligionDropdown } from '@/types/hrms/hrms-config/employee';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -24,17 +27,29 @@ interface AddReligionCategoryMappingFormProps {
 export default function AddReligionCategoryMappingForm({ onSuccess, className = '' }: AddReligionCategoryMappingFormProps) {
     const { saveMutation } = useReligionCategoryMapping();
 
-    // Religion dropdown - API: /api/MasterDropDown/GeAllReligionList
-    const { data: religionDropdownResponse } = useReligionDropdown();
-    const religionDropdown: IReligionDropdown[] = Array.isArray(religionDropdownResponse)
-        ? religionDropdownResponse
-        : (religionDropdownResponse as any)?.data || [];
+    // Religion dropdown
+    const { data: religionDropdownResponse } = useMasterReligionDropdown();
+    const religionDropdown = useMemo(() => {
+        const data = Array.isArray(religionDropdownResponse)
+            ? religionDropdownResponse
+            : (religionDropdownResponse as any)?.data || [];
+        return data.map((item: any) => ({
+            key: item.ivrmmR_Id,
+            value: item.ivrmmR_Name
+        }));
+    }, [religionDropdownResponse]);
 
-    // Caste Category dropdown - API: /api/MasterDropDown/GeAllCasteCategoriesList
-    const { data: casteCategoryDropdownResponse } = useCasteCategoryDropdown();
-    const casteCategoryDropdown: ICasteCategoryDropdown[] = Array.isArray(casteCategoryDropdownResponse)
-        ? casteCategoryDropdownResponse
-        : (casteCategoryDropdownResponse as any)?.data || [];
+    // Caste Category dropdown
+    const { data: casteCategoryDropdownResponse } = useMasterCasteCategoryDropdown();
+    const casteCategoryDropdown = useMemo(() => {
+        const data = Array.isArray(casteCategoryDropdownResponse)
+            ? casteCategoryDropdownResponse
+            : (casteCategoryDropdownResponse as any)?.data || [];
+        return data.map((item: any) => ({
+            key: item.imcC_Id,
+            value: item.imcC_CategoryName
+        }));
+    }, [casteCategoryDropdownResponse]);
 
     const {
         control,
@@ -60,15 +75,10 @@ export default function AddReligionCategoryMappingForm({ onSuccess, className = 
                 return;
             }
 
-            // Transform categoryids array to castid array of objects as per API spec
-            const castid = (data.categoryids || []).map((categoryId) => ({
-                imcC_Id: categoryId
-            }));
-
             const payload = {
-                ircC_Id: 0, // 0 for add, actual ID for update
+                ircC_Id: 0, // 0 for add
                 ivrmmR_Id: data.IVRMMR_Id,
-                castid: castid // Array of objects with imcC_Id property
+                imcC_Ids: (data.categoryids || []).join(',') // Comma-separated string of IDs
             };
 
             saveMapping(payload, {
@@ -104,7 +114,7 @@ export default function AddReligionCategoryMappingForm({ onSuccess, className = 
                 value: category.key?.toString().trim() || '',
                 _index: 0
             }))
-            .filter((opt) => opt.value !== '');
+            .filter((opt: { value: string }) => opt.value !== '');
     }, [casteCategoryDropdown]);
     return (
         <div className={className}>

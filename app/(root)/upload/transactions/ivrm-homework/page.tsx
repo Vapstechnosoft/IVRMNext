@@ -1,161 +1,188 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useHomeWork } from '@/hooks/upload/transactions/useHomeWork';
-import type { IHomeWork } from '@/schemas/upload/transactions/ivrm-homework.schema';
-import { Loader2, Plus, X } from 'lucide-react';
-import { Suspense } from 'react';
+import { Plus, X } from 'lucide-react';
+import { use } from 'react';
 import AddHomeWorkForm from './_components/add-form';
-import { homeWorkColumns } from './_components/columns';
 import UpdateHomeWorkForm from './_components/update-form';
-import { deleteHomeWork } from '@/server/upload/transactions/ivrm-homework/server-action';
-import { toast } from 'sonner';
 
-export default function HomeWorkPage() {
+import { HomeWorkUploadedList } from '@/hooks/upload/transactions/useHomeWork';
+import type { IHomeWorkDetails } from '@/types/upload/reports/homework-upload-report';
+import { homeWorkColumns } from './_components/columns';
+
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function HomeWorkPage(props: {
+    searchParams: SearchParams;
+}) {
+    const searchParams = use(props.searchParams);
+
+    const payload = {
+        asmaY_Id: 176
+    };
+
+    const { data: response, isLoading, error } = HomeWorkUploadedList(payload, searchParams ?? {});
+
     return (
-        <Suspense fallback={<div className='flex h-full items-center justify-center'><Loader2 className='h-8 w-8 animate-spin' /></div>}>
-            <HomeWorkContent />
-        </Suspense>
-    );
-}
-
-function HomeWorkContent() {
-    const { data, isLoading, error, refetchAll } = useHomeWork();
-
-    return (
-        <FormProvider<IHomeWork>>
-            <HomeWorkManager
-                data={data}
-                isLoading={isLoading}
-                error={error}
-                refetchAll={refetchAll}
-            />
+        <FormProvider<IHomeWorkDetails>>
+            <HomeWorkContent data={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
 
-function HomeWorkManager({
+function HomeWorkContent({
     data,
     isLoading,
-    error,
-    refetchAll
+    error
 }: {
     data: any;
     isLoading: boolean;
     error: any;
-    refetchAll: () => void;
 }) {
-    const { openAddForm, isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } = useFormContext<IHomeWork>();
-
-    const tableProps = {
-        data: data?.classwork || [],
-        isLoading,
-        error
-    };
-
-    const handleToggle = async (row: IHomeWork) => {
-        if (!row.ihW_Id) return;
-        try {
-            const result = await deleteHomeWork(row.ihW_Id);
-            if (result.success) {
-                toast.success(result.message);
-                refetchAll();
-            } else {
-                toast.error(result.message);
-            }
-        } catch (error) {
-            toast.error('Failed to toggle status');
-        }
-    };
+    const { openAddForm } = useFormContext<any>();
+    const tableProps = useDataTableProps(data);
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end'>
+                {/* Header */}
+                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
                     <Button
                         type='button'
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
-                        Add HomeWork
+                        Add Homework
                     </Button>
                 </div>
 
+                {/* Data Table Section */}
                 <CollapsibleSection
-                    title='Home Work Upload'
+                    title='Homework Upload'
                     defaultOpen={true}
                     variant='default'
                     size='lg'
-                    className='shadow-lg'>
-                    <GenericDataTable<IHomeWork>
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    <GenericDataTable<IHomeWorkDetails>
                         {...tableProps}
-                        columns={homeWorkColumns as any}
+                        columns={homeWorkColumns}
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading homework...'
-                        noDataTitle='No HomeWork Found'
+                        noDataTitle='No Homework Found'
                         noDataDescription='Get started by creating your first homework entry'
-                        errorTitle='Error Loading HomeWork'
+                        errorTitle='Error Loading homework'
                     />
                 </CollapsibleSection>
 
-                {isAddFormOpen && (
-                    <div ref={addFormRef}>
-                        <CollapsibleSection
-                            title='Add New HomeWork'
-                            defaultOpen={true}
-                            variant='outline'
-                            className='slide-in-from-top-4 animate-in shadow-lg'>
-                            <div className='relative'>
-                                <Button
-                                    type='button'
-                                    onClick={closeAddForm}
-                                    variant='ghost'
-                                    size='sm'
-                                    className='absolute -top-12 right-0 border p-2 shadow-md hover:bg-destructive/10'>
-                                    <X className='h-4 w-4 text-destructive' /> Close
-                                </Button>
-                                <AddHomeWorkForm
-                                    onSuccess={() => { closeAddForm(); refetchAll(); }}
-                                    yearList={data?.yearlist || []}
-                                    classList={data?.classlist || []}
-                                />
-                            </div>
-                        </CollapsibleSection>
-                    </div>
-                )}
-
-                {isEditFormOpen && selectedRow && (
-                    <div ref={editFormRef}>
-                        <CollapsibleSection
-                            title='Edit HomeWork'
-                            defaultOpen={true}
-                            variant='outline'
-                            className='slide-in-from-top-4 animate-in shadow-lg'>
-                            <div className='relative'>
-                                <Button
-                                    type='button'
-                                    onClick={closeEditForm}
-                                    variant='ghost'
-                                    size='sm'
-                                    className='absolute -top-12 right-0 border p-2 shadow-md hover:bg-destructive/10'>
-                                    <X className='h-4 w-4 text-destructive' /> Close
-                                </Button>
-                                <UpdateHomeWorkForm
-                                    selectedRow={selectedRow}
-                                    onSuccess={() => { closeEditForm(); refetchAll(); }}
-                                    yearList={data?.yearlist || []}
-                                    classList={data?.classlist || []}
-                                />
-                            </div>
-                        </CollapsibleSection>
-                    </div>
-                )}
+                {/* Forms */}
+                <FormSections yearList={data?.yearlist || []} classList={data?.classlist || []} onSuccess={() => {}} />
             </div>
         </div>
+    );
+}
+
+function FormSections({
+    onSuccess,
+    yearList,
+    classList
+}: {
+    onSuccess: () => void;
+    yearList: any[];
+    classList: any[];
+}) {
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isToggleFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        closeToggleForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<any>();
+
+    return (
+        <>
+            {/* Add Form */}
+            {isAddFormOpen && (
+                <div ref={addFormRef}>
+                    <CollapsibleSection
+                        title='Add New HomeWork'
+                        defaultOpen
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeAddForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+
+                            <AddHomeWorkForm
+                                classList={classList}
+                                yearList={yearList}
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    onSuccess();
+                                }}
+                            />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
+
+            {/* Edit Form */}
+            {isEditFormOpen && selectedRow && (
+                <div ref={editFormRef}>
+                    <CollapsibleSection
+                        title='Edit HomeWork'
+                        defaultOpen
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeEditForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+
+                            <UpdateHomeWorkForm
+                                selectedRow={selectedRow}
+                                classList={classList}
+                                yearList={yearList}
+                                onSuccess={() => {
+                                    closeEditForm();
+                                    onSuccess();
+                                }}
+                            />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
+            {/* Toggle Form */}
+            {/* {isToggleFormOpen && selectedRow && (
+                <ToggleHomeWorkForm
+                    rowData={selectedRow}
+                    onClose={() => {
+                        closeToggleForm();
+                        onSuccess();
+                    }}
+                />
+            )} */}
+        </>
     );
 }

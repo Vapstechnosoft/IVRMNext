@@ -1,100 +1,123 @@
+'use client';
+
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { useFormContext } from '@/components/ui/form/form-provider';
 import type { BookRegisterPayload } from '@/types/library/masters/bookRegister';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Edit, Trash2 } from 'lucide-react';
+import { useCallback } from 'react';
 
 export const BookRegisterColumns: ColumnDef<BookRegisterPayload>[] = [
     {
-        id: 'select',
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected()}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
-        ),
-        enableSorting: false,
-        enableHiding: false
-    },
-    {
         id: 'slNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No' className='w-full pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div>{continuousIndex}</div>;
+            return <div className='w-full pl-6'>{continuousIndex}</div>;
         },
-        enableHiding: true,
-        enableSorting: false
+        enableSorting: false,
+        enableHiding: false
     },
     {
-        accessorKey: 'LMB_BookTitle',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Book Title' />
+        accessorKey: 'lmB_BookTitle',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Book Title' />,
+        cell: ({ row }) => <div>{row.getValue('lmB_BookTitle')}</div>
     },
     {
         accessorKey: 'lmbanO_AccessionNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Accession No' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Accession No' />,
+        cell: ({ row }) => <div>{row.getValue('lmbanO_AccessionNo')}</div>
     },
     {
         accessorKey: 'lmP_PublisherName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Publisher' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Publisher Name' />,
+        cell: ({ row }) => <div>{row.getValue('lmP_PublisherName')}</div>
     },
     {
         accessorKey: 'lmD_DepartmentName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Department' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Dept Name' />,
+        cell: ({ row }) => <div>{row.getValue('lmD_DepartmentName')}</div>
     },
     {
         accessorKey: 'lmS_SubjectName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Subject' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Subject Name' />,
+        cell: ({ row }) => <div>{row.getValue('lmS_SubjectName')}</div>
     },
     {
         accessorKey: 'lmL_LanguageName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Language' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Language' />,
+        cell: ({ row }) => <div>{row.getValue('lmL_LanguageName')}</div>
     },
     {
         accessorKey: 'lmrA_RackName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Rack' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Rack Name' />,
+        cell: ({ row }) => <div>{row.getValue('lmrA_RackName')}</div>
     },
     {
-        accessorKey: 'AUTHOR_FullName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Author' />
+        accessorKey: 'authoR_FullName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Author Name' />,
+        cell: ({ row }) => <div>{row.getValue('authoR_FullName')}</div>
     },
     {
         accessorKey: 'lmbanO_AvialableStatus',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
+        cell: ({ row }) => {
+            const status = row.getValue('lmbanO_AvialableStatus') as string;
+            return (
+                <Badge
+                    variant={
+                        status === 'Available'
+                            ? 'default'
+                            : status === 'lost'
+                              ? 'destructive'
+                              : status === 'Issued'
+                                ? 'secondary'
+                                : 'outline'
+                    }>
+                    {status}
+                </Badge>
+            );
+        }
     },
     {
-        accessorKey: 'LMB_ActiveFlag',
+        accessorKey: 'mB_ActiveFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Active' />,
         cell: ({ row }) => {
-            const isActive = row.getValue('LMB_ActiveFlag');
+            const isActive = row.getValue('mB_ActiveFlag') as boolean;
             return <Badge variant={isActive ? 'default' : 'destructive'}>{isActive ? 'Active' : 'Inactive'}</Badge>;
         }
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
-        cell: ({ row }) => {
-            // Placeholder for actions, matching the visual style of LibBookTransaction
-            // Actual functionality would require passing handlers or using a Context if not utilizing ActionButtons
-            return (
-                <div className='flex justify-center gap-2'>
-                    <Button variant='ghost' size='icon' className='h-8 w-8 text-blue-500'>
-                        <Edit className='h-4 w-4' />
-                    </Button>
-                    <Button variant='ghost' size='icon' className='h-8 w-8 text-red-500'>
-                        <Trash2 className='h-4 w-4' />
-                    </Button>
-                </div>
-            );
-        },
-        enableSorting: false
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
+        accessorFn: (row: any) => row,
+        enableSorting: false,
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
 ];
+
+function ActionButtonsCell({ rowData }: { rowData: BookRegisterPayload }) {
+    const { openToggleForm, openEditForm } = useFormContext<BookRegisterPayload>();
+
+    const handleToggle = useCallback(
+        (data: BookRegisterPayload) => {
+            openToggleForm(data);
+        },
+        [openToggleForm]
+    );
+
+    const handleEdit = useCallback((data: BookRegisterPayload) => openEditForm(data), [openEditForm]);
+
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: true, toggle: true, delete: false }}
+            onToggle={handleToggle}
+            onEdit={handleEdit}
+            toggleConditionKey='mB_ActiveFlag' // Changed from LMB_ActiveFlag to mB_ActiveFlag
+        />
+    );
+}

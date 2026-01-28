@@ -1,10 +1,12 @@
 'use server';
 
-import type { IClassWork } from '@/schemas/upload/transactions/ivrm-classwork.schema';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
+
+import type { ApiSearchparams } from '@/types';
+import type { IClassWorkDetails, ISubjectDetails } from '@/types/upload/reports/classwork-upload-report';
 import { revalidatePath } from 'next/cache';
 
-// Mock data store
-let classWorkData: any[] = [
+const classWorkData: any[] = [
     {
         icW_Id: 1,
         asmaY_Id: 1,
@@ -37,7 +39,7 @@ export async function fetchInitialData() {
         classlist: [
             { asmcL_Id: 1, asmcL_ClassName: 'Class I' },
             { asmcL_Id: 2, asmcL_ClassName: 'Class II' },
-             { asmcL_Id: 3, asmcL_ClassName: 'Class X' }
+            { asmcL_Id: 3, asmcL_ClassName: 'Class X' }
         ],
         classwork: classWorkData
     };
@@ -45,7 +47,6 @@ export async function fetchInitialData() {
 
 export async function fetchSections(classId: number) {
     await new Promise((resolve) => setTimeout(resolve, 300));
-    // Mocking sections based on class
     const sections = [
         { asmS_Id: 1, asmC_SectionName: 'A', asmcL_Id: classId },
         { asmS_Id: 2, asmC_SectionName: 'B', asmcL_Id: classId },
@@ -56,7 +57,6 @@ export async function fetchSections(classId: number) {
 
 export async function fetchSubjects(classId: number, sectionList: any[]) {
     await new Promise((resolve) => setTimeout(resolve, 300));
-    // Mocking subjects
     const subjects = [
         { ismS_Id: 1, ismS_SubjectName: 'Maths' },
         { ismS_Id: 2, ismS_SubjectName: 'Science' },
@@ -66,29 +66,36 @@ export async function fetchSubjects(classId: number, sectionList: any[]) {
     return { subjectlist: subjects };
 }
 
-export async function saveClassWork(data: IClassWork) {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    try {
-        if (data.icW_Id) {
-            // Update
-            const index = classWorkData.findIndex((t) => t.icW_Id === data.icW_Id);
-            if (index !== -1) {
-                // In real app, we would fetch class/section/subject names here for grid display
-                classWorkData[index] = { ...classWorkData[index], ...data };
-                revalidatePath('/upload/transactions/ivrm-classwork');
-                return { success: true, message: 'Classwork updated successfully' };
-            }
-            return { success: false, message: 'Record not found' };
-        } else {
-            // Create
-            const newId = (classWorkData.length > 0 ? Math.max(...classWorkData.map(t => t.icW_Id || 0)) : 0) + 1;
-            classWorkData.push({ ...data, icW_Id: newId, icW_ActiveFlag: true });
-            revalidatePath('/upload/transactions/ivrm-classwork');
-            return { success: true, message: 'Classwork saved successfully' };
-        }
-    } catch (error) {
-        return { success: false, message: 'Failed to save classwork' };
-    }
+export async function GetClassWorkUploadedList(data: any, searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const url = '/ivrm_class_work/class_work_grid_details';
+    return await api.post<IClassWorkDetails[]>('portal', url, data);
+}
+
+export async function getSubjectsDropDownByAcademicYearandClassandSectionlist(data: any) {
+    const url = '/ivrm_class_work/subject_list_by_class_section';
+    return await api.post<ISubjectDetails>('portal', url, data);
+}
+
+export async function uploadClassWork(payload: any) {
+    const url = '/ivrm_class_work/upload_classwork';
+    return await api.post<any>('portal', url, payload);
+}
+export async function toggleUploadClassWork(id: number) {
+    const url = `/ivrm_class_work/active_deactive_class_work/${id}`;
+    return await api.put('portal', url);
+}
+
+export async function GetHomeWorkUploadedList(data: any, searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const url = '/ivrm_class_work/home_work_grid_details';
+    return await api.post<IClassWorkDetails[]>('portal', url, data);
+}
+
+// Class work verify using based on  privileges
+export async function SubjectsDropDownByAcademicYearandClassandSection(data: any) {
+    const url = '/ivrm_class_work/subjects_by_class_work_verify';
+    return await api.post<ISubjectDetails>('portal', url, data);
 }
 
 export const fetchClassWorkStudents = async (icW_Id: number): Promise<any[]> => {
@@ -106,12 +113,17 @@ export const fetchClassWorkStudents = async (icW_Id: number): Promise<any[]> => 
                 icwupl_StaffUpload: '',
                 icwupl_FileName: '',
                 checked: i % 2 === 0,
-                studentUploads: i % 3 === 0 ? [{
-                    icwupl_Id: 700 + i,
-                    icwupl_FileName: 'assignment.pdf',
-                    icwupl_Attachment: 'https://example.com/assignment.pdf',
-                    icwupl_Date: '2023-10-26'
-                }] : []
+                studentUploads:
+                    i % 3 === 0
+                        ? [
+                              {
+                                  icwupl_Id: 700 + i,
+                                  icwupl_FileName: 'assignment.pdf',
+                                  icwupl_Attachment: 'https://example.com/assignment.pdf',
+                                  icwupl_Date: '2023-10-26'
+                              }
+                          ]
+                        : []
             }));
             resolve(students);
         }, 500);

@@ -12,23 +12,21 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { calculateAge, dateToWords, formatAge } from '@/lib/utils';
-
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
 import { useAcademicYearDropdown, useConcessionDropdown, useMasterSectionHeld } from '@/hooks/admission/preadmission/useMasters';
 import {
     useActivePreadmissionDetails,
     useAdmissionClassDropdown,
     useCasteDropdown,
     useCountryDropdown,
-    useGenderDropdown,
-    usePreadmissionDocumentsDropdown,
     useReferenceDropdown,
     useReligionDropdown,
     useSourceDropdown,
     useStateDropdown
 } from '@/hooks/admission/preadmission/useTransactions';
 import { getIconByName } from '@/lib/lucide-icon-registry';
+import { calculateAge, dateToWords } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { studentAdmissionFormSchema } from '@/schemas/admission/admission-form';
 import {
@@ -36,7 +34,9 @@ import {
     saveFinalTabApi,
     saveFirstTabApi,
     saveFourthTabApi,
+    saveGaurdianApi,
     saveSecondTabApi,
+    saveStudentPhotoApi,
     saveThirdTabApi
 } from '@/server/admission/admission-form/admission';
 import { deleteDocument, uploadDocument } from '@/server/document_upload';
@@ -113,16 +113,15 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         resolver: zodResolver(studentAdmissionFormSchema.add),
         mode: 'onChange',
         defaultValues: {
-            pasA_WillingToContributeFlg: 0,
             previousSchools: [],
             siblings: [],
             guardian: [],
             amsT_ECSFlag: 0,
             isEmisBpl: 0,
-            // final flags for hostel/transport
+            feeConcessionType: 0,
             hostelRequired: false,
             transportRequired: false
-        }
+        } as any
     });
 
     // previous school entries (allow multiple)
@@ -147,16 +146,12 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         name: 'adm_M_Student_EmailIdDTO'
     });
 
-    // Ensure there's at least one email field (prefill from legacy amsT_emailId)
     useEffect(() => {
         if (emailFields.length === 0) {
             const initial = (getValues('adm_M_Student_EmailIdDTO') || [])[0]?.amsT_emailId ?? getValues('amsT_emailId') ?? '';
             appendEmail({ amsT_emailId: initial });
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-
-    // Keep legacy amsT_emailId in sync with first email field
     const watchedEmails = watch('adm_M_Student_EmailIdDTO');
     useEffect(() => {
         const first = Array.isArray(watchedEmails) && watchedEmails.length > 0 ? (watchedEmails[0]?.amsT_emailId ?? '') : '';
@@ -165,6 +160,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
     const [selectedSourceItems, setSelectedSourceItems] = useState<{ pamS_Id: string; pamS_SourceName: string }[]>([]);
     const [_selectedReferenceItems, setSelectedReferenceItems] = useState<{ pamR_Id: string; pamR_ReferenceName: string }[]>([]);
+
+    // overwrite each other when both controls are used on the same tab.
+    const [selectedActivityItems, setSelectedActivityItems] = useState<string[]>([]);
 
     const [sameAsResidential, setSameAsResidential] = useState(false);
     const [phoneExpectedInfo, setPhoneExpectedInfo] = useState<Record<string, { expected?: number; name?: string; dial?: string }>>({});
@@ -178,16 +176,54 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             document_Path: string;
             documentName?: string;
             isUploading?: boolean;
+            file?: File;
         }>
     >([]);
+
+    // Persisted amsT_Id returned from server after saving Step 1
+    const [savedAmsTId, setSavedAmsTId] = useState<number | null>(null);
 
     const [studentPhoto, setStudentPhoto] = useState<{
         amsT_Photoname: string;
         isUploading?: boolean;
     } | null>(null);
+    const [studentPhotoFile, setStudentPhotoFile] = useState<File | null>(null);
     const [studentPhotoError, setStudentPhotoError] = useState<string | null>(null);
 
-    const [documentErrors, setDocumentErrors] = useState<Record<number, string>>({});
+    // Prevent multiple final submissions by showing submitting state
+    const [submittingFinal, setSubmittingFinal] = useState(false);
+
+    // Track when currently saving step data to prevent multiple submissions
+    const [isSavingStep, setIsSavingStep] = useState(false);
+
+    // Parent photos & signatures for Step 6 (similar to student photo)
+    const [fatherPhoto, setFatherPhoto] = useState<{ path?: string; isUploading?: boolean } | null>(null);
+    const [_fatherPhotoFile, setFatherPhotoFile] = useState<File | null>(null);
+    const [_fatherPhotoError, setFatherPhotoError] = useState<string | null>(null);
+
+    const [motherPhoto, setMotherPhoto] = useState<{ path?: string; isUploading?: boolean } | null>(null);
+    const [_motherPhotoFile, setMotherPhotoFile] = useState<File | null>(null);
+    const [_motherPhotoError, setMotherPhotoError] = useState<string | null>(null);
+
+    const [fatherSignature, setFatherSignature] = useState<{ path?: string; isUploading?: boolean } | null>(null);
+    const [_fatherSignatureFile, setFatherSignatureFile] = useState<File | null>(null);
+    const [_fatherSignatureError, setFatherSignatureError] = useState<string | null>(null);
+
+    const [motherSignature, setMotherSignature] = useState<{ path?: string; isUploading?: boolean } | null>(null);
+    const [_motherSignatureFile, setMotherSignatureFile] = useState<File | null>(null);
+    const [_motherSignatureError, setMotherSignatureError] = useState<string | null>(null);
+
+    // Guardian photo & signature per guardian index (supports multiple guardians)
+    // Keep optional `file` so we can send binary `File` objects to backend
+    const [guardianPhotos, setGuardianPhotos] = useState<Record<number, { path?: string; isUploading?: boolean; file?: File }>>({});
+    const [guardianSignatures, setGuardianSignatures] = useState<Record<number, { path?: string; isUploading?: boolean; file?: File }>>({});
+
+    // Keep a snapshot of saved guardian values so we can detect unsaved edits
+    const [savedGuardianSnapshot, setSavedGuardianSnapshot] = useState<Record<number, any>>({});
+    // Explicit saved-flag per guardian index (true after successful Save)
+    const [savedGuardianSaved, setSavedGuardianSaved] = useState<Record<number, boolean>>({});
+
+    const [_documentErrors, setDocumentErrors] = useState<Record<number, string>>({});
     const [_handledStep3, setHandledStep3] = useState(false);
 
     const { data: activePreadmission } = useActivePreadmissionDetails();
@@ -205,6 +241,70 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     // Watch all country fields
     const conConuntryId = watch('amsT_ConCountry');
     const perConuntryId = watch('amsT_PerCountry');
+
+    // Watch guardian fields to conditionally show uploads when guardian name is present
+    const watchedGuardians = watch('guardian');
+
+    // helper: check if any of the common guardian fields has content
+    const guardianHasContent = (g: any) => {
+        if (!g) return false;
+        const keys = ['guardianName', 'guardianPhone', 'guardianEmail', 'guardianAddress'];
+        return keys.some((k) => !!String(g[k] ?? '').trim());
+    };
+
+    // helper: shallow compare saved snapshot to current guardian values
+    const shallowEqualGuardians = (a: any, b: any) => {
+        if (!a || !b) return false;
+        return (
+            String(a.guardianName ?? '') === String(b.guardianName ?? '') &&
+            String(a.guardianPhone ?? '') === String(b.guardianPhone ?? '') &&
+            String(a.guardianEmail ?? '') === String(b.guardianEmail ?? '') &&
+            String(a.guardianAddress ?? '') === String(b.guardianAddress ?? '')
+        );
+    };
+
+    // Invalidate saved snapshots if user edits guardian fields after save
+    useEffect(() => {
+        if (!watchedGuardians) return;
+        const nextSnapshot: Record<number, any> = { ...savedGuardianSnapshot };
+        const nextSavedFlags: Record<number, boolean> = { ...savedGuardianSaved };
+        (watchedGuardians || []).forEach((g: any, idx: number) => {
+            if (nextSnapshot[idx] && !shallowEqualGuardians(nextSnapshot[idx], g)) {
+                // User edited a previously-saved guardian -> mark as unsaved
+                delete nextSnapshot[idx];
+                nextSavedFlags[idx] = false;
+            }
+            // if there's content and no snapshot, ensure saved flag is false
+            if (guardianHasContent(g) && !nextSnapshot[idx]) {
+                nextSavedFlags[idx] = false;
+            }
+        });
+        // remove snapshots and flags for indices that no longer exist
+        Object.keys(nextSnapshot).forEach((k) => {
+            const i = Number(k);
+            if (!watchedGuardians[i]) delete nextSnapshot[i];
+        });
+        Object.keys(nextSavedFlags).forEach((k) => {
+            const i = Number(k);
+            if (!watchedGuardians[i]) delete nextSavedFlags[i];
+        });
+        setSavedGuardianSnapshot(nextSnapshot);
+        setSavedGuardianSaved(nextSavedFlags);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [watchedGuardians]);
+
+    // Whether there is any guardian with content that is not saved yet (only on Step 4)
+    const hasUnsavedGuardian = useMemo(() => {
+        if (currentStep !== 4) return false;
+        const arr = Array.isArray(watchedGuardians) ? watchedGuardians : [];
+        for (let i = 0; i < arr.length; i++) {
+            const g = arr[i];
+            if (guardianHasContent(g) && !savedGuardianSaved[i]) {
+                return true;
+            }
+        }
+        return false;
+    }, [watchedGuardians, savedGuardianSaved, currentStep]);
 
     // Use the nationality fields used in the Step 3 UI so state dropdowns refetch correctly
     const fatherPresentCountryId = watch('fatherNationality');
@@ -237,7 +337,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         error: motherCasteError,
         refetchAll: refetchMotherCaste
     } = useCasteDropdown(watch('motherReligionId') ?? 0);
-    const { data: gender, isLoading: genderLoading, error: genderError, refetchAll: refetchGender } = useGenderDropdown();
+    const genderOptions = [
+        { id: 'Male', name: 'Male' },
+        { id: 'Female', name: 'Female' },
+        { id: 'Other', name: 'Other' }
+    ];
     const { data: admissionClass, isLoading: admissionClassLoading, isError: admissionClassError } = useAdmissionClassDropdown();
     const classId = watch('asmcL_Id');
     const { data: sectionData, isLoading: sectionLoading, isError: sectionError } = useMasterSectionHeld(Number(classId));
@@ -256,6 +360,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         error: perStateError,
         refetchAll: refetchPerState
     } = useStateDropdown(Number(perConuntryId));
+
+    // Student country -> states (Step 1 student country/state)
+    const studentCountryId = watch('amsT_StudentCountry');
+    const { data: studentState, isLoading: studentStateLoading, error: studentStateError } = useStateDropdown(Number(studentCountryId));
 
     // Father address states
     const {
@@ -283,11 +391,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
     const { data: source, isLoading: sourceLoading, refetchAll: refetchSource } = useSourceDropdown();
     const { data: reference, isLoading: referenceLoading, refetchAll: refetchReference } = useReferenceDropdown();
-    const {
-        data: preadmissionDocuments,
-        isLoading: preadmissionDocumentsLoading,
-        refetchAll: refetchPreadmissionDocuments
-    } = usePreadmissionDocumentsDropdown();
+    // Preadmission documents API removed - using local uploads instead
     const { data: concession, isLoading: concessionLoading, refetchAll: refetchConcession } = useConcessionDropdown();
     const { data: academicYears, isLoading: academicLoading, refetchAll: refetchAcademic } = useAcademicYearDropdown();
 
@@ -296,8 +400,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         refetchCaste();
         refetchFatherCaste();
         refetchMotherCaste();
-        refetchGender();
-
         refetchCountry();
         refetchSource();
         refetchReference();
@@ -306,11 +408,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         refetchConState();
         refetchPerState();
         refetchFatherPresentState();
-
         refetchMotherPresentState();
-
         refetchBirthState();
-        refetchPreadmissionDocuments();
     };
 
     // Component for a single previous-school row's country/state selects.
@@ -327,7 +426,14 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                         name={`previousSchools.${idx}.countryId` as const}
                         control={control}
                         render={({ field }) => (
-                            <Select value={field.value?.toString() || ''} onValueChange={(val) => field.onChange(Number(val))}>
+                            <Select
+                                value={field.value?.toString() || ''}
+                                onValueChange={(val) => {
+                                    const num = Number(val);
+                                    field.onChange(num);
+                                    const sel = country?.data?.find((c: any) => Number(c.ivrmmC_Id) === num);
+                                    (setValue as any)(`previousSchools.${idx}.country`, sel?.ivrmmC_CountryName ?? '');
+                                }}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Country' />
                                 </SelectTrigger>
@@ -353,12 +459,18 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
                 <div className='flex flex-col gap-1.5'>
                     <Label>State</Label>
-
                     <Controller
                         name={`previousSchools.${idx}.stateId` as const}
                         control={control}
                         render={({ field }) => (
-                            <Select value={field.value?.toString() || ''} onValueChange={(val) => field.onChange(Number(val))}>
+                            <Select
+                                value={field.value?.toString() || ''}
+                                onValueChange={(val) => {
+                                    const num = Number(val);
+                                    field.onChange(num);
+                                    const sel = prevStates?.data?.find((s: any) => Number(s.ivrmmS_Id) === num);
+                                    (setValue as any)(`previousSchools.${idx}.state`, sel?.ivrmmS_Name ?? '');
+                                }}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select State' />
                                 </SelectTrigger>
@@ -411,7 +523,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
             // EMIS conditional
             if (Number(formData.isEmisBpl ?? formData.isEmisBpl) === 1) {
-                const emis = String(formData.amsT_EmisBplNo ?? getValues('amsT_EmisBplNo') ?? '').trim();
+                const emis = String(formData.amsT_BPLCardNo ?? getValues('amsT_BPLCardNo') ?? '').trim();
                 if (!emis) {
                     toast.error('EMIS / BPL / STS No. is required');
                     throw new Error('Validation failed: missing EMIS');
@@ -437,92 +549,116 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 }
             }
             // Build payload expected by server for first tab
-            const payload: any = {
-                amsT_Id: Number(formData.amsT_Id ?? 0) || 0,
-                mI_Id: Number(formData.mI_Id ?? 30) || 0,
-
-                asmaY_Id: Number(formData.asmaY_Id ?? formData.asmaY_Year ?? 0) || 0,
-                asmcL_Id: Number(formData.asmcL_Id ?? 0) || 0,
-                asmS_Id: Number(formData.asmS_Id ?? 0) || 0,
-                amsT_RegistrationNo: formData.amsT_RegistrationNo || '',
-                amsT_AdmNo: formData.amsT_AdmNo || '',
+            const payload = {
+                amsT_Id: 0,
+                mI_Id: Number(formData.mI_Id ?? 30),
+                asmaY_Id: Number(formData.asmaY_Id ?? formData.asmaY_Year ?? 0),
+                asmcL_Id: Number(formData.asmcL_Id ?? 0),
+                asmS_Id: Number(formData.asmS_Id ?? 0),
                 amsT_Date: formData.amsT_Date ? new Date(formData.amsT_Date).toISOString() : new Date().toISOString(),
-                amsT_Tpin: formData.amsT_Tpin || '',
-                amsT_FirstName: formData.amsT_FirstName || '',
-                amsT_MiddleName: formData.amsT_MiddleName || '',
-                amsT_LastName: formData.amsT_LastName || '',
-                amsT_Sex: formData.amsT_Sex || '',
-                pasR_Age: Number(formData.pasR_Age ?? 0) || 0,
+                amsT_RegistrationNo: String(formData.amsT_RegistrationNo ?? ''),
+                amsT_AdmissionNo: String(formData.amsT_AdmissionNo ?? ''),
+                amsT_DateOfAdmission: formData.amsT_Date ? new Date(formData.amsT_Date).toISOString() : new Date().toISOString(),
+                amsT_FirstName: formData.amsT_FirstName ?? '',
+                amsT_MiddleName: formData.amsT_MiddleName ?? '',
+                amsT_LastName: formData.amsT_LastName ?? '',
+                amsT_Sex: String(formData.amsT_Sex ?? ''),
                 amsT_DOB: formData.amsT_DOB ? new Date(formData.amsT_DOB).toISOString() : undefined,
-                amsT_DOB_Words: formData.amsT_DOB_Words || dateToWords(formData.amsT_DOB) || '',
-                amsT_BirthPlace: formData.amsT_BirthPlace || '',
-                amsT_BirthCertNO: formData.amsT_BirthCertNO || '',
-                amsT_AadharNo: Number(formData.amsT_AadharNo ?? 0) || 0,
-                // support alternate form keys for caste/religion (some UIs use different names)
-                imcC_Id: Number(formData.imcC_Id ?? formData.imC_Id ?? formData.amsT_CasteCategoryId ?? 0) || 0,
-                ivrmmR_Id: Number(formData.ivrmmR_Id ?? formData.amsT_ReligionId ?? 0) || 0,
-                imC_Id: Number(formData.imC_Id ?? formData.imcC_Id ?? formData.amsT_CasteCategoryId ?? 0) || 0,
-                amsT_SubCasteIMC_Id: Number(formData.amsT_SubCasteIMC_Id ?? 0) || 0,
-                amsT_Nationality: Number(formData.amsT_Nationality ?? 0) || 0,
-                amsT_BloodGroup: formData.amsT_BloodGroup || '',
-                studentCategoryId: Number(formData.studentCategoryId ?? 0) || 0,
+                amsT_DOB_Words: formData.amsT_DOB_Words ?? dateToWords(formData.amsT_DOB) ?? '',
+                pasR_Age: Number(formData.pasR_Age ?? 0),
+                amsT_MotherTongue: formData.amsT_MotherTongue ?? '',
+                amsT_LanguageSpoken: formData.amsT_LanguageSpoken ?? '',
+                amsT_StudentCategory_Id: Number(formData.amsT_StudentCategory_Id ?? 0),
+                amsT_BloodGroup: formData.amsT_BloodGroup ?? '',
+                ivrmmR_Id: Number(formData.ivrmmR_Id ?? formData.amsT_ReligionId ?? 0),
+                imcC_Id: formData.studentCategoryId ?? 1,
+                amsT_SubCasteIMC_Id: (formData.amsT_SubCasteIMC_Id ?? '')?.toString() ?? '',
+
+                amsT_CasteCertiNo: formData.amsT_CasteCertiNo ?? '',
+
+                amsT_BirthPlace: formData.amsT_BirthPlace ?? '',
+                amsT_BirthCertNO: formData.amsT_BirthCertNO ?? '',
+                amsT_AadharNo: Number(formData.amsT_AadharNo) || 0,
+
+                amsT_BiometricId: formData.amsT_BiometricId ?? '',
+                amsT_RFCardNo: formData.amsT_RFCardNo ?? '',
+                amsT_BPLCardNo: formData.amsT_BPLCardNo ?? '',
                 isEmisBpl: !!formData.isEmisBpl,
-                amsT_ECSFlag: Number(formData.amsT_ECSFlag ?? 0) || 0,
-                // Accept ECS values either nested under `adm_M_Student_ECS` or as flat fields (form registers flat names)
+                mobileNos: (() => {
+                    const src = Array.isArray(getValues('mobileNos'))
+                        ? (getValues('mobileNos') as any[])
+                        : Array.isArray(formData.mobileNos)
+                          ? formData.mobileNos
+                          : [];
+                    const arr = (src || []).slice(0, 5).map((m: any) => ({
+                        amstsmS_MobileNo: [String(m?.amsT_MobileNo ?? m?.mobileNo ?? m ?? '')],
+                        amstsmS_CountryCode: m?.amstsmS_CountryCode ?? m?.countryCode ?? ''
+                    }));
+                    return arr.length ? arr : [];
+                })(),
+                emailIds: (() => {
+                    const src = Array.isArray(formData.adm_M_Student_EmailIdDTO)
+                        ? formData.adm_M_Student_EmailIdDTO
+                        : formData.adm_M_Student_EmailIdDTO
+                          ? [formData.adm_M_Student_EmailIdDTO]
+                          : [];
+                    const arr = (src || []).map((e: any) => ({
+                        amstE_EmailId: [String(e.amsT_emailId ?? e.emailId ?? e ?? '')]
+                    }));
+                    return arr.length ? arr : [];
+                })(),
+                amsT_PerState: Number(formData.amsT_PerState ?? 0),
+                amsT_PerDistrict: Number(formData.amsT_PerDistrict ?? 0),
+                amsT_PerCountry: Number(formData.amsT_PerCountry ?? 0),
+                amsT_PerPincode: Number(formData.amsT_PerPincode) || 0,
+                amsT_BankName: formData.amsT_BankName ?? '',
+                amsT_BankBranch: formData.amsT_BankBranch ?? '',
+                amsT_BankAccountNo: formData.amsT_BankAccountNo ?? '',
+                amsT_BankIFSCCode: formData.amsT_BankIFSCCode ?? '',
+                amsT_ECSFlag: !!(formData.amsT_ECSFlag ?? false),
                 adm_M_Student_ECS: {
-                    asecS_AccountHolderName: formData.adm_M_Student_ECS?.asecS_AccountHolderName ?? formData.asecS_AccountHolderName ?? '',
-                    asecS_AccountNo: formData.adm_M_Student_ECS?.asecS_AccountNo ?? formData.asecS_AccountNo ?? '',
-                    asecS_AccountType: formData.adm_M_Student_ECS?.asecS_AccountType ?? formData.asecS_AccountType ?? '',
-                    asecS_BankName: formData.adm_M_Student_ECS?.asecS_BankName ?? formData.asecS_BankName ?? '',
-                    asecS_Branch: formData.adm_M_Student_ECS?.asecS_Branch ?? formData.asecS_Branch ?? '',
-                    asecS_MICRNo: formData.adm_M_Student_ECS?.asecS_MICRNo ?? formData.asecS_MICRNo ?? '',
-                    asecS_IFSCCode: formData.adm_M_Student_ECS?.asecS_IFSCCode ?? formData.asecS_IFSCCode ?? ''
+                    asecS_AccountNo: formData.amsT_ECSFlag
+                        ? (formData.adm_M_Student_ECS?.asecS_AccountNo ?? formData.asecS_AccountNo ?? '')
+                        : '',
+                    asecS_AccountHolderName: formData.amsT_ECSFlag
+                        ? (formData.adm_M_Student_ECS?.asecS_AccountHolderName ?? formData.asecS_AccountHolderName ?? '')
+                        : '',
+                    asecS_BankName: formData.amsT_ECSFlag
+                        ? (formData.adm_M_Student_ECS?.asecS_BankName ?? formData.asecS_BankName ?? '')
+                        : '',
+                    asecS_AccountType: formData.amsT_ECSFlag
+                        ? (formData.adm_M_Student_ECS?.asecS_AccountType ?? formData.asecS_AccountType ?? '')
+                        : '',
+                    asecS_MICRNo: formData.amsT_ECSFlag ? (formData.adm_M_Student_ECS?.asecS_MICRNo ?? formData.asecS_MICRNo ?? '') : '',
+                    asecS_BranchName: formData.amsT_ECSFlag ? (formData.adm_M_Student_ECS?.asecS_Branch ?? formData.asecS_Branch ?? '') : ''
                 },
-                // store primary mobile as string (may be empty)
-                amsT_MobileNo: String(formData.amsT_MobileNo ?? '') || '',
-                amsT_emailId: formData.amsT_emailId || '',
-                // build mobileNos from FieldArray, allow up to 5 entries
-                mobileNos: Array.isArray(getValues('mobileNos'))
-                    ? (getValues('mobileNos') as any[]).slice(0, 5).map((m: any) => ({
-                          amsT_MobileNo: String(m?.amsT_MobileNo ?? m?.mobileNo ?? m ?? ''),
-                          amstsmS_CountryCode: m?.amstsmS_CountryCode ?? m?.countryCode ?? ''
-                      }))
-                    : Array.isArray(formData.mobileNos)
-                      ? formData.mobileNos.slice(0, 5).map((m: any) => ({
-                            amsT_MobileNo: String(m?.amsT_MobileNo ?? m),
-                            amstsmS_CountryCode: m?.amstsmS_CountryCode ?? ''
-                        }))
-                      : formData.mobileNos
-                        ? [{ amsT_MobileNo: String(formData.mobileNos), amstsmS_CountryCode: '' }]
-                        : [],
-                emailIds: Array.isArray(formData.adm_M_Student_EmailIdDTO)
-                    ? formData.adm_M_Student_EmailIdDTO.map((e: any) => ({ amsT_emailId: String(e.amsT_emailId ?? e.emailId ?? e) }))
-                    : formData.adm_M_Student_EmailIdDTO
-                      ? [{ amsT_emailId: String(formData.adm_M_Student_EmailIdDTO) }]
-                      : [],
-                amsT_PerStreet: formData.amsT_PerStreet || '',
-                amsT_PerArea: formData.amsT_PerArea || '',
-                amsT_PerCity: formData.amsT_PerCity || '',
-                amsT_PerState: Number(formData.amsT_PerState ?? 0) || 0,
-                amsT_PerDistrict: Number(formData.amsT_PerDistrict ?? 0) || 0,
-                amsT_PerCountry: Number(formData.amsT_PerCountry ?? 0) || 0,
-                amsT_PerPincode: Number(formData.amsT_PerPincode ?? 0) || 0,
-                amsT_LanguageSpoken: formData.amsT_LanguageSpoken || '',
-                amsT_MotherTongue: formData.amsT_MotherTongue || '',
-                amsT_RFCardNo: formData.amsT_RFCardNo || '',
-                amsT_BiometricId: formData.amsT_BiometricId || '',
-                amsT_Photoname: formData.amsT_Photoname || formData.amsT_Photoname || '',
-                amsT_MOInstruction: formData.amsT_MOInstruction || '',
-                feeConcessionType: formData.feeConcessionType || '',
-                userId: Number(formData.userId ?? 0) || 0,
+
+                feeConcessionType: Number(formData.feeConcessionType ?? 0),
+                amsT_Tpin: formData.amsT_Tpin ?? '',
+                amsT_GPSTrackingId: formData.amsT_GPSTrackingId ?? '',
+                amsT_MediumOfInstruction: formData.amsT_MediumOfInstruction ?? '',
+                userId: Number(formData.userId ?? 0) || 21602,
                 editFlag: !!formData.editFlag,
-                returnVal: true,
-                message: formData.message || ''
+                studentPhotoUrl: '',
+                returnVal: true
             };
 
             console.debug('[Admission] saveFirstTab payload:', payload);
+
+            // Send JSON payload directly
             const res = await saveFirstTabApi(payload);
             console.debug('[Admission] saveFirstTab response:', res);
+            if (res?.success && res?.data !== undefined && res?.data !== null) {
+                try {
+                    const returnedId = Number(res.data) || 0;
+                    if (returnedId) {
+                        setValue('amsT_Id' as any, returnedId);
+                        setSavedAmsTId(returnedId);
+                    }
+                } catch (e) {
+                    console.warn('Failed to set amsT_Id from response', e);
+                }
+            }
             if (!res?.success) {
                 throw new Error(res?.message || 'Failed to save step 1');
             }
@@ -546,31 +682,39 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             const formData = getValues();
 
             const payload = {
-                amsT_Id: 0,
-                userId: 0,
+                amsT_Id: Number(getValues('amsT_Id' as any) ?? 0) || 15353,
+                userId: 21602,
+                miId: 30,
+                amsT_FatherPassingYear: Number(formData.amsT_FatherPassingYear ?? 0) || 0,
 
                 // Father
                 fatherAliveFlag: !!(formData.fatherAliveFlag ?? false),
                 fatherName: formData.fatherName || '',
                 fatherSurname: formData.fatherSurname || '',
                 fatherAadharNo: formData.fatherAadharNo || '',
-                fatherMaritalStatus: formData.fatherMaritalStatus ?? null,
+                fatherMaritalStatus: formData.fatherMaritalStatus ?? '',
                 fatherMonthlyIncome: 0,
                 fatherMobileNumbers: Array.isArray(formData.fatherMobileNumbers)
-                    ? formData.fatherMobileNumbers.map((m: any) => ({ mobileNo: String(m.mobileNo ?? m.amsT_MobileNo ?? m) }))
+                    ? formData.fatherMobileNumbers.map((m: any) => ({
+                          mobileNo: String(m.mobileNo ?? m.amsT_MobileNo ?? m)
+                      }))
                     : formData.fatherMobileNumbers
                       ? [{ mobileNo: String(formData.fatherMobileNumbers) }]
                       : [],
                 fatherEmailIds: Array.isArray(formData.fatherEmailIds)
-                    ? formData.fatherEmailIds.map((e: any) => ({ emailId: String(e.emailId ?? e.amsT_emailId ?? e) }))
+                    ? formData.fatherEmailIds.map((e: any) => ({
+                          emailId: String(e.emailId ?? e.amsT_emailId ?? e)
+                      }))
                     : formData.fatherEmailIds
                       ? [{ emailId: String(formData.fatherEmailIds) }]
                       : [],
                 fatherHomePhone: formData.fatherHomePhone || formData.fatherHomePhone || '',
                 fatherNationality: Number(formData.fatherNationality ?? 0) || 0,
-                fatherQualification: formData.FatherEducation || '',
+                fatherEducation: formData.FatherEducation || '',
                 fatherPresentAddress: {
                     address: formData.fatherPresentAddress?.address || '',
+                    //   country: "India",
+                    country: formData.fatherPresentAddress?.country || '',
                     city: formData.fatherPresentAddress?.city || '',
                     state: Number(formData.fatherPresentAddress?.state ?? 0) || 0,
                     po: formData.fatherPresentAddress?.po || '',
@@ -579,6 +723,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 },
                 fatherPermanentAddress: {
                     address: formData.fatherPermanentAddress?.address || '',
+                    //   country: "India",
+                    country: formData.fatherPermanentAddress?.country || '',
                     city: formData.fatherPermanentAddress?.city || '',
                     state: Number(formData.fatherPermanentAddress?.state ?? 0) || 0,
                     po: formData.fatherPermanentAddress?.po || '',
@@ -589,8 +735,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 fatherOfficePhone: formData.fatherOfficePhone || '',
                 fatherOccupation: formData.fatherOccupation || '',
                 fatherDesignation: formData.fatherDesignation || '',
-                fatherReligion: Number(formData.fatherReligionId ?? 0) || 0,
-                fatherCaste: Number(formData.fatherCasteId ?? 0) || 0,
+                fatherReligionId: Number(formData.fatherReligionId ?? 0) || 0,
+                fatherCasteId: Number(formData.fatherCasteId ?? 0) || 0,
                 fatherSubCaste: formData.fatherSubCaste || '',
 
                 fatherAnnualIncome: Number(formData.fatherAnnualIncome ?? 0) || 0,
@@ -603,23 +749,29 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 motherName: formData.motherName || '',
                 motherSurname: formData.motherSurname || '',
                 motherAadharNo: formData.motherAadharNo || '',
-                motherMaritalStatus: formData.motherMaritalStatus ?? null,
+                motherMaritalStatus: formData.motherMaritalStatus ?? '',
                 motherMobileNumbers: Array.isArray(formData.motherMobileNumbers)
-                    ? formData.motherMobileNumbers.map((m: any) => ({ mobileNo: String(m.mobileNo ?? m.amsT_MobileNo ?? m) }))
+                    ? formData.motherMobileNumbers.map((m: any) => ({
+                          mobileNo: String(m.mobileNo ?? m.amsT_MobileNo ?? m)
+                      }))
                     : formData.motherMobileNumbers
                       ? [{ mobileNo: String(formData.motherMobileNumbers) }]
                       : [],
                 motherEmailIds: Array.isArray(formData.motherEmailIds)
-                    ? formData.motherEmailIds.map((e: any) => ({ emailId: String(e.emailId ?? e.amsT_emailId ?? e) }))
+                    ? formData.motherEmailIds.map((e: any) => ({
+                          emailId: String(e.emailId ?? e.amsT_emailId ?? e)
+                      }))
                     : formData.motherEmailIds
                       ? [{ emailId: String(formData.motherEmailIds) }]
                       : [],
                 motherHomePhone: formData.motherHomePhone || '',
                 motherNationality: Number(formData.motherNationality ?? 0) || 0,
                 motherQualification: formData.motherQualification || '',
-                motherPassingYear: formData.motherPassingYear || '',
+                motherPassingYear: Number(formData.motherPassingYear ?? 0) || 0,
                 motherPresentAddress: {
                     address: formData.motherPresentAddress?.address || '',
+                    //   country: "India",
+                    country: formData.motherPresentAddress?.country || '',
                     city: formData.motherPresentAddress?.city || '',
                     state: Number(formData.motherPresentAddress?.state ?? 0) || 0,
                     po: formData.motherPresentAddress?.po || '',
@@ -628,6 +780,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 },
                 motherPermanentAddress: {
                     address: formData.motherPermanentAddress?.address || '',
+                    //   country: "India",
+                    country: formData.motherPermanentAddress?.country || '',
                     city: formData.motherPermanentAddress?.city || '',
                     state: Number(formData.motherPermanentAddress?.state ?? 0) || 0,
                     po: formData.motherPermanentAddress?.po || '',
@@ -638,13 +792,14 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 motherOfficePhone: formData.motherOfficePhone || '',
                 motherOccupation: formData.motherOccupation || '',
                 motherDesignation: formData.motherDesignation || '',
-                motherReligion: Number(formData.motherReligionId ?? 0) || 0,
-                motherCaste: Number(formData.motherCasteId ?? 0) || 0,
+                motherReligionId: Number(formData.motherReligionId ?? 0) || 0,
+                motherCasteId: Number(formData.motherCasteId ?? 0) || 0,
                 motherSubCaste: formData.motherSubCaste || '',
                 motherMonthlyIncome: 0,
                 motherAnnualIncome: Number(formData.motherAnnualIncome ?? 0) || 0,
                 motherCasteCertificateNo: formData.motherCasteCertificateNo || '',
                 motherPAN: formData.motherPAN || '',
+                motherEducation: '',
                 motherSelfEmployedFlg: !!formData.motherSelfEmployedFlg
             };
 
@@ -663,28 +818,55 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     };
 
     const nextStep = async () => {
+        // Prevent multiple simultaneous calls
+        if (isSavingStep) return;
+
+        // Block progression if there are unsaved guardian edits on Step 4
         try {
+            // Immediate check using current form values to avoid stale memo
+            if (currentStep === 4) {
+                const currentGuardians = (getValues('guardian') || []) as any[];
+                for (let i = 0; i < currentGuardians.length; i++) {
+                    const g = currentGuardians[i] || {};
+                    const hasContent = Boolean(
+                        String(g.guardianName || '').trim() ||
+                            String(g.guardianPhone || '').trim() ||
+                            String(g.guardianEmail || '').trim() ||
+                            String(g.guardianAddress || '').trim()
+                    );
+                    if (hasContent && !savedGuardianSaved[i]) {
+                        toast.error('Please save guardian details before proceeding.');
+                        return;
+                    }
+                }
+            }
             console.debug('[Admission] nextStep invoked, currentStep=', currentStep);
         } catch (e) {
             console.error('nextStep logging failed', e);
+        }
+        // Pre-validate student photo for Step 1 so user sees immediate warning
+        if (currentStep === 1) {
+            if (!studentPhoto?.amsT_Photoname) {
+                toast.error('Please upload student photo');
+                return;
+            }
         }
         try {
             let fieldsToValidate: any[] = [];
 
             if (currentStep === 1) {
                 fieldsToValidate = [
-                    'asmaY_Year',
                     'amsT_FirstName',
                     'amsT_MiddleName',
                     'amsT_LastName',
                     'amsT_RegistrationNo',
-                    'amsT_AdmNo',
+                    'amsT_AdmissionNo',
                     'asmcL_Id',
+                    'asmS_Id',
+                    'amsT_StudentCountry',
                     'amsT_Date',
                     'amsT_DOB',
                     'amsT_ReligionId',
-                    'amsT_CasteCategoryId',
-                    'imC_Id',
                     'amsT_Sex',
                     'amsT_PerCountry',
                     'amsT_MobileNo',
@@ -693,7 +875,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 ];
                 // If EMIS checkbox is set, ensure the EMIS field is validated
                 if (Number(getValues('isEmisBpl') ?? 0) === 1) {
-                    fieldsToValidate.push('amsT_EmisBplNo');
+                    fieldsToValidate.push('amsT_BPLCardNo');
                 }
 
                 // If ECS flag is set, ensure ECS bank detail fields are validated
@@ -749,25 +931,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 fieldsToValidate = [];
 
                 if (fatherAlive) {
-                    fieldsToValidate.push(
-                        'fatherName',
-                        'fatherMaritalStatus',
-                        'fatherNationality',
-                        'fatherReligionId',
-                        'fatherCasteId',
-                        'fatherSubCaste'
-                    );
+                    fieldsToValidate.push('fatherName', 'fatherNationality');
                 }
 
                 if (motherAlive) {
-                    fieldsToValidate.push(
-                        'motherName',
-                        'motherMaritalStatus',
-                        'motherNationality',
-                        'motherReligionId',
-                        'motherCasteId',
-                        'motherSubCaste'
-                    );
+                    fieldsToValidate.push('motherName', 'motherNationality');
                 }
 
                 // Validate optional phone fields if they have values
@@ -791,9 +959,20 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
             const isValid = await trigger(fieldsToValidate.length > 0 ? fieldsToValidate : []);
 
+            // Check if there are any validation errors on the current form state
+            if (!isValid) {
+                console.debug('[Admission] Validation errors detected, aborting API call', { isValid, errors: Object.keys(errors) });
+                toast.error('Please fix all errors before proceeding');
+                return;
+            }
+
+            // Set saving state to prevent multiple submissions
+            setIsSavingStep(true);
+
             if (currentStep === 3) {
                 if (!isValid) {
                     setShowStep3Errors(true);
+                    setIsSavingStep(false);
                     return;
                 }
                 setShowStep3Errors(false);
@@ -801,80 +980,37 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 const selectedReligionId = watch('motherReligionId');
                 const selectedReligion = religion?.data?.find((r) => r.ivrmmR_Id === selectedReligionId);
                 const _isRomanCatholic = selectedReligion?.ivrmmR_Name === 'Roman Catholic';
-
-                // Validate document uploads with conditional logic for Baptism Certificate
             }
 
-            // console.log('[Admission] fieldsToValidate (count):', fieldsToValidate.length);
-            // console.log('[Admission] calling trigger with above fields');
-            // const isValid = await trigger(fieldsToValidate as any);
-            // console.log('[Admission] trigger result:', isValid);
-            // console.log('[Admission] post-validation currentStep:', currentStep);
-            // console.log('[Admission] post-validation numeric currentStep:', Number(currentStep));
-            // console.log('[Admission] branch checks:', {
-            //     isValid,
-            //     step1: Number(currentStep) === 1,
-            //     step2: Number(currentStep) === 2,
-            //     step3: Number(currentStep) === 3,
-            //     step4: Number(currentStep) === 4,
-            //     step5: Number(currentStep) === 5
-            // });
-
-            // console.log('[Admission] evaluating step handlers');
-
-            // Immediate handler for Step 3: call saveThirdTab early so we reliably trigger the API
             if (isValid && Number(currentStep) === 3) {
-                // console.log('[Admission] immediate Step3 handler (pre): about to call saveThirdTab');
                 try {
                     const res = await saveThirdTab();
-                    // console.log('[Admission] immediate saveThirdTab response:', res);
                     if (!res?.success) {
                         toast.error(res?.message || 'Failed to save step 3 (immediate)');
+                        setIsSavingStep(false);
                         return;
                     }
                 } catch (err) {
                     console.error('[Admission] immediate saveThirdTab threw error:', err);
                     toast.error('Failed to save step 3');
-                    return;
-                }
-
-                // Also attempt minimal auto-save for step 4 when entering it
-                try {
-                    const minimalPayloadForFourth: any = {
-                        amsT_Id: 0,
-                        mI_Id: 0,
-                        userId: 0,
-                        message: '',
-                        returnVal: true
-                    };
-                    console.debug('[Admission] immediate auto saveFourthTab payload:', minimalPayloadForFourth);
-                    const autoRes = await saveFourthTabApi(minimalPayloadForFourth);
-                    console.debug('[Admission] immediate auto saveFourthTab response:', autoRes);
-                    if (!autoRes?.success) {
-                        toast.error(autoRes?.message || 'Failed to save step 4');
-                        return;
-                    }
-                } catch (err) {
-                    console.error('[Admission] immediate auto saveFourthTab error:', err);
-                    toast.error('Failed to save step 4');
+                    setIsSavingStep(false);
                     return;
                 }
 
                 setHandledStep3(true);
                 setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+                setIsSavingStep(false);
                 return;
             }
 
-            // If validation passed for Step 5, persist Step 5 to server
             if (isValid && Number(currentStep) === 5) {
-                // console.log('[Admission] saving step 5 (valid branch)');
                 try {
                     const formData = getValues();
 
                     const payload = {
-                        amsT_Id: 0,
+                        amsT_Id: Number(getValues('amsT_Id' as any) ?? 0) || 15353,
                         mI_Id: 30,
-                        userId: 21602,
+                        userId: 1,
                         amsT_Studentillness: formData.amsT_Studentillness || '',
                         amsT_MedicalComplaints: formData.amsT_MedicalComplaints || '',
                         amsT_AdmissionReason: formData.amsT_AdmissionReason || '',
@@ -894,46 +1030,56 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                         amsT_Tcflag: !!formData.amsT_Tcflag
                     };
 
-                    // console.log('[Admission] saveFifthTab payload (auto):', payload);
                     const res = await saveFifthTabApi(payload);
-                    // console.log('[Admission] saveFifthTab response (auto):', res);
                     if (!res?.success) {
                         console.error('Failed saving step 5 response (auto):', res);
                         toast.error(res?.message || 'Failed to save step 5');
+                        setIsSavingStep(false);
                         return;
                     }
                     toast.success('Step 5 saved');
                     setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+                    setIsSavingStep(false);
                     return;
                 } catch (error) {
                     console.error('Failed saving step 5 (auto)', error);
                     toast.error('Failed to save step 5');
+                    setIsSavingStep(false);
                     return;
                 }
             }
-            // Early handler for Step 4: run save now if we're on step 4 and validation passed.
             if (isValid && Number(currentStep) === 4) {
-                // console.log('[Admission] early Step4 handler triggered');
                 try {
                     const formData = getValues();
 
-                    const activities = Array.isArray(formData.activities)
-                        ? formData.activities.map((a: any) => ({ activityId: Number(a) || 0, isSelected: true }))
-                        : [];
+                    const activities =
+                        selectedActivityItems && selectedActivityItems.length > 0
+                            ? selectedActivityItems.map((id) => ({ activityId: Number(id) || 0, isSelected: true }))
+                            : Array.isArray(formData.activities)
+                              ? formData.activities.map((a: any) => ({ activityId: Number(a) || 0, isSelected: true }))
+                              : [];
 
                     const sourceDetails =
                         selectedSourceItems && selectedSourceItems.length > 0
-                            ? selectedSourceItems.map((s) => ({ sourceId: Number(s.pamS_Id) || 0, isSelected: true }))
+                            ? selectedSourceItems.map((s) => ({
+                                  sourceId: Number(s.pamS_Id) || 0,
+                                  isSelected: true
+                              }))
                             : Array.isArray(formData.sourceDetails)
-                              ? formData.sourceDetails.map((s: any) => ({ sourceId: Number(s) || 0, isSelected: true }))
+                              ? formData.sourceDetails.map((s: any) => ({
+                                    sourceId: Number(s) || 0,
+                                    isSelected: true
+                                }))
                               : [];
 
                     const guardiansSource = formData.guardian || [];
-                    const guardians = (Array.isArray(guardiansSource) ? guardiansSource : []).map((g: any) => ({
+                    const _guardians = (Array.isArray(guardiansSource) ? guardiansSource : []).map((g: any) => ({
                         guardianName: g.guardianName || g.name || '',
                         guardianAddress: g.guardianAddress || g.address || '',
                         guardianEmail: g.guardianEmail || g.email || '',
-                        guardianPhone: g.guardianPhone || g.phone || ''
+                        guardianPhone: g.guardianPhone || g.phone || '',
+                        guardianPhotoUrl: '',
+                        guardianSignUrl: ''
                     }));
 
                     const siblingsSource = formData.siblings || [];
@@ -946,32 +1092,50 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     const previousSchoolSource = formData.previousSchools || [];
                     const previousSchools = (Array.isArray(previousSchoolSource) ? previousSchoolSource : []).map((school: any) => ({
                         schoolName: school.pasrpS_PrvSchoolName || school.schoolName || school.pasrS_SchoolName || '',
-                        schoolTypeId: Number(school.schoolTypeId || school.pasrpS_SchoolTypeId) || 0,
-                        classId: Number(school.pasrpS_PreviousClass || school.classId) || 0,
+                        schoolType:
+                            school.schoolType ||
+                            (school.schoolTypeId !== undefined && school.schoolTypeId !== null
+                                ? school.schoolTypeId === 1
+                                    ? 'Pre-Primary School'
+                                    : school.schoolTypeId === 2
+                                      ? 'Primary School'
+                                      : school.schoolTypeId === 3
+                                        ? 'High School'
+                                        : String(school.schoolTypeId)
+                                : ''),
+                        class: String(school.pasrpS_PreviousClass || school.classId || ''),
                         percentage: school.pasrpS_PreviousPer || school.percentage || '',
                         grade: school.pasrpS_PreviousGrade || school.grade || '',
-                        passedYear: Number(school.pasrpS_LeftYear || school.passedYear) || 0,
-                        countryId: Number(school.countryId) || 0,
-                        stateId: Number(school.stateId) || 0,
+                        passedYear: (school.pasrpS_LeftYear ?? school.passedYear) ? Number(school.pasrpS_LeftYear ?? school.passedYear) : 0,
+                        country:
+                            school.country ||
+                            (school.countryId
+                                ? country?.data?.find((c: any) => Number(c.ivrmmC_Id) === Number(school.countryId))?.ivrmmC_CountryName ||
+                                  ''
+                                : ''),
+                        state: school.state || '',
                         address: school.pasrpS_Address || school.address || '',
                         leftReason: school.pasrpS_LeftReason || school.leftReason || '',
                         medium: school.medium || '',
                         tcNumber: school.pasrpS_TcNo || school.tcNumber || '',
-                        tcDate: school.pasrpS_TcDate || school.tcDate || ''
+                        tcDate: (() => {
+                            const d = school.pasrpS_TcDate ?? school.tcDate;
+                            if (!d) return '';
+                            const parsed = d instanceof Date ? d : new Date(d);
+                            return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString();
+                        })()
                     }));
 
+                    const amsTIdToUse = Number(getValues('amsT_Id' as any) ?? 0) || Number(savedAmsTId ?? 0) || 0;
                     const payload: any = {
-                        amsT_Id: 0,
-                        mI_Id: 0,
-                        userId: 0,
-
+                        amsT_Id: amsTIdToUse,
+                        mI_Id: 30,
+                        userId: 21602,
                         activities: activities,
                         achievements: formData.achievements || '',
                         sourceDetails: sourceDetails,
-                        guardian: guardians,
                         siblings: siblingsList,
                         previousSchools: previousSchools,
-
                         amsT_PlaceOfBirthCountry: Number(formData.amsT_PlaceOfBirthCountry ?? 0) || 0,
                         amsT_PlaceOfBirthState: Number(formData.amsT_PlaceOfBirthState ?? 0) || 0,
                         amsT_Distirct: formData.amsT_Distirct || '',
@@ -990,21 +1154,20 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                         message: '',
                         returnVal: true
                     };
-
-                    // console.log('[Admission] early saveFourthTab payload:', payload);
                     const res = await saveFourthTabApi(payload);
-                    // console.log('[Admission] early saveFourthTab response:', res);
                     if (!res?.success) {
-                        toast.error(res?.message || 'Failed to save step 4 (early)');
+                        toast.error(res?.message || 'Failed to save step 4 ');
+                        setIsSavingStep(false);
                         return;
                     }
-                    toast.success('Step 4 saved (early)');
-                    // console.log('[Admission] early handler incrementing step');
+                    toast.success('Step 4 saved ');
                     setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+                    setIsSavingStep(false);
                     return;
                 } catch (err) {
-                    console.error('[Admission] early Step4 handler error:', err);
+                    console.error('[Admission] Step4 handler error:', err);
                     toast.error('Failed to save step 4');
+                    setIsSavingStep(false);
                     return;
                 }
             }
@@ -1014,14 +1177,16 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 if (!studentPhoto?.amsT_Photoname) {
                     toast.error('Please upload student photo');
                     setCurrentStep(1);
+                    setIsSavingStep(false);
                     return;
                 }
 
                 // If EMIS/BPL checkbox is checked, require the EMIS/BPL/STS number
                 if (Number(getValues('isEmisBpl') ?? 0) === 1) {
-                    const emis = String(getValues('amsT_EmisBplNo') ?? '').trim();
+                    const emis = String(getValues('amsT_BPLCardNo') ?? '').trim();
                     if (!emis) {
                         toast.error('EMIS / BPL / STS No. is required');
+                        setIsSavingStep(false);
                         return;
                     }
                 }
@@ -1039,24 +1204,75 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     const missing = requiredEcsFields.filter((f) => !String(getValues(f as any) ?? '').trim());
                     if (missing.length > 0) {
                         toast.error('Please fill all ECS account details');
+                        setIsSavingStep(false);
                         return;
                     }
                 }
 
                 try {
                     const formData = getValues();
-                    const res = await saveFirstTab({ ...formData, amsT_Photoname: studentPhoto?.amsT_Photoname });
+                    const res = await saveFirstTab({
+                        ...formData,
+                        amsT_Photoname: studentPhoto?.amsT_Photoname
+                    });
                     console.debug('[Admission] saveFirstTab response (auto):', res);
                     if (!res?.success) {
                         toast.error(res?.message || 'Failed to save step 1');
+                        setIsSavingStep(false);
                         return;
                     }
-                    toast.success('Step 1 saved');
-                    setCurrentStep((prev) => Math.min(prev + 1, steps.length));
-                    return;
+
+                    // Extract returned student id from response and persist into form state
+                    const returnedId =
+                        Number(
+                            res?.data?.amsT_Id ??
+                                res?.data?.AMST_Id ??
+                                res?.data?.amst_Id ??
+                                res?.data?.amstId ??
+                                getValues('amsT_Id' as any) ??
+                                0
+                        ) || 0;
+                    if (returnedId > 0) {
+                        setValue('amsT_Id' as any, returnedId);
+                        setSavedAmsTId(returnedId);
+                    }
+
+                    // After successful first-tab save, ensure student photo is persisted server-side
+                    try {
+                        const amsIdToUse = returnedId || Number(getValues('amsT_Id' as any) ?? 0);
+                        if (!amsIdToUse) {
+                            throw new Error('Missing student id for photo upload');
+                        }
+
+                        const photoPayload = new FormData();
+                        photoPayload.append('AmstId', String(amsIdToUse));
+                        if (studentPhotoFile) {
+                            photoPayload.append('StudentPhoto', studentPhotoFile);
+                        } else {
+                            photoPayload.append('StudentPhoto', String(studentPhoto?.amsT_Photoname ?? ''));
+                        }
+
+                        const photoRes = await saveStudentPhotoApi(photoPayload);
+                        console.debug('[Admission] saveStudentPhotoApi response:', photoRes);
+                        if (!photoRes?.success) {
+                            toast.error(photoRes?.message || 'Failed to save student photo');
+                            setIsSavingStep(false);
+                            return;
+                        }
+                        toast.success('Step 1 saved');
+                        setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+                        setIsSavingStep(false);
+                        return;
+                    } catch (photoErr) {
+                        console.error('Failed uploading student photo after save:', photoErr);
+                        toast.error('Failed to upload student photo');
+                        setIsSavingStep(false);
+                        return;
+                    }
                 } catch (err) {
                     console.error('[Admission] saveFirstTab error:', err);
                     toast.error('Failed to save step 1');
+                    setIsSavingStep(false);
                     return;
                 }
             }
@@ -1070,6 +1286,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                         type: 'manual',
                         message: `Pin code must be ${conZipLength} digits`
                     });
+                    setIsSavingStep(false);
                     return;
                 }
 
@@ -1080,6 +1297,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                             type: 'manual',
                             message: `Pin code must be ${perZipLength} digits`
                         });
+                        setIsSavingStep(false);
                         return;
                     }
                 }
@@ -1096,9 +1314,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     };
 
                     const payload: any = {
-                        userid: 0,
-                        amsT_Id: 0,
-                        mI_Id: 0,
+                        userid: 21602,
+                        amsT_Id: Number(getValues('amsT_Id' as any) ?? 0) || 15353,
+                        mI_Id: 30,
 
                         // Permanent address
                         amsT_PerStreet: pick(['amsT_PerStreet']) || '',
@@ -1117,7 +1335,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                         amsT_ConDistrict: Number(pick(['amsT_ConDistrict']) ?? 0) || 0,
                         amsT_ConCountry: Number(pick(['amsT_ConCountry']) ?? 0) || 0,
                         amsT_ConPincode: Number(pick(['amsT_ConPincode']) ?? 0) || 0,
-
                         message: '',
                         returnval: true
                     };
@@ -1127,23 +1344,31 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     console.debug('[Admission] saveSecondTab response:', res);
                     if (!res?.success) {
                         toast.error(res?.message || 'Failed to save step 2');
+                        setIsSavingStep(false);
                         return;
                     }
                     toast.success('Step 2 saved');
+                    setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+                    setIsSavingStep(false);
                 } catch (error) {
                     console.error('Failed saving step 2', error);
                     toast.error('Failed to save step 2');
+                    setIsSavingStep(false);
                     return;
                 }
             }
             if (!isValid && Number(currentStep) !== 4) {
                 console.debug('[Admission] Validation failed. errors:', errors);
-                // Build a short friendly message for the user from up to 5 errors
                 try {
-                    // Show a single generic message instead of per-field details
-                    toast.error('Please fill required fields');
+                    console.debug('Validation errors', errors);
+                    const firstKey = Object.keys(errors)[0];
+                    const firstMsg = firstKey
+                        ? ((errors as any)[firstKey]?.message ?? 'Please fill required fields')
+                        : 'Please fill required fields';
+                    toast.error(firstMsg);
                 } catch (e) {
-                    console.debug('Error showing generic validation toast', e);
+                    console.debug('Error showing validation toast', e);
+                    toast.error('Please fill required fields');
                 }
 
                 // Additional client-side checks for pincode length because schema is static
@@ -1175,9 +1400,24 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                     email,
                                     photo
                                 });
-                                const saveRes = await saveFirstTab({ ...formData, amsT_Photoname: photo });
+                                const saveRes = await saveFirstTab({
+                                    ...formData,
+                                    amsT_Photoname: photo
+                                });
                                 console.debug('[Admission] saveFirstTab result (forced):', saveRes);
                                 if (saveRes?.success) {
+                                    const returnedId =
+                                        Number(
+                                            saveRes?.data?.amsT_Id ??
+                                                saveRes?.data?.AMST_Id ??
+                                                saveRes?.data?.amst_Id ??
+                                                saveRes?.data?.amstId ??
+                                                0
+                                        ) || 0;
+                                    if (returnedId > 0) {
+                                        setValue('amsT_Id' as any, returnedId);
+                                        setSavedAmsTId(returnedId);
+                                    }
                                     setCurrentStep((prev) => Math.min(prev + 1, steps.length));
                                     return;
                                 }
@@ -1227,9 +1467,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                         };
 
                         const payload: any = {
-                            userid: 0,
-                            amsT_Id: 0,
-                            mI_Id: 0,
+                            userid: 21602,
+                            amsT_Id: Number(getValues('amsT_Id' as any) ?? 0) || 15353,
+                            mI_Id: 30,
 
                             // Permanent address
                             amsT_PerStreet: pick(['amsT_PerStreet']) || '',
@@ -1261,6 +1501,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                             return;
                         }
                         toast.success('Step 2 saved');
+                        setCurrentStep((prev) => Math.min(prev + 1, steps.length));
                     } catch (error) {
                         console.error('Failed saving step 2', error);
                         toast.error('Failed to save step 2');
@@ -1281,7 +1522,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     // Also initiate/save fourth tab when moving into Step 4
                     try {
                         const minimalPayloadForFourth: any = {
-                            amsT_Id: 0,
+                            amsT_Id: Number(getValues('amsT_Id' as any) ?? 0) || 0,
                             mI_Id: 0,
                             userId: 0,
                             message: '',
@@ -1301,33 +1542,38 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     }
                 }
 
-                // console.log('[Admission] currentStep typeof:', typeof currentStep);
-
-                // console.log('[Admission] checking step-4 branch (before)');
                 if (Number(currentStep) === 4) {
-                    // console.log('[Admission] inside step-4 branch (entered)');
                     try {
                         const formData = getValues();
 
-                        const activities = Array.isArray(formData.activities)
-                            ? formData.activities.map((a: any) => ({ activityId: Number(a) || 0, isSelected: true }))
-                            : [];
-
-                        // Use selectedSourceItems state if present, otherwise fallback to form values
-                        const sourceDetails =
-                            selectedSourceItems && selectedSourceItems.length > 0
-                                ? selectedSourceItems.map((s) => ({ sourceId: Number(s.pamS_Id) || 0, isSelected: true }))
-                                : Array.isArray(formData.sourceDetails)
-                                  ? formData.sourceDetails.map((s: any) => ({ sourceId: Number(s) || 0, isSelected: true }))
+                        const activities =
+                            selectedActivityItems && selectedActivityItems.length > 0
+                                ? selectedActivityItems.map((id) => ({ activityId: Number(id) || 0, isSelected: true }))
+                                : Array.isArray(formData.activities)
+                                  ? formData.activities.map((a: any) => ({ activityId: Number(a) || 0, isSelected: true }))
                                   : [];
 
-                        // Support multiple possible form field names (legacy vs current)
+                        const sourceDetails =
+                            selectedSourceItems && selectedSourceItems.length > 0
+                                ? selectedSourceItems.map((s) => ({
+                                      sourceId: Number(s.pamS_Id) || 0,
+                                      isSelected: true
+                                  }))
+                                : Array.isArray(formData.sourceDetails)
+                                  ? formData.sourceDetails.map((s: any) => ({
+                                        sourceId: Number(s) || 0,
+                                        isSelected: true
+                                    }))
+                                  : [];
+
                         const guardiansSource = formData.guardian || [];
                         const guardians = (Array.isArray(guardiansSource) ? guardiansSource : []).map((g: any) => ({
                             guardianName: g.guardianName || g.name || '',
                             guardianAddress: g.guardianAddress || g.address || '',
                             guardianEmail: g.guardianEmail || g.email || '',
-                            guardianPhone: g.guardianPhone || g.phone || ''
+                            guardianPhone: g.guardianPhone || g.phone || '',
+                            guardianPhotoUrl: '',
+                            guardianSignUrl: ''
                         }));
 
                         const siblingsSource = formData.siblings || [];
@@ -1339,34 +1585,37 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
                         const previousSchoolSource = formData.previousSchools || [];
                         const previousSchools = (Array.isArray(previousSchoolSource) ? previousSchoolSource : []).map((school: any) => ({
-                            schoolName: school.pasrpS_PrvSchoolName || school.schoolName || school.pasrS_SchoolName || '',
-                            schoolTypeId: Number(school.schoolTypeId || school.pasrpS_SchoolTypeId) || 0,
-                            classId: Number(school.pasrpS_PreviousClass || school.classId) || 0,
-                            percentage: school.pasrpS_PreviousPer || school.percentage || '',
-                            grade: school.pasrpS_PreviousGrade || school.grade || '',
-                            passedYear: Number(school.pasrpS_LeftYear || school.passedYear) || 0,
-                            countryId: Number(school.countryId) || 0,
-                            stateId: Number(school.stateId) || 0,
-                            address: school.pasrpS_Address || school.address || '',
-                            leftReason: school.pasrpS_LeftReason || school.leftReason || '',
-                            medium: school.medium || '',
-                            tcNumber: school.pasrpS_TcNo || school.tcNumber || '',
-                            tcDate: school.pasrpS_TcDate || school.tcDate || ''
+                            schoolName: String(school.pasrpS_PrvSchoolName || school.schoolName || school.pasrS_SchoolName || ''),
+                            schoolType: String(school.schoolTypeId || school.pasrpS_SchoolTypeId || ''),
+                            class: String(school.pasrpS_PreviousClass || school.classId || ''),
+                            percentage: String(school.pasrpS_PreviousPer || school.percentage || ''),
+                            grade: String(school.pasrpS_PreviousGrade || school.grade || ''),
+                            passedYear:
+                                (school.pasrpS_LeftYear ?? school.passedYear) ? Number(school.pasrpS_LeftYear ?? school.passedYear) : 0,
+                            country: String(school.countryId || ''),
+                            state: String(school.stateId || ''),
+                            address: String(school.pasrpS_Address || school.address || ''),
+                            leftReason: String(school.pasrpS_LeftReason || school.leftReason || ''),
+                            medium: String(school.medium || ''),
+                            tcNumber: String(school.pasrpS_TcNo || school.tcNumber || ''),
+                            tcDate: (() => {
+                                const d = school.pasrpS_TcDate ?? school.tcDate;
+                                if (!d) return '';
+                                const parsed = d instanceof Date ? d : new Date(d);
+                                return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString();
+                            })()
                         }));
 
                         const payload: any = {
-                            // Hardcode these to zero per request
-                            amsT_Id: 0,
+                            amsT_Id: Number(getValues('amsT_Id' as any) ?? 0) || 0,
                             mI_Id: 0,
                             userId: 0,
-
                             activities: activities,
                             achievements: formData.achievements || '',
                             sourceDetails: sourceDetails,
                             guardian: guardians,
                             siblings: siblingsList,
                             previousSchools: previousSchools,
-
                             amsT_PlaceOfBirthCountry: Number(formData.amsT_PlaceOfBirthCountry ?? 0) || 0,
                             amsT_PlaceOfBirthState: Number(formData.amsT_PlaceOfBirthState ?? 0) || 0,
                             amsT_Distirct: formData.amsT_Distirct || '',
@@ -1375,21 +1624,18 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                             amsT_Village: formData.amsT_Village || '',
                             amsT_NoOfSiblings: Number(formData.amsT_NoOfSiblings ?? 0) || 0,
                             amsT_NoOfSiblingsSchool: Number(formData.amsT_NoOfSiblingsSchool ?? 0) || 0,
+                            amsT_NoOfDependencies: Number(formData.amsT_NoOfDependencies ?? 0) || 0,
                             amsT_Noofbrothers: Number(formData.amsT_Noofbrothers ?? 0) || 0,
                             amsT_NoOfElderBrothers: Number(formData.amsT_NoOfElderBrothers ?? 0) || 0,
                             amsT_NoOfYoungerBrothers: Number(formData.amsT_NoOfYoungerBrothers ?? 0) || 0,
                             amsT_Noofsisters: Number(formData.amsT_Noofsisters ?? 0) || 0,
                             amsT_NoOfElderSisters: Number(formData.amsT_NoOfElderSisters ?? 0) || 0,
                             amsT_NoOfYoungerSisters: Number(formData.amsT_NoOfYoungerSisters ?? 0) || 0,
-
                             message: '',
                             returnVal: true
                         };
 
-                        // console.log('[Admission] saveFourthTab payload:', payload);
-                        // console.log('[Admission] calling saveFourthTabApi');
                         const res = await saveFourthTabApi(payload);
-                        // console.log('[Admission] saveFourthTabApi returned:', res);
                         if (!res?.success) {
                             toast.error(res?.message || 'Failed to save step 4');
                             return;
@@ -1401,29 +1647,23 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                         return;
                     }
                 }
-                // console.log('[Admission] about to increment currentStep');
                 setCurrentStep((prev) => Math.min(prev + 1, steps.length));
-                // console.log('[Admission] incremented currentStep request sent');
             }
         } catch (err) {
             console.error('[Admission] nextStep top-level error:', err);
-            // rethrow so any callers can handle; keep logs visible
             throw err;
         }
     };
 
     const handleDOBChange = (date: Date | undefined) => {
         if (date) {
-            // Convert date to words
             const dobInWords = dateToWords(date);
             setValue('amsT_DOB_Words', dobInWords);
 
-            // Calculate and set age
             const age = calculateAge(date);
-            const ageFormatted = formatAge(age);
-            setValue('pasR_Age', ageFormatted);
 
-            // Trigger validation if needed
+            setValue('pasR_Age', age.ageInYears);
+
             trigger(['amsT_DOB_Words', 'pasR_Age']);
         }
     };
@@ -1435,23 +1675,115 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     const goToStep = async (targetStep: number) => {
         if (targetStep < 1 || targetStep > steps.length) return;
 
-        // If moving backwards, allow immediately
-        // if (targetStep < currentStep) {
+        // Only allow going to steps that have been completed or the current step
+        // Users can go backward or stay on current step, but not skip forward
+        if (targetStep > currentStep) {
+            // Can't click directly on uncompleted steps, must use Next button
+            return;
+        }
+
         setCurrentStep(targetStep);
         return;
     };
 
     const handleReset = () => {
-        reset();
+        // Preserve academic year values
+        const currentAsmaYId = getValues('asmaY_Id' as any) ?? getValues('asmaY_Year' as any) ?? undefined;
+        const currentAsmaYYear = getValues('asmaY_Year' as any) ?? '';
+
+        // Build a reset object that clears all known form keys except academic year
+        const currentValues = getValues();
+        const resetObj: Record<string, any> = {};
+        const cv: any = currentValues as any;
+        Object.keys(currentValues).forEach((k) => {
+            if (k === 'asmaY_Id' || k === 'asmaY_Year') {
+                // preserve
+                return;
+            }
+            const val = cv[k];
+            if (val instanceof Date) {
+                resetObj[k] = undefined;
+            } else if (Array.isArray(val)) {
+                resetObj[k] = [];
+            } else if (val === null || val === undefined) {
+                resetObj[k] = val;
+            } else if (typeof val === 'boolean') {
+                resetObj[k] = false;
+            } else if (typeof val === 'number') {
+                resetObj[k] = 0;
+            } else if (typeof val === 'object') {
+                resetObj[k] = {};
+            } else {
+                resetObj[k] = '';
+            }
+        });
+
+        // Ensure specific list/object fields are set to sensible empty values
+        resetObj.asmaY_Id = currentAsmaYId;
+        resetObj.asmaY_Year = currentAsmaYYear;
+        resetObj.previousSchools = [];
+        resetObj.siblings = [];
+        resetObj.guardian = [];
+        resetObj.amsT_ECSFlag = 0;
+        resetObj.isEmisBpl = 0;
+        resetObj.feeConcessionType = 0;
+        resetObj.hostelRequired = false;
+        resetObj.transportRequired = false;
+        resetObj.amsT_MobileNo = '';
+        resetObj.mobileNos = [];
+        resetObj.adm_M_Student_EmailIdDTO = [{ amsT_emailId: '' }];
+
+        // Apply reset to react-hook-form
+        reset(resetObj as any);
+
+        // Reset UI step and popovers
         setCurrentStep(1);
+        setOpenPopover(null);
+
+        // Clear selection state
         setSelectedSourceItems([]);
         setSelectedReferenceItems([]);
+        setSelectedActivityItems([]);
         setSameAsResidential(false);
-        // REMOVE: setPreviousSchool(...);
+
+        // Clear phone helper state
+        setPhoneExpectedInfo({});
+        setPhoneValues({});
+
+        // Clear uploaded files / documents / photos / signatures
         setUploadedDocuments([]);
         setStudentPhoto(null);
+        setStudentPhotoFile(null);
         setStudentPhotoError(null);
+
+        setFatherPhoto(null);
+        setFatherPhotoFile(null);
+        setFatherPhotoError(null);
+
+        setMotherPhoto(null);
+        setMotherPhotoFile(null);
+        setMotherPhotoError(null);
+
+        setFatherSignature(null);
+        setFatherSignatureFile(null);
+        setFatherSignatureError(null);
+
+        setMotherSignature(null);
+        setMotherSignatureFile(null);
+        setMotherSignatureError(null);
+
+        setGuardianPhotos({});
+        setGuardianSignatures({});
+
+        // Reset guardian saved-state tracking
+        setSavedGuardianSnapshot({});
+        setSavedGuardianSaved({});
+
+        // Misc UI flags/errors
         setDocumentErrors({});
+        setShowStep3Errors(false);
+        setHandledStep3(false);
+        setSubmittingFinal(false);
     };
 
     const handleSourceSelection = (selectedValues: string[]) => {
@@ -1459,6 +1791,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             return { pamS_Id: value.toString(), pamS_SourceName: '' };
         });
         setSelectedSourceItems(selectedSources);
+    };
+
+    const handleActivitySelection = (selectedValues: string[]) => {
+        setSelectedActivityItems(selectedValues.map((v) => v.toString()));
     };
 
     const handleReferenceSelection = (selectedValues: string[]) => {
@@ -1470,11 +1806,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
     __markUsed(handleReferenceSelection);
 
-    // Copy residential address fields intso permanent address fields when checked
     const handleSameAsResidential = (checked: boolean) => {
         setSameAsResidential(!!checked);
         if (checked) {
-            // Read residential values and copy to permanent fields
             const street = getValues('amsT_ConStreet') ?? '';
             const area = getValues('amsT_ConArea') ?? '';
             const country = getValues('amsT_ConCountry') ?? '';
@@ -1489,10 +1823,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             setValue('amsT_PerCity', city);
             setValue('amsT_PerPincode', pincode ?? undefined);
 
-            // Trigger validation for permanent address fields so errors (if any) display
             trigger(['amsT_PerStreet', 'amsT_PerArea', 'amsT_PerCountry', 'amsT_PerState', 'amsT_PerCity', 'amsT_PerPincode']);
         } else {
-            // Clear permanent address fields when unchecked
             setValue('amsT_PerStreet', '');
             setValue('amsT_PerArea', '');
             setValue('amsT_PerCountry', '');
@@ -1500,7 +1832,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             setValue('amsT_PerCity', '');
             setValue('amsT_PerPincode', '');
 
-            // Clear any validation errors on permanent fields
             clearErrors(['amsT_PerStreet', 'amsT_PerArea', 'amsT_PerCountry', 'amsT_PerState', 'amsT_PerCity', 'amsT_PerPincode']);
         }
     };
@@ -1522,7 +1853,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         return fallback[dial] ?? undefined;
     };
     const handlePhoneChange = (phone: string, countryData: any, fieldName: string) => {
-        // If empty or equal to dial code only, clear
         if (!phone || phone === countryData?.dialCode) {
             setPhoneValues((prev) => ({ ...prev, [fieldName]: '' }));
             setValue(fieldName as any, '');
@@ -1538,8 +1868,20 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         }
         const formattedPhone = `+${countryCode} ${numberPart}`;
         setPhoneValues((prev) => ({ ...prev, [fieldName]: formattedPhone }));
-        // Store only digits as a number in form state
         setValue(fieldName as any, formattedPhone);
+        if (fieldName === 'amsT_MobileNo') {
+            try {
+                const mobileArray = getValues('mobileNos') || [];
+                if (Array.isArray(mobileArray) && mobileArray.length > 0) {
+                    setValue('mobileNos.0.amsT_MobileNo' as any, formattedPhone);
+                    setValue('mobileNos.0.amstsmS_CountryCode' as any, String(countryCode));
+                } else {
+                    setValue('mobileNos' as any, [{ amsT_MobileNo: formattedPhone, amstsmS_CountryCode: String(countryCode) }]);
+                }
+            } catch (e) {
+                console.warn('Failed to sync primary mobile into mobileNos array', e);
+            }
+        }
         const expected = getExpectedPhoneLength(countryData);
         setPhoneExpectedInfo((prev) => ({
             ...prev,
@@ -1572,7 +1914,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         if (mobileFields.length === 0) {
             const initial = String(watch('amsT_MobileNo') ?? '') || '';
             appendMobile({ amsT_MobileNo: initial, amstsmS_CountryCode: '' });
-            // ensure amsT_MobileNo reflects the first array entry
             if (initial) setValue('amsT_MobileNo', initial);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1583,19 +1924,22 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             schoolName: '',
             classId: 0,
             schoolTypeId: 0,
+            schoolType: '',
             percentage: '',
             grade: '',
             passedYear: 0,
             countryId: 0,
+            country: '',
             stateId: 0,
+            state: '',
             address: '',
             leftReason: '',
             medium: '',
             tcNumber: '',
             tcDate: new Date()
-        });
+        } as any);
     };
-    // --- Guardian FieldArray ---
+    // Guardian FieldArray
     const {
         fields: guardianFields,
         append: appendGuardian,
@@ -1605,7 +1949,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         name: 'guardian'
     });
 
-    // --- Sibling FieldArray ---
+    // Sibling FieldArray
     const {
         fields: siblingFields,
         append: appendSibling,
@@ -1645,13 +1989,52 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         removeGuardianField(index);
     };
 
-    // ALWAYS KEEP ONE ENTRY OPEN
+    // Save single guardian using saveGaurdianApi
+    const handleSaveGuardian = async (index: number) => {
+        try {
+            const guardianValues = getValues(`guardian.${index}` as any) as any;
+
+            const formData = new FormData();
+
+            const resolvedAmsId = Number(getValues('amsT_Id' as any) || savedAmsTId || guardianValues?.AMST_Id || 0) || 0;
+            formData.append('AMST_Id', String(resolvedAmsId || '25611'));
+            formData.append('MI_Id', String(guardianValues?.MI_Id ?? '30'));
+            formData.append('GuardianName', guardianValues?.guardianName || '');
+            formData.append('GuardianPhone', (guardianValues?.guardianPhone || '').replace(/\D/g, ''));
+
+            formData.append('GuardianEmail', guardianValues?.guardianEmail || '');
+            formData.append('GuardianAddress', guardianValues?.guardianAddress || '');
+            // Guardian Photo (binary)
+            if (guardianPhotos?.[index]?.file instanceof File) {
+                formData.append('GuardianPhoto', guardianPhotos[index].file);
+            }
+
+            // Guardian Signature (binary)
+            if (guardianSignatures?.[index]?.file instanceof File) {
+                formData.append('GuardianSign', guardianSignatures[index].file);
+            }
+
+            // URL fields (optional) - backend may expect these keys even if empty
+            formData.append('GuardianPhotoUrl', '');
+            formData.append('GuardianSignUrl', '');
+
+            await saveGaurdianApi(formData);
+            toast.success('Guardian saved successfully');
+            // store snapshot to mark this guardian as saved and unchanged
+            setSavedGuardianSnapshot((prev) => ({ ...prev, [index]: guardianValues }));
+            // mark this index as saved
+            setSavedGuardianSaved((prev) => ({ ...prev, [index]: true }));
+        } catch (error) {
+            console.error('save guardian error', error);
+            toast.error('Failed to save guardian');
+        }
+    };
+
     useEffect(() => {
         if (guardianFields.length === 0) addGuardian();
         if (siblingFields.length === 0) addSibling();
     }, []);
 
-    // Ensure there's always at least one Previous School entry and keep section open
     useEffect(() => {
         if (previousSchoolFields.length === 0) {
             appendPreviousSchool({
@@ -1672,112 +2055,71 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         }
     }, [previousSchoolFields.length, appendPreviousSchool]);
 
-    // const updatePreviousSchool = (field: string, value: string) => {
-    //     setPreviousSchool({ ...previousSchool, [field]: value });
-    // };
-
-    const handleDocumentUpload = async (amsmD_Id: number, file: File, documentName: string) => {
-        try {
-            // Restrict file size to 5MB
-            if (file.size > 5 * 1024 * 1024) {
-                toast.error('File size should not exceed 5MB');
-                return;
-            }
-            // Block DOC and XLSX files
-            const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
-            if (!allowedTypes.includes(file.type)) {
-                toast.error(' Only Pdf, PNG, JPG, and JPEG formats are allowed');
-                return;
-            }
-            // Set uploading state - ADD document if it doesn't exist
-            setUploadedDocuments((prev) => {
-                const existingIndex = prev.findIndex((doc) => doc.amsmD_Id === amsmD_Id);
-
-                if (existingIndex >= 0) {
-                    const updated = [...prev];
-                    updated[existingIndex] = {
-                        ...updated[existingIndex],
-                        isUploading: true
-                    };
-                    return updated;
-                }
-                return [
-                    ...prev,
-                    {
-                        pasrD_Id: 0,
-                        pasR_Id: 0,
-                        amsmD_Id,
-                        document_Path: '',
-                        documentName,
-                        isUploading: true
-                    }
-                ];
-            });
-
-            setDocumentErrors((prev) => {
-                const newErrors = { ...prev };
-                delete newErrors[amsmD_Id];
-                return newErrors;
-            });
-
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('SubContainerName', 'preadmission_document');
-
-            const response = await uploadDocument(formData);
-
-            if (response.success && response.data) {
-                setUploadedDocuments((prev) => {
-                    const existingIndex = prev.findIndex((doc) => doc.amsmD_Id === amsmD_Id);
-                    const newDoc = {
-                        pasrD_Id: 0,
-                        pasR_Id: 0,
-                        amsmD_Id,
-                        document_Path: response.data as string,
-                        documentName,
-                        isUploading: false
-                    };
-
-                    if (existingIndex >= 0) {
-                        const updated = [...prev];
-                        updated[existingIndex] = newDoc;
-                        return updated;
-                    }
-                    return [...prev, newDoc];
-                });
-
-                toast.success(`${documentName} uploaded successfully`);
-            } else {
-                toast.error(`Failed to upload ${documentName}`);
-            }
-        } catch (error: any) {
-            console.error('Upload error:', error);
-            const errorMessage = error?.response?.data?.message || error?.message || 'Upload failed';
-
-            setDocumentErrors((prev) => ({
-                ...prev,
-                [amsmD_Id]: errorMessage
-            }));
-
-            setUploadedDocuments((prev) => prev.filter((doc) => doc.amsmD_Id !== amsmD_Id));
-
-            toast.error(`Failed to upload ${documentName}: ${errorMessage}`);
+    // Store selected document files locally until final submit (no immediate API calls)
+    const _handleDocumentUpload = async (amsmD_Id: number, file: File, documentName: string) => {
+        // Restrict file size and types
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error('File size should not exceed 5MB');
+            return;
         }
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+        if (!allowedTypes.includes(file.type)) {
+            toast.error('Only PDF, PNG, JPG, and JPEG formats are allowed');
+            return;
+        }
+
+        // Create a local preview URL for the file
+        const localUrl = URL.createObjectURL(file);
+
+        setUploadedDocuments((prev) => {
+            const existingIndex = prev.findIndex((doc) => doc.amsmD_Id === amsmD_Id);
+            const newDoc = {
+                pasrD_Id: 0,
+                pasR_Id: 0,
+                amsmD_Id,
+                document_Path: localUrl,
+                documentName,
+                isUploading: false,
+                file
+            } as any;
+
+            if (existingIndex >= 0) {
+                const updated = [...prev];
+                updated[existingIndex] = newDoc;
+                return updated;
+            }
+            return [...prev, newDoc];
+        });
+
+        setDocumentErrors((prev) => {
+            const copy = { ...prev };
+            delete copy[amsmD_Id];
+            return copy;
+        });
+
+        toast.success(`${documentName} added (will be submitted with final form)`);
     };
 
-    const handleDocumentDelete = async (amsmD_Id: number, blobUrl: string, documentName: string) => {
-        try {
-            const response = await deleteDocument(blobUrl);
-
-            if (response.success) {
-                setUploadedDocuments((prev) => prev.filter((doc) => doc.amsmD_Id !== amsmD_Id));
-                toast.success(`${documentName} deleted successfully`);
-            } else {
-                throw new Error(response.message || 'Delete failed');
+    const handleDocumentDelete = (amsmD_Id: number, _blobUrl: string, documentName: string) => {
+        // Remove local document entry (no server call)
+        setUploadedDocuments((prev) => {
+            const target = prev.find((d) => d.amsmD_Id === amsmD_Id);
+            if (target?.file && target.document_Path) {
+                try {
+                    URL.revokeObjectURL(target.document_Path);
+                } catch (_) {
+                    //ignore
+                }
             }
-        } catch (_error: any) {
-            toast.error(`Failed to delete ${documentName}`);
-        }
+            return prev.filter((doc) => doc.amsmD_Id !== amsmD_Id);
+        });
+        // Clear any errors
+        setDocumentErrors((prev) => {
+            const copy = { ...prev };
+            delete copy[amsmD_Id];
+            return copy;
+        });
+        toast.success(`${documentName} removed`);
     };
 
     const handleStudentPhotoUpload = async (file: File) => {
@@ -1794,6 +2136,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 return;
             }
 
+            // Keep original File so we can send binary to backend later
+            setStudentPhotoFile(file);
             setStudentPhoto({ amsT_Photoname: '', isUploading: true });
             setStudentPhotoError(null);
 
@@ -1837,12 +2181,372 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         }
     };
 
-    const isDocumentUploaded = (amsmD_Id: number) => {
-        return uploadedDocuments.some((doc) => doc.amsmD_Id === amsmD_Id);
+    // Guardian photo selection (per guardian index) — store File object and local preview, do not upload immediately
+    const handleGuardianPhotoUpload = async (idx: number, file: File) => {
+        try {
+            const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (!allowedFormats.includes(file.type)) {
+                toast.error('Only PNG, JPG, and JPEG formats are allowed');
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('Photo size should not exceed 5MB');
+                return;
+            }
+
+            const localUrl = URL.createObjectURL(file);
+
+            setGuardianPhotos((prev) => ({
+                ...(prev || {}),
+                [idx]: { path: localUrl, isUploading: false, file }
+            }));
+
+            toast.success('Guardian photo Uploaded');
+        } catch (error: any) {
+            console.error('Guardian photo selection error:', error);
+            setGuardianPhotos((prev) => ({
+                ...(prev || {}),
+                [idx]: { path: '', isUploading: false }
+            }));
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to process file';
+            toast.error(`Failed to select guardian photo: ${errorMessage}`);
+        }
     };
 
-    const getUploadedDocument = (amsmD_Id: number) => {
-        return uploadedDocuments.find((doc) => doc.amsmD_Id === amsmD_Id);
+    const handleGuardianPhotoDelete = async (idx: number) => {
+        const target = guardianPhotos?.[idx];
+        if (!target) return;
+
+        // If a local File was selected but not uploaded, just clear local preview
+        if (target.file) {
+            try {
+                if (target.path) URL.revokeObjectURL(target.path);
+            } catch (_) {
+                //ignore
+            }
+            setGuardianPhotos((prev) => {
+                const copy = { ...(prev || {}) };
+                delete copy[idx];
+                return copy;
+            });
+            toast.success('Guardian photo removed');
+            return;
+        }
+
+        // Otherwise treat path as remote and attempt deletion
+        const path = target.path;
+        if (!path) return;
+
+        try {
+            const response = await deleteDocument(path);
+            if (response.success) {
+                setGuardianPhotos((prev) => {
+                    const copy = { ...(prev || {}) };
+                    delete copy[idx];
+                    return copy;
+                });
+                toast.success('Guardian photo deleted successfully');
+            } else {
+                throw new Error(response.message || 'Delete failed');
+            }
+        } catch (_error: any) {
+            toast.error('Failed to delete guardian photo');
+        }
+    };
+
+    // Guardian signature upload (per guardian index)
+    const handleGuardianSignatureUpload = async (idx: number, file: File) => {
+        try {
+            const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (!allowedFormats.includes(file.type)) {
+                toast.error('Only PNG, JPG, and JPEG formats are allowed');
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('Signature size should not exceed 5MB');
+                return;
+            }
+
+            const localUrl = URL.createObjectURL(file);
+
+            setGuardianSignatures((prev) => ({
+                ...(prev || {}),
+                [idx]: { path: localUrl, isUploading: false, file }
+            }));
+
+            toast.success('Guardian signature Uploaded');
+        } catch (error: any) {
+            console.error('Guardian signature selection error:', error);
+            setGuardianSignatures((prev) => ({
+                ...(prev || {}),
+                [idx]: { path: '', isUploading: false }
+            }));
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to process file';
+            toast.error(`Failed to select guardian signature: ${errorMessage}`);
+        }
+    };
+
+    const handleGuardianSignatureDelete = async (idx: number) => {
+        const target = guardianSignatures?.[idx];
+        if (!target) return;
+
+        // If a local File was selected but not uploaded, just clear local preview
+        if (target.file) {
+            try {
+                if (target.path) URL.revokeObjectURL(target.path);
+            } catch (_) {
+                //ignore
+            }
+            setGuardianSignatures((prev) => {
+                const copy = { ...(prev || {}) };
+                delete copy[idx];
+                return copy;
+            });
+            toast.success('Guardian signature removed');
+            return;
+        }
+
+        // Otherwise treat path as remote and attempt deletion
+        const path = target.path;
+        if (!path) return;
+
+        try {
+            const response = await deleteDocument(path);
+            if (response.success) {
+                setGuardianSignatures((prev) => {
+                    const copy = { ...(prev || {}) };
+                    delete copy[idx];
+                    return copy;
+                });
+                toast.success('Guardian signature deleted successfully');
+            } else {
+                throw new Error(response.message || 'Delete failed');
+            }
+        } catch (_error: any) {
+            toast.error('Failed to delete guardian signature');
+        }
+    };
+
+    // Father photo upload (Step 6)
+    const handleFatherPhotoUpload = async (file: File) => {
+        try {
+            const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (!allowedFormats.includes(file.type)) {
+                toast.error('Only PNG, JPG, and JPEG formats are allowed');
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('Photo size should not exceed 5MB');
+                return;
+            }
+            // Keep the selected File locally and show a preview URL.
+            setFatherPhotoFile(file);
+            const localUrl = URL.createObjectURL(file);
+            setFatherPhoto({ path: localUrl, isUploading: false });
+            setFatherPhotoError(null);
+            toast.success('Father photo uploaded');
+        } catch (error: any) {
+            console.error('Father photo upload error:', error);
+            setFatherPhoto({ path: '', isUploading: false });
+            const errorMessage = error?.response?.data?.message || error?.message || 'Upload failed';
+            setFatherPhotoError(errorMessage);
+            toast.error(`Failed to upload father photo: ${errorMessage}`);
+        }
+    };
+
+    const handleFatherPhotoDelete = async () => {
+        // If a local File was selected (not yet uploaded), just clear local state
+        if (_fatherPhotoFile) {
+            try {
+                if (fatherPhoto?.path) URL.revokeObjectURL(fatherPhoto.path);
+            } catch (_) {
+                //ignore
+            }
+            setFatherPhotoFile(null);
+            setFatherPhoto(null);
+            setFatherPhotoError(null);
+            toast.success('Father photo removed');
+            return;
+        }
+
+        const path = fatherPhoto?.path;
+        if (!path) return;
+        try {
+            const response = await deleteDocument(path);
+            if (response.success) {
+                setFatherPhoto(null);
+                toast.success('Father photo deleted successfully');
+            } else {
+                throw new Error(response.message || 'Delete failed');
+            }
+        } catch (_error: any) {
+            toast.error('Failed to delete father photo');
+        }
+    };
+
+    // Mother photo upload (Step 6)
+    const handleMotherPhotoUpload = async (file: File) => {
+        try {
+            const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (!allowedFormats.includes(file.type)) {
+                toast.error('Only PNG, JPG, and JPEG formats are allowed');
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('Photo size should not exceed 5MB');
+                return;
+            }
+            setMotherPhotoFile(file);
+            const localUrl = URL.createObjectURL(file);
+            setMotherPhoto({ path: localUrl, isUploading: false });
+            setMotherPhotoError(null);
+            toast.success('Mother photo uploaded');
+        } catch (error: any) {
+            console.error('Mother photo upload error:', error);
+            setMotherPhoto({ path: '', isUploading: false });
+            const errorMessage = error?.response?.data?.message || error?.message || 'Upload failed';
+            setMotherPhotoError(errorMessage);
+            toast.error(`Failed to upload mother photo: ${errorMessage}`);
+        }
+    };
+
+    const handleMotherPhotoDelete = async () => {
+        if (_motherPhotoFile) {
+            try {
+                if (motherPhoto?.path) URL.revokeObjectURL(motherPhoto.path);
+            } catch (_) {
+                //ignore
+            }
+            setMotherPhotoFile(null);
+            setMotherPhoto(null);
+            setMotherPhotoError(null);
+            toast.success('Mother photo removed');
+            return;
+        }
+
+        const path = motherPhoto?.path;
+        if (!path) return;
+        try {
+            const response = await deleteDocument(path);
+            if (response.success) {
+                setMotherPhoto(null);
+                toast.success('Mother photo deleted successfully');
+            } else {
+                throw new Error(response.message || 'Delete failed');
+            }
+        } catch (_error: any) {
+            toast.error('Failed to delete mother photo');
+        }
+    };
+
+    // Father signature upload (Step 6)
+    const handleFatherSignatureUpload = async (file: File) => {
+        try {
+            const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (!allowedFormats.includes(file.type)) {
+                toast.error('Only PNG, JPG, and JPEG formats are allowed');
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('Signature size should not exceed 5MB');
+                return;
+            }
+            setFatherSignatureFile(file);
+            const localUrl = URL.createObjectURL(file);
+            setFatherSignature({ path: localUrl, isUploading: false });
+            setFatherSignatureError(null);
+            toast.success('Father signature Uploaded');
+        } catch (error: any) {
+            console.error('Father signature upload error:', error);
+            setFatherSignature({ path: '', isUploading: false });
+            const errorMessage = error?.response?.data?.message || error?.message || 'Upload failed';
+            setFatherSignatureError(errorMessage);
+            toast.error(`Failed to upload father signature: ${errorMessage}`);
+        }
+    };
+
+    const handleFatherSignatureDelete = async () => {
+        if (_fatherSignatureFile) {
+            try {
+                if (fatherSignature?.path) URL.revokeObjectURL(fatherSignature.path);
+            } catch (_) {
+                //ignore
+            }
+            setFatherSignatureFile(null);
+            setFatherSignature(null);
+            setFatherSignatureError(null);
+            toast.success('Father signature removed');
+            return;
+        }
+
+        const path = fatherSignature?.path;
+        if (!path) return;
+        try {
+            const response = await deleteDocument(path);
+            if (response.success) {
+                setFatherSignature(null);
+                toast.success('Father signature deleted successfully');
+            } else {
+                throw new Error(response.message || 'Delete failed');
+            }
+        } catch (_error: any) {
+            toast.error('Failed to delete father signature');
+        }
+    };
+
+    // Mother signature upload (Step 6)
+    const handleMotherSignatureUpload = async (file: File) => {
+        try {
+            const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (!allowedFormats.includes(file.type)) {
+                toast.error('Only PNG, JPG, and JPEG formats are allowed');
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('Signature size should not exceed 5MB');
+                return;
+            }
+            setMotherSignatureFile(file);
+            const localUrl = URL.createObjectURL(file);
+            setMotherSignature({ path: localUrl, isUploading: false });
+            setMotherSignatureError(null);
+            toast.success('Mother signature uploaded');
+        } catch (error: any) {
+            console.error('Mother signature upload error:', error);
+            setMotherSignature({ path: '', isUploading: false });
+            const errorMessage = error?.response?.data?.message || error?.message || 'Upload failed';
+            setMotherSignatureError(errorMessage);
+            toast.error(`Failed to upload mother signature: ${errorMessage}`);
+        }
+    };
+
+    const handleMotherSignatureDelete = async () => {
+        if (_motherSignatureFile) {
+            try {
+                if (motherSignature?.path) URL.revokeObjectURL(motherSignature.path);
+            } catch (_) {
+                //ignore
+            }
+            setMotherSignatureFile(null);
+            setMotherSignature(null);
+            setMotherSignatureError(null);
+            toast.success('Mother signature removed');
+            return;
+        }
+
+        const path = motherSignature?.path;
+        if (!path) return;
+        try {
+            const response = await deleteDocument(path);
+            if (response.success) {
+                setMotherSignature(null);
+                toast.success('Mother signature deleted successfully');
+            } else {
+                throw new Error(response.message || 'Delete failed');
+            }
+        } catch (_error: any) {
+            toast.error('Failed to delete mother signature');
+        }
     };
 
     // derive zip/pincode length allowed from selected country (useMemo to wait for data)
@@ -1891,32 +2595,40 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     const onSubmit = async (_formData: FormFields) => {
         try {
             // Ensure mandatory documents are uploaded
-            if (preadmissionDocuments?.data && preadmissionDocuments.data.length > 0) {
-                const mandatory = preadmissionDocuments.data.filter((d: any) => d.amsmD_FLAG);
-                const missing = mandatory.filter((d: any) => !isDocumentUploaded(d.amsmD_Id));
-                if (missing.length > 0) {
-                    toast.error('Please upload all mandatory documents before submitting');
-                    setCurrentStep(6);
-                    return;
-                }
-            }
+            // Document checklist removed; user-uploaded documents are submitted with final form
 
             const values = getValues();
 
-            const payload: any = {
-                amsT_Id: 0,
-                mI_Id: 0,
-                userId: 0,
-                hostelRequired: Boolean(values.hostelRequired),
-                transportRequired: Boolean(values.transportRequired),
-                documents: uploadedDocuments.map((d) => ({
-                    documentId: d.amsmD_Id,
-                    documentName: d.documentName,
-                    filePath: d.document_Path
-                }))
-            };
+            // Build FormData payload (server expects multipart/form-data)
+            const fd = new FormData();
+            const amsTIdToUse = savedAmsTId ?? (Number(getValues('amsT_Id' as any) ?? 0) || 25608);
+            fd.append('amsT_Id', String(amsTIdToUse));
+            fd.append('mI_Id', String(30));
+            fd.append('userId', String(21602));
+            fd.append('hostelRequired', String(Boolean(values.hostelRequired)));
+            fd.append('transportRequired', String(Boolean(values.transportRequired)));
 
-            const response = await saveFinalTabApi(payload);
+            // Attach parent photos/signatures as binary files (if selected)
+            if (_fatherPhotoFile) {
+                fd.append('FatherPhoto', _fatherPhotoFile, _fatherPhotoFile.name);
+            }
+            if (_fatherSignatureFile) {
+                fd.append('FatherSignature', _fatherSignatureFile, _fatherSignatureFile.name);
+            }
+            if (_motherPhotoFile) {
+                fd.append('MotherPhoto', _motherPhotoFile, _motherPhotoFile.name);
+            }
+            if (_motherSignatureFile) {
+                fd.append('MotherSignature', _motherSignatureFile, _motherSignatureFile.name);
+            }
+
+            // Send empty URL placeholders only if backend expects them (optional)
+            fd.append('FatherPhotoUrl', '');
+            fd.append('MotherPhotoUrl', '');
+            fd.append('FatherSignatureUrl', '');
+            fd.append('MotherSignatureUrl', '');
+
+            const response = await saveFinalTabApi(fd as any);
             if (response?.success) {
                 toast.success('Application submitted successfully');
                 reset();
@@ -1934,10 +2646,14 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
     // Submit final step without running react-hook-form validation
     const submitWithoutValidation = async () => {
+        if (submittingFinal) return;
+        setSubmittingFinal(true);
         try {
             await onSubmit(getValues() as FormFields);
         } catch (err) {
             console.error('Submit without validation error:', err);
+        } finally {
+            setSubmittingFinal(false);
         }
     };
 
@@ -2243,10 +2959,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             <InputText
                                                 label='Admission No'
                                                 required
-                                                id='amsT_AdmNo'
+                                                id='amsT_AdmissionNo'
                                                 placeholder='Enter admission number'
-                                                {...register('amsT_AdmNo')}
-                                                error={errors.amsT_AdmNo?.message}
+                                                {...register('amsT_AdmissionNo')}
+                                                error={errors.amsT_AdmissionNo?.message}
                                             />
                                             <div className='flex flex-col gap-1.5'>
                                                 <Label htmlFor='asmcL_Id'>
@@ -2300,7 +3016,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             </div>
 
                                             <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='asmS_Id'>Section</Label>
+                                                <Label htmlFor='asmS_Id'>
+                                                    Section <span className='ml-1 text-red-500'>*</span>
+                                                </Label>
                                                 <Controller
                                                     name='asmS_Id'
                                                     control={control}
@@ -2461,7 +3179,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                 label='Age'
                                                 id='pasR_Age'
                                                 placeholder='Age'
-                                                {...register('pasR_Age')}
+                                                type='number'
+                                                {...register('pasR_Age', { valueAsNumber: true })}
                                                 error={errors.pasR_Age?.message}
                                                 disabled
                                             />
@@ -2513,11 +3232,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             </div>
 
                                             <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='amsT_CasteCategoryId'>
+                                                <Label htmlFor='amsT_StudentCategory_Id'>
                                                     Caste Category <span className='ml-1 text-red-500'>*</span>
                                                 </Label>
                                                 <Controller
-                                                    name='amsT_CasteCategoryId'
+                                                    name='amsT_StudentCategory_Id'
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
@@ -2547,39 +3266,39 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         </Select>
                                                     )}
                                                 />
-                                                {errors.amsT_CasteCategoryId && (
-                                                    <FormError>{errors.amsT_CasteCategoryId.message}</FormError>
+                                                {errors.amsT_StudentCategory_Id && (
+                                                    <FormError>{errors.amsT_StudentCategory_Id.message}</FormError>
                                                 )}
                                             </div>
-                                            <InputText
+                                            {/* <InputText
                                                 label='Caste '
                                                 required
                                                 id='imC_Id'
                                                 placeholder='Enter caste category'
                                                 {...register('imC_Id')}
                                                 error={errors.imC_Id?.message}
-                                            />
+                                            /> */}
                                             <InputText
                                                 label='Sub Caste'
-                                                id='amsT_SubCasteIMC'
+                                                id='amsT_SubCasteIMC_Id'
                                                 placeholder='Enter sub caste'
-                                                {...register('amsT_SubCasteIMC')}
-                                                error={errors.amsT_SubCasteIMC?.message}
+                                                {...register('amsT_SubCasteIMC_Id')}
+                                                error={errors.amsT_SubCasteIMC_Id?.message}
                                             />
 
                                             <InputText
                                                 label='Birth Certificate No'
                                                 id='amsT_BirthCertNO'
-                                                placeholder='Enter birth certificate number'
+                                                placeholder='Enter Birth Certificate number'
                                                 {...register('amsT_BirthCertNO')}
                                                 error={errors.amsT_BirthCertNO?.message}
                                             />
                                             <InputText
                                                 label='Caste Certificate No'
-                                                id='amsT_StuCasteCertiNo'
+                                                id='amsT_CasteCertiNo'
                                                 placeholder='Enter caste certificate number'
-                                                {...register('amsT_StuCasteCertiNo')}
-                                                error={errors.amsT_StuCasteCertiNo?.message}
+                                                {...register('amsT_CasteCertiNo')}
+                                                error={errors.amsT_CasteCertiNo?.message}
                                             />
                                             <InputText
                                                 label='Biometric Id'
@@ -2612,21 +3331,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 <SelectValue placeholder='Select gender' />
                                                             </SelectTrigger>
                                                             <SelectContent>
-                                                                {genderLoading ? (
-                                                                    <SelectItem value='loading' disabled>
-                                                                        Loading...
+                                                                {genderOptions.map((item) => (
+                                                                    <SelectItem key={item.id} value={item.id}>
+                                                                        {item.name}
                                                                     </SelectItem>
-                                                                ) : genderError ? (
-                                                                    <SelectItem value='error' disabled>
-                                                                        Error loading
-                                                                    </SelectItem>
-                                                                ) : (
-                                                                    gender?.data?.map((item) => (
-                                                                        <SelectItem key={item.ivrmmG_Id} value={item.ivrmmG_GenderName}>
-                                                                            {item.ivrmmG_GenderName}
-                                                                        </SelectItem>
-                                                                    ))
-                                                                )}
+                                                                ))}
                                                             </SelectContent>
                                                         </Select>
                                                     )}
@@ -2650,12 +3359,12 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             />
 
                                             <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='amsT_PerCountry'>
+                                                <Label htmlFor='amsT_StudentCountry'>
                                                     Country <span className='ml-1 text-red-500'>*</span>
                                                 </Label>
 
                                                 <Controller
-                                                    name='amsT_PerCountry'
+                                                    name='amsT_StudentCountry'
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
@@ -2685,13 +3394,13 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         </Select>
                                                     )}
                                                 />
-                                                {errors.amsT_PerCountry && <FormError>{errors.amsT_PerCountry.message}</FormError>}
+                                                {errors.amsT_StudentCountry && <FormError>{errors.amsT_StudentCountry.message}</FormError>}
                                             </div>
 
                                             <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='amsT_PerState'>State</Label>
+                                                <Label htmlFor='amsT_StudentState'>State</Label>
                                                 <Controller
-                                                    name='amsT_PerState'
+                                                    name='amsT_StudentState'
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
@@ -2702,16 +3411,16 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 <SelectValue placeholder='Select state' />
                                                             </SelectTrigger>
                                                             <SelectContent>
-                                                                {perStateLoading ? (
+                                                                {studentStateLoading ? (
                                                                     <SelectItem value='loading' disabled>
                                                                         Loading...
                                                                     </SelectItem>
-                                                                ) : perStateError ? (
+                                                                ) : studentStateError ? (
                                                                     <SelectItem value='error' disabled>
                                                                         Error loading
                                                                     </SelectItem>
                                                                 ) : (
-                                                                    perState?.data?.map((item) => (
+                                                                    studentState?.data?.map((item) => (
                                                                         <SelectItem key={item.ivrmmS_Id} value={item.ivrmmS_Id.toString()}>
                                                                             {item.ivrmmS_Name}
                                                                         </SelectItem>
@@ -2721,7 +3430,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         </Select>
                                                     )}
                                                 />
-                                                {errors.amsT_PerState && <FormError>{errors.amsT_PerState.message}</FormError>}
+                                                {errors.amsT_StudentState && <FormError>{errors.amsT_StudentState.message}</FormError>}
                                             </div>
 
                                             <div className='flex flex-col gap-1.5 '>
@@ -2730,7 +3439,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     control={control}
                                                     render={({ field }) => (
                                                         <div>
-                                                            <Label htmlFor='amsT_MobileNo'>Mobile No.</Label>
+                                                            <Label htmlFor='amsT_MobileNo'>
+                                                                Mobile No. <span className='text-red-500'>*</span>
+                                                            </Label>
                                                             <PhoneInput
                                                                 country='in'
                                                                 value={
@@ -2786,15 +3497,16 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         ?.message;
                                                     const fieldName = `adm_M_Student_EmailIdDTO.${idx}.amsT_emailId` as const;
                                                     return (
-                                                        <div key={field.id} className='flex w-1/3 min-w-[240px] flex-col gap-1'>
+                                                        <div key={field.id} className='flex w-full flex-col gap-1'>
                                                             <div className='flex items-center gap-2'>
                                                                 <div className='flex-1'>
+                                                                    {idx === 0 && <Label htmlFor={String(field.id)}>Email</Label>}
                                                                     <InputText
                                                                         {...register(fieldName)}
                                                                         id={String(field.id)}
-                                                                        label={idx === 0 ? 'Email' : undefined}
                                                                         placeholder='Enter email'
                                                                         error={itemError}
+                                                                        required
                                                                     />
                                                                 </div>
 
@@ -2919,8 +3631,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 <SelectValue placeholder='Select option' />
                                                             </SelectTrigger>
                                                             <SelectContent>
-                                                                <SelectItem value='1'>Yes</SelectItem>
-                                                                <SelectItem value='0'>No</SelectItem>
+                                                                <SelectItem value='1'>Pre-Primary School</SelectItem>
+                                                                <SelectItem value='2'>Primary School</SelectItem>
+                                                                <SelectItem value='3'>High School</SelectItem>
                                                             </SelectContent>
                                                         </Select>
                                                     )}
@@ -2965,10 +3678,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         <InputText
                                                             label='EMIS / BPL / STS No.'
                                                             required
-                                                            id='amsT_EmisBplNo'
+                                                            id='amsT_BPLCardNo'
                                                             placeholder='Enter card or STS no.'
-                                                            {...register('amsT_EmisBplNo')}
-                                                            error={errors.amsT_EmisBplNo?.message}
+                                                            {...register('amsT_BPLCardNo')}
+                                                            error={errors.amsT_BPLCardNo?.message}
                                                         />
                                                     </div>
                                                 )}
@@ -3095,6 +3808,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         <Select
                                                             key={field.value || 'empty'}
                                                             onValueChange={(value) => field.onChange(value)}
+                                                            required
                                                             value={field.value?.toString() || ''}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select fee concession type' />
@@ -3134,18 +3848,18 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             {/* GPS Tracing Id */}
                                             <InputText
                                                 label='GPS Tracing Id'
-                                                id='amsT_GPSTracingId'
+                                                id='amsT_GPSTrackingId'
                                                 placeholder='Enter GPS tracing ID'
-                                                {...register('amsT_GPSTracingId')}
-                                                error={errors.amsT_GPSTracingId?.message}
+                                                {...register('amsT_GPSTrackingId')}
+                                                error={errors.amsT_GPSTrackingId?.message}
                                             />
 
                                             {/* Medium Of Instruction */}
                                             <InputText
                                                 label='Medium Of Instruction'
-                                                id='amsT_MOInstruction'
+                                                id='amsT_MediumOfInstruction'
                                                 placeholder='Enter medium of instruction'
-                                                {...register('amsT_MOInstruction')}
+                                                {...register('amsT_MediumOfInstruction')}
                                                 error={errors.amsT_MediumOfInstruction?.message}
                                             />
                                         </div>
@@ -3534,7 +4248,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         onCheckedChange={(checked) => {
                                                                             field.onChange(checked);
                                                                             if (!checked) {
-                                                                                setValue('fatherName', '');
+                                                                                setValue('fatherName', undefined as any);
+                                                                                clearErrors('fatherName');
                                                                                 setValue('fatherNationality', undefined);
                                                                                 setValue('motherNationality', undefined);
                                                                             }
@@ -3600,20 +4315,19 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 <div className='flex flex-col space-y-2'>
                                                                     <Select
                                                                         value={field.value?.toString() || ''}
-                                                                        onValueChange={(value) => field.onChange(Number(value))} // convert to number
-                                                                    >
+                                                                        onValueChange={(value) => field.onChange(value)}>
                                                                         <SelectTrigger className={cn('w-full', error && 'border-red-500')}>
                                                                             <SelectValue placeholder='Select' />
                                                                         </SelectTrigger>
 
                                                                         <SelectContent>
-                                                                            <SelectItem value='0'>Married</SelectItem>
-                                                                            <SelectItem value='1'>Single father</SelectItem>
-                                                                            <SelectItem value='2'>Single mother</SelectItem>
-                                                                            <SelectItem value='3'>Divorced father</SelectItem>
-                                                                            <SelectItem value='4'>Divorced mother</SelectItem>
-                                                                            <SelectItem value='5'>Widow</SelectItem>
-                                                                            <SelectItem value='6'>Widower</SelectItem>
+                                                                            <SelectItem value='Married'>Married</SelectItem>
+                                                                            <SelectItem value='Single father'>Single father</SelectItem>
+                                                                            <SelectItem value='Single mother'>Single mother</SelectItem>
+                                                                            <SelectItem value='Divorced father'>Divorced father</SelectItem>
+                                                                            <SelectItem value='Divorced mother'>Divorced mother</SelectItem>
+                                                                            <SelectItem value='Widow'>Widow</SelectItem>
+                                                                            <SelectItem value='Widower'>Widower</SelectItem>
                                                                         </SelectContent>
                                                                     </Select>
                                                                 </div>
@@ -3696,6 +4410,13 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         {...register('fatherHomePhone')}
                                                         error={errors.fatherHomePhone?.message}
                                                     />
+                                                    <InputText
+                                                        label='Passing Year'
+                                                        id='amsT_FatherPassingYear'
+                                                        placeholder='Enter Passing Year'
+                                                        {...register('amsT_FatherPassingYear')}
+                                                        error={errors.amsT_FatherPassingYear?.message}
+                                                    />
 
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Label htmlFor='fatherNationality'>
@@ -3704,7 +4425,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         <Controller
                                                             name='fatherNationality'
                                                             control={control}
-                                                            rules={{ required: fatherAlive ? 'Country is required' : false }}
+                                                            rules={{
+                                                                required: fatherAlive ? 'Country is required' : false
+                                                            }}
                                                             render={({ field }) => (
                                                                 <Select
                                                                     key={field.value || 'empty'}
@@ -3758,7 +4481,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
                                                     {/* Present Address Details */}
                                                     <div className='col-span-full space-y-4 md:col-span-2 lg:col-span-3'>
-                                                        <h3 className='font-semibold text-gray-800 text-lg'>Present Address Details</h3>
+                                                        <h3 className='font-semibold text-gray-800 text-lg'>
+                                                            Father Present Address Details
+                                                        </h3>
 
                                                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                             {/* Address */}
@@ -3769,6 +4494,49 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 {...register('fatherPresentAddress.address')}
                                                                 error={errors.fatherPresentAddress?.address?.message}
                                                             />
+                                                            {/* <div className='flex flex-col gap-1.5'>
+                                                                <Label htmlFor='fatherPresentAddress.country'>
+                                                                    Country <span className='ml-1 text-red-500'>*</span>
+                                                                </Label>
+
+                                                                <Controller
+                                                                    name='fatherPresentAddress.country'
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <Select
+                                                                            key={field.value || 'empty'}
+                                                                            onValueChange={(value) => field.onChange(value)}
+                                                                            value={field.value?.toString() || ''}>
+                                                                            <SelectTrigger>
+                                                                                <SelectValue placeholder='Select country' />
+                                                                            </SelectTrigger>
+                                                                            <SelectContent>
+                                                                                {countryLoading ? (
+                                                                                    <SelectItem value='loading' disabled>
+                                                                                        Loading...
+                                                                                    </SelectItem>
+                                                                                ) : countryError ? (
+                                                                                    <SelectItem value='error' disabled>
+                                                                                        Error loading
+                                                                                    </SelectItem>
+                                                                                ) : (
+                                                                                    country?.data?.map((item) => (
+                                                                                        <SelectItem
+                                                                                            key={item.ivrmmC_CountryName}
+                                                                                            value={item.ivrmmC_CountryName.toString()}>
+                                                                                            {item.ivrmmC_CountryName}
+                                                                                        </SelectItem>
+                                                                                    ))
+                                                                                )}
+                                                                            </SelectContent>
+                                                                        </Select>
+                                                                    )}
+                                                                />
+
+                                                                {errors.fatherPresentAddress?.country && (
+                                                                    <FormError>{errors.fatherPresentAddress.country.message}</FormError>
+                                                                )}
+                                                            </div> */}
 
                                                             {/* State */}
                                                             <div className='flex flex-col gap-1.5'>
@@ -3780,8 +4548,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         <Select
                                                                             key={field.value || 'empty'}
                                                                             onValueChange={(value) => field.onChange(Number(value))}
-                                                                            value={field.value?.toString() || ''}
-                                                                            disabled={sameAsResidential}>
+                                                                            value={field.value?.toString() || ''}>
                                                                             <SelectTrigger>
                                                                                 <SelectValue placeholder='Select state' />
                                                                             </SelectTrigger>
@@ -3820,7 +4587,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 placeholder='Enter city'
                                                                 {...register('fatherPresentAddress.city')}
                                                                 error={errors.fatherPresentAddress?.city?.message}
-                                                                disabled={sameAsResidential}
                                                             />
 
                                                             {/* Pincode */}
@@ -3876,7 +4642,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                 maxLength={fatherZipLength}
                                                                                 type='number'
                                                                                 showSpinner={false}
-                                                                                disabled={sameAsResidential}
                                                                             />
 
                                                                             {fatherCountryObj && fatherZipLength && (
@@ -3905,7 +4670,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
                                                     {/* Permanent Address Details */}
                                                     <div className='col-span-full space-y-4 md:col-span-2 lg:col-span-3'>
-                                                        <h3 className='font-semibold text-gray-800 text-lg'>Permanent Address Details</h3>
+                                                        <h3 className='font-semibold text-gray-800 text-lg'>
+                                                            Father Permanent Address Details
+                                                        </h3>
 
                                                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                             {/* Permanent Address */}
@@ -3916,6 +4683,49 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 {...register('fatherPermanentAddress.address')}
                                                                 error={errors.fatherPermanentAddress?.address?.message}
                                                             />
+                                                            {/* <div className='flex flex-col gap-1.5'>
+                                                                <Label htmlFor='fatherPermanentAddress.country'>
+                                                                    Country <span className='ml-1 text-red-500'>*</span>
+                                                                </Label>
+
+                                                                <Controller
+                                                                    name='fatherPermanentAddress.country'
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <Select
+                                                                            key={field.value || 'empty'}
+                                                                            onValueChange={(value) => field.onChange(value)}
+                                                                            value={field.value?.toString() || ''}>
+                                                                            <SelectTrigger>
+                                                                                <SelectValue placeholder='Select country' />
+                                                                            </SelectTrigger>
+                                                                            <SelectContent>
+                                                                                {countryLoading ? (
+                                                                                    <SelectItem value='loading' disabled>
+                                                                                        Loading...
+                                                                                    </SelectItem>
+                                                                                ) : countryError ? (
+                                                                                    <SelectItem value='error' disabled>
+                                                                                        Error loading
+                                                                                    </SelectItem>
+                                                                                ) : (
+                                                                                    country?.data?.map((item) => (
+                                                                                        <SelectItem
+                                                                                            key={item.ivrmmC_CountryName}
+                                                                                            value={item.ivrmmC_CountryName.toString()}>
+                                                                                            {item.ivrmmC_CountryName}
+                                                                                        </SelectItem>
+                                                                                    ))
+                                                                                )}
+                                                                            </SelectContent>
+                                                                        </Select>
+                                                                    )}
+                                                                />
+
+                                                                {errors.fatherPermanentAddress?.country && (
+                                                                    <FormError>{errors.fatherPermanentAddress.country.message}</FormError>
+                                                                )}
+                                                            </div> */}
 
                                                             {/* Permanent State */}
                                                             <div className='flex flex-col gap-1.5'>
@@ -3928,8 +4738,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         <Select
                                                                             key={field.value || 'empty'}
                                                                             onValueChange={(value) => field.onChange(Number(value))}
-                                                                            value={field.value?.toString() || ''}
-                                                                            disabled={sameAsResidential}>
+                                                                            value={field.value?.toString() || ''}>
                                                                             <SelectTrigger>
                                                                                 <SelectValue placeholder='Select state' />
                                                                             </SelectTrigger>
@@ -3969,7 +4778,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 placeholder='Enter city'
                                                                 {...register('fatherPermanentAddress.city')}
                                                                 error={errors.fatherPermanentAddress?.city?.message}
-                                                                disabled={sameAsResidential}
                                                             />
 
                                                             {/* Permanent Pin Code */}
@@ -4026,7 +4834,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                 maxLength={fatherZipLength}
                                                                                 type='number'
                                                                                 showSpinner={false}
-                                                                                disabled={sameAsResidential}
                                                                             />
 
                                                                             {fatherCountryObj && fatherZipLength && (
@@ -4316,7 +5123,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         onCheckedChange={(checked) => {
                                                                             field.onChange(checked);
                                                                             if (!checked) {
-                                                                                setValue('motherName', '');
+                                                                                setValue('motherName', undefined as any);
+                                                                                clearErrors('motherName');
                                                                                 setValue('motherNationality', undefined);
                                                                             }
                                                                         }}
@@ -4381,20 +5189,19 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 <div className='flex flex-col space-y-2'>
                                                                     <Select
                                                                         value={field.value?.toString() || ''}
-                                                                        onValueChange={(value) => field.onChange(Number(value))} // convert to number
-                                                                    >
+                                                                        onValueChange={(value) => field.onChange(value)}>
                                                                         <SelectTrigger className={cn('w-full', error && 'border-red-500')}>
                                                                             <SelectValue placeholder='Select' />
                                                                         </SelectTrigger>
 
                                                                         <SelectContent>
-                                                                            <SelectItem value='0'>Married</SelectItem>
-                                                                            <SelectItem value='1'>Single father</SelectItem>
-                                                                            <SelectItem value='2'>Single mother</SelectItem>
-                                                                            <SelectItem value='3'>Divorced father</SelectItem>
-                                                                            <SelectItem value='4'>Divorced mother</SelectItem>
-                                                                            <SelectItem value='5'>Widow</SelectItem>
-                                                                            <SelectItem value='6'>Widower</SelectItem>
+                                                                            <SelectItem value='Married'>Married</SelectItem>
+                                                                            <SelectItem value='Single father'>Single father</SelectItem>
+                                                                            <SelectItem value='Single mother'>Single mother</SelectItem>
+                                                                            <SelectItem value='Divorced father'>Divorced father</SelectItem>
+                                                                            <SelectItem value='Divorced mother'>Divorced mother</SelectItem>
+                                                                            <SelectItem value='Widow'>Widow</SelectItem>
+                                                                            <SelectItem value='Widower'>Widower</SelectItem>
                                                                         </SelectContent>
                                                                     </Select>
                                                                 </div>
@@ -4484,7 +5291,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         <Controller
                                                             name='motherNationality'
                                                             control={control}
-                                                            rules={{ required: motherAlive ? 'Country is required' : false }}
+                                                            rules={{
+                                                                required: motherAlive ? 'Country is required' : false
+                                                            }}
                                                             render={({ field }) => (
                                                                 <Select
                                                                     key={field.value || 'empty'}
@@ -4561,6 +5370,49 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 {...register('motherPresentAddress.address')}
                                                                 error={errors.motherPresentAddress?.address?.message}
                                                             />
+                                                            {/* <div className='flex flex-col gap-1.5'>
+                                                                <Label htmlFor='motherPresentAddress.country'>
+                                                                    Country <span className='ml-1 text-red-500'>*</span>
+                                                                </Label>
+
+                                                                <Controller
+                                                                    name='motherPresentAddress.country'
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <Select
+                                                                            key={field.value || 'empty'}
+                                                                            onValueChange={(value) => field.onChange(value)}
+                                                                            value={field.value?.toString() || ''}>
+                                                                            <SelectTrigger>
+                                                                                <SelectValue placeholder='Select country' />
+                                                                            </SelectTrigger>
+                                                                            <SelectContent>
+                                                                                {countryLoading ? (
+                                                                                    <SelectItem value='loading' disabled>
+                                                                                        Loading...
+                                                                                    </SelectItem>
+                                                                                ) : countryError ? (
+                                                                                    <SelectItem value='error' disabled>
+                                                                                        Error loading
+                                                                                    </SelectItem>
+                                                                                ) : (
+                                                                                    country?.data?.map((item) => (
+                                                                                        <SelectItem
+                                                                                            key={item.ivrmmC_CountryName}
+                                                                                            value={item.ivrmmC_CountryName.toString()}>
+                                                                                            {item.ivrmmC_CountryName}
+                                                                                        </SelectItem>
+                                                                                    ))
+                                                                                )}
+                                                                            </SelectContent>
+                                                                        </Select>
+                                                                    )}
+                                                                />
+
+                                                                {errors.motherPresentAddress?.country && (
+                                                                    <FormError>{errors.motherPresentAddress.country.message}</FormError>
+                                                                )}
+                                                            </div> */}
 
                                                             {/* State */}
                                                             <div className='flex flex-col gap-1.5'>
@@ -4573,21 +5425,16 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         <Select
                                                                             key={field.value || 'empty'}
                                                                             onValueChange={(value) => field.onChange(Number(value))}
-                                                                            value={field.value?.toString() || ''}
-                                                                            disabled={sameAsResidential}>
+                                                                            value={field.value?.toString() || ''}>
                                                                             <SelectTrigger>
                                                                                 <SelectValue placeholder='Select state' />
                                                                             </SelectTrigger>
 
                                                                             <SelectContent>
                                                                                 {motherPresentStateLoading ? (
-                                                                                    <SelectItem value='loading' disabled>
-                                                                                        Loading...
-                                                                                    </SelectItem>
+                                                                                    <SelectItem value='loading'>Loading...</SelectItem>
                                                                                 ) : motherPresentStateError ? (
-                                                                                    <SelectItem value='error' disabled>
-                                                                                        Error loading
-                                                                                    </SelectItem>
+                                                                                    <SelectItem value='error'>Error loading</SelectItem>
                                                                                 ) : (
                                                                                     motherPresentState?.data?.map((item) => (
                                                                                         <SelectItem
@@ -4614,7 +5461,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 placeholder='Enter city'
                                                                 {...register('motherPresentAddress.city')}
                                                                 error={errors.motherPresentAddress?.city?.message}
-                                                                disabled={sameAsResidential}
                                                             />
 
                                                             {/* Pincode */}
@@ -4670,7 +5516,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                 maxLength={motherZipLength}
                                                                                 type='number'
                                                                                 showSpinner={false}
-                                                                                disabled={sameAsResidential}
                                                                             />
 
                                                                             {motherCountryObj && motherZipLength && (
@@ -4709,7 +5554,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
                                                     {/* Mother Permanent Address Details */}
                                                     <div className='col-span-full space-y-4 md:col-span-2 lg:col-span-3'>
-                                                        <h3 className='font-semibold text-gray-800 text-lg'>Permanent Address Details</h3>
+                                                        <h3 className='font-semibold text-gray-800 text-lg'>
+                                                            Mother Permanent Address Details
+                                                        </h3>
 
                                                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                             {/* Permanent Address */}
@@ -4720,6 +5567,49 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 {...register('motherPermanentAddress.address')}
                                                                 error={errors.motherPermanentAddress?.address?.message}
                                                             />
+                                                            {/* <div className='flex flex-col gap-1.5'>
+                                                                <Label htmlFor='motherPermanentAddress.country'>
+                                                                    Country <span className='ml-1 text-red-500'>*</span>
+                                                                </Label>
+
+                                                                <Controller
+                                                                    name='motherPermanentAddress.country'
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <Select
+                                                                            key={field.value || 'empty'}
+                                                                            onValueChange={(value) => field.onChange(value)}
+                                                                            value={field.value?.toString() || ''}>
+                                                                            <SelectTrigger>
+                                                                                <SelectValue placeholder='Select country' />
+                                                                            </SelectTrigger>
+                                                                            <SelectContent>
+                                                                                {countryLoading ? (
+                                                                                    <SelectItem value='loading' disabled>
+                                                                                        Loading...
+                                                                                    </SelectItem>
+                                                                                ) : countryError ? (
+                                                                                    <SelectItem value='error' disabled>
+                                                                                        Error loading
+                                                                                    </SelectItem>
+                                                                                ) : (
+                                                                                    country?.data?.map((item) => (
+                                                                                        <SelectItem
+                                                                                            key={item.ivrmmC_CountryName}
+                                                                                            value={item.ivrmmC_CountryName.toString()}>
+                                                                                            {item.ivrmmC_CountryName}
+                                                                                        </SelectItem>
+                                                                                    ))
+                                                                                )}
+                                                                            </SelectContent>
+                                                                        </Select>
+                                                                    )}
+                                                                />
+
+                                                                {errors.motherPermanentAddress?.country && (
+                                                                    <FormError>{errors.motherPermanentAddress.country.message}</FormError>
+                                                                )}
+                                                            </div> */}
 
                                                             {/* Permanent State */}
                                                             <div className='flex flex-col gap-1.5'>
@@ -4732,8 +5622,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         <Select
                                                                             key={field.value || 'empty'}
                                                                             onValueChange={(value) => field.onChange(Number(value))}
-                                                                            value={field.value?.toString() || ''}
-                                                                            disabled={sameAsResidential}>
+                                                                            value={field.value?.toString() || ''}>
                                                                             <SelectTrigger>
                                                                                 <SelectValue placeholder='Select state' />
                                                                             </SelectTrigger>
@@ -4773,7 +5662,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 placeholder='Enter city'
                                                                 {...register('motherPermanentAddress.city')}
                                                                 error={errors.motherPermanentAddress?.city?.message}
-                                                                disabled={sameAsResidential}
                                                             />
 
                                                             {/* Permanent Pincode */}
@@ -4831,7 +5719,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                 maxLength={motherZipLength}
                                                                                 type='number'
                                                                                 showSpinner={false}
-                                                                                disabled={sameAsResidential}
                                                                             />
 
                                                                             {motherCountryObj && motherZipLength && (
@@ -5124,18 +6011,13 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     control={control}
                                                     render={({ field }) => (
                                                         <MultiSelect
-                                                            options={
-                                                                source?.data?.map((data) => ({
-                                                                    label: data.pamS_SourceName,
-                                                                    value: data.pamS_Id.toString()
-                                                                })) || []
-                                                            }
+                                                            options={[{ label: 'Sports', value: '2' }]}
                                                             onValueChange={(selectedValues) => {
                                                                 field.onChange(selectedValues);
-                                                                handleSourceSelection(selectedValues);
+                                                                handleActivitySelection(selectedValues);
                                                             }}
-                                                            defaultValue={selectedSourceItems.map((data) => data.pamS_Id)}
-                                                            value={selectedSourceItems.map((data) => data.pamS_Id)}
+                                                            defaultValue={selectedActivityItems}
+                                                            value={selectedActivityItems}
                                                             placeholder='Select Activities'
                                                             variant='inverted'
                                                             disabled={sourceLoading}
@@ -5235,16 +6117,26 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 {/* School Type */}
                                                                 <div className='flex flex-col gap-1.5'>
                                                                     <Label>School Type</Label>
+
                                                                     <Controller
                                                                         name={`previousSchools.${idx}.schoolTypeId`}
                                                                         control={control}
                                                                         render={({ field }) => (
                                                                             <Select
                                                                                 value={field.value?.toString() || ''}
-                                                                                onValueChange={(val) => field.onChange(String(val))}>
+                                                                                onValueChange={(val) => {
+                                                                                    const num = Number(val);
+                                                                                    field.onChange(num);
+                                                                                }}>
                                                                                 <SelectTrigger>
                                                                                     <SelectValue placeholder='Select school type' />
                                                                                 </SelectTrigger>
+
+                                                                                <SelectContent>
+                                                                                    <SelectItem value='1'>Pre-Primary School</SelectItem>
+                                                                                    <SelectItem value='2'>Primary School</SelectItem>
+                                                                                    <SelectItem value='3'>High School</SelectItem>
+                                                                                </SelectContent>
                                                                             </Select>
                                                                         )}
                                                                     />
@@ -5314,8 +6206,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         control={control}
                                                                         render={({ field }) => (
                                                                             <Select
-                                                                                value={field.value?.toString() || ''}
-                                                                                onValueChange={(val) => field.onChange(Number(val))}>
+                                                                                value={field.value ? String(field.value) : ''}
+                                                                                onValueChange={(val) => field.onChange(val)}>
                                                                                 <SelectTrigger>
                                                                                     <SelectValue placeholder='Select passed year' />
                                                                                 </SelectTrigger>
@@ -5329,7 +6221,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                         academicYears.data.map((y: any) => (
                                                                                             <SelectItem
                                                                                                 key={String(y.asmaY_Id)}
-                                                                                                value={String(y.asmaY_Year)}>
+                                                                                                value={String(y.asmaY_Id)}>
                                                                                                 {y.asmaY_Year}
                                                                                             </SelectItem>
                                                                                         ))
@@ -5457,15 +6349,31 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         <div key={g.id} className='rounded-lg border border-gray-200 bg-gray-50 p-4'>
                                                             <div className='flex items-center justify-between'>
                                                                 <h4 className='font-medium text-gray-700 text-sm'>Guardian {idx + 1}</h4>
-                                                                <Button
-                                                                    type='button'
-                                                                    variant='ghost'
-                                                                    size='sm'
-                                                                    onClick={() => removeGuardian(idx)}
-                                                                    disabled={isSubmitting || idx === 0}
-                                                                    className={`h-8 w-fit ${idx === 0 ? 'cursor-not-allowed opacity-50' : ''}`}>
-                                                                    Remove
-                                                                </Button>
+                                                                <div className='flex items-center gap-2'>
+                                                                    <Button
+                                                                        type='button'
+                                                                        variant='ghost'
+                                                                        size='sm'
+                                                                        onClick={() => removeGuardian(idx)}
+                                                                        disabled={isSubmitting || idx === 0}
+                                                                        className={`h-8 w-fit ${idx === 0 ? 'cursor-not-allowed opacity-50' : ''}`}>
+                                                                        Remove
+                                                                    </Button>
+                                                                    <Button
+                                                                        type='button'
+                                                                        variant='outline'
+                                                                        size='sm'
+                                                                        onClick={() => handleSaveGuardian(idx)}
+                                                                        disabled={
+                                                                            isSubmitting ||
+                                                                            guardianPhotos?.[idx]?.isUploading ||
+                                                                            guardianSignatures?.[idx]?.isUploading
+                                                                        }
+                                                                        className='h-8 w-fit'>
+                                                                        <Save className='mr-2 h-4 w-4' />
+                                                                        Save
+                                                                    </Button>
+                                                                </div>
                                                             </div>
 
                                                             <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
@@ -5561,6 +6469,299 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     {...register(`guardian.${idx}.guardianAddress`)}
                                                                     error={errors.guardian?.[idx]?.guardianAddress?.message}
                                                                 />
+
+                                                                {watchedGuardians?.[idx]?.guardianName ? (
+                                                                    <>
+                                                                        <div className='col-span-full flex w-full items-stretch gap-4'>
+                                                                            {/* Photo column */}
+                                                                            <div className='min-w-0 flex-1'>
+                                                                                <div className='flex h-full flex-col justify-between overflow-hidden rounded-lg border-2 border-blue-200 bg-blue-50 p-2'>
+                                                                                    <div>
+                                                                                        <div className='mb-1'>
+                                                                                            <Label>Guardian Photo</Label>
+                                                                                        </div>
+
+                                                                                        {!guardianPhotos?.[idx]?.path ? (
+                                                                                            <label
+                                                                                                className={cn(
+                                                                                                    'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-2 py-3 text-center transition-all hover:border-primary hover:bg-white',
+                                                                                                    guardianPhotos?.[idx]?.isUploading
+                                                                                                        ? 'border-blue-400 bg-blue-100'
+                                                                                                        : 'border-gray-300 bg-white'
+                                                                                                )}>
+                                                                                                {guardianPhotos?.[idx]?.isUploading ? (
+                                                                                                    <div className='flex flex-col items-center gap-2'>
+                                                                                                        <svg
+                                                                                                            className='h-8 w-8 animate-spin text-primary'
+                                                                                                            fill='none'
+                                                                                                            stroke='currentColor'
+                                                                                                            viewBox='0 0 24 24'>
+                                                                                                            <circle
+                                                                                                                className='opacity-25'
+                                                                                                                cx='12'
+                                                                                                                cy='12'
+                                                                                                                r='10'
+                                                                                                                strokeWidth='4'
+                                                                                                                stroke='currentColor'
+                                                                                                            />
+                                                                                                            <path
+                                                                                                                className='opacity-75'
+                                                                                                                fill='currentColor'
+                                                                                                                d='M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z'
+                                                                                                            />
+                                                                                                        </svg>
+                                                                                                        <span className='font-medium text-primary text-sm'>
+                                                                                                            Uploading photo...
+                                                                                                        </span>
+                                                                                                    </div>
+                                                                                                ) : (
+                                                                                                    <>
+                                                                                                        <svg
+                                                                                                            className='h-12 w-12 text-primary'
+                                                                                                            fill='none'
+                                                                                                            stroke='currentColor'
+                                                                                                            viewBox='0 0 24 24'>
+                                                                                                            <path
+                                                                                                                strokeLinecap='round'
+                                                                                                                strokeLinejoin='round'
+                                                                                                                strokeWidth={2}
+                                                                                                                d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
+                                                                                                            />
+                                                                                                        </svg>
+                                                                                                        <span className='font-medium text-gray-700 text-sm'>
+                                                                                                            Click to upload
+                                                                                                        </span>
+                                                                                                        <span className='mt-1 max-w-[250px] text-gray-600 text-sm'>
+                                                                                                            Upload guardian photo (Max size:
+                                                                                                            5MB, JPG/PNG)
+                                                                                                        </span>
+                                                                                                    </>
+                                                                                                )}
+
+                                                                                                <input
+                                                                                                    type='file'
+                                                                                                    className='hidden'
+                                                                                                    accept='image/jpeg,image/jpg,image/png'
+                                                                                                    disabled={
+                                                                                                        guardianPhotos?.[idx]
+                                                                                                            ?.isUploading || isSubmitting
+                                                                                                    }
+                                                                                                    onChange={(e) => {
+                                                                                                        const file = e.target.files?.[0];
+                                                                                                        if (file) {
+                                                                                                            if (
+                                                                                                                file.size >
+                                                                                                                5 * 1024 * 1024
+                                                                                                            ) {
+                                                                                                                toast.error(
+                                                                                                                    'File size must be less than 5MB'
+                                                                                                                );
+                                                                                                                e.target.value = '';
+                                                                                                                return;
+                                                                                                            }
+                                                                                                            handleGuardianPhotoUpload(
+                                                                                                                idx,
+                                                                                                                file
+                                                                                                            );
+                                                                                                            e.target.value = '';
+                                                                                                        }
+                                                                                                    }}
+                                                                                                />
+                                                                                            </label>
+                                                                                        ) : (
+                                                                                            <div className='flex h-full w-full flex-col items-start justify-start gap-2 overflow-hidden rounded-lg border border-green-200 bg-green-50 p-4'>
+                                                                                                <div className='flex items-center gap-4'>
+                                                                                                    <img
+                                                                                                        src={guardianPhotos[idx].path}
+                                                                                                        alt={`Guardian ${idx + 1}`}
+                                                                                                        className='h-24 w-24 rounded-lg border-2 border-green-300 object-cover'
+                                                                                                    />
+                                                                                                    <div>
+                                                                                                        <div className='flex items-center gap-2 font-medium text-green-700'>
+                                                                                                            <Check className='h-5 w-5' />
+                                                                                                            Uploaded Successfully
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                                <div className='flex items-center gap-2'>
+                                                                                                    <Button
+                                                                                                        type='button'
+                                                                                                        variant='outline'
+                                                                                                        size='sm'
+                                                                                                        className='flex h-9 w-9 items-center justify-center p-0'
+                                                                                                        onClick={() =>
+                                                                                                            window.open(
+                                                                                                                guardianPhotos[idx].path,
+                                                                                                                '_blank'
+                                                                                                            )
+                                                                                                        }>
+                                                                                                        <Eye className='h-4 w-4' />
+                                                                                                    </Button>
+                                                                                                    <Button
+                                                                                                        type='button'
+                                                                                                        variant='destructive'
+                                                                                                        size='sm'
+                                                                                                        className='flex h-9 w-9 items-center justify-center p-0'
+                                                                                                        disabled={isSubmitting}
+                                                                                                        onClick={() =>
+                                                                                                            handleGuardianPhotoDelete(idx)
+                                                                                                        }>
+                                                                                                        <Trash className='h-4 w-4' />
+                                                                                                    </Button>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        )}
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+
+                                                                            {/* Signature column */}
+                                                                            <div className='min-w-0 flex-1'>
+                                                                                <div className='flex h-full flex-col justify-between overflow-hidden rounded-lg border-2 border-blue-200 bg-blue-50 p-2'>
+                                                                                    <div>
+                                                                                        <div className='mb-1'>
+                                                                                            <Label>Guardian Signature</Label>
+                                                                                        </div>
+
+                                                                                        {!guardianSignatures?.[idx]?.path ? (
+                                                                                            <label
+                                                                                                className={cn(
+                                                                                                    'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-2 py-3 text-center transition-all hover:border-primary hover:bg-white',
+                                                                                                    guardianSignatures?.[idx]?.isUploading
+                                                                                                        ? 'border-blue-400 bg-blue-100'
+                                                                                                        : 'border-gray-300 bg-white'
+                                                                                                )}>
+                                                                                                {guardianSignatures?.[idx]?.isUploading ? (
+                                                                                                    <div className='flex flex-col items-center gap-2'>
+                                                                                                        <svg
+                                                                                                            className='h-8 w-8 animate-spin text-primary'
+                                                                                                            fill='none'
+                                                                                                            stroke='currentColor'
+                                                                                                            viewBox='0 0 24 24'>
+                                                                                                            <circle
+                                                                                                                className='opacity-25'
+                                                                                                                cx='12'
+                                                                                                                cy='12'
+                                                                                                                r='10'
+                                                                                                                strokeWidth='4'
+                                                                                                                stroke='currentColor'
+                                                                                                            />
+                                                                                                            <path
+                                                                                                                className='opacity-75'
+                                                                                                                fill='currentColor'
+                                                                                                                d='M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z'
+                                                                                                            />
+                                                                                                        </svg>
+                                                                                                        <span className='font-medium text-primary text-sm'>
+                                                                                                            Uploading signature...
+                                                                                                        </span>
+                                                                                                    </div>
+                                                                                                ) : (
+                                                                                                    <>
+                                                                                                        <svg
+                                                                                                            className='h-12 w-12 text-primary'
+                                                                                                            fill='none'
+                                                                                                            stroke='currentColor'
+                                                                                                            viewBox='0 0 24 24'>
+                                                                                                            <path
+                                                                                                                strokeLinecap='round'
+                                                                                                                strokeLinejoin='round'
+                                                                                                                strokeWidth={2}
+                                                                                                                d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
+                                                                                                            />
+                                                                                                        </svg>
+                                                                                                        <span className='font-medium text-gray-700 text-sm'>
+                                                                                                            Click to upload
+                                                                                                        </span>
+                                                                                                        <span className='mt-1 max-w-[250px] text-gray-600 text-sm'>
+                                                                                                            Upload guardian signature (Max
+                                                                                                            size: 5MB, JPG/PNG)
+                                                                                                        </span>
+                                                                                                    </>
+                                                                                                )}
+
+                                                                                                <input
+                                                                                                    type='file'
+                                                                                                    className='hidden'
+                                                                                                    accept='image/jpeg,image/jpg,image/png'
+                                                                                                    disabled={
+                                                                                                        guardianSignatures?.[idx]
+                                                                                                            ?.isUploading || isSubmitting
+                                                                                                    }
+                                                                                                    onChange={(e) => {
+                                                                                                        const file = e.target.files?.[0];
+                                                                                                        if (file) {
+                                                                                                            if (
+                                                                                                                file.size >
+                                                                                                                5 * 1024 * 1024
+                                                                                                            ) {
+                                                                                                                toast.error(
+                                                                                                                    'File size must be less than 5MB'
+                                                                                                                );
+                                                                                                                e.target.value = '';
+                                                                                                                return;
+                                                                                                            }
+                                                                                                            handleGuardianSignatureUpload(
+                                                                                                                idx,
+                                                                                                                file
+                                                                                                            );
+                                                                                                            e.target.value = '';
+                                                                                                        }
+                                                                                                    }}
+                                                                                                />
+                                                                                            </label>
+                                                                                        ) : (
+                                                                                            <div className='flex h-full w-full flex-col items-start justify-start gap-2 overflow-hidden rounded-lg border border-green-200 bg-green-50 p-4'>
+                                                                                                <div className='flex items-center gap-4'>
+                                                                                                    <img
+                                                                                                        src={guardianSignatures[idx].path}
+                                                                                                        alt={`Guardian signature ${idx + 1}`}
+                                                                                                        className='h-24 w-40 rounded-lg border-2 border-green-300 object-contain'
+                                                                                                    />
+                                                                                                    <div>
+                                                                                                        <div className='flex items-center gap-2 font-medium text-green-700'>
+                                                                                                            <Check className='h-5 w-5' />
+                                                                                                            Uploaded Successfully
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                                <div className='flex items-center gap-2'>
+                                                                                                    <Button
+                                                                                                        type='button'
+                                                                                                        variant='outline'
+                                                                                                        size='sm'
+                                                                                                        className='flex h-9 w-9 items-center justify-center p-0'
+                                                                                                        onClick={() =>
+                                                                                                            window.open(
+                                                                                                                guardianSignatures[idx]
+                                                                                                                    .path,
+                                                                                                                '_blank'
+                                                                                                            )
+                                                                                                        }>
+                                                                                                        <Eye className='h-4 w-4' />
+                                                                                                    </Button>
+                                                                                                    <Button
+                                                                                                        type='button'
+                                                                                                        variant='destructive'
+                                                                                                        size='sm'
+                                                                                                        className='flex h-9 w-9 items-center justify-center p-0'
+                                                                                                        disabled={isSubmitting}
+                                                                                                        onClick={() =>
+                                                                                                            handleGuardianSignatureDelete(
+                                                                                                                idx
+                                                                                                            )
+                                                                                                        }>
+                                                                                                        <Trash className='h-4 w-4' />
+                                                                                                    </Button>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        )}
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </>
+                                                                ) : null}
                                                             </div>
                                                         </div>
                                                     ))}
@@ -5708,8 +6909,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                             <Select
                                                                 key={field.value || 'empty'}
                                                                 value={field.value?.toString() || ''}
-                                                                onValueChange={(value) => field.onChange(Number(value))}
-                                                                disabled={sameAsResidential}>
+                                                                onValueChange={(value) => field.onChange(Number(value))}>
                                                                 <SelectTrigger>
                                                                     <SelectValue placeholder='Select country' />
                                                                 </SelectTrigger>
@@ -5750,8 +6950,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                             <Select
                                                                 key={field.value || 'empty'}
                                                                 value={field.value?.toString() || ''}
-                                                                onValueChange={(value) => field.onChange(Number(value))}
-                                                                disabled={sameAsResidential}>
+                                                                onValueChange={(value) => field.onChange(Number(value))}>
                                                                 <SelectTrigger>
                                                                     <SelectValue placeholder='Select state' />
                                                                 </SelectTrigger>
@@ -5843,11 +7042,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                 />
 
                                                 <InputText
-                                                    label='No of Siblings in Other School'
-                                                    id='amsT_NoOfSiblingsOtherSchool'
-                                                    placeholder='Enter No of Siblings in Other School'
-                                                    {...register('amsT_NoOfSiblingsOtherSchool')}
-                                                    error={errors.amsT_NoOfSiblingsOtherSchool?.message}
+                                                    label='No of Dependencies'
+                                                    id=' amsT_NoOfDependencies'
+                                                    placeholder='Enter No of Dependencies'
+                                                    {...register('amsT_NoOfDependencies')}
+                                                    error={errors.amsT_NoOfDependencies?.message}
                                                 />
 
                                                 <InputText
@@ -6077,254 +7276,571 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             </p>
                                         </div>
 
-                                        {preadmissionDocumentsLoading ? (
-                                            <div className='flex items-center justify-center py-12'>
-                                                <div className='text-center'>
-                                                    <div className='mx-auto h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent' />
-                                                    <p className='mt-4 text-gray-600 text-sm'>Loading documents...</p>
-                                                </div>
+                                        {/* Document uploads: users can add files which will be submitted with final form */}
+                                        <div>
+                                            <div className='mb-2 text-gray-600 text-sm'>
+                                                Add documents required by you. Files are stored locally and sent on final submit.
                                             </div>
-                                        ) : preadmissionDocuments?.data && preadmissionDocuments.data.length > 0 ? (
-                                            <div className='overflow-x-auto rounded-lg border border-gray-200'>
-                                                <table className='min-w-full divide-y divide-gray-200'>
-                                                    <thead className='bg-gray-50'>
-                                                        <tr>
-                                                            <th
-                                                                scope='col'
-                                                                className='px-6 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wider'>
-                                                                Document Name
-                                                            </th>
-                                                            <th
-                                                                scope='col'
-                                                                className='px-6 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wider'>
-                                                                Status
-                                                            </th>
-                                                            <th
-                                                                scope='col'
-                                                                className='px-6 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wider'>
-                                                                Upload
-                                                            </th>
-                                                            <th
-                                                                scope='col'
-                                                                className='px-6 py-3 text-center font-medium text-gray-500 text-xs uppercase tracking-wider'>
-                                                                Actions
-                                                            </th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody className='divide-y divide-gray-200 bg-white'>
-                                                        {preadmissionDocuments.data.map((document) => {
-                                                            const uploadedDoc = getUploadedDocument(document.amsmD_Id);
-                                                            const isUploading = uploadedDoc?.isUploading;
-                                                            const error = documentErrors[document.amsmD_Id];
-
-                                                            return (
-                                                                <tr
-                                                                    key={document.amsmD_Id}
-                                                                    className={(() => {
-                                                                        // Get selected religion details
-                                                                        const selectedReligionId = watch('motherReligionId');
-                                                                        const selectedReligion = religion?.data?.find(
-                                                                            (r) => r.ivrmmR_Id === selectedReligionId
-                                                                        );
-                                                                        const isRomanCatholic =
-                                                                            selectedReligion?.ivrmmR_Name === 'Roman Catholic';
-
-                                                                        // Check if this document is conditionally mandatory
-                                                                        const isConditionallyMandatory =
-                                                                            document.amsmD_DocumentName === 'Baptism Certificate' &&
-                                                                            isRomanCatholic;
-
-                                                                        const isMandatory = document.amsmD_FLAG || isConditionallyMandatory;
-
-                                                                        if (uploadedDoc && !isUploading) return 'bg-green-50';
-                                                                        if (isMandatory) return 'bg-orange-50';
-                                                                        return '';
-                                                                    })()}>
-                                                                    <td className='whitespace-nowrap px-6 py-4'>
-                                                                        {(() => {
-                                                                            // Get selected religion details
-                                                                            const selectedReligionId = watch('motherReligionId');
-                                                                            const selectedReligion = religion?.data?.find(
-                                                                                (r) => r.ivrmmR_Id === selectedReligionId
-                                                                            );
-                                                                            const isRomanCatholic =
-                                                                                selectedReligion?.ivrmmR_Name === 'Roman Catholic';
-
-                                                                            // Check if this document is conditionally mandatory
-                                                                            const isConditionallyMandatory =
-                                                                                document.amsmD_DocumentName === 'Baptism Certificate' &&
-                                                                                isRomanCatholic;
-
-                                                                            const isMandatory =
-                                                                                document.amsmD_FLAG || isConditionallyMandatory;
-
-                                                                            return (
-                                                                                <>
-                                                                                    <div className='flex items-center gap-2'>
-                                                                                        <span className='font-semibold text-gray-900 text-sm'>
-                                                                                            {document.amsmD_DocumentName}
-                                                                                        </span>
-                                                                                        {isMandatory && (
-                                                                                            <span className='text-red-500'>*</span>
-                                                                                        )}
-                                                                                    </div>
-                                                                                    <p className='mt-0.5 text-gray-500 text-xs'>
-                                                                                        {isMandatory ? 'Required' : 'Optional'}
-                                                                                        {isConditionallyMandatory && (
-                                                                                            <span className='ml-1 text-orange-600'>
-                                                                                                (for Roman Catholic)
-                                                                                            </span>
-                                                                                        )}
-                                                                                    </p>
-                                                                                </>
-                                                                            );
-                                                                        })()}
-                                                                    </td>
-
-                                                                    <td className='whitespace-nowrap px-6 py-4'>
-                                                                        {uploadedDoc && !isUploading ? (
-                                                                            <div className='flex items-center gap-2 font-medium text-green-600 text-sm'>
-                                                                                <Check className='h-5 w-5' />
-                                                                                Uploaded
-                                                                            </div>
-                                                                        ) : isUploading ? (
-                                                                            <div className='flex animate-pulse items-center gap-2 font-medium text-blue-600 text-sm'>
-                                                                                <svg
-                                                                                    className='h-5 w-5 animate-spin'
-                                                                                    fill='none'
-                                                                                    stroke='currentColor'
-                                                                                    viewBox='0 0 24 24'>
-                                                                                    <circle
-                                                                                        className='opacity-25'
-                                                                                        cx='12'
-                                                                                        cy='12'
-                                                                                        r='10'
-                                                                                        strokeWidth='4'
-                                                                                        stroke='currentColor'
-                                                                                    />
-                                                                                    <path
-                                                                                        className='opacity-75'
-                                                                                        fill='currentColor'
-                                                                                        d='M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z'
-                                                                                    />
-                                                                                </svg>
-                                                                                Uploading...
-                                                                            </div>
-                                                                        ) : (
-                                                                            <span className='text-gray-500 text-sm'>Not Uploaded</span>
-                                                                        )}
-                                                                        {error && (
-                                                                            <p className='mt-1 flex items-center gap-1 font-medium text-red-600 text-xs'>
-                                                                                <span>⚠</span> {error}
-                                                                            </p>
-                                                                        )}
-                                                                    </td>
-
-                                                                    <td className='whitespace-nowrap px-6 py-4'>
-                                                                        {(!uploadedDoc || isUploading) && (
-                                                                            <label
-                                                                                htmlFor={`document-${document.amsmD_Id}`}
-                                                                                className={cn(
-                                                                                    'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-3 text-center transition-all hover:border-primary hover:bg-gray-50',
-                                                                                    isUploading
-                                                                                        ? 'border-blue-300 bg-blue-50'
-                                                                                        : 'border-gray-300 bg-white'
-                                                                                )}>
-                                                                                <svg
-                                                                                    className='mb-1 h-6 w-6 text-primary'
-                                                                                    fill='none'
-                                                                                    stroke='currentColor'
-                                                                                    viewBox='0 0 24 24'>
-                                                                                    <path
-                                                                                        strokeLinecap='round'
-                                                                                        strokeLinejoin='round'
-                                                                                        strokeWidth={2}
-                                                                                        d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12'
-                                                                                    />
-                                                                                </svg>
-                                                                                <span className='text-gray-600 text-xs'>
-                                                                                    Click to upload
-                                                                                </span>
-                                                                                <input
-                                                                                    id={`document-${document.amsmD_Id}`}
-                                                                                    type='file'
-                                                                                    className='hidden'
-                                                                                    accept='.pdf,.jpg,.jpeg,.png'
-                                                                                    disabled={isUploading || isSubmitting}
-                                                                                    onChange={(e) => {
-                                                                                        const file = e.target.files?.[0];
-                                                                                        if (file) {
-                                                                                            if (file.size > 5 * 1024 * 1024) {
-                                                                                                toast.error(
-                                                                                                    'File size must be less than 5MB'
-                                                                                                );
-                                                                                                e.target.value = ''; // Reset input
-                                                                                                return;
-                                                                                            }
-                                                                                            handleDocumentUpload(
-                                                                                                document.amsmD_Id,
-                                                                                                file,
-                                                                                                document.amsmD_DocumentName
-                                                                                            );
-                                                                                            e.target.value = ''; // Reset input after starting upload
-                                                                                        }
-                                                                                    }}
-                                                                                />
-                                                                            </label>
-                                                                        )}
-                                                                    </td>
-
-                                                                    <td className='space-x-2 whitespace-nowrap px-6 py-4 text-center'>
-                                                                        {uploadedDoc && !isUploading && (
-                                                                            <>
-                                                                                <Button
-                                                                                    type='button'
-                                                                                    className='w-fit'
-                                                                                    onClick={() =>
-                                                                                        window.open(uploadedDoc.document_Path, '_blank')
-                                                                                    }>
-                                                                                    <Eye className='h-4 w-4' />
-                                                                                </Button>
-                                                                                <Button
-                                                                                    type='button'
-                                                                                    className='w-fit'
-                                                                                    variant='destructive'
-                                                                                    disabled={isSubmitting}
-                                                                                    onClick={() =>
-                                                                                        handleDocumentDelete(
-                                                                                            document.amsmD_Id,
-                                                                                            uploadedDoc.document_Path,
-                                                                                            document.amsmD_DocumentName
-                                                                                        )
-                                                                                    }>
-                                                                                    <Trash className='h-4 w-4' />
-                                                                                </Button>
-                                                                            </>
-                                                                        )}
-                                                                    </td>
-                                                                </tr>
-                                                            );
-                                                        })}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        ) : (
-                                            <div className='rounded-lg border-2 border-gray-300 border-dashed bg-gray-50 p-12 text-center'>
-                                                <svg
-                                                    className='mx-auto h-12 w-12 text-gray-400'
-                                                    fill='none'
-                                                    stroke='currentColor'
-                                                    viewBox='0 0 24 24'>
+                                            {/* <label className='inline-flex cursor-pointer items-center gap-2 rounded-md border-2 border-dashed px-4 py-2 text-sm hover:border-primary'>
+                                                <svg className='h-4 w-4 text-primary' viewBox='0 0 24 24' fill='none' stroke='currentColor'>
                                                     <path
                                                         strokeLinecap='round'
                                                         strokeLinejoin='round'
                                                         strokeWidth={2}
-                                                        d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
+                                                        d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9'
                                                     />
                                                 </svg>
-                                                <p className='mt-4 text-gray-600 text-sm'>No documents required at this time</p>
-                                            </div>
-                                        )}
+                                                <span>Select documents</span>
+                                                <input
+                                                    type='file'
+                                                    accept='.pdf,.jpg,.jpeg,.png'
+                                                    className='hidden'
+                                                    multiple
+                                                    disabled={isSubmitting}
+                                                    onChange={(e) => {
+                                                        const files = Array.from(e.target.files || []);
+                                                        files.forEach((file) => {
+                                                            // Use a generated id for ad-hoc documents
+                                                            const generatedId = Number(
+                                                                String(Date.now()) + Math.floor(Math.random() * 1000)
+                                                            );
+                                                            handleDocumentUpload(generatedId, file, file.name);
+                                                        });
+                                                        e.target.value = '';
+                                                    }}
+                                                />
+                                            </label> */}
+
+                                            {uploadedDocuments.length > 0 && (
+                                                <div className='mt-4 space-y-2'>
+                                                    {uploadedDocuments.map((d) => (
+                                                        <div
+                                                            key={d.amsmD_Id}
+                                                            className='flex items-center justify-between rounded-lg border p-3'>
+                                                            <div>
+                                                                <div className='font-medium text-sm'>{d.documentName}</div>
+                                                                <div className='text-gray-500 text-xs'>
+                                                                    {d.file ? `${(d.file.size / 1024 / 1024).toFixed(2)} MB` : ''}
+                                                                </div>
+                                                            </div>
+                                                            <div className='flex gap-2'>
+                                                                {d.document_Path && (
+                                                                    <Button
+                                                                        type='button'
+                                                                        size='sm'
+                                                                        variant='ghost'
+                                                                        onClick={() => window.open(d.document_Path, '_blank')}
+                                                                        aria-label={`View ${d.documentName}`}>
+                                                                        <Eye className='h-4 w-4' />
+                                                                    </Button>
+                                                                )}
+                                                                <Button
+                                                                    type='button'
+                                                                    size='sm'
+                                                                    variant='destructive'
+                                                                    onClick={() =>
+                                                                        handleDocumentDelete(
+                                                                            d.amsmD_Id,
+                                                                            d.document_Path,
+                                                                            d.documentName || 'Document'
+                                                                        )
+                                                                    }
+                                                                    aria-label={`Delete ${d.documentName}`}>
+                                                                    <Trash className='h-4 w-4' />
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Parent photos & signatures (Step 6) - table style upload rows */}
+                                        <div className='overflow-hidden rounded-lg border'>
+                                            <table className='w-full table-fixed'>
+                                                <thead>
+                                                    <tr className='bg-gray-50'>
+                                                        <th className='px-4 py-3 text-left text-gray-600 text-sm'>Document Name</th>
+                                                        <th className='px-4 py-3 text-left text-gray-600 text-sm'>Status</th>
+                                                        <th className='px-4 py-3 text-left text-gray-600 text-sm'>Upload</th>
+                                                        <th className='px-4 py-3 text-left text-gray-600 text-sm'>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {/* Father Photo */}
+                                                    <tr className={`border-t ${fatherPhoto?.path ? 'bg-green-50' : 'bg-amber-50'}`}>
+                                                        <td className='px-4 py-4'>
+                                                            <div className='flex flex-col'>
+                                                                <span className='font-medium'>Father Photo</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className='px-4 py-4'>
+                                                            {fatherPhoto?.isUploading ? (
+                                                                <span className='flex items-center gap-2 text-gray-600 text-sm'>
+                                                                    <Spinner size='sm' />
+                                                                    Uploading...
+                                                                </span>
+                                                            ) : fatherPhoto?.path ? (
+                                                                <span className='inline-flex items-center gap-2 text-green-700 text-sm'>
+                                                                    <svg
+                                                                        className='h-4 w-4 text-green-700'
+                                                                        viewBox='0 0 24 24'
+                                                                        fill='none'
+                                                                        stroke='currentColor'>
+                                                                        <path
+                                                                            d='M20 6L9 17l-5-5'
+                                                                            strokeWidth='2'
+                                                                            strokeLinecap='round'
+                                                                            strokeLinejoin='round'
+                                                                        />
+                                                                    </svg>
+                                                                    Uploaded
+                                                                </span>
+                                                            ) : (
+                                                                <span className='text-gray-500 text-sm'>Not Uploaded</span>
+                                                            )}
+                                                        </td>
+                                                        <td className='w-40 px-4 py-4'>
+                                                            {!fatherPhoto || fatherPhoto.isUploading ? (
+                                                                <label className='flex h-20 w-32 cursor-pointer flex-col items-center justify-center rounded-md border-2 border-gray-300 border-dashed bg-white hover:border-primary'>
+                                                                    <div className='flex flex-col items-center justify-center gap-1'>
+                                                                        <svg
+                                                                            className='h-6 w-6 text-purple-600'
+                                                                            viewBox='0 0 24 24'
+                                                                            fill='none'
+                                                                            stroke='currentColor'>
+                                                                            <path
+                                                                                strokeLinecap='round'
+                                                                                strokeLinejoin='round'
+                                                                                strokeWidth={2}
+                                                                                d='M12 3v12m0 0l3-3m-3 3l-3-3'
+                                                                            />
+                                                                            <path
+                                                                                strokeLinecap='round'
+                                                                                strokeLinejoin='round'
+                                                                                strokeWidth={2}
+                                                                                d='M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3'
+                                                                            />
+                                                                        </svg>
+                                                                        <span className='mt-1 text-gray-600 text-xs'>Click to upload</span>
+                                                                    </div>
+                                                                    <input
+                                                                        id='father_photo'
+                                                                        type='file'
+                                                                        className='hidden'
+                                                                        accept='image/jpeg,image/jpg,image/png'
+                                                                        disabled={fatherPhoto?.isUploading || isSubmitting}
+                                                                        onChange={(e) => {
+                                                                            const file = e.target.files?.[0];
+                                                                            if (file) {
+                                                                                if (file.size > 5 * 1024 * 1024) {
+                                                                                    toast.error('File size must be less than 5MB');
+                                                                                    e.target.value = '';
+                                                                                    return;
+                                                                                }
+                                                                                handleFatherPhotoUpload(file);
+                                                                                e.target.value = '';
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                </label>
+                                                            ) : (
+                                                                <div className='flex items-center gap-2'>
+                                                                    <div
+                                                                        className={
+                                                                            'flex h-20 w-32 items-center justify-center rounded-md border bg-white'
+                                                                        }>
+                                                                        <img
+                                                                            src={fatherPhoto.path}
+                                                                            alt='Father'
+                                                                            className='max-h-full max-w-full object-contain'
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </td>
+                                                        <td className='px-4 py-4'>
+                                                            <div className='flex gap-2'>
+                                                                {fatherPhoto?.path && (
+                                                                    <Button
+                                                                        type='button'
+                                                                        size='sm'
+                                                                        variant='ghost'
+                                                                        onClick={() => window.open(fatherPhoto.path, '_blank')}
+                                                                        aria-label='View father photo'>
+                                                                        <Eye className='h-4 w-4' />
+                                                                    </Button>
+                                                                )}
+                                                                {fatherPhoto?.path && (
+                                                                    <Button
+                                                                        type='button'
+                                                                        size='sm'
+                                                                        variant='destructive'
+                                                                        onClick={handleFatherPhotoDelete}
+                                                                        aria-label='Delete father photo'>
+                                                                        <Trash className='h-4 w-4' />
+                                                                    </Button>
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+
+                                                    {/* Father Signature */}
+                                                    <tr className={`border-t ${fatherSignature?.path ? 'bg-green-50' : 'bg-amber-50'}`}>
+                                                        <td className='px-4 py-4'>
+                                                            <div className='flex flex-col'>
+                                                                <span className='font-medium'>Father Signature</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className='px-4 py-4'>
+                                                            {fatherSignature?.isUploading ? (
+                                                                <span className='flex items-center gap-2 text-gray-600 text-sm'>
+                                                                    <Spinner size='sm' />
+                                                                    Uploading...
+                                                                </span>
+                                                            ) : fatherSignature?.path ? (
+                                                                <span className='inline-flex items-center gap-2 text-green-700 text-sm'>
+                                                                    <svg
+                                                                        className='h-4 w-4 text-green-700'
+                                                                        viewBox='0 0 24 24'
+                                                                        fill='none'
+                                                                        stroke='currentColor'>
+                                                                        <path
+                                                                            d='M20 6L9 17l-5-5'
+                                                                            strokeWidth='2'
+                                                                            strokeLinecap='round'
+                                                                            strokeLinejoin='round'
+                                                                        />
+                                                                    </svg>
+                                                                    Uploaded
+                                                                </span>
+                                                            ) : (
+                                                                <span className='text-gray-500 text-sm'>Not Uploaded</span>
+                                                            )}
+                                                        </td>
+                                                        <td className='w-40 px-4 py-4'>
+                                                            {!fatherSignature || fatherSignature.isUploading ? (
+                                                                <label className='flex h-20 w-32 cursor-pointer flex-col items-center justify-center rounded-md border-2 border-gray-300 border-dashed bg-white hover:border-primary'>
+                                                                    <div className='flex flex-col items-center justify-center gap-1'>
+                                                                        <svg
+                                                                            className='h-6 w-6 text-purple-600'
+                                                                            viewBox='0 0 24 24'
+                                                                            fill='none'
+                                                                            stroke='currentColor'>
+                                                                            <path
+                                                                                strokeLinecap='round'
+                                                                                strokeLinejoin='round'
+                                                                                strokeWidth={2}
+                                                                                d='M12 3v12m0 0l3-3m-3 3l-3-3'
+                                                                            />
+                                                                            <path
+                                                                                strokeLinecap='round'
+                                                                                strokeLinejoin='round'
+                                                                                strokeWidth={2}
+                                                                                d='M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3'
+                                                                            />
+                                                                        </svg>
+                                                                        <span className='mt-1 text-gray-600 text-xs'>Click to upload</span>
+                                                                    </div>
+                                                                    <input
+                                                                        id='father_signature'
+                                                                        type='file'
+                                                                        className='hidden'
+                                                                        accept='image/jpeg,image/jpg,image/png'
+                                                                        disabled={fatherSignature?.isUploading || isSubmitting}
+                                                                        onChange={(e) => {
+                                                                            const file = e.target.files?.[0];
+                                                                            if (file) {
+                                                                                if (file.size > 5 * 1024 * 1024) {
+                                                                                    toast.error('File size must be less than 5MB');
+                                                                                    e.target.value = '';
+                                                                                    return;
+                                                                                }
+                                                                                handleFatherSignatureUpload(file);
+                                                                                e.target.value = '';
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                </label>
+                                                            ) : (
+                                                                <div className='flex items-center gap-2'>
+                                                                    <div
+                                                                        className={
+                                                                            'flex h-20 w-32 items-center justify-center rounded-md border bg-white'
+                                                                        }>
+                                                                        <img
+                                                                            src={fatherSignature.path}
+                                                                            alt='Father signature'
+                                                                            className='max-h-full max-w-full object-contain'
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </td>
+                                                        <td className='px-4 py-4'>
+                                                            <div className='flex gap-2'>
+                                                                {fatherSignature?.path && (
+                                                                    <Button
+                                                                        type='button'
+                                                                        size='sm'
+                                                                        variant='ghost'
+                                                                        onClick={() => window.open(fatherSignature.path, '_blank')}
+                                                                        aria-label='View father signature'>
+                                                                        <Eye className='h-4 w-4' />
+                                                                    </Button>
+                                                                )}
+                                                                {fatherSignature?.path && (
+                                                                    <Button
+                                                                        type='button'
+                                                                        size='sm'
+                                                                        variant='destructive'
+                                                                        onClick={handleFatherSignatureDelete}
+                                                                        aria-label='Delete father signature'>
+                                                                        <Trash className='h-4 w-4' />
+                                                                    </Button>
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+
+                                                    {/* Mother Photo */}
+                                                    <tr className={`border-t ${motherPhoto?.path ? 'bg-green-50' : 'bg-amber-50'}`}>
+                                                        <td className='px-4 py-4'>
+                                                            <div className='flex flex-col'>
+                                                                <span className='font-medium'>Mother Photo</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className='px-4 py-4'>
+                                                            {motherPhoto?.isUploading ? (
+                                                                <span className='flex items-center gap-2 text-gray-600 text-sm'>
+                                                                    <Spinner size='sm' />
+                                                                    Uploading...
+                                                                </span>
+                                                            ) : motherPhoto?.path ? (
+                                                                <span className='inline-flex items-center gap-2 text-green-700 text-sm'>
+                                                                    <svg
+                                                                        className='h-4 w-4 text-green-700'
+                                                                        viewBox='0 0 24 24'
+                                                                        fill='none'
+                                                                        stroke='currentColor'>
+                                                                        <path
+                                                                            d='M20 6L9 17l-5-5'
+                                                                            strokeWidth='2'
+                                                                            strokeLinecap='round'
+                                                                            strokeLinejoin='round'
+                                                                        />
+                                                                    </svg>
+                                                                    Uploaded
+                                                                </span>
+                                                            ) : (
+                                                                <span className='text-gray-500 text-sm'>Not Uploaded</span>
+                                                            )}
+                                                        </td>
+                                                        <td className='w-40 px-4 py-4'>
+                                                            {!motherPhoto || motherPhoto.isUploading ? (
+                                                                <label className='flex h-20 w-32 cursor-pointer flex-col items-center justify-center rounded-md border-2 border-gray-300 border-dashed bg-white hover:border-primary'>
+                                                                    <div className='flex flex-col items-center justify-center gap-1'>
+                                                                        <svg
+                                                                            className='h-6 w-6 text-purple-600'
+                                                                            viewBox='0 0 24 24'
+                                                                            fill='none'
+                                                                            stroke='currentColor'>
+                                                                            <path
+                                                                                strokeLinecap='round'
+                                                                                strokeLinejoin='round'
+                                                                                strokeWidth={2}
+                                                                                d='M12 3v12m0 0l3-3m-3 3l-3-3'
+                                                                            />
+                                                                            <path
+                                                                                strokeLinecap='round'
+                                                                                strokeLinejoin='round'
+                                                                                strokeWidth={2}
+                                                                                d='M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3'
+                                                                            />
+                                                                        </svg>
+                                                                        <span className='mt-1 text-gray-600 text-xs'>Click to upload</span>
+                                                                    </div>
+                                                                    <input
+                                                                        id='mother_photo'
+                                                                        type='file'
+                                                                        className='hidden'
+                                                                        accept='image/jpeg,image/jpg,image/png'
+                                                                        disabled={motherPhoto?.isUploading || isSubmitting}
+                                                                        onChange={(e) => {
+                                                                            const file = e.target.files?.[0];
+                                                                            if (file) {
+                                                                                if (file.size > 5 * 1024 * 1024) {
+                                                                                    toast.error('File size must be less than 5MB');
+                                                                                    e.target.value = '';
+                                                                                    return;
+                                                                                }
+                                                                                handleMotherPhotoUpload(file);
+                                                                                e.target.value = '';
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                </label>
+                                                            ) : (
+                                                                <div className='flex items-center gap-2'>
+                                                                    <div
+                                                                        className={
+                                                                            'flex h-20 w-32 items-center justify-center rounded-md border bg-white'
+                                                                        }>
+                                                                        <img
+                                                                            src={motherPhoto.path}
+                                                                            alt='Mother'
+                                                                            className='max-h-full max-w-full object-contain'
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </td>
+                                                        <td className='px-4 py-4'>
+                                                            <div className='flex gap-2'>
+                                                                {motherPhoto?.path && (
+                                                                    <Button
+                                                                        type='button'
+                                                                        size='sm'
+                                                                        variant='ghost'
+                                                                        onClick={() => window.open(motherPhoto.path, '_blank')}
+                                                                        aria-label='View mother photo'>
+                                                                        <Eye className='h-4 w-4' />
+                                                                    </Button>
+                                                                )}
+                                                                {motherPhoto?.path && (
+                                                                    <Button
+                                                                        type='button'
+                                                                        size='sm'
+                                                                        variant='destructive'
+                                                                        onClick={handleMotherPhotoDelete}
+                                                                        aria-label='Delete mother photo'>
+                                                                        <Trash className='h-4 w-4' />
+                                                                    </Button>
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+
+                                                    {/* Mother Signature */}
+                                                    <tr className={`border-t ${motherSignature?.path ? 'bg-green-50' : 'bg-amber-50'}`}>
+                                                        <td className='px-4 py-4'>
+                                                            <div className='flex flex-col'>
+                                                                <span className='font-medium'>Mother Signature</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className='px-4 py-4'>
+                                                            {motherSignature?.isUploading ? (
+                                                                <span className='flex items-center gap-2 text-gray-600 text-sm'>
+                                                                    <Spinner size='sm' />
+                                                                    Uploading...
+                                                                </span>
+                                                            ) : motherSignature?.path ? (
+                                                                <span className='inline-flex items-center gap-2 text-green-700 text-sm'>
+                                                                    <svg
+                                                                        className='h-4 w-4 text-green-700'
+                                                                        viewBox='0 0 24 24'
+                                                                        fill='none'
+                                                                        stroke='currentColor'>
+                                                                        <path
+                                                                            d='M20 6L9 17l-5-5'
+                                                                            strokeWidth='2'
+                                                                            strokeLinecap='round'
+                                                                            strokeLinejoin='round'
+                                                                        />
+                                                                    </svg>
+                                                                    Uploaded
+                                                                </span>
+                                                            ) : (
+                                                                <span className='text-gray-500 text-sm'>Not Uploaded</span>
+                                                            )}
+                                                        </td>
+                                                        <td className='w-40 px-4 py-4'>
+                                                            {!motherSignature || motherSignature.isUploading ? (
+                                                                <label className='flex h-20 w-32 cursor-pointer flex-col items-center justify-center rounded-md border-2 border-gray-300 border-dashed bg-white hover:border-primary'>
+                                                                    <div className='flex flex-col items-center justify-center gap-1'>
+                                                                        <svg
+                                                                            className='h-6 w-6 text-purple-600'
+                                                                            viewBox='0 0 24 24'
+                                                                            fill='none'
+                                                                            stroke='currentColor'>
+                                                                            <path
+                                                                                strokeLinecap='round'
+                                                                                strokeLinejoin='round'
+                                                                                strokeWidth={2}
+                                                                                d='M12 3v12m0 0l3-3m-3 3l-3-3'
+                                                                            />
+                                                                            <path
+                                                                                strokeLinecap='round'
+                                                                                strokeLinejoin='round'
+                                                                                strokeWidth={2}
+                                                                                d='M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3'
+                                                                            />
+                                                                        </svg>
+                                                                        <span className='mt-1 text-gray-600 text-xs'>Click to upload</span>
+                                                                    </div>
+                                                                    <input
+                                                                        id='mother_signature'
+                                                                        type='file'
+                                                                        className='hidden'
+                                                                        accept='image/jpeg,image/jpg,image/png'
+                                                                        disabled={motherSignature?.isUploading || isSubmitting}
+                                                                        onChange={(e) => {
+                                                                            const file = e.target.files?.[0];
+                                                                            if (file) {
+                                                                                if (file.size > 5 * 1024 * 1024) {
+                                                                                    toast.error('File size must be less than 5MB');
+                                                                                    e.target.value = '';
+                                                                                    return;
+                                                                                }
+                                                                                handleMotherSignatureUpload(file);
+                                                                                e.target.value = '';
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                </label>
+                                                            ) : (
+                                                                <div className='flex items-center gap-2'>
+                                                                    <div
+                                                                        className={
+                                                                            'flex h-20 w-32 items-center justify-center rounded-md border bg-white'
+                                                                        }>
+                                                                        <img
+                                                                            src={motherSignature.path}
+                                                                            alt='Mother signature'
+                                                                            className='max-h-full max-w-full object-contain'
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </td>
+                                                        <td className='px-4 py-4'>
+                                                            <div className='flex gap-2'>
+                                                                {motherSignature?.path && (
+                                                                    <Button
+                                                                        type='button'
+                                                                        size='sm'
+                                                                        variant='ghost'
+                                                                        onClick={() => window.open(motherSignature.path, '_blank')}
+                                                                        aria-label='View mother signature'>
+                                                                        <Eye className='h-4 w-4' />
+                                                                    </Button>
+                                                                )}
+                                                                {motherSignature?.path && (
+                                                                    <Button
+                                                                        type='button'
+                                                                        size='sm'
+                                                                        variant='destructive'
+                                                                        onClick={handleMotherSignatureDelete}
+                                                                        aria-label='Delete mother signature'>
+                                                                        <Trash className='h-4 w-4' />
+                                                                    </Button>
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
 
                                         {/* Hostel / Transport checkboxes for final submission */}
                                         <div className='mt-4 flex flex-col gap-3'>
@@ -6365,8 +7881,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             </div>
                                         </div>
 
-                                        {/* Upload Summary */}
-                                        {preadmissionDocuments?.data && preadmissionDocuments.data.length > 0 && (
+                                        {/* Upload Summary: show number of selected documents */}
+                                        {uploadedDocuments.length > 0 && (
                                             <div className='rounded-lg border border-blue-200 bg-blue-50 p-4'>
                                                 <div className='flex items-start gap-3'>
                                                     <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-100'>
@@ -6384,23 +7900,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         </svg>
                                                     </div>
                                                     <div className='flex-1'>
-                                                        <p className='font-medium text-blue-900 text-sm'>Upload Progress</p>
+                                                        <p className='font-medium text-blue-900 text-sm'>Upload Summary</p>
                                                         <p className='mt-1 text-blue-700 text-sm'>
-                                                            {uploadedDocuments.length} of {preadmissionDocuments.data.length} documents
-                                                            uploaded
-                                                            {preadmissionDocuments.data.filter((d) => d.amsmD_FLAG).length > 0 && (
-                                                                <>
-                                                                    {' '}
-                                                                    (
-                                                                    {
-                                                                        preadmissionDocuments.data.filter(
-                                                                            (d) => d.amsmD_FLAG && isDocumentUploaded(d.amsmD_Id)
-                                                                        ).length
-                                                                    }{' '}
-                                                                    of {preadmissionDocuments.data.filter((d) => d.amsmD_FLAG).length}{' '}
-                                                                    mandatory)
-                                                                </>
-                                                            )}
+                                                            {uploadedDocuments.length} document(s) selected and will be submitted with the
+                                                            form
                                                         </p>
                                                     </div>
                                                 </div>
@@ -6430,18 +7933,37 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                     )}
 
                                     {currentStep < steps.length ? (
-                                        <Button type='button' onClick={nextStep} disabled={isSubmitting}>
-                                            Next
-                                            <ChevronRight className='ml-2 h-4 w-4' />
+                                        <Button
+                                            type='button'
+                                            onClick={() => {
+                                                if (hasUnsavedGuardian) {
+                                                    toast.error('Please save guardian details before proceeding.');
+                                                    return;
+                                                }
+                                                nextStep();
+                                            }}
+                                            disabled={isSavingStep || isSubmitting}
+                                            className={hasUnsavedGuardian ? 'opacity-60' : ''}>
+                                            {isSavingStep ? (
+                                                <>
+                                                    <Spinner className='mr-2 h-4 w-4' size='sm' />
+                                                    Saving...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    Next
+                                                    <ChevronRight className='ml-2 h-4 w-4' />
+                                                </>
+                                            )}
                                         </Button>
                                     ) : (
                                         <Button
                                             type='button'
                                             onClick={submitWithoutValidation}
-                                            disabled={isSubmitting}
+                                            disabled={isSubmitting || submittingFinal}
                                             className='min-w-[160px] transition-all duration-200 hover:scale-105'>
-                                            {isSubmitting ? (
-                                                <span>Saving...</span>
+                                            {isSubmitting || submittingFinal ? (
+                                                <span>Submitting...</span>
                                             ) : (
                                                 <>
                                                     <Save className='mr-2 h-4 w-4' />

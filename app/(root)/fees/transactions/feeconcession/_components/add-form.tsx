@@ -35,7 +35,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
-const MI_ID = 30;
+const MI_ID = 0;
 
 interface StudentRow {
     amst_Id: number;
@@ -204,7 +204,7 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
     const shouldShowHeads = students.length > 0 && (termIds.length > 0 || isEditFormOpen);
 
     const selectedTermIds: number[] = Array.from(new Set(termIds.map(Number).filter((id) => id > 0)));
-
+    console.log('Selected Term Ids:', apiSearchParams);
     const headQuery = useFeeConcessionHeadDetailsList(
         Number(academicYearId || 0),
         selectedAmsT_Id,

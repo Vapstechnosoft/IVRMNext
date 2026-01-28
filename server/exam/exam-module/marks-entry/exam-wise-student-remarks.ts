@@ -9,7 +9,7 @@ import type { IExamWiseRemarksGrid, IExamWiseStudentRemarksStudent } from '@/typ
 // -------------------------------
 export async function getExamWiseRemarksDataGrid(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = 'exam_master_remark/student_exam_remarks_grid?MI_Id=30';
+    const url = `exam_master_remark/student_exam_remarks_grid?${urlParams}`;
     return await api.get<IExamWiseRemarksGrid>('exam', url);
 }
 

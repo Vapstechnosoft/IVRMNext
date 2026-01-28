@@ -27,7 +27,11 @@ import {
 
 import { cn } from '@/lib/utils';
 import { thirdPartyTransactionSchema } from '@/schemas/fees/trasactions';
-import { get_Receipt_number, saveorUpdateThirdPartyTrasaction } from '@/server/fees/trasactions/thirdPartyTrasaction';
+import {
+    ThirdPartyTrasactionfeeReceiptNoflg,
+    get_Receipt_number,
+    saveorUpdateThirdPartyTrasaction
+} from '@/server/fees/trasactions/thirdPartyTrasaction';
 
 type FormFields = z.infer<typeof thirdPartyTransactionSchema.addOrUpdate>;
 
@@ -76,9 +80,29 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
 
     const [receiptnumberdata, setReceiptnumberdata] = useState<any[] | null>(null);
     const [receiptDataLoading, setReceiptDataLoading] = useState(true);
-
+    const [receiptnoflgdata, setReceiptnoflgdata] = useState(false);
     const studentType = watch('studentType');
     const watchAcademicYearId = watch('academicYearId');
+
+    useEffect(() => {
+        const fetchReceiptFlag = async () => {
+            try {
+                const res = await ThirdPartyTrasactionfeeReceiptNoflg();
+
+                // assuming API response shape: { data: IThirdPartyReceiptFlag[] }
+                if (res?.data?.length) {
+                    //setReceiptnoflgdata(res.data);
+                    setReceiptnoflgdata(true);
+                } else {
+                    setReceiptnoflgdata(false);
+                }
+            } catch (error) {
+                console.error('Error fetching receipt flag', error);
+            }
+        };
+
+        fetchReceiptFlag();
+    }, []);
 
     const { data: academicYear, isLoading: academicYearLoading } = useacademicyerdropdowndatafee();
 
@@ -88,10 +112,10 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
 
     const { data: bankdata } = useBankdropdowndatathirdpartytransaction();
 
-    async function fetchReceipt() {
-        const receiptnumberdata = await get_Receipt_number();
-        console.log('Receipt Number Data:', receiptnumberdata);
-    }
+    // async function fetchReceipt() {
+    //     const receiptnumberdata = await get_Receipt_number();
+    //     console.log('Receipt Number Data:', receiptnumberdata);
+    // }
 
     useEffect(() => {
         const fetchReceipt = async () => {
@@ -112,6 +136,8 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
         refetch: fetchStudents
     } = useStudentdowndatathirdpartytransaction(Number(watchAcademicYearId || 0));
 
+    console.log('studentdata', studentdata);
+
     useEffect(() => {
         if (watchAcademicYearId && studentType === 'student') {
             fetchStudents(); // API CALL
@@ -120,6 +146,41 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
     }, [watchAcademicYearId, studentType]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
+        if (studentType === 'student') {
+            if (!data.studentName) {
+                toast.error('Please select a student');
+                return;
+            }
+        }
+        if (studentType === 'other') {
+            const name = data.studentName ?? '';
+
+            if (name.trim() === '') {
+                toast.error('Please enter a student name');
+                return;
+            }
+
+            if (name.length < 1) {
+                toast.error('Minimum 1 character required for Student Name');
+                return;
+            }
+
+            if (name.length > 100) {
+                toast.error('Maximum 100 characters allowed for Student Name');
+                return;
+            }
+
+            if (!/^[A-Za-z\s]+$/.test(name)) {
+                toast.error('Student Name must contain only letters');
+                return;
+            }
+
+            if (name.trim() !== name) {
+                toast.error('Student Name cannot have leading or trailing spaces');
+                return;
+            }
+        }
+
         try {
             const bankName = bankdata?.data?.find((b) => b.fmbanK_Id === Number(data.bankId))?.fmbanK_BankName ?? '';
 
@@ -129,8 +190,8 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
                 asmaY_Id: Number(data.academicYearId),
                 fmG_Id: Number(data.groupId),
                 fmH_Id: Number(data.headId),
-                fyP_Receipt_No: '',
-
+                //fyP_Receipt_No: '',
+                fyP_Receipt_No: data.fyP_Receipt_No,
                 fyP_Bank_Name: bankName,
 
                 //fyptP_Name: data.towards, // "Name" or "Testing", depends on your field
@@ -147,7 +208,7 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
                 FYP_Bank_Or_Cash: data.paymentMode
             };
 
-            console.log('FINAL PAYLOAD:', payload);
+            console.log('FINAL PAYLOAD:', JSON.stringify(payload));
 
             const response = await saveorUpdateThirdPartyTrasaction(payload);
 
@@ -263,8 +324,12 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
                                                     Loading students...
                                                 </SelectItem>
                                             ) : studentdata ? (
-                                                studentdata.data?.map((std) => (
-                                                    <SelectItem key={std.amsT_Id} value={String(std.amsT_FirstName)}>
+                                                studentdata.data?.map((std, index) => (
+                                                    <SelectItem
+                                                        key={std.amsT_Id}
+                                                        // key={`${std.amsT_Id ?? 'no-id'}-${index}`}
+                                                        value={String(std.amsT_FirstName)}
+                                                    >
                                                         {std.amsT_FirstName}
                                                     </SelectItem>
                                                 ))
@@ -350,23 +415,24 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
                     />
                     {errors.headId && <FormError>{errors.headId.message}</FormError>}
                 </div>
-
-                <div className='flex items-center gap-4'>
-                    {!receiptDataLoading && (!receiptnumberdata || receiptnumberdata.length === 0) && (
-                        <div className='flex items-center gap-4'>
-                            <Label htmlFor='receiptNo' className='min-w-[150px] text-right'>
-                                Receipt No <span className='text-red-500'>*</span>
-                            </Label>
-                            <InputText
-                                id='receiptNo'
-                                {...register('fyP_Receipt_No')}
-                                placeholder='Enter Receipt No'
-                                error={errors.fyP_Receipt_No?.message}
-                                className='min-w-[400px]'
-                            />
-                        </div>
-                    )}
-                </div>
+                {receiptnoflgdata === true && (
+                    <div className='flex items-center gap-4'>
+                        {!receiptDataLoading && (!receiptnumberdata || receiptnumberdata.length === 0) && (
+                            <div className='flex items-center gap-4'>
+                                <Label htmlFor='receiptNo' className='min-w-[150px] text-right'>
+                                    Receipt No <span className='text-red-500'>*</span>
+                                </Label>
+                                <InputText
+                                    id='receiptNo'
+                                    {...register('fyP_Receipt_No')}
+                                    placeholder='Enter Receipt No'
+                                    error={errors.fyP_Receipt_No?.message}
+                                    className='min-w-[400px]'
+                                />
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 <div className='flex items-center gap-4'>
                     <Label htmlFor='amount' className='min-w-[150px] text-right'>

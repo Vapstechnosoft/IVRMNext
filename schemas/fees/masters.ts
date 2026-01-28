@@ -2,6 +2,7 @@ import { z } from 'zod';
 import {
     createEmailSchema,
     createNumberOnlyStringSchema,
+    createStringOnlyOptionalSchema,
     createStringOnlySchema,
     createStringSchema,
     createStringSchemaNotAllowNumbersOnly,
@@ -45,6 +46,7 @@ export const masterModeOfPaymentSchema = {
 };
 export const paymentgatewaydetailsSchema = {
     addOrUpdate: z.object({
+        institution_Name: z.string().optional(),
         fpgD_MerchantId: z.string().min(1, 'Merchant ID is required'),
         fpgD_SaltKey: z.string().min(1, 'Salt Key is required'),
         //fpgD_Image: z.string().min(1, 'Image is required'),
@@ -228,19 +230,33 @@ export const masterGroupsGroupingSchema = {
     })
 };
 export const masterInstallmentSchema = {
-    addOrUpdate: z.object({
-        fmI_Name: createStringOnlySchema('Master Installment Name', 1, 100),
-        fmI_Installment_Type: createStringSchema('Installment Type', 1, 30),
-        fmI_No_Of_Installments: z.number().optional(),
-        installments: z
-            .array(
-                z.object({
-                    sno: z.number(),
-                    ftI_Name: createStringSchema('Installment Name', 1, 100)
-                })
-            )
-            .optional()
-    }),
+    addOrUpdate: z
+        .object({
+            fmI_Name: createStringOnlySchema('Master Installment Name', 1, 100),
+            fmI_Installment_Type: createStringOnlyOptionalSchema('Installment Type', 1, 30),
+            fmI_No_Of_Installments: z.number().optional(),
+            installments: z
+                .array(
+                    z.object({
+                        sno: z.number(),
+                        ftI_Name: createStringSchema('Installment Name', 1, 100)
+                    })
+                )
+                .optional()
+        })
+        .refine(
+            (data) => {
+                // Custom validation for Installment Type
+                if (!data.fmI_Installment_Type || data.fmI_Installment_Type.trim().length === 0) {
+                    return false;
+                }
+                return true;
+            },
+            {
+                message: 'Installment Type is required',
+                path: ['fmI_Installment_Type']
+            }
+        ),
 
     delete: z.object({
         fmI_Id: z.number().optional()
@@ -447,7 +463,16 @@ export const masterConcessionDetailsSchema = {
             fmccD_FromNoSibblings: z.number().min(1, { message: 'From No of Sibblings is required' }),
             fmccD_ToNoSibblings: z.number().min(1, { message: 'To No of Sibblings is required' }),
             //fmcC_ActiveFlag: z.boolean().optional(),
-            fmccD_PerOrAmt: z.number().min(1, { message: 'Concession Limit must be at morethan 0' })
+            // fmccD_PerOrAmt: z.number().min(1, { message: 'Concession Limit must be at morethan 0' })
+            fmccD_PerOrAmt: z
+                .number({
+                    required_error: 'Percent/Amount is required',
+                    invalid_type_error: 'Percent/Amount is required'
+                })
+                .nullable()
+                .refine((val) => val !== null, {
+                    message: 'Percent/Amount 1 is required'
+                })
         })
         .refine((data) => data.fmccD_FromNoSibblings < data.fmccD_ToNoSibblings, {
             message: 'From No of Sibling must be less than  to To No of Siblings',
@@ -765,6 +790,15 @@ export const masterTermPeriodSchema = {
             message: 'From Month and To Month cannot be the same',
             path: ['to_Month'] // error will show under To Month
         }),
+    //  .refine(
+    //     (data) =>
+    //         monthOrder[data.from_Month] <
+    //         monthOrder[data.to_Month],
+    //     {
+    //         message: 'From Month must be earlier than To Month',
+    //         path: ['to_Month']
+    //     }
+    // ),
     delete: z.object({
         fmtP_Id: deleteIdSchema('fmtP_Id')
     })
@@ -772,8 +806,8 @@ export const masterTermPeriodSchema = {
 
 export const masterStudentFeeGroupMappingSchema = {
     addOrUpdate: z.object({
-        mI_Id: z.string().min(1, { message: 'Institution is required' }),
-        institutionName: z.string().min(1, { message: 'Institution Name is required' }),
+        mI_Id: z.string().optional(),
+        institutionName: z.string().optional(),
         asmaY_Id: z.number({ message: 'Academic Year is required' }),
         feeClassCategory: z.string().optional(),
         classCategory: z.string().optional(),

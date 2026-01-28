@@ -6,6 +6,7 @@ import { getPrintdetails } from '@/server/fees/trasactions/feepreadmissiontrasac
 import type { CurrentPaymentDetails, Ifeetransaction, StudentPrintDetails } from '@/types/fees/transactions/transactions';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
+import Portal from './portal';
 
 interface IInstituteDetails {
     institute_logo?: string;
@@ -277,223 +278,225 @@ export default function ReceiptViewPage({ rowData, onClose, asmayId }: ReceiptVi
     }
 
     return (
-        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'>
-            <div className='relative max-h-[90vh] w-full max-w-6xl overflow-auto rounded-lg bg-white shadow-2xl'>
-                <div ref={receiptRef} className='p-8'>
-                    <div className='grid grid-cols-1 gap-8 lg:grid-cols-2'>
-                        <div className='border-2 border-gray-300 p-6'>
-                            <div className='mb-4 text-right'>
-                                <span className='font-bold text-violet-700'>SCHOOL COPY</span>
-                            </div>
-                            <InstituteHeader />
-
-                            <div className='mb-4 space-y-1 text-sm'>
-                                <div className='flex justify-between'>
-                                    <span>
-                                        <strong>Receipt No:</strong> {receipt_no}
-                                    </span>
-                                    <span>
-                                        <strong>Date:</strong> {formatDate(transaction_date)}
-                                    </span>
+        <Portal>
+            <div className='fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4'>
+                <div className='relative max-h-[90vh] w-full max-w-6xl overflow-auto rounded-lg bg-white shadow-2xl'>
+                    <div ref={receiptRef} className='p-8'>
+                        <div className='grid grid-cols-1 gap-8 lg:grid-cols-2'>
+                            <div className='border-2 border-gray-300 p-6'>
+                                <div className='mb-4 text-right'>
+                                    <span className='font-bold text-violet-700'>SCHOOL COPY</span>
                                 </div>
-                                <div className='flex justify-between'>
-                                    <span>
-                                        <strong>Student Name:</strong> {student_name}
-                                    </span>
-                                    <span>
-                                        <strong>Class:</strong> {class_name}
-                                    </span>
-                                </div>
-                                <div className='flex justify-between'>
-                                    <span>
-                                        <strong>Academic Year:</strong> {academic_year}
-                                    </span>
-                                    <span>
-                                        <strong>Reg No:</strong> {reg_no}
-                                    </span>
-                                </div>
-                            </div>
+                                <InstituteHeader />
 
-                            <table className='mb-4 w-full border-collapse text-sm'>
-                                <thead>
-                                    <tr className='bg-violet-700 text-white'>
-                                        <th className='border border-gray-400 p-2'>SL.NO</th>
-                                        <th className='border border-gray-400 p-2'>Head Name</th>
-                                        <th className='border border-gray-400 p-2'>Fee Amount</th>
-                                        <th className='border border-gray-400 p-2'>Discount Amount</th>
-                                        <th className='border border-gray-400 p-2'>Paid Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td className='border border-gray-400 p-2 text-center'>1</td>
-                                        <td className='border border-gray-400 p-2'>{fee_head_name}</td>
-                                        <td className='border border-gray-400 p-2 text-right'>{feeAmount}</td>
-                                        <td className='border border-gray-400 p-2 text-right'>{discountAmount}</td>
-                                        <td className='border border-gray-400 p-2 text-right'>{paidAmount}</td>
-                                    </tr>
-                                    <tr className='font-bold'>
-                                        <td colSpan={2} className='border border-gray-400 p-2 text-right'>
-                                            Total
-                                        </td>
-                                        <td className='border border-gray-400 p-2 text-right'>{feeAmount}</td>
-                                        <td className='border border-gray-400 p-2 text-right'>{discountAmount}</td>
-                                        <td className='border border-gray-400 p-2 text-right'>{paidAmount}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                                <div className='mb-4 space-y-1 text-sm'>
+                                    <div className='flex justify-between'>
+                                        <span>
+                                            <strong>Receipt No:</strong> {receipt_no}
+                                        </span>
+                                        <span>
+                                            <strong>Date:</strong> {formatDate(transaction_date)}
+                                        </span>
+                                    </div>
+                                    <div className='flex justify-between'>
+                                        <span>
+                                            <strong>Student Name:</strong> {student_name}
+                                        </span>
+                                        <span>
+                                            <strong>Class:</strong> {class_name}
+                                        </span>
+                                    </div>
+                                    <div className='flex justify-between'>
+                                        <span>
+                                            <strong>Academic Year:</strong> {academic_year}
+                                        </span>
+                                        <span>
+                                            <strong>Reg No:</strong> {reg_no}
+                                        </span>
+                                    </div>
+                                </div>
 
-                            <div className='mb-4'>
-                                <h3 className='mb-2 font-bold'>Current Payment Detail</h3>
-                                <table className='w-full border-collapse text-sm'>
+                                <table className='mb-4 w-full border-collapse text-sm'>
                                     <thead>
                                         <tr className='bg-violet-700 text-white'>
                                             <th className='border border-gray-400 p-2'>SL.NO</th>
-                                            <th className='border border-gray-400 p-2'>Amount</th>
-                                            <th className='border border-gray-400 p-2'>Bank</th>
-                                            <th className='border border-gray-400 p-2'>DD.No</th>
-                                            <th className='border border-gray-400 p-2'>Date</th>
+                                            <th className='border border-gray-400 p-2'>Head Name</th>
+                                            <th className='border border-gray-400 p-2'>Fee Amount</th>
+                                            <th className='border border-gray-400 p-2'>Discount Amount</th>
+                                            <th className='border border-gray-400 p-2'>Paid Amount</th>
                                         </tr>
                                     </thead>
-                                    {currentPaymentDetails.map((p, index) => (
-                                        <tbody key={index + 1}>
-                                            <tr>
-                                                <td className='border border-gray-400 p-2 text-center'>{index + 1}</td>
-                                                <td className='border border-gray-400 p-2 text-right'>{p.fyppM_TotalPaidAmount}</td>
-                                                <td className='border border-gray-400 p-2'>{p.fyppM_BankName}</td>
-                                                <td className='border border-gray-400 p-2'>{p.fyppM_DDChequeNo}</td>
-                                                <td className='border border-gray-400 p-2'>{formatDate(p.fyppM_DDChequeDate)}</td>
-                                            </tr>
-                                        </tbody>
-                                    ))}
+                                    <tbody>
+                                        <tr>
+                                            <td className='border border-gray-400 p-2 text-center'>1</td>
+                                            <td className='border border-gray-400 p-2'>{fee_head_name}</td>
+                                            <td className='border border-gray-400 p-2 text-right'>{feeAmount}</td>
+                                            <td className='border border-gray-400 p-2 text-right'>{discountAmount}</td>
+                                            <td className='border border-gray-400 p-2 text-right'>{paidAmount}</td>
+                                        </tr>
+                                        <tr className='font-bold'>
+                                            <td colSpan={2} className='border border-gray-400 p-2 text-right'>
+                                                Total
+                                            </td>
+                                            <td className='border border-gray-400 p-2 text-right'>{feeAmount}</td>
+                                            <td className='border border-gray-400 p-2 text-right'>{discountAmount}</td>
+                                            <td className='border border-gray-400 p-2 text-right'>{paidAmount}</td>
+                                        </tr>
+                                    </tbody>
                                 </table>
-                            </div>
 
-                            <div className='mb-4 text-sm'>
-                                <strong>Amount Received (in Words):</strong> {convertNumberToWords(currentPaidAmount)} Rupees Only/-
-                            </div>
-
-                            <div className='mb-4 text-xs'>
-                                <strong>Note:</strong> This receipt is valid subject to realisation of Cheque
-                            </div>
-
-                            <div className='mt-8 text-right'>
-                                <p className='font-bold'>AUTHORISED SIGNATORY</p>
-                            </div>
-                        </div>
-
-                        <div className='border-2 border-gray-300 p-6'>
-                            <div className='mb-4 text-right'>
-                                <span className='font-bold text-violet-700'>PARENT COPY</span>
-                            </div>
-                            <InstituteHeader />
-
-                            <div className='mb-4 space-y-1 text-sm'>
-                                <div className='flex justify-between'>
-                                    <span>
-                                        <strong>Receipt No:</strong> {receipt_no}
-                                    </span>
-                                    <span>
-                                        <strong>Date:</strong> {formatDate(transaction_date)}
-                                    </span>
+                                <div className='mb-4'>
+                                    <h3 className='mb-2 font-bold'>Current Payment Detail</h3>
+                                    <table className='w-full border-collapse text-sm'>
+                                        <thead>
+                                            <tr className='bg-violet-700 text-white'>
+                                                <th className='border border-gray-400 p-2'>SL.NO</th>
+                                                <th className='border border-gray-400 p-2'>Amount</th>
+                                                <th className='border border-gray-400 p-2'>Bank</th>
+                                                <th className='border border-gray-400 p-2'>DD.No</th>
+                                                <th className='border border-gray-400 p-2'>Date</th>
+                                            </tr>
+                                        </thead>
+                                        {currentPaymentDetails.map((p, index) => (
+                                            <tbody key={index + 1}>
+                                                <tr>
+                                                    <td className='border border-gray-400 p-2 text-center'>{index + 1}</td>
+                                                    <td className='border border-gray-400 p-2 text-right'>{p.fyppM_TotalPaidAmount}</td>
+                                                    <td className='border border-gray-400 p-2'>{p.fyppM_BankName}</td>
+                                                    <td className='border border-gray-400 p-2'>{p.fyppM_DDChequeNo}</td>
+                                                    <td className='border border-gray-400 p-2'>{formatDate(p.fyppM_DDChequeDate)}</td>
+                                                </tr>
+                                            </tbody>
+                                        ))}
+                                    </table>
                                 </div>
-                                <div className='flex justify-between'>
-                                    <span>
-                                        <strong>Student Name:</strong> {student_name}
-                                    </span>
-                                    <span>
-                                        <strong>Class:</strong> {class_name}
-                                    </span>
+
+                                <div className='mb-4 text-sm'>
+                                    <strong>Amount Received (in Words):</strong> {convertNumberToWords(currentPaidAmount)} Rupees Only/-
                                 </div>
-                                <div className='flex justify-between'>
-                                    <span>
-                                        <strong>Academic Year:</strong> {academic_year}
-                                    </span>
-                                    <span>
-                                        <strong>Reg No:</strong> {reg_no}
-                                    </span>
+
+                                <div className='mb-4 text-xs'>
+                                    <strong>Note:</strong> This receipt is valid subject to realisation of Cheque
+                                </div>
+
+                                <div className='mt-8 text-right'>
+                                    <p className='font-bold'>AUTHORISED SIGNATORY</p>
                                 </div>
                             </div>
 
-                            <table className='mb-4 w-full border-collapse text-sm'>
-                                <thead>
-                                    <tr className='bg-violet-700 text-white'>
-                                        <th className='border border-gray-400 p-2'>SL.NO</th>
-                                        <th className='border border-gray-400 p-2'>Head Name</th>
-                                        <th className='border border-gray-400 p-2'>Fee Amount</th>
-                                        <th className='border border-gray-400 p-2'>Discount Amount</th>
-                                        <th className='border border-gray-400 p-2'>Paid Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td className='border border-gray-400 p-2 text-center'>1</td>
-                                        <td className='border border-gray-400 p-2'>{fee_head_name}</td>
-                                        <td className='border border-gray-400 p-2 text-right'>{feeAmount}</td>
-                                        <td className='border border-gray-400 p-2 text-right'>{discountAmount}</td>
-                                        <td className='border border-gray-400 p-2 text-right'>{paidAmount}</td>
-                                    </tr>
-                                    <tr className='font-bold'>
-                                        <td colSpan={2} className='border border-gray-400 p-2 text-right'>
-                                            Total
-                                        </td>
-                                        <td className='border border-gray-400 p-2 text-right'>{feeAmount}</td>
-                                        <td className='border border-gray-400 p-2 text-right'>{discountAmount}</td>
-                                        <td className='border border-gray-400 p-2 text-right'>{paidAmount}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                            <div className='border-2 border-gray-300 p-6'>
+                                <div className='mb-4 text-right'>
+                                    <span className='font-bold text-violet-700'>PARENT COPY</span>
+                                </div>
+                                <InstituteHeader />
 
-                            <div className='mb-4'>
-                                <h3 className='mb-2 font-bold'>Current Payment Detail</h3>
-                                <table className='w-full border-collapse text-sm'>
+                                <div className='mb-4 space-y-1 text-sm'>
+                                    <div className='flex justify-between'>
+                                        <span>
+                                            <strong>Receipt No:</strong> {receipt_no}
+                                        </span>
+                                        <span>
+                                            <strong>Date:</strong> {formatDate(transaction_date)}
+                                        </span>
+                                    </div>
+                                    <div className='flex justify-between'>
+                                        <span>
+                                            <strong>Student Name:</strong> {student_name}
+                                        </span>
+                                        <span>
+                                            <strong>Class:</strong> {class_name}
+                                        </span>
+                                    </div>
+                                    <div className='flex justify-between'>
+                                        <span>
+                                            <strong>Academic Year:</strong> {academic_year}
+                                        </span>
+                                        <span>
+                                            <strong>Reg No:</strong> {reg_no}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <table className='mb-4 w-full border-collapse text-sm'>
                                     <thead>
                                         <tr className='bg-violet-700 text-white'>
                                             <th className='border border-gray-400 p-2'>SL.NO</th>
-                                            <th className='border border-gray-400 p-2'>Amount</th>
-                                            <th className='border border-gray-400 p-2'>Bank</th>
-                                            <th className='border border-gray-400 p-2'>DD.No</th>
-                                            <th className='border border-gray-400 p-2'>Date</th>
+                                            <th className='border border-gray-400 p-2'>Head Name</th>
+                                            <th className='border border-gray-400 p-2'>Fee Amount</th>
+                                            <th className='border border-gray-400 p-2'>Discount Amount</th>
+                                            <th className='border border-gray-400 p-2'>Paid Amount</th>
                                         </tr>
                                     </thead>
-                                    {currentPaymentDetails.map((p, index) => (
-                                        <tbody key={index + 1}>
-                                            <tr>
-                                                <td className='border border-gray-400 p-2 text-center'>{index + 1}</td>
-                                                <td className='border border-gray-400 p-2 text-right'>{p.fyppM_TotalPaidAmount}</td>
-                                                <td className='border border-gray-400 p-2'>{p.fyppM_BankName}</td>
-                                                <td className='border border-gray-400 p-2'>{p.fyppM_DDChequeNo}</td>
-                                                <td className='border border-gray-400 p-2'>{formatDate(p.fyppM_DDChequeDate)}</td>
-                                            </tr>
-                                        </tbody>
-                                    ))}
+                                    <tbody>
+                                        <tr>
+                                            <td className='border border-gray-400 p-2 text-center'>1</td>
+                                            <td className='border border-gray-400 p-2'>{fee_head_name}</td>
+                                            <td className='border border-gray-400 p-2 text-right'>{feeAmount}</td>
+                                            <td className='border border-gray-400 p-2 text-right'>{discountAmount}</td>
+                                            <td className='border border-gray-400 p-2 text-right'>{paidAmount}</td>
+                                        </tr>
+                                        <tr className='font-bold'>
+                                            <td colSpan={2} className='border border-gray-400 p-2 text-right'>
+                                                Total
+                                            </td>
+                                            <td className='border border-gray-400 p-2 text-right'>{feeAmount}</td>
+                                            <td className='border border-gray-400 p-2 text-right'>{discountAmount}</td>
+                                            <td className='border border-gray-400 p-2 text-right'>{paidAmount}</td>
+                                        </tr>
+                                    </tbody>
                                 </table>
-                            </div>
 
-                            <div className='mb-4 text-sm'>
-                                <strong>Amount Received (in Words):</strong> {convertNumberToWords(currentPaidAmount)} Rupees Only/-
-                            </div>
+                                <div className='mb-4'>
+                                    <h3 className='mb-2 font-bold'>Current Payment Detail</h3>
+                                    <table className='w-full border-collapse text-sm'>
+                                        <thead>
+                                            <tr className='bg-violet-700 text-white'>
+                                                <th className='border border-gray-400 p-2'>SL.NO</th>
+                                                <th className='border border-gray-400 p-2'>Amount</th>
+                                                <th className='border border-gray-400 p-2'>Bank</th>
+                                                <th className='border border-gray-400 p-2'>DD.No</th>
+                                                <th className='border border-gray-400 p-2'>Date</th>
+                                            </tr>
+                                        </thead>
+                                        {currentPaymentDetails.map((p, index) => (
+                                            <tbody key={index + 1}>
+                                                <tr>
+                                                    <td className='border border-gray-400 p-2 text-center'>{index + 1}</td>
+                                                    <td className='border border-gray-400 p-2 text-right'>{p.fyppM_TotalPaidAmount}</td>
+                                                    <td className='border border-gray-400 p-2'>{p.fyppM_BankName}</td>
+                                                    <td className='border border-gray-400 p-2'>{p.fyppM_DDChequeNo}</td>
+                                                    <td className='border border-gray-400 p-2'>{formatDate(p.fyppM_DDChequeDate)}</td>
+                                                </tr>
+                                            </tbody>
+                                        ))}
+                                    </table>
+                                </div>
 
-                            <div className='mb-4 text-xs'>
-                                <strong>Note:</strong> This receipt is valid subject to realisation of Cheque
-                            </div>
+                                <div className='mb-4 text-sm'>
+                                    <strong>Amount Received (in Words):</strong> {convertNumberToWords(currentPaidAmount)} Rupees Only/-
+                                </div>
 
-                            <div className='mt-8 text-right'>
-                                <p className='font-bold'>AUTHORISED SIGNATORY</p>
+                                <div className='mb-4 text-xs'>
+                                    <strong>Note:</strong> This receipt is valid subject to realisation of Cheque
+                                </div>
+
+                                <div className='mt-8 text-right'>
+                                    <p className='font-bold'>AUTHORISED SIGNATORY</p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div className='sticky bottom-0 z-10 flex justify-end gap-2 border-t bg-white p-4 print:hidden'>
-                    <Button onClick={handlePrint} variant='default'>
-                        Print
-                    </Button>
-                    <Button onClick={onClose} variant='outline'>
-                        Close
-                    </Button>
+                    <div className='sticky bottom-0 z-10 flex justify-end gap-2 border-t bg-white p-4 print:hidden'>
+                        <Button onClick={handlePrint} variant='default'>
+                            Print
+                        </Button>
+                        <Button onClick={onClose} variant='outline'>
+                            Close
+                        </Button>
+                    </div>
                 </div>
             </div>
-        </div>
+        </Portal>
     );
 }

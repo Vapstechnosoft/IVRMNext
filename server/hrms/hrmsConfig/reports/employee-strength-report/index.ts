@@ -82,24 +82,24 @@ export async function getEmployeeStrengthReportOnload(
 }
 /**
  * Search employee strength report by selection criteria
- * POST /api/EmployeeStrengthReportFacade/getEmployeedetailsBySelection
- * Request: { MI_Id, designationselected, departmentselected, groupTypeselected, AllEmployee, Departmentwise, LeftEmployee, FromDate, ToDate }
+ * POST /api/ReportEmployeeStrength/employee_strength_report
+ * Request: { MI_Id, designationSelected, departmentSelected, groupTypeSelected, allEmployee, departmentwise, leftEmployee, fromDate, toDate }
  * Note: Arrays should be empty [] when no selection is made
  */
 export async function searchEmployeeStrengthReport(
     request: EmployeeStrengthReportSearchRequest
 ): Promise<ApiResponse<EmployeeStrengthReportSearchResponse>> {
-    const url = '/api/EmployeeStrengthReportFacade/getEmployeedetailsBySelection';
+    const url = '/api/ReportEmployeeStrength/employee_strength_report';
     const requestBody: EmployeeStrengthReportSearchRequest = {
         MI_Id: request.MI_Id || 30,
-        designationselected: request.designationselected || [],
-        departmentselected: request.departmentselected || [],
-        groupTypeselected: request.groupTypeselected || [],
-        AllEmployee: request.AllEmployee || false,
-        Departmentwise: request.Departmentwise || false,
-        LeftEmployee: request.LeftEmployee || false,
-        FromDate: request.FromDate || '',
-        ToDate: request.ToDate || ''
+        designationSelected: request.designationSelected || [],
+        departmentSelected: request.departmentSelected || [],
+        groupTypeSelected: request.groupTypeSelected || [],
+        allEmployee: request.allEmployee || false,
+        departmentwise: request.departmentwise || false,
+        leftEmployee: request.leftEmployee || false,
+        fromDate: request.fromDate || '',
+        toDate: request.toDate || ''
     };
     console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
     let response: any;

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMasterGrade } from '@/hooks/exam/exammodule/usemasters';
+import { useMasterGradeDropdownList } from '@/hooks/exam/exammodule/usemasters';
 import { gradeSlabReportSchema } from '@/schemas/exam/exam-module/reports';
 import { getReportDetails } from '@/server/exam/exam-module/reports/grade-slab-report';
 import type { IMasterGrade } from '@/types/exam/exam-module/masters';
@@ -26,7 +26,7 @@ interface ReportFormProps {
 export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onReset }) => {
     const [grades, setGrades] = useState<any[]>([]);
     const [initialLoading, setInitialLoading] = useState(true);
-    const { data: gradeData, error: gradeError } = useMasterGrade();
+    const { data: gradeData, error: gradeError, isLoading: gradeLoading } = useMasterGradeDropdownList();
 
     const methods = useForm<FormFields>({
         resolver: zodResolver(gradeSlabReportSchema.addOrUpdate),
@@ -51,7 +51,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
             toast.error(gradeError.message || 'Error fetching grades');
             setGrades([]);
         } else if (gradeData?.data && Array.isArray(gradeData.data)) {
-            console.log(gradeData);
+            console.info(gradeData);
             const formattedGrades: IMasterGrade[] = gradeData.data.map((item: any) => ({
                 emgR_Id: item.emgR_Id?.toString() ?? '',
                 emgR_GradeName: item.emgR_GradeName ?? '',
@@ -61,7 +61,9 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                 mI_Id: item.mI_Id
             }));
             setGrades(formattedGrades);
-            console.log(formattedGrades);
+            if (formattedGrades.length === 0) {
+                toast.info('No Grades found');
+            }
             setInitialLoading(false);
         } else {
             setGrades([]);
@@ -95,7 +97,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
         try {
             const { data: result } = await getReportDetails(values);
             const safeData = Array.isArray(result) ? result : [];
-            console.log(safeData);
+            console.info(safeData);
             onReportGenerated(safeData, {});
         } catch (error) {
             console.error('Error generating report:', error);
@@ -104,7 +106,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
 
     const handleCancel = () => {
         reset({
-            type: '1',
+            //type: '1',
             emgR_Id: '0'
         });
         onReset();
@@ -165,16 +167,30 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                                 Grade <span className='text-red-500'>*</span>
                                             </Label>
                                             <div className='w-3/4'>
-                                                <Select onValueChange={field.onChange} value={field.value} disabled={watchType === '1'}>
+                                                <Select
+                                                    key={field.value}
+                                                    onValueChange={field.onChange}
+                                                    value={field.value}
+                                                    disabled={watchType === '1'}>
                                                     <SelectTrigger className={watchType === '1' ? 'bg-gray-100' : ''}>
                                                         <SelectValue placeholder='Select Grade' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {grades.map((grade: any) => (
-                                                            <SelectItem key={grade.emgR_Id} value={String(grade.emgR_Id)}>
-                                                                {grade.emgR_GradeName}
+                                                        {gradeLoading ? (
+                                                            <SelectItem value='0' disabled>
+                                                                Grades are loading...
                                                             </SelectItem>
-                                                        ))}
+                                                        ) : grades.length === 0 ? (
+                                                            <SelectItem value='0' disabled>
+                                                                No Grades found
+                                                            </SelectItem>
+                                                        ) : (
+                                                            grades.map((grade: any) => (
+                                                                <SelectItem key={grade.emgR_Id} value={String(grade.emgR_Id)}>
+                                                                    {grade.emgR_GradeName}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                             </div>

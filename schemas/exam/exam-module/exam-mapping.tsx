@@ -340,7 +340,8 @@ export const ExamTermAndExamMappingSchema = {
 
 const isoDateString = z.string().refine(
     (s) => {
-        // allow empty? no — require proper ISO-like string
+        // allow empty? YES — require proper ISO-like string only if present
+        if (!s || s.trim() === '') return true;
         const d = new Date(s);
         return !Number.isNaN(d.getTime());
     },
@@ -356,6 +357,7 @@ const ExamItemSchema = z.object({
     EME_ActiveFlag: z.boolean().optional()
 });
 
+// biome-ignore lint/correctness/noUnusedVariables: <explanation>
 const YearlyCategoryExamSubjectSchema = z.object({
     EYCES_Id: z.number().int().nonnegative().optional(),
     EYCE_Id: z.number().int().nonnegative().optional(),
@@ -434,8 +436,14 @@ export const ExamSubjectWizardSchema = {
             EYCE_SubSubjectFlg: z.boolean().optional(),
             EYCE_ActiveFlg: z.boolean().optional(),
 
-            EYCE_AttendanceFromDate: isoDateString,
-            EYCE_AttendanceToDate: isoDateString,
+            EYCE_AttendanceFromDate: z
+                .string()
+                .min(1, { message: 'Attendance From Date is required' })
+                .refine((s) => !Number.isNaN(new Date(s).getTime()), { message: 'Invalid Date Format' }),
+            EYCE_AttendanceToDate: z
+                .string()
+                .min(1, { message: 'Attendance To Date is required' })
+                .refine((s) => !Number.isNaN(new Date(s).getTime()), { message: 'Invalid Date Format' }),
 
             UserId: z.number().int().nonnegative().optional().default(0),
             MI_Id: z.number().int().nonnegative().optional().default(0),
@@ -458,12 +466,14 @@ export const ExamSubjectWizardSchema = {
         })
         .refine(
             (data) => {
+                if (!data.EYCE_AttendanceFromDate || !data.EYCE_AttendanceToDate) return true;
                 try {
                     const from = new Date(data.EYCE_AttendanceFromDate).getTime();
                     const to = new Date(data.EYCE_AttendanceToDate).getTime();
-                    return !Number.isNaN(from) && !Number.isNaN(to) && to >= from;
+                    if (Number.isNaN(from) || Number.isNaN(to)) return true;
+                    return to >= from;
                 } catch {
-                    return false;
+                    return true;
                 }
             },
             { message: 'Attendance To must be after From Date', path: ['EYCE_AttendanceToDate'] }
@@ -666,6 +676,8 @@ export const examMarksProcessConditionSchema = {
     addOrUpdate: z
         .object({
             mI_Id: z.number().min(1).default(30),
+            eyC_Id: z.number().min(1, { message: 'Mapping is required' }),
+            eycE_Id: z.number().min(1, { message: 'Mapping is required' }),
 
             asmaY_Id: z.number().min(1, { message: 'Academic Year is required' }),
 

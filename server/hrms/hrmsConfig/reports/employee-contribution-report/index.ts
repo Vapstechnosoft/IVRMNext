@@ -86,46 +86,36 @@ export async function filterEmployeeContributionData(
 }
 /**
  * Get employee contribution details by selection
- * POST /api/EmployeeContributionReportFacade/getEmployeedetailsBySelection
- * Request: { MI_Id, designationselected, departmentselected, groupTypeselected, MonthBetweenDates, hreS_Month, hreS_Year, FromDate, ToDate, FormatType, HRME_Id, EarningDeduction, EarningHead, DeductionHead }
- * Note: Arrays should be [0] when empty, not []
+ * POST /api/ReportEPFcontributionRegister/get_employee_details_by_selection
+ * Request: { hreS_Month, hreS_Year, designationselected, departmentselected, groupTypeselected }
  */
 export async function searchEmployeeContributionDetails(
-    request: EmployeeContributionReportSearchRequest
+    request: any
 ): Promise<EmployeeContributionReportSearchResponseType> {
-    // Ensure arrays are [0] when empty
-    const requestBody: EmployeeContributionReportSearchRequest = {
-        MI_Id: request.MI_Id || 30,
-        designationselected: request.designationselected.length > 0 ? request.designationselected : [0],
-        departmentselected: request.departmentselected.length > 0 ? request.departmentselected : [0],
-        groupTypeselected: request.groupTypeselected.length > 0 ? request.groupTypeselected : [0],
-        MonthBetweenDates: request.MonthBetweenDates || '',
+    const requestBody = {
         hreS_Month: request.hreS_Month || '',
         hreS_Year: request.hreS_Year || '',
-        FromDate: request.FromDate || '',
-        ToDate: request.ToDate || '',
-        FormatType: request.FormatType || '',
-        HRME_Id: request.HRME_Id || 0,
-        EarningDeduction: request.EarningDeduction || '',
-        EarningHead: request.EarningHead || 0,
-        DeductionHead: request.DeductionHead || 0
+        designationselected: request.designationselected?.length > 0 ? request.designationselected : [0],
+        departmentselected: request.departmentselected?.length > 0 ? request.departmentselected : [0],
+        groupTypeselected: request.groupTypeselected?.length > 0 ? request.groupTypeselected : [0]
     };
+    console.log('🚀 [SERVER] searchEmployeeContributionDetails requestBody:', JSON.stringify(requestBody, null, 2));
+
     const response = await api.post<EmployeeContributionReportSearchResponse>(
         'hrms',
-        '/api/EmployeeContributionReportFacade/getEmployeedetailsBySelection',
-        requestBody
+        '/api/ReportEPFcontributionRegister/get_employee_details_by_selection',
+        requestBody,
+        { timeout: 120000 }
     );
-    // The backend returns raw data, not wrapped in ApiResponse format
-    // Wrap it to match the expected ApiResponse structure
+    console.log(response);
+    // Backend returns raw data or wrapped. Let's handle both.
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
-        // Already wrapped
         return response as EmployeeContributionReportSearchResponseType;
     }
-    // Wrap raw response data
-    const rawResponse = response as unknown as EmployeeContributionReportSearchResponse;
+
     return {
         success: true,
-        message: rawResponse?.retrunMsg || 'Search completed successfully',
-        data: rawResponse
+        message: 'Search completed successfully',
+        data: response as unknown as EmployeeContributionReportSearchResponse
     };
 }

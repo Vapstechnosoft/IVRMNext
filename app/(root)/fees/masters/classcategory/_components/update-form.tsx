@@ -138,6 +138,31 @@ export default function UpdateMasterClassCategoryForm({ onSuccess, className = '
                             error={errors.fmcC_ClassCategoryCode?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
+
+                        {/* <InputText
+                            label='Class Category Code'
+                            required
+                            id='fmcC_ClassCategoryCode'
+                            onKeyDown={(e) => {
+                                const allowed = /^[A-Za-z]$/; 
+                                
+                                if (
+                                    e.key.length === 1 &&           
+                                    !allowed.test(e.key)            
+                                ) {
+                                    e.preventDefault();             
+                                }
+                            }}
+                            {...register('fmcC_ClassCategoryCode', {
+                                required: 'Class Category Code is required',
+                                pattern: {
+                                    value: /^[A-Za-z]+$/,
+                                    message: 'Only letters allowed'
+                                }
+                            })}
+                            error={errors.fmcC_ClassCategoryCode?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        /> */}
                     </div>
 
                     {/* Root Error */}

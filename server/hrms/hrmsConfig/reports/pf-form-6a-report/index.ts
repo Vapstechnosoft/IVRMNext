@@ -22,7 +22,7 @@ export async function getPFForm6AReportOnload(MI_Id = 30): Promise<ApiResponse<P
     console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
     let response: any;
     try {
-        response = await api.post<PFForm6AReportOnloadResponse>('hrms', url, requestBody);
+        response = await api.post<PFForm6AReportOnloadResponse>('hrms', url, requestBody, { timeout: 120000 });
         console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
         return {
