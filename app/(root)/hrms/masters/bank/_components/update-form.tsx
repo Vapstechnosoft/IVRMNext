@@ -55,7 +55,8 @@ export default function UpdateBankForm({ onSuccess, className = '', selectedRow:
                 hrmbD_BankAccountNo: data.hrmbD_BankAccountNo,
                 hrmbD_IFSCCode: data.hrmbD_IFSCCode,
                 hrmbD_BankAddress: data.hrmbD_BankAddress?.trim() || '',
-                hrmbD_ActiveFlag: true
+                hrmbD_ActiveFlag: true,
+                retrunMsg: ''
             };
             const response = await addOrUpdateMasterBank(payload);
 

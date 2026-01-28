@@ -61,7 +61,7 @@ const getPageIconWithFallback = (iconName: string | null | undefined, pageName: 
         'Employee Details': User,
         'Employee Profile': Users,
         'Salary Slip': ReceiptText,
-        'Employee Contribution': DollarSign,
+        'E-PF Contribution Register': DollarSign,
         'Employee Salary Details': DollarSign,
         'Employee Strength': Users,
         'ESI Report': Shield,
@@ -184,6 +184,7 @@ export function PageNavigation() {
     return (
         <AnimatePresence>
             <motion.div
+                className='no-print'
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}

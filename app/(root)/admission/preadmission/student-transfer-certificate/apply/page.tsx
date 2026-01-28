@@ -27,8 +27,7 @@ export default function StudentTCApplyPage() {
     const { data: academicYears } = useQuery({
         queryKey: ['academicYears'],
         queryFn: async () => {
-            // Register a proxy base URL for client-side CORS avoidance
-            api.addBaseUrl('admission_proxy', '/api/admission');
+            //  api.addBaseUrl('admission_proxy', '/api/admission');
 
             // Use the proxy key
             const response = await api.get<IAcademicYearDropDown[]>(

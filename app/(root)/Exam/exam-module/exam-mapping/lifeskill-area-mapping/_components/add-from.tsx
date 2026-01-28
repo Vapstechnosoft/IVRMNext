@@ -115,7 +115,7 @@ export default function AddLifeSkillAreaMapping({ onSuccess }: { onSuccess?: () 
                 }))
             };
 
-            console.log('✅ Final Payload:', JSON.stringify(payload, null, 2));
+            console.info('✅ Final Payload:', JSON.stringify(payload, null, 2));
 
             const res = await addOrUpdateMasterLifeSkillMapping(payload);
             if (res?.success) {

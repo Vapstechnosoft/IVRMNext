@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
-import type { GroupItem } from './add-from';
+import type { GroupItem } from './add-form';
 
 export function ViewExamsModal({ group, onClose }: { group: GroupItem; onClose: () => void }) {
     return (
@@ -44,8 +44,8 @@ export function ViewExamsModal({ group, onClose }: { group: GroupItem; onClose: 
                                 group.Exm_M_Prom_Subj_Group_Exams_master.map((e, i) => (
                                     <tr key={e.emE_Id} className={`${i % 2 ? 'bg-gray-50' : 'bg-white'} text-sm`}>
                                         <td className='p-2 text-center'>{i + 1}</td>
-                                        <td className='p-2'>{e.emE_Id}</td>
                                         <td className='p-2 text-center'>{e.emE_ExamName}</td>
+                                        <td className='p-2 text-center'>{e.EMPSGE_ForMaxMarkrs}</td>
                                         <td className='p-2 text-center'>{e.EMPSGE_ConvertionReqOrNot ? '✔' : '✖'}</td>
                                     </tr>
                                 ))

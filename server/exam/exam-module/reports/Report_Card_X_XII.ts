@@ -1,8 +1,14 @@
 'use server';
 
+import { getAcademicYearDropdown } from '@/server/fees/masters/class_yearly_category';
+
 const ACADEMIC_YEARS = [
     { asmaY_Id: 1, asmaY_Year: '2023-2024' },
     { asmaY_Id: 2, asmaY_Year: '2024-2025' },
+    { asmaY_Id: 3, asmaY_Year: '2022-2023' },
+    { asmaY_Id: 4, asmaY_Year: '2021-2022' },
+    { asmaY_Id: 5, asmaY_Year: '2020-2021' },
+    { asmaY_Id: 6, asmaY_Year: '2025-2026' }
 ];
 
 const CLASSES = [
@@ -21,9 +27,17 @@ const STUDENTS = [
 ];
 
 export async function getDetails() {
-    return {
-        acdlist: ACADEMIC_YEARS
-    };
+    try {
+        const res = await getAcademicYearDropdown();
+        return {
+            acdlist: res.data || []
+        };
+    } catch (error) {
+        console.error('getDetails error:', error);
+        return {
+            acdlist: []
+        };
+    }
 }
 
 export async function getClasses(yearId: any) {

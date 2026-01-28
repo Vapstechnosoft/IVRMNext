@@ -64,15 +64,15 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                 if (result?.data) {
                     const data = Array.isArray(result.data)
                         ? result.data.map((g: any) => ({
-                              emgD_Id: Number(g.emgD_Id ?? 0),
-                              emgR_Id: Number(g.emgR_Id ?? 0),
-                              emgD_Name: g.emgD_Name || '',
-                              emgD_From: Number(g.emgD_From ?? null),
-                              emgD_To: Number(g.emgD_To ?? null),
-                              emgD_GradePoints: Number(g.emgD_GradePoints ?? null),
-                              emgD_Remarks: g.emgD_Remarks || '',
-                              emgD_ActiveFlag: g.emgD_ActiveFlag ?? true
-                          }))
+                            emgD_Id: Number(g.emgD_Id ?? 0),
+                            emgR_Id: Number(g.emgR_Id ?? 0),
+                            emgD_Name: g.emgD_Name || '',
+                            emgD_From: Number(g.emgD_From ?? null),
+                            emgD_To: Number(g.emgD_To ?? null),
+                            emgD_GradePoints: Number(g.emgD_GradePoints ?? null),
+                            emgD_Remarks: g.emgD_Remarks || '',
+                            emgD_ActiveFlag: g.emgD_ActiveFlag ?? true
+                        }))
                         : [];
 
                     reset(
@@ -114,6 +114,43 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
 
     // ✅ Submit handler
     const onSubmit: SubmitHandler<z.infer<typeof masterGradeSchema.addOrUpdate>> = async (data) => {
+        // Validation: Check for duplicates and overlapping ranges
+        const names = new Set<string>();
+        const ranges: { from: number; to: number; name: string }[] = [];
+
+        for (const row of data.grade_list) {
+            // Check duplicate Name
+            const normalizedName = row.emgD_Name.trim().toLowerCase();
+            if (names.has(normalizedName)) {
+                toast.error(`Duplicate grade name found in details: ${row.emgD_Name}`);
+                return;
+            }
+            names.add(normalizedName);
+
+            // Validate Range
+            const from = Number(row.emgD_From);
+            const to = Number(row.emgD_To);
+
+            if (from >= to) {
+                toast.error(`Invalid range for ${row.emgD_Name}: 'From' (${from}) must be less than 'To' (${to})`);
+                return;
+            }
+
+            // Check overlap with existing ranges
+            for (const range of ranges) {
+                if (from < range.to && to > range.from) {
+                    toast.error(`Range for ${row.emgD_Name} (${from}-${to}) overlaps with ${range.name} (${range.from}-${range.to})`);
+                    return;
+                }
+
+                if (from === range.from || to === range.to) {
+                    toast.error(`Duplicate range boundaries found between ${row.emgD_Name} and ${range.name}`);
+                    return;
+                }
+            }
+            ranges.push({ from, to, name: row.emgD_Name });
+        }
+
         try {
             const payload = {
                 ...data,
@@ -149,15 +186,15 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
             if (result?.data) {
                 const restoredRows = Array.isArray(result.data)
                     ? result.data.map((g: any) => ({
-                          emgD_Id: Number(g.emgD_Id ?? 0),
-                          emgR_Id: Number(g.emgR_Id ?? 0),
-                          emgD_Name: g.emgD_Name || '',
-                          emgD_From: Number(g.emgD_From ?? null),
-                          emgD_To: Number(g.emgD_To ?? null),
-                          emgD_GradePoints: Number(g.emgD_GradePoints ?? null),
-                          emgD_Remarks: g.emgD_Remarks || '',
-                          emgD_ActiveFlag: g.emgD_ActiveFlag ?? true
-                      }))
+                        emgD_Id: Number(g.emgD_Id ?? 0),
+                        emgR_Id: Number(g.emgR_Id ?? 0),
+                        emgD_Name: g.emgD_Name || '',
+                        emgD_From: Number(g.emgD_From ?? null),
+                        emgD_To: Number(g.emgD_To ?? null),
+                        emgD_GradePoints: Number(g.emgD_GradePoints ?? null),
+                        emgD_Remarks: g.emgD_Remarks || '',
+                        emgD_ActiveFlag: g.emgD_ActiveFlag ?? true
+                    }))
                     : [];
 
                 // ⬅ Reset form with original values
@@ -376,16 +413,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                         />
                                     </td>
 
-                                    {/* Grade Points */}
-                                    <td className='border'>
-                                        <InputText
-                                            {...register(`grade_list.${index}.emgD_GradePoints` as const, {
-                                                setValueAs: (v) => (v === '' || v === null ? null : Number(v))
-                                            })}
-                                            placeholder='Enter points'
-                                            error={errors.grade_list?.[index]?.emgD_GradePoints?.message}
-                                        />
-                                    </td>
+
 
                                     {/* Remarks */}
                                     <td className='border'>
@@ -401,7 +429,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                             size='sm'
                                             onClick={() => {
                                                 const last = watch('grade_list')[index];
-                                                console.log(last);
+                                                console.info(last);
                                                 if (
                                                     last.emgD_Name.trim() === '' ||
                                                     last.emgD_From === null ||

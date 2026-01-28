@@ -1,4 +1,5 @@
-'use client';
+
+import { Loader2 } from 'lucide-react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCallback, useEffect, useState } from 'react';
@@ -71,6 +72,7 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isStudentsGridOpen, setIsStudentsGridOpen] = useState(false);
+    const [isLoadingEditData, setIsLoadingEditData] = useState(false);
     const [validationErrors, setValidationErrors] = useState<Record<number, string>>({});
 
     const methods = useForm<FormFields>({
@@ -113,8 +115,109 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
         fetchYears();
     }, []);
 
+    // Load Edit Data Orchestrator
+    useEffect(() => {
+        if (!rowData || !rowData.asmaY_Id) return;
+
+        const loadEditDetails = async () => {
+            setIsLoadingEditData(true);
+            try {
+                // 1. Reset everything to initial state
+                setClasses([]);
+                setSections([]);
+                setExams([]);
+                setStudents([]);
+                setSelectedStudents([]);
+                setPreSelectedStudentIds([]);
+                setIsStudentsGridOpen(false);
+
+                // Reset form to placeholders
+                reset({
+                    mI_Id: orgId,
+                    asmcL_Id: 0,
+                    emE_Id: 0,
+                    asmaY_Id: 0,
+                    asmS_Id: 0,
+                    studentdata_Remarks: []
+                });
+
+                // 2. Fetch Dropdowns
+                // Academic Year is already loaded on mount (or likely cached), so we set it first
+                setValue('asmaY_Id', rowData.asmaY_Id);
+
+                // Fetch Classes
+                setLoadingClasses(true);
+                const classRes = await getClassDropDownByAcademicYearlist(rowData.asmaY_Id);
+                const classData = Array.isArray(classRes.data) ? classRes.data : [];
+                setClasses(classData);
+                // Set Class Value AFTER data is loaded
+                setValue('asmcL_Id', rowData.asmcL_Id);
+                setLoadingClasses(false);
+
+                // Fetch Sections
+                setLoadingSections(true);
+                const sectionRes = await getSectionsDropDownByAcademicYearandClasslist(rowData.asmaY_Id, rowData.asmcL_Id);
+                const sectionData = Array.isArray(sectionRes.data) ? sectionRes.data : [];
+                setSections(sectionData);
+                // Set Section Value AFTER data is loaded
+                setValue('asmS_Id', rowData.asmS_Id);
+                setLoadingSections(false);
+
+                // Fetch Exams
+                setLoadingExams(true);
+                const examRes = await getExamsDropDownByAcademicYearandClassandSectionlist(rowData.asmaY_Id, rowData.asmcL_Id, rowData.asmS_Id);
+                const examData = Array.isArray(examRes.data) ? examRes.data : [];
+                setExams(examData);
+                // Set Exam Value AFTER data is loaded
+                setValue('emE_Id', rowData.emE_Id);
+                setLoadingExams(false);
+
+                // Fetch Students
+                setIsLoading(true);
+                const studentRes = await getStudentDetails(rowData.asmaY_Id, rowData.asmcL_Id, rowData.asmS_Id, rowData.emE_Id, 30);
+                const studentList = Array.isArray(studentRes.data) ? studentRes.data.map((s: any) => ({ ...s, emeR_Remarks: s.emeR_Remarks || '' })) : [];
+
+                const preSelected = studentList.reduce<string[]>((acc, s, ind) => {
+                    if (s.emeR_Remarks && s.emeR_Remarks.trim().length > 0) {
+                        acc.push(ind.toString());
+                    }
+                    return acc;
+                }, []);
+
+                setPreSelectedStudentIds(preSelected);
+                setStudents(studentList);
+                setTableProps(
+                    useDataTableProps({
+                        data: studentList,
+                        total: studentList.length,
+                        pageIndex: 0,
+                        pageSize: 10
+                    })
+                );
+
+                // Sync form remarks
+                setValue(
+                    'studentdata_Remarks',
+                    studentList.map((s) => ({ amsT_Id: s.amsT_Id, emeR_Remarks: s.emeR_Remarks || '' }))
+                );
+
+                setIsStudentsGridOpen(true);
+                setIsLoading(false);
+
+            } catch (e) {
+                console.error("Failed to load edit details", e);
+                toast.error("Failed to load edit details");
+            } finally {
+                setIsLoadingEditData(false);
+            }
+        };
+
+        loadEditDetails();
+    }, [rowData, orgId, reset, setValue]);
+
     // 2. Fetch Classes when Year Changes
     useEffect(() => {
+        if (isLoadingEditData) return;
         if (asmaY_Id) {
             const fetchClasses = async () => {
                 try {
@@ -127,8 +230,6 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
 
                     // Don't auto-reset values if we are editing/loading rowData and values match,
                     // but for new selection, we should reset.
-                    // Ideally, we reset values here, and rely on rowData effect to re-set them if needed.
-                    // However, to keep it simple and follow the standard pattern:
                     if (!rowData) {
                         setValue('asmcL_Id', 0);
                         setValue('asmS_Id', 0);
@@ -157,10 +258,11 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
             setValue('asmS_Id', 0);
             setValue('emE_Id', 0);
         }
-    }, [asmaY_Id, setValue, rowData]);
+    }, [asmaY_Id, setValue, rowData, isLoadingEditData]);
 
     // 3. Fetch Sections when Class Changes
     useEffect(() => {
+        if (isLoadingEditData) return;
         if (asmaY_Id && asmcL_Id) {
             const fetchSections = async () => {
                 try {
@@ -194,10 +296,11 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
             setValue('asmS_Id', 0);
             setValue('emE_Id', 0);
         }
-    }, [asmaY_Id, asmcL_Id, setValue, rowData]);
+    }, [asmaY_Id, asmcL_Id, setValue, rowData, isLoadingEditData]);
 
     // 4. Fetch Exams when Section Changes
     useEffect(() => {
+        if (isLoadingEditData) return;
         if (asmaY_Id && asmcL_Id && asmS_Id) {
             const fetchExams = async () => {
                 try {
@@ -233,31 +336,7 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
             setExams([]);
             setValue('emE_Id', 0);
         }
-    }, [asmaY_Id, asmcL_Id, asmS_Id, setValue, rowData]);
-
-    // Populate form if rowData exists
-    useEffect(() => {
-        if (rowData) {
-            reset({
-                mI_Id: orgId,
-                asmcL_Id: rowData.asmcL_Id ?? 0,
-                emE_Id: rowData.emE_Id ?? 0,
-                asmaY_Id: rowData.asmaY_Id ?? 0,
-                asmS_Id: rowData.asmS_Id ?? 0,
-                studentdata_Remarks: []
-            });
-            // We rely on the cascading effects to fetch data.
-            // Since we passed rowData dependencies to useEffects, they should populate
-            // and we rely on setValue calls within them being guarded or re-applied?
-            // Actually, best practice with rowData is to let effects fetch options, and THEN set value.
-            // But since standardized pattern fetches when parent changes, we just need to ensuring
-            // values are set correctly.
-
-            // Note: The cascading effects above clear values if !rowData.
-            // This assumes that if rowData is present, existing values are preserved by react-hook-form
-            // (since we Reset with them).
-        }
-    }, [rowData, reset, orgId]);
+    }, [asmaY_Id, asmcL_Id, asmS_Id, setValue, rowData, isLoadingEditData]);
 
     async function handleSearch() {
         if (!asmaY_Id || !asmcL_Id || !emE_Id || !asmS_Id) {
@@ -313,9 +392,12 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
 
         // Validate selected students have remarks
         const validationErrors: Record<number, string> = {};
-        selectedStudents.forEach((student) => {
-            if (!student.emeR_Remarks || student.emeR_Remarks.trim() === '') {
-                validationErrors[student.amsT_Id] = 'Remarks are required for selected students';
+        const currentStudentMap = new Map(students.map((s) => [s.amsT_Id, s]));
+
+        selectedStudents.forEach((selected) => {
+            const student = currentStudentMap.get(selected.amsT_Id);
+            if (!student?.emeR_Remarks || student.emeR_Remarks.trim() === '') {
+                validationErrors[selected.amsT_Id] = 'Remarks are required for selected students';
             }
         });
 
@@ -409,7 +491,13 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
 
     return (
         <FormProvider {...methods}>
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 rounded-xl bg-white p-6 shadow-md'>
+            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 rounded-xl bg-white p-6 shadow-md relative'>
+                {isLoadingEditData && (
+                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-xl bg-white">
+                        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                        <p className="mt-2 text-sm font-medium text-muted-foreground">Loading edit details...</p>
+                    </div>
+                )}
                 <div className='grid grid-cols-2 gap-6'>
                     {/* Academic Year */}
                     <Controller
@@ -427,7 +515,7 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                                             field.onChange(Number(val));
                                         }}
                                         value={field.value && field.value !== 0 ? String(field.value) : ''}
-                                        disabled={loadingYears}>
+                                    >
                                         <SelectTrigger>
                                             <SelectValue placeholder={loadingYears ? 'Loading Academic Year...' : 'Select Academic Year'} />
                                         </SelectTrigger>
@@ -471,15 +559,13 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                                             field.onChange(Number(val));
                                         }}
                                         value={field.value && field.value !== 0 ? String(field.value) : ''}
-                                        disabled={!asmaY_Id || loadingClasses}>
+                                    >
                                         <SelectTrigger>
                                             <SelectValue
                                                 placeholder={
                                                     loadingClasses
                                                         ? 'Loading classes...'
-                                                        : !asmaY_Id
-                                                          ? 'Select Academic Year first'
-                                                          : 'Select Class'
+                                                        : 'Select Class'
                                                 }
                                             />
                                         </SelectTrigger>
@@ -523,15 +609,13 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                                             field.onChange(Number(val));
                                         }}
                                         value={field.value && field.value !== 0 ? String(field.value) : ''}
-                                        disabled={!asmcL_Id || loadingSections}>
+                                    >
                                         <SelectTrigger>
                                             <SelectValue
                                                 placeholder={
                                                     loadingSections
                                                         ? 'Loading sections...'
-                                                        : !asmcL_Id
-                                                          ? 'Select Class first'
-                                                          : 'Select Section'
+                                                        : 'Select Section'
                                                 }
                                             />
                                         </SelectTrigger>
@@ -575,11 +659,11 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                                             field.onChange(Number(val));
                                         }}
                                         value={field.value && field.value !== 0 ? String(field.value) : ''}
-                                        disabled={!asmS_Id || loadingExams}>
+                                    >
                                         <SelectTrigger>
                                             <SelectValue
                                                 placeholder={
-                                                    loadingExams ? 'Loading exams...' : !asmS_Id ? 'Select Section first' : 'Select Exam'
+                                                    loadingExams ? 'Loading exams...' : 'Select Exam'
                                                 }
                                             />
                                         </SelectTrigger>
@@ -614,16 +698,7 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                         <Button
                             type='button'
                             onClick={handleSearch}
-                            disabled={
-                                !asmaY_Id ||
-                                !asmcL_Id ||
-                                !emE_Id ||
-                                !asmS_Id ||
-                                asmaY_Id === 0 ||
-                                asmcL_Id === 0 ||
-                                emE_Id === 0 ||
-                                asmS_Id === 0
-                            }>
+                        >
                             Search Students
                         </Button>
                     </div>
@@ -647,10 +722,8 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                             />
                         </div>
 
-                        <div className='flex w-fit justify-end gap-2'>
-                            <Button type='button' variant='outline' onClick={handleReset}>
-                                Reset
-                            </Button>
+                        <div className='flex w-fit justify-center gap-2'>
+
                             <Button type='submit' disabled={isSaving}>
                                 {isSaving ? 'Saving...' : 'Save Student Remarks'}
                             </Button>
@@ -661,3 +734,4 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
         </FormProvider>
     );
 }
+
