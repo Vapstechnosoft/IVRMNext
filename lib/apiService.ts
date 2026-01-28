@@ -107,8 +107,7 @@ class ApiService {
 
             // Add SSL bypass for localhost in development mode
             if (isLocalhost && process.env.NODE_ENV === 'development' && typeof window === 'undefined') {
-                // This only runs on server-side (Node.js environment)
-                // Using require here to avoid client-side bundling issues with 'https'
+
                 const https = require('https');
                 config.httpsAgent = new https.Agent({
                     rejectUnauthorized: false // Bypass SSL certificate validation
@@ -264,8 +263,8 @@ class ApiService {
 
             return response.data;
         } catch (error: any) {
-            console.error('❌ [API SERVICE] Request failed');
-            console.error('💥 [API SERVICE] Error details:', {
+            console.warn('❌ [API SERVICE] Request failed');
+            console.warn('💥 [API SERVICE] Error details:', {
                 message: error?.message,
                 code: error?.code,
                 status: error?.response?.status,

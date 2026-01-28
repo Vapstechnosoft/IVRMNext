@@ -14,10 +14,24 @@ import type {
  * GET /api/MasterEarningsDeductions/master_earnings_deductions_get_load_data
  */
 export async function getMasterEarningsDeductionsList(searchParams?: ApiSearchparams) {
-    const searchableColumns = 'hrmeD_Name,hrmeD_EDTypeFlag,hrmeD_EarnDedFlag,hrmeD_AmountPercentFlag,hrmeD_RoundOffFlag';
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, searchableColumns);
-    const url = `/api/MasterEarningsDeductions/master_earnings_deductions_get_load_data?${urlParams}`;
-    return await api.get<IMasterEarningsDeductionsList[]>('hrms', url);
+    try {
+        const searchableColumns = 'hrmeD_Name,hrmeD_EDTypeFlag,hrmeD_EarnDedFlag,hrmeD_AmountPercentFlag,hrmeD_RoundOffFlag';
+        // Prioritize search columns provided in searchParams (e.g. from the page.tsx override)
+        const columnsToSearch = (searchParams as any)?.search_column || (searchParams as any)?.search_columns || searchableColumns;
+        const urlParams = getSearchParamsUrl(searchParams ?? {}, columnsToSearch);
+        const url = `/api/MasterEarningsDeductions/master_earnings_deductions_get_load_data?${urlParams}`;
+        return await api.get<IMasterEarningsDeductionsList[]>('hrms', url);
+    } catch (error: any) {
+        console.error('🔴 [MasterEarningsDeductionsList] Error:', error);
+        return {
+            success: false,
+            message: error?.message || 'Failed to load earnings/deductions list',
+            data: [],
+            total: 0,
+            page: searchParams?.page || 1,
+            page_size: searchParams?.page_size || 10
+        };
+    }
 }
 
 /**

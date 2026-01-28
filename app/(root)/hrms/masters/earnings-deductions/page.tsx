@@ -6,7 +6,8 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useMasterEarningsDeductions } from '@/hooks/hrms/useMasters';
 import type { IMasterEarningsDeductionsList } from '@/types/hrms/hrms-config/master';
 import { Plus, X } from 'lucide-react';
-import { use, useMemo, useState } from 'react';
+import { parseAsString, useQueryState } from 'nuqs';
+import { useEffect, useMemo, useState } from 'react';
 import AddEarningsDeductionsForm from './_components/add-form';
 import { columns } from './_components/columns';
 import ReorderEarningsDeductionsForm from './_components/reorder-form';
@@ -16,16 +17,30 @@ import UpdateEarningsDeductionsForm from './_components/update-form';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterEarningsDeductionsPage(props: { searchParams: SearchParams }) {
-    const initialSearchParams = use(props.searchParams);
-    const [filterCategory, setFilterCategory] = useState<string>('all');
+    const [initialSearchParams, setInitialSearchParams] = useState<any>({});
+    const [filterCategory, setFilterCategory] = useQueryState('category', parseAsString.withDefault('all'));
+
+    useEffect(() => {
+        const fetchParams = async () => {
+            const params = await props.searchParams;
+            setInitialSearchParams(params);
+        };
+        fetchParams();
+    }, [props.searchParams]);
 
     const searchParams = useMemo(() => {
-        const params: Record<string, any> = { ...initialSearchParams };
+        // Exclude internal category and any existing search params to ensure a clean request for 'all'
+        const { category, search_query, search_column, ...rest } = initialSearchParams;
+
         if (filterCategory !== 'all') {
-            params.search_query = filterCategory;
-            params.search_column = 'hrmeD_EarnDedFlag';
+            return {
+                ...rest,
+                search_query: filterCategory,
+                search_column: 'hrmeD_EarnDedFlag'
+            };
         }
-        return params;
+
+        return rest;
     }, [initialSearchParams, filterCategory]);
 
     const { data: response, isLoading, error } = useMasterEarningsDeductions(searchParams);

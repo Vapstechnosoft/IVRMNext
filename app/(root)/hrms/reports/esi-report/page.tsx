@@ -1,782 +1,307 @@
 'use client';
-import { Button } from '@/components/ui/button';
-import { FormError } from '@/components/ui/extension/field';
+
+import { useRef, useState, useMemo } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+//import { useReactToPrint } from 'react-to-print';
+//Commented due to Build Error
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Label } from '@/components/ui/label';
-import { MultiSelect } from '@/components/ui/multi-select';
+import { FormProvider } from '@/components/ui/form/form-provider';
+import { Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMasterDepartments, useMasterDesignations, useMasterGroupTypes, useMasterMonths, useMasterYears } from '@/hooks/hrms/useReports';
-
-import { zodResolver } from '@hookform/resolvers/zod';
-import { RefreshCw, Search } from 'lucide-react';
-import { useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { Button } from '@/components/ui/button';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
+import { exportToExcel } from '@/lib/export-to-file';
+import {
+    useESIReport,
+    useReportDepartments,
+    useReportDesignations,
+    useReportGroupTypes
+} from '@/hooks/hrms/useReports';
+import { Loader2, Search, Download, Printer } from 'lucide-react';
 import { toast } from 'sonner';
-import { z } from 'zod';
 
-const departmentSalaryReportSchema = z.object({
-    groupType: z.array(z.string()).min(1, 'Group Type is required'),
-    department: z.array(z.string()).min(1, 'Department is required'),
-    designation: z.array(z.string()).min(1, 'Designation is required'),
-    month: z.string().optional(),
-    year: z.string().optional()
-});
+const MONTH_LIST = [
+    { id: 1, name: 'January' }, { id: 2, name: 'February' }, { id: 3, name: 'March' },
+    { id: 4, name: 'April' }, { id: 5, name: 'May' }, { id: 6, name: 'June' },
+    { id: 7, name: 'July' }, { id: 8, name: 'August' }, { id: 9, name: 'September' },
+    { id: 10, name: 'October' }, { id: 11, name: 'November' }, { id: 12, name: 'December' }
+];
 
-type FormFields = z.infer<typeof departmentSalaryReportSchema>;
+interface FilterFormValues {
+    year: string;
+    month: string;
+    groupType: string[];
+    department: string[];
+    designation: string[];
+}
 
-const mockApiResponse = {
-    employeeSalaryslipDetails: [
-        {
-            hrmD_Id: 80,
-            hrmD_code: 'EMP001',
-            hrmD_Name: 'John Doe',
-            hrmD_DepartmentName: 'Teaching',
-            hrmD_WorkingDays: 22,
-            hrmD_Lop: 0,
+export default function ESIReportPage() {
+    return (
+        <FormProvider>
+            <ESIReportContent />
+        </FormProvider>
+    );
+}
 
-            earningresult: [
-                { hrmeD_Name: 'BASIC PAY', hresD_Amount: 428658.0 },
-                { hrmeD_Name: 'HRA', hresD_Amount: 85731.0 },
-                { hrmeD_Name: 'DA', hresD_Amount: 171463.0 },
-                { hrmeD_Name: 'OTHER ALLOWANCE', hresD_Amount: 138489.0 }
-            ],
-            deductionresult: [
-                { hrmeD_Name: 'PF CONT', hresD_Amount: 41869.0 },
-                { hrmeD_Name: 'ESIC CONT', hresD_Amount: 139.0 },
-                { hrmeD_Name: 'PT', hresD_Amount: 1200.0 },
-                { hrmeD_Name: 'TDS', hresD_Amount: 13500.0 }
-            ],
-            grossEarning: 824341.0,
-            grossDeduction: 56708.0
-        },
-        {
-            hrmD_Id: 84,
-            hrmD_code: 'EMP002',
-            hrmD_Name: 'John Smith',
-            hrmD_DepartmentName: 'Non Teaching',
-            hrmD_WorkingDays: 31,
-            hrmD_Lop: 5,
-            earningresult: [
-                { hrmeD_Name: 'BASIC PAY', hresD_Amount: 69242.0 },
-                { hrmeD_Name: 'HRA', hresD_Amount: 13848.0 },
-                { hrmeD_Name: 'DA', hresD_Amount: 27697.0 },
-                { hrmeD_Name: 'OTHER ALLOWANCE', hresD_Amount: 22371.0 }
-            ],
-            deductionresult: [
-                { hrmeD_Name: 'PF CONT', hresD_Amount: 3329.0 },
-                { hrmeD_Name: 'ESIC CONT', hresD_Amount: 222.0 },
-                { hrmeD_Name: 'PT', hresD_Amount: 200.0 },
-                { hrmeD_Name: 'TDS', hresD_Amount: 8000.0 }
-            ],
-            grossEarning: 133158.0,
-            grossDeduction: 11751.0
-        },
-        {
-            hrmD_Id: 517,
-            hrmD_code: 'EMP003',
-            hrmD_Name: 'Chaitra',
-            hrmD_DepartmentName: 'STATE',
-            hrmD_WorkingDays: 30,
-            hrmD_Lop: 0,
-            earningresult: [
-                { hrmeD_Name: 'BASIC PAY', hresD_Amount: 0.0 },
-                { hrmeD_Name: 'HRA', hresD_Amount: 0.0 },
-                { hrmeD_Name: 'DA', hresD_Amount: 0.0 },
-                { hrmeD_Name: 'OTHER ALLOWANCE', hresD_Amount: 0.0 }
-            ],
-            deductionresult: [
-                { hrmeD_Name: 'PF CONT', hresD_Amount: 0.0 },
-                { hrmeD_Name: 'ESIC CONT', hresD_Amount: 0.0 },
-                { hrmeD_Name: 'PT', hresD_Amount: 0.0 },
-                { hrmeD_Name: 'TDS', hresD_Amount: 0.0 }
-            ],
-            grossEarning: 0.0,
-            grossDeduction: 0.0
-        },
-        {
-            hrmD_Id: 518,
-            hrmD_code: 'EMP004',
-            hrmD_Name: 'Harshita',
-            hrmD_DepartmentName: 'ICSE',
-            hrmD_WorkingDays: 28,
-            hrmD_Lop: 2,
-            earningresult: [
-                { hrmeD_Name: 'BASIC PAY', hresD_Amount: 0.0 },
-                { hrmeD_Name: 'HRA', hresD_Amount: 0.0 },
-                { hrmeD_Name: 'DA', hresD_Amount: 0.0 },
-                { hrmeD_Name: 'OTHER ALLOWANCE', hresD_Amount: 0.0 }
-            ],
-            deductionresult: [
-                { hrmeD_Name: 'PF CONT', hresD_Amount: 0.0 },
-                { hrmeD_Name: 'ESIC CONT', hresD_Amount: 0.0 },
-                { hrmeD_Name: 'PT', hresD_Amount: 0.0 },
-                { hrmeD_Name: 'TDS', hresD_Amount: 0.0 }
-            ],
-            grossEarning: 0.0,
-            grossDeduction: 0.0
-        },
-        {
-            hrmD_Id: 519,
-            hrmD_code: 'EMP005',
-            hrmD_Name: 'Ashwini',
-            hrmD_DepartmentName: 'assistant',
-            hrmD_WorkingDays: 26,
-            hrmD_Lop: 4,
-            earningresult: [
-                { hrmeD_Name: 'BASIC PAY', hresD_Amount: 0.0 },
-                { hrmeD_Name: 'HRA', hresD_Amount: 0.0 },
-                { hrmeD_Name: 'DA', hresD_Amount: 0.0 },
-                { hrmeD_Name: 'OTHER ALLOWANCE', hresD_Amount: 0.0 }
-            ],
-            deductionresult: [
-                { hrmeD_Name: 'PF CONT', hresD_Amount: 0.0 },
-                { hrmeD_Name: 'ESIC CONT', hresD_Amount: 0.0 },
-                { hrmeD_Name: 'PT', hresD_Amount: 0.0 },
-                { hrmeD_Name: 'TDS', hresD_Amount: 0.0 }
-            ],
-            grossEarning: 0.0,
-            grossDeduction: 0.0
-        }
-    ]
-};
-
-export default function DepartmentSalaryReportPage() {
-    const [isSearching, setIsSearching] = useState(false);
-    const [reportData, setReportData] = useState<any[]>([]);
-
-    const { data: masterGroupTypes, isLoading: masterGroupTypesLoading, isError: masterGroupTypesError } = useMasterGroupTypes();
-
-    const { data: masterDepartments, isLoading: masterDepartmentsLoading, isError: masterDepartmentsError } = useMasterDepartments();
-
-    const { data: masterDesignations, isLoading: masterDesignationsLoading, isError: masterDesignationsError } = useMasterDesignations();
-
-    const { data: masterMonths, isLoading: masterMonthsLoading, isError: masterMonthsError } = useMasterMonths();
-
-    const { data: masterYears, isLoading: masterYearsLoading, isError: masterYearsError } = useMasterYears();
-
-    const groupTypeOptions =
-        masterGroupTypes?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-
-    const DeaparmentsOptions =
-        masterDepartments?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-
-    const DesignationOptions =
-        masterDesignations?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-
-    const MonthsOptions =
-        masterMonths?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-
-    const YearsOptions =
-        masterYears?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-
-    const {
-        control,
-        handleSubmit,
-        reset,
-        formState: { errors, isSubmitting }
-    } = useForm<FormFields>({
-        resolver: zodResolver(departmentSalaryReportSchema),
+function ESIReportContent() {
+    const [reportData, setReportData] = useState<any>(null);
+    const { control, handleSubmit, watch, setValue } = useForm<FilterFormValues>({
         defaultValues: {
+            year: '',
+            month: '',
             groupType: [],
             department: [],
-            designation: [],
-            month: '',
-            year: ''
-        },
-        mode: 'onChange'
+            designation: []
+        }
     });
 
-    const onSearch = async (data: FormFields) => {
-        setIsSearching(true);
-        try {
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+    const watchedGroupType = watch('groupType');
+    const watchedDepartment = watch('department');
 
-            toast.success('Report generated successfully!');
-            setReportData(mockApiResponse.employeeSalaryslipDetails);
-        } catch (error: any) {
-            toast.error(error.message || 'Failed to generate report');
-        } finally {
-            setIsSearching(false);
+    // Queries - Reusing hooks from cumulative-salary-report for reliability
+    const { data: yearsData } = useLeaveYearDropdown();
+    const { data: groupTypesData } = useReportGroupTypes();
+
+    const groupTypeIds = watchedGroupType?.join(',') || '';
+    const { data: departmentsData } = useReportDepartments(groupTypeIds);
+
+    const deptIds = watchedDepartment?.join(',') || '';
+    const { data: designationsData } = useReportDesignations(groupTypeIds, deptIds);
+
+    const { mutate: generateReport, isPending } = useESIReport();
+
+    const onSubmit = (data: FilterFormValues) => {
+        if (!data.year || !data.month) {
+            toast.error('Please select Year and Month');
+            return;
         }
-    };
 
-    const handleReset = () => {
-        reset({
-            groupType: [],
-            department: [],
-            designation: [],
-            month: '',
-            year: ''
+        const selectedYearObj = yearsData?.data?.find((y: any) => y.hrmlY_Id.toString() === data.year);
+        const yearString = selectedYearObj?.hrmlY_LeaveYear || data.year;
+
+        const selectedMonthObj = MONTH_LIST.find(m => m.id.toString() === data.month);
+        const monthName = selectedMonthObj?.name || '';
+
+        generateReport({
+            MI_Id: 30,
+            hreS_Year: yearString,
+            hreS_Month: monthName,
+            groupTypeselected: data.groupType.map(Number),
+            departmentselected: data.department.map(Number),
+            designationselected: data.designation.map(Number)
+        }, {
+            onSuccess: (res) => {
+                if (res.success && res.data) {
+                    setReportData(res.data);
+                    toast.success('Report generated successfully');
+                } else {
+                    toast.error(res.message || 'No data found');
+                }
+            }
         });
-        setReportData([]);
-        toast.info('Form has been reset');
     };
 
-    // Calculate totals
-    const calculateTotals = () => {
-        if (reportData.length === 0) return null;
+    const handleExport = () => {
+        const dataForExport = reportData?.employeeDetails || reportData?.alldata || reportData?.list || (Array.isArray(reportData) ? reportData : []);
+        if (!dataForExport || dataForExport.length === 0) {
+            toast.error('No data to export');
+            return;
+        }
 
-        const totals = {
-            basicPay: 0,
-            hra: 0,
-            da: 0,
-            otherAllowance: 0,
-            grossEarning: 0,
-            pfCont: 0,
-            esicCont: 0,
-            pt: 0,
-            tds: 0,
-            grossDeduction: 0,
-            netSalary: 0
-        };
+        const exportColumns = [
+            { label: 'Employee Code', value: 'hrmE_EmployeeCode' },
+            { label: 'Employee Name', value: 'employeeName' },
+            { label: 'Working Days', value: 'hreS_WorkingDays' },
+            { label: 'Basic Amount', value: 'basicamount' },
+            { label: 'Employee Contribution', value: 'employeeContibution' },
+            { label: 'Employer Contribution', value: 'employerContibution' },
+            { label: 'Total Amount', value: 'totalAmount' }
+        ];
 
-        reportData.forEach((dept) => {
-            dept.earningresult.forEach((earning: any) => {
-                if (earning.hrmeD_Name === 'BASIC PAY') totals.basicPay += earning.hresD_Amount;
-                if (earning.hrmeD_Name === 'HRA') totals.hra += earning.hresD_Amount;
-                if (earning.hrmeD_Name === 'DA') totals.da += earning.hresD_Amount;
-                if (earning.hrmeD_Name === 'OTHER ALLOWANCE') totals.otherAllowance += earning.hresD_Amount;
-            });
+        const processedContent = dataForExport.map((row: any) => ({
+            ...row,
+            employeeName: row.employeeName || row.EmployeeName || `${row.hrmE_EmployeeFirstName || ''} ${row.hrmE_EmployeeMiddleName || ''} ${row.hrmE_EmployeeLastName || ''}`.trim(),
+            hreS_WorkingDays: row.hreS_WorkingDays || row.HRES_WorkingDays || 0
+        }));
 
-            dept.deductionresult.forEach((deduction: any) => {
-                if (deduction.hrmeD_Name === 'PF CONT') totals.pfCont += deduction.hresD_Amount;
-                if (deduction.hrmeD_Name === 'ESIC CONT') totals.esicCont += deduction.hresD_Amount;
-                if (deduction.hrmeD_Name === 'PT') totals.pt += deduction.hresD_Amount;
-                if (deduction.hrmeD_Name === 'TDS') totals.tds += deduction.hresD_Amount;
-            });
-
-            totals.grossEarning += dept.grossEarning;
-            totals.grossDeduction += dept.grossDeduction;
-        });
-
-        totals.netSalary = totals.grossEarning - totals.grossDeduction;
-
-        return totals;
+        exportToExcel('ESI_Report', JSON.stringify(exportColumns), JSON.stringify(processedContent));
     };
 
-    const totals = calculateTotals();
+    const columns = [
+        {
+            id: 'slNo',
+            header: 'SL.No',
+            cell: ({ row }: any) => row.index + 1
+        },
+        {
+            accessorKey: 'hrmE_EmployeeCode',
+            header: 'Code'
+        },
+        {
+            accessorKey: 'employeeName',
+            header: 'Employee Name'
+        },
+        {
+            accessorKey: 'hreS_WorkingDays',
+            header: 'Days',
+            cell: ({ row }: any) => row.original.hreS_WorkingDays || row.original.HRES_WorkingDays || 0
+        },
+        {
+            accessorKey: 'basicamount',
+            header: 'Basic',
+            cell: ({ row }: any) => Number(row.original.basicamount || row.original.basicAmount || 0).toFixed(2)
+        },
+        {
+            accessorKey: 'employeeContibution',
+            header: 'Emp. Cont.',
+            cell: ({ row }: any) => Number(row.original.employeeContibution || row.original.EmployeeContibution || 0).toFixed(2)
+        },
+        {
+            accessorKey: 'employerContibution',
+            header: 'Empr. Cont.',
+            cell: ({ row }: any) => Number(row.original.employerContibution || row.original.EmployerContibution || 0).toFixed(2)
+        },
+        {
+            accessorKey: 'totalAmount',
+            header: 'Total',
+            cell: ({ row }: any) => Number(row.original.totalAmount || 0).toFixed(2)
+        }
+    ];
 
     return (
-        <div className='min-h-screen p-8'>
-            <div className='container space-y-4 p-1'>
-                <CollapsibleSection
-                    title='ESI Report'
-                    defaultOpen={true}
-                    variant='outline'
-                    size='md'
-                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                    <div className='space-y-6'>
-                        <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
-                            <div className='space-y-2'>
-                                <Label htmlFor='group-type' className='font-medium text-sm text-white-900'>
-                                    Group Type: <span className='text-red-500'>*</span>
-                                </Label>
-                                {masterGroupTypesLoading ? (
-                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
-                                ) : groupTypeOptions.length === 0 ? (
-                                    <div className='text-sm text-white-500'>No group types available</div>
-                                ) : masterGroupTypesError ? (
-                                    <SelectItem value='error' disabled>
-                                        Error loading data
-                                    </SelectItem>
-                                ) : (
-                                    <>
-                                        <Controller
-                                            name='groupType'
-                                            control={control}
-                                            render={({ field }) => (
-                                                <MultiSelect
-                                                    options={groupTypeOptions}
-                                                    defaultValue={field.value}
-                                                    onValueChange={field.onChange}
-                                                    placeholder='Select Group Types'
-                                                    className='w-full'
-                                                    maxHeight={240}
-                                                />
-                                            )}
-                                        />
-                                        {errors.groupType && <FormError>{errors.groupType.message}</FormError>}
-                                    </>
-                                )}
-                            </div>
+        <div className='container min-h-screen space-y-4 p-2'>
+            <div className='flex items-center justify-between'>
+                <h2 className='text-2xl font-bold tracking-tight'>ESI Report</h2>
+            </div>
 
-                            <div className='space-y-2'>
-                                <Label htmlFor='department' className='font-medium text-sm text-white-900'>
-                                    Department: <span className='text-red-500'>*</span>
-                                </Label>
-                                {masterDepartmentsLoading ? (
-                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
-                                ) : DeaparmentsOptions.length === 0 ? (
-                                    <div className='text-sm text-white-500'>No departments available</div>
-                                ) : masterDepartmentsError ? (
-                                    <SelectItem value='error' disabled>
-                                        Error loading data
-                                    </SelectItem>
-                                ) : (
-                                    <>
-                                        <Controller
-                                            name='department'
-                                            control={control}
-                                            render={({ field }) => (
-                                                <MultiSelect
-                                                    options={DeaparmentsOptions}
-                                                    defaultValue={field.value}
-                                                    onValueChange={field.onChange}
-                                                    placeholder='Select Departments'
-                                                    className='w-full'
-                                                    maxHeight={240}
-                                                />
-                                            )}
-                                        />
-                                        {errors.department && <FormError>{errors.department.message}</FormError>}
-                                    </>
-                                )}
-                            </div>
-
-                            <div className='space-y-2'>
-                                <Label htmlFor='designation' className='font-medium text-sm text-white-900'>
-                                    Designation: <span className='text-red-500'>*</span>
-                                </Label>
-                                {masterDesignationsLoading ? (
-                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
-                                ) : DesignationOptions.length === 0 ? (
-                                    <div className='text-sm text-white-500'>No designations available</div>
-                                ) : masterDesignationsError ? (
-                                    <SelectItem value='error' disabled>
-                                        Error loading data
-                                    </SelectItem>
-                                ) : (
-                                    <>
-                                        <Controller
-                                            name='designation'
-                                            control={control}
-                                            render={({ field }) => (
-                                                <MultiSelect
-                                                    options={DesignationOptions}
-                                                    defaultValue={field.value}
-                                                    onValueChange={field.onChange}
-                                                    placeholder='Select Designations'
-                                                    className='w-full'
-                                                    maxHeight={240}
-                                                />
-                                            )}
-                                        />
-                                        {errors.designation && <FormError>{errors.designation.message}</FormError>}
-                                    </>
-                                )}
-                            </div>
+            <CollapsibleSection defaultOpen={true} title="Report Criteria" variant='outline' className='shadow-sm'>
+                <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                    <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
+                        <div className='space-y-2'>
+                            <Label>Year <span className='text-destructive'>*</span></Label>
+                            <Controller name='year' control={control} render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select Year" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {yearsData?.data?.map((y: any) => (
+                                            <SelectItem key={y.hrmlY_Id} value={y.hrmlY_Id.toString()}>
+                                                {y.hrmlY_LeaveYear}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )} />
                         </div>
 
-                        <div className='flex justify-center'>
-                            <div className='grid w-full max-w-2xl grid-cols-1 gap-6 md:grid-cols-2'>
-                                <div className='space-y-2'>
-                                    <Label htmlFor='month' className='font-medium text-sm text-white-900'>
-                                        Month: <span className='text-red-500'>*</span>
-                                    </Label>
-                                    <Controller
-                                        name='month'
-                                        control={control}
-                                        render={({ field }) => (
-                                            <Select onValueChange={field.onChange} value={field.value}>
-                                                <SelectTrigger className='w-full'>
-                                                    <SelectValue placeholder='Select Month' />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {masterMonthsLoading ? (
-                                                        <SelectItem value='loading' disabled>
-                                                            Loading...
-                                                        </SelectItem>
-                                                    ) : masterMonthsError ? (
-                                                        <SelectItem value='error' disabled>
-                                                            Error loading data
-                                                        </SelectItem>
-                                                    ) : (
-                                                        MonthsOptions?.map((opt: any) => (
-                                                            <SelectItem key={opt.value} value={opt.value}>
-                                                                {opt.label}
-                                                            </SelectItem>
-                                                        ))
-                                                    )}
-                                                </SelectContent>
-                                            </Select>
-                                        )}
-                                    />
-                                    {errors.month && <FormError>{errors.month.message}</FormError>}
-                                </div>
-
-                                <div className='space-y-2'>
-                                    <Label htmlFor='year' className='font-medium text-sm text-white-900'>
-                                        Year: <span className='text-red-500'>*</span>
-                                    </Label>
-                                    <Controller
-                                        name='year'
-                                        control={control}
-                                        render={({ field }) => (
-                                            <Select onValueChange={field.onChange} value={field.value}>
-                                                <SelectTrigger className='w-full'>
-                                                    <SelectValue placeholder='Select Year' />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {masterYearsLoading ? (
-                                                        <SelectItem value='loading' disabled>
-                                                            Loading...
-                                                        </SelectItem>
-                                                    ) : masterYearsError ? (
-                                                        <SelectItem value='error' disabled>
-                                                            Error loading data
-                                                        </SelectItem>
-                                                    ) : (
-                                                        YearsOptions?.map((opt: any) => (
-                                                            <SelectItem key={opt.value} value={opt.value}>
-                                                                {opt.label}
-                                                            </SelectItem>
-                                                        ))
-                                                    )}
-                                                </SelectContent>
-                                            </Select>
-                                        )}
-                                    />
-                                    {errors.year && <FormError>{errors.year.message}</FormError>}
-                                </div>
-                            </div>
+                        <div className='space-y-2'>
+                            <Label>Month <span className='text-destructive'>*</span></Label>
+                            <Controller name='month' control={control} render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select Month" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {MONTH_LIST.map((m: any) => (
+                                            <SelectItem key={m.id} value={m.id.toString()}>
+                                                {m.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )} />
                         </div>
 
-                        <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-center'>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                onClick={handleReset}
-                                disabled={isSearching || isSubmitting}
-                                className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                                Reset
-                            </Button>
-                            <Button
-                                type='button'
-                                onClick={handleSubmit(onSearch)}
-                                disabled={isSearching || isSubmitting}
-                                className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
-                                {isSearching ? (
-                                    <>
-                                        <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
-                                        Searching...
-                                    </>
-                                ) : (
-                                    <div className='flex items-center'>
-                                        <Search className='mr-2 h-4 w-4' />
-                                        Search
-                                    </div>
-                                )}
-                            </Button>
+                        <div className='space-y-2'>
+                            <Label>Group Type</Label>
+                            <Controller name='groupType' control={control} render={({ field }) => (
+                                <MultiSelect
+                                    options={groupTypesData?.data?.map((gt: any) => ({
+                                        label: gt.value,
+                                        value: gt.key.toString()
+                                    })) || []}
+                                    defaultValue={field.value}
+                                    onValueChange={(vals) => {
+                                        field.onChange(vals);
+                                        // Reset children
+                                        setValue('department', []);
+                                        setValue('designation', []);
+                                    }}
+                                    placeholder="Select Group Types"
+                                />
+                            )} />
+                        </div>
+
+                        <div className='space-y-2'>
+                            <Label>Department</Label>
+                            <Controller name='department' control={control} render={({ field }) => (
+                                <MultiSelect
+                                    options={departmentsData?.data?.map((d: any) => ({
+                                        label: d.hrmD_DepartmentName,
+                                        value: d.hrmD_Id.toString()
+                                    })) || []}
+                                    defaultValue={field.value}
+                                    onValueChange={(vals) => {
+                                        field.onChange(vals);
+                                        // Reset child
+                                        setValue('designation', []);
+                                    }}
+                                    placeholder="Select Departments"
+                                    disabled={!watchedGroupType.length}
+                                />
+                            )} />
+                        </div>
+
+                        <div className='space-y-2'>
+                            <Label>Designation</Label>
+                            <Controller name='designation' control={control} render={({ field }) => (
+                                <MultiSelect
+                                    options={designationsData?.data?.map((d: any) => ({
+                                        label: d.hrmdeS_DesignationName,
+                                        value: d.hrmdeS_Id.toString()
+                                    })) || []}
+                                    defaultValue={field.value}
+                                    onValueChange={field.onChange}
+                                    placeholder="Select Designations"
+                                    disabled={!watchedDepartment.length}
+                                />
+                            )} />
                         </div>
                     </div>
-                </CollapsibleSection>
 
-                {reportData.length > 0 && (
-                    <CollapsibleSection
-                        title='ESI Report'
-                        defaultOpen={true}
-                        variant='outline'
-                        size='md'
-                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                        <div className='mt-2 space-x-4'>
-                            <div className='overflow-x-auto rounded-lg border'>
-                                <table className='w-full border-collapse'>
-                                    <thead>
-                                        <tr className='border-white-300 border-b-2 bg-white-100'>
-                                            <th className='border border-white-300 px-3 py-3 text-center font-semibold text-sm' rowSpan={2}>
-                                                S.No
-                                            </th>
-                                            <th className='border border-white-300 px-3 py-3 text-center font-semibold text-sm' rowSpan={2}>
-                                                Employee Code
-                                            </th>
-                                            <th className='border border-white-300 px-3 py-3 text-center font-semibold text-sm' rowSpan={2}>
-                                                Employee Name
-                                            </th>
-                                            <th className='border border-white-300 px-3 py-3 text-center font-semibold text-sm' rowSpan={2}>
-                                                Department
-                                            </th>
-                                            <th className='border border-white-300 px-3 py-3 text-center font-semibold text-sm' rowSpan={2}>
-                                                Working Days
-                                            </th>
-                                            <th className='border border-white-300 px-3 py-3 text-center font-semibold text-sm' rowSpan={2}>
-                                                LOP
-                                            </th>
-                                            <th
-                                                className='border border-white-300 bg-white-50 px-3 py-2 text-center font-semibold text-sm'
-                                                colSpan={4}>
-                                                Earnings
-                                            </th>
-                                            <th
-                                                className='border border-white-300 bg-white-100 px-3 py-3 text-center font-semibold text-sm'
-                                                rowSpan={2}>
-                                                Gross Earning
-                                            </th>
-                                            <th
-                                                className='border border-white-300 bg-white-50 px-3 py-2 text-center font-semibold text-sm'
-                                                colSpan={4}>
-                                                Deductions
-                                            </th>
-                                            <th
-                                                className='border border-white-300 bg-white-100 px-3 py-3 text-center font-semibold text-sm'
-                                                rowSpan={2}>
-                                                Gross Deduction
-                                            </th>
-                                            <th
-                                                className='border border-white-300 bg-white-100 px-3 py-3 text-center font-semibold text-sm'
-                                                rowSpan={2}>
-                                                Net Salary
-                                            </th>
-                                        </tr>
-                                        <tr className='border-white-300 border-b-2 bg-white-50'>
-                                            <th className='border border-white-300 bg-white-50 px-3 py-2 text-center font-medium text-xs'>
-                                                Basic Pay
-                                            </th>
-                                            <th className='border border-white-300 bg-white-50 px-3 py-2 text-center font-medium text-xs'>
-                                                HRA
-                                            </th>
-                                            <th className='border border-white-300 bg-white-50 px-3 py-2 text-center font-medium text-xs'>
-                                                DA
-                                            </th>
-                                            <th className='border border-white-300 bg-white-50 px-3 py-2 text-center font-medium text-xs'>
-                                                Other Allowance
-                                            </th>
-                                            <th className='border border-white-300 bg-white-50 px-3 py-2 text-center font-medium text-xs'>
-                                                PF Cont
-                                            </th>
-                                            <th className='border border-white-300 bg-white-50 px-3 py-2 text-center font-medium text-xs'>
-                                                ESIC Cont
-                                            </th>
-                                            <th className='border border-white-300 bg-white-50 px-3 py-2 text-center font-medium text-xs'>
-                                                PT
-                                            </th>
-                                            <th className='border border-white-300 bg-white-50 px-3 py-2 text-center font-medium text-xs'>
-                                                TDS
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {reportData.map((dept, index) => {
-                                            const basicPay =
-                                                dept.earningresult.find((e: any) => e.hrmeD_Name === 'BASIC PAY')?.hresD_Amount || 0;
-                                            const hra = dept.earningresult.find((e: any) => e.hrmeD_Name === 'HRA')?.hresD_Amount || 0;
-                                            const da = dept.earningresult.find((e: any) => e.hrmeD_Name === 'DA')?.hresD_Amount || 0;
-                                            const otherAllowance =
-                                                dept.earningresult.find((e: any) => e.hrmeD_Name === 'OTHER ALLOWANCE')?.hresD_Amount || 0;
+                    <div className='flex justify-end'>
+                        <Button type='submit' disabled={isPending} className='w-32'>
+                            {isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
+                            Generate
+                        </Button>
+                    </div>
+                </form>
+            </CollapsibleSection>
 
-                                            const pfCont =
-                                                dept.deductionresult.find((d: any) => d.hrmeD_Name === 'PF CONT')?.hresD_Amount || 0;
-                                            const esicCont =
-                                                dept.deductionresult.find((d: any) => d.hrmeD_Name === 'ESIC CONT')?.hresD_Amount || 0;
-                                            const pt = dept.deductionresult.find((d: any) => d.hrmeD_Name === 'PT')?.hresD_Amount || 0;
-                                            const tds = dept.deductionresult.find((d: any) => d.hrmeD_Name === 'TDS')?.hresD_Amount || 0;
-
-                                            const netSalary = dept.grossEarning - dept.grossDeduction;
-
-                                            return (
-                                                <tr key={index} className='hover:bg-white-50'>
-                                                    <td className='border border-white-300 px-3 py-2 text-center text-sm'>{index + 1}</td>
-                                                    <td className='border border-white-300 px-3 py-2 text-left font-medium text-sm'>
-                                                        {dept.hrmD_code}
-                                                    </td>
-                                                    <td className='border border-white-300 px-3 py-2 text-left font-medium text-sm'>
-                                                        {dept.hrmD_Name}
-                                                    </td>
-                                                    <td className='border border-white-300 px-3 py-2 text-left font-medium text-sm'>
-                                                        {dept.hrmD_DepartmentName}
-                                                    </td>
-                                                    <td className='border border-white-300 px-3 py-2 text-left font-medium text-sm'>
-                                                        {dept.hrmD_WorkingDays}
-                                                    </td>
-                                                    <td className='border border-white-300 px-3 py-2 text-left font-medium text-sm'>
-                                                        {dept.hrmD_Lop}
-                                                    </td>
-                                                    <td className='border border-white-300 px-3 py-2 text-right text-sm'>
-                                                        ₹
-                                                        {basicPay.toLocaleString('en-IN', {
-                                                            minimumFractionDigits: 2,
-                                                            maximumFractionDigits: 2
-                                                        })}
-                                                    </td>
-                                                    <td className='border border-white-300 px-3 py-2 text-right text-sm'>
-                                                        ₹
-                                                        {hra.toLocaleString('en-IN', {
-                                                            minimumFractionDigits: 2,
-                                                            maximumFractionDigits: 2
-                                                        })}
-                                                    </td>
-                                                    <td className='border border-white-300 px-3 py-2 text-right text-sm'>
-                                                        ₹
-                                                        {da.toLocaleString('en-IN', {
-                                                            minimumFractionDigits: 2,
-                                                            maximumFractionDigits: 2
-                                                        })}
-                                                    </td>
-                                                    <td className='border border-white-300 px-3 py-2 text-right text-sm'>
-                                                        ₹
-                                                        {otherAllowance.toLocaleString('en-IN', {
-                                                            minimumFractionDigits: 2,
-                                                            maximumFractionDigits: 2
-                                                        })}
-                                                    </td>
-                                                    <td className='border border-white-300 bg-white-50 px-3 py-2 text-right font-semibold text-sm'>
-                                                        ₹
-                                                        {dept.grossEarning.toLocaleString('en-IN', {
-                                                            minimumFractionDigits: 2,
-                                                            maximumFractionDigits: 2
-                                                        })}
-                                                    </td>
-                                                    <td className='border border-white-300 px-3 py-2 text-right text-sm'>
-                                                        ₹
-                                                        {pfCont.toLocaleString('en-IN', {
-                                                            minimumFractionDigits: 2,
-                                                            maximumFractionDigits: 2
-                                                        })}
-                                                    </td>
-                                                    <td className='border border-white-300 px-3 py-2 text-right text-sm'>
-                                                        ₹
-                                                        {esicCont.toLocaleString('en-IN', {
-                                                            minimumFractionDigits: 2,
-                                                            maximumFractionDigits: 2
-                                                        })}
-                                                    </td>
-                                                    <td className='border border-white-300 px-3 py-2 text-right text-sm'>
-                                                        ₹
-                                                        {pt.toLocaleString('en-IN', {
-                                                            minimumFractionDigits: 2,
-                                                            maximumFractionDigits: 2
-                                                        })}
-                                                    </td>
-                                                    <td className='border border-white-300 px-3 py-2 text-right text-sm'>
-                                                        ₹
-                                                        {tds.toLocaleString('en-IN', {
-                                                            minimumFractionDigits: 2,
-                                                            maximumFractionDigits: 2
-                                                        })}
-                                                    </td>
-                                                    <td className='border border-white-300 bg-white-50 px-3 py-2 text-right font-semibold text-sm'>
-                                                        ₹
-                                                        {dept.grossDeduction.toLocaleString('en-IN', {
-                                                            minimumFractionDigits: 2,
-                                                            maximumFractionDigits: 2
-                                                        })}
-                                                    </td>
-                                                    <td className='border border-white-300 bg-white-50 px-3 py-2 text-right font-semibold text-sm'>
-                                                        ₹
-                                                        {netSalary.toLocaleString('en-IN', {
-                                                            minimumFractionDigits: 2,
-                                                            maximumFractionDigits: 2
-                                                        })}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-
-                                        {totals && (
-                                            <tr className='border-white-400 border-t-2 bg-white-200 font-bold'>
-                                                <td className='border border-white-300 px-3 py-3 text-left text-sm' colSpan={6}>
-                                                    Total
-                                                </td>
-                                                <td className='border border-white-300 px-3 py-3 text-right text-sm'>
-                                                    ₹
-                                                    {totals.basicPay.toLocaleString('en-IN', {
-                                                        minimumFractionDigits: 2,
-                                                        maximumFractionDigits: 2
-                                                    })}
-                                                </td>
-                                                <td className='border border-white-300 px-3 py-3 text-right text-sm'>
-                                                    ₹
-                                                    {totals.hra.toLocaleString('en-IN', {
-                                                        minimumFractionDigits: 2,
-                                                        maximumFractionDigits: 2
-                                                    })}
-                                                </td>
-                                                <td className='border border-white-300 px-3 py-3 text-right text-sm'>
-                                                    ₹
-                                                    {totals.da.toLocaleString('en-IN', {
-                                                        minimumFractionDigits: 2,
-                                                        maximumFractionDigits: 2
-                                                    })}
-                                                </td>
-                                                <td className='border border-white-300 px-3 py-3 text-right text-sm'>
-                                                    ₹
-                                                    {totals.otherAllowance.toLocaleString('en-IN', {
-                                                        minimumFractionDigits: 2,
-                                                        maximumFractionDigits: 2
-                                                    })}
-                                                </td>
-                                                <td className='border border-white-300 bg-white-50 px-3 py-3 text-right font-semibold text-sm'>
-                                                    ₹
-                                                    {totals.grossEarning.toLocaleString('en-IN', {
-                                                        minimumFractionDigits: 2,
-                                                        maximumFractionDigits: 2
-                                                    })}
-                                                </td>
-                                                <td className='border border-white-300 px-3 py-3 text-right text-sm'>
-                                                    ₹
-                                                    {totals.pfCont.toLocaleString('en-IN', {
-                                                        minimumFractionDigits: 2,
-                                                        maximumFractionDigits: 2
-                                                    })}
-                                                </td>
-                                                <td className='border border-white-300 px-3 py-3 text-right text-sm'>
-                                                    ₹
-                                                    {totals.esicCont.toLocaleString('en-IN', {
-                                                        minimumFractionDigits: 2,
-                                                        maximumFractionDigits: 2
-                                                    })}
-                                                </td>
-                                                <td className='border border-white-300 px-3 py-3 text-right text-sm'>
-                                                    ₹
-                                                    {totals.pt.toLocaleString('en-IN', {
-                                                        minimumFractionDigits: 2,
-                                                        maximumFractionDigits: 2
-                                                    })}
-                                                </td>
-                                                <td className='border border-white-300 px-3 py-3 text-right text-sm'>
-                                                    ₹
-                                                    {totals.tds.toLocaleString('en-IN', {
-                                                        minimumFractionDigits: 2,
-                                                        maximumFractionDigits: 2
-                                                    })}
-                                                </td>
-                                                <td className='border border-white-300 bg-white-50 px-3 py-3 text-right font-semibold text-sm'>
-                                                    ₹
-                                                    {totals.grossDeduction.toLocaleString('en-IN', {
-                                                        minimumFractionDigits: 2,
-                                                        maximumFractionDigits: 2
-                                                    })}
-                                                </td>
-                                                <td className='border border-white-300 bg-white-50 px-3 py-3 text-right font-semibold text-sm'>
-                                                    ₹
-                                                    {totals.netSalary.toLocaleString('en-IN', {
-                                                        minimumFractionDigits: 2,
-                                                        maximumFractionDigits: 2
-                                                    })}
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
+            {reportData && (
+                <CollapsibleSection title="Report Details" defaultOpen={true} className='shadow-md border'
+                    rightElement={
+                        <div className='flex gap-2'>
+                            <Button variant='outline' size='sm' onClick={handleExport} className='gap-2'>
+                                <Download className='h-4 w-4' />
+                                Export
+                            </Button>
                         </div>
-                    </CollapsibleSection>
-                )}
-            </div>
+                    }
+                >
+                    <GenericDataTable
+                        data={reportData?.employeeDetails || reportData?.alldata || reportData?.list || (Array.isArray(reportData) ? reportData : [])}
+                        columns={columns}
+                        totalItems={(reportData?.employeeDetails || reportData?.alldata || reportData?.list || (Array.isArray(reportData) ? reportData : [])).length}
+                        isPaginationRequired={false}
+                        isSearchRequired={false}
+                        isLoading={isPending}
+                    />
+                </CollapsibleSection>
+            )}
         </div>
     );
 }

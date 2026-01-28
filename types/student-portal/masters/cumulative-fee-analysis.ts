@@ -15,13 +15,12 @@ export interface IFeeAnalysisData {
 }
 
 export interface IFeeDetailsData {
-    fmH_FeeName: string;
-    ftI_Name: string;
     fsS_CurrentYrCharges: number;
-    fsS_ConcessionAmount: number;
-    fsS_PaidAmount: number;
     fsS_ToBePaid: number;
-    fmH_Id: number;
+    fsS_PaidAmount: number;
+    fsS_ConcessionAmount: number;
+    ftI_Name: string;
+    fmH_FeeName: string;
 }
 
 export interface ICumulativeFeeAnalysisData {
@@ -30,7 +29,6 @@ export interface ICumulativeFeeAnalysisData {
     studentfeedetails: IFeeDetailsData[];
 }
 
-// Generic API Response Wrapper
 export interface IApiResponse<T> {
     success: boolean;
     message: string;

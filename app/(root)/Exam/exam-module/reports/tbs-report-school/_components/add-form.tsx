@@ -51,9 +51,13 @@ export default function TBSReportSchoolForm({
     } = methods;
 
     const [classes, setClasses] = useState<any[]>([]);
+    const [loadingClasses, setLoadingClasses] = useState(false);
     const [sections, setSections] = useState<any[]>([]);
+    const [loadingSections, setLoadingSections] = useState(false);
     const [exams, setExams] = useState<any[]>([]);
+    const [loadingExams, setLoadingExams] = useState(false);
     const [students, setStudents] = useState<any[]>([]);
+    const [loadingStudents, setLoadingStudents] = useState(false);
     const [gradeList, setGradeList] = useState<any[]>([]);
 
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
@@ -70,6 +74,9 @@ export default function TBSReportSchoolForm({
         } else if (gradeData?.data) {
             const list = Array.isArray(gradeData.data) ? gradeData.data : (gradeData.data as any).$values || [];
             setGradeList(list);
+            if (list.length === 0) {
+                toast.info('No Grades found');
+            }
         } else {
             setGradeList([]);
         }
@@ -78,12 +85,20 @@ export default function TBSReportSchoolForm({
     useEffect(() => {
         if (!selectedYear || selectedYear === 0) return;
         (async () => {
+            setLoadingClasses(true);
             try {
                 const res = await getClassDropDownByAcademicYearlist(selectedYear);
-                setClasses(res.data || []);
+                if (res.data && res.data.length > 0) {
+                    setClasses(res.data);
+                } else {
+                    setClasses([]);
+                    toast.info('No classes found for the selected Academic Year');
+                }
                 setValue('asmcL_Id', 0);
             } catch {
                 toast.error('Failed to load classes');
+            } finally {
+                setLoadingClasses(false);
             }
         })();
     }, [selectedYear, setValue]);
@@ -91,12 +106,20 @@ export default function TBSReportSchoolForm({
     useEffect(() => {
         if (!selectedYear || !selectedClass || selectedClass === 0) return;
         (async () => {
+            setLoadingSections(true);
             try {
                 const res = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass);
-                setSections(res.data || []);
+                if (res.data && res.data.length > 0) {
+                    setSections(res.data);
+                } else {
+                    setSections([]);
+                    toast.info('No sections found for the selected Class');
+                }
                 setValue('asmS_Id', 0);
             } catch {
                 toast.error('Failed to load sections');
+            } finally {
+                setLoadingSections(false);
             }
         })();
     }, [selectedYear, selectedClass, setValue]);
@@ -104,16 +127,31 @@ export default function TBSReportSchoolForm({
     useEffect(() => {
         if (!selectedYear || !selectedClass || !selectedSection || selectedSection === 0) return;
         (async () => {
+            setLoadingExams(true);
+            setLoadingStudents(true);
             try {
                 const resE = await getExamsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, selectedSection);
-                setExams(resE.data || []);
+                if (resE.data && resE.data.length > 0) {
+                    setExams(resE.data);
+                } else {
+                    setExams([]);
+                    toast.info('No exams found');
+                }
                 setValue('emE_Id', []);
 
                 const resS = await getStudentsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, selectedSection);
-                setStudents(resS.data || []);
+                if (resS.data && resS.data.length > 0) {
+                    setStudents(resS.data);
+                } else {
+                    setStudents([]);
+                    toast.info('No students found');
+                }
                 setValue('studentList', []);
             } catch {
                 toast.error('Failed to load exams or students');
+            } finally {
+                setLoadingExams(false);
+                setLoadingStudents(false);
             }
         })();
     }, [selectedYear, selectedClass, selectedSection, setValue]);
@@ -149,7 +187,11 @@ export default function TBSReportSchoolForm({
                                                     <SelectContent>
                                                         {academicYearLoading ? (
                                                             <SelectItem value='loading' disabled>
-                                                                Loading Academic Year...
+                                                                Loading...
+                                                            </SelectItem>
+                                                        ) : academicYear?.data?.length === 0 ? (
+                                                            <SelectItem value='empty' disabled>
+                                                                No Academic Years found
                                                             </SelectItem>
                                                         ) : academicYearError ? (
                                                             <SelectItem value='error' disabled>
@@ -181,17 +223,28 @@ export default function TBSReportSchoolForm({
                                             </Label>
                                             <div className='flex-1'>
                                                 <Select
+                                                    key={field.value}
                                                     onValueChange={(v) => field.onChange(Number(v))}
                                                     value={field.value ? String(field.value) : ''}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder='Select Class' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {classes.map((c) => (
-                                                            <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
-                                                                {c.asmcL_ClassName}
+                                                        {loadingClasses ? (
+                                                            <SelectItem value='loading' disabled>
+                                                                Loading...
                                                             </SelectItem>
-                                                        ))}
+                                                        ) : classes.length === 0 ? (
+                                                            <SelectItem value='empty' disabled>
+                                                                No Classes found
+                                                            </SelectItem>
+                                                        ) : (
+                                                            classes.map((c) => (
+                                                                <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
+                                                                    {c.asmcL_ClassName}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                                 {errors.asmcL_Id && <FormError>{errors.asmcL_Id.message}</FormError>}
@@ -211,17 +264,28 @@ export default function TBSReportSchoolForm({
                                             </Label>
                                             <div className='flex-1'>
                                                 <Select
+                                                    key={field.value}
                                                     onValueChange={(v) => field.onChange(Number(v))}
                                                     value={field.value ? String(field.value) : ''}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder='Select Section' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {sections.map((s) => (
-                                                            <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
-                                                                {s.asmC_SectionName}
+                                                        {loadingSections ? (
+                                                            <SelectItem value='loading' disabled>
+                                                                Loading...
                                                             </SelectItem>
-                                                        ))}
+                                                        ) : sections.length === 0 ? (
+                                                            <SelectItem value='empty' disabled>
+                                                                No Sections found
+                                                            </SelectItem>
+                                                        ) : (
+                                                            sections.map((s) => (
+                                                                <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
+                                                                    {s.asmC_SectionName}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                                 {errors.asmS_Id && <FormError>{errors.asmS_Id.message}</FormError>}
@@ -250,11 +314,15 @@ export default function TBSReportSchoolForm({
                                                     <SelectContent>
                                                         {gradeLoading ? (
                                                             <SelectItem value='loading' disabled>
-                                                                Loading Grades...
+                                                                Loading...
                                                             </SelectItem>
                                                         ) : gradeError ? (
                                                             <SelectItem value='error' disabled>
                                                                 Error loading grades
+                                                            </SelectItem>
+                                                        ) : gradeList.length === 0 ? (
+                                                            <SelectItem value='empty' disabled>
+                                                                No Grades found
                                                             </SelectItem>
                                                         ) : (
                                                             gradeList.map((g: any) => (

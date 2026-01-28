@@ -31,7 +31,10 @@ export default function CumulativeFeeAnalysisPage() {
 
                 <FormProvider {...form}>
                     <CollapsibleSection title='Cumulative Fee Analysis' defaultOpen={true} variant='default'>
-                        <CumulativeFeeAnalysisFilter yearList={initialData?.data?.acdlist || []} onYearChange={onYearChange} />
+                        <CumulativeFeeAnalysisFilter
+                            yearList={Array.isArray(initialData?.data) ? initialData.data : []}
+                            onYearChange={onYearChange}
+                        />
                     </CollapsibleSection>
                 </FormProvider>
 
@@ -49,8 +52,10 @@ export default function CumulativeFeeAnalysisPage() {
                     </CollapsibleSection>
                 )}
 
-                {/* !isReportLoading && feeAnalysisList && feeAnalysisList.length */}
-                {feeAnalysisList && feeAnalysisList.length > 0 && <CumulativeFeeAnalysisCharts data={feeAnalysisList} />}
+                {/* Legacy Charts: Shown if data exists */}
+                {!isReportLoading && feeAnalysisList && feeAnalysisList.length > 0 && (
+                    <CumulativeFeeAnalysisCharts data={feeAnalysisList} />
+                )}
             </div>
         </div>
     );
