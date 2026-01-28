@@ -343,8 +343,15 @@ export default function FeeYearlyCollectionReport() {
         // Optional: Keep validation
         if (!filters.academicYearId) return toast.error('Please select an Academic Year');
         if (filters.feeGroupIds.length === 0) return toast.error('Please select at least one Fee Group');
+        if (filters.breakdown === 'TRMW') {
+            if (filters.termIds.length === 0) return toast.error('Please select at least one Term');
+        }
 
-        if (filters.termIds.length === 0) return toast.error('Please select at least one Term');
+        if (filters.breakdown === 'FSW' || filters.breakdown === 'SWTPC' || filters.breakdown === 'CWTPC') {
+            if (filters.classId === 0) return toast.error('Please select Class');
+
+            if (filters.sectionId === 0) return toast.error('Please select Section');
+        }
 
         setReportLoading(true);
         setShowReport(false);
@@ -415,11 +422,19 @@ export default function FeeYearlyCollectionReport() {
             // const response = await fetchFeeDefaulterReport(payload);
             const response = await getFeeYearlyCollectionReport(payload);
 
+            console.log('Fee yearly collection response 👉', response);
+
             const apiList = response?.data?.list ?? [];
 
             const tableData = mapYearlyCollectionReport(apiList, filters.breakdown as BreakdownType);
 
             setReportData(tableData);
+
+            if (apiList.length === 0) {
+                setShowReport(false);
+                toast.info('No records found for selected criteria');
+                return;
+            }
             setShowReport(true);
 
             toast.success(`Report generated (${tableData.length} records)`);
@@ -856,7 +871,7 @@ export default function FeeYearlyCollectionReport() {
                                                 {/* Class */}
                                                 <div className='flex min-w-[220px] flex-grow items-center gap-3'>
                                                     <Label htmlFor='includeClass' className='whitespace-nowrap font-medium'>
-                                                        Class:
+                                                        Class <span className='text-red-500'>*</span>:
                                                     </Label>
                                                     <Select
                                                         value={filters.classId === 0 ? '' : String(filters.classId)}

@@ -139,8 +139,7 @@ export default function UpdateMasterClassCategoryForm({ onSuccess, className = '
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
 
-
-                         <InputText
+                        {/* <InputText
                             label='Class Category Code'
                             required
                             id='fmcC_ClassCategoryCode'
@@ -163,8 +162,7 @@ export default function UpdateMasterClassCategoryForm({ onSuccess, className = '
                             })}
                             error={errors.fmcC_ClassCategoryCode?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                        
+                        /> */}
                     </div>
 
                     {/* Root Error */}
