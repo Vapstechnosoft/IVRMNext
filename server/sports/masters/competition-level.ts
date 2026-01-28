@@ -6,65 +6,28 @@ import type { IMasterCompetitionLevel } from '@/types/sports/masters/competition
 
 export async function getMasterCompetitionLevels(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/SportMasterCompitionLevel/Getdetails?${urlParams}`;
+    const url = `/SportMasterCompitionLevel/getDetails?${urlParams}`;
+    return await api.post<IMasterCompetitionLevel[]>('sports', url);
+}
 
-    const dummyDataCount = 14;
-    const dummyData: IMasterCompetitionLevel[] = Array.from({ length: dummyDataCount }, (_, i) => ({
-        spccmcL_Id: 3000 + i,
-        mI_Id: 2,
-        spccmcL_CompitionLevel: i % 2 === 0 ? `Level ${1 + Math.floor(i / 2)}` : `Tier ${1 + Math.floor(i / 2)}`,
-        spccmcL_CLDesc: `Description for Competition Level ${i + 1}`,
-        spccmcL_ActiveFlag: ![1, 4, 7, 10, 13].includes(i),
-        createdDate: new Date().toISOString(),
-        updatedDate: new Date().toISOString()
-    }));
-
-    const page = searchParams?.page || 1;
-    const pageSize = searchParams?.page_size || 10;
-    const start = (page - 1) * pageSize;
-    const end = start + pageSize;
-
-    try {
-        const response = await api.get<IMasterCompetitionLevel[]>('sports', url);
-
-        let allData = dummyData;
-        let totalCount = dummyDataCount;
-
-        if (response && response.success && Array.isArray(response.data)) {
-            allData = [...response.data, ...dummyData];
-            totalCount = (response.total || response.data.length) + dummyDataCount;
-        }
-
-        return {
-            success: true,
-            message: response?.message || 'Data loaded successfully',
-            data: allData.slice(start, end),
-            total: totalCount
-        };
-    } catch (error) {
-        return {
-            success: true,
-            message: 'Static data loaded (Backup)',
-            data: dummyData.slice(start, end),
-            total: dummyDataCount
-        };
-    }
+export async function getMasterCompetitionLevelDetails(id: number) {
+    const url = `/SportMasterCompitionLevel/editDetails/${id}`;
+    return await api.get<IMasterCompetitionLevel>('sports', url);
 }
 
 export async function saveMasterCompetitionLevel(data: any) {
-    const url = '/SportMasterCompitionLevel/';
+    const SPCCMCL_Id = data.spccmcL_Id || 0;
+    const SPCCMCL_CompitionLevel = encodeURIComponent(data.spccmcL_CompitionLevel || '');
+    const SPCCMCL_CLDesc = encodeURIComponent(data.spccmcL_CLDesc || '');
 
-    // Mapping keys to match AngularJS expectations of backend
-    const payload = {
-        SPCCMCL_Id: data.spccmcL_Id || 0,
-        SPCCMCL_CompitionLevel: data.spccmcL_CompitionLevel,
-        SPCCMCL_CLDesc: data.spccmcL_CLDesc
-    };
-
-    return await api.post<any>('sports', url, payload);
+    const url = `/SportMasterCompitionLevel/save?SPCCMCL_Id=${SPCCMCL_Id}&SPCCMCL_CompitionLevel=${SPCCMCL_CompitionLevel}&SPCCMCL_CLDesc=${SPCCMCL_CLDesc}`;
+    return await api.post<any>('sports', url, {});
 }
 
 export async function deactivateMasterCompetitionLevel(data: any) {
-    const url = '/SportMasterCompitionLevel/deactivate';
-    return await api.post<any>('sports', url, data);
+    const SPCCMCL_Id = data.spccmcL_Id;
+    const SPCCMCL_ActiveFlag = data.spccmcL_ActiveFlag;
+
+    const url = `/SportMasterCompitionLevel/deactivate?SPCCMCL_Id=${SPCCMCL_Id}&SPCCMCL_ActiveFlag=${SPCCMCL_ActiveFlag}`;
+    return await api.post<any>('sports', url, {});
 }

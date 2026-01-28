@@ -10,6 +10,7 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterVenueForm from './_components/add-form';
 import { MasterVenueColumns } from './_components/columns';
+import ToggleMasterVenueForm from './_components/toggle-form';
 import UpdateMasterVenueForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -39,10 +40,12 @@ function MasterVenuePageContent({
     const {
         isAddFormOpen,
         isEditFormOpen,
+        isToggleFormOpen,
         selectedRow,
         openAddForm,
         closeAddForm,
         closeEditForm,
+        closeToggleForm,
         addFormRef,
         editFormRef
     } = useFormContext<IMasterEventVenue>();
@@ -131,6 +134,15 @@ function MasterVenuePageContent({
                                 </div>
                             </CollapsibleSection>
                         </div>
+                    )}
+
+                    {/* Toggle Form */}
+                    {isToggleFormOpen && selectedRow && (
+                        <ToggleMasterVenueForm
+                            rowData={selectedRow}
+                            onClose={closeToggleForm}
+                            onSuccess={refetchAll}
+                        />
                     )}
                 </>
             </div>
