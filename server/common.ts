@@ -562,7 +562,7 @@ export async function getUserAccessibleModules() {
                                     ]
                                 }
                             ]
-                        }
+                        },
                         // ,
                         // {
                         //     id: 3,
@@ -648,108 +648,108 @@ export async function getUserAccessibleModules() {
                         //             ]
                         //         }
                         //     ]
-                        // },
-                        // {
-                        //     id: 4,
-                        //     name: 'Alumni Module',
-                        //     icon: 'BookOpen',
-                        //     sub_menu: [
-                        //         {
-                        //             id: 1,
-                        //             name: 'Transactions',
-                        //             icon: 'Database',
-                        //             pages: [
-                        //                 {
-                        //                     id: 1,
-                        //                     name: 'Alumni NoticeBoard',
-                        //                     icon: 'Announcement',
-                        //                     url: '/alumni/alumni-module/transactions/alumni-noticeboard',
-                        //                     title: 'Alumni NoticeBoard',
-                        //                     description: 'Manage Alumni NoticeBoard Details'
-                        //                 },
-                        //                 {
-                        //                     id: 2,
-                        //                     name: 'Alumni Gallery',
-                        //                     icon: 'Image',
-                        //                     url: '/alumni/alumni-module/transactions/alumni-gallery',
-                        //                     title: 'Alumni Gallery',
-                        //                     description: 'Manage Alumni Gallery Details'
-                        //                 },
-                        //                 {
-                        //                     id: 3,
-                        //                     name: 'Alumni Interactions',
-                        //                     icon: 'MessageSquare',
-                        //                     url: '/alumni/alumni-module/transactions/alumni-interactions',
-                        //                     title: 'Alumni Interactions',
-                        //                     description: 'Manage Alumni Interaction Details'
-                        //                 },
-                        //                 {
-                        //                     id: 4,
-                        //                     name: 'Alumni Friend Request',
-                        //                     icon: 'UserPlus',
-                        //                     url: '/alumni/alumni-module/transactions/alumni-friend-request',
-                        //                     title: 'Alumni Friend Request',
-                        //                     description: 'Manage Alumni Friend Request Details'
-                        //                 },
-                        //                 {
-                        //                     id: 5,
-                        //                     name: 'Alumni Friend Request Accept',
-                        //                     icon: 'UserPlus',
-                        //                     url: '/alumni/alumni-module/transactions/alumni-friend-request-accept',
-                        //                     title: 'Alumni Friend Request Accept',
-                        //                     description: 'Manage Alumni Friend Request Accept Details'
-                        //                 },
-                        //                 {
-                        //                     id: 6,
-                        //                     name: 'Alumni Donation',
-                        //                     icon: 'HeartHandshake',
-                        //                     url: '/alumni/alumni-module/transactions/alumni-donation',
-                        //                     title: 'Alumni Donation',
-                        //                     description: 'Manage Alumni Donation Details'
-                        //                 },
-                        //                 {
-                        //                     id: 7,
-                        //                     name: 'Alumni Letters',
-                        //                     icon: 'MailOpen',
-                        //                     url: '/alumni/alumni-module/transactions/alumni-letters',
-                        //                     title: 'Alumni Letters',
-                        //                     description: 'Generate Alumni Letters'
-                        //                 },
-                        //                 {
-                        //                     id: 8,
-                        //                     name: 'CLG Alumni Approval',
-                        //                     icon: 'UserCheck',
-                        //                     url: '/alumni/alumni-module/transactions/clg-alumni-approval',
-                        //                     title: 'CLG Alumni Approval',
-                        //                     description: 'Approve College Alumni Registrations'
-                        //                 },
-                        //                 {
-                        //                     id: 9,
-                        //                     name: 'CLG Student Search',
-                        //                     icon: 'Search',
-                        //                     url: '/alumni/alumni-module/transactions/clg-alumni-student-search',
-                        //                     title: 'CLG Student Search',
-                        //                     description: 'Search College Alumni Students'
-                        //                 }
-                        //             ]
-                        //         },
-                        //         {
-                        //             id: 2,
-                        //             name: 'Reports',
-                        //             icon: 'FileText',
-                        //             pages: [
-                        //                 {
-                        //                     id: 1,
-                        //                     name: 'Alumni Search',
-                        //                     icon: 'BookOpen',
-                        //                     url: '/alumni/alumni-module/reports/alumni-search',
-                        //                     title: 'Alumni Search',
-                        //                     description: 'Dynamic Alumni Search Report'
-                        //                 }
-                        //             ]
-                        //         }
-                        //     ]
                         // }
+                        {
+                            id: 4,
+                            name: 'Alumni Module',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Transactions',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Alumni NoticeBoard',
+                                            icon: 'Announcement',
+                                            url: '/alumni/alumni-module/transactions/alumni-noticeboard',
+                                            title: 'Alumni NoticeBoard',
+                                            description: 'Manage Alumni NoticeBoard Details'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Alumni Gallery',
+                                            icon: 'Image',
+                                            url: '/alumni/alumni-module/transactions/alumni-gallery',
+                                            title: 'Alumni Gallery',
+                                            description: 'Manage Alumni Gallery Details'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Alumni Interactions',
+                                            icon: 'MessageSquare',
+                                            url: '/alumni/alumni-module/transactions/alumni-interactions',
+                                            title: 'Alumni Interactions',
+                                            description: 'Manage Alumni Interaction Details'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Alumni Friend Request',
+                                            icon: 'UserPlus',
+                                            url: '/alumni/alumni-module/transactions/alumni-friend-request',
+                                            title: 'Alumni Friend Request',
+                                            description: 'Manage Alumni Friend Request Details'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Alumni Friend Request Accept',
+                                            icon: 'UserPlus',
+                                            url: '/alumni/alumni-module/transactions/alumni-friend-request-accept',
+                                            title: 'Alumni Friend Request Accept',
+                                            description: 'Manage Alumni Friend Request Accept Details'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Alumni Donation',
+                                            icon: 'HeartHandshake',
+                                            url: '/alumni/alumni-module/transactions/alumni-donation',
+                                            title: 'Alumni Donation',
+                                            description: 'Manage Alumni Donation Details'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Alumni Letters',
+                                            icon: 'MailOpen',
+                                            url: '/alumni/alumni-module/transactions/alumni-letters',
+                                            title: 'Alumni Letters',
+                                            description: 'Generate Alumni Letters'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'CLG Alumni Approval',
+                                            icon: 'UserCheck',
+                                            url: '/alumni/alumni-module/transactions/clg-alumni-approval',
+                                            title: 'CLG Alumni Approval',
+                                            description: 'Approve College Alumni Registrations'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'CLG Student Search',
+                                            icon: 'Search',
+                                            url: '/alumni/alumni-module/transactions/clg-alumni-student-search',
+                                            title: 'CLG Student Search',
+                                            description: 'Search College Alumni Students'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Reports',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Alumni Search',
+                                            icon: 'BookOpen',
+                                            url: '/alumni/alumni-module/reports/alumni-search',
+                                            title: 'Alumni Search',
+                                            description: 'Dynamic Alumni Search Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
                     ]
                 },
                 {
@@ -3764,7 +3764,7 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                },
+                }
 
                 // {
                 //     id: 8,
