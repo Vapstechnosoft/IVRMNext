@@ -36,7 +36,7 @@ function FeeGroupMappingContent({
     const searchParams = use(_searchParams);
 
     const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
-    const [academicYearId, setAcademicYearId] = useState<number>(0);
+    const [academicYearIdNew, setacademicYearIdNew] = useState<number>(0);
 
     const { data: academicYearData, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
 
@@ -47,9 +47,9 @@ function FeeGroupMappingContent({
         error: feeHeadError,
         isFetching,
         refetch // ⬅️ IMPORTANT
-    } = useMasterAllFeeHead(academicYearId > 0 ? academicYearId : 0, searchParams);
+    } = useMasterAllFeeHead(academicYearIdNew > 0 ? academicYearIdNew : 0, searchParams);
 
-    const feeGroupData = academicYearId > 0 && Array.isArray(feeHeadResponse?.data) ? feeHeadResponse.data : [];
+    const feeGroupData = academicYearIdNew > 0 && Array.isArray(feeHeadResponse?.data) ? feeHeadResponse.data : [];
 
     const tableProps = useDataTableProps({
         ...feeHeadResponse,
@@ -66,8 +66,8 @@ function FeeGroupMappingContent({
                             Academic Year
                         </Label>
                         <Select
-                            value={String(academicYearId)}
-                            onValueChange={(val) => setAcademicYearId(Number(val) || 0)}
+                            value={String(academicYearIdNew)}
+                            onValueChange={(val) => setacademicYearIdNew(Number(val) || 0)}
                             disabled={academicYearLoading}>
                             <SelectTrigger id='academic-year' className='w-full'>
                                 <SelectValue placeholder='Select Academic Year' />
@@ -126,7 +126,7 @@ function FeeGroupMappingContent({
                         loadingMessage='Loading fee group mappings...'
                         noDataTitle='No Records Found'
                         noDataDescription={
-                            academicYearId === 0
+                            academicYearIdNew === 0
                                 ? 'Please select an Academic Year to view fee group mappings.'
                                 : 'No records found for the selected academic year.'
                         }
@@ -185,6 +185,7 @@ function FormSections({ refetchTable }: { refetchTable: () => void }) {
                                     closeAddForm();
                                     refetchTable(); // 🔥 IMPORTANT: refresh table
                                 }}
+                                //onSuccess={closeAddForm}
                             />
                         </div>
                     </CollapsibleSection>
