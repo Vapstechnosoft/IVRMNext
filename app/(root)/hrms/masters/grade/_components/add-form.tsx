@@ -8,11 +8,25 @@ import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
 import { addOrUpdateMasterGrade } from '@/server/hrms/hrmsConfig/master/grade';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { Controller, type SubmitHandler, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof hrmsMasterSchemas.grade.add>;
+
+interface PayScaleRangeDisplayProps {
+    control: any;
+}
+
+const PayScaleRangeDisplay = ({ control }: PayScaleRangeDisplayProps) => {
+    const from = useWatch({ control, name: 'hrmG_PayScaleFrom' });
+    const inc = useWatch({ control, name: 'hrmG_IncrementOf' });
+    const to = useWatch({ control, name: 'hrmG_PayScaleTo' });
+
+    // Only show values, if undefined show nothing or placeholder. 
+    // If user wants to see nothing when fields are empty:
+    return <>{`${from ?? 0} - ${inc ?? 0} - ${to ?? 0}`}</>;
+};
 
 interface AddGradeFormProps {
     onSuccess?: () => void;
@@ -27,14 +41,18 @@ export default function AddGradeForm({ onSuccess, className = '' }: AddGradeForm
         handleSubmit,
         control,
         reset,
+        trigger,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(hrmsMasterSchemas.grade.add),
         mode: 'onChange',
         defaultValues: {
-            hrmG_PayScaleFrom: 0,
-            hrmG_IncrementOf: 0,
-            hrmG_PayScaleTo: 0,
+            // @ts-ignore
+            hrmG_PayScaleFrom: undefined,
+            // @ts-ignore
+            hrmG_IncrementOf: undefined,
+            // @ts-ignore
+            hrmG_PayScaleTo: undefined,
             hrmG_Order: 0
         }
     });
@@ -49,6 +67,7 @@ export default function AddGradeForm({ onSuccess, className = '' }: AddGradeForm
                 hrmG_IncrementOf: data.hrmG_IncrementOf || 0,
                 hrmG_PayScaleTo: data.hrmG_PayScaleTo || 0,
                 hrmG_Order: data.hrmG_Order || 0,
+                HRMG_PayScaleRange: `${data.hrmG_PayScaleFrom || 0} - ${data.hrmG_IncrementOf || 0} - ${data.hrmG_PayScaleTo || 0}`,
                 hrmG_ActiveFlag: true
             };
             const response = await addOrUpdateMasterGrade(payload);
@@ -103,14 +122,20 @@ export default function AddGradeForm({ onSuccess, className = '' }: AddGradeForm
                             render={({ field }) => (
                                 <InputNumber
                                     label='Pay Scale From'
+                                    required
                                     id='hrmG_PayScaleFrom'
-                                    value={field.value}
-                                    maxDigits={10}
+                                    value={field.value ?? Number.NaN}
+                                    maxDigits={6}
                                     onChange={(value) => {
-                                        const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                        const numValue = Number.isNaN(value) ? undefined : value;
+                                        // @ts-ignore
                                         field.onChange(numValue);
+                                        trigger(['hrmG_PayScaleFrom', 'hrmG_PayScaleTo']);
                                     }}
-                                    onBlur={field.onBlur}
+                                    onBlur={() => {
+                                        field.onBlur();
+                                        trigger(['hrmG_PayScaleFrom', 'hrmG_PayScaleTo']);
+                                    }}
                                     error={errors.hrmG_PayScaleFrom?.message}
                                     className='transition-colors focus:ring-2 focus:ring-primary/20'
                                 />
@@ -123,11 +148,13 @@ export default function AddGradeForm({ onSuccess, className = '' }: AddGradeForm
                             render={({ field }) => (
                                 <InputNumber
                                     label='Increment Of'
+                                    required
                                     id='hrmG_IncrementOf'
-                                    value={field.value}
-                                    maxDigits={3}
+                                    value={field.value ?? Number.NaN}
+                                    maxDigits={6}
                                     onChange={(value) => {
-                                        const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                        const numValue = Number.isNaN(value) ? undefined : value;
+                                        // @ts-ignore
                                         field.onChange(numValue);
                                     }}
                                     onBlur={field.onBlur}
@@ -143,38 +170,36 @@ export default function AddGradeForm({ onSuccess, className = '' }: AddGradeForm
                             render={({ field }) => (
                                 <InputNumber
                                     label='Pay Scale To'
+                                    required
                                     id='hrmG_PayScaleTo'
-                                    value={field.value}
-                                    maxDigits={10}
+                                    value={field.value ?? Number.NaN}
+                                    maxDigits={6}
                                     onChange={(value) => {
-                                        const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                        const numValue = Number.isNaN(value) ? undefined : value;
+                                        // @ts-ignore
                                         field.onChange(numValue);
+                                        trigger(['hrmG_PayScaleFrom', 'hrmG_PayScaleTo']);
                                     }}
-                                    onBlur={field.onBlur}
+                                    onBlur={() => {
+                                        field.onBlur();
+                                        trigger(['hrmG_PayScaleFrom', 'hrmG_PayScaleTo']);
+                                    }}
                                     error={errors.hrmG_PayScaleTo?.message}
                                     className='transition-colors focus:ring-2 focus:ring-primary/20'
                                 />
                             )}
                         />
 
-                        <Controller
-                            name='hrmG_Order'
-                            control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='Order'
-                                    id='hrmG_Order'
-                                    value={field.value}
-                                    onChange={(value) => {
-                                        const numValue = value !== null && value !== undefined ? Number(value) : 0;
-                                        field.onChange(numValue);
-                                    }}
-                                    onBlur={field.onBlur}
-                                    error={errors.hrmG_Order?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
-                        />
+                        <div className='flex flex-col gap-2'>
+                            {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
+                            <label className='font-medium text-sm'>Pay Scale Range</label>
+                            <div className='flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50'>
+                                <PayScaleRangeDisplay control={control} />
+                            </div>
+                            {errors.hrmG_PayScaleTo && <p className='text-[0.8rem] font-medium text-destructive'>{errors.hrmG_PayScaleTo.message}</p>}
+                        </div>
+
+                        {/* Order field removed as per request */}
                     </div>
                 </div>
 

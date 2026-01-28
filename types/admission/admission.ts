@@ -13,16 +13,16 @@ export interface IadmissionClassDropdown {
 }
 
 export interface IadmissionStudentApplicationList {
-    pasr_id: number;
-    asmay_id: number;
-    pasR_RegistrationNo: string;
-    student_name: string;
-    pasR_Sex: string;
-    applied_class_name: string;
-    is_fee_applicable: number;
-    payment_status: number;
-    application_status: string;
-    admission_status: string;
-    applied_by: string;
-    pasR_ActiveFlag: number;
+    amsT_Id: number;
+    studentName: string;
+    className: string;
+    admissionDate: string;
+    gender: string;
+    registrationNo: string;
+    admissionNo: string;
+    emailId: string;
+    mobileNo: string;
+    status: string | null;
+    photoUrl: string;
+    isActive: boolean;
 }

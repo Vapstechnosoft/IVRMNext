@@ -286,6 +286,8 @@ export default function RegistrationPageprops(props: {
                             isLoading={isLoading}
                             error={error}
                             showViewOptions={false}
+                            isSearchRequired={true}
+                            showSearchColumns={true}
                             loadingMessage='Loading Registration Reports...'
                             noDataTitle='No Data Found'
                             noDataDescription='No Registration Reports found.'

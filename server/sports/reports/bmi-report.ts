@@ -68,6 +68,6 @@ export async function getSectionsForBMI(asMAY_Id: number, asmcL_Id: number) {
 export async function getBMIReport(data: IBMIReportRequest): Promise<IBMIReport[]> {
     // Simulate API call with delay
     await new Promise((resolve) => setTimeout(resolve, 500));
-    console.log('Generating BMI Report for:', data);
+    console.info('Generating BMI Report for:', data);
     return DUMMY_REPORT_DATA;
 }

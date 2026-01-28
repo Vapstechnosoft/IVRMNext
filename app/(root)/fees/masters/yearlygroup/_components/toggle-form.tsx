@@ -9,6 +9,7 @@ import { toggleMasterclassYearlyCategory } from '@/server/fees/masters/fees_year
 import type { IMaasterFeesYearlyGrouping } from '@/types/fees/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof YearlyGroupSchema.delete>;
@@ -51,13 +52,15 @@ export default function ToggleYearColumnForm({ rowData, onClose }: ToggleYearCol
         }
 
         try {
-            const response = await toggleMasterclassYearlyCategory(miId || 30, fyG_Id);
+            const response = await toggleMasterclassYearlyCategory(fyG_Id);
 
             if (response.success) {
                 try {
                     if (typeof refetchCategory === 'function') {
+                        toast.success(response.message ?? '');
                         await refetchCategory();
                     } else if (typeof refetchAll === 'function') {
+                        toast.success(response.message ?? '');
                         await refetchAll();
                     }
                 } catch (e) {

@@ -89,7 +89,9 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                 HRC_Increment: existingData.hrC_IncrementApprovalFlg,
                 HRC_Probation: existingData.hrC_ProbationApprovalFlg,
                 // Payment Method
-                HRC_PaymentMethod: Number(existingData.hrC_PayMethodFlg),
+                HRC_PaymentMethod: existingData.hrC_PayMethodFlg
+                    ? Number(existingData.hrC_PayMethodFlg.toString().replace(/\D/g, ''))
+                    : 0,
                 // Increment Process
                 HRC_OptionalHolidays: existingData.hrC_NoOfOptionalHolidays,
                 HRC_ApplicableFlag: existingData.hrC_FixedIncrmentFlg,

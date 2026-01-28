@@ -27,7 +27,7 @@ import {
 
 import { cn } from '@/lib/utils';
 import { thirdPartyTransactionSchema } from '@/schemas/fees/trasactions';
-import { saveorUpdateThirdPartyTrasaction } from '@/server/fees/trasactions/thirdPartyTrasaction';
+import { ThirdPartyTrasactionfeeReceiptNoflg, saveorUpdateThirdPartyTrasaction } from '@/server/fees/trasactions/thirdPartyTrasaction';
 import type { IFeeThirdPartyTransaction } from '@/types/fees/transactions/transactions';
 import type { z } from 'zod';
 
@@ -41,9 +41,11 @@ interface UpdateThirdPartyFormProps {
 export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: UpdateThirdPartyFormProps) {
     const { refetchAll } = useFeeThirdParty();
 
+    const receiptnoflg = ThirdPartyTrasactionfeeReceiptNoflg();
+
     const [selectedPaymentMode, setSelectedPaymentMode] = useState<string>('B');
     const [loading, setLoading] = useState(false);
-
+    const [receiptnoflgdata, setReceiptnoflgdata] = useState(false);
     const {
         control,
         register,
@@ -80,6 +82,26 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
     } = useeditThirdpartytrasaction(Number(row.mI_Id), Number(row.asmaY_Id), row?.fyP_Id ?? 0, {
         enabled: !!row?.fyP_Id
     });
+
+    useEffect(() => {
+        const fetchReceiptFlag = async () => {
+            try {
+                const res = await ThirdPartyTrasactionfeeReceiptNoflg();
+
+                // assuming API response shape: { data: IThirdPartyReceiptFlag[] }
+                if (res?.data?.length) {
+                    //setReceiptnoflgdata(res.data);
+                    setReceiptnoflgdata(true);
+                } else {
+                    setReceiptnoflgdata(false);
+                }
+            } catch (error) {
+                console.error('Error fetching receipt flag', error);
+            }
+        };
+
+        fetchReceiptFlag();
+    }, []);
 
     useEffect(() => {
         if (!row?.fyP_Id) return;
@@ -143,7 +165,7 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
 
                 fyP_DD_Cheque_No: data.chequeNo || '',
                 fyP_Date: data.date ? format(new Date(data.date), 'yyyy-MM-dd') : null,
-
+                //FYP_Receipt_No: row.fyP_Receipt_No,
                 fyP_Remarks: data.towards,
                 //user_id: 21602,
                 FYP_Bank_Or_Cash: data.paymentMode,
@@ -332,7 +354,7 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                 />
             </div>
 
-            {(watch('fyP_Receipt_No') || row.fyP_Receipt_No) && (
+            {(watch('fyP_Receipt_No') || row.fyP_Receipt_No) && receiptnoflgdata && (
                 <div className='flex items-center gap-4'>
                     <Label htmlFor='receiptNo' className='min-w-[150px] text-right'>
                         Receipt No <span className='text-red-500'>*</span>

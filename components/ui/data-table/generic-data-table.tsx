@@ -1,5 +1,4 @@
 'use client';
-
 import { DataTable } from '@/components/ui/data-table/data-table';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Database, RefreshCw } from 'lucide-react';
@@ -46,7 +45,10 @@ interface GenericDataTableProps<T> {
     ErrorComponent?: React.ComponentType<{ error: Error; message: string }>;
     NoDataComponent?: React.ComponentType;
     searchQuery?: string;
-    manualPagination?: boolean;
+
+    defaultVisibility?: { [key: string]: boolean };
+    scrollable?: boolean;
+    maxHeight?: string;
 }
 
 export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<any>>(function GenericDataTable<T>(
@@ -72,7 +74,9 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         LoadingComponent,
         ErrorComponent,
         showSearchColumns = false,
-        manualPagination = true
+        // manualPagination = true
+        scrollable = false,
+        maxHeight = '600px'
     }: GenericDataTableProps<T>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -134,7 +138,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                     columnPinning={columnPinning}
                     showSearchColumns={showSearchColumns}
                     maxSelectableRows={maxSelectableRows}
-                    manualPagination={manualPagination}
+                    //manualPagination={manualPagination}
                     onRowSelectionChange={(selectedRows) => {
                         if (onRowSelectionChange) {
                             onRowSelectionChange(selectedRows);
@@ -159,7 +163,9 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                 columnPinning={columnPinning}
                 maxSelectableRows={maxSelectableRows}
                 showSearchColumns={showSearchColumns}
-                manualPagination={manualPagination}
+                //manualPagination={manualPagination}
+                scrollable={scrollable}
+                maxHeight={maxHeight}
                 onRowSelectionChange={(selectedRows) => {
                     if (onRowSelectionChange) {
                         onRowSelectionChange(selectedRows);

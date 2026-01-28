@@ -63,7 +63,7 @@ function CategoryClassMappingPageContent({
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
-                        showSearchColumns={true}
+                        //showSearchColumns={true}
                         loadingMessage='Loading mappings...'
                         noDataTitle='No Mappings Found'
                         noDataDescription='Get started by creating your first mapping'

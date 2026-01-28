@@ -47,12 +47,12 @@ export default function MasterGroups({ onSuccess, className = '' }: MasterGroups
 
             const payload = {
                 fmG_Id: 0,
-                mI_Id: 30,
+                // mI_Id: 30,
                 fmG_GroupName: fmG_GroupName,
                 fmG_Remarks: fmG_Remarks,
                 fmG_CompulsoryFlag: fmG_CompulsoryFlag ? '1' : '0',
                 fmG_ActiceFlag: true,
-                user_id: 21602,
+                // user_id: 21602,
                 returnval: false,
                 ivrmR_Id: 0,
                 is_Active: true,

@@ -107,7 +107,7 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
     });
 
     const installmentType = watch('fmI_Installment_Type');
-
+    console.log('installmentType', installmentType);
     // === 1. DEFINE INSTALLMENT_TYPES HERE ===
     const INSTALLMENT_TYPES = [
         { value: 'general', label: 'General', count: 0 },
@@ -118,9 +118,12 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
         { value: 'bimonthly', label: 'Bi-Monthly', count: 24 },
         { value: 'anytime', label: 'Anytime', count: 1 }
     ] as const;
+    const initialLoadComplete = useRef(false);
 
     // === 2. ADD THIS useEffect: React to Installment Type change ===
     useEffect(() => {
+        if (!initialLoadComplete.current) return;
+
         if (!installmentType || installmentType === 'general') {
             return; // User manually controls count
         }
@@ -198,7 +201,19 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
             fmI_No_Of_Installments: targetCount,
             installments
         };
+
+        initialLoadComplete.current = true;
+
+        // Force a re-render to update the UI
+        setTimeout(() => {
+            setValue('fmI_Installment_Type', normalizedType, { shouldValidate: true });
+        }, 10);
     }, [row, setValue]);
+    useEffect(() => {
+        return () => {
+            initialLoadComplete.current = false;
+        };
+    }, [row]);
 
     // === 4. Handle manual count change for General ===
     useEffect(() => {

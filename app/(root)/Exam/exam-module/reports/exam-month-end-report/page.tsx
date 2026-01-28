@@ -46,6 +46,19 @@ export default function ExamMonthEndReportPage() {
         }
     });
 
+    // Check for empty data and show toast
+    useEffect(() => {
+        if (!academicYearLoading && academicYear?.data && academicYear.data.length === 0) {
+            toast.info('No Academic Years found');
+        }
+    }, [academicYear, academicYearLoading]);
+
+    useEffect(() => {
+        if (!examDataLoading && examData?.data && examData.data.length === 0) {
+            toast.info('No Exams found');
+        }
+    }, [examData, examDataLoading]);
+
     const ienameValue = watch('iename');
 
     useEffect(() => {
@@ -53,6 +66,9 @@ export default function ExamMonthEndReportPage() {
             try {
                 const data = await getInitialData();
                 setMonthList(data.monthlist);
+                if (data.monthlist && data.monthlist.length === 0) {
+                    toast.info('No Months found');
+                }
             } catch (error) {
                 console.error('Error fetching initial data', error);
                 toast.error('Failed to load initial data');
@@ -280,7 +296,7 @@ export default function ExamMonthEndReportPage() {
                                     name='ASMAY_Id'
                                     control={control}
                                     render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value ?? undefined}>
+                                        <Select key={field.value} onValueChange={field.onChange} value={field.value ?? undefined}>
                                             <SelectTrigger>
                                                 <SelectValue
                                                     placeholder={academicYearLoading ? 'Loading Academic Year...' : 'Select Academic Year'}
@@ -288,16 +304,12 @@ export default function ExamMonthEndReportPage() {
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {academicYearLoading ? (
-                                                    <SelectItem value='loading' disabled>
-                                                        Loading Academic Year...
-                                                    </SelectItem>
-                                                ) : academicYearError ? (
-                                                    <SelectItem value='error' disabled>
-                                                        Error loading Academic Year
+                                                    <SelectItem value='0' disabled>
+                                                        Academic Years are loading...
                                                     </SelectItem>
                                                 ) : academicYear?.data?.length === 0 ? (
-                                                    <SelectItem value='none' disabled>
-                                                        No academic years available
+                                                    <SelectItem value='0' disabled>
+                                                        No Academic Years found
                                                     </SelectItem>
                                                 ) : (
                                                     academicYear?.data?.map((item) => (
@@ -322,16 +334,22 @@ export default function ExamMonthEndReportPage() {
                                     name='IVRM_Month_Id'
                                     control={control}
                                     render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value}>
+                                        <Select key={field.value} onValueChange={field.onChange} value={field.value}>
                                             <SelectTrigger className={errors.IVRM_Month_Id ? 'border-destructive' : ''}>
                                                 <SelectValue placeholder='Select Month' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {monthList.map((item: any) => (
-                                                    <SelectItem key={item.ivrM_Month_Id} value={String(item.ivrM_Month_Id)}>
-                                                        {item.ivrM_Month_Name}
+                                                {monthList.length === 0 ? (
+                                                    <SelectItem value='0' disabled>
+                                                        No Months found
                                                     </SelectItem>
-                                                ))}
+                                                ) : (
+                                                    monthList.map((item: any) => (
+                                                        <SelectItem key={item.ivrM_Month_Id} value={String(item.ivrM_Month_Id)}>
+                                                            {item.ivrM_Month_Name}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     )}
@@ -348,22 +366,18 @@ export default function ExamMonthEndReportPage() {
                                     name='EME_Id'
                                     control={control}
                                     render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value}>
+                                        <Select key={field.value} onValueChange={field.onChange} value={field.value}>
                                             <SelectTrigger className={errors.EME_Id ? 'border-destructive' : ''}>
                                                 <SelectValue placeholder='Select Exam' />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {examDataLoading ? (
-                                                    <SelectItem value='loading' disabled>
-                                                        Loading Academic Year...
-                                                    </SelectItem>
-                                                ) : examDataError ? (
-                                                    <SelectItem value='error' disabled>
-                                                        Error loading Academic Year
+                                                    <SelectItem value='0' disabled>
+                                                        Exams are loading...
                                                     </SelectItem>
                                                 ) : examData?.data?.length === 0 ? (
-                                                    <SelectItem value='none' disabled>
-                                                        No academic years available
+                                                    <SelectItem value='0' disabled>
+                                                        No Exams found
                                                     </SelectItem>
                                                 ) : (
                                                     examData?.data?.map((item: { emE_Id: number; emE_ExamName: string }) => (

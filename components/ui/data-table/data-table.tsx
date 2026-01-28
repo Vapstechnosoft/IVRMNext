@@ -39,13 +39,15 @@ interface DataTableProps<TData, TValue> {
     onRowSelectionChange?: (selectedRows: TData[]) => void;
     showSearchColumns?: boolean;
     manualPagination?: boolean;
+    scrollable?: boolean;
+    maxHeight?: string;
 }
 
 export interface DataTableRef {
     resetSelection: () => void;
 }
 
-export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(function DataTable<TData, TValue>(
+function DataTableInner<TData, TValue>(
     {
         columns,
         data,
@@ -60,7 +62,9 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
         maxSelectableRows = 0,
         onRowSelectionChange,
         showSearchColumns = false,
-        manualPagination = true
+        manualPagination = true,
+        scrollable = false,
+        maxHeight = '600px'
     }: DataTableProps<TData, TValue>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -189,9 +193,19 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                 <DataTableSkeleton columnCount={5} rowCount={5} showPagination showViewOptions={false} />
             ) : (
                 <>
-                    <div className='overflow-hidden rounded-md border'>
+                    <div
+                        className='overflow-hidden rounded-md border'
+                        style={
+                            scrollable
+                                ? {
+                                    maxHeight: maxHeight,
+                                    overflowY: 'auto',
+                                    position: 'relative'
+                                }
+                                : undefined
+                        }>
                         <Table>
-                            <TableHeader>
+                            <TableHeader className={scrollable ? 'sticky top-0 bg-background z-10' : undefined}>
                                 {table.getHeaderGroups().map((headerGroup) => (
                                     <TableRow key={headerGroup.id}>
                                         {headerGroup.headers.map((header) => (
@@ -325,4 +339,5 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
             )}
         </div>
     );
-}) as <TData, TValue>(props: DataTableProps<TData, TValue> & { ref?: React.Ref<DataTableRef> }) => React.ReactElement;
+}
+export const DataTable = forwardRef(DataTableInner) as <TData, TValue>(props: DataTableProps<TData, TValue> & { ref?: React.Ref<DataTableRef> }) => React.ReactElement;

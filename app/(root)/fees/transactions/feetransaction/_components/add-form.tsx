@@ -16,8 +16,8 @@ import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { Checkbox } from '@/components/ui/checkbox';
-import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { InputText } from '@/components/ui/extension/input-text';
+import { FeesCustomMultiSelectBox } from '@/components/ui/feesmultiselect';
 import { useStudentClassDropDown, useStudentSectionDropDown } from '@/hooks/fees/useMasters';
 import { useFeeDefaulterReport } from '@/hooks/fees/useReports';
 import { useFeeMasterConfiguration, useFeeTransactionList } from '@/hooks/fees/useTrasactions';
@@ -32,6 +32,7 @@ import {
 import type {
     IFeeTDetails,
     IFeeTermDetails,
+    IStudentDisableList,
     IStudentSearchList,
     IStudentTDetails,
     IStudentTermList,
@@ -75,6 +76,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
     const [selectedStudent, setSelectedStudent] = useState<IStudentSearchList | null>(null);
     const [selectedTerm, setselectedTerm] = useState<string[]>([]);
     const [terms, setTerms] = useState<IStudentTermList[]>([]);
+    const [disableTerms, setDisableTerms] = useState<IStudentDisableList[]>([]);
     const [loadingTerm, setLoadingTerm] = useState(false);
     const [studentDetails, SetStudentDetails] = useState<IStudentTDetails[]>([]);
     const [feeDetails, SetFeeDetails] = useState<IFeeTDetails[]>([]);
@@ -128,6 +130,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
         [key: number]: string;
     }>({});
     const [filterType, setFilterType] = useState('regular');
+    const [searchByLet, setSearchByLetters] = useState('2');
     const [payType, setPayType] = useState<string>('');
     const [modeType, setModeType] = useState<string>('Single');
     const [checkPayType, setCheckPayType] = useState<string[]>([]);
@@ -155,12 +158,18 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
         { value: 'regular', label: 'Regular' },
         { value: 'Chal_no', label: 'Challan No.' },
         { value: 'regno', label: 'Reg No' },
-        { value: 'admno', label: 'Adm No' },
-        { value: 'nameadmno', label: 'Name:Adm.No.' },
-        { value: 'nameregno', label: 'Name:Reg.No.' },
-        { value: 'father', label: 'Father Name' },
-        { value: 'mother', label: 'Mother Name' },
-        { value: 'mobile', label: 'Mobile No' }
+        { value: 'AdmNo', label: 'Adm No' },
+        { value: 'NameAdmno', label: 'Name:Adm.No.' },
+        { value: 'NameRegNo', label: 'Name:Reg.No.' },
+        { value: 'Fathername', label: 'Father Name' },
+        { value: 'Mothername', label: 'Mother Name' },
+        { value: 'MobileNo', label: 'Mobile No' }
+    ];
+    const searchByLetters = [
+        { value: '2', label: '2' },
+        { value: '3', label: '3' },
+        { value: '4', label: '4' },
+        { value: '5', label: '5' }
     ];
 
     const selectedLabel = filterOptions.find((opt) => opt.value === filterType)?.label || '';
@@ -240,8 +249,10 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                     searchfilter: studentSearch,
                     asmcL_ID: selectedclassId ?? 0,
                     asmS_Id: selectedSectionId ?? 0,
-                    amsT_SOL: 'string'
+                    amsT_SOL: left === true ? 'L' : deactive === true ? 'D' : 'S'
                 };
+
+                console.log('student details payload', JSON.stringify(payload));
                 const studentsArray = await searchStudentName(payload);
                 const studentsData = JSON.parse(JSON.stringify(studentsArray.feeStudentSearch || []));
                 setStudents(studentsData || []);
@@ -273,13 +284,17 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                     autoReceiptFlag: true,
                     asmaY_Id: selectedAsmayId
                 };
+
+                console.log('term details payload', JSON.stringify(payload));
                 const termArray = await getStudentDetails(payload);
                 const termList = JSON.parse(JSON.stringify(termArray.masterGroupDetails || []));
+                const disableTerms = JSON.parse(JSON.stringify(termArray.termDetails || []));
                 const studentDetails = JSON.parse(JSON.stringify(termArray.fillstudents || []));
                 const feeDetails = JSON.parse(JSON.stringify(termArray.showstaticticsdetails || []));
                 const studentUserNameArray = JSON.parse(JSON.stringify(termArray.filusernames || []));
                 // const studentAmountDetails = JSON.parse(JSON.stringify(termArray.fillstudentviewdetails || []));
                 setTerms(termList || []);
+                setDisableTerms(disableTerms || []);
                 SetStudentDetails(studentDetails || []);
                 SetFeeDetails(feeDetails || []);
                 SetStudentUserNameDetails(studentUserNameArray || []);
@@ -293,6 +308,21 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
         };
         fetchStudentsDetails();
     }, [selectedStudent]);
+
+    useEffect(() => {
+        if (terms.length === disableTerms.length && terms.length > 0) {
+            const updatedTerms = [...terms];
+            for (let i = 0; i < terms.length; i++) {
+                const matchingTerm = disableTerms.find((dt) => dt.fmtId === terms[i].fmT_Id);
+                if (matchingTerm && matchingTerm.netAmount <= matchingTerm.paid) {
+                    updatedTerms[i].disablepaisterms = true;
+                } else {
+                    updatedTerms[i].disablepaisterms = false;
+                }
+            }
+            setTerms(updatedTerms);
+        }
+    }, [disableTerms]);
 
     useEffect(() => {
         if (!selectedTerm || selectedTerm.length === 0) {
@@ -488,11 +518,13 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
         setTerms(updated);
     };
 
-    const handleCheckboxChange = (checked: boolean, type: 'left' | 'deactive' | 'class' | 'section') => {
+    const handleCheckboxChange = (checked: boolean, type: 'left' | 'inactive' | 'class' | 'section') => {
         if (type === 'left') {
             setLeft(checked);
-        } else if (type === 'deactive') {
+            setDeative(false);
+        } else if (type === 'inactive') {
             setDeative(checked);
+            setLeft(false);
         } else if (type === 'class') {
             setClass(checked);
             if (!checked) {
@@ -506,7 +538,50 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                 setClass(false);
             }
         }
+
+        // Clear student search and reset student selection when filters change
+        setStudentSearch('');
+        setSelectedStudent(null);
+        setStudents([]);
+        setTerms([]);
+        SetStudentDetails([]);
+        SetFeeDetails([]);
+        setselectedTerm([]);
     };
+
+    // // Find this useEffect (around line 298) and update its dependencies
+    // useEffect(() => {
+    //     if (!studentSearch.trim()) {
+    //         setStudents([]);
+    //         return;
+    //     }
+
+    //     const fetchStudents = async () => {
+    //         setLoadingStudents(true);
+    //         try {
+    //             const payload = {
+    //                 asmaY_Id: selectedAsmayId,
+    //                 filterinitialdata: filterType,
+    //                 searchfilter: studentSearch,
+    //                 asmcL_ID: selectedclassId ?? 0,
+    //                 asmS_Id: selectedSectionId ?? 0,
+    //                 amsT_SOL: left === false ? 'S' : 'L',
+    //                 // Add deactive flag if needed by your API
+    //                 amsT_Status: deactive ? 'I' : 'A' // Assuming 'I' for inactive, 'A' for active
+    //             };
+    //             const studentsArray = await searchStudentName(payload);
+    //             const studentsData = JSON.parse(JSON.stringify(studentsArray.feeStudentSearch || []));
+    //             setStudents(studentsData || []);
+    //         } catch (error) {
+    //             console.error('Failed to fetch students:', error);
+    //             setStudents([]);
+    //         } finally {
+    //             setLoadingStudents(false);
+    //         }
+    //     };
+
+    //     fetchStudents();
+    // }, [studentSearch, selectedAsmayId, filterType, selectedclassId, selectedSectionId, left, deactive]); // Add left and deactive to dependencies
 
     const onSubmit = async () => {
         if (feeHeads.filter((f) => selectedHeads[f.fmA_Id]).length === 0) {
@@ -767,6 +842,23 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                 ))}
                             </div>
                         </RadioGroup>
+                        {filterType === 'regular' && (
+                            <Card className='mt-5 w-full p-3 shadow'>
+                                Search by (No. of letters) :
+                                <RadioGroup value={searchByLet} onValueChange={setSearchByLetters}>
+                                    <div className='grid grid-cols-5 gap-3'>
+                                        {searchByLetters.map((item) => (
+                                            <div key={item.value} className='flex items-center space-x-2'>
+                                                <RadioGroupItem value={item.value} id={item.value} />
+                                                <Label htmlFor={item.value} className='cursor-pointer text-sm'>
+                                                    {item.label}
+                                                </Label>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </RadioGroup>
+                            </Card>
+                        )}
                         <div className='grid grid-cols-2 gap-3 pt-4 '>
                             <div className='flex items-center space-x-2'>
                                 <Checkbox id='left' checked={left} onCheckedChange={(c) => handleCheckboxChange(c as boolean, 'left')} />
@@ -777,11 +869,11 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
 
                             <div className='flex items-center space-x-2'>
                                 <Checkbox
-                                    id='deactive'
+                                    id='inactive'
                                     checked={deactive}
-                                    onCheckedChange={(c) => handleCheckboxChange(c as boolean, 'deactive')}
+                                    onCheckedChange={(c) => handleCheckboxChange(c as boolean, 'inactive')}
                                 />
-                                <Label htmlFor='deactive' className='cursor-pointer text-sm'>
+                                <Label htmlFor='inactive' className='cursor-pointer text-sm'>
                                     Deactive
                                 </Label>
                             </div>
@@ -793,7 +885,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                     onCheckedChange={(c) => handleCheckboxChange(c as boolean, 'class')}
                                 />
                                 <Label htmlFor='class' className='cursor-pointer text-sm'>
-                                    Class
+                                    Class Wise
                                 </Label>
                             </div>
 
@@ -804,7 +896,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                     onCheckedChange={(c) => handleCheckboxChange(c as boolean, 'section')}
                                 />
                                 <Label htmlFor='section' className='cursor-pointer text-sm'>
-                                    Section
+                                    Section Wise
                                 </Label>
                             </div>
                         </div>
@@ -1070,10 +1162,11 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                             </div>
 
                             <div className='w-80'>
-                                <CustomMultiSelectBox
+                                <FeesCustomMultiSelectBox
                                     options={terms.map((ex) => ({
                                         label: ex.fmG_GroupName,
-                                        value: ex.fmT_Id.toString()
+                                        value: ex.fmT_Id.toString(),
+                                        disabled: ex.disablepaisterms
                                     }))}
                                     isLoading={loadingTerm}
                                     disabled={amountCheck || filterType === 'Chal_no'}
@@ -1135,11 +1228,13 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                         Fee Details <span>➤</span>
                                     </span>
 
-                                    <span
-                                        className='flex cursor-pointer items-center gap-1 hover:underline'
-                                        onClick={() => setOpenStudentDetails(true)}>
-                                        Student Profile <span>➤</span>
-                                    </span>
+                                    {selectedStudent != null && (
+                                        <span
+                                            className='flex cursor-pointer items-center gap-1 hover:underline'
+                                            onClick={() => setOpenStudentDetails(true)}>
+                                            Student Profile <span>➤</span>
+                                        </span>
+                                    )}
                                 </div>
 
                                 {studentDetails.length > 0 && (
@@ -1148,8 +1243,8 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                             <div>STUDENT NAME</div>
                                             <div className='text-gray-700'>
                                                 {studentDetails?.[0]?.amsT_FirstName || 'N/A'}
-                                                {studentDetails?.[0]?.amsT_MiddleName}
-                                                {studentDetails?.[0]?.amsT_LastName}
+                                                {studentDetails?.[0]?.amsT_MiddleName && ` ${studentDetails[0].amsT_MiddleName}`}
+                                                {studentDetails?.[0]?.amsT_LastName && ` ${studentDetails[0].amsT_LastName}`}
                                             </div>
 
                                             <div>CLASS / SECTION</div>
@@ -1178,12 +1273,14 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
 
                 {openFeeDetails && <FeeDetails onClose={() => setOpenFeeDetails(false)} data={feeDetails} loading={false} />}
 
-                {openStudentDetails && (
+                {openStudentDetails && selectedStudent != null && (
                     <StudentProfileModal
                         isOpen={!!openStudentDetails}
                         onClose={() => setOpenStudentDetails(false)}
                         data={openStudentDetails}
                         loading={false}
+                        amst_Id={Number(selectedStudent!.amst_Id)}
+                        asmay_Id={Number(selectedAsmayId)}
                     />
                 )}
 

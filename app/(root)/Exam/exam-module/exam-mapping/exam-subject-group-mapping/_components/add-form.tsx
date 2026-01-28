@@ -275,7 +275,7 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
                                         render={({ field, fieldState }) => (
                                             <div>
                                                 <Label>
-                                                    Min Marks <span className='text-red-500'>*</span>
+                                                    Percentage <span className='text-red-500'>*</span>
                                                 </Label>
                                                 <input
                                                     type='number'

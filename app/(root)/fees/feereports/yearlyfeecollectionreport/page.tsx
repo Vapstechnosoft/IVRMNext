@@ -195,7 +195,7 @@ export default function FeeYearlyCollectionReport() {
                 asmaY_Year: item.asmaY_Year ?? 'Unknown Year',
                 asmaY_Order: item.asmaY_Order ?? 0
             }));
-            formatted.sort((a, b) => (b.asmaY_Order || 0) - (a.asmaY_Order || 0));
+            // formatted.sort((a, b) => (b.asmaY_Order || 0) - (a.asmaY_Order || 0));
             setAcademicYears(formatted);
         }
     }, [academicData, academicError]);
@@ -332,6 +332,7 @@ export default function FeeYearlyCollectionReport() {
 
     const handleReset = () => {
         reset();
+        window.location.reload();
     };
 
     const totalRow = createTotalRow(reportData.filter((r): r is IFeeYearlyCollectionReportRow => !('__isTotal' in r)));
@@ -342,7 +343,8 @@ export default function FeeYearlyCollectionReport() {
         // Optional: Keep validation
         if (!filters.academicYearId) return toast.error('Please select an Academic Year');
         if (filters.feeGroupIds.length === 0) return toast.error('Please select at least one Fee Group');
-        // if (filters.termIds.length === 0) return toast.error('Please select at least one Term');
+
+        if (filters.termIds.length === 0) return toast.error('Please select at least one Term');
 
         setReportLoading(true);
         setShowReport(false);
@@ -629,7 +631,9 @@ export default function FeeYearlyCollectionReport() {
                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
                                     {/* Column 1: Custom Group */}
                                     <div className='space-y-3'>
-                                        <Label className='font-semibold text-lg'>Custom Group</Label>
+                                        <Label className='font-semibold text-lg'>
+                                            Custom Group <span className='text-red-500'>*</span>
+                                        </Label>
                                         <Card className='border bg-gray-50 p-4'>
                                             <div className='max-h-64 space-y-3 overflow-y-auto'>
                                                 <Label

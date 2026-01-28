@@ -8,7 +8,6 @@ import type { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -16,6 +15,7 @@ import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 
 import { toast } from 'sonner';
 
+import { FeesCustomMultiSelectBox } from '@/components/ui/feesmultiselect';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useClassDropdownDropdown } from '@/hooks/fees/useReports';
 import { dailyFeeCollectionSchema } from '@/schemas/fees/reports';
@@ -40,7 +40,7 @@ export default function DailyFeeCollectionReportForm() {
         reset,
         register,
         setValue,
-
+        watch,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(dailyFeeCollectionSchema),
@@ -284,6 +284,11 @@ export default function DailyFeeCollectionReportForm() {
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         setSubmitClicked(true);
+
+        if (!isClassRequired && (data.asmcL_Id === 0 || data.asmcL_Id === null || data.asmcL_Id === undefined)) {
+            toast.error('Please select Class');
+            return;
+        }
 
         // if (isClassRequired && !data.asmcL_Id) {
         //     toast.error('Please select Class');
@@ -694,6 +699,7 @@ export default function DailyFeeCollectionReportForm() {
     };
 
     const asmcL_Id = useWatch({ control, name: 'asmcL_Id' });
+    const fromDateValue = watch('fromDate');
 
     // ===================================================
     // MAIN UI
@@ -781,7 +787,7 @@ export default function DailyFeeCollectionReportForm() {
                                         </SelectTrigger>
 
                                         <SelectContent>
-                                            <SelectItem value='all'>All</SelectItem>
+                                            {/* <SelectItem value='all'>All</SelectItem> */}
                                             {loadingAcademic ? (
                                                 <SelectItem value='loading' disabled>
                                                     Loading...
@@ -813,7 +819,7 @@ export default function DailyFeeCollectionReportForm() {
 
                             {/* MULTI SELECT */}
                             <div className='flex-1'>
-                                <CustomMultiSelectBox
+                                <FeesCustomMultiSelectBox
                                     options={feeGroups.map((g) => ({
                                         label: g.fmG_GroupName,
                                         value: String(g.fmG_Id)
@@ -839,7 +845,7 @@ export default function DailyFeeCollectionReportForm() {
 
                             <div className='flex items-center gap-2'>
                                 <Checkbox id='acdmyr-2' checked={acdmyr} onCheckedChange={(v) => setValue('acdmyr', !!v)} />
-                                <Label htmlFor='acdmyr-2'>Acd Year Wise Report</Label>
+                                <Label htmlFor='acdmyr-2'>Add Year Wise Report</Label>
                             </div>
 
                             {showHeadPaymentBlock && (
@@ -969,11 +975,29 @@ export default function DailyFeeCollectionReportForm() {
                                         From Date <span className='text-red-500'>*</span>
                                     </Label>
 
-                                    <input
+                                    {/* <input
                                         type='date'
                                         className='flex-1 rounded-md border px-3 py-2'
                                         onKeyDown={(e) => e.preventDefault()} // 🔒 blocks typing
                                         {...register('fromDate')}
+                                    /> */}
+
+                                    <input
+                                        type='date'
+                                        className='flex-1 rounded-md border px-3 py-2'
+                                        onKeyDown={(e) => e.preventDefault()} // 🔒 blocks typing
+                                        {...register('fromDate', {
+                                            required: 'From Date is required',
+                                            onChange: (e) => {
+                                                const newFromDate = e.target.value;
+                                                const currentToDate = watch('toDate');
+
+                                                // Clear toDate if it's before new fromDate
+                                                if (currentToDate && newFromDate > currentToDate) {
+                                                    setValue('toDate', '');
+                                                }
+                                            }
+                                        })}
                                     />
                                 </div>
 
@@ -986,12 +1010,27 @@ export default function DailyFeeCollectionReportForm() {
                                     <Label className='w-32'>
                                         To Date <span className='text-red-500'>*</span>
                                     </Label>
-
+                                    {/* 
                                     <input
                                         type='date'
                                         className='flex-1 rounded-md border px-3 py-2'
                                         onKeyDown={(e) => e.preventDefault()} // 🔒 blocks typing
                                         {...register('toDate')}
+                                    /> */}
+
+                                    <input
+                                        type='date'
+                                        className='flex-1 rounded-md border px-3 py-2'
+                                        onKeyDown={(e) => e.preventDefault()} // 🔒 blocks typing
+                                        {...register('toDate', {
+                                            required: 'To Date is required',
+                                            validate: (value) => {
+                                                if (!fromDateValue) return 'Please select From Date first';
+                                                return true;
+                                            }
+                                        })}
+                                        min={fromDateValue || ''} // 👈 THIS BLOCKS DATES BEFORE FROM DATE
+                                        disabled={!fromDateValue} // 👈 OPTIONAL: Disable until fromDate is selected
                                     />
                                 </div>
 
@@ -1016,7 +1055,7 @@ export default function DailyFeeCollectionReportForm() {
                                                 }
                                             }}
                                         />
-                                        <span>Class {isClassRequired && <span className='text-red-500'>*</span>}</span>
+                                        <span>Class {!isClassRequired && <span className='text-red-500'>*</span>}</span>
                                     </Label>
 
                                     {/* Dropdown controlled by checkbox */}

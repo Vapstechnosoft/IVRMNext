@@ -238,6 +238,8 @@ export default function AddFeeCompanyGroupMappingForm({ onSuccess, companyname =
                                             <div className='py-4 text-center text-gray-500 text-sm'>Loading groups...</div>
                                         ) : mastergroups?.data?.length === 0 ? (
                                             <div className='py-4 text-center text-gray-500 text-sm'>No groups found</div>
+                                        ) : filteredHeads.filter((u) => u.fmG_Id != null).length === 0 ? (
+                                            <div className='py-4 text-center text-gray-500 text-sm'>No Seached Data</div>
                                         ) : (
                                             filteredHeads
                                                 .filter((u) => u.fmG_Id != null) // 🔒 remove bad records

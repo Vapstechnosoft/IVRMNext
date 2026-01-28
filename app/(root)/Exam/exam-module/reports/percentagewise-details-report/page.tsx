@@ -12,7 +12,7 @@ export default function PercentagewiseDetailsReportPage() {
     const [reportCriteria, setReportCriteria] = useState<string>('');
 
     const handleReportGenerated = (response: any, payload: any) => {
-        if (response && response.data) {
+        if (response?.data) {
             setReportData(response.data.datareport || []);
             setInstitutionDetails(response.data.institution || []);
 
