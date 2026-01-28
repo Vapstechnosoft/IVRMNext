@@ -4,6 +4,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { IAttendanceData } from '@/types/student-portal/masters/attendance-details';
 
+import { Fragment } from 'react';
+
 interface AttendanceTableProps {
     data: IAttendanceData[];
 }
@@ -25,46 +27,46 @@ export function AttendanceTable({ data }: AttendanceTableProps) {
                         </TableRow>
                         <TableRow>
                             {data.map((_, index) => (
-                                <>
-                                    <TableHead key={`${index}-1`} className='border bg-muted/50 text-center'>
+                                <Fragment key={index}>
+                                    <TableHead className='border bg-muted/50 text-center'>
                                         CLASS HELD
                                     </TableHead>
-                                    <TableHead key={`${index}-2`} className='border bg-muted/50 text-center'>
+                                    <TableHead className='border bg-muted/50 text-center'>
                                         TOTAL PRESENT
                                     </TableHead>
-                                    <TableHead key={`${index}-3`} className='border bg-muted/50 text-center'>
+                                    <TableHead className='border bg-muted/50 text-center'>
                                         ABSENT COUNT
                                     </TableHead>
-                                    <TableHead key={`${index}-4`} className='border bg-muted/50 text-center'>
+                                    <TableHead className='border bg-muted/50 text-center'>
                                         PERCENTAGE
                                     </TableHead>
-                                    <TableHead key={`${index}-5`} className='border bg-muted/50 text-center'>
+                                    <TableHead className='border bg-muted/50 text-center'>
                                         ACTION
                                     </TableHead>
-                                </>
+                                </Fragment>
                             ))}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         <TableRow>
                             {data.map((item, index) => (
-                                <>
-                                    <TableCell key={`${index}-1`} className='border'>
+                                <Fragment key={index}>
+                                    <TableCell className='border'>
                                         {item.class_held}
                                     </TableCell>
-                                    <TableCell key={`${index}-2`} className='border'>
+                                    <TableCell className='border'>
                                         {item.total_present}
                                     </TableCell>
-                                    <TableCell key={`${index}-3`} className='border'>
+                                    <TableCell className='border'>
                                         {item.absent_count}
                                     </TableCell>
-                                    <TableCell key={`${index}-4`} className='border'>
+                                    <TableCell className='border'>
                                         {item.score}
                                     </TableCell>
-                                    <TableCell key={`${index}-5`} className='border'>
+                                    <TableCell className='border'>
                                         {item.absent_dates || '-'}
                                     </TableCell>
-                                </>
+                                </Fragment>
                             ))}
                         </TableRow>
                     </TableBody>

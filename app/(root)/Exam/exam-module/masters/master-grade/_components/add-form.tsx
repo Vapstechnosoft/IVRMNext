@@ -327,8 +327,6 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                             />
                                         </td>
 
-
-
                                         {/* Remarks */}
                                         <td className='border'>
                                             <InputText

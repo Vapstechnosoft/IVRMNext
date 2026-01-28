@@ -276,19 +276,21 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                             <>
                                 <button
                                     type='button'
-                                    className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${field.value === 'Exam'
-                                        ? 'bg-purple-600 text-white'
-                                        : 'bg-transparent text-gray-600 hover:bg-gray-100'
-                                        }`}
+                                    className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${
+                                        field.value === 'Exam'
+                                            ? 'bg-purple-600 text-white'
+                                            : 'bg-transparent text-gray-600 hover:bg-gray-100'
+                                    }`}
                                     onClick={() => field.onChange('Exam')}>
                                     Exam Wise
                                 </button>
                                 <button
                                     type='button'
-                                    className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${field.value === 'Promotion'
-                                        ? 'bg-purple-600 text-white'
-                                        : 'bg-transparent text-gray-600 hover:bg-gray-100'
-                                        }`}
+                                    className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${
+                                        field.value === 'Promotion'
+                                            ? 'bg-purple-600 text-white'
+                                            : 'bg-transparent text-gray-600 hover:bg-gray-100'
+                                    }`}
                                     onClick={() => {
                                         field.onChange('Promotion');
                                         setValue('emE_Id', 0);
@@ -374,13 +376,7 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                                         value={String(field.value)}
                                         disabled={!watchFeeCheckbox}>
                                         <SelectTrigger>
-                                            <SelectValue
-                                                placeholder={
-                                                    loadingFeeTerm
-                                                        ? 'Loading fee terms...'
-                                                        : 'Select Fee Term'
-                                                }
-                                            />
+                                            <SelectValue placeholder={loadingFeeTerm ? 'Loading fee terms...' : 'Select Fee Term'} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value='0'>Select Fee Term</SelectItem>
@@ -451,13 +447,7 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                                         onValueChange={(value) => field.onChange(Number(value))}
                                         value={String(field.value)}>
                                         <SelectTrigger>
-                                            <SelectValue
-                                                placeholder={
-                                                    loadingClasses
-                                                        ? 'Loading classes...'
-                                                        : 'Select Class'
-                                                }
-                                            />
+                                            <SelectValue placeholder={loadingClasses ? 'Loading classes...' : 'Select Class'} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {loadingClasses ? (
@@ -496,13 +486,7 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                                         onValueChange={(value) => field.onChange(Number(value))}
                                         value={String(field.value)}>
                                         <SelectTrigger>
-                                            <SelectValue
-                                                placeholder={
-                                                    loadingSections
-                                                        ? 'Loading sections...'
-                                                        : 'Select Section'
-                                                }
-                                            />
+                                            <SelectValue placeholder={loadingSections ? 'Loading sections...' : 'Select Section'} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {loadingSections ? (
@@ -541,11 +525,7 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                                         onValueChange={(value) => field.onChange(Number(value))}
                                         value={String(field.value)}>
                                         <SelectTrigger>
-                                            <SelectValue
-                                                placeholder={
-                                                    loadingExams ? 'Loading exams...' : 'Select Exam Name'
-                                                }
-                                            />
+                                            <SelectValue placeholder={loadingExams ? 'Loading exams...' : 'Select Exam Name'} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {loadingExams ? (
