@@ -6,6 +6,7 @@ export interface IAcademicYear {
 export interface ICourse {
     amcO_Id: number;
     courseName: string;
+    acayC_Id?: number;
 }
 
 export interface IBranch {
@@ -17,9 +18,16 @@ export interface IBranch {
 export interface ISemester {
     amsE_Id: number;
     semesterName: string;
+    acaycbS_Id?: number;
+}
+
+export interface ICourseCategory {
+    amcoC_Id: number;
+    amcoC_Name: string;
 }
 
 export interface IAlumniSearchCriteriaRow {
+    id: string;
     field: string;
     operator: string;
     value: string;
@@ -27,28 +35,37 @@ export interface IAlumniSearchCriteriaRow {
 }
 
 export interface IAlumniSearchResult {
-    ALCMST_Id: number;
-    ALCMST_FirstName: string;
-    ALCMST_MiddleName?: string;
-    ALCMST_LastName: string;
-    ALCMST_AdmNo: string;
-    AMCO_CourseName: string;
-    AMB_BranchName: string;
-    AMSE_SEMName: string;
-    ALCMST_DOB: string;
-    ALCMST_Sex: string;
-    ALCMST_MotherName: string;
-    ALCMST_FatherName: string;
-    ALCMST_emailId: string;
-    ALCMST_MobileNo: string;
-    ALCMST_BloodGroup: string;
+    firstname: string;
+    middlename?: string;
+    lastname?: string;
+    admno: string;
+    coursename: string;
+    branchname: string;
+    semname: string;
+    dob: string;
+    sex: string;
+    mothername: string;
+    fathername: string;
+    emailid: string;
+    mobileno: number | string;
+    bloodgroup: string;
+    alcmst_id?: number; // Optional as it might be missing in some responses
 }
 
 export interface IClgAlumniSearchLoadDataResponse {
     fillyear: IAcademicYear[];
+    studentCategory?: ICourseCategory[];
 }
 
-export interface IClgAlumniSearchResponse {
-    searchResult: IAlumniSearchResult[];
-    count: number;
+export type IClgAlumniSearchResponse = any;
+
+export interface IClgAlumniStudentSearchPayload {
+    condition: string[];
+    field: string[];
+    operator: string[];
+    value: string[];
+    amcO_Id: number;
+    amB_Id: number;
+    amsE_Id: number;
+    asmaY_Id: number;
 }
