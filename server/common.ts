@@ -1121,6 +1121,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Fee Staff Other Transaction',
                                             description: 'Fee Staff Other Transaction'
                                         }
+                                        // {
+                                        //     id: 519,
+                                        //     name: 'Fee Transaction',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/transactions/feetransactionstthomas',
+                                        //     title: 'Fee Transaction',
+                                        //     description: 'Fee Transaction'
+                                        // }
                                     ]
                                 },
                                 {
@@ -1130,11 +1138,11 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 10011,
-                                            name: 'Yearly Fee Defaulter report',
+                                            name: 'Fee Defaulter report',
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/feereports/feedefaulterreport',
-                                            title: 'Yearly Fee Defaulter Report',
-                                            description: 'Yearly Fee Defaulter Report'
+                                            title: 'Fee Defaulter Report',
+                                            description: 'Fee Defaulter Report'
                                         },
                                         {
                                             id: 10012,
@@ -1887,50 +1895,51 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 },
-                                {
-                                    id: 2,
-                                    name: 'Employee',
-                                    icon: 'User',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Employee Register',
-                                            icon: 'UserPlus',
-                                            url: '/hrms/employee',
-                                            title: 'Employee Register',
-                                            description: 'Manage Employee Registration'
-                                        }
-                                    ]
-                                },
+                                // ,
+                                // {
+                                //     id: 2,
+                                //     name: 'Employee',
+                                //     icon: 'User',
+                                //     pages: [
+                                //         {
+                                //             id: 1,
+                                //             name: 'Employee Register',
+                                //             icon: 'UserPlus',
+                                //             url: '/hrms/employee',
+                                //             title: 'Employee Register',
+                                //             description: 'Manage Employee Registration'
+                                //         }
+                                //     ]
+                                // }
                                 {
                                     id: 3,
                                     name: 'Transactions',
                                     icon: 'FileText',
                                     pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Salary Approval',
-                                            icon: 'CheckSquare',
-                                            url: '/hrms/transactions/salary-approval',
-                                            title: 'Salary Approval',
-                                            description: 'Approve Calculated Salaries'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Salary Calculation',
-                                            icon: 'Calculator',
-                                            url: '/hrms/transactions/salary-calculation',
-                                            title: 'Salary Calculation',
-                                            description: 'Calculate Employee Salary'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Salary Increment Process',
-                                            icon: 'TrendingUp',
-                                            url: '/hrms/transactions/salary-increment',
-                                            title: 'Salary Increment Process',
-                                            description: 'Manage Salary Increments'
-                                        },
+                                        // {
+                                        //     id: 1,
+                                        //     name: 'Salary Approval',
+                                        //     icon: 'CheckSquare',
+                                        //     url: '/hrms/transactions/salary-approval',
+                                        //     title: 'Salary Approval',
+                                        //     description: 'Approve Calculated Salaries'
+                                        // },
+                                        // {
+                                        //     id: 2,
+                                        //     name: 'Salary Calculation',
+                                        //     icon: 'Calculator',
+                                        //     url: '/hrms/transactions/salary-calculation',
+                                        //     title: 'Salary Calculation',
+                                        //     description: 'Calculate Employee Salary'
+                                        // },
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'Salary Increment Process',
+                                        //     icon: 'TrendingUp',
+                                        //     url: '/hrms/transactions/salary-increment',
+                                        //     title: 'Salary Increment Process',
+                                        //     description: 'Manage Salary Increments'
+                                        // },
                                         {
                                             id: 4,
                                             name: 'Salary Updation',
@@ -1947,14 +1956,23 @@ export async function getUserAccessibleModules() {
                                             title: 'Mass Updation',
                                             description: 'Bulk Update Employee Data'
                                         },
-                                        {
-                                            id: 6,
-                                            name: 'Salary Advance',
-                                            icon: 'DollarSign',
-                                            url: '/hrms/transactions/salary-advance',
-                                            title: 'Salary Advance',
-                                            description: 'Manage Salary Advances'
-                                        },
+                                        // ,
+                                        // {
+                                        //     id: 5,
+                                        //     name: 'Mass Updation',
+                                        //     icon: 'RefreshCw',
+                                        //     url: '/hrms/transactions/mass-updation',
+                                        //     title: 'Mass Updation',
+                                        //     description: 'Bulk Update Employee Data'
+                                        // },
+                                        // {
+                                        //     id: 6,
+                                        //     name: 'Salary Advance',
+                                        //     icon: 'DollarSign',
+                                        //     url: '/hrms/transactions/salary-advance',
+                                        //     title: 'Salary Advance',
+                                        //     description: 'Manage Salary Advances'
+                                        // },
                                         {
                                             id: 7,
                                             name: 'Employee Loan',
@@ -1978,22 +1996,23 @@ export async function getUserAccessibleModules() {
                                             title: 'Cumulative Salary Report',
                                             description: 'Cumulative Salary Analysis'
                                         },
-                                        {
-                                            id: 2,
-                                            name: 'Employee Details',
-                                            icon: 'UserCheck',
-                                            url: '/hrms/reports/employee-details',
-                                            title: 'Employee Details',
-                                            description: 'Detailed Employee Information'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Employee Profile',
-                                            icon: 'User',
-                                            url: '/hrms/reports/employee-profile',
-                                            title: 'Employee Profile',
-                                            description: 'Employee Profile Report'
-                                        },
+                                        //,
+                                        // {
+                                        //     id: 2,
+                                        //     name: 'Employee Details',
+                                        //     icon: 'UserCheck',
+                                        //     url: '/hrms/reports/employee-details',
+                                        //     title: 'Employee Details',
+                                        //     description: 'Detailed Employee Information'
+                                        // },
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'Employee Profile',
+                                        //     icon: 'User',
+                                        //     url: '/hrms/reports/employee-profile',
+                                        //     title: 'Employee Profile',
+                                        //     description: 'Employee Profile Report'
+                                        // },
                                         {
                                             id: 4,
                                             name: 'Salary Slip',
@@ -2004,20 +2023,20 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 5,
-                                            name: 'Employee Contribution',
+                                            name: 'E-PF Contribution Register',
                                             icon: 'Coins',
-                                            url: '/hrms/reports/employee-contribution',
-                                            title: 'Employee Contribution',
-                                            description: 'Employee Contribution Report'
+                                            url: '/hrms/reports/e-pf-contribution-register',
+                                            title: 'E-PF Contribution Register',
+                                            description: 'E-PF Contribution Register Report'
                                         },
-                                        {
-                                            id: 6,
-                                            name: 'Employee Salary Details',
-                                            icon: 'DollarSign',
-                                            url: '/hrms/reports/employee-salary-details',
-                                            title: 'Employee Salary Details',
-                                            description: 'Detailed Salary Information'
-                                        },
+                                        // {
+                                        //     id: 6,
+                                        //     name: 'Employee Salary Details',
+                                        //     icon: 'DollarSign',
+                                        //     url: '/hrms/reports/employee-salary-details',
+                                        //     title: 'Employee Salary Details',
+                                        //     description: 'Detailed Salary Information'
+                                        // },
                                         {
                                             id: 7,
                                             name: 'Employee Strength',
@@ -2034,38 +2053,38 @@ export async function getUserAccessibleModules() {
                                             title: 'ESI Report',
                                             description: 'ESI Contribution Report'
                                         },
-                                        {
-                                            id: 9,
-                                            name: 'Head Wise Report',
-                                            icon: 'List',
-                                            url: '/hrms/reports/head-wise-report',
-                                            title: 'Head Wise Report',
-                                            description: 'Head-wise Analysis Report'
-                                        },
-                                        {
-                                            id: 10,
-                                            name: 'Bank Cash Report',
-                                            icon: 'Banknote',
-                                            url: '/hrms/reports/bank-cash-report',
-                                            title: 'Bank Cash Report',
-                                            description: 'Bank & Cash Summary'
-                                        },
-                                        {
-                                            id: 11,
-                                            name: 'Employee Service Report',
-                                            icon: 'Briefcase',
-                                            url: '/hrms/reports/employee-service-report',
-                                            title: 'Employee Service Report',
-                                            description: 'Employee Service Summary'
-                                        },
-                                        {
-                                            id: 1289,
-                                            name: 'Salary Certificate',
-                                            icon: 'Award',
-                                            url: '/hrms/reports/salary-certificate',
-                                            title: 'Salary Certificate',
-                                            description: 'Generate Salary Certificates'
-                                        },
+                                        // {
+                                        //     id: 9,
+                                        //     name: 'Head Wise Report',
+                                        //     icon: 'List',
+                                        //     url: '/hrms/reports/head-wise-report',
+                                        //     title: 'Head Wise Report',
+                                        //     description: 'Head-wise Analysis Report'
+                                        // },
+                                        // {
+                                        //     id: 10,
+                                        //     name: 'Bank Cash Report',
+                                        //     icon: 'Banknote',
+                                        //     url: '/hrms/reports/bank-cash-report',
+                                        //     title: 'Bank Cash Report',
+                                        //     description: 'Bank & Cash Summary'
+                                        // },
+                                        // {
+                                        //     id: 11,
+                                        //     name: 'Employee Service Report',
+                                        //     icon: 'Briefcase',
+                                        //     url: '/hrms/reports/employee-service-report',
+                                        //     title: 'Employee Service Report',
+                                        //     description: 'Employee Service Summary'
+                                        // },
+                                        // {
+                                        //     id: 1289,
+                                        //     name: 'Salary Certificate',
+                                        //     icon: 'Award',
+                                        //     url: '/hrms/reports/salary-certificate',
+                                        //     title: 'Salary Certificate',
+                                        //     description: 'Generate Salary Certificates'
+                                        // },
                                         {
                                             id: 13,
                                             name: 'PF Challan',
@@ -2098,30 +2117,30 @@ export async function getUserAccessibleModules() {
                                             title: 'PF Form6A',
                                             description: 'Provident Fund Form 6A'
                                         },
-                                        {
-                                            id: 17,
-                                            name: 'PF Form3A',
-                                            icon: 'FileType',
-                                            url: '/hrms/reports/pf-form3a',
-                                            title: 'PF Form3A',
-                                            description: 'Provident Fund Form 3A'
-                                        },
-                                        {
-                                            id: 18,
-                                            name: 'HRMS Monthend Report',
-                                            icon: 'CalendarCheck',
-                                            url: '/hrms/reports/hrms-monthend-report',
-                                            title: 'HRMS Monthend Report',
-                                            description: 'Monthly Closure Report'
-                                        },
-                                        {
-                                            id: 19,
-                                            name: 'Retirement Report',
-                                            icon: 'Clock',
-                                            url: '/hrms/reports/retirement-report',
-                                            title: 'Retirement Report',
-                                            description: 'Employee Retirement Report'
-                                        },
+                                        // {
+                                        //     id: 17,
+                                        //     name: 'PF Form3A',
+                                        //     icon: 'FileType',
+                                        //     url: '/hrms/reports/pf-form3a',
+                                        //     title: 'PF Form3A',
+                                        //     description: 'Provident Fund Form 3A'
+                                        // },
+                                        // {
+                                        //     id: 18,
+                                        //     name: 'HRMS Monthend Report',
+                                        //     icon: 'CalendarCheck',
+                                        //     url: '/hrms/reports/hrms-monthend-report',
+                                        //     title: 'HRMS Monthend Report',
+                                        //     description: 'Monthly Closure Report'
+                                        // },
+                                        // {
+                                        //     id: 19,
+                                        //     name: 'Retirement Report',
+                                        //     icon: 'Clock',
+                                        //     url: '/hrms/reports/retirement-report',
+                                        //     title: 'Retirement Report',
+                                        //     description: 'Employee Retirement Report'
+                                        // }
                                         {
                                             id: 20,
                                             name: 'Department Salary Report',
@@ -2129,15 +2148,17 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/department-salary-report',
                                             title: 'Department Salary Report',
                                             description: 'Department-wise Salary'
-                                        },
-                                        {
-                                            id: 21,
-                                            name: 'Advance Report',
-                                            icon: 'FileSearch',
-                                            url: '/hrms/reports/advance-report',
-                                            title: 'Advance Report',
-                                            description: 'View Advance Reports'
-                                        },
+                                        }
+                                        //,
+                                        // {
+                                        //     id: 21,
+                                        //     name: 'Advance Report',
+                                        //     icon: 'FileSearch',
+                                        //     url: '/hrms/reports/advance-report',
+                                        //     title: 'Advance Report',
+                                        //     description: 'View Advance Reports'
+                                        // }
+                                        ,
                                         {
                                             id: 22,
                                             name: 'Employee offer letter',
@@ -2145,15 +2166,16 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/employee-offer-letter',
                                             title: 'Employee offer letter',
                                             description: 'Generate Offer Letters'
-                                        },
-                                        {
-                                            id: 23,
-                                            name: 'Loan Report',
-                                            icon: 'CreditCard',
-                                            url: '/hrms/reports/loan-report',
-                                            title: 'Loan Report',
-                                            description: 'Employee Loan Report'
                                         }
+                                        //,
+                                        // {
+                                        //     id: 23,
+                                        //     name: 'Loan Report',
+                                        //     icon: 'CreditCard',
+                                        //     url: '/hrms/reports/loan-report',
+                                        //     title: 'Loan Report',
+                                        //     description: 'Employee Loan Report'
+                                        // }
                                     ]
                                 }
                             ]

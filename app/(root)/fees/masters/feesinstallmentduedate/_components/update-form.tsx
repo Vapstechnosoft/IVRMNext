@@ -189,6 +189,45 @@ export default function UpdtaeMasterInstallmentDueDateForm({ onSuccess, selected
         reset();
     };
 
+    // const handleReset = () => {
+    //     reset();
+
+    //     // Reset to the original selected row data
+    //     setAcademicYear(selectedRow?.asmaY_Id || null);
+    //     setInstallment(selectedRow?.ftI_Id || null);
+
+    //     // Re-fetch the original data
+    //     if (selectedRow?.asmaY_Id && selectedRow?.ftI_Id) {
+    //         fetchInstallmentDueData(selectedRow.asmaY_Id, selectedRow.ftI_Id);
+    //     } else {
+    //         // Clear the table data
+    //         setMasterInstallmentDueData([]);
+    //     }
+    // };
+
+    // // Separate the data fetching logic into a reusable function
+    // const fetchInstallmentDueData = async (academicYearId: number, installmentId: number) => {
+    //     try {
+    //         setMasterInstallmentDueDataLoading(true);
+    //         setMasterInstallmentDueDataError(null);
+    //         const res = await getInstallmentDueDateList(academicYearId, installmentId);
+    //         setMasterInstallmentDueData(res.data);
+    //         setTableProps(useDataTableProps(res || []));
+    //     } catch (error) {
+    //         console.error('Error fetching installment due date data', error);
+    //         setMasterInstallmentDueDataError(error);
+    //     } finally {
+    //         setMasterInstallmentDueDataLoading(false);
+    //     }
+    // };
+
+    // // Update your existing useEffect to use this function
+    // useEffect(() => {
+    //     if (asmayId && fmiId) {
+    //         fetchInstallmentDueData(Number(asmayId), Number(fmiId));
+    //     }
+    // }, [asmayId, fmiId]);
+
     return (
         <div className='p-4'>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>

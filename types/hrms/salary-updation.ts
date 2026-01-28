@@ -121,6 +121,9 @@ export interface EmployeeDropdown {
     HRME_AllowSoftwareAccessFlg?: boolean | null;
     CreatedDate?: string;
     UpdatedDate?: string;
+    // Mapped properties from Search API
+    earningResult?: EarningResultItem[];
+    deductionResult?: DeductionResultItem[];
 }
 
 // Department Dropdown
@@ -369,4 +372,36 @@ export interface SalaryUpdationDesignationRequest {
 export interface SalaryUpdationDesignationResponse {
     designationdropdown?: DesignationDropdown[] | null;
     [key: string]: any; // Allow additional fields
+}
+
+// Update Request Item (Inner Object)
+export interface SalaryUpdationUpdateItem {
+    hreeD_Id: number;
+    mI_Id: number;
+    hrmE_Id: number;
+    hrmeD_Id: number;
+    hreeD_Amount: number;
+    hreeD_Percentage: string;
+    hreeD_ActiveFlag: boolean;
+    hreeD_MaxApplicableFlg: boolean;
+    hreeD_ApplicableMaxValue: number;
+    updatedDate: string;
+    hreeD_UpdatedBy: number;
+    [key: string]: any;
+}
+
+// Update Request Payload
+export interface SalaryUpdationUpdateRequest {
+    earnings: SalaryUpdationUpdateItem[];
+    deductions: SalaryUpdationUpdateItem[];
+}
+
+// Update Response
+export interface SalaryUpdationUpdateResponse {
+    success: boolean;
+    message?: string;
+    data?: any;
+    total?: number | null;
+    page?: number | null;
+    page_size?: number | null;
 }

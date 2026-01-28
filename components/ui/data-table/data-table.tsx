@@ -39,6 +39,8 @@ interface DataTableProps<TData, TValue> {
     onRowSelectionChange?: (selectedRows: TData[]) => void;
     showSearchColumns?: boolean;
     manualPagination?: boolean;
+    scrollable?: boolean;
+    maxHeight?: string;
 }
 
 export interface DataTableRef {
@@ -60,7 +62,9 @@ function DataTableInner<TData, TValue>(
         maxSelectableRows = 0,
         onRowSelectionChange,
         showSearchColumns = false,
-        manualPagination = true
+        manualPagination = true,
+        scrollable = false,
+        maxHeight = '600px'
     }: DataTableProps<TData, TValue>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -189,9 +193,19 @@ function DataTableInner<TData, TValue>(
                 <DataTableSkeleton columnCount={5} rowCount={5} showPagination showViewOptions={false} />
             ) : (
                 <>
-                    <div className='overflow-hidden rounded-md border'>
+                    <div
+                        className='overflow-hidden rounded-md border'
+                        style={
+                            scrollable
+                                ? {
+                                    maxHeight: maxHeight,
+                                    overflowY: 'auto',
+                                    position: 'relative'
+                                }
+                                : undefined
+                        }>
                         <Table>
-                            <TableHeader>
+                            <TableHeader className={scrollable ? 'sticky top-0 bg-background z-10' : undefined}>
                                 {table.getHeaderGroups().map((headerGroup) => (
                                     <TableRow key={headerGroup.id}>
                                         {headerGroup.headers.map((header) => (

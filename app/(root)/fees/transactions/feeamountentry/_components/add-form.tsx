@@ -190,6 +190,62 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
             setCurrentInstallmentId(null);
         }
     };
+
+    const getTodayDateString = () => {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    const prepareFineSlabsForAPI = () => {
+        const savefineslabreg: any[] = [];
+        const savefineslabecs: any[] = [];
+
+        // Collect all saved fine slabs
+        Object.values(savedFineSlabs).forEach(({ regular, ecs }) => {
+            // Add regular slabs
+            regular.forEach((slab) => {
+                savefineslabreg.push({
+                    fmfS_Id: slab.fmfS_Id,
+                    ftfS_Amount: slab.ftfS_Amount || '0',
+                    FTFS_FineType: slab.FTFS_FineType || '',
+                    fmH_Id: slab.fmH_Id,
+                    ftI_Id: slab.ftI_Id,
+                    // fmG_Id: slab.fmG_Id,
+                    // fmcC_Id: slab.fmcC_Id,
+                    // asmaY_Id: slab.asmaY_Id,
+                    // Add any other required fields
+                    fmfS_FineType: slab.fmfS_FineType,
+                    fmfS_FromDay: slab.fmfS_FromDay,
+                    fmfS_ToDay: slab.fmfS_ToDay,
+                    fmfS_ECSFlag: slab.fmfS_ECSFlag
+                });
+            });
+
+            // Add ECS slabs
+            ecs.forEach((slab) => {
+                savefineslabecs.push({
+                    fmfS_Id: slab.fmfS_Id,
+                    ftfsE_Amount: slab.ftfsE_Amount || '0',
+                    FTFSE_FineType: slab.FTFSE_FineType || '',
+                    fmH_Id: slab.fmH_Id,
+                    ftI_Id: slab.ftI_Id,
+                    // fmG_Id: slab.fmG_Id,
+                    // fmcC_Id: slab.fmcC_Id,
+                    // asmaY_Id: slab.asmaY_Id,
+                    // Add any other required fields
+                    fmfS_FineType: slab.fmfS_FineType,
+                    fmfS_FromDay: slab.fmfS_FromDay,
+                    fmfS_ToDay: slab.fmfS_ToDay,
+                    fmfS_ECSFlag: slab.fmfS_ECSFlag
+                });
+            });
+        });
+
+        return { savefineslabreg, savefineslabecs };
+    };
     // 🔹 Submit Handler
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         const invalidRows = feeGridData.filter((item) => !item.fmA_Amount || Number(item.fmA_Amount) <= 0);
@@ -200,6 +256,7 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
         }
 
         try {
+            const { savefineslabreg, savefineslabecs } = prepareFineSlabsForAPI();
             const payload = {
                 // mI_Id: 30,
                 asmaY_Id: data.asmaY_Id,
@@ -223,7 +280,9 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
                     fmA_PartialRebateApplicableDate: item.fmA_PartialRebateApplicableDate,
                     fmA_DueDate: item.fmA_DueDate,
                     ftddE_DueDate: item.ftddE_DueDate
-                }))
+                })),
+                savefineslabreg: savefineslabreg.length > 0 ? savefineslabreg : [],
+                savefineslabecs: savefineslabecs.length > 0 ? savefineslabecs : []
             };
 
             const js = JSON.stringify(payload);
@@ -448,7 +507,7 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
                                             />
                                         </td>
 
-                                        <td>
+                                        {/* <td>
                                             <input
                                                 type='date'
                                                 value={row.fmA_DueDate?.split('T')[0] || ''}
@@ -461,6 +520,34 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
                                                 type='date'
                                                 value={row.fmA_PartialRebateApplicableDate?.split('T')[0] || ''}
                                                 onChange={(e) => handleGridChange(index, 'fmA_PartialRebateApplicableDate', e.target.value)}
+                                                className='rounded border px-2 py-1'
+                                            />
+                                        </td> */}
+
+                                        <td>
+                                            <input
+                                                type='date'
+                                                value={
+                                                    row.fmA_DueDate && row.fmA_DueDate.split('T')[0] !== getTodayDateString()
+                                                        ? row.fmA_DueDate.split('T')[0]
+                                                        : ''
+                                                }
+                                                onChange={(e) => handleGridChange(index, 'fmA_DueDate', e.target.value || null)}
+                                                className='rounded border px-2 py-1'
+                                            />
+                                        </td>
+                                        <td>
+                                            <input
+                                                type='date'
+                                                value={
+                                                    row.fmA_PartialRebateApplicableDate &&
+                                                    row.fmA_PartialRebateApplicableDate.split('T')[0] !== getTodayDateString()
+                                                        ? row.fmA_PartialRebateApplicableDate.split('T')[0]
+                                                        : ''
+                                                }
+                                                onChange={(e) =>
+                                                    handleGridChange(index, 'fmA_PartialRebateApplicableDate', e.target.value || null)
+                                                }
                                                 className='rounded border px-2 py-1'
                                             />
                                         </td>
@@ -529,11 +616,11 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
                                                             });
                                                         }
                                                     }}
-                                                    disabled={
-                                                        row.fyghM_FineApplicableFlag === null ||
-                                                        row.fyghM_FineApplicableFlag === undefined ||
-                                                        row.fyghM_FineApplicableFlag === 'N'
-                                                    }
+                                                    // disabled={
+                                                    //     row.fyghM_FineApplicableFlag === null ||
+                                                    //     row.fyghM_FineApplicableFlag === undefined ||
+                                                    //     row.fyghM_FineApplicableFlag === 'N'
+                                                    // }
                                                 />
                                             </div>
                                         </td>
@@ -581,6 +668,8 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
                         academicYearId={selectedAcademicYear!}
                         selectionType='stud'
                         onSave={handleSaveFineSlabs}
+                        existingRegularSlabs={savedFineSlabs[`${currentHeadId}-${currentInstallmentId}`]?.regular || []}
+                        existingEcsSlabs={savedFineSlabs[`${currentHeadId}-${currentInstallmentId}`]?.ecs || []}
                     />
                 )}
 

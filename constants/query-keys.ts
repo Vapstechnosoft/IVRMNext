@@ -353,6 +353,7 @@ export const HRMS_QUERY_KEYS = {
     MASTER_SPECIALIZATION: 'hrms_master_specialization',
     MASTER_PROFESSIONAL_TAX: 'hrms_master_professional_tax',
     MASTER_EARNINGS_DEDUCTIONS: 'hrms_master_earnings_deductions',
+    MASTER_EARNINGS_DEDUCTIONS_SET_ORDER: 'hrms_master_earnings_deductions_set_order',
     MASTER_PAYROLL_STANDARD: 'hrms_master_payroll_standard',
     GROUP_DEPT_DESSG_MAPPING: 'hrms_group_dept_dessg_mapping',
     RELIGION_CATEGORY_MAPPING: 'hrms_religion_category_mapping',
@@ -465,7 +466,19 @@ export const HRMS_QUERY_KEYS = {
     LEAVE_BALANCE: 'leave_leave_balance',
     LEAVE_HISTORY: 'leave_leave_history',
     APPLY_LEAVE: 'leave_apply_leave',
-    LEAVE_APPROVAL: 'leave_leave_approval'
+    LEAVE_APPROVAL: 'leave_leave_approval',
+
+    // Master drop down
+    MASTER_GROUP_TYPES: 'hrms_master_group_type',
+    MASTER_DEAPARTMENTS: 'hrms_master_departments',
+    MASTER_DESIGNATIONS: 'hrms_master_designation',
+    MASTER_MONTHS: 'hrms_master_months',
+    MASTER_YEARS: 'hrms_master_years',
+
+    MASTER_EMPLOYEE_TYPES: 'hrms_master_employee_types',
+
+    MASTER_BANK_LIST: 'hrms_master_bank_list',
+    MASTER_PAYMENT_MODE_LIST: 'hrms_master_payment_mode_list'
 };
 
 export const LIBRARY_QUERY_KEYS = {

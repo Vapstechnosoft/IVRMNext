@@ -494,9 +494,19 @@ function StudentTransactionContent() {
 
     // Handle reset
     const handleReset = () => {
-        methods.reset();
+        methods.reset({
+            academicYearId: 0,
+            classId: 0,
+            sectionId: 0,
+            examTermId: 0,
+            emE_Id: 0,
+            skillActivityType: undefined,
+            nameId: 0,
+            areaId: 0,
+            exam_termwise_flag: 'TermWise'
+        });
+
         // Reset all states
-        setAcademicYears([]);
         setClasses([]);
         setSections([]);
         setExamTerms([]);
@@ -513,7 +523,7 @@ function StudentTransactionContent() {
         setIsSelectAll(false);
         setSubmitted(false);
 
-        // Reload academic years
+        // Reload academic years (in case they were affected, though unlikely in this component)
         if (academicYearsData?.data) {
             const years = academicYearsData.data.map((y: any) => ({
                 asmaY_Id: y.asmaY_Id,
@@ -668,11 +678,10 @@ function StudentTransactionContent() {
                                         <>
                                             <button
                                                 type='button'
-                                                className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${
-                                                    field.value === 'TermWise'
-                                                        ? 'bg-purple-600 text-white'
-                                                        : 'bg-transparent text-gray-600 hover:bg-gray-100'
-                                                }`}
+                                                className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${field.value === 'TermWise'
+                                                    ? 'bg-purple-600 text-white'
+                                                    : 'bg-transparent text-gray-600 hover:bg-gray-100'
+                                                    }`}
                                                 onClick={() => {
                                                     field.onChange('TermWise');
                                                     setValue('emE_Id', 0);
@@ -683,11 +692,10 @@ function StudentTransactionContent() {
                                             </button>
                                             <button
                                                 type='button'
-                                                className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${
-                                                    field.value === 'ExamWise'
-                                                        ? 'bg-purple-600 text-white'
-                                                        : 'bg-transparent text-gray-600 hover:bg-gray-100'
-                                                }`}
+                                                className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${field.value === 'ExamWise'
+                                                    ? 'bg-purple-600 text-white'
+                                                    : 'bg-transparent text-gray-600 hover:bg-gray-100'
+                                                    }`}
                                                 onClick={() => {
                                                     field.onChange('ExamWise');
                                                     setValue('examTermId', 0);
@@ -714,24 +722,37 @@ function StudentTransactionContent() {
                                     render={({ field, fieldState }) => (
                                         <>
                                             <Select
+                                                key={field.value}
                                                 value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                                 onValueChange={(v) => {
                                                     field.onChange(v ? Number(v) : 0);
                                                     trigger('academicYearId');
-                                                    setShowTable(false);
+                                                    clearDependentFields();
+                                                    setClasses([]);
+                                                    setValue('classId', 0);
                                                 }}
-                                                disabled={loadingAcademicYears}>
+                                            >
                                                 <SelectTrigger id='academic-year'>
                                                     <SelectValue
-                                                        placeholder={loadingAcademicYears ? 'Loading...' : 'Select Academic Year'}
+                                                        placeholder={loadingAcademicYears ? 'loading.....' : 'Select Academic Year'}
                                                     />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {academicYears.map((year) => (
-                                                        <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
-                                                            {year.asmaY_Year}
+                                                    {loadingAcademicYears ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            loading.....
                                                         </SelectItem>
-                                                    ))}
+                                                    ) : academicYears.length === 0 ? (
+                                                        <SelectItem value='placeholder' disabled>
+                                                            No academic years available
+                                                        </SelectItem>
+                                                    ) : (
+                                                        academicYears.map((year) => (
+                                                            <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
+                                                                {year.asmaY_Year}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                             {submitted && fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -751,19 +772,32 @@ function StudentTransactionContent() {
                                     render={({ field, fieldState }) => (
                                         <>
                                             <Select
+                                                key={field.value}
                                                 value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                                 onValueChange={(v) => {
                                                     const numValue = Number(v);
                                                     field.onChange(numValue !== 0 ? numValue : 0);
                                                     trigger('classId');
+                                                    setValue('sectionId', 0);
+                                                    setValue('examTermId', 0);
+                                                    setValue('emE_Id', 0);
+                                                    setValue('skillActivityType', undefined);
+                                                    setValue('nameId', 0);
+                                                    setValue('areaId', 0);
+                                                    setSections([]);
+                                                    setStudents([]);
                                                     setShowTable(false);
                                                 }}
-                                                disabled={!watchAcademicYear || loadingClasses}>
+                                            >
                                                 <SelectTrigger id='class'>
-                                                    <SelectValue placeholder={loadingClasses ? 'Loading...' : 'Select Class'} />
+                                                    <SelectValue placeholder={loadingClasses ? 'loading.....' : 'Select Class'} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {classes.length === 0 ? (
+                                                    {loadingClasses ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            loading.....
+                                                        </SelectItem>
+                                                    ) : classes.length === 0 ? (
                                                         <SelectItem value='placeholder' disabled>
                                                             No classes available
                                                         </SelectItem>
@@ -793,26 +827,35 @@ function StudentTransactionContent() {
                                     render={({ field, fieldState }) => (
                                         <>
                                             <Select
+                                                key={field.value}
                                                 value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                                 onValueChange={(v) => {
                                                     field.onChange(v ? Number(v) : 0);
                                                     trigger('sectionId');
+                                                    setValue('examTermId', 0);
+                                                    setValue('emE_Id', 0);
+                                                    setValue('skillActivityType', undefined);
+                                                    setValue('nameId', 0);
+                                                    setValue('areaId', 0);
+                                                    setStudents([]);
                                                     setShowTable(false);
                                                 }}
-                                                disabled={!watchClass || loadingSections}>
+                                            >
                                                 <SelectTrigger id='section'>
                                                     <SelectValue
                                                         placeholder={
-                                                            !watchClass
-                                                                ? 'Select Class first'
-                                                                : loadingSections
-                                                                  ? 'Loading...'
-                                                                  : 'Select Section'
+                                                            loadingSections
+                                                                ? 'loading.....'
+                                                                : 'Select Section'
                                                         }
                                                     />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {sections.length === 0 ? (
+                                                    {loadingSections ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            loading.....
+                                                        </SelectItem>
+                                                    ) : sections.length === 0 ? (
                                                         <SelectItem value='placeholder' disabled>
                                                             No sections available
                                                         </SelectItem>
@@ -843,26 +886,33 @@ function StudentTransactionContent() {
                                         render={({ field, fieldState }) => (
                                             <>
                                                 <Select
+                                                    key={field.value}
                                                     value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                                     onValueChange={(v) => {
                                                         const numValue = Number(v);
                                                         field.onChange(numValue !== 0 ? numValue : 0);
+                                                        setValue('skillActivityType', undefined);
+                                                        setValue('nameId', 0);
+                                                        setValue('areaId', 0);
+                                                        setStudents([]);
                                                         setShowTable(false);
                                                     }}
-                                                    disabled={!watchSection || loadingExamData}>
+                                                >
                                                     <SelectTrigger id='exam-term'>
                                                         <SelectValue
                                                             placeholder={
-                                                                !watchSection
-                                                                    ? 'Select Section first'
-                                                                    : loadingExamData
-                                                                      ? 'Loading...'
-                                                                      : 'Select Exam Term'
+                                                                loadingExamData
+                                                                    ? 'loading.....'
+                                                                    : 'Select Exam Term'
                                                             }
                                                         />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {examTerms.length === 0 ? (
+                                                        {loadingExamData ? (
+                                                            <SelectItem value='loading' disabled>
+                                                                loading.....
+                                                            </SelectItem>
+                                                        ) : examTerms.length === 0 ? (
                                                             <SelectItem value='placeholder' disabled>
                                                                 No exam terms available
                                                             </SelectItem>
@@ -894,26 +944,33 @@ function StudentTransactionContent() {
                                         render={({ field, fieldState }) => (
                                             <>
                                                 <Select
+                                                    key={field.value}
                                                     value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                                     onValueChange={(v) => {
                                                         const numValue = Number(v);
                                                         field.onChange(numValue !== 0 ? numValue : 0);
+                                                        setValue('skillActivityType', undefined);
+                                                        setValue('nameId', 0);
+                                                        setValue('areaId', 0);
+                                                        setStudents([]);
                                                         setShowTable(false);
                                                     }}
-                                                    disabled={!watchSection || loadingExamData}>
+                                                >
                                                     <SelectTrigger id='exam'>
                                                         <SelectValue
                                                             placeholder={
-                                                                !watchSection
-                                                                    ? 'Select Section first'
-                                                                    : loadingExamData
-                                                                      ? 'Loading...'
-                                                                      : 'Select Exam'
+                                                                loadingExamData
+                                                                    ? 'loading.....'
+                                                                    : 'Select Exam'
                                                             }
                                                         />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {watchExamType === 'ExamWise' ? (
+                                                        {loadingExamData ? (
+                                                            <SelectItem value='loading' disabled>
+                                                                loading.....
+                                                            </SelectItem>
+                                                        ) : watchExamType === 'ExamWise' ? (
                                                             exams.length === 0 ? (
                                                                 <SelectItem value='placeholder' disabled>
                                                                     No exams available
@@ -961,11 +1018,13 @@ function StudentTransactionContent() {
                                     render={({ field, fieldState }) => (
                                         <>
                                             <Select
+                                                key={field.value}
                                                 value={field.value || ''}
                                                 onValueChange={(v: 'Skills' | 'Activities') => {
                                                     field.onChange(v);
                                                     setValue('nameId', 0);
                                                     setValue('areaId', 0);
+                                                    setStudents([]);
                                                     setShowTable(false);
                                                 }}
                                                 disabled={
@@ -999,18 +1058,25 @@ function StudentTransactionContent() {
                                         render={({ field, fieldState }) => (
                                             <>
                                                 <Select
+                                                    key={field.value}
                                                     value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                                     onValueChange={(v) => {
                                                         const numValue = Number(v);
                                                         field.onChange(numValue !== 0 ? numValue : 0);
+                                                        setValue('areaId', 0);
+                                                        setStudents([]);
                                                         setShowTable(false);
                                                     }}
-                                                    disabled={!watchSkillActivity || loadingNames}>
+                                                >
                                                     <SelectTrigger id='Skills-name'>
-                                                        <SelectValue placeholder={loadingNames ? 'Loading...' : 'Select Skills Name'} />
+                                                        <SelectValue placeholder={loadingNames ? 'loading.....' : 'Select Skills Name'} />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {skillNames.length === 0 ? (
+                                                        {loadingNames ? (
+                                                            <SelectItem value='loading' disabled>
+                                                                loading.....
+                                                            </SelectItem>
+                                                        ) : skillNames.length === 0 ? (
                                                             <SelectItem value='placeholder' disabled>
                                                                 No skills available
                                                             </SelectItem>
@@ -1042,18 +1108,25 @@ function StudentTransactionContent() {
                                         render={({ field, fieldState }) => (
                                             <>
                                                 <Select
+                                                    key={field.value}
                                                     value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                                     onValueChange={(v) => {
                                                         const numValue = Number(v);
                                                         field.onChange(numValue !== 0 ? numValue : 0);
+                                                        setValue('areaId', 0);
+                                                        setStudents([]);
                                                         setShowTable(false);
                                                     }}
-                                                    disabled={!watchSkillActivity || loadingNames}>
+                                                >
                                                     <SelectTrigger id='Activities-name'>
-                                                        <SelectValue placeholder={loadingNames ? 'Loading...' : 'Select Activities Name'} />
+                                                        <SelectValue placeholder={loadingNames ? 'loading.....' : 'Select Activities Name'} />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {activityNames.length === 0 ? (
+                                                        {loadingNames ? (
+                                                            <SelectItem value='loading' disabled>
+                                                                loading.....
+                                                            </SelectItem>
+                                                        ) : activityNames.length === 0 ? (
                                                             <SelectItem value='placeholder' disabled>
                                                                 No activities available
                                                             </SelectItem>
@@ -1085,18 +1158,24 @@ function StudentTransactionContent() {
                                         render={({ field, fieldState }) => (
                                             <>
                                                 <Select
+                                                    key={field.value}
                                                     value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                                     onValueChange={(v) => {
                                                         const numValue = Number(v);
                                                         field.onChange(numValue !== 0 ? numValue : 0);
+                                                        setStudents([]);
                                                         setShowTable(false);
                                                     }}
-                                                    disabled={loadingAreas}>
+                                                >
                                                     <SelectTrigger id='Skills-area'>
-                                                        <SelectValue placeholder={loadingAreas ? 'Loading...' : 'Select Skill Area'} />
+                                                        <SelectValue placeholder={loadingAreas ? 'loading.....' : 'Select Skill Area'} />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {skillAreas.length === 0 ? (
+                                                        {loadingAreas ? (
+                                                            <SelectItem value='loading' disabled>
+                                                                loading.....
+                                                            </SelectItem>
+                                                        ) : skillAreas.length === 0 ? (
                                                             <SelectItem value='placeholder' disabled>
                                                                 No skill areas available
                                                             </SelectItem>
@@ -1128,18 +1207,24 @@ function StudentTransactionContent() {
                                         render={({ field, fieldState }) => (
                                             <>
                                                 <Select
+                                                    key={field.value}
                                                     value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                                     onValueChange={(v) => {
                                                         const numValue = Number(v);
                                                         field.onChange(numValue !== 0 ? numValue : 0);
+                                                        setStudents([]);
                                                         setShowTable(false);
                                                     }}
-                                                    disabled={loadingAreas}>
+                                                >
                                                     <SelectTrigger id='Activities-area'>
-                                                        <SelectValue placeholder={loadingAreas ? 'Loading...' : 'Select Activities Area'} />
+                                                        <SelectValue placeholder={loadingAreas ? 'loading.....' : 'Select Activities Area'} />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {activityAreas.length === 0 ? (
+                                                        {loadingAreas ? (
+                                                            <SelectItem value='loading' disabled>
+                                                                loading.....
+                                                            </SelectItem>
+                                                        ) : activityAreas.length === 0 ? (
                                                             <SelectItem value='placeholder' disabled>
                                                                 No activity areas available
                                                             </SelectItem>
@@ -1164,7 +1249,7 @@ function StudentTransactionContent() {
                         <div className='mx-auto mt-8 flex w-fit justify-center gap-4'>
                             <Button
                                 type='submit'
-                                disabled={!allFieldsFilled || isLoading || !isValid}
+
                                 className='px-8 py-2 font-medium text-white shadow'>
                                 {isLoading ? (
                                     <span className='flex items-center gap-2'>

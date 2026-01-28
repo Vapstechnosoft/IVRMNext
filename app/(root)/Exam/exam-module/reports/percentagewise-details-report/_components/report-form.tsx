@@ -65,6 +65,11 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
     const selectedClass = watch('ASMCL_Id');
     const selectedSection = watch('ASMS_Id');
 
+    const [loadingCategories, setLoadingCategories] = useState(false);
+    const [loadingClasses, setLoadingClasses] = useState(false);
+    const [loadingSections, setLoadingSections] = useState(false);
+    const [loadingExams, setLoadingExams] = useState(false);
+
     // Initial Data
     useEffect(() => {
         const fetchInitialData = async () => {
@@ -80,9 +85,19 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
     useEffect(() => {
         if (selectedYear > 0) {
             const fetchData = async () => {
-                const { data: cats } = await getCategoryDropDownByAcademicYearlist(30, selectedYear);
-                const validCats = Array.isArray(cats) ? cats : [];
-                setCategories(validCats);
+                setLoadingCategories(true);
+                try {
+                    const { data: cats } = await getCategoryDropDownByAcademicYearlist(30, selectedYear);
+                    const validCats = Array.isArray(cats) ? cats : [];
+                    if (validCats.length === 0) {
+                        toast.info('No categories found for this academic year');
+                    }
+                    setCategories(validCats);
+                } catch {
+                    // handle error
+                } finally {
+                    setLoadingCategories(false);
+                }
             };
             fetchData();
         } else {
@@ -94,21 +109,30 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
     useEffect(() => {
         if (selectedYear > 0 && selectedCategory > 0) {
             const fetchData = async () => {
-                const response = await getExamGroupsByCategory(selectedYear, selectedCategory);
-                if (qualificationType === 'individual') {
-                    const classes_res = await getClassDropDownByYearCategoryList(selectedYear, selectedCategory);
-                    const safeClasses = Array.isArray(classes_res) ? classes_res : [];
-                    if (safeClasses.length === 0) {
-                        toast.info('No classes found for this category');
+                setLoadingExams(true);
+                if (qualificationType === 'individual') setLoadingClasses(true);
+                try {
+                    const response = await getExamGroupsByCategory(selectedYear, selectedCategory);
+                    if (qualificationType === 'individual') {
+                        const classes_res = await getClassDropDownByYearCategoryList(selectedYear, selectedCategory);
+                        const safeClasses = Array.isArray(classes_res) ? classes_res : [];
+                        if (safeClasses.length === 0) {
+                            toast.info('No classes found for this category');
+                        }
+                        setClasses(safeClasses);
                     }
-                    setClasses(safeClasses);
-                }
 
-                if (response.success) {
-                    if (response.data.length === 0) {
-                        toast.info('No exams found for this category');
+                    if (response.success) {
+                        if (response.data.length === 0) {
+                            toast.info('No exams found for this category');
+                        }
+                        setExams(response.data || []);
                     }
-                    setExams(response.data || []);
+                } catch {
+                    // error
+                } finally {
+                    setLoadingExams(false);
+                    if (qualificationType === 'individual') setLoadingClasses(false);
                 }
             };
             fetchData();
@@ -122,12 +146,19 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
     useEffect(() => {
         if (selectedClass && selectedClass > 0 && selectedYear > 0 && selectedCategory > 0) {
             const fetchData = async () => {
-                const response = await getSectionDropDownByYearCategoryClassList(selectedYear, selectedCategory, selectedClass);
-                const safeSections = Array.isArray(response) ? response : [];
-                if (safeSections.length === 0) {
-                    toast.info('No sections found for this class');
+                setLoadingSections(true);
+                try {
+                    const response = await getSectionDropDownByYearCategoryClassList(selectedYear, selectedCategory, selectedClass);
+                    const safeSections = Array.isArray(response) ? response : [];
+                    if (safeSections.length === 0) {
+                        toast.info('No sections found for this class');
+                    }
+                    setSections(safeSections);
+                } catch {
+                    // error
+                } finally {
+                    setLoadingSections(false);
                 }
-                setSections(safeSections);
             };
             fetchData();
         } else {
@@ -230,6 +261,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                                 name='ASMAY_Id'
                                 render={({ field }) => (
                                     <Select
+                                        key={field.value}
                                         onValueChange={(val) => field.onChange(Number(val))}
                                         value={field.value ? String(field.value) : undefined}>
                                         <SelectTrigger>
@@ -260,17 +292,28 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                                 name='EMCA_Id'
                                 render={({ field }) => (
                                     <Select
+                                        key={field.value}
                                         onValueChange={(val) => field.onChange(Number(val))}
                                         value={field.value ? String(field.value) : undefined}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Category' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {categories.map((item) => (
-                                                <SelectItem key={item.emcA_Id} value={String(item.emcA_Id)}>
-                                                    {item.emcA_CategoryName}
+                                            {loadingCategories ? (
+                                                <SelectItem value='0' disabled>
+                                                    Categories are loading...
                                                 </SelectItem>
-                                            ))}
+                                            ) : categories.length === 0 ? (
+                                                <SelectItem value='0' disabled>
+                                                    No Categories found
+                                                </SelectItem>
+                                            ) : (
+                                                categories.map((item) => (
+                                                    <SelectItem key={item.emcA_Id} value={String(item.emcA_Id)}>
+                                                        {item.emcA_CategoryName}
+                                                    </SelectItem>
+                                                ))
+                                            )}
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -290,6 +333,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                                 name='ASMCL_Id'
                                 render={({ field }) => (
                                     <Select
+                                        key={field.value}
                                         onValueChange={(val) => field.onChange(Number(val))}
                                         value={field.value ? String(field.value) : undefined}
                                         disabled={qualificationType === 'all'}>
@@ -297,11 +341,21 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                                             <SelectValue placeholder='Select Class' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {classes.map((item) => (
-                                                <SelectItem key={item.asmcL_Id} value={String(item.asmcL_Id)}>
-                                                    {item.asmcL_ClassName}
+                                            {loadingClasses ? (
+                                                <SelectItem value='0' disabled>
+                                                    Classes are loading...
                                                 </SelectItem>
-                                            ))}
+                                            ) : classes.length === 0 ? (
+                                                <SelectItem value='0' disabled>
+                                                    No Classes found
+                                                </SelectItem>
+                                            ) : (
+                                                classes.map((item) => (
+                                                    <SelectItem key={item.asmcL_Id} value={String(item.asmcL_Id)}>
+                                                        {item.asmcL_ClassName}
+                                                    </SelectItem>
+                                                ))
+                                            )}
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -321,6 +375,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                                 name='ASMS_Id'
                                 render={({ field }) => (
                                     <Select
+                                        key={field.value}
                                         onValueChange={(val) => field.onChange(Number(val))}
                                         value={field.value !== undefined ? String(field.value) : undefined}
                                         disabled={qualificationType === 'all'}>
@@ -329,11 +384,21 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value='0'>All</SelectItem>
-                                            {sections.map((item) => (
-                                                <SelectItem key={item.asmS_Id} value={String(item.asmS_Id)}>
-                                                    {item.asmC_SectionName}
+                                            {loadingSections ? (
+                                                <SelectItem value='loading' disabled>
+                                                    Sections are loading...
                                                 </SelectItem>
-                                            ))}
+                                            ) : sections.length === 0 ? (
+                                                <SelectItem value='empty' disabled>
+                                                    No Sections found
+                                                </SelectItem>
+                                            ) : (
+                                                sections.map((item) => (
+                                                    <SelectItem key={item.asmS_Id} value={String(item.asmS_Id)}>
+                                                        {item.asmC_SectionName}
+                                                    </SelectItem>
+                                                ))
+                                            )}
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -353,17 +418,28 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                                 name='EME_Id'
                                 render={({ field }) => (
                                     <Select
+                                        key={field.value}
                                         onValueChange={(val) => field.onChange(Number(val))}
                                         value={field.value ? String(field.value) : undefined}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Exam' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {exams.map((item) => (
-                                                <SelectItem key={item.emE_Id} value={String(item.emE_Id)}>
-                                                    {item.emE_ExamName}
+                                            {loadingExams ? (
+                                                <SelectItem value='0' disabled>
+                                                    Exams are loading...
                                                 </SelectItem>
-                                            ))}
+                                            ) : exams.length === 0 ? (
+                                                <SelectItem value='0' disabled>
+                                                    No Exams found
+                                                </SelectItem>
+                                            ) : (
+                                                exams.map((item) => (
+                                                    <SelectItem key={item.emE_Id} value={String(item.emE_Id)}>
+                                                        {item.emE_ExamName}
+                                                    </SelectItem>
+                                                ))
+                                            )}
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -380,7 +456,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                                 control={control}
                                 name='percent'
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                                    <Select key={field.value} onValueChange={field.onChange} value={field.value}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Percentage' />
                                         </SelectTrigger>
