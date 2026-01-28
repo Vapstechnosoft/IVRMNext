@@ -2140,7 +2140,7 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/department-salary-report',
                                             title: 'Department Salary Report',
                                             description: 'Department-wise Salary'
-                                        }
+                                        },
                                         //,
                                         // {
                                         //     id: 21,
@@ -2150,7 +2150,6 @@ export async function getUserAccessibleModules() {
                                         //     title: 'Advance Report',
                                         //     description: 'View Advance Reports'
                                         // }
-                                        ,
                                         {
                                             id: 22,
                                             name: 'Employee offer letter',
@@ -2931,6 +2930,14 @@ export async function getUserAccessibleModules() {
                                             url: '/upload/transactions/notice-board',
                                             title: 'Upload Notice Board',
                                             description: 'Upload Notice Board'
+                                        },
+                                        {
+                                            id: 226,
+                                            name: 'Push Notification',
+                                            icon: 'BookOpen',
+                                            url: '/upload/transactions/push-notification',
+                                            title: 'Push Notification',
+                                            description: 'Push Notification'
                                         }
                                     ]
                                 },
@@ -2962,14 +2969,6 @@ export async function getUserAccessibleModules() {
                                             url: '/upload/reports/noticeboard-report',
                                             title: 'NoticeBoard Report',
                                             description: 'NoticeBoard Report Details'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'COE Report',
-                                            icon: 'FileText',
-                                            url: '/upload/reports/coereport',
-                                            title: 'COE Report',
-                                            description: 'COE Report Details'
                                         }
                                     ]
                                 }
@@ -4222,7 +4221,7 @@ export async function getUserAccessibleModules() {
                     ]
                 },
 
-                 {
+                {
                     id: 25,
                     name: 'COE',
                     icon: 'Settings',
@@ -4259,7 +4258,7 @@ export async function getUserAccessibleModules() {
                                             url: '/coe/report/coereport',
                                             title: 'COE Report',
                                             description: 'Manage COE Report'
-                                        } ,
+                                        },
                                         {
                                             id: 2,
                                             name: 'COE Month End Report',
@@ -4269,7 +4268,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage COE Month End Report'
                                         }
                                     ]
-                                } 
+                                }
                             ]
                         }
                     ]
