@@ -513,9 +513,12 @@ export const LIBRARY_QUERY_KEYS = {
 export const PORTAL_QUERY_KEYS = {
     CLASS_WORK_UPLOADED: 'class_work_uploaded',
     HOME_WORK_UPLOADED: 'home_work_uploaded',
-
     STUDENT_PORTAL_FEEDBACK: 'student_portal_feedback',
-    COE_LIST: 'coe_list'
+    COE_LIST: 'coe_list',
+    STUDENT_FEE_DETAILS2: 'student_fee_details2',
+    CUMULATIVE_FEE_ANALYSIS: 'Cumulative_Fee_Analysis',
+    FEE_ONLINE_PAYMENT_STUDENT_INFO:"fee_online_student_info",
+    FEE_ONLINE_PAYMENT_GROUP_LIST:"fee_online_payment_group_list"
 };
 
 export const COE_QUERY_KEYS = {

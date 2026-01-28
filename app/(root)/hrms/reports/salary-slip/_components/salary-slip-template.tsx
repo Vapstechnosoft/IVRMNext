@@ -19,7 +19,9 @@ interface LeaveDetail {
 interface SalarySlipData {
     // Employee Information
     employeeName: string;
+    employeeCode: string;
     designation: string;
+    panNo?: string;
     payLevel?: string;
     bankName?: string;
     bankAccountNo?: string;
@@ -46,8 +48,9 @@ interface SalarySlipTemplateProps {
     showLopDays: boolean;
     showLeaveDetails: boolean;
     showPanCardNo: boolean;
-    showBankDetails: boolean;
+    showBankDetails?: boolean;
     isLoading?: boolean;
+    showActions?: boolean;
     onPrint: () => void;
     onSendMail: () => void;
     onSendSMS: () => void;
@@ -65,6 +68,7 @@ export function SalarySlipTemplate({
     showPanCardNo = false,
     showBankDetails = false,
     isLoading = false,
+    showActions = true,
     onPrint,
     onSendMail,
     onSendSMS,
@@ -76,25 +80,33 @@ export function SalarySlipTemplate({
         return value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     };
     // Get month name
-    const monthName = month ? month.toUpperCase() : '';
+    const MONTHS = [
+        { id: 1, name: 'January' }, { id: 2, name: 'February' }, { id: 3, name: 'March' },
+        { id: 4, name: 'April' }, { id: 5, name: 'May' }, { id: 6, name: 'June' },
+        { id: 7, name: 'July' }, { id: 8, name: 'August' }, { id: 9, name: 'September' },
+        { id: 10, name: 'October' }, { id: 11, name: 'November' }, { id: 12, name: 'December' }
+    ];
+    const monthRecord = MONTHS.find(m => m.id.toString() === month.toString());
+    const displayMonthName = monthRecord ? monthRecord.name.toUpperCase() : month.toUpperCase();
     const yearValue = year || '';
     return (
         <div className='mx-auto w-full max-w-[900px] bg-white p-6 print:p-4'>
             {/* School Header with Logo */}
-            <div className='mb-6 space-y-2 border-gray-300 border-b pb-4 text-center'>
+            <div className='mb-8 space-y-3 border-gray-300 border-b pb-6 text-center'>
+
                 {schoolLogo && (
-                    <div className='mb-2 flex justify-center'>
-                        <img src={schoolLogo} alt={schoolName} className='h-16 w-auto object-contain' />
+                    <div className='w-full overflow-hidden rounded-lg mb-4'>
+                        <img src={schoolLogo} alt={schoolName} className='w-full h-auto max-h-[150px] object-cover' />
                     </div>
                 )}
-                <h1 className='font-bold text-gray-900 text-xl'>{schoolName || 'Institution Name'}</h1>
-                {schoolAddress && <div className='text-gray-600 text-sm'>{schoolAddress}</div>}
-            </div>
-            {/* Report Title */}
-            <div className='mb-6 text-center'>
-                <h2 className='font-semibold text-gray-800 text-lg'>
-                    PAY SLIP FOR THE MONTH OF {monthName} {yearValue}
-                </h2>
+                <div className='space-y-1'>
+                    <h2 className='text-xl font-bold uppercase tracking-[0.2em] text-gray-800'>
+                        Salary Slip
+                    </h2>
+                    <p className='font-medium text-gray-600 text-sm'>
+                        FOR THE MONTH OF {displayMonthName} {yearValue}
+                    </p>
+                </div>
             </div>
             {/* Employee Information */}
             {isLoading ? (
@@ -107,6 +119,10 @@ export function SalarySlipTemplate({
                             <div>
                                 <span className='font-medium text-gray-700'>Name:</span>
                                 <span className='ml-2 text-gray-900'>{salarySlipData.employeeName || '-'}</span>
+                            </div>
+                            <div>
+                                <span className='font-medium text-gray-700'>Employee Code:</span>
+                                <span className='ml-2 text-gray-900'>{salarySlipData.employeeCode || '-'}</span>
                             </div>
                             <div>
                                 <span className='font-medium text-gray-700'>Designation:</span>
@@ -135,6 +151,12 @@ export function SalarySlipTemplate({
                                 <div>
                                     <span className='font-medium text-gray-700'>PF No:</span>
                                     <span className='ml-2 text-gray-900'>{salarySlipData.pfNo}</span>
+                                </div>
+                            )}
+                            {showPanCardNo && salarySlipData.panNo && (
+                                <div>
+                                    <span className='font-medium text-gray-700'>PAN No:</span>
+                                    <span className='ml-2 text-gray-900'>{salarySlipData.panNo}</span>
                                 </div>
                             )}
                             {salarySlipData.esiNo && (
@@ -358,20 +380,17 @@ export function SalarySlipTemplate({
                 </>
             )}
             {/* Action Buttons */}
-            <div className='flex flex-wrap justify-end gap-3 border-gray-300 border-t pt-4 print:hidden'>
-                <Button variant='outline' onClick={onCancel} prefix={<X className='size-4' />}>
-                    CANCEL
-                </Button>
-                <Button variant='outline' onClick={onSendSMS} prefix={<MessageSquare className='size-4' />}>
-                    SEND SMS
-                </Button>
-                <Button variant='outline' onClick={onSendMail} prefix={<Mail className='size-4' />}>
-                    SEND MAIL
-                </Button>
-                <Button variant='outline' onClick={onPrint} prefix={<Printer className='size-4' />}>
-                    PRINT
-                </Button>
-            </div>
+            {showActions && (
+                <div className='flex flex-wrap justify-end gap-3 border-gray-300 border-t pt-4 print:hidden'>
+                    <Button variant='outline' onClick={onCancel} prefix={<X className='size-4' />}>
+                        CANCEL
+                    </Button>
+
+                    <Button variant='outline' onClick={onPrint} prefix={<Printer className='size-4' />}>
+                        PRINT
+                    </Button>
+                </div>
+            )}
         </div>
     );
 }
