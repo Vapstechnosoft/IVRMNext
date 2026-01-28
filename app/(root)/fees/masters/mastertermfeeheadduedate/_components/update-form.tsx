@@ -38,6 +38,8 @@ export default function UpdateFeeTermsHeadDueDateForm({ onSuccess, termname = ''
     const [gridData, setGridData] = useState<IFeeTermFeeHeadDueDateGridList[]>([]);
     const [loadingGrid, setLoadingGrid] = useState(false);
     const isEditMode = !!rowData;
+
+    const [originalGridData, setOriginalGridData] = useState<IFeeTermFeeHeadDueDateGridList[]>([]);
     // Check if dropdowns are still loading
     const dropdownsLoading = academicYearLoading || termsLoading || headsLoading;
     const {
@@ -58,6 +60,7 @@ export default function UpdateFeeTermsHeadDueDateForm({ onSuccess, termname = ''
     });
 
     function OnReset() {
+        //if (!confirm('Discard changes?')) return;
         // reset({
         //     asmay_Id: undefined,
         //     fmt_id: undefined,
@@ -67,7 +70,11 @@ export default function UpdateFeeTermsHeadDueDateForm({ onSuccess, termname = ''
         // setSelectedAcademicYear(null);
         // setSelectedTerm(null);
         // setSelectedHead(null);
-        refetchAll();
+        //refetchAll();
+        // setGridData(originalGridData);
+        // if (!originalGridData.length) return;
+
+        setGridData(structuredClone(originalGridData));
     }
 
     // ✅ DEBUG: Log the selectedRow when it changes
@@ -145,7 +152,14 @@ export default function UpdateFeeTermsHeadDueDateForm({ onSuccess, termname = ''
                             fmtfhdD_DueDate: item.fmtfhdD_DueDate?.split('T')[0] || ''
                         }));
 
-                        setGridData(formattedData);
+                        //setGridData(formattedData);
+                        //                         setGridData(formattedData);
+                        // setOriginalGridData(formattedData);
+
+                        const deepClonedData = structuredClone(formattedData);
+
+                        setGridData(deepClonedData);
+                        setOriginalGridData(structuredClone(deepClonedData));
                         toast.success('Data loaded successfully', { id: toastId });
                     } else {
                         setGridData([]);
@@ -375,9 +389,14 @@ export default function UpdateFeeTermsHeadDueDateForm({ onSuccess, termname = ''
                                                             max='2100-12-31'
                                                             value={(item as any)[key] || ''}
                                                             onChange={(e) => {
-                                                                const updated = [...gridData];
-                                                                (updated[index] as any)[key] = e.target.value;
-                                                                setGridData(updated);
+                                                                // const updated = [...gridData];
+                                                                // (updated[index] as any)[key] = e.target.value;
+                                                                // setGridData(updated);
+                                                                setGridData((prev) =>
+                                                                    prev.map((row, i) =>
+                                                                        i === index ? { ...row, [key]: e.target.value } : row
+                                                                    )
+                                                                );
                                                             }}
                                                             className='w-full rounded border p-1'
                                                         />
