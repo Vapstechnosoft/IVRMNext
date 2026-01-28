@@ -318,8 +318,7 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                                     <Select
                                         key={field.value} // Force re-render on reset
                                         onValueChange={(value) => field.onChange(Number(value))}
-                                        value={field.value && field.value !== 0 ? String(field.value) : ''}
-                                        disabled={loadingYears}>
+                                        value={String(field.value)}>
                                         <SelectTrigger>
                                             <SelectValue placeholder={loadingYears ? 'Loading Academic Year...' : 'Select Academic Year'} />
                                         </SelectTrigger>
@@ -374,22 +373,13 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                                     <Select
                                         key={field.value}
                                         onValueChange={(value) => field.onChange(Number(value))}
-                                        value={field.value && field.value !== 0 ? String(field.value) : ''}
-                                        disabled={!watchFeeCheckbox || loadingFeeTerm}>
+                                        value={String(field.value)}
+                                        disabled={!watchFeeCheckbox}>
                                         <SelectTrigger>
-                                            <SelectValue
-                                                placeholder={
-                                                    loadingFeeTerm
-                                                        ? 'Loading fee terms...'
-                                                        : !watchFeeCheckbox
-                                                          ? 'Enable Exclude Fee Defaulters first'
-                                                          : feeTerms.length === 0
-                                                            ? 'No fee terms available'
-                                                            : 'Select Fee Term'
-                                                }
-                                            />
+                                            <SelectValue placeholder={loadingFeeTerm ? 'Loading fee terms...' : 'Select Fee Term'} />
                                         </SelectTrigger>
                                         <SelectContent>
+                                            <SelectItem value='0'>Select Fee Term</SelectItem>
                                             {loadingFeeTerm ? (
                                                 <SelectItem value='loading' disabled>
                                                     Loading fee terms...
@@ -430,16 +420,10 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                                         }))}
                                         onChange={(vals) => field.onChange(vals.map((v: string) => Number(v)))}
                                         value={field.value ? field.value.map((v) => v.toString()) : []}
-                                        placeholder={
-                                            loadingFeeGroup
-                                                ? 'Loading fee groups...'
-                                                : !watchFeeCheckbox
-                                                  ? 'Enable Exclude Fee Defaulters first'
-                                                  : 'Search here...'
-                                        }
+                                        placeholder={loadingFeeGroup ? 'Loading fee groups...' : 'Select Fee Group'}
                                         height='150px'
                                         isSearchRequired={true}
-                                        disabled={!watchFeeCheckbox || loadingFeeGroup}
+                                        disabled={!watchFeeCheckbox}
                                     />
                                     {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                 </>
@@ -461,20 +445,9 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                                     <Select
                                         key={field.value} // Force re-render on reset
                                         onValueChange={(value) => field.onChange(Number(value))}
-                                        value={field.value && field.value !== 0 ? String(field.value) : ''}
-                                        disabled={!watchYear || loadingClasses}>
+                                        value={String(field.value)}>
                                         <SelectTrigger>
-                                            <SelectValue
-                                                placeholder={
-                                                    loadingClasses
-                                                        ? 'Loading classes...'
-                                                        : !watchYear
-                                                          ? 'Select Academic Year first'
-                                                          : classes.length === 0
-                                                            ? 'No classes available'
-                                                            : 'Select Class'
-                                                }
-                                            />
+                                            <SelectValue placeholder={loadingClasses ? 'Loading classes...' : 'Select Class'} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {loadingClasses ? (
@@ -511,20 +484,9 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                                     <Select
                                         key={field.value} // Force re-render on reset
                                         onValueChange={(value) => field.onChange(Number(value))}
-                                        value={field.value && field.value !== 0 ? String(field.value) : ''}
-                                        disabled={!watchClass || loadingSections}>
+                                        value={String(field.value)}>
                                         <SelectTrigger>
-                                            <SelectValue
-                                                placeholder={
-                                                    loadingSections
-                                                        ? 'Loading sections...'
-                                                        : !watchClass
-                                                          ? 'Select Class first'
-                                                          : sections.length === 0
-                                                            ? 'No sections available'
-                                                            : 'Select Section'
-                                                }
-                                            />
+                                            <SelectValue placeholder={loadingSections ? 'Loading sections...' : 'Select Section'} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {loadingSections ? (
@@ -561,22 +523,9 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                                     <Select
                                         key={field.value} // Force re-render on reset
                                         onValueChange={(value) => field.onChange(Number(value))}
-                                        value={field.value && field.value !== 0 ? String(field.value) : ''}
-                                        disabled={watchType !== 'Exam' || !watchSection || loadingExams}>
+                                        value={String(field.value)}>
                                         <SelectTrigger>
-                                            <SelectValue
-                                                placeholder={
-                                                    loadingExams
-                                                        ? 'Loading exams...'
-                                                        : watchType !== 'Exam'
-                                                          ? 'Select Exam Wise mode'
-                                                          : !watchSection
-                                                            ? 'Select Section first'
-                                                            : exams.length === 0
-                                                              ? 'No exams available'
-                                                              : 'Select Exam Name'
-                                                }
-                                            />
+                                            <SelectValue placeholder={loadingExams ? 'Loading exams...' : 'Select Exam Name'} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {loadingExams ? (

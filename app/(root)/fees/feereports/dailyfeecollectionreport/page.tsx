@@ -930,7 +930,7 @@ export default function DailyFeeCollectionReportForm() {
                                                       : val === 'B'
                                                         ? 'Cheque/DD'
                                                         : val === 'O'
-                                                          ? 'Online'
+                                                          ? 'Online Paid'
                                                           : val === 'Ecs'
                                                             ? 'ECS'
                                                             : val === 'S'

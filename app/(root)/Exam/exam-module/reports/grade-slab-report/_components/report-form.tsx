@@ -106,7 +106,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
 
     const handleCancel = () => {
         reset({
-            type: '1',
+            //type: '1',
             emgR_Id: '0'
         });
         onReset();
