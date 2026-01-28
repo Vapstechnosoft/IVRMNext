@@ -389,8 +389,8 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
             Array.isArray(v.classList) && v.classList.length
                 ? v.classList
                 : v.asmcL_Id
-                    ? classes.filter((c) => c.asmcL_Id === v.asmcL_Id)
-                    : [];
+                  ? classes.filter((c) => c.asmcL_Id === v.asmcL_Id)
+                  : [];
 
         if (rawClasses.length === 0) {
             toast.error('No classes selected');
@@ -411,9 +411,9 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
         // FIXED: Use emsS_Id instead of issS_Id
         const selectedSSubjects: any[] = Array.isArray(v.subSubjectList)
             ? v.subSubjectList.map((ss: any) => ({
-                emsS_Id: ss.emsS_Id,
-                emsS_SubSubjectName: ss.emsS_SubSubjectName || ''
-            }))
+                  emsS_Id: ss.emsS_Id,
+                  emsS_SubSubjectName: ss.emsS_SubSubjectName || ''
+              }))
             : [];
 
         const rows: DetailRow[] = [];
@@ -773,7 +773,9 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                     disabled={editingId !== null || editMode === 'edit'}
                                     render={({ field, fieldState }) => (
                                         <div className='w-full'>
-                                            <Label>Academic Year <span className='text-red-500'>*</span></Label>
+                                            <Label>
+                                                Academic Year <span className='text-red-500'>*</span>
+                                            </Label>
                                             <Select
                                                 key={field.value}
                                                 onValueChange={(v) => field.onChange(Number(v))}
@@ -810,7 +812,9 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                     disabled={editingId !== null || editMode === 'edit'}
                                     render={({ field, fieldState }) => (
                                         <div className='w-full'>
-                                            <Label>Employee Name <span className='text-red-500'>*</span></Label>
+                                            <Label>
+                                                Employee Name <span className='text-red-500'>*</span>
+                                            </Label>
 
                                             <Select
                                                 key={field.value}
@@ -934,7 +938,9 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                     disabled={editingId !== null || editMode === 'edit'}
                                     render={({ field, fieldState }) => (
                                         <div className='w-full'>
-                                            <Label>User Name <span className='text-red-500'>*</span></Label>
+                                            <Label>
+                                                User Name <span className='text-red-500'>*</span>
+                                            </Label>
                                             <Select
                                                 key={field.value}
                                                 onValueChange={(v) => field.onChange(Number(v))}
@@ -1119,8 +1125,8 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                 ? 'Updating...'
                                                 : 'Saving...'
                                             : editMode === 'edit'
-                                                ? 'Update'
-                                                : 'Save'}
+                                              ? 'Update'
+                                              : 'Save'}
                                     </Button>
 
                                     {editMode === 'edit' && (

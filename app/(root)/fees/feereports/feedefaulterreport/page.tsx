@@ -44,6 +44,7 @@ import {
     exportToExcelforFeeGroupWise,
     exportToExcelforFeeInstallmentWise,
     exportToExcelforFeeStudentorStaffWise,
+    exportToExcelforFeeStudentorStaffWiseofBalance,
     printTable
 } from './_components/columns';
 
@@ -76,6 +77,16 @@ interface IStudentFeeDefaulterReport {
     fmH_FeeName: string;
     asmcL_ClassName: string;
     amsT_Route: string;
+    fine_Amount: number;
+    admno: string;
+    feeName: string;
+    className: string;
+    sectionName: string;
+    fatherName: string;
+    mobileNo: string;
+    email: string;
+    tobepaid: number;
+    [key: string]: any;
 }
 
 export default function FeeDefaulterReport() {
@@ -150,21 +161,17 @@ export default function FeeDefaulterReport() {
     const [feeTerms, setFeeTerms] = useState<IFeeTermDropdownList[]>([]);
     const [feeBusRoutes, setFeeBusRoutes] = useState<IFeeBusRouteDropdownList[]>([]);
     const [customGroups, setCustomGroups] = useState<IFeeCustomGroupDropdownList[]>([]);
-
     const [reportData, setReportData] = useState<IStudentFeeDefaulterReport[]>([]);
-
     const [studentreportData, setstudentReportData] = useState<IStudentFeeDefaulterReport[]>([]);
-
     const [studentGroupreportData, setstudentGroupReportData] = useState<IStudentFeeDefaulterReport[]>([]);
-
+    const [balancereportData, setBalanceReportData] = useState<IStudentFeeDefaulterReport[]>([]);
+    const [dynamicFeeNames, setDynamicFeeNames] = useState<string[]>([]);
     const [reportLoading, setReportLoading] = useState(false);
     const [showReport, setShowReport] = useState(false);
-
     const [search, setSearch] = useState('');
     const [sortKey, setSortKey] = useState<'feeGroup' | 'totalDue' | null>(null);
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
-
     const [sectionLoading, setSectionLoading] = useState(false);
 
     const { data: mastersettingList } = usemastersettinglist();
@@ -277,59 +284,6 @@ export default function FeeDefaulterReport() {
         else if (customGroupResponse?.data) setCustomGroups(customGroupResponse.data);
     }, [customGroupResponse, customGroupError]);
 
-    // Toggle handlers
-    const toggleCustomGroup = (id: number) =>
-        setFilters((prev) => ({
-            ...prev,
-            customGroupIds: prev.customGroupIds.includes(id) ? prev.customGroupIds.filter((x) => x !== id) : [...prev.customGroupIds, id]
-        }));
-
-    const toggleFeeGroup = (id: number) =>
-        setFilters((prev) => ({
-            ...prev,
-            feeGroupIds: prev.feeGroupIds.includes(id) ? prev.feeGroupIds.filter((x) => x !== id) : [...prev.feeGroupIds, id]
-        }));
-
-    const toggleTerm = (id: number) =>
-        setFilters((prev) => ({
-            ...prev,
-            termIds: prev.termIds.includes(id) ? prev.termIds.filter((x) => x !== id) : [...prev.termIds, id]
-        }));
-
-    const toggleBusRoute = (id: number) =>
-        setFilters((prev) => ({
-            ...prev,
-            busRouteIds: prev.busRouteIds.includes(id) ? prev.busRouteIds.filter((x) => x !== id) : [...prev.busRouteIds, id]
-        }));
-
-    const selectAllCustomGroups = (checked: boolean) => {
-        setFilters((prev) => ({
-            ...prev,
-            customGroupIds: checked ? customGroups.map((g) => g.fmgG_Id) : []
-        }));
-    };
-
-    const selectAllFeeGroups = (checked: boolean) => {
-        setFilters((prev) => ({
-            ...prev,
-            feeGroupIds: checked ? feeGroups.map((g) => g.fmG_Id) : []
-        }));
-    };
-
-    const selectAllTerms = (checked: boolean) => {
-        setFilters((prev) => ({
-            ...prev,
-            termIds: checked ? feeTerms.map((t) => t.fmT_Id) : []
-        }));
-    };
-
-    const selectAllBusRoutes = (checked: boolean) => {
-        setFilters((prev) => ({
-            ...prev,
-            busRouteIds: checked ? feeBusRoutes.map((r) => r.trmR_Id) : []
-        }));
-    };
-
     const toggleStatus = (status: 'active' | 'deactive' | 'left' | 'balance') => {
         setFilters((prev) => ({
             ...prev,
@@ -348,18 +302,9 @@ export default function FeeDefaulterReport() {
     const [emailTemplate, setEmailTemplate] = useState('');
     const [emailSubject, setEmailSubject] = useState('');
     const [emailContent, setEmailContent] = useState('');
-
     const [showemailContent, setshowEmailContent] = useState(false);
-
     const [showNotificationModal, setShowNotificationModal] = useState(false);
     const [showSMSModal, setShowSMSModal] = useState(false);
-
-    // Also add these state variables for the modal content
-    const [notificationTemplate, setNotificationTemplate] = useState('');
-    const [notificationContent, setNotificationContent] = useState('');
-    const [smsTemplate, setSmsTemplate] = useState('');
-    const [smsContent, setSmsContent] = useState('');
-    const [smsSearch, setSmsSearch] = useState('');
 
     const [sortConfig, setSortConfig] = useState<{
         key: keyof (typeof studentreportData)[0];
@@ -504,6 +449,14 @@ export default function FeeDefaulterReport() {
             setSelectedIds([]);
         } else {
             setSelectedIds(studentreportData.map((r) => r.id));
+        }
+    };
+
+    const toggleAllBalance = () => {
+        if (selectedIds.length === balancereportData.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(balancereportData.map((r) => r.id));
         }
     };
     const totalBalance = filteredData.reduce((sum, r) => sum + r.totalBalance, 0);
@@ -663,6 +616,83 @@ export default function FeeDefaulterReport() {
 
         printTable(columnHeaders, printableRows, sumRow);
     };
+    const HandleexportToExcelforFeeStudentorStaffWiseofBalance = () => {
+        const rowsToPrint = balancereportData.filter((row) => selectedIds.includes(row.id));
+        if (!rowsToPrint || rowsToPrint.length === 0) {
+            toast.error('No data selected to print');
+            return;
+        }
+        const fileName = `Fee_Defaulter_Report_${filters.userType}_${new Date().toISOString().split('T')[0]}`;
+        exportToExcelforFeeStudentorStaffWiseofBalance(rowsToPrint, fileName, dynamicFeeNames);
+    };
+
+    const handlePrintforFeeStudentorStaffWiseofBalance = () => {
+        const rowsToPrint = balancereportData.filter((row) => selectedIds.includes(row.id));
+        if (!rowsToPrint || rowsToPrint.length === 0) {
+            toast.error('No data selected to print');
+            return;
+        }
+
+        const columnHeaders = [
+            'Sl.No',
+            'Name',
+            'Admission No',
+            'Class',
+            'Section',
+            'Father Name',
+            'Mobile Number',
+            'Email ID',
+            ...dynamicFeeNames,
+            'Total Balance'
+        ];
+
+        const tableRows = rowsToPrint.map((row, index) => {
+            const rowData: Record<string, any> = {
+                'Sl.No': index + 1,
+                Name: row.studentName,
+                'Admission No': row.admno,
+                Class: row.className,
+                Section: row.sectionName,
+                'Father Name': row.fatherName,
+                'Mobile Number': row.mobileNo,
+                'Email ID': row.email
+            };
+
+            dynamicFeeNames.forEach((feeName) => {
+                const feeKey = feeName.toLowerCase().replace(/\s+/g, '_');
+                const feeAmount = row[feeKey] || row.feeCategories?.[feeName] || 0;
+                rowData[feeName] = feeAmount.toLocaleString('en-IN');
+            });
+
+            rowData['Total Balance'] = (row.tobepaid || 0).toLocaleString('en-IN');
+
+            return rowData;
+        });
+        const sumRow: Record<string, any> = {
+            'Sl.No': 'Total',
+            Name: '',
+            'Admission No': '',
+            Class: '',
+            Section: '',
+            'Father Name': '',
+            'Mobile Number': '',
+            'Email ID': ''
+        };
+
+        dynamicFeeNames.forEach((feeName) => {
+            const feeKey = feeName.toLowerCase().replace(/\s+/g, '_');
+            const totalFee = rowsToPrint.reduce((sum, row) => {
+                const feeAmount = row[feeKey] || row.feeCategories?.[feeName] || 0;
+                return sum + feeAmount;
+            }, 0);
+            sumRow[feeName] = totalFee.toLocaleString('en-IN');
+        });
+
+        const totalBalance = rowsToPrint.reduce((sum, row) => sum + (row.tobepaid || 0), 0);
+        sumRow['Total Balance'] = totalBalance.toLocaleString('en-IN');
+
+        printTable(columnHeaders, tableRows, sumRow);
+    };
 
     const onSubmit: SubmitHandler<FormFields> = async () => {
         setReportLoading(true);
@@ -732,6 +762,7 @@ export default function FeeDefaulterReport() {
             const reportArray = await getfeedefaluerreport(payload);
             const studentDataArray = (reportArray as any)?.data?.list?.studentalldata;
             const studentGroupDataArray = (reportArray as any)?.data?.list?.groupalldata;
+            const BalanceGroupDataArray = (reportArray as any)?.data?.list;
 
             let hasData = false;
             if (studentDataArray != null) {
@@ -752,11 +783,21 @@ export default function FeeDefaulterReport() {
                             fmH_FeeName: item.fmH_FeeName,
                             fmT_Name: item.fmT_Name,
                             studentName: item.studentName,
-                            totalBalance: item.totalBalance
+                            totalBalance: item.totalBalance,
+                            fine_Amount: item.fine_Amount,
+                            admno: item.admno,
+                            feeName: item.feeName,
+                            className: item.className,
+                            sectionName: item.sectionName,
+                            fatherName: item.fatherName,
+                            mobileNo: item.mobileNo,
+                            email: item.email,
+                            tobepaid: item.tobepaid
                         }));
                     };
                     const data = mapApiToReportRows(studentData);
                     setstudentReportData(data);
+                    toast.success(reportArray.message);
                     if (studentData.length > 0) {
                         hasData = true;
                     }
@@ -783,17 +824,144 @@ export default function FeeDefaulterReport() {
                             fmH_FeeName: item.fmH_FeeName,
                             fmT_Name: item.fmT_Name,
                             studentName: item.studentName,
-                            totalBalance: item.totalBalance
+                            totalBalance: item.totalBalance,
+                            fine_Amount: item.fine_Amount,
+                            admno: item.admno,
+                            feeName: item.feeName,
+                            className: item.className,
+                            sectionName: item.sectionName,
+                            fatherName: item.fatherName,
+                            mobileNo: item.mobileNo,
+                            email: item.email,
+                            tobepaid: item.tobepaid
                         }));
                     };
                     const data = mapApiToReportRows(studentGroupData);
                     setstudentGroupReportData(data);
+                    toast.success(reportArray.message);
                     if (studentGroupData.length > 0) {
                         hasData = true;
                     }
                 } else {
                     toast.info('No group data found!');
                     setstudentGroupReportData([]);
+                }
+            }
+
+            if (BalanceGroupDataArray != null && filters.status.balance === true) {
+                if (BalanceGroupDataArray && Array.isArray(BalanceGroupDataArray)) {
+                    const balanceData: any[] = JSON.parse(JSON.stringify(BalanceGroupDataArray));
+                    // Group data by student and collect unique fee names
+                    const studentMap = new Map<number, any>();
+                    const allFeeNames = new Set<string>(); // To collect all unique fee names
+                    balanceData.forEach((item: any) => {
+                        const key = item.amsT_Id; // Unique student identifier
+                        const feeName = item.feeName?.trim();
+                        // Add fee name to set
+                        allFeeNames.add(feeName);
+                        if (!studentMap.has(key)) {
+                            studentMap.set(key, {
+                                id: key,
+                                amsT_AdmNo: item.amsT_AdmNo,
+                                amsT_emailId: item.amsT_emailId,
+                                amsT_FatherName: item.amsT_FatherName,
+                                amsT_Id: item.amsT_Id,
+                                amsT_MobileNo: item.amsT_MobileNo,
+                                amsT_Route: item.amsT_Route,
+                                asmcL_ClassName: item.asmcL_ClassName,
+                                classSection: item.classSection,
+                                fmG_GroupName: item.fmG_GroupName,
+                                fmT_Name: item.fmT_Name || '',
+                                fmH_FeeName: item.fmH_FeeName || '',
+                                feeName: item.feeName || '',
+                                studentName: item.studentName,
+                                totalBalance: 0,
+                                fine_Amount: item.fine_Amount || 0,
+                                admno: item.admno,
+                                className: item.className,
+                                sectionName: item.sectionName,
+                                fatherName: item.fatherName,
+                                mobileNo: item.mobileNo,
+                                email: item.email,
+                                tobepaid: 0,
+                                feeCategories: {}
+                            });
+                        }
+                        const student = studentMap.get(key);
+                        // Add fees to appropriate category
+                        if (!student.feeCategories[feeName]) {
+                            student.feeCategories[feeName] = 0;
+                        }
+                        student.feeCategories[feeName] += Number(item.tobepaid) || 0;
+                        // Update total balance - fix the reduce type issue
+                        student.tobepaid = Object.values(student.feeCategories).reduce(
+                            (sum: number, fee: unknown) => sum + (Number(fee) || 0),
+                            0
+                        );
+                        student.totalBalance = student.tobepaid;
+                    });
+
+                    // Convert map to array and map to desired format
+                    const groupedData = Array.from(studentMap.values());
+                    const feeNamesArray = Array.from(allFeeNames); // Get array of all fee names
+
+                    const mapApiToReportRows = (apiData: any[]): IStudentFeeDefaulterReport[] => {
+                        return apiData.map((item, index) => {
+                            // Create the base object matching the interface
+                            const reportObj: IStudentFeeDefaulterReport = {
+                                id: index + 1,
+                                amsT_Id: item.amsT_Id,
+                                totalBalance: item.totalBalance,
+                                studentName: item.studentName,
+                                amsT_AdmNo: item.amsT_AdmNo,
+                                classSection: item.classSection,
+                                amsT_MobileNo: item.amsT_MobileNo,
+                                amsT_FatherName: item.amsT_FatherName,
+                                amsT_emailId: item.amsT_emailId,
+                                fmT_Name: item.fmT_Name || '',
+                                fmG_GroupName: item.fmG_GroupName,
+                                fmH_FeeName: item.fmH_FeeName || '',
+                                asmcL_ClassName: item.asmcL_ClassName,
+                                amsT_Route: item.amsT_Route,
+                                fine_Amount: item.fine_Amount,
+                                admno: item.admno,
+                                feeName: item.feeName || '',
+                                className: item.className,
+                                sectionName: item.sectionName,
+                                fatherName: item.fatherName,
+                                mobileNo: item.mobileNo,
+                                email: item.email,
+                                tobepaid: item.tobepaid
+                            };
+
+                            // Add dynamic fee properties as additional properties (TypeScript will allow this with type assertion)
+                            const dynamicFeeProps: Record<string, any> = {};
+                            Object.entries(item.feeCategories || {}).forEach(([key, value]) => {
+                                const propName = key.toLowerCase().replace(/\s+/g, '_');
+                                dynamicFeeProps[propName] = value;
+                            });
+                            return {
+                                ...reportObj,
+                                ...dynamicFeeProps,
+                                // Include feeCategories as an extra property if needed for rendering
+                                feeCategories: item.feeCategories
+                            } as IStudentFeeDefaulterReport & Record<string, any>;
+                        });
+                    };
+
+                    const data = mapApiToReportRows(groupedData);
+                    setBalanceReportData(data as IStudentFeeDefaulterReport[]);
+                    // Also store the dynamic fee names for table header generation
+                    setDynamicFeeNames(feeNamesArray);
+
+                    toast.success(reportArray.message);
+                    if (balanceData.length > 0) {
+                        hasData = true;
+                    }
+                } else {
+                    toast.info('No student data found!');
+                    setBalanceReportData([]);
+                    setDynamicFeeNames([]);
                 }
             }
 
@@ -813,28 +981,6 @@ export default function FeeDefaulterReport() {
         } finally {
             setReportLoading(false);
         }
-    };
-
-    const handleOpenEmailModal = () => {
-        console.log('Button clicked, showEmailModal before:', showEmailModal);
-        setshowEmailContent(true);
-        setTimeout(() => {
-            console.log('showEmailModal after:', showEmailModal);
-        }, 100);
-    };
-
-    const handleSendNotification = () => {
-        setShowNotificationModal(true);
-        setTimeout(() => {
-            console.log('showEmailModal after:', showEmailModal);
-        }, 100);
-    };
-
-    const handleSendSMS = () => {
-        setShowSMSModal(true);
-        setTimeout(() => {
-            console.log('showEmailModal after:', showEmailModal);
-        }, 100);
     };
 
     const isAcademicYearSelected = watch('academicYearId');
@@ -1431,7 +1577,7 @@ export default function FeeDefaulterReport() {
                                                 <Label className='cursor-pointer'>Left</Label>
                                             </div>
 
-                                            {showBalancecheckbox && (
+                                            {filters.userType === 'Student' && breakdown === 'FSW' && (
                                                 <div className='flex items-center gap-3'>
                                                     <Checkbox
                                                         checked={filters.status.balance}
@@ -1527,54 +1673,37 @@ export default function FeeDefaulterReport() {
                                             {isSubmitting ? 'Generating...' : 'Report'}
                                         </Button>
                                     </div>
-                                    {showReport && (studentreportData.length > 0 || studentGroupreportData.length > 0) && (
-                                        <div className='-mx-8 mt-12 overflow-hidden rounded-lg bg-white shadow-xl'>
-                                            {/* Loading State */}
-                                            {reportLoading ? (
-                                                <div className='p-24 text-center'>
-                                                    <div className='inline-block h-14 w-14 animate-spin rounded-full border-4 border-primary border-t-transparent' />
-                                                    <p className='mt-6 text-lg text-muted-foreground'>Generating report, please wait...</p>
-                                                </div>
-                                            ) : (
-                                                /* Table Inside CollapsibleSection */
-                                                <CollapsibleSection
-                                                    defaultOpen={true}
-                                                    variant='default'
-                                                    size='lg'
-                                                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                                                    <div className='flex items-center justify-between border-b bg-primary/5 px-8 py-6'>
-                                                        <div className='mb-6 text-center'>
-                                                            <h2 className='font-bold text-2xl text-primary'>Fee Defaulter Report</h2>
-                                                        </div>
-                                                        {studentGroupreportData.length > 0 && (
-                                                            <div className='flex gap-3'>
-                                                                <div className='mb-4 flex justify-end gap-2'>
-                                                                    <Button
-                                                                        size='sm'
-                                                                        className='h-8 w-auto px-3 text-xs'
-                                                                        onClick={handleExportExcelforFeeGroupWise}>
-                                                                        Export Excel
-                                                                    </Button>
-
-                                                                    <Button
-                                                                        size='sm'
-                                                                        variant='outline'
-                                                                        className='h-8 w-auto px-3 text-xs'
-                                                                        onClick={handlePrintforFeeGroupWise}>
-                                                                        Print
-                                                                    </Button>
-                                                                </div>
+                                    {showReport &&
+                                        (studentreportData.length > 0 ||
+                                            studentGroupreportData.length > 0 ||
+                                            balancereportData.length > 0) && (
+                                            <div className='-mx-8 mt-12 overflow-hidden rounded-lg bg-white shadow-xl'>
+                                                {/* Loading State */}
+                                                {reportLoading ? (
+                                                    <div className='p-24 text-center'>
+                                                        <div className='inline-block h-14 w-14 animate-spin rounded-full border-4 border-primary border-t-transparent' />
+                                                        <p className='mt-6 text-lg text-muted-foreground'>
+                                                            Generating report, please wait...
+                                                        </p>
+                                                    </div>
+                                                ) : (
+                                                    /* Table Inside CollapsibleSection */
+                                                    <CollapsibleSection
+                                                        defaultOpen={true}
+                                                        variant='default'
+                                                        size='lg'
+                                                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                                                        <div className='flex items-center justify-between border-b bg-primary/5 px-8 py-6'>
+                                                            <div className='mb-6 text-center'>
+                                                                <h2 className='font-bold text-2xl text-primary'>Fee Defaulter Report</h2>
                                                             </div>
-                                                        )}
-                                                        {filters.userType === 'Student' &&
-                                                            studentreportData.length > 0 &&
-                                                            breakdown === 'FSW' && (
+                                                            {studentGroupreportData.length > 0 && (
                                                                 <div className='flex gap-3'>
                                                                     <div className='mb-4 flex justify-end gap-2'>
                                                                         <Button
                                                                             size='sm'
                                                                             className='h-8 w-auto px-3 text-xs'
-                                                                            onClick={handleExportExcelforFeeStudentorStaffWise}>
+                                                                            onClick={handleExportExcelforFeeGroupWise}>
                                                                             Export Excel
                                                                         </Button>
 
@@ -1582,35 +1711,83 @@ export default function FeeDefaulterReport() {
                                                                             size='sm'
                                                                             variant='outline'
                                                                             className='h-8 w-auto px-3 text-xs'
-                                                                            onClick={handlePrintforFeeStudentorStaffWise}>
+                                                                            onClick={handlePrintforFeeGroupWise}>
                                                                             Print
                                                                         </Button>
                                                                     </div>
                                                                 </div>
                                                             )}
-                                                        {filters.userType === 'Student' &&
-                                                            studentreportData.length > 0 &&
-                                                            breakdown === 'FIW' && (
-                                                                <div className='flex gap-3'>
-                                                                    <div className='mb-4 flex justify-end gap-2'>
-                                                                        <Button
-                                                                            size='sm'
-                                                                            className='h-8 w-auto px-3 text-xs'
-                                                                            onClick={handleExportExcelforFeeInstallmentWise}>
-                                                                            Export Excel
-                                                                        </Button>
+                                                            {filters.userType === 'Student' &&
+                                                                studentreportData.length > 0 &&
+                                                                breakdown === 'FSW' && (
+                                                                    <div className='flex gap-3'>
+                                                                        <div className='mb-4 flex justify-end gap-2'>
+                                                                            <Button
+                                                                                size='sm'
+                                                                                className='h-8 w-auto px-3 text-xs'
+                                                                                onClick={handleExportExcelforFeeStudentorStaffWise}>
+                                                                                Export Excel
+                                                                            </Button>
 
-                                                                        <Button
-                                                                            size='sm'
-                                                                            variant='outline'
-                                                                            className='h-8 w-auto px-3 text-xs'
-                                                                            onClick={handlePrintforFeeInstallmentWise}>
-                                                                            Print
-                                                                        </Button>
+                                                                            <Button
+                                                                                size='sm'
+                                                                                variant='outline'
+                                                                                className='h-8 w-auto px-3 text-xs'
+                                                                                onClick={handlePrintforFeeStudentorStaffWise}>
+                                                                                Print
+                                                                            </Button>
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                            )}
-                                                        {/* <div className="flex gap-3">
+                                                                )}
+                                                            {filters.userType === 'Student' &&
+                                                                studentreportData.length > 0 &&
+                                                                breakdown === 'FIW' && (
+                                                                    <div className='flex gap-3'>
+                                                                        <div className='mb-4 flex justify-end gap-2'>
+                                                                            <Button
+                                                                                size='sm'
+                                                                                className='h-8 w-auto px-3 text-xs'
+                                                                                onClick={handleExportExcelforFeeInstallmentWise}>
+                                                                                Export Excel
+                                                                            </Button>
+
+                                                                            <Button
+                                                                                size='sm'
+                                                                                variant='outline'
+                                                                                className='h-8 w-auto px-3 text-xs'
+                                                                                onClick={handlePrintforFeeInstallmentWise}>
+                                                                                Print
+                                                                            </Button>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+
+                                                            {filters.userType === 'Student' &&
+                                                                balancereportData.length > 0 &&
+                                                                breakdown === 'FSW' &&
+                                                                filters.status.balance === true && (
+                                                                    <div className='flex gap-3'>
+                                                                        <div className='mb-4 flex justify-end gap-2'>
+                                                                            <Button
+                                                                                size='sm'
+                                                                                className='h-8 w-auto px-3 text-xs'
+                                                                                onClick={
+                                                                                    HandleexportToExcelforFeeStudentorStaffWiseofBalance
+                                                                                }>
+                                                                                Export Excel
+                                                                            </Button>
+
+                                                                            <Button
+                                                                                size='sm'
+                                                                                variant='outline'
+                                                                                className='h-8 w-auto px-3 text-xs'
+                                                                                onClick={handlePrintforFeeStudentorStaffWiseofBalance}>
+                                                                                Print
+                                                                            </Button>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            {/* <div className="flex gap-3">
                               <div className="mb-4 flex justify-end gap-2">
                                 <Button
                                   size="sm"
@@ -1630,493 +1807,801 @@ export default function FeeDefaulterReport() {
                                 </Button>
                               </div>
                             </div> */}
-                                                        {selectedIds.length > 0 && (
-                                                            <div className='mb-4 rounded-lg border border-gray-300 bg-white p-4 shadow-sm'>
-                                                                {/* Checkboxes Section */}
-                                                                <div className='mb-3'>
-                                                                    <div className='flex items-center gap-2 font-medium text-gray-700 text-sm'>
-                                                                        <span>Please Select Check Box For:</span>
-                                                                        <div className='ml-2 flex items-center gap-4'>
-                                                                            {['email', 'sms', 'notification', 'whatsapp'].map((method) => (
-                                                                                <div key={method} className='flex items-center gap-1.5'>
+                                                            {selectedIds.length > 0 && (
+                                                                <div className='mb-4 rounded-lg border border-gray-300 bg-white p-4 shadow-sm'>
+                                                                    {/* Checkboxes Section */}
+                                                                    <div className='mb-3'>
+                                                                        <div className='flex items-center gap-2 font-medium text-gray-700 text-sm'>
+                                                                            <span>Please Select Check Box For:</span>
+                                                                            <div className='ml-2 flex items-center gap-4'>
+                                                                                {['email', 'sms', 'notification', 'whatsapp'].map(
+                                                                                    (method) => (
+                                                                                        <div
+                                                                                            key={method}
+                                                                                            className='flex items-center gap-1.5'>
+                                                                                            <Checkbox
+                                                                                                id={`${method}-checkbox`}
+                                                                                                checked={
+                                                                                                    communicationMethods[
+                                                                                                        method as keyof typeof communicationMethods
+                                                                                                    ]
+                                                                                                }
+                                                                                                onCheckedChange={() =>
+                                                                                                    toggleCommunicationMethod(
+                                                                                                        method as keyof typeof communicationMethods
+                                                                                                    )
+                                                                                                }
+                                                                                                className='h-4 w-4'
+                                                                                            />
+                                                                                            <Label
+                                                                                                htmlFor={`${method}-checkbox`}
+                                                                                                className='cursor-pointer text-sm uppercase'>
+                                                                                                {method === 'whatsapp'
+                                                                                                    ? 'WhatsApp'
+                                                                                                    : method}
+                                                                                            </Label>
+                                                                                        </div>
+                                                                                    )
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    {/* Show REQUEST button only if exactly ONE communication method is selected */}
+                                                                    {(communicationMethods.email ||
+                                                                        communicationMethods.sms ||
+                                                                        communicationMethods.notification) &&
+                                                                        !(communicationMethods.email && communicationMethods.sms) &&
+                                                                        !(
+                                                                            communicationMethods.email && communicationMethods.notification
+                                                                        ) &&
+                                                                        !(
+                                                                            communicationMethods.sms && communicationMethods.notification
+                                                                        ) && (
+                                                                            <div className='mt-3 flex justify-end'>
+                                                                                <Button
+                                                                                    size='sm'
+                                                                                    className='h-8 px-6 text-xs'
+                                                                                    onClick={handleRequestCommunication}
+                                                                                    disabled={selectedIds.length === 0}>
+                                                                                    REQUEST
+                                                                                </Button>
+                                                                            </div>
+                                                                        )}
+
+                                                                    {/* Show error if multiple methods are selected */}
+                                                                    {(communicationMethods.email && communicationMethods.sms) ||
+                                                                    (communicationMethods.email && communicationMethods.notification) ||
+                                                                    (communicationMethods.sms && communicationMethods.notification) ? (
+                                                                        <div className='mt-2 text-center text-red-500 text-sm'>
+                                                                            Please select only one communication method
+                                                                        </div>
+                                                                    ) : null}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div>
+                                                            {/* Search */}
+                                                            <input
+                                                                value={search}
+                                                                onChange={(e) => setSearch(e.target.value)}
+                                                                placeholder='Search...'
+                                                                className='w-72 rounded border px-3 py-2'
+                                                            />
+
+                                                            {/* Table */}
+                                                            {studentGroupreportData.length > 0 && (
+                                                                <div className='overflow-x-auto border'>
+                                                                    <table className='w-full table-auto border-collapse'>
+                                                                        <thead className='bg-primary text-white'>
+                                                                            <tr>
+                                                                                <th className='p-2 text-center'>
                                                                                     <Checkbox
-                                                                                        id={`${method}-checkbox`}
                                                                                         checked={
-                                                                                            communicationMethods[
-                                                                                                method as keyof typeof communicationMethods
-                                                                                            ]
+                                                                                            selectedIds.length === filteredData.length &&
+                                                                                            filteredData.length > 0
                                                                                         }
-                                                                                        onCheckedChange={() =>
-                                                                                            toggleCommunicationMethod(
-                                                                                                method as keyof typeof communicationMethods
-                                                                                            )
+                                                                                        indeterminate={
+                                                                                            selectedIds.length > 0 &&
+                                                                                            selectedIds.length < filteredData.length
                                                                                         }
-                                                                                        className='h-4 w-4'
+                                                                                        onCheckedChange={toggleAll}
                                                                                     />
-                                                                                    <Label
-                                                                                        htmlFor={`${method}-checkbox`}
-                                                                                        className='cursor-pointer text-sm uppercase'>
-                                                                                        {method === 'whatsapp' ? 'WhatsApp' : method}
-                                                                                    </Label>
-                                                                                </div>
+                                                                                </th>
+                                                                                <th className='p-2 text-center'>Sl No</th>
+                                                                                <th
+                                                                                    className='cursor-pointer p-2 text-center'
+                                                                                    onClick={() => handleSort('feeGroup')}>
+                                                                                    Group Name{' '}
+                                                                                    {sortKey === 'feeGroup' &&
+                                                                                        (sortOrder === 'asc' ? '↑' : '↓')}
+                                                                                </th>
+                                                                                <th
+                                                                                    className='cursor-pointer p-2 text-center'
+                                                                                    onClick={() => handleSort('totalDue')}>
+                                                                                    Balance Amount{' '}
+                                                                                    {sortKey === 'totalDue' &&
+                                                                                        (sortOrder === 'asc' ? '↑' : '↓')}
+                                                                                </th>
+                                                                            </tr>
+                                                                        </thead>
+
+                                                                        <tbody>
+                                                                            {studentGroupreportData.map((row, index) => (
+                                                                                <tr key={row.id} className='border-b'>
+                                                                                    <td className='p-2 text-center'>
+                                                                                        <Checkbox
+                                                                                            checked={selectedIds.includes(row.id)}
+                                                                                            onCheckedChange={() => toggleRow(row.id)}
+                                                                                        />
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-medium'>
+                                                                                        {index + 1}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-medium'>
+                                                                                        {row.fmG_GroupName}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold'>
+                                                                                        ₹{row.totalBalance.toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                </tr>
                                                                             ))}
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
 
-                                                                {/* Show REQUEST button only if exactly ONE communication method is selected */}
-                                                                {(communicationMethods.email ||
-                                                                    communicationMethods.sms ||
-                                                                    communicationMethods.notification) &&
-                                                                    !(communicationMethods.email && communicationMethods.sms) &&
-                                                                    !(communicationMethods.email && communicationMethods.notification) &&
-                                                                    !(communicationMethods.sms && communicationMethods.notification) && (
-                                                                        <div className='mt-3 flex justify-end'>
-                                                                            <Button
-                                                                                size='sm'
-                                                                                className='h-8 px-6 text-xs'
-                                                                                onClick={handleRequestCommunication}
-                                                                                disabled={selectedIds.length === 0}>
-                                                                                REQUEST
-                                                                            </Button>
-                                                                        </div>
-                                                                    )}
-
-                                                                {/* Show error if multiple methods are selected */}
-                                                                {(communicationMethods.email && communicationMethods.sms) ||
-                                                                (communicationMethods.email && communicationMethods.notification) ||
-                                                                (communicationMethods.sms && communicationMethods.notification) ? (
-                                                                    <div className='mt-2 text-center text-red-500 text-sm'>
-                                                                        Please select only one communication method
-                                                                    </div>
-                                                                ) : null}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    <div>
-                                                        {/* Search */}
-                                                        <input
-                                                            value={search}
-                                                            onChange={(e) => setSearch(e.target.value)}
-                                                            placeholder='Search...'
-                                                            className='w-72 rounded border px-3 py-2'
-                                                        />
-
-                                                        {/* Table */}
-                                                        {studentGroupreportData.length > 0 && (
-                                                            <div className='overflow-x-auto border'>
-                                                                <table className='w-full table-auto border-collapse'>
-                                                                    <thead className='bg-primary text-white'>
-                                                                        <tr>
-                                                                            <th className='p-2 text-center'>
-                                                                                <Checkbox
-                                                                                    checked={
-                                                                                        selectedIds.length === filteredData.length &&
-                                                                                        filteredData.length > 0
-                                                                                    }
-                                                                                    indeterminate={
-                                                                                        selectedIds.length > 0 &&
-                                                                                        selectedIds.length < filteredData.length
-                                                                                    }
-                                                                                    onCheckedChange={toggleAll}
-                                                                                />
-                                                                            </th>
-                                                                            <th className='p-2 text-center'>Sl No</th>
-                                                                            <th
-                                                                                className='cursor-pointer p-2 text-center'
-                                                                                onClick={() => handleSort('feeGroup')}>
-                                                                                Group Name{' '}
-                                                                                {sortKey === 'feeGroup' &&
-                                                                                    (sortOrder === 'asc' ? '↑' : '↓')}
-                                                                            </th>
-                                                                            <th
-                                                                                className='cursor-pointer p-2 text-center'
-                                                                                onClick={() => handleSort('totalDue')}>
-                                                                                Balance Amount{' '}
-                                                                                {sortKey === 'totalDue' &&
-                                                                                    (sortOrder === 'asc' ? '↑' : '↓')}
-                                                                            </th>
-                                                                        </tr>
-                                                                    </thead>
-
-                                                                    <tbody>
-                                                                        {studentGroupreportData.map((row, index) => (
-                                                                            <tr key={row.id} className='border-b'>
+                                                                            {/* Total */}
+                                                                            <tr className='bg-gray-100 font-bold'>
+                                                                                <td />
+                                                                                <td />
+                                                                                <td className='p-2 text-center'>Total</td>
                                                                                 <td className='p-2 text-center'>
-                                                                                    <Checkbox
-                                                                                        checked={selectedIds.includes(row.id)}
-                                                                                        onCheckedChange={() => toggleRow(row.id)}
-                                                                                    />
-                                                                                </td>
-                                                                                <td className='p-2 text-center font-medium'>{index + 1}</td>
-                                                                                <td className='p-2 text-center font-medium'>
-                                                                                    {row.fmG_GroupName}
-                                                                                </td>
-                                                                                <td className='p-2 text-center font-bold'>
-                                                                                    ₹{row.totalBalance.toLocaleString('en-IN')}
+                                                                                    ₹{totalBalance.toLocaleString('en-IN')}
                                                                                 </td>
                                                                             </tr>
-                                                                        ))}
 
-                                                                        {/* Total */}
-                                                                        <tr className='bg-gray-100 font-bold'>
-                                                                            <td />
-                                                                            <td />
-                                                                            <td className='p-2 text-center'>Total</td>
-                                                                            <td className='p-2 text-center'>
-                                                                                ₹{totalBalance.toLocaleString('en-IN')}
-                                                                            </td>
-                                                                        </tr>
-
-                                                                        {/* Selected Total */}
-                                                                        <tr className='bg-gray-200 font-bold'>
-                                                                            <td />
-                                                                            <td />
-                                                                            <td className='p-2 text-center'>Selected Balance</td>
-                                                                            <td className='p-2 text-center'>
-                                                                                ₹{selectedBalance.toLocaleString('en-IN')}
-                                                                            </td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
-                                                            </div>
-                                                        )}
-                                                        {filters.userType === 'Student' &&
-                                                            studentreportData.length > 0 &&
-                                                            breakdown === 'FSW' && (
-                                                                <div className='overflow-x-auto border'>
-                                                                    <table className='w-full table-auto border-collapse'>
-                                                                        <thead className='bg-primary text-white'>
-                                                                            <tr>
-                                                                                <th className='p-2 text-center'>
-                                                                                    <Checkbox
-                                                                                        checked={
-                                                                                            selectedIds.length ===
-                                                                                                studentreportData.length &&
-                                                                                            studentreportData.length > 0
-                                                                                        }
-                                                                                        indeterminate={
-                                                                                            selectedIds.length > 0 &&
-                                                                                            selectedIds.length < studentreportData.length
-                                                                                        }
-                                                                                        onCheckedChange={toggleAllstudents}
-                                                                                    />
-                                                                                </th>
-                                                                                <th className='p-2 text-center'>Sl No</th>
-                                                                                <th className='p-2 text-center'>
-                                                                                    <Button
-                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
-                                                                                        onClick={() => handleSortfull('studentName')}
-                                                                                    >
-                                                                                        Name
-                                                                                        {sortConfig?.key === 'studentName' && (
-                                                                                            <ArrowUpDown className='h-4 w-4' />
-                                                                                        )}
-                                                                                    </Button>
-                                                                                </th>
-                                                                                <th className='p-2 text-center'>
-                                                                                    <Button
-                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
-                                                                                        onClick={() => handleSortfull('amsT_AdmNo')}
-                                                                                    >
-                                                                                        Admission No
-                                                                                        {sortConfig?.key === 'amsT_AdmNo' && (
-                                                                                            <ArrowUpDown className='h-4 w-4' />
-                                                                                        )}
-                                                                                    </Button>
-                                                                                </th>
-                                                                                <th className='p-2 text-center'>
-                                                                                    <Button
-                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
-                                                                                        onClick={() => handleSortfull('classSection')}
-                                                                                    >
-                                                                                        Class & Section
-                                                                                        {sortConfig?.key === 'classSection' && (
-                                                                                            <ArrowUpDown className='h-4 w-4' />
-                                                                                        )}
-                                                                                    </Button>
-                                                                                </th>
-                                                                                <th className='p-2 text-center'>
-                                                                                    <Button
-                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
-                                                                                        onClick={() => handleSortfull('amsT_FatherName')}
-                                                                                    >
-                                                                                        Father Name
-                                                                                        {sortConfig?.key === 'amsT_FatherName' && (
-                                                                                            <ArrowUpDown className='h-4 w-4' />
-                                                                                        )}
-                                                                                    </Button>
-                                                                                </th>
-                                                                                <th className='p-2 text-center'>
-                                                                                    <Button
-                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
-                                                                                        onClick={() => handleSortfull('amsT_MobileNo')}
-                                                                                    >
-                                                                                        Mobile Number
-                                                                                        {sortConfig?.key === 'amsT_MobileNo' && (
-                                                                                            <ArrowUpDown className='h-4 w-4' />
-                                                                                        )}
-                                                                                    </Button>
-                                                                                </th>
-                                                                                <th className='p-2 text-center'>
-                                                                                    <Button
-                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
-                                                                                        onClick={() => handleSortfull('amsT_emailId')}
-                                                                                    >
-                                                                                        Email ID
-                                                                                        {sortConfig?.key === 'amsT_emailId' && (
-                                                                                            <ArrowUpDown className='h-4 w-4' />
-                                                                                        )}
-                                                                                    </Button>
-                                                                                </th>
-                                                                                <th className='p-2 text-center'>
-                                                                                    <Button
-                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
-                                                                                        onClick={() => handleSortfull('amsT_Route')}
-                                                                                    >
-                                                                                        Route
-                                                                                        {sortConfig?.key === 'amsT_Route' && (
-                                                                                            <ArrowUpDown className='h-4 w-4' />
-                                                                                        )}
-                                                                                    </Button>
-                                                                                </th>
-                                                                                <th className='p-2 text-center'>
-                                                                                    <Button
-                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
-                                                                                        onClick={() => handleSortfull('totalBalance')}
-                                                                                    >
-                                                                                        Balance Amount
-                                                                                        {sortConfig?.key === 'totalBalance' && (
-                                                                                            <ArrowUpDown className='h-4 w-4' />
-                                                                                        )}
-                                                                                    </Button>
-                                                                                </th>
+                                                                            {/* Selected Total */}
+                                                                            <tr className='bg-gray-200 font-bold'>
+                                                                                <td />
+                                                                                <td />
+                                                                                <td className='p-2 text-center'>Selected Balance</td>
+                                                                                <td className='p-2 text-center'>
+                                                                                    ₹{selectedBalance.toLocaleString('en-IN')}
+                                                                                </td>
                                                                             </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            {filteredStudentData.length === 0 ? (
-                                                                                <tr>
-                                                                                    <td
-                                                                                        colSpan={11}
-                                                                                        className='p-4 text-center text-gray-500'>
-                                                                                        {search.trim()
-                                                                                            ? `No students found for "${search}"`
-                                                                                            : 'No student data available'}
-                                                                                    </td>
-                                                                                </tr>
-                                                                            ) : (
-                                                                                // Use sortedData for display (which sorts the filtered data)
-                                                                                sortedData.map((row, index) => (
-                                                                                    <tr key={row.id} className='border-b hover:bg-gray-50'>
-                                                                                        <td className='p-2 text-center'>
-                                                                                            <Checkbox
-                                                                                                checked={selectedIds.includes(row.id)}
-                                                                                                onCheckedChange={() => toggleRow(row.id)}
-                                                                                            />
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center font-medium'>
-                                                                                            {index + 1}
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center font-medium'>
-                                                                                            {row.studentName}
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center'>
-                                                                                            {row.amsT_AdmNo}
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center'>
-                                                                                            {row.classSection}
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center'>
-                                                                                            {row.amsT_FatherName}
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center'>
-                                                                                            {row.amsT_MobileNo}
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center'>
-                                                                                            {row.amsT_emailId}
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center'>
-                                                                                            {row.amsT_Route}
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center font-bold'>
-                                                                                            ₹{row.totalBalance.toLocaleString('en-IN')}
-                                                                                        </td>
-                                                                                    </tr>
-                                                                                ))
-                                                                            )}
                                                                         </tbody>
                                                                     </table>
-                                                                    <div>Total Records : {studentreportData.length}</div>
                                                                 </div>
                                                             )}
-                                                        {filters.userType === 'Student' &&
-                                                            studentreportData.length > 0 &&
-                                                            breakdown === 'FIW' && (
-                                                                <div className='overflow-x-auto border'>
-                                                                    <table className='w-full table-auto border-collapse'>
-                                                                        <thead className='bg-primary text-white'>
-                                                                            <tr>
-                                                                                <th className='p-2 text-center'>
-                                                                                    <Checkbox
-                                                                                        checked={
-                                                                                            selectedIds.length ===
-                                                                                                studentreportData.length &&
-                                                                                            studentreportData.length > 0
-                                                                                        }
-                                                                                        indeterminate={
-                                                                                            selectedIds.length > 0 &&
-                                                                                            selectedIds.length < studentreportData.length
-                                                                                        }
-                                                                                        onCheckedChange={toggleAllstudents}
-                                                                                    />
-                                                                                </th>
-                                                                                <th className='p-2 text-center'>Sl No</th>
-                                                                                <th className='p-2 text-center'>
-                                                                                    <Button onClick={() => handleSortfull('studentName')}>
-                                                                                        Name
-                                                                                        {sortConfig?.key === 'studentName' && (
-                                                                                            <ArrowUpDown className='h-4 w-4' />
-                                                                                        )}
-                                                                                    </Button>
-                                                                                </th>
-                                                                                <th className='p-2 text-center'>
-                                                                                    <Button
-                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
-                                                                                        onClick={() => handleSortfull('amsT_AdmNo')}
-                                                                                    >
-                                                                                        Admission No
-                                                                                        {sortConfig?.key === 'amsT_AdmNo' && (
-                                                                                            <ArrowUpDown className='h-4 w-4' />
-                                                                                        )}
-                                                                                    </Button>
-                                                                                </th>
-                                                                                <th className='p-2 text-center'>
-                                                                                    <Button
-                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
-                                                                                        onClick={() => handleSortfull('classSection')}
-                                                                                    >
-                                                                                        Class & Section
-                                                                                        {sortConfig?.key === 'classSection' && (
-                                                                                            <ArrowUpDown className='h-4 w-4' />
-                                                                                        )}
-                                                                                    </Button>
-                                                                                </th>
-                                                                                <th className='p-2 text-center'>
-                                                                                    <Button
-                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
-                                                                                        onClick={() => handleSortfull('amsT_FatherName')}
-                                                                                    >
-                                                                                        Father Name
-                                                                                        {sortConfig?.key === 'amsT_FatherName' && (
-                                                                                            <ArrowUpDown className='h-4 w-4' />
-                                                                                        )}
-                                                                                    </Button>
-                                                                                </th>
-                                                                                <th className='p-2 text-center'>
-                                                                                    <Button
-                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
-                                                                                        onClick={() => handleSortfull('amsT_MobileNo')}
-                                                                                    >
-                                                                                        Mobile Number
-                                                                                        {sortConfig?.key === 'amsT_MobileNo' && (
-                                                                                            <ArrowUpDown className='h-4 w-4' />
-                                                                                        )}
-                                                                                    </Button>
-                                                                                </th>
-                                                                                <th className='p-2 text-center'>
-                                                                                    <Button
-                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
-                                                                                        onClick={() => handleSortfull('amsT_emailId')}
-                                                                                    >
-                                                                                        Email ID
-                                                                                        {sortConfig?.key === 'amsT_emailId' && (
-                                                                                            <ArrowUpDown className='h-4 w-4' />
-                                                                                        )}
-                                                                                    </Button>
-                                                                                </th>
-                                                                                <th className='p-2 text-center'>
-                                                                                    <Button
-                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
-                                                                                        onClick={() => handleSortfull('fmT_Name')}
-                                                                                    >
-                                                                                        Term
-                                                                                        {sortConfig?.key === 'fmT_Name' && (
-                                                                                            <ArrowUpDown className='h-4 w-4' />
-                                                                                        )}
-                                                                                    </Button>
-                                                                                </th>
-                                                                                <th className='p-2 text-center'>
-                                                                                    <Button
-                                                                                        // className='flex items-center justify-center gap-1 hover:underline'
-                                                                                        onClick={() => handleSortfull('totalBalance')}
-                                                                                    >
-                                                                                        Balance Amount
-                                                                                        {sortConfig?.key === 'totalBalance' && (
-                                                                                            <ArrowUpDown className='h-4 w-4' />
-                                                                                        )}
-                                                                                    </Button>
-                                                                                </th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            {filteredStudentData.length === 0 ? (
+                                                            {filters.userType === 'Student' &&
+                                                                studentreportData.length > 0 &&
+                                                                breakdown === 'FSW' && (
+                                                                    <div className='overflow-x-auto border'>
+                                                                        <table className='w-full table-auto border-collapse'>
+                                                                            <thead className='bg-primary text-white'>
                                                                                 <tr>
-                                                                                    <td
-                                                                                        colSpan={11}
-                                                                                        className='p-4 text-center text-gray-500'>
-                                                                                        {search.trim()
-                                                                                            ? `No students found for "${search}"`
-                                                                                            : 'No student data available'}
-                                                                                    </td>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Checkbox
+                                                                                            checked={
+                                                                                                selectedIds.length ===
+                                                                                                    studentreportData.length &&
+                                                                                                studentreportData.length > 0
+                                                                                            }
+                                                                                            indeterminate={
+                                                                                                selectedIds.length > 0 &&
+                                                                                                selectedIds.length <
+                                                                                                    studentreportData.length
+                                                                                            }
+                                                                                            onCheckedChange={toggleAllstudents}
+                                                                                        />
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>Sl No</th>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Button
+                                                                                            // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                            onClick={() => handleSortfull('studentName')}
+                                                                                        >
+                                                                                            Name
+                                                                                            {sortConfig?.key === 'studentName' && (
+                                                                                                <ArrowUpDown className='h-4 w-4' />
+                                                                                            )}
+                                                                                        </Button>
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Button
+                                                                                            // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                            onClick={() => handleSortfull('amsT_AdmNo')}
+                                                                                        >
+                                                                                            Admission No
+                                                                                            {sortConfig?.key === 'amsT_AdmNo' && (
+                                                                                                <ArrowUpDown className='h-4 w-4' />
+                                                                                            )}
+                                                                                        </Button>
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Button
+                                                                                            // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                            onClick={() => handleSortfull('classSection')}
+                                                                                        >
+                                                                                            Class & Section
+                                                                                            {sortConfig?.key === 'classSection' && (
+                                                                                                <ArrowUpDown className='h-4 w-4' />
+                                                                                            )}
+                                                                                        </Button>
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Button
+                                                                                            // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                            onClick={() =>
+                                                                                                handleSortfull('amsT_FatherName')
+                                                                                            }
+                                                                                        >
+                                                                                            Father Name
+                                                                                            {sortConfig?.key === 'amsT_FatherName' && (
+                                                                                                <ArrowUpDown className='h-4 w-4' />
+                                                                                            )}
+                                                                                        </Button>
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Button
+                                                                                            // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                            onClick={() => handleSortfull('amsT_MobileNo')}
+                                                                                        >
+                                                                                            Mobile Number
+                                                                                            {sortConfig?.key === 'amsT_MobileNo' && (
+                                                                                                <ArrowUpDown className='h-4 w-4' />
+                                                                                            )}
+                                                                                        </Button>
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Button
+                                                                                            // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                            onClick={() => handleSortfull('amsT_emailId')}
+                                                                                        >
+                                                                                            Email ID
+                                                                                            {sortConfig?.key === 'amsT_emailId' && (
+                                                                                                <ArrowUpDown className='h-4 w-4' />
+                                                                                            )}
+                                                                                        </Button>
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Button
+                                                                                            // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                            onClick={() => handleSortfull('amsT_Route')}
+                                                                                        >
+                                                                                            Route
+                                                                                            {sortConfig?.key === 'amsT_Route' && (
+                                                                                                <ArrowUpDown className='h-4 w-4' />
+                                                                                            )}
+                                                                                        </Button>
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Button
+                                                                                            // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                            onClick={() => handleSortfull('totalBalance')}
+                                                                                        >
+                                                                                            Balance Amount
+                                                                                            {sortConfig?.key === 'totalBalance' && (
+                                                                                                <ArrowUpDown className='h-4 w-4' />
+                                                                                            )}
+                                                                                        </Button>
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Button
+                                                                                            // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                            onClick={() => handleSortfull('totalBalance')}
+                                                                                        >
+                                                                                            Fine Amount
+                                                                                            {sortConfig?.key === 'totalBalance' && (
+                                                                                                <ArrowUpDown className='h-4 w-4' />
+                                                                                            )}
+                                                                                        </Button>
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Button
+                                                                                            // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                            onClick={() => handleSortfull('totalBalance')}
+                                                                                        >
+                                                                                            Total Amount
+                                                                                            {sortConfig?.key === 'totalBalance' && (
+                                                                                                <ArrowUpDown className='h-4 w-4' />
+                                                                                            )}
+                                                                                        </Button>
+                                                                                    </th>
                                                                                 </tr>
-                                                                            ) : (
-                                                                                // Use sortedData for display (which sorts the filtered data)
-                                                                                sortedData.map((row, index) => (
-                                                                                    <tr key={row.id} className='border-b hover:bg-gray-50'>
-                                                                                        <td className='p-2 text-center'>
-                                                                                            <Checkbox
-                                                                                                checked={selectedIds.includes(row.id)}
-                                                                                                onCheckedChange={() => toggleRow(row.id)}
-                                                                                            />
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center font-medium'>
-                                                                                            {index + 1}
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center font-medium'>
-                                                                                            {row.studentName}
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center'>
-                                                                                            {row.amsT_AdmNo}
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center'>
-                                                                                            {row.classSection}
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center'>
-                                                                                            {row.amsT_FatherName}
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center'>
-                                                                                            {row.amsT_MobileNo}
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center'>
-                                                                                            {row.amsT_emailId}
-                                                                                        </td>
-                                                                                        <td className='p-2 text-center'>{row.fmT_Name}</td>
-                                                                                        <td className='p-2 text-center font-bold'>
-                                                                                            ₹{row.totalBalance.toLocaleString('en-IN')}
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                {filteredStudentData.length === 0 ? (
+                                                                                    <tr>
+                                                                                        <td
+                                                                                            colSpan={11}
+                                                                                            className='p-4 text-center text-gray-500'>
+                                                                                            {search.trim()
+                                                                                                ? `No students found for "${search}"`
+                                                                                                : 'No student data available'}
                                                                                         </td>
                                                                                     </tr>
-                                                                                ))
-                                                                            )}
-                                                                        </tbody>
-                                                                    </table>
-                                                                    <div>Total Records : {studentreportData.length}</div>
-                                                                </div>
-                                                            )}
-                                                    </div>
-                                                </CollapsibleSection>
-                                            )}
-                                        </div>
-                                    )}
+                                                                                ) : (
+                                                                                    // Use sortedData for display (which sorts the filtered data)
+                                                                                    sortedData.map((row, index) => (
+                                                                                        <tr
+                                                                                            key={row.id}
+                                                                                            className='border-b hover:bg-gray-50'>
+                                                                                            <td className='p-2 text-center'>
+                                                                                                <Checkbox
+                                                                                                    checked={selectedIds.includes(row.id)}
+                                                                                                    onCheckedChange={() =>
+                                                                                                        toggleRow(row.id)
+                                                                                                    }
+                                                                                                />
+                                                                                            </td>
+                                                                                            <td className='p-2 text-center font-medium'>
+                                                                                                {index + 1}
+                                                                                            </td>
+                                                                                            <td className='p-2 text-center font-medium'>
+                                                                                                {row.studentName}
+                                                                                            </td>
+                                                                                            <td className='p-2 text-center'>
+                                                                                                {row.amsT_AdmNo}
+                                                                                            </td>
+                                                                                            <td className='p-2 text-center'>
+                                                                                                {row.classSection}
+                                                                                            </td>
+                                                                                            <td className='p-2 text-center'>
+                                                                                                {row.amsT_FatherName}
+                                                                                            </td>
+                                                                                            <td className='p-2 text-center'>
+                                                                                                {row.amsT_MobileNo}
+                                                                                            </td>
+                                                                                            <td className='p-2 text-center'>
+                                                                                                {row.amsT_emailId}
+                                                                                            </td>
+                                                                                            <td className='p-2 text-center'>
+                                                                                                {row.amsT_Route}
+                                                                                            </td>
+                                                                                            <td className='p-2 text-center font-bold'>
+                                                                                                ₹{row.totalBalance.toLocaleString('en-IN')}
+                                                                                            </td>
+                                                                                            <td className='p-2 text-center font-bold'>
+                                                                                                ₹{row.fine_Amount ?? 0}
+                                                                                            </td>
+                                                                                            <td className='p-2 text-center font-bold'>
+                                                                                                ₹{row.totalBalance.toLocaleString('en-IN')}
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    ))
+                                                                                )}
+                                                                                <tr className='bg-gray-100 font-bold'>
+                                                                                    <td colSpan={9} className='p-2 text-right'>
+                                                                                        Balance:
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {sortedData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.totalBalance || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {sortedData.reduce(
+                                                                                            (sum, row) => sum + (row.fine_Amount || 0),
+                                                                                            0
+                                                                                        )}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {sortedData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.totalBalance || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td colSpan={2}> </td>
+                                                                                </tr>
+                                                                            </tbody>
+                                                                        </table>
+                                                                        <div>Total Records : {studentreportData.length}</div>
+                                                                    </div>
+                                                                )}
+                                                            {filters.userType === 'Student' &&
+                                                                studentreportData.length > 0 &&
+                                                                breakdown === 'FIW' && (
+                                                                    <div className='overflow-x-auto border'>
+                                                                        <table className='w-full table-auto border-collapse'>
+                                                                            <thead className='bg-primary text-white'>
+                                                                                <tr>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Checkbox
+                                                                                            checked={
+                                                                                                selectedIds.length ===
+                                                                                                    studentreportData.length &&
+                                                                                                studentreportData.length > 0
+                                                                                            }
+                                                                                            indeterminate={
+                                                                                                selectedIds.length > 0 &&
+                                                                                                selectedIds.length <
+                                                                                                    studentreportData.length
+                                                                                            }
+                                                                                            onCheckedChange={toggleAllstudents}
+                                                                                        />
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>Sl No</th>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Button
+                                                                                            onClick={() => handleSortfull('studentName')}>
+                                                                                            Name
+                                                                                            {sortConfig?.key === 'studentName' && (
+                                                                                                <ArrowUpDown className='h-4 w-4' />
+                                                                                            )}
+                                                                                        </Button>
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Button
+                                                                                            // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                            onClick={() => handleSortfull('amsT_AdmNo')}
+                                                                                        >
+                                                                                            Admission No
+                                                                                            {sortConfig?.key === 'amsT_AdmNo' && (
+                                                                                                <ArrowUpDown className='h-4 w-4' />
+                                                                                            )}
+                                                                                        </Button>
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Button
+                                                                                            // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                            onClick={() => handleSortfull('classSection')}
+                                                                                        >
+                                                                                            Class & Section
+                                                                                            {sortConfig?.key === 'classSection' && (
+                                                                                                <ArrowUpDown className='h-4 w-4' />
+                                                                                            )}
+                                                                                        </Button>
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Button
+                                                                                            // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                            onClick={() =>
+                                                                                                handleSortfull('amsT_FatherName')
+                                                                                            }
+                                                                                        >
+                                                                                            Father Name
+                                                                                            {sortConfig?.key === 'amsT_FatherName' && (
+                                                                                                <ArrowUpDown className='h-4 w-4' />
+                                                                                            )}
+                                                                                        </Button>
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Button
+                                                                                            // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                            onClick={() => handleSortfull('amsT_MobileNo')}
+                                                                                        >
+                                                                                            Mobile Number
+                                                                                            {sortConfig?.key === 'amsT_MobileNo' && (
+                                                                                                <ArrowUpDown className='h-4 w-4' />
+                                                                                            )}
+                                                                                        </Button>
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Button
+                                                                                            // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                            onClick={() => handleSortfull('amsT_emailId')}
+                                                                                        >
+                                                                                            Email ID
+                                                                                            {sortConfig?.key === 'amsT_emailId' && (
+                                                                                                <ArrowUpDown className='h-4 w-4' />
+                                                                                            )}
+                                                                                        </Button>
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Button
+                                                                                            // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                            onClick={() => handleSortfull('fmT_Name')}
+                                                                                        >
+                                                                                            Term
+                                                                                            {sortConfig?.key === 'fmT_Name' && (
+                                                                                                <ArrowUpDown className='h-4 w-4' />
+                                                                                            )}
+                                                                                        </Button>
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Button
+                                                                                            // className='flex items-center justify-center gap-1 hover:underline'
+                                                                                            onClick={() => handleSortfull('totalBalance')}
+                                                                                        >
+                                                                                            Balance Amount
+                                                                                            {sortConfig?.key === 'totalBalance' && (
+                                                                                                <ArrowUpDown className='h-4 w-4' />
+                                                                                            )}
+                                                                                        </Button>
+                                                                                    </th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                {filteredStudentData.length === 0 ? (
+                                                                                    <tr>
+                                                                                        <td
+                                                                                            colSpan={11}
+                                                                                            className='p-4 text-center text-gray-500'>
+                                                                                            {search.trim()
+                                                                                                ? `No students found for "${search}"`
+                                                                                                : 'No student data available'}
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                ) : (
+                                                                                    // Use sortedData for display (which sorts the filtered data)
+                                                                                    sortedData.map((row, index) => (
+                                                                                        <tr
+                                                                                            key={row.id}
+                                                                                            className='border-b hover:bg-gray-50'>
+                                                                                            <td className='p-2 text-center'>
+                                                                                                <Checkbox
+                                                                                                    checked={selectedIds.includes(row.id)}
+                                                                                                    onCheckedChange={() =>
+                                                                                                        toggleRow(row.id)
+                                                                                                    }
+                                                                                                />
+                                                                                            </td>
+                                                                                            <td className='p-2 text-center font-medium'>
+                                                                                                {index + 1}
+                                                                                            </td>
+                                                                                            <td className='p-2 text-center font-medium'>
+                                                                                                {row.studentName}
+                                                                                            </td>
+                                                                                            <td className='p-2 text-center'>
+                                                                                                {row.amsT_AdmNo}
+                                                                                            </td>
+                                                                                            <td className='p-2 text-center'>
+                                                                                                {row.classSection}
+                                                                                            </td>
+                                                                                            <td className='p-2 text-center'>
+                                                                                                {row.amsT_FatherName}
+                                                                                            </td>
+                                                                                            <td className='p-2 text-center'>
+                                                                                                {row.amsT_MobileNo}
+                                                                                            </td>
+                                                                                            <td className='p-2 text-center'>
+                                                                                                {row.amsT_emailId}
+                                                                                            </td>
+                                                                                            <td className='p-2 text-center'>
+                                                                                                {row.fmT_Name}
+                                                                                            </td>
+                                                                                            <td className='p-2 text-center font-bold'>
+                                                                                                ₹{row.totalBalance.toLocaleString('en-IN')}
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    ))
+                                                                                )}
+                                                                            </tbody>
+                                                                        </table>
+                                                                        <div>Total Records : {studentreportData.length}</div>
+                                                                    </div>
+                                                                )}
+                                                            {filters.userType === 'Student' &&
+                                                                balancereportData.length > 0 &&
+                                                                breakdown === 'FSW' &&
+                                                                filters.status.balance === true && (
+                                                                    <div className='overflow-x-auto border'>
+                                                                        <table className='w-full table-auto border-collapse'>
+                                                                            <thead className='bg-primary text-white'>
+                                                                                <tr>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Checkbox
+                                                                                            checked={
+                                                                                                selectedIds.length ===
+                                                                                                    balancereportData.length &&
+                                                                                                balancereportData.length > 0
+                                                                                            }
+                                                                                            indeterminate={
+                                                                                                selectedIds.length > 0 &&
+                                                                                                selectedIds.length <
+                                                                                                    balancereportData.length
+                                                                                            }
+                                                                                            onCheckedChange={toggleAllBalance}
+                                                                                        />
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>Sl No</th>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Button
+                                                                                            onClick={() => handleSortfull('studentName')}>
+                                                                                            Name
+                                                                                            {sortConfig?.key === 'studentName' && (
+                                                                                                <ArrowUpDown className='h-4 w-4' />
+                                                                                            )}
+                                                                                        </Button>
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Button onClick={() => handleSortfull('admno')}>
+                                                                                            Admission No
+                                                                                            {sortConfig?.key === 'admno' && (
+                                                                                                <ArrowUpDown className='h-4 w-4' />
+                                                                                            )}
+                                                                                        </Button>
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Button onClick={() => handleSortfull('className')}>
+                                                                                            Class
+                                                                                            {sortConfig?.key === 'className' && (
+                                                                                                <ArrowUpDown className='h-4 w-4' />
+                                                                                            )}
+                                                                                        </Button>
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Button
+                                                                                            onClick={() => handleSortfull('sectionName')}>
+                                                                                            Section
+                                                                                            {sortConfig?.key === 'sectionName' && (
+                                                                                                <ArrowUpDown className='h-4 w-4' />
+                                                                                            )}
+                                                                                        </Button>
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Button
+                                                                                            onClick={() => handleSortfull('fatherName')}>
+                                                                                            Father Name
+                                                                                            {sortConfig?.key === 'fatherName' && (
+                                                                                                <ArrowUpDown className='h-4 w-4' />
+                                                                                            )}
+                                                                                        </Button>
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Button onClick={() => handleSortfull('mobileNo')}>
+                                                                                            Mobile Number
+                                                                                            {sortConfig?.key === 'mobileNo' && (
+                                                                                                <ArrowUpDown className='h-4 w-4' />
+                                                                                            )}
+                                                                                        </Button>
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Button onClick={() => handleSortfull('email')}>
+                                                                                            Email ID
+                                                                                            {sortConfig?.key === 'email' && (
+                                                                                                <ArrowUpDown className='h-4 w-4' />
+                                                                                            )}
+                                                                                        </Button>
+                                                                                    </th>
+                                                                                    {dynamicFeeNames.map((feeName) => (
+                                                                                        <th key={feeName} className='p-2 text-center'>
+                                                                                            <Button
+                                                                                                onClick={() => handleSortfull('feeName')}>
+                                                                                                {feeName}
+                                                                                                {sortConfig?.key === 'feeName' && (
+                                                                                                    <ArrowUpDown className='h-4 w-4' />
+                                                                                                )}
+                                                                                            </Button>
+                                                                                        </th>
+                                                                                    ))}
+
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Button onClick={() => handleSortfull('tobepaid')}>
+                                                                                            Total Balance
+                                                                                            {sortConfig?.key === 'tobepaid' && (
+                                                                                                <ArrowUpDown className='h-4 w-4' />
+                                                                                            )}
+                                                                                        </Button>
+                                                                                    </th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                {balancereportData.length === 0 ? (
+                                                                                    <tr>
+                                                                                        <td
+                                                                                            colSpan={11 + dynamicFeeNames.length}
+                                                                                            className='p-4 text-center text-gray-500'>
+                                                                                            {search.trim()
+                                                                                                ? `No students found for "${search}"`
+                                                                                                : 'No student data available'}
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                ) : (
+                                                                                    balancereportData.map((row, index) => (
+                                                                                        <tr
+                                                                                            key={row.id}
+                                                                                            className='border-b hover:bg-gray-50'>
+                                                                                            <td className='p-2 text-center'>
+                                                                                                <Checkbox
+                                                                                                    checked={selectedIds.includes(row.id)}
+                                                                                                    onCheckedChange={() =>
+                                                                                                        toggleRow(row.id)
+                                                                                                    }
+                                                                                                />
+                                                                                            </td>
+                                                                                            <td className='p-2 text-center font-medium'>
+                                                                                                {index + 1}
+                                                                                            </td>
+                                                                                            <td className='p-2 text-center font-medium'>
+                                                                                                {row.studentName}
+                                                                                            </td>
+                                                                                            <td className='p-2 text-center'>{row.admno}</td>
+                                                                                            <td className='p-2 text-center'>
+                                                                                                {row.className}
+                                                                                            </td>
+                                                                                            <td className='p-2 text-center'>
+                                                                                                {row.sectionName}
+                                                                                            </td>
+                                                                                            <td className='p-2 text-center'>
+                                                                                                {row.fatherName}
+                                                                                            </td>
+                                                                                            <td className='p-2 text-center'>
+                                                                                                {row.mobileNo}
+                                                                                            </td>
+                                                                                            <td className='p-2 text-center'>{row.email}</td>
+
+                                                                                            {/* Dynamic fee cells */}
+                                                                                            {dynamicFeeNames.map((feeName) => {
+                                                                                                const feeKey = feeName
+                                                                                                    .toLowerCase()
+                                                                                                    .replace(/\s+/g, '_');
+                                                                                                const feeAmount =
+                                                                                                    row[feeKey] ||
+                                                                                                    row.feeCategories?.[feeName] ||
+                                                                                                    0;
+                                                                                                return (
+                                                                                                    <td
+                                                                                                        key={feeName}
+                                                                                                        className='p-2 text-center'>
+                                                                                                        ₹{feeAmount.toLocaleString('en-IN')}
+                                                                                                    </td>
+                                                                                                );
+                                                                                            })}
+
+                                                                                            <td className='p-2 text-center font-bold'>
+                                                                                                ₹{row.tobepaid.toLocaleString('en-IN')}
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    ))
+                                                                                )}
+
+                                                                                {/* Footer row with totals */}
+                                                                                <tr className='bg-gray-100 font-bold'>
+                                                                                    <td colSpan={9} className='p-2 text-right'>
+                                                                                        Balance:
+                                                                                    </td>
+
+                                                                                    {/* Dynamic fee totals */}
+                                                                                    {dynamicFeeNames.map((feeName) => {
+                                                                                        const feeKey = feeName
+                                                                                            .toLowerCase()
+                                                                                            .replace(/\s+/g, '_');
+                                                                                        const totalFee = balancereportData.reduce(
+                                                                                            (sum, row) => {
+                                                                                                const feeAmount =
+                                                                                                    row[feeKey] ||
+                                                                                                    row.feeCategories?.[feeName] ||
+                                                                                                    0;
+                                                                                                return sum + feeAmount;
+                                                                                            },
+                                                                                            0
+                                                                                        );
+                                                                                        return (
+                                                                                            <td
+                                                                                                key={feeName}
+                                                                                                className='p-2 text-center font-bold text-blue-700'>
+                                                                                                ₹{totalFee.toLocaleString('en-IN')}
+                                                                                            </td>
+                                                                                        );
+                                                                                    })}
+
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {balancereportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.tobepaid || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                </tr>
+                                                                            </tbody>
+                                                                        </table>
+                                                                        <div>Total Records : {balancereportData.length}</div>
+                                                                    </div>
+                                                                )}
+                                                        </div>
+                                                    </CollapsibleSection>
+                                                )}
+                                            </div>
+                                        )}
                                 </div>
                             </div>
                         </div>

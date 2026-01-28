@@ -35,7 +35,7 @@ export default function AttendanceDetailsPage() {
             // @ts-ignore
             const response = await getAttendanceData({
                 // ASMAY_Id: number(selectedYearId),
-                AMST_Id: 123
+                //AMST_Id: 123
             });
 
             console.log('API Response:', response);

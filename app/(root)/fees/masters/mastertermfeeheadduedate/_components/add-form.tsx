@@ -102,6 +102,14 @@ export default function AddFeeTermsHeadDueDateFormForm({ onSuccess, termname = '
     //getFeeTermHeadDueDateGridList
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
+            const hasMissingDates = gridData.some(
+                (item) => !item.fmtfhdD_FromDate || !item.fmtfhdD_ToDate || !item.fmtfhdD_ApplicableDate || !item.fmtfhdD_DueDate
+            );
+
+            if (hasMissingDates) {
+                toast.error('Please select all the required date details');
+                return;
+            }
             const { asmay_Id, fmt_id, fmh_id } = data;
 
             const payload = {

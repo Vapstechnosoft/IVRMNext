@@ -6,22 +6,20 @@ import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMasterGradeDropdownList } from '@/hooks/exam/exammodule/usemasters';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import {
     addOrUpdatePromotionSettings,
     getExamSubjectsByCategoryId,
     getIndividualPromotionDetailsById,
-    getPromotionCategoryByAcademicYear,
-    viewIndividualSubjectGroups,
-    viewSubjectsGroupExams
+    getPromotionCategoryByAcademicYear
 } from '@/server/exam/exam-module/exam-mapping/promotional-setting';
-import { useMasterGradeDropdownList } from '@/hooks/exam/exammodule/usemasters';
+import type { IPromotionCategory, IPromotionSetting } from '@/types/exam/exam-module/exam-mapping';
 import { Eye } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { ViewExamsModal } from './group-mapped-exam-model';
 import { ViewGroupsModal } from './group-mapping-model';
-import type { IPromotionSetting, IPromotionCategory } from '@/types/exam/exam-module/exam-mapping';
 
 /**
  * Types
@@ -186,33 +184,33 @@ export default function AddPromotionalSettingForm({
 
             const subjectsData = Array.isArray(payload.subjectlist)
                 ? payload.subjectlist.map(
-                    (subject: any): SubjectRow => ({
-                        ismS_Id: subject.ismS_Id,
-                        ismS_SubjectName: subject.ismS_SubjectName,
-                        ismS_SubjectCode: subject.ismS_SubjectCode || null,
-                        EMPS_MaxMarks: subject.empS_MaxMarks || subject.ismS_Max_Marks || null,
-                        EMPS_MinMarks: subject.empS_MinMarks || subject.ismS_Min_Marks || null,
-                        EMPS_ConvertForMarks: subject.empS_ConvertForMarks || null,
-                        EMPS_AppToResultFlg: subject.empS_AppToResultFlg ?? true,
-                        EMGR_Id: subject.emgR_Id || null,
-                        EMPS_Id: subject.empS_Id,
-                        checkedvalue: false
-                    })
-                )
+                      (subject: any): SubjectRow => ({
+                          ismS_Id: subject.ismS_Id,
+                          ismS_SubjectName: subject.ismS_SubjectName,
+                          ismS_SubjectCode: subject.ismS_SubjectCode || null,
+                          EMPS_MaxMarks: subject.empS_MaxMarks || subject.ismS_Max_Marks || null,
+                          EMPS_MinMarks: subject.empS_MinMarks || subject.ismS_Min_Marks || null,
+                          EMPS_ConvertForMarks: subject.empS_ConvertForMarks || null,
+                          EMPS_AppToResultFlg: subject.empS_AppToResultFlg ?? true,
+                          EMGR_Id: subject.emgR_Id || null,
+                          EMPS_Id: subject.empS_Id,
+                          checkedvalue: false
+                      })
+                  )
                 : [];
 
             const examsData = Array.isArray(payload.examlist)
                 ? payload.examlist.map(
-                    (exam: any): ExamItem => ({
-                        emE_Id: exam.emE_Id,
-                        emE_ExamName: exam.emE_ExamName,
-                        emE_ExamCode: exam.emE_ExamCode,
-                        checked: false,
-                        ForMaxMarkrs: 0,
-                        ForMaxMarkrs_Temp: 0,
-                        ConvertionReqOrNot: false
-                    })
-                )
+                      (exam: any): ExamItem => ({
+                          emE_Id: exam.emE_Id,
+                          emE_ExamName: exam.emE_ExamName,
+                          emE_ExamCode: exam.emE_ExamCode,
+                          checked: false,
+                          ForMaxMarkrs: 0,
+                          ForMaxMarkrs_Temp: 0,
+                          ConvertionReqOrNot: false
+                      })
+                  )
                 : [];
 
             setSubjects(subjectsData);
@@ -249,7 +247,6 @@ export default function AddPromotionalSettingForm({
 
                     // Fetch categories for this year
                     await fetchCategories(rowData.asmaY_Id, rowData.emcA_CategoryName, rowData.eyC_Id);
-
 
                     setSelectedCategory(rowData.eyC_Id);
                     setSelectedGrade(String(rowData.emgR_Id));
@@ -353,7 +350,6 @@ export default function AddPromotionalSettingForm({
                         bestOff: rowData.emP_BestOf,
                         subjects: finalSubjects
                     });
-
                 } catch (error) {
                     console.error('Error initializing edit:', error);
                     toast.error('Failed to load details for editing');
