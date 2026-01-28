@@ -80,20 +80,7 @@ export function MasterPagesGrid({ data, onSelect }: MasterPagesGridProps) {
                     />
                 </div>
             </div>
-            <div className="p-4">
-                <GenericDataTable
-                    columns={columns}
-                    data={paginatedData}
-                    totalItems={filteredData.length}
-                    isPaginationRequired={true}
-                    pagination={{
-                        pageIndex: pagination.pageIndex,
-                        pageSize: pagination.pageSize,
-                        onPageChange: (page) => setPagination(prev => ({ ...prev, pageIndex: page })),
-                        onPageSizeChange: (size) => setPagination(prev => ({ ...prev, pageSize: size })),
-                    }}
-                />
-            </div>
+           
         </div>
     );
 }
