@@ -2,7 +2,7 @@
 
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
-import type React from 'react';
+import React, { useEffect } from 'react';
 import { useState } from 'react';
 
 interface Option {
@@ -23,6 +23,7 @@ interface CustomMultiSelectBoxProps {
     isRequired?: boolean;
     disabled?: boolean;
     isLoading?: boolean;
+    resetKey?: any;
 }
 
 export const CustomMultiSelectBox: React.FC<CustomMultiSelectBoxProps> = ({
@@ -35,9 +36,14 @@ export const CustomMultiSelectBox: React.FC<CustomMultiSelectBoxProps> = ({
     error,
     isRequired = false,
     disabled = false,
-    isLoading = false
+    isLoading = false,
+    resetKey
 }) => {
     const [search, setSearch] = useState('');
+
+    useEffect(() => {
+        setSearch('');
+    }, [resetKey]);
 
     const filteredOptions = options.filter((opt) => opt.label.toLowerCase().includes(search.toLowerCase()));
 

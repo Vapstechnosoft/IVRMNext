@@ -36,6 +36,7 @@ export default function AddInvMasterStoreForm({ onSuccess, empname_list }: AddIn
             invmS_ContactPerson: '',
             invmS_ContactNo: '',
             hrmE_Id: 0,
+            invmS_ActiveFlg: true,
         }
     });
 
@@ -50,18 +51,23 @@ export default function AddInvMasterStoreForm({ onSuccess, empname_list }: AddIn
         }
     }, [selectedEmpId, empname_list, setValue]);
 
+    const onInvalid = (errors: any) => {
+        console.error('AddInvMasterStoreForm: Validation errors:', errors);
+    };
+
     const onSubmit = async (data: TInvMasterStore) => {
+        console.log('AddInvMasterStoreForm: onSubmit triggered with data:', data);
         try {
             const result = await saveInvMasterStore(data);
-            if (result.returnval) {
-                toast.success('Record saved successfully');
+            if (result.success || result.returnval) {
+                toast.success(result.message || 'Record saved successfully');
                 refetchAll();
                 onSuccess();
                 reset();
             } else if (result.returnduplicatestatus === 'Duplicate') {
                 toast.error('Record already exists');
             } else {
-                toast.error('Failed to save record');
+                toast.error(result.message || 'Failed to save record');
             }
         } catch (error: any) {
             toast.error(error.message || 'An error occurred');
@@ -69,7 +75,7 @@ export default function AddInvMasterStoreForm({ onSuccess, empname_list }: AddIn
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className='space-y-4 p-4'>
+        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className='space-y-4 p-4'>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 <div className='space-y-2'>
                     <Label htmlFor='invmS_StoreName'>

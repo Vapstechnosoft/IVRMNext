@@ -17,12 +17,13 @@ interface AddInvMasterSupplierFormProps {
 
 export default function AddInvMasterSupplierForm({ onSuccess }: AddInvMasterSupplierFormProps) {
     const { refetchAll } = useInvMasterSupplier();
+
     const {
         control,
         handleSubmit,
         reset,
         formState: { isSubmitting, errors }
-    } = useForm<InvMasterSupplierSchema>({
+    } = useForm<InvMasterSupplierSchema & { invmS_ActiveFlg?: boolean }>({
         resolver: zodResolver(invMasterSupplierSchema),
         defaultValues: {
             invmS_Id: 0,
@@ -33,21 +34,27 @@ export default function AddInvMasterSupplierForm({ onSuccess }: AddInvMasterSupp
             invmS_EmailId: '',
             invmS_GSTNo: '',
             invmS_SupplierAddress: '',
+            invmS_ActiveFlg: true,
         }
-    });
+    } as any);
+
+    const onInvalid = (errors: any) => {
+        console.error('AddInvMasterSupplierForm: Validation errors:', errors);
+    };
 
     const onSubmit = async (data: InvMasterSupplierSchema) => {
+        console.log('AddInvMasterSupplierForm: onSubmit triggered with data:', data);
         try {
             const result = await saveInvMasterSupplier(data);
-            if (result.returnval) {
-                toast.success('Record saved successfully');
+            if (result.success || result.returnval) {
+                toast.success(result.message || 'Record saved successfully');
                 refetchAll();
                 onSuccess();
                 reset();
             } else if (result.returnduplicatestatus === 'Duplicate') {
                 toast.error('Record already exists');
             } else {
-                toast.error('Failed to save record');
+                toast.error(result.message || 'Failed to save record');
             }
         } catch (error: any) {
             toast.error(error.message || 'An error occurred');
@@ -55,7 +62,7 @@ export default function AddInvMasterSupplierForm({ onSuccess }: AddInvMasterSupp
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className='space-y-4 p-4'>
+        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className='space-y-4 p-4'>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 <div className='space-y-2'>
                     <Label htmlFor='invmS_SupplierName'>

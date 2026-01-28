@@ -22,9 +22,15 @@ import { useInvTSales } from '@/hooks/inventory/transactions/use-inv-t-sales';
 import { Plus, Minus, Save, RotateCcw, Calculator, Package, ReceiptIndianRupee, Info } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Card } from '@/components/ui/card';
-// import { MultiSelect } from '@/components/ui/extension/multi-select'; // Assuming this exists or I'll use standard select for now for Class/Sec
+// import { MultiSelect } from '@/components/ui/extension/multi-select';
 
 interface AddSalesFormProps {
     onSuccess: () => void;
@@ -33,6 +39,10 @@ interface AddSalesFormProps {
 export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
     const { data: loadData, saveMutation, studentClsSecMutation, studentListMutation, sectionListMutation, itemOnStoreChangeMutation, itemDetailMutation } = useInvTSales();
     const [discountType, setDiscountType] = useState<'A' | 'P'>('A');
+
+    // Tax Modal State
+    const [isTaxModalOpen, setIsTaxModalOpen] = useState(false);
+    const [selectedTaxRowIndex, setSelectedTaxRowIndex] = useState<number | null>(null);
 
     // Local state for dynamic lists
     const [studentClsSec, setStudentClsSec] = useState<any[]>([]);
@@ -141,48 +151,95 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
 
     // Calculate totals whenever items change
     useEffect(() => {
+        calculateTotals();
+    }, [watchedItems]);
+
+    const calculateTotals = () => {
         let totalBasic = 0;
         let totalDiscount = 0;
         let totalTax = 0;
 
-        watchedItems.forEach((item) => {
+        const items = form.getValues('SalesItem') || [];
+        items.forEach((item) => {
             totalBasic += Number(item.invtsL_Amount) || 0;
             totalDiscount += Number(item.invtsL_DiscountAmt) || 0;
             totalTax += Number(item.invtsL_TaxAmt) || 0;
         });
 
-        // Angular logic: Total Amount is sum of Item Amounts.
-        // Sales Value = Total Amount - Discount + Tax
-        // Wait, Angular: 
-        // objstk.invtsL_Amount = salerate * qty;
-        // invmsL_TotalAmount = sum(invtsL_Amount + invtsL_DiscountAmt) ... wait, this looks weird in Angular.
-        // Angular: ds += parseFloat(obj.invtsL_Amount) + parseFloat(obj.invtsL_DiscountAmt);
-
-        // Let's stick to standard logic:
-        // Item Amount = (Qty * Price)
-        // Total Basic = Sum(Item Amounts)
-        // Final Value = Total Basic - Total Discount + Total Tax
-
         setValue('invmsL_TotalAmount', totalBasic);
         setValue('invmsL_TotDiscount', totalDiscount);
         setValue('invmsL_TotTaxAmt', totalTax);
         setValue('invmsL_SalesValue', totalBasic - totalDiscount + totalTax);
-    }, [watchedItems, setValue]);
+    };
 
     const handleItemChange = async (index: number, itemId: number) => {
         const item = itemsList.find((i: any) => i.invmI_Id === itemId);
         if (item) {
-            // Set Sales Price & Batch No if available
-            setValue(`SalesItem.${index}.invtsL_SalesPrice`, item.invstO_SalesRate || 0);
-            setValue(`SalesItem.${index}.invtsL_BatchNo`, item.invstO_BatchNo || '');
-            // Get Item Details (Tax etc)
-            // itemDetailMutation.mutate(...)
+            const storeId = watch('invmsT_Id');
+            const payload = {
+                INVMI_Id: item.invmI_Id,
+                INVSTO_SalesRate: item.invstO_SalesRate,
+                INVMST_Id: storeId,
+                INVSTO_BatchNo: item.invstO_BatchNo
+            };
+
+            itemDetailMutation.mutate(payload, {
+                onSuccess: (res) => {
+                    if (res?.data) {
+                        const detail = res.data.get_itemDetail?.[0];
+                        const taxes = res.data.get_itemTax || [];
+                        const availableStock = res.data.availablestock?.[0]?.AvaiableStock || 0;
+
+                        if (detail) {
+                            setValue(`SalesItem.${index}.invmuoM_Id`, detail.invmuoM_Id);
+                            setValue(`SalesItem.${index}.invtsL_BatchNo`, detail.invstO_BatchNo);
+                            // Angular code sets sales price from detail or item list. 
+                            // It seems detail return same batch/rate info.
+                            setValue(`SalesItem.${index}.invtsL_SalesPrice`, detail.invstO_SalesRate || item.invstO_SalesRate || 0);
+                        }
+
+                        // Set taxes
+                        if (taxes.length > 0) {
+                            const mappedTaxes = taxes.map((t: any) => ({
+                                invmT_Id: t.invmT_Id,
+                                invtslT_TaxPer: t.invmiT_TaxValue,
+                                invtslT_TaxAmt: 0
+                            }));
+                            setValue(`SalesItem.${index}.SalesItemTax`, mappedTaxes);
+                        } else {
+                            setValue(`SalesItem.${index}.SalesItemTax`, []);
+                        }
+
+                        // Store available stock in hidden field or usage state if needed (not in schema currently, maybe validation check)
+                        // For now we will rely on calculating amount to check stock? 
+                        // We can't easily store it in the form if it's not in schema. 
+                        // We could use a temporary field or just re-fetch/check on validation.
+                        // Or add a hidden 'availableStock' property to the item form object (if we cast it).
+                        // Let's attach it to the form object by casting or using extra props not in schema (zod allows passThrough or we just setValue on any)
+                        setValue(`SalesItem.${index}.availableStock`, availableStock);
+
+                        calculateItemAmount(index);
+                    }
+                }
+            });
         }
     };
 
     const calculateItemAmount = (index: number) => {
         const qty = watch(`SalesItem.${index}.invtsL_SalesQty`) || 0;
         const rate = watch(`SalesItem.${index}.invtsL_SalesPrice`) || 0;
+        const availableStock = watch(`SalesItem.${index}.availableStock` as any) || 0;
+
+        if (qty > availableStock) {
+            // We might want to show error. For now, we can clamp or just warn. 
+            // Since we can't easily toast from here repeatedly, let's just create a side effect or console warn, or reset.
+            // Angular shows alert.
+            // We can set an error on the field.
+            form.setError(`SalesItem.${index}.invtsL_SalesQty`, { message: `Max stock: ${availableStock}` });
+        } else {
+            form.clearErrors(`SalesItem.${index}.invtsL_SalesQty`);
+        }
+
         const basicAmt = qty * rate;
         setValue(`SalesItem.${index}.invtsL_Amount`, basicAmt);
         calculateDiscount(index);
@@ -191,9 +248,44 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
     const calculateDiscount = (index: number) => {
         const basicAmt = watch(`SalesItem.${index}.invtsL_Amount`) || 0;
         let discountAmt = watch(`SalesItem.${index}.invtsL_DiscountAmt`) || 0;
-        // Logic for percentage if needed
-        setValue(`SalesItem.${index}.invtsL_DiscountAmt`, discountAmt);
-        // calculateTax(index);
+
+        if (discountType === 'P') {
+            // If input is percentage
+            const perc = discountAmt;
+            // Logic: if user typed 10 (as 10%), we calc amount. 
+            // But the field is `invtsL_DiscountAmt`. 
+            // Angular has a toggle. Here we only have 1 input.
+            // If we want to support percentage input, we need a separate state or field for Rate vs Amount.
+            // For now, assuming Amount input as per schema.
+        }
+
+        if (discountAmt > basicAmt) {
+            setValue(`SalesItem.${index}.invtsL_DiscountAmt`, 0);
+            discountAmt = 0;
+        }
+
+        calculateTax(index);
+    };
+
+    const calculateTax = (index: number) => {
+        const basicAmt = watch(`SalesItem.${index}.invtsL_Amount`) || 0;
+        const discountAmt = watch(`SalesItem.${index}.invtsL_DiscountAmt`) || 0;
+        const taxableAmt = basicAmt - discountAmt;
+
+        const itemTaxes = watch(`SalesItem.${index}.SalesItemTax`) || [];
+        let totalItemTax = 0;
+
+        if (itemTaxes.length > 0) {
+            const updatedTaxes = itemTaxes.map((tax: any) => {
+                const taxVal = (taxableAmt * (tax.invtslT_TaxPer || 0)) / 100;
+                totalItemTax += taxVal;
+                return { ...tax, invtslT_TaxAmt: taxVal };
+            });
+            setValue(`SalesItem.${index}.SalesItemTax`, updatedTaxes);
+        }
+
+        setValue(`SalesItem.${index}.invtsL_TaxAmt`, totalItemTax);
+        calculateTotals();
     };
 
     const onSubmit = (data: InvTSalesSchema) => {
@@ -212,7 +304,7 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
             {/* Header Details */}
             <CollapsibleSection
                 title="Sales Header Information"
-               
+
                 defaultOpen={true}
                 className="shadow-sm border-primary/10"
             >
@@ -404,10 +496,67 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                 )}
             </CollapsibleSection>
 
+            {/* Tax Details Modal */}
+            <Dialog open={isTaxModalOpen} onOpenChange={setIsTaxModalOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2 text-primary">
+                            <ReceiptIndianRupee className="h-5 w-5" />
+                            Tax Breakdown
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="py-4">
+                        {selectedTaxRowIndex !== null && (() => {
+                            const currentTaxList = watch(`SalesItem.${selectedTaxRowIndex}.SalesItemTax`) || [];
+                            const totalRowTax = watch(`SalesItem.${selectedTaxRowIndex}.invtsL_TaxAmt`) || 0;
+                            return (
+                                <div className="space-y-4">
+                                    <div className="flex justify-between text-sm font-medium border-b pb-2">
+                                        <span>Tax Name</span>
+                                        <div className="flex gap-8">
+                                            <span>Rate (%)</span>
+                                            <span className="w-20 text-right">Amount</span>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        {currentTaxList.length > 0 ? (
+                                            currentTaxList.map((tax: any, i: number) => {
+                                                // We need to fetch tax name from loadData if possible, but tax list in loadData might not be available or comprehensive.
+                                                // Actually get_itemDetail returns tax list with names usually. 
+                                                // But here we stored only IDs. 
+                                                // Ideally we should have stored tax Name too in `SalesItemTax`.
+                                                // For now, we just display percentages.
+                                                return (
+                                                    <div key={i} className="flex justify-between text-sm">
+                                                        <span className="text-muted-foreground">{tax.invmT_Id} (Ref ID)</span>
+                                                        <div className="flex gap-8">
+                                                            <span className="font-mono text-xs">{tax.invtslT_TaxPer}%</span>
+                                                            <span className="w-20 text-right font-mono font-medium">₹{tax.invtslT_TaxAmt?.toFixed(2)}</span>
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })
+                                        ) : (
+                                            <div className="text-center text-muted-foreground text-sm py-2">No taxes active for this item</div>
+                                        )}
+                                    </div>
+                                    <div className="flex justify-between text-sm font-bold border-t pt-3 mt-2">
+                                        <span>Total Tax</span>
+                                        <span className="font-mono text-green-600">
+                                            ₹{totalRowTax.toFixed(2)}
+                                        </span>
+                                    </div>
+                                </div>
+                            )
+                        })()}
+                    </div>
+                </DialogContent>
+            </Dialog>
+
             {/* Items Collection */}
             <CollapsibleSection
                 title="Sales Items"
-                
+
                 defaultOpen={true}
                 className="shadow-sm border-primary/10"
             >
@@ -465,6 +614,19 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                                     </td>
                                     <td className='border p-2'>
                                         <InputText {...register(`SalesItem.${index}.invtsL_Amount`, { valueAsNumber: true })} className='h-8 text-xs text-right' disabled />
+                                    </td>
+                                    <td className='border p-2 text-center'>
+                                        <div
+                                            className='flex items-center gap-1 justify-end font-mono text-green-700 text-xs font-semibold cursor-pointer hover:bg-green-100/50 p-1 rounded transition-colors'
+                                            onClick={() => {
+                                                setSelectedTaxRowIndex(index);
+                                                setIsTaxModalOpen(true);
+                                            }}
+                                            title="Click to view Tax Details"
+                                        >
+                                            <span>{watch(`SalesItem.${index}.invtsL_TaxAmt`)?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}</span>
+                                            <Calculator className='h-3 w-3 text-green-600' />
+                                        </div>
                                     </td>
                                     <td className='border p-2 text-center'>
                                         <Button

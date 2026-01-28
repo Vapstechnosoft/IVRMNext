@@ -8,7 +8,7 @@ export const useInvMasterTax = (searchParams?: ApiSearchparams) => {
 
     const query = useQuery({
         queryKey: [INVENTORY_QUERY_KEYS.INV_MASTER_TAX, searchParams ?? {}],
-        queryFn: async () => getInvMasterTax(searchParams),
+        queryFn: async () => getInvMasterTax(searchParams ?? {}),
         staleTime: 0
     });
 

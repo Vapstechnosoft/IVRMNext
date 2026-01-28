@@ -1,6 +1,5 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
@@ -8,12 +7,11 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import {
     useFilterSalaryUpdationEmployees,
-    useUpdateEmployeesEarningsAndDeductions,
-    useSalaryUpdationList
+    useSalaryUpdationList,
+    useUpdateEmployeesEarningsAndDeductions
 } from '@/hooks/hrms/useTransactions';
 import {
     getDepartmentDropdownByGroupType,
@@ -22,10 +20,8 @@ import {
     getHeadDropdown
 } from '@/server/hrms/hrmsConfig/transaction/salary-updation';
 import type {
-    DeductionResultItem,
     DepartmentDropdown,
     DesignationDropdown,
-    EarningResultItem,
     EmployeeDropdown,
     HeadDropdown,
     SalaryUpdationItem
@@ -34,7 +30,7 @@ import { RefreshCw, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { buildSalaryEntryColumns, SalaryHeadMeta } from './_components/employee-entry-columns';
+import { buildSalaryEntryColumns } from './_components/employee-entry-columns';
 import FormSections from './_components/form-sections';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -97,9 +93,11 @@ function SalaryUpdationPageContent({
     const processedGridData = useMemo(() => {
         if (!localSearch) return gridData;
         const lowerSearch = localSearch.toLowerCase();
-        return gridData.filter(emp =>
-            (emp.HRME_EmployeeFirstName + ' ' + (emp.HRME_EmployeeMiddleName || '') + ' ' + (emp.HRME_EmployeeLastName || '')).toLowerCase().includes(lowerSearch) ||
-            (emp.HRME_EmployeeCode || '').toLowerCase().includes(lowerSearch)
+        return gridData.filter(
+            (emp) =>
+                (emp.HRME_EmployeeFirstName + ' ' + (emp.HRME_EmployeeMiddleName || '') + ' ' + (emp.HRME_EmployeeLastName || ''))
+                    .toLowerCase()
+                    .includes(lowerSearch) || (emp.HRME_EmployeeCode || '').toLowerCase().includes(lowerSearch)
         );
     }, [gridData, localSearch]);
 
@@ -110,7 +108,7 @@ function SalaryUpdationPageContent({
                 const { groupTypedropdown } = await getGroupTypeDropdown();
                 setGroupTypes(groupTypedropdown || []);
             } catch (err) {
-                console.error("Failed to load group types", err);
+                console.error('Failed to load group types', err);
                 setGroupTypes([]);
             }
         }
@@ -121,7 +119,7 @@ function SalaryUpdationPageContent({
                 const { headdropdown } = await getHeadDropdown();
                 setHeadsData(headdropdown || []);
             } catch (err) {
-                console.error("Failed to load heads", err);
+                console.error('Failed to load heads', err);
                 setHeadsData([]);
             }
         }
@@ -185,7 +183,7 @@ function SalaryUpdationPageContent({
                     const { departmentdropdown } = await getDepartmentDropdownByGroupType(ids);
                     setDepartments(departmentdropdown || []);
                 } catch (error) {
-                    console.error("Error fetching departments", error);
+                    console.error('Error fetching departments', error);
                     setDepartments([]);
                 }
             } else {
@@ -226,7 +224,7 @@ function SalaryUpdationPageContent({
                     const { designationdropdown } = await getDesignationDropdownByGroupTypeAndDesignation(gIds, dIds);
                     setDesignations(designationdropdown || []);
                 } catch (error) {
-                    console.error("Error fetching designations", error);
+                    console.error('Error fetching designations', error);
                     setDesignations([]);
                 }
             } else {
@@ -281,42 +279,48 @@ function SalaryUpdationPageContent({
                 const amount = newAmount === '' ? 0 : newAmount;
 
                 if (isEarning) {
-                    const existing = emp.earningResult?.find(x => x.HRMED_Id === headId);
+                    const existing = emp.earningResult?.find((x) => x.HRMED_Id === headId);
                     let newEarnings = emp.earningResult || [];
                     if (existing) {
-                        newEarnings = newEarnings.map(x => x.HRMED_Id === headId ? { ...x, HREED_Amount: amount } : x);
+                        newEarnings = newEarnings.map((x) => (x.HRMED_Id === headId ? { ...x, HREED_Amount: amount } : x));
                     } else {
                         // Add new entry
-                        newEarnings = [...newEarnings, {
-                            HREED_Id: 0,
-                            MI_Id: HRMS_MI_ID,
-                            HRME_Id: empId,
-                            HRMED_Id: headId,
-                            HREED_Amount: amount,
-                            HREED_Percentage: '0',
-                            HREED_ActiveFlag: true,
-                            HREED_MaxApplicableFlg: false,
-                            HREED_ApplicableMaxValue: 0
-                        }];
+                        newEarnings = [
+                            ...newEarnings,
+                            {
+                                HREED_Id: 0,
+                                MI_Id: HRMS_MI_ID,
+                                HRME_Id: empId,
+                                HRMED_Id: headId,
+                                HREED_Amount: amount,
+                                HREED_Percentage: '0',
+                                HREED_ActiveFlag: true,
+                                HREED_MaxApplicableFlg: false,
+                                HREED_ApplicableMaxValue: 0
+                            }
+                        ];
                     }
                     return { ...emp, earningResult: newEarnings };
                 } else {
-                    const existing = emp.deductionResult?.find(x => x.HRMED_Id === headId);
+                    const existing = emp.deductionResult?.find((x) => x.HRMED_Id === headId);
                     let newDeductions = emp.deductionResult || [];
                     if (existing) {
-                        newDeductions = newDeductions.map(x => x.HRMED_Id === headId ? { ...x, HREED_Amount: amount } : x);
+                        newDeductions = newDeductions.map((x) => (x.HRMED_Id === headId ? { ...x, HREED_Amount: amount } : x));
                     } else {
-                        newDeductions = [...newDeductions, {
-                            HREED_Id: 0,
-                            MI_Id: HRMS_MI_ID,
-                            HRME_Id: empId,
-                            HRMED_Id: headId,
-                            HREED_Amount: amount,
-                            HREED_Percentage: '0',
-                            HREED_ActiveFlag: true,
-                            HREED_MaxApplicableFlg: false,
-                            HREED_ApplicableMaxValue: 0
-                        }];
+                        newDeductions = [
+                            ...newDeductions,
+                            {
+                                HREED_Id: 0,
+                                MI_Id: HRMS_MI_ID,
+                                HRME_Id: empId,
+                                HRMED_Id: headId,
+                                HREED_Amount: amount,
+                                HREED_Percentage: '0',
+                                HREED_ActiveFlag: true,
+                                HREED_MaxApplicableFlg: false,
+                                HREED_ApplicableMaxValue: 0
+                            }
+                        ];
                     }
                     return { ...emp, deductionResult: newDeductions };
                 }
@@ -326,17 +330,17 @@ function SalaryUpdationPageContent({
 
     // Save Handler
     const handleSave = () => {
-        const rowsToSave = gridData.filter(emp => selectedEmployees.includes(emp.HRME_Id));
+        const rowsToSave = gridData.filter((emp) => selectedEmployees.includes(emp.HRME_Id));
 
         if (rowsToSave.length === 0) {
             toast.error('Please select employees to save');
             return;
         }
 
-        let allEarnings: any[] = [];
-        let allDeductions: any[] = [];
+        const allEarnings: any[] = [];
+        const allDeductions: any[] = [];
 
-        rowsToSave.forEach(emp => {
+        rowsToSave.forEach((emp) => {
             if (emp.earningResult) allEarnings.push(...emp.earningResult);
             if (emp.deductionResult) allDeductions.push(...emp.deductionResult);
         });
@@ -371,7 +375,9 @@ function SalaryUpdationPageContent({
     };
 
     // Column Construction
-    const selectedHeadIds = watch('heads').filter(x => x !== 'All').map(Number);
+    const selectedHeadIds = watch('heads')
+        .filter((x) => x !== 'All')
+        .map(Number);
     const visibleEarningHeads = earningHeadsList
         .filter((h: HeadDropdown) => selectedHeadIds.length === 0 || selectedHeadIds.includes(h.HRMED_Id))
         .map((h: HeadDropdown) => ({ headId: h.HRMED_Id, headName: h.HRMED_Name, isEarning: true }));
@@ -382,18 +388,19 @@ function SalaryUpdationPageContent({
 
     // Stabilize allGridIds: Only change reference if the actual IDs change (e.g. search/filter), not on data edit.
     // This prevents 'columns' from regenerating, which prevents the Table from unmounting inputs and losing focus.
-    const allGridIdsString = processedGridData.map(e => e.HRME_Id).join(',');
-    const allGridIds = useMemo(() => processedGridData.map(e => e.HRME_Id), [allGridIdsString]);
+    const allGridIdsString = processedGridData.map((e) => e.HRME_Id).join(',');
+    const allGridIds = useMemo(() => processedGridData.map((e) => e.HRME_Id), [allGridIdsString]);
 
-    const columns = useMemo(() =>
-        buildSalaryEntryColumns(
-            visibleEarningHeads,
-            visibleDeductionHeads,
-            handleUpdateAmount,
-            selectedEmployees,
-            setSelectedEmployees,
-            allGridIds
-        ),
+    const columns = useMemo(
+        () =>
+            buildSalaryEntryColumns(
+                visibleEarningHeads,
+                visibleDeductionHeads,
+                handleUpdateAmount,
+                selectedEmployees,
+                setSelectedEmployees,
+                allGridIds
+            ),
         [visibleEarningHeads, visibleDeductionHeads, selectedEmployees, allGridIds]
     );
 
@@ -407,45 +414,81 @@ function SalaryUpdationPageContent({
                         <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
                             {/* Row 1: Primary Selection */}
                             <div className='space-y-3'>
-                                <Label className='font-semibold'>Group Type <span className='text-destructive'>*</span></Label>
-                                <Controller name='groupType' control={control} render={({ field }) => (
-                                    <MultiSelect
-                                        options={[{ label: 'All', value: 'All' }, ...groupTypes.map((gt: any) => ({ label: gt.HRMGT_EmployeeGroupType, value: gt.HRMGT_Id?.toString() || '' }))]}
-                                        defaultValue={Array.isArray(field.value) ? field.value : []}
-                                        onValueChange={field.onChange}
-                                        placeholder='Select Group Types'
-                                        maxHeight={240}
-                                        className='w-full'
-                                    />
-                                )} />
+                                <Label className='font-semibold'>
+                                    Group Type <span className='text-destructive'>*</span>
+                                </Label>
+                                <Controller
+                                    name='groupType'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <MultiSelect
+                                            options={[
+                                                { label: 'All', value: 'All' },
+                                                ...groupTypes.map((gt: any) => ({
+                                                    label: gt.HRMGT_EmployeeGroupType,
+                                                    value: gt.HRMGT_Id?.toString() || ''
+                                                }))
+                                            ]}
+                                            defaultValue={Array.isArray(field.value) ? field.value : []}
+                                            onValueChange={field.onChange}
+                                            placeholder='Select Group Types'
+                                            maxHeight={240}
+                                            className='w-full'
+                                        />
+                                    )}
+                                />
                             </div>
 
                             <div className='space-y-3'>
-                                <Label className='font-semibold'>Department <span className='text-destructive'>*</span></Label>
-                                <Controller name='department' control={control} render={({ field }) => (
-                                    <MultiSelect
-                                        options={[{ label: 'All', value: 'All' }, ...departments.map((d: any) => ({ label: d.HRMD_DepartmentName, value: d.HRMD_Id?.toString() || '' }))]}
-                                        defaultValue={Array.isArray(field.value) ? field.value : []}
-                                        onValueChange={field.onChange}
-                                        placeholder='Select Departments'
-                                        maxHeight={240}
-                                        className='w-full'
-                                    />
-                                )} />
+                                <Label className='font-semibold'>
+                                    Department <span className='text-destructive'>*</span>
+                                </Label>
+                                <Controller
+                                    name='department'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <MultiSelect
+                                            options={[
+                                                { label: 'All', value: 'All' },
+                                                ...departments.map((d: any) => ({
+                                                    label: d.HRMD_DepartmentName,
+                                                    value: d.HRMD_Id?.toString() || ''
+                                                }))
+                                            ]}
+                                            defaultValue={Array.isArray(field.value) ? field.value : []}
+                                            onValueChange={field.onChange}
+                                            placeholder='Select Departments'
+                                            maxHeight={240}
+                                            className='w-full'
+                                        />
+                                    )}
+                                />
                             </div>
 
                             <div className='space-y-3'>
-                                <Label className='font-semibold'>Designation <span className='text-destructive'>*</span></Label>
-                                <Controller name='designation' control={control} render={({ field }) => (
-                                    <MultiSelect
-                                        options={[{ label: 'All', value: 'All' }, ...designations.map((d: any) => ({ label: d.HRMDES_DesignationName, value: d.HRMDES_Id?.toString() || '' }))]}
-                                        defaultValue={Array.isArray(field.value) ? field.value : []}
-                                        onValueChange={field.onChange}
-                                        placeholder='Select Designations'
-                                        maxHeight={240}
-                                        className='w-full'
-                                    />
-                                )} />
+                                <Label className='font-semibold'>
+                                    Designation <span className='text-destructive'>*</span>
+                                </Label>
+                                <Controller
+                                    name='designation'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <MultiSelect
+                                            options={[
+                                                { label: 'All', value: 'All' },
+                                                ...designations.map((d: any) => ({
+                                                    label: d.HRMDES_DesignationName,
+                                                    value: d.HRMDES_Id?.toString() || ''
+                                                }))
+                                            ]}
+                                            defaultValue={Array.isArray(field.value) ? field.value : []}
+                                            onValueChange={field.onChange}
+                                            placeholder='Select Designations'
+                                            maxHeight={240}
+                                            className='w-full'
+                                        />
+                                    )}
+                                />
                             </div>
 
                             {/* Row 2: Secondary Filters & Heads */}
@@ -603,11 +646,17 @@ function SalaryUpdationPageContent({
                                 </div>
 
                                 <div className='flex justify-end gap-2 border-t pt-4'>
-                                    <Button onClick={handleSave} disabled={isSaving} className='bg-blue-600 hover:bg-blue-700 transition-all duration-200 hover:scale-105'>
+                                    <Button
+                                        onClick={handleSave}
+                                        disabled={isSaving}
+                                        className='bg-blue-600 transition-all duration-200 hover:scale-105 hover:bg-blue-700'>
                                         <RefreshCw className={`mr-2 h-4 w-4 ${isSaving ? 'animate-spin' : ''}`} />
                                         {isSaving ? 'SAVING...' : 'SAVE CHANGES'}
                                     </Button>
-                                    <Button variant='outline' onClick={handleCancel} className='border-orange-500 text-orange-600 hover:bg-orange-50 transition-all duration-200 hover:scale-105'>
+                                    <Button
+                                        variant='outline'
+                                        onClick={handleCancel}
+                                        className='border-orange-500 text-orange-600 transition-all duration-200 hover:scale-105 hover:bg-orange-50'>
                                         <X className='mr-2 h-4 w-4' />
                                         CANCEL
                                     </Button>
@@ -620,7 +669,9 @@ function SalaryUpdationPageContent({
                                     <div className='text-lg text-muted-foreground'>
                                         Please use the search form above to find employee salary records
                                     </div>
-                                    <div className='text-muted-foreground text-sm'>Select your criteria and click "SEARCH" to view results</div>
+                                    <div className='text-muted-foreground text-sm'>
+                                        Select your criteria and click "SEARCH" to view results
+                                    </div>
                                 </div>
                             </div>
                         )}

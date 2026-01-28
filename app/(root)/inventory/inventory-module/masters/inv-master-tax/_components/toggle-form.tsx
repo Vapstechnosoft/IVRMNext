@@ -28,12 +28,13 @@ export default function ToggleInvMasterTaxForm({ rowData, onClose }: ToggleInvMa
     const handleToggle = useCallback(async () => {
         try {
             const result = await deactivateInvMasterTax(rowData);
-            if (result.returnval) {
-                toast.success('Record status updated successfully');
+            // API returns { success: true, message: "Status updated successfully" }
+            if (result.success || result.returnval) {
+                toast.success(result.message || 'Record status updated successfully');
                 refetchAll(); // call the hook's refetch function
                 onClose();
             } else {
-                toast.error('Failed to update status');
+                toast.error(result.message || 'Failed to update status');
             }
         } catch (error: any) {
             toast.error(error.message || 'An error occurred');

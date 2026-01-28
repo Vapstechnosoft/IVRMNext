@@ -104,7 +104,7 @@ export default function UpdateCoScholasticActivityForm({
                         error={errors.ecacT_SkillName?.message}
                         onInput={(e) => {
                             const input = e.currentTarget; // <-- HTMLInputElement
-                            input.value = input.value.replace(/[^A-Za-z0-9 ]/g, '');
+                            input.value = input.value.replace(/[^A-Za-z0-9\s]/g, '');
                         }}
                     />
                     <InputText
@@ -114,7 +114,7 @@ export default function UpdateCoScholasticActivityForm({
                         error={errors.ecacT_SkillCode?.message}
                         onInput={(e) => {
                             const input = e.currentTarget; // <-- HTMLInputElement
-                            input.value = input.value.replace(/[^A-Za-z0-9 ]/g, '');
+                            input.value = input.value.replace(/[^A-Za-z0-9\s]/g, '');
                         }}
                     />
                 </div>

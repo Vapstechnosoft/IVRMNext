@@ -28,12 +28,12 @@ export default function ToggleInvMasterSupplierForm({ rowData, onClose }: Toggle
     const handleToggle = useCallback(async () => {
         try {
             const result = await deactivateInvMasterSupplier(rowData);
-            if (result.returnval) {
-                toast.success('Record status updated successfully');
+            if (result.success || result.returnval) {
+                toast.success(result.message || 'Record status updated successfully');
                 refetchAll();
                 onClose();
             } else {
-                toast.error('Failed to update status');
+                toast.error(result.message || 'Failed to update status');
             }
         } catch (error: any) {
             toast.error(error.message || 'An error occurred');
