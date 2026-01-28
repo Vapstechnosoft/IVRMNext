@@ -1,6 +1,8 @@
 'use server';
 
+import { api } from '@/lib/apiService';
 import type { IHomeWork, IHomeWorkMarksSearch } from '@/schemas/upload/transactions/ivrm-homework.schema';
+
 import { revalidatePath } from 'next/cache';
 
 // Mock data store
@@ -25,6 +27,10 @@ const homeWorkData: any[] = [
         filesCount: 0
     }
 ];
+export async function toggleUploadHomeWork(id: number) {
+    const url = `/employee_student_home_work/active_deactive_home_work/${id}`;
+    return await api.put('portal', url);
+}
 
 export async function fetchInitialData() {
     await new Promise((resolve) => setTimeout(resolve, 500));

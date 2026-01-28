@@ -2885,20 +2885,74 @@ export async function getUserAccessibleModules() {
                 //         }
                 //     ]
                 // },
+
                 // {
-                //     id: 14,
-                //     name: 'Upload',
+                //     id: 25,
+                //     name: 'COE',
+                //     icon: 'Settings',
+                //     menu: [
+                //         {
+                //             id: 1,
+                //             name: 'Calendar of Events',
+                //             icon: 'Settings',
+                //             sub_menu: [
+                //                 {
+                //                     id: 1,
+                //                     name: 'Master',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 1,
+                //                             name: 'Master Event',
+                //                             icon: 'Settings',
+                //                             url: '/coe/master/masterevent',
+                //                             title: 'Master Event',
+                //                             description: 'Manage Master Event Details'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 2,
+                //                     name: 'Report',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 1,
+                //                             name: 'COE Report',
+                //                             icon: 'Settings',
+                //                             url: '/coe/report/coereport',
+                //                             title: 'COE Report',
+                //                             description: 'Manage COE Report'
+                //                         },
+                //                         {
+                //                             id: 2,
+                //                             name: 'COE Month End Report',
+                //                             icon: 'Settings',
+                //                             url: '/coe/report/coemonthendreport',
+                //                             title: 'COE Month End Report',
+                //                             description: 'Manage COE Month End Report'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // },
+
+                //  {
+                //     id: 26,
+                //     name: 'UPLOAD',
                 //     icon: 'Upload',
                 //     menu: [
                 //         {
-                //             id: 3,
-                //             name: 'Upload Module',
+                //             id: 1,
+                //             name: 'Upload',
                 //             icon: 'Upload',
                 //             sub_menu: [
                 //                 {
                 //                     id: 1,
-                //                     name: 'Transactions',
-                //                     icon: 'FileText',
+                //                     name: 'Transaction',
+                //                     icon: 'Repeat',
                 //                     pages: [
                 //                         {
                 //                             id: 221,
@@ -2911,7 +2965,7 @@ export async function getUserAccessibleModules() {
                 //                         {
                 //                             id: 222,
                 //                             name: 'Verify Class Work',
-                //                             icon: 'BookOpen',
+                //                             icon: 'CheckCircle',
                 //                             url: '/upload/transactions/verify-classwork',
                 //                             title: 'Verify Class Work',
                 //                             description: 'Verify and Enter Class Work Marks'
@@ -2927,26 +2981,34 @@ export async function getUserAccessibleModules() {
                 //                         {
                 //                             id: 224,
                 //                             name: 'HomeWork Marks Update',
-                //                             icon: 'BookOpen',
+                //                             icon: 'CheckCircle',
                 //                             url: '/upload/transactions/homework-marks-update',
                 //                             title: 'Verify HomeWork',
                 //                             description: 'Verify HomeWork Marks'
                 //                         },
-
-                //                         {
+                //                        {
                 //                             id: 225,
-                //                             name: 'Notice Board',
+                //                             name: 'Upload Notice Board',
                 //                             icon: 'BookOpen',
                 //                             url: '/upload/transactions/notice-board',
                 //                             title: 'Upload Notice Board',
                 //                             description: 'Upload Notice Board'
-                //                         }
+                //                         },
+                //                         {
+                //                             id: 226,
+                //                             name: 'Push Notification',
+                //                             icon: 'BookOpen',
+                //                             url: '/upload/transactions/push-notification',
+                //                             title: 'Push Notification',
+                //                             description: 'Push Notification'
+                //                         },
+
                 //                     ]
                 //                 },
                 //                 {
                 //                     id: 2,
-                //                     name: 'Reports',
-                //                     icon: 'FileText',
+                //                     name: 'Report',
+                //                     icon: 'Settings',
                 //                     pages: [
                 //                         {
                 //                             id: 1,
@@ -2971,14 +3033,6 @@ export async function getUserAccessibleModules() {
                 //                             url: '/upload/reports/noticeboard-report',
                 //                             title: 'NoticeBoard Report',
                 //                             description: 'NoticeBoard Report Details'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'COE Report',
-                //                             icon: 'FileText',
-                //                             url: '/upload/reports/coereport',
-                //                             title: 'COE Report',
-                //                             description: 'COE Report Details'
                 //                         }
                 //                     ]
                 //                 }
@@ -2986,6 +3040,59 @@ export async function getUserAccessibleModules() {
                 //         }
                 //     ]
                 // },
+                // {
+                //     id: 27,
+                //     name: 'BirthDay',
+                //     icon: 'Settings',
+                //     menu: [
+                //         {
+                //             id: 1,
+                //             name: 'BirthDay',
+                //             icon: 'Settings',
+                //             sub_menu: [
+                //                 {
+                //                     id: 1,
+                //                     name: 'Master',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 1,
+                //                             name: 'BirthDay',
+                //                             icon: 'Settings',
+                //                             url: '/birthday/master/masterbirthday',
+                //                             title: 'Master BirthDay',
+                //                             description: 'Manage Master BirthDay Details'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 2,
+                //                     name: 'Report',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 1,
+                //                             name: 'Student BirthDay Report',
+                //                             icon: 'Settings',
+                //                             url: '/birthday/report/studentbirthdayreport',
+                //                             title: 'Student BirthDay Report',
+                //                             description: 'Manage Student BirthDay Report'
+                //                         },
+                //                         {
+                //                             id: 2,
+                //                             name: 'Staff BirthDay Report',
+                //                             icon: 'Settings',
+                //                             url: '/birthday/report/staffbirthdayreport',
+                //                             title: 'Staff BirthDay Report',
+                //                             description: 'Manage Staff BirthDay Report'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // },
+
                 // {
                 //     id: 6,
                 //     name: 'Time Table',

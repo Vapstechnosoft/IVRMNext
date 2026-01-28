@@ -43,6 +43,7 @@ export type ApiBaseUrlKey =
     | 'sports'
     | 'alumni'
     | 'sadmin'
+    |  'coe'
     | 'portal';
 
 class ApiService {
@@ -69,7 +70,9 @@ class ApiService {
             sports: process.env.NEXT_PUBLIC_SPORTS_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             alumni: process.env.NEXT_PUBLIC_ALUMNI_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             sadmin: process.env.NEXT_PUBLIC_SADMIN_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
-            portal: process.env.NEXT_PUBLIC_PORTAL_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || ''
+            coe:   process.env.NEXT_PUBLIC_COE_API_BASE_URL||   process.env.NEXT_PUBLIC_API_BASE_URL||'',
+            portal: process.env.NEXT_PUBLIC_PORTAL_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            
         };
 
         // Debug: info base URLs in development

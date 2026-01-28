@@ -520,3 +520,7 @@ export const PORTAL_QUERY_KEYS = {
     FEE_ONLINE_PAYMENT_STUDENT_INFO:"fee_online_student_info",
     FEE_ONLINE_PAYMENT_GROUP_LIST:"fee_online_payment_group_list"
 };
+
+export const COE_QUERY_KEYS = {
+    MASTER_EVENT_COE: 'master_event_coe'
+};
