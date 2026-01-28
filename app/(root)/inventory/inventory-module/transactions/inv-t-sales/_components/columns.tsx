@@ -97,7 +97,7 @@ function InvTSalesActionButtons({ rowData }: { rowData: IInvTSales }) {
                 buttons={{ edit: true, delete: false, toggle: true, view: true }}
                 onEdit={handleEdit}
                 onToggle={handleToggle}
-                onView={handleView}
+                // onView={handleView}
                 toggleConditionKey='invmsL_ActiveFlg'
             />
         </div>

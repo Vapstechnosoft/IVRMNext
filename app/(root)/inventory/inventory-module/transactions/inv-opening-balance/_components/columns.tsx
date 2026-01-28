@@ -106,7 +106,7 @@ function InvOpeningBalanceActionButtons({ rowData }: { rowData: IInvOpeningBalan
                 buttons={{ edit: true, delete: false, toggle: true, view: true }}
                 onEdit={handleEdit}
                 onToggle={handleToggle}
-                onView={handleView}
+                //onView={handleView}
                 toggleConditionKey='invoB_ActiveFlg'
             />
         </div>

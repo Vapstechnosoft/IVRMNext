@@ -7,7 +7,7 @@ import type { IApiResponse, IAttendanceData, IAttendanceYear, ICOEData } from '@
 import type { IStudentFeedbackList } from '@/types/student-portal/masters/attendance-details';
 
 export async function getAttendanceInitialData(searchParams?: ApiSearchparams) {
-    const url = '/AttendanceDetails/get-academic-dropdown?AMST_Id=123';
+    const url = '/AttendanceDetails/get-academic-dropdown';
     return await api.get<IApiResponse<IAttendanceYear[]>>('portal', url);
 }
 

@@ -8,7 +8,7 @@ export async function getInvMasterSupplier(searchParams?: ApiSearchparams) {
     console.log("getInvMasterSupplier: TRIGGERED (POST Mode).");
     const urlParams = getSearchParamsUrl(searchParams ?? {});
 
-    const url = `/api/INV_MasterSupplierFacade/getloaddata?${urlParams}`;
+    const url = `/INV_MasterSupplierFacade/getloaddata?${urlParams}`;
 
     try {
         const response = await api.post<any>('inventory', url, {});
@@ -92,13 +92,13 @@ export async function saveInvMasterSupplier(data: any) {
         }
     }
 
-    const url = `/api/INV_MasterSupplierFacade/savedetails?${params.toString()}`;
+    const url = `/INV_MasterSupplierFacade/savedetails?${params.toString()}`;
     console.log("saveInvMasterSupplier: Posting to", url);
     return await api.post<any>('inventory', url, {});
 }
 
 export async function deactivateInvMasterSupplier(data: IInvMasterSupplier) {
-    const url = `/api/INV_MasterSupplierFacade/deactive?id=${data.invmS_Id}`;
+    const url = `/INV_MasterSupplierFacade/deactive?id=${data.invmS_Id}`;
     console.log("deactivateInvMasterSupplier: Posting to", url);
     return await api.post<any>('inventory', url, {});
 }

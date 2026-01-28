@@ -10,15 +10,15 @@ export async function getInvMasterItem(searchParams?: ApiSearchparams) {
 
     // Using simple GET for load if it follows standard pattern, but previous patterns used POST.
     // AngularJS code used apiService.getURI.
-    const url = `/api/INV_MasterItemFacade/getloaddata?${urlParams}`;
+    const url = `/INV_MasterItemFacade/getloaddata?${urlParams}`;
 
     try {
         const [response, mainGroupDropdownResponse, userGroupDropdownResponse, uomDropdownResponse, taxListResponse] = await Promise.all([
             api.post<any>('inventory', url, {}),
-            api.post<any>('inventory', `/api/INV_MasterGroupFacade/loadMainGroupDropdown`, {}).catch(e => { console.error('MainGroupDropdown failed', e); return { data: [] }; }),
-            api.post<any>('inventory', `/api/INV_MasterGroupFacade/loadUserGroupDropdown`, {}).catch(e => { console.error('UserGroupDropdown failed', e); return { data: [] }; }),
-            api.post<any>('inventory', `/api/INV_MasterItemFacade/get_uomdropdown`, {}).catch(e => { console.error('UOMDropdown failed', e); return { data: [] }; }),
-            api.post<any>('inventory', `/api/INV_MasterItemFacade/get_taxlist`, {}).catch(e => { console.error('TaxList failed', e); return { data: [] }; })
+            api.post<any>('inventory', `/INV_MasterGroupFacade/loadMainGroupDropdown`, {}).catch(e => { console.error('MainGroupDropdown failed', e); return { data: [] }; }),
+            api.post<any>('inventory', `/INV_MasterGroupFacade/loadUserGroupDropdown`, {}).catch(e => { console.error('UserGroupDropdown failed', e); return { data: [] }; }),
+            api.post<any>('inventory', `/INV_MasterItemFacade/get_uomdropdown`, {}).catch(e => { console.error('UOMDropdown failed', e); return { data: [] }; }),
+            api.post<any>('inventory', `/INV_MasterItemFacade/get_taxlist`, {}).catch(e => { console.error('TaxList failed', e); return { data: [] }; })
         ]);
 
         const extractArray = (res: any, key?: string): any[] => {
@@ -125,7 +125,7 @@ export async function getInvMasterItem(searchParams?: ApiSearchparams) {
 }
 
 export async function getItemTax(itemId: number) {
-    const url = `/api/INV_MasterItemFacade/itemTax`;
+    const url = `/INV_MasterItemFacade/itemTax`;
     console.log("getItemTax: Posting for Item ID:", itemId);
     try {
         const response = await api.post<any>('inventory', url, { INVMI_Id: itemId });
@@ -164,7 +164,7 @@ export async function getItemTax(itemId: number) {
 }
 
 export async function saveInvMasterItem(data: any) {
-    const url = `/api/INV_MasterItemFacade/savedetails`;
+    const url = `/INV_MasterItemFacade/savedetails`;
 
     // Constructing exact payload structure as requested
     const payload = {
@@ -195,11 +195,11 @@ export async function saveInvMasterItem(data: any) {
 }
 
 export async function deactivateInvMasterItem(data: IInvMasterItem) {
-    const url = `/api/INV_MasterItemFacade/deactive?id=${data.invmI_Id}`;
+    const url = `/INV_MasterItemFacade/deactive?id=${data.invmI_Id}`;
     return await api.post<any>('inventory', url, {});
 }
 
 export async function deactivateItemTax(tax: any) {
-    const url = `/api/INV_MasterItemFacade/deactiveitax?id=${tax.invmiT_Id}`;
+    const url = `/INV_MasterItemFacade/deactiveitax?id=${tax.invmiT_Id}`;
     return await api.post<any>('inventory', url, {});
 }

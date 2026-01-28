@@ -8,7 +8,7 @@ export async function getInvMasterUOM(searchParams?: ApiSearchparams) {
     console.log("getInvMasterUOM: TRIGGERED (POST Mode).");
     const urlParams = getSearchParamsUrl(searchParams ?? {});
 
-    const url = `/api/INV_MasterUOMFacade/getloaddata?${urlParams}`;
+    const url = `/INV_MasterUOMFacade/getloaddata?${urlParams}`;
 
     try {
         const response = await api.post<any>('inventory', url, {});
@@ -81,14 +81,14 @@ export async function saveInvMasterUOM(data: any) {
         }
     }
 
-    const url = `/api/INV_MasterUOMFacade/savedetails?${params.toString()}`;
+    const url = `/INV_MasterUOMFacade/savedetails?${params.toString()}`;
     console.log("saveInvMasterUOM: Posting to", url);
     return await api.post<any>('inventory', url, {});
 }
 
 export async function deactivateInvMasterUOM(data: IInvMasterUOM) {
     // Standardized deactive pattern with fallback id parameter
-    const url = `/api/INV_MasterUOMFacade/deactive?id=${data.invmuoM_Id}`;
+    const url = `/INV_MasterUOMFacade/deactive?id=${data.invmuoM_Id}`;
     console.log("deactivateInvMasterUOM: Posting to", url);
     return await api.post<any>('inventory', url, {});
 }

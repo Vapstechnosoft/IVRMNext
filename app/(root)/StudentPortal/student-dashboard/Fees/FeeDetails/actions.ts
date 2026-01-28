@@ -1,7 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type { FeeDetailsLoadData, FeeDetailsResponse } from './types';
+import type { FeeDetailsLoadData, FeeDetailsRequest, FeeDetailsResponse } from './types';
 
 // Mock data fallbacks
 const mockLoadData: FeeDetailsLoadData = {
@@ -30,6 +30,9 @@ const mockLoadData: FeeDetailsLoadData = {
 // ];
 
 export async function getFeeDetailsLoadData() {
+    // const url = `/CumulativeFeeAnalysis/studentfeedetails?ASMAY_Id=${asmaY_Id}&AMST_Id=${asmcL_Id}`
+    // return await api.get<any[]>('portal', url);
+
     const url = 'api/CumulativeFeeAnalysis/studentfeedetails?ASMAY_Id=176&AMST_Id=17108';
     try {
         const response = await api.get<FeeDetailsLoadData>('portal', url, {});
@@ -41,8 +44,8 @@ export async function getFeeDetailsLoadData() {
     }
 }
 
-export async function getFeeDetails() {
-    const url = 'api/CumulativeFeeAnalysis/getacademicyear?AMST_Id=17108';
+export async function getFeeDetails(data: FeeDetailsRequest) {
+    const url = `/FeeDetails/Getdetails`;
     try {
         const response = await api.get<FeeDetailsResponse>('portal', url, {});
 

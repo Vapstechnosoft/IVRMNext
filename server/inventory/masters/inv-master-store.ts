@@ -9,8 +9,8 @@ export async function getInvMasterStore(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
 
     // URLs - appended query string because C# [FromQuery] reads from URL even on POST
-    const storeListUrl = `/api/INV_MasterStoreFacade/GetStoreList?${urlParams}`;
-    const employeeListUrl = `/api/INV_MasterStoreFacade/GetEmployeeList`;
+    const storeListUrl = `/INV_MasterStoreFacade/GetStoreList?${urlParams}`;
+    const employeeListUrl = `/INV_MasterStoreFacade/GetEmployeeList`;
 
     try {
         const [storeResponse, employeeResponse] = await Promise.all([
@@ -91,13 +91,13 @@ export async function saveInvMasterStore(data: any) {
         }
     }
 
-    const url = `/api/INV_MasterStoreFacade/savedetails?${params.toString()}`;
+    const url = `/INV_MasterStoreFacade/savedetails?${params.toString()}`;
     console.log("saveInvMasterStore: Posting to", url);
     return await api.post<any>('inventory', url, {});
 }
 
 export async function deactivateInvMasterStore(data: IInvMasterStore) {
-    const url = `/api/INV_MasterStoreFacade/deactive?id=${data.invmsT_Id}`;
+    const url = `/INV_MasterStoreFacade/deactive?id=${data.invmsT_Id}`;
     console.log("deactivateInvMasterStore: Posting to", url);
     return await api.post<any>('inventory', url, {});
 }

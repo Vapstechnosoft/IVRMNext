@@ -7,13 +7,13 @@ import type { IInvTGRNLoadData } from '@/types/inventory/transactions/inv-t-grn'
 export async function getInvTGRNLoadData(searchParams?: ApiSearchparams) {
     console.log("getInvTGRNLoadData: TRIGGERED (POST Mode).");
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const grnUrl = `/api/INV_T_GRNFacade/getloaddata?${urlParams}`;
+    const grnUrl = `/INV_T_GRNFacade/getloaddata?${urlParams}`;
 
     // Dropdown URLs
-    const itemUrl = `/api/INV_MasterItemFacade/getloaddata`;
-    const storeUrl = `/api/INV_MasterStoreFacade/GetStoreList`;
-    const supplierUrl = `/api/INV_MasterSupplierFacade/getloaddata`;
-    const taxUrl = `/api/INV_MasterItemFacade/get_taxlist`;
+    const itemUrl = `/INV_MasterItemFacade/getloaddata`;
+    const storeUrl = `/INV_MasterStoreFacade/GetStoreList`;
+    const supplierUrl = `/INV_MasterSupplierFacade/getloaddata`;
+    const taxUrl = `/INV_MasterItemFacade/get_taxlist`;
 
     try {
         console.log(`getInvTGRNLoadData: Fetching GRN from ${grnUrl} (GET)`);
@@ -108,7 +108,7 @@ export async function getInvTGRNLoadData(searchParams?: ApiSearchparams) {
 }
 
 export async function saveInvTGRNDetails(data: any) {
-    const url = `/api/INV_T_GRNFacade/savegrn`;
+    const url = `/INV_T_GRNFacade/savegrn`;
 
     // Transform data to match DTO properties (PascalCase)
     const payload = {
@@ -173,35 +173,35 @@ export async function saveInvTGRNDetails(data: any) {
 }
 
 export async function deleteInvTGRN(data: any) {
-    const url = `/api/INV_T_GRNFacade/GRN_Delete`;
+    const url = `/INV_T_GRNFacade/GRN_Delete`;
     return await api.post<any>('inventory', url, data);
 }
 
 export async function toggleInvTGRNActive(data: any) {
     const id = data.invmgrN_Id || data.INVMGRN_Id;
-    const url = `/api/INV_T_GRNFacade/deactive?id=${id}`;
+    const url = `/INV_T_GRNFacade/deactive?id=${id}`;
     return await api.post<any>('inventory', url, {});
 }
 
 export async function getInvTGRNItemTax(invtgrN_Id: number) {
     const data = { INVTGRN_Id: invtgrN_Id };
-    const url = `/api/INV_T_GRNFacade/get_itemtax`;
+    const url = `/INV_T_GRNFacade/get_itemtax`;
     return await api.post<any>('inventory', url, data);
 }
 
 export async function getInvTGRNItemDetails(invmgrN_Id: number) {
     const data = { INVMGRN_Id: invmgrN_Id };
-    const url = `/api/INV_T_GRNFacade/get_GRNitemDetails`;
+    const url = `/INV_T_GRNFacade/get_GRNitemDetails`;
     return await api.post<any>('inventory', url, data);
 }
 
 export async function getInvTGRNEditDetails(invmgrN_Id: number) {
     const data = { INVMGRN_Id: invmgrN_Id };
-    const url = `/api/INV_T_GRNFacade/Edit_GRN_details`;
+    const url = `/INV_T_GRNFacade/Edit_GRN_details`;
     return await api.post<any>('inventory', url, data);
 }
 
 export async function getInvTGRNItemTaxDetail(id: number) {
-    const url = `/api/INV_T_GRNFacade/getItemTaxDetail?id=${id}`;
+    const url = `/INV_T_GRNFacade/getItemTaxDetail?id=${id}`;
     return await api.get<any>('inventory', url);
 }

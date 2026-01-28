@@ -80,8 +80,8 @@ const DUMMY_ITEM_GROUPS: IInvMasterItemGroup[] = [
 
 export async function fetchInvMasterGroupData(searchParams?: ApiSearchparams): Promise<{ success: boolean; message?: string; data?: IInvMasterGroupLoadResponse }> {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const mainGroupListUrl = `/api/INV_MasterGroupFacade/loadMainGroup?${urlParams}`;
-    const mainGroupDropdownUrl = `/api/INV_MasterGroupFacade/loadMainGroupDropdown`;
+    const mainGroupListUrl = `/INV_MasterGroupFacade/loadMainGroup?${urlParams}`;
+    const mainGroupDropdownUrl = `/INV_MasterGroupFacade/loadMainGroupDropdown`;
 
     try {
         const [mainGroupResponse, mainGroupDropdownResponse] = await Promise.all([
@@ -174,7 +174,7 @@ export async function saveInvMasterMainGroup(data: any) {
     }
     params.append('INVMG_MGUGIGFlg', 'MG');
 
-    const url = `/api/INV_MasterGroupFacade/savedetails?${params.toString()}`;
+    const url = `/INV_MasterGroupFacade/savedetails?${params.toString()}`;
     return await api.post<any>('inventory', url, {});
 }
 
@@ -201,7 +201,7 @@ export async function saveInvMasterUserGroup(data: any) {
     }
     // Remove INVMG_MGUGIGFlg as it is not in the user provided example for savedetailsUG
 
-    const url = `/api/INV_MasterGroupFacade/savedetailsUG?${params.toString()}`;
+    const url = `/INV_MasterGroupFacade/savedetailsUG?${params.toString()}`;
     return await api.post<any>('inventory', url, {});
 }
 
@@ -224,11 +224,11 @@ export async function saveInvMasterItemGroup(data: any) {
     }
     params.append('INVMG_MGUGIGFlg', 'IG');
 
-    const url = `/api/INV_MasterGroupFacade/savedetailsIG?${params.toString()}`;
+    const url = `/INV_MasterGroupFacade/savedetailsIG?${params.toString()}`;
     return await api.post<any>('inventory', url, {});
 }
 
 export async function deactivateInvMasterGroup(data: any) {
-    const url = `/api/INV_MasterGroupFacade/deactive?id=${data.invmG_Id}`;
+    const url = `/INV_MasterGroupFacade/deactive?id=${data.invmG_Id}`;
     return await api.post<any>('inventory', url, {});
 }
