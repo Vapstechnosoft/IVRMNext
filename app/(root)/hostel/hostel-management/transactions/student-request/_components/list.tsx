@@ -1,7 +1,8 @@
 'use client';
 
 import { DataTable } from '@/components/ui/data-table';
-import { columns } from './columns';
+import { GenericDataTable } from '@/components/ui/view-data-table/view-generic-data-table';
+import { studentRequestColumns } from './columns';
 
 interface StudentRequestListProps {
     data: any[];
@@ -11,10 +12,10 @@ interface StudentRequestListProps {
 
 export default function StudentRequestList({ data, onEdit, onToggle }: StudentRequestListProps) {
     return (
-        <DataTable
-            columns={columns(onEdit, onToggle)}
+        <GenericDataTable
+            columns={studentRequestColumns}
             data={data}
-            searchKey="studentName"
+            isLoading={false}
         />
     );
 }

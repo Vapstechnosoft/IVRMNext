@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import { masterFloorSchema, IMasterFloorForm } from '@/schemas/hostel/master-floor.schema';
-import { saveFloor, IFacility, IHostel } from '@/server/hostel/master-floor/server-action';
+import { IFacility, IHostel } from '@/types/hostel/hostel-management/masters';
+import { saveFloor } from '@/server/hostel/hostel-management/masters/floor';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { Controller, useForm } from 'react-hook-form';

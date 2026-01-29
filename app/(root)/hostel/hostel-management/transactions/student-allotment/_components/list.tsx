@@ -1,7 +1,7 @@
 'use client';
 
-import { DataTable } from '@/components/ui/data-table';
-import { columns } from './columns';
+import { studentAllotmentColumns } from './columns';
+import { GenericDataTable } from '@/components/ui/view-data-table/view-generic-data-table';
 
 interface StudentAllotmentListProps {
     data: any[];
@@ -10,7 +10,7 @@ interface StudentAllotmentListProps {
 export default function StudentAllotmentList({ data }: StudentAllotmentListProps) {
     return (
         <div className="mt-6">
-            <DataTable columns={columns} data={data} searchKey="studentName" />
+            <GenericDataTable columns={studentAllotmentColumns} data={data} isLoading={false} />
         </div>
     );
 }

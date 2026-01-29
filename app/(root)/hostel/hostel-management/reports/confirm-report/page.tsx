@@ -37,7 +37,7 @@ export default function ConfirmReportPage() {
         setType(values.type);
         try {
             const data = await getConfirmReport(values);
-            if (data && data.grid_list) {
+            if (data?.grid_list) {
                 setReportData(data.grid_list);
                 if (data.grid_list.length === 0) {
                     toast.info("No data found for selected criteria");

@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 import StudentConfirmForm from './_components/process-form';
 import StudentRequestConfirmList from './_components/list';
-import { getStudentConfirmLoadData } from '@/server/hostel/transactions/student-request-actions';
-import { Heading } from '@/components/ui/heading';
 import { Separator } from '@/components/ui/separator';
+import { getStudentConfirmLoadData } from '@/server/hostel/hostel-management/transactions/student-request-actions';
+import { Heading } from '@/components/layout/heading';
 
 export default function StudentRequestConfirmPage() {
     const [pendingList, setPendingList] = useState<any[]>([]);

@@ -50,7 +50,7 @@ export default function AddRoomTariffForm({ onSuccess, onCancel, yearList, roomL
         if (!roomId || !singleRate) return;
 
         const response = await getBedCount(roomId, singleRate);
-        if (response && response.hrmrM_BedCapacity) {
+        if (response?.hrmrM_BedCapacity) {
             const totalRate = singleRate * response.hrmrM_BedCapacity;
             setValue('HLMRTF_RoomRate', totalRate);
         }
@@ -60,12 +60,12 @@ export default function AddRoomTariffForm({ onSuccess, onCancel, yearList, roomL
         try {
             const result = await saveRoomTariff(data);
 
-            if (result && result.returnval) {
+            if (result?.returnval) {
                 toast.success('Room Tariff saved successfully');
                 reset();
                 onSuccess?.();
             } else {
-                if (result && result.duplicate) {
+                if (result?.duplicate) {
                     toast.error('Record already exists');
                 } else {
                     toast.error('Failed to save Room Tariff');

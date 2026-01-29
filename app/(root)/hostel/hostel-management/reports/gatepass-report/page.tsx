@@ -16,7 +16,7 @@ import { CalendarIcon, Loader2, Printer, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { getGatepassReportLoadData } from '@/server/hostel/hostel-management/reports/attendance-reports';
+import { getGatepassReport, getGatepassReportLoadData } from '@/server/hostel/hostel-management/reports/attendance-reports';
 
 export default function GatepassReportPage() {
     const [reportData, setReportData] = useState<any[]>([]);
@@ -37,8 +37,8 @@ export default function GatepassReportPage() {
     useEffect(() => {
         async function load() {
             const data = await getGatepassReportLoadData();
-            if (data && data.studentlist) {
-                setStudents(data.studentlist);
+            if (data) {
+                //setStudents(data);
             }
         }
         load();
@@ -48,11 +48,11 @@ export default function GatepassReportPage() {
         setLoading(true);
         try {
             const data = await getGatepassReport(values);
-            if (data && data.grid_list) {
-                setReportData(data.grid_list);
-                if (data.grid_list.length === 0) {
-                    toast.info("No data found");
-                }
+            if (data) {
+                // setReportData(data);
+                // if (data.grid_list.length === 0) {
+                //     toast.info("No data found");
+                // }
             } else {
                 setReportData([]);
                 toast.info("No data found");

@@ -5,15 +5,15 @@ import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { staffRequestSchema, StaffRequestValues } from '@/schemas/hostel/transactions/hostel-requests.schema';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { CustomSelect } from '@/components/ui/form/custom-select';
-import { DatePicker } from '@/components/ui/form/date-picker';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { getStaffRequestLoadData, saveStaffRequest } from '@/server/hostel/transactions/staff-request-actions';
 import { format } from 'date-fns';
+import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
+import { DateField } from '@/components/ui/dateField';
+import { getStaffRequestLoadData, saveStaffRequest } from '@/server/hostel/hostel-management/transactions/staff-request-actions';
 
 export default function StaffRequestForm({
     onSaveSuccess,
@@ -60,12 +60,12 @@ export default function StaffRequestForm({
     }, [editData]);
 
     async function loadData() {
-        const data = await getStaffRequestLoadData();
-        if (data) {
-            setHostels(data.hostel_list || []);
-            setCategories(data.room_list || []);
-            if (data.staff_wisedata?.length > 0) {
-                setStaffProfile(data.staff_wisedata[0]);
+        const response = await getStaffRequestLoadData();
+        if (response.success && response.data) {
+            setHostels(response.data.hostel_list || []);
+            setCategories(response.data.room_list || []);
+            if (response.data.staff_wisedata?.length > 0) {
+                setStaffProfile(response.data.staff_wisedata[0]);
             }
         }
     }
@@ -80,12 +80,12 @@ export default function StaffRequestForm({
         };
 
         const result = await saveStaffRequest(payload);
-        if (result?.msg === 'Saved' || result?.msg === 'Updated') {
-            toast.success(result.msg === 'Saved' ? "Request submitted!" : "Request updated!");
+        if (result?.success) {
+            toast.success("Request saved successfully!");
             onSaveSuccess();
             form.reset();
         } else {
-            toast.error(result?.msg || "Failed to save request");
+            toast.error(result?.message || "Failed to save request");
         }
         setLoading(false);
     }
@@ -112,9 +112,10 @@ export default function StaffRequestForm({
                                 render={({ field, fieldState }) => (
                                     <div>
                                         <Label>Hostel</Label>
-                                        <CustomSelect
+                                        <CustomMultiSelectBox
                                             options={hostels.map(h => ({ label: h.hlmH_Name, value: h.hlmH_Id.toString() }))}
-                                            {...field}
+                                            value={field.value ? [field.value] : []}
+                                            onChange={(vals) => field.onChange(vals.length > 0 ? vals[vals.length - 1] : "")}
                                         />
                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                     </div>
@@ -127,9 +128,10 @@ export default function StaffRequestForm({
                                 render={({ field, fieldState }) => (
                                     <div>
                                         <Label>Room Category</Label>
-                                        <CustomSelect
+                                        <CustomMultiSelectBox
                                             options={categories.map(c => ({ label: c.hlmrcA_RoomCategory, value: c.hlmrcA_Id.toString() }))}
-                                            {...field}
+                                            value={field.value ? [field.value] : []}
+                                            onChange={(vals) => field.onChange(vals.length > 0 ? vals[vals.length - 1] : "")}
                                         />
                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                     </div>
@@ -140,11 +142,13 @@ export default function StaffRequestForm({
                                 control={form.control}
                                 name="HLHSTREQ_RequestDate"
                                 render={({ field, fieldState }) => (
-                                    <div>
-                                        <Label>Request Date</Label>
-                                        <DatePicker date={field.value} setDate={field.onChange} disabled />
-                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                    </div>
+                                    <DateField
+                                        label="Request Date"
+                                        field={field}
+                                        fieldState={fieldState}
+                                        disabled
+                                        outputFormat="date"
+                                    />
                                 )}
                             />
 

@@ -21,7 +21,7 @@ export default function ToggleRoomTariff({ data, onSuccess, onCancel }: ToggleRo
 
     const onSubmit = async () => {
         const result = await deleteRoomTariff(data);
-        if (result && result.returnval) {
+        if (result?.returnval) {
             toast.success(data.hlmrtF_ActiveFlag ? 'Room Tariff deactivated successfully' : 'Room Tariff activated successfully');
             onSuccess();
         } else {

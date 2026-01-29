@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getVacateReportLoadData } from '@/server/hostel/reports/vacate-report';
 import VacateReportForm from './_components/report-form';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
 import { format } from 'date-fns';
+import { getVacateReport, getVacateReportLoadData } from '@/server/hostel/hostel-management/reports/vacate-report';
 
 export default function VacateReportPage() {
     const [reportData, setReportData] = useState<any[]>([]);

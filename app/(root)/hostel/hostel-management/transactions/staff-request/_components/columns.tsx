@@ -78,7 +78,6 @@ function ActionButtonsCell({ rowData }: { rowData: any }) {
             onEdit={handleEdit}
             onToggle={handleToggle}
             toggleConditionKey='HLHSTREQ_ActiveFlag'
-            isActive={rowData.HLHSTREQ_ActiveFlag}
         />
     );
 }

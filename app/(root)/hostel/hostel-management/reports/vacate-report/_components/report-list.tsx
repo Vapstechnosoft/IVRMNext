@@ -1,6 +1,6 @@
 'use client';
 
-import { ViewDataDataTable } from '@/components/ui/view-data-table/view-data-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { studentReportColumns, staffReportColumns, guestReportColumns } from './columns';
 
 interface VacateReportListProps {
@@ -10,5 +10,5 @@ interface VacateReportListProps {
 
 export default function VacateReportList({ data, type }: VacateReportListProps) {
     const columns = type === 'student' ? studentReportColumns : (type === 'staff' ? staffReportColumns : guestReportColumns);
-    return <ViewDataDataTable columns={columns} data={data} />;
+    return <GenericDataTable columns={columns} data={data} isLoading={false} />;
 }

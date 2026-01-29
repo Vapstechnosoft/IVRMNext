@@ -77,8 +77,8 @@ export default function StaffAllotmentForm({ dropdowns, onSuccess }: AddFormProp
             setLoadingStaff(true);
             try {
                 const res = await getStaffInfo({ HLMH_Id: Number(selectedHostel) });
-                if (mounted) {
-                    setStaffList(res.housewise_studentList || []);
+                if (mounted && res) {
+                    setStaffList(res.data?.housewise_studentList || []);
                     // Reset staff dependent fields
                     setValue('HRME_Id', 0);
                     setValue('HRMD_Id', 0);
@@ -125,7 +125,7 @@ export default function StaffAllotmentForm({ dropdowns, onSuccess }: AddFormProp
             const res = await getRoomDetails({ HRMRM_Id: Number(selectedRoomId) });
             if (res) {
                 // Note: Legacy sets bed capacity to state. We set to form field.
-                setValue('HLHSTALT_NoOfBeds', res.hrmrM_BedCapacity);
+                //setValue('HLHSTALT_NoOfBeds', res?.hrmrM_BedCapacity);
             }
         })();
     }, [selectedRoomId, setValue]);

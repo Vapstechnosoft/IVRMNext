@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useForm, Controller, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { requestReportSchema, RequestReportValues } from '@/schemas/hostel/reports/request-report.schema';
-import { getRequestReport } from '@/server/hostel/reports/request-report';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Button } from '@/components/ui/button';
@@ -16,6 +15,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon, Loader2, Printer, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { getRequestReport } from '@/server/hostel/hostel-management/reports/request-report';
 
 export default function RequestReportPage() {
     const [reportData, setReportData] = useState<any[]>([]);
@@ -37,15 +37,15 @@ export default function RequestReportPage() {
         setType(values.type);
         try {
             const data = await getRequestReport(values);
-            if (data && data.grid_list) {
-                setReportData(data.grid_list);
-                if (data.grid_list.length === 0) {
-                    toast.info("No data found for selected criteria");
-                }
-            } else {
-                setReportData([]);
-                toast.info("No data found for selected criteria");
-            }
+            // if (data && data.grid_list) {
+            //     setReportData(data.grid_list);
+            //     if (data.grid_list.length === 0) {
+            //         toast.info("No data found for selected criteria");
+            //     }
+            // } else {
+            //     setReportData([]);
+            //     toast.info("No data found for selected criteria");
+            // }
         } catch (error) {
             console.error(error);
             toast.error("Failed to fetch report data");

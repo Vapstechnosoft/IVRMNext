@@ -1,7 +1,7 @@
 'use client';
 
-import { DataTable } from '@/components/ui/data-table';
-import { columns } from './columns';
+import { GenericDataTable } from '@/components/ui/view-data-table/view-generic-data-table';
+import { staffApprovalListColumns } from './columns';
 
 interface StaffApprovalListProps {
     data: any[];
@@ -10,10 +10,9 @@ interface StaffApprovalListProps {
 
 export default function StaffApprovalList({ data, onProcess }: StaffApprovalListProps) {
     return (
-        <DataTable
-            columns={columns(onProcess)}
-            data={data}
-            searchKey="empName"
+        <GenericDataTable
+            columns={staffApprovalListColumns(onProcess)}
+            data={data} isLoading={false}           // searchKey="empName"
         />
     );
 }

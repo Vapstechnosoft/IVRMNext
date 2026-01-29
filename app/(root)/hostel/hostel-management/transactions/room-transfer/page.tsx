@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 import RoomTransferForm from './_components/transfer-form';
 import RoomTransferList from './_components/list';
-import { getRoomTransferLoadData } from '@/server/hostel/transactions/room-transfer';
-import { Heading } from '@/components/ui/heading';
 import { Separator } from '@/components/ui/separator';
+import { Heading } from '@/components/layout/heading';
+import { getRoomTransferLoadData } from '@/server/hostel/hostel-management/transactions/room-transfer';
 
 export default function RoomTransferPage() {
     const [listData, setListData] = useState<any[]>([]);

@@ -13,10 +13,11 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { getStudentRequestLoadData, saveStudentRequest } from '@/server/hostel/transactions/student-request-actions';
 import { format } from 'date-fns';
 import { CalendarIcon, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getStudentRequestLoadData, saveStudentRequest } from '@/server/hostel/hostel-management/transactions/student-request-actions';
+import { HostelList, RoomCategoryList, StudentProfileData } from '@/types/hostel/hostel-management/transactions';
 
 export default function StudentRequestForm({
     onSaveSuccess,
@@ -26,9 +27,9 @@ export default function StudentRequestForm({
     editData?: any
 }) {
     const [loading, setLoading] = useState(false);
-    const [hostels, setHostels] = useState<any[]>([]);
-    const [categories, setCategories] = useState<any[]>([]);
-    const [studentProfile, setStudentProfile] = useState<any>(null);
+    const [hostels, setHostels] = useState<HostelList[]>([]);
+    const [categories, setCategories] = useState<RoomCategoryList[]>([]);
+    const [studentProfile, setStudentProfile] = useState<StudentProfileData | null>(null);
 
     const form = useForm<StudentRequestValues>({
         resolver: zodResolver(studentRequestSchema),
@@ -80,8 +81,8 @@ export default function StudentRequestForm({
             const payload = {
                 ...values,
                 HLHSREQ_RequestDate: format(values.HLHSREQ_RequestDate, 'yyyy-MM-dd'),
-                HLMH_Id: parseInt(values.HLMH_Id),
-                HLMRCA_Id: parseInt(values.HLMRCA_Id),
+                HLMH_Id: Number.parseInt(values.HLMH_Id),
+                HLMRCA_Id: Number.parseInt(values.HLMRCA_Id),
             };
 
             const result = await saveStudentRequest(payload);
@@ -101,7 +102,7 @@ export default function StudentRequestForm({
                     AMST_Id: studentProfile?.AMST_Id
                 });
             } else {
-                toast.error(result?.msg || "Failed to save request");
+                toast.error(result?.message || "Failed to save request");
             }
         } catch (error) {
             console.error(error);
@@ -113,9 +114,6 @@ export default function StudentRequestForm({
 
     return (
         <Card>
-            <CardHeader>
-                <CardTitle>Hostel Student Request</CardTitle>
-            </CardHeader>
             <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-muted/20 rounded-lg">
                     <p><strong>Name:</strong> {studentProfile?.studentName || '-'}</p>

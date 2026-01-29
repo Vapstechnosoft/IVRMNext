@@ -3,18 +3,13 @@
 import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { IHostel } from '@/server/hostel/hostel-management/masters/hostel';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
 
-export interface IHostelDisplay extends IHostel {
-    ivrmmC_CountryName?: string;
-    ivrmmS_Name?: string;
-}
 
-const columnHelper = createColumnHelper<IHostelDisplay>();
+const columnHelper = createColumnHelper<IHostel>();
 
-export const masterHostelColumns: ColumnDef<IHostelDisplay, any>[] = [
+export const masterHostelColumns: ColumnDef<IHostel, any>[] = [
     {
         accessorKey: 'sn',
         header: ({ column }) => <ColumnHeader column={column} title='Sl.No' />,
@@ -85,12 +80,13 @@ export const masterHostelColumns: ColumnDef<IHostelDisplay, any>[] = [
 
 import { ViewFacilitiesModal, ViewWardensModal, ViewDocumentsModal } from './view-modals';
 import { useState } from 'react';
+import { IHostel } from '@/types/hostel/hostel-management/masters';
 
 // ... (existing imports and interface)
 
 // ... (existing columns definitions up to ViewFacilitiesCell)
 
-function ViewFacilitiesCell({ rowData }: { rowData: IHostelDisplay }) {
+function ViewFacilitiesCell({ rowData }: { rowData: IHostel }) {
     const [isOpen, setIsOpen] = useState(false);
     return (
         <>
@@ -112,7 +108,7 @@ function ViewFacilitiesCell({ rowData }: { rowData: IHostelDisplay }) {
     );
 }
 
-function ViewWardensCell({ rowData }: { rowData: IHostelDisplay }) {
+function ViewWardensCell({ rowData }: { rowData: IHostel }) {
     const [isOpen, setIsOpen] = useState(false);
     return (
         <>
@@ -127,14 +123,14 @@ function ViewWardensCell({ rowData }: { rowData: IHostelDisplay }) {
                 <ViewWardensModal
                     isOpen={isOpen}
                     onClose={() => setIsOpen(false)}
-                    hostel={rowData}
+                    hostel={rowData ?? null}
                 />
             )}
         </>
     );
 }
 
-function ViewDocumentsCell({ rowData }: { rowData: IHostelDisplay }) {
+function ViewDocumentsCell({ rowData }: { rowData: IHostel }) {
     const [isOpen, setIsOpen] = useState(false);
     return (
         <>
@@ -156,8 +152,8 @@ function ViewDocumentsCell({ rowData }: { rowData: IHostelDisplay }) {
     );
 }
 
-function ActionButtonsCell({ rowData }: { rowData: IHostelDisplay }) {
-    const { openEditForm, openToggleForm } = useFormContext<IHostelDisplay>();
+function ActionButtonsCell({ rowData }: { rowData: IHostel }) {
+    const { openEditForm, openToggleForm } = useFormContext<IHostel>();
     return (
         <ActionButtons
             rowData={rowData}

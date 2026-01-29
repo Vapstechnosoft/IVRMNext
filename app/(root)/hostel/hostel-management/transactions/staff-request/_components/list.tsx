@@ -1,7 +1,8 @@
 'use client';
 
 import { DataTable } from '@/components/ui/data-table';
-import { columns } from './columns';
+import { staffRequestColumns } from './columns';
+import { GenericDataTable } from '@/components/ui/view-data-table/view-generic-data-table';
 
 interface StaffRequestListProps {
     data: any[];
@@ -11,10 +12,10 @@ interface StaffRequestListProps {
 
 export default function StaffRequestList({ data, onEdit, onToggle }: StaffRequestListProps) {
     return (
-        <DataTable
-            columns={columns(onEdit, onToggle)}
+        <GenericDataTable
+            columns={staffRequestColumns}
             data={data}
-            searchKey="empName"
+            isLoading={false}
         />
     );
 }

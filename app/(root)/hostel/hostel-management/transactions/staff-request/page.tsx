@@ -3,10 +3,10 @@
 import { useEffect, useState } from 'react';
 import StaffRequestForm from './_components/add-form';
 import StaffRequestList from './_components/list';
-import { getStaffRequestLoadData, toggleStaffRequestStatus } from '@/server/hostel/transactions/staff-request-actions';
-import { Heading } from '@/components/ui/heading';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
+import { getStaffRequestLoadData, toggleStaffRequestStatus } from '@/server/hostel/hostel-management/transactions/staff-request-actions';
+import { Heading } from '@/components/layout/heading';
 
 export default function StaffRequestPage() {
     const [listData, setListData] = useState<any[]>([]);
@@ -19,7 +19,7 @@ export default function StaffRequestPage() {
     async function loadData() {
         const data = await getStaffRequestLoadData();
         if (data && data.all_requestdata) {
-            setListData(data.all_requestdata);
+            setListData(data.all_requestdata as any[]);
         }
     }
 
@@ -49,7 +49,7 @@ export default function StaffRequestPage() {
                     editData={editData}
                 />
                 <Separator />
-                <Heading title="Your Requests" description="" />
+                {/* <Heading  description="" /> */}
                 <StaffRequestList
                     data={listData}
                     onEdit={handleEdit}

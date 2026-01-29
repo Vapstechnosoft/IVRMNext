@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getVacateLoadData, getDetailsOnType } from '@/server/hostel/transactions/vacate-room';
 import VacateForm from './_components/vacate-form';
 import VacateRoomList from './_components/list';
 import { toast } from 'sonner';
+import { getDetailsOnType, getVacateLoadData } from '@/server/hostel/hostel-management/transactions/vacate-room';
 
 export default function VacateRoomPage() {
     const [type, setType] = useState<'student' | 'staff' | 'guest'>('student');
@@ -52,7 +52,6 @@ export default function VacateRoomPage() {
 
     return (
         <div className="p-6 space-y-8">
-            <h2 className="text-2xl font-bold text-gray-800">Hostel Vacate</h2>
 
             <VacateForm
                 initialData={data}

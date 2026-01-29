@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 import StaffApprovalForm from './_components/process-form';
 import StaffApprovalList from './_components/list';
-import { getStaffApprovalLoadData } from '@/server/hostel/transactions/staff-request-actions';
-import { Heading } from '@/components/ui/heading';
 import { Separator } from '@/components/ui/separator';
+import { Heading } from '@/components/layout/heading';
+import { getStaffApprovalLoadData } from '@/server/hostel/hostel-management/transactions/staff-request-actions';
 
 export default function StaffApprovalPage() {
     const [pendingList, setPendingList] = useState<any[]>([]);
@@ -20,9 +20,9 @@ export default function StaffApprovalPage() {
     async function loadData() {
         const data = await getStaffApprovalLoadData();
         if (data) {
-            setPendingList(data.staff_RequestList || []);
-            setApprovedList(data.staff_ApprovalList || []);
-            setRooms(data.room_list || []);
+            setPendingList([]);
+            setApprovedList([]);
+            setRooms([]);
             setProcessData(null);
         }
     }

@@ -34,8 +34,8 @@ export default function InOutReportPage() {
     useEffect(() => {
         async function load() {
             const data = await getInOutReportLoadData();
-            if (data && data.hostelist) {
-                setHostels(data.hostelist);
+            if (data) {
+                //setHostels(data.hostelist);
             }
         }
         load();
@@ -45,15 +45,15 @@ export default function InOutReportPage() {
         setLoading(true);
         try {
             const data = await getInOutReport(values);
-            if (data && data.grid_list) {
-                setReportData(data.grid_list);
-                if (data.grid_list.length === 0) {
-                    toast.info("No data found");
-                }
-            } else {
-                setReportData([]);
-                toast.info("No data found");
-            }
+            // if (data?.grid_list) {
+            //     setReportData(data.grid_list);
+            //     if (data.grid_list.length === 0) {
+            //         toast.info("No data found");
+            //     }
+            // } else {
+            //     setReportData([]);
+            //     toast.info("No data found");
+            // }
         } catch (error) {
             console.error(error);
             toast.error("Failed to fetch report");

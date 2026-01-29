@@ -1,7 +1,8 @@
 'use client';
 
 import { DataTable } from '@/components/ui/data-table';
-import { columns } from './columns';
+import { studentRequestConfirmColumns } from './columns';
+import { GenericDataTable } from '@/components/ui/view-data-table/view-generic-data-table';
 
 interface StudentRequestConfirmListProps {
     data: any[];
@@ -10,10 +11,11 @@ interface StudentRequestConfirmListProps {
 
 export default function StudentRequestConfirmList({ data, onProcess }: StudentRequestConfirmListProps) {
     return (
-        <DataTable
-            columns={columns(onProcess)}
+        <GenericDataTable
+            columns={studentRequestConfirmColumns(onProcess)}
             data={data}
-            searchKey="studentName"
+            //searchKey="studentName"
+            isLoading={false}
         />
     );
 }

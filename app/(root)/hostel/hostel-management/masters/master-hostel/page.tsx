@@ -9,7 +9,7 @@ import { Plus, X } from 'lucide-react';
 import { use, useEffect } from 'react';
 import AddMasterHostelForm from './_components/add-form';
 import UpdateMasterHostelForm from './_components/update-form';
-import { masterHostelColumns, IHostelDisplay } from './_components/columns';
+import { masterHostelColumns } from './_components/columns';
 import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
 import { toast } from 'sonner';
 import { ViewDocumentsModal, ViewFacilitiesModal, ViewWardensModal } from './_components/view-modals';
@@ -30,7 +30,7 @@ export default function MasterHostelPage(props: { searchParams: SearchParams }) 
     const { data: employees } = useWardenDropdownList();
 
     return (
-        <FormProvider<IHostelDisplay>>
+        <FormProvider<IHostel>>
             <PageContent
                 hostelList={hosteldataresponse}
                 countries={countries?.data}
@@ -64,7 +64,7 @@ function PageContent({
     isLoading: boolean;
     refetch: () => void;
 }) {
-    const { openAddForm } = useFormContext<IHostelDisplay>();
+    const { openAddForm } = useFormContext<IHostel>();
     const tableProps = useDataTableProps(hostelList);
 
     return (
@@ -87,7 +87,7 @@ function PageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IHostelDisplay>
+                    <GenericDataTable<IHostel>
                         {...tableProps}
                         columns={masterHostelColumns}
                         isLoading={isLoading}
@@ -143,7 +143,7 @@ function FormSections({
         closeDocumentView,
         addFormRef,
         editFormRef
-    } = useFormContext<IHostelDisplay>();
+    } = useFormContext<IHostel>();
 
     return (
         <>
@@ -241,7 +241,7 @@ function FormSections({
 
 // Inline Toggle Form for simplicity
 
-function ToggleMasterHostelForm({ rowData, onClose, onSuccess }: { rowData: IHostelDisplay, onClose: () => void, onSuccess: () => void }) {
+function ToggleMasterHostelForm({ rowData, onClose, onSuccess }: { rowData: IHostel, onClose: () => void, onSuccess: () => void }) {
     const onConfirm = async () => {
         try {
             const result = await deleteHostel(rowData.hlmH_Id);

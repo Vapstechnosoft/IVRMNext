@@ -11,12 +11,13 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { CalendarIcon, Loader2, Search } from 'lucide-react';
 import { vacateReportSchema, type VacateReportSchema } from '@/schemas/hostel/reports/vacate-report.schema';
-import { getVacateReport, getStudentListForReport, getVacateReportLoadData } from '@/server/hostel/reports/vacate-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { getStudentListForReport, getVacateReport } from '@/server/hostel/hostel-management/reports/vacate-report';
 
 interface ReportFormProps {
     initialData: {
@@ -59,8 +60,8 @@ export default function VacateReportForm({ initialData, onReportGenerated }: Rep
         if (selectedType === 'student' && selectedYear) {
             (async () => {
                 const res = await getStudentListForReport(Number(selectedYear));
-                if (res && res.studentlist) {
-                    setDropdowns(prev => ({ ...prev, studentlist: res.studentlist }));
+                if (res) {
+                    //setDropdowns({ ...dropdowns, studentlist: res });
                 }
             })();
         }
@@ -78,12 +79,12 @@ export default function VacateReportForm({ initialData, onReportGenerated }: Rep
     const onSubmit = async (data: VacateReportSchema) => {
         try {
             const res = await getVacateReport(data);
-            if (res && res.gridlistdata) {
-                onReportGenerated(res.gridlistdata, data.type);
-            } else {
-                toast.error('No records found');
-                onReportGenerated([], data.type);
-            }
+            // if (res?.gridlistdata) {
+            //     onReportGenerated(res.gridlistdata, data.type);
+            // } else {
+            //     toast.error('No records found');
+            //     onReportGenerated([], data.type);
+            // }
         } catch (error) {
             console.error(error);
             toast.error('Failed to generate report');

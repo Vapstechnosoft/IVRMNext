@@ -128,7 +128,7 @@ export default function AddMasterHostelForm({
     };
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
+        if (e.target.files?.[0]) {
             const file = e.target.files[0];
             const newDoc = {
                 hlmhP_FileName: file.name,

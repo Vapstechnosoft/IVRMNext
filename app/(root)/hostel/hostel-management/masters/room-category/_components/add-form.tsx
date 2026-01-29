@@ -66,12 +66,12 @@ export default function AddRoomCategoryForm({
         try {
             const result = await saveRoomCategory(data);
 
-            if (result && result.returnval) {
+            if (result?.returnval) {
                 toast.success('Room Category saved successfully');
                 reset();
                 onSuccess?.();
             } else {
-                if (result && result.duplicate) {
+                if (result?.duplicate) {
                     toast.error('Record already exists');
                 } else {
                     toast.error('Failed to save Room Category');

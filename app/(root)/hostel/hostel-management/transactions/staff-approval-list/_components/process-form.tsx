@@ -5,12 +5,12 @@ import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { staffApprovalSchema, StaffApprovalValues } from '@/schemas/hostel/transactions/hostel-confirmations.schema';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { CustomSelect } from '@/components/ui/form/custom-select';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { approveStaffRequest, rejectStaffRequest } from '@/server/hostel/transactions/staff-request-actions';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { approveStaffRequest, rejectStaffRequest } from '@/server/hostel/hostel-management/transactions/staff-request-actions';
 
 export default function StaffApprovalForm({
     onSaveSuccess,
@@ -54,7 +54,7 @@ export default function StaffApprovalForm({
     async function handleReject(values: StaffApprovalValues) {
         setLoading(true);
         const result = await rejectStaffRequest(values);
-        if (result?.returnval === true) {
+        if (result?.message === "Success") {
             toast.success("Request rejected!");
             onSaveSuccess();
         } else {
@@ -84,10 +84,22 @@ export default function StaffApprovalForm({
                             render={({ field, fieldState }) => (
                                 <div>
                                     <Label>Assign Room (Required for Approval)</Label>
-                                    <CustomSelect
-                                        options={rooms.map(r => ({ label: r.hrmrM_RoomNo, value: r.hrmrM_Id.toString() }))}
-                                        {...field}
-                                    />
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value}
+                                        value={field.value}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select a Room" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {rooms.map((r: any) => (
+                                                <SelectItem key={r.hrmrM_Id} value={r.hrmrM_Id.toString()}>
+                                                    {r.hrmrM_RoomNo}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                     {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                 </div>
                             )}

@@ -11,13 +11,13 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { CalendarIcon, Loader2 } from 'lucide-react';
 import { studentAllotmentSchema, StudentAllotmentSchema } from '@/schemas/hostel/transactions/student-allotment.schema';
-import { getStudentInfo, getRoomDetails, saveStudentAllotment } from '@/server/hostel/transactions/student-allotment';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormError, Label } from '@/components/ui/extension/field';
+import { getRoomDetails, getStudentInfo, saveStudentAllotment } from '@/server/hostel/hostel-management/transactions/student-allotment';
 
 interface AddFormProps {
     dropdowns: {
@@ -80,7 +80,7 @@ export default function StudentAllotmentForm({ dropdowns, onSuccess }: AddFormPr
             try {
                 const res = await getStudentInfo(Number(selectedHostel));
                 if (mounted) {
-                    setStudents(res.housewise_studentList || []);
+                    setStudents(res.data?.housewise_studentList || []);
                     // Reset student dependent fields
                     setValue('AMST_Id', 0);
                     setValue('ASMCL_Id', 0);
@@ -118,8 +118,8 @@ export default function StudentAllotmentForm({ dropdowns, onSuccess }: AddFormPr
         if (!selectedRoomId) return;
         (async () => {
             const res = await getRoomDetails(Number(selectedRoomId));
-            if (res) {
-                setValue('HLHSALT_NoOfBeds', res.hrmrM_BedCapacity);
+            if (res.data) {
+                setValue('HLHSALT_NoOfBeds', res.data.hrmrM_BedCapacity);
             }
         })();
     }, [selectedRoomId, setValue]);
@@ -127,7 +127,7 @@ export default function StudentAllotmentForm({ dropdowns, onSuccess }: AddFormPr
     const onSubmit = async (data: StudentAllotmentSchema) => {
         try {
             const res = await saveStudentAllotment(data);
-            if (res.returnval) {
+            if (res.data?.returnval) {
                 toast.success(res.message || 'Saved successfully');
                 reset();
                 onSuccess?.();

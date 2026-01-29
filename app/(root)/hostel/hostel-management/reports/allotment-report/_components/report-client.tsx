@@ -49,15 +49,15 @@ export default function AllotmentReportClient({ dropdowns }: ReportFormProps) {
         try {
             setReportType(data.type);
             const res = await getAllotmentReport(data);
-            if (res.griddata) {
-                setReportData(res.griddata);
-                if (res.griddata.length === 0) {
-                    toast.info('No records found');
-                }
-            } else {
-                setReportData([]);
-                toast.error('Failed to fetch report');
-            }
+            // if (res.griddata) {
+            //     setReportData(res.griddata);
+            //     if (res.griddata.length === 0) {
+            //         toast.info('No records found');
+            //     }
+            // } else {
+            //     setReportData([]);
+            //     toast.error('Failed to fetch report');
+            // }
         } catch (error) {
             console.error(error);
             toast.error('An error occurred');

@@ -10,8 +10,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { approveStudentRequest, rejectStudentRequest } from '@/server/hostel/transactions/student-request-actions';
 import { Loader2 } from 'lucide-react';
+import { approveStudentRequest, rejectStudentRequest } from '@/server/hostel/hostel-management/transactions/student-request-actions';
 
 export default function StudentConfirmForm({
     onSaveSuccess,

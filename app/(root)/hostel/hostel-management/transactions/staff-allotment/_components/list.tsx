@@ -1,7 +1,8 @@
 'use client';
 
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { columns, type StaffAllotmentColumn } from './columns';
+import { staffAllotmentColumns, type StaffAllotmentColumn } from './columns';
+import { GenericDataTable } from '@/components/ui/view-data-table/view-generic-data-table';
 
 interface StaffAllotmentListProps {
     data: StaffAllotmentColumn[];
@@ -9,5 +10,5 @@ interface StaffAllotmentListProps {
 }
 
 export default function StaffAllotmentList({ data, onEdit }: StaffAllotmentListProps) {
-    return <DataTable columns={columns(onEdit)} data={data} />;
+    return <GenericDataTable columns={staffAllotmentColumns} data={data} isLoading={false} />;
 }

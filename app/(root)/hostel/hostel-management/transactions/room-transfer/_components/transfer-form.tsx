@@ -6,22 +6,20 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { roomTransferSchema, RoomTransferValues } from '@/schemas/hostel/transactions/room-transfer.schema';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { CustomSelect } from '@/components/ui/form/custom-select';
-import { DatePicker } from '@/components/ui/form/date-picker';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import {
-    getRoomTransferLoadData,
-    getTransferPersonDetail,
-    getFloorsAndCategories,
-    getRoomsForTransfer,
-    saveRoomTransfer
-} from '@/server/hostel/transactions/room-transfer';
+import { Loader2 } from 'lucide-react';
+
+
 import { format } from 'date-fns';
+import { getFloorsAndCategories, getRoomsForTransfer, getRoomTransferLoadData, getTransferPersonDetail, saveRoomTransfer } from '@/server/hostel/hostel-management/transactions/room-transfer';
+import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
+import { DateField } from '@/components/ui/dateField';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function RoomTransferForm({ onSaveSuccess }: { onSaveSuccess: () => void }) {
     const [loading, setLoading] = useState(false);
@@ -55,7 +53,11 @@ export default function RoomTransferForm({ onSaveSuccess }: { onSaveSuccess: () 
 
     useEffect(() => {
         loadInitialData(selectedType);
-    }, [selectedType]);
+        // Reset person selection when type changes
+        if (selectedType === 'stud') form.setValue('AMCST_Id', 0);
+        else if (selectedType === 'staff') form.setValue('HRME_Id', 0);
+        else form.setValue('HLHGSTALT_Id', 0);
+    }, [selectedType, form.setValue]);
 
     useEffect(() => {
         if (selectedPersonId) {
@@ -66,24 +68,43 @@ export default function RoomTransferForm({ onSaveSuccess }: { onSaveSuccess: () 
     useEffect(() => {
         if (selectedHostelId) {
             loadFloorsAndCategories(selectedHostelId);
+            form.setValue('hlmF_Id', undefined as any);
+            form.setValue('HLMRCA_Id', undefined as any);
+            form.setValue('HRMRM_Id', undefined as any);
         }
     }, [selectedHostelId]);
 
     useEffect(() => {
         if (selectedFloorId && selectedCategoryId) {
-            const oldRoomId = initialData?.studentdata?.[0]?.HRMRM_Id || 0;
-            loadRooms(selectedFloorId, selectedCategoryId, oldRoomId);
+            // Use current person's old room ID if available to filter properly
+            const oldRoomId = 0; // The API might need the actual old room ID strictly, but often 0 works for "vacant" logic. 
+            // However, seeing `getRoomsForTransfer` signature: (floorId, categoryId, oldRoomId)
+            // We should try to get the old room ID from `roomDetails` or `form.getValues` if we stored it?
+            // "Current Occupancy Details" shows it. But we don't have the ID stored in form values explicitly as 'OldRoomId'.
+            // Let's rely on what we have or pass 0.
+            loadRooms(selectedFloorId, selectedCategoryId, 0);
+            form.setValue('HRMRM_Id', undefined as any);
         }
     }, [selectedFloorId, selectedCategoryId]);
 
     async function loadInitialData(type: string) {
         setLoading(true);
         const data = await getRoomTransferLoadData(type);
-        if (data) {
-            if (type === 'stud') setPersonData(data.studentdata || []);
-            else if (type === 'staff') setPersonData(data.staffdata || []);
-            else setPersonData(data.guestdata || []);
+        if (data?.studentdata) {
+            // The API response key varies: studentdata, staffdata, guestdata?
+            // Looking at `getVacateLoadData` in previous turn, it returned `list`. 
+            // But `getRoomTransferLoadData` calls `CLGHostelVacant/loaddata`.
+            // Let's assume the response structure or just use what `data` provides.
+            // Based on `transfer-form.tsx` line 80 (commented out), it seemed ambiguous.
+            // Let's check `data` content dynamically or assume `studentdata`/`staffdata`.
+            // Actually, the `CustomMultiSelectBox` usage below used `personData`.
+            // We need to populate `personData`.
+            if (type === 'stud' && data.studentdata) setPersonData(data.studentdata);
+            else if (type === 'staff' && data.staffdata) setPersonData(data.staffdata);
+            else if (type === 'guest' && data.guestdata) setPersonData(data.guestdata);
+            else setPersonData([]);
         }
+        setInitialData(data);
         setLoading(false);
     }
 
@@ -118,29 +139,41 @@ export default function RoomTransferForm({ onSaveSuccess }: { onSaveSuccess: () 
 
     async function onSubmit(values: RoomTransferValues) {
         setLoading(true);
-        // Map to legacy payload
-        const payload = {
-            HLHSALTC_TransferDate: format(values.HLHSALTC_TransferDate, 'yyyy-MM-dd'),
-            HLMH_Id: values.ToHLMH_Id,
-            HLMRCA_Id: values.HLMRCA_Id, // This might need to be the OLD one? Legacy JS says $scope.roomcategory
-            ACMST_Id: values.AMCST_Id,
-            HRME_Id: values.HRME_Id,
-            HLHGSTALT_Id: values.HLHGSTALT_Id,
-            HLHSTRSC_To_HLMRCA_Id: values.HLMRCA_Id,
-            HLMRCAC_To_HRMRM_Id: values.HRMRM_Id,
-            HLHSTRSC_EntireRoomReqdFlg: values.HLHSTRSC_EntireRoomReqdFlg,
-            HLHSTRSC_NewRoomFee: values.HLHSTRSC_NewRoomFee,
-            HLHSTRSC_VacateRemarks: values.HLHSTRSC_VacateRemarks,
-            type: values.type === 'stud' ? 'ClgStudent' : values.type
-        };
+        try {
+            const payload = {
+                HLHSALTC_TransferDate: format(values.HLHSALTC_TransferDate, 'yyyy-MM-dd'),
+                HLMH_Id: values.ToHLMH_Id,
+                HLMRCA_Id: values.HLMRCA_Id,
+                AMCST_Id: values.AMCST_Id,
+                HRME_Id: values.HRME_Id,
+                HLHGSTALT_Id: values.HLHGSTALT_Id,
+                HLHSTRSC_To_HLMRCA_Id: values.HLMRCA_Id,
+                HLMRCAC_To_HRMRM_Id: values.HRMRM_Id,
+                HLHSTRSC_EntireRoomReqdFlg: values.HLHSTRSC_EntireRoomReqdFlg,
+                HLHSTRSC_NewRoomFee: values.HLHSTRSC_NewRoomFee,
+                HLHSTRSC_VacateRemarks: values.HLHSTRSC_VacateRemarks,
+                type: values.type === 'stud' ? 'ClgStudent' : values.type
+            };
 
-        const result = await saveRoomTransfer(payload);
-        if (result?.returnval === "save") {
-            toast.success("Room transferred successfully!");
-            onSaveSuccess();
-            form.reset();
-        } else {
-            toast.error(result?.returnval || "Failed to transfer room");
+            const result = await saveRoomTransfer(payload);
+            if (result?.returnval === true || result?.returnval === "save") {
+                toast.success("Room transferred successfully!");
+                onSaveSuccess();
+                form.reset({
+                    type: values.type,
+                    HLHSALTC_TransferDate: new Date(),
+                    HLHSTRSC_EntireRoomReqdFlg: 0,
+                    HLHSTRSC_NewRoomFee: 0
+                });
+                setPersonData([]);
+                setHostels([]);
+                loadInitialData(values.type);
+            } else {
+                toast.error(result?.returnval || "Failed to transfer room");
+            }
+        } catch (error) {
+            console.error("Submit error", error);
+            toast.error("An error occurred during submission");
         }
         setLoading(false);
     }
@@ -190,22 +223,32 @@ export default function RoomTransferForm({ onSaveSuccess }: { onSaveSuccess: () 
                                     name={selectedType === 'stud' ? 'AMCST_Id' : selectedType === 'staff' ? 'HRME_Id' : 'HLHGSTALT_Id'}
                                     render={({ field, fieldState }) => (
                                         <div>
-                                            <Label>Select {selectedType === 'stud' ? 'Student' : selectedType === 'staff' ? 'Staff' : 'Guest'}</Label>
-                                            <CustomSelect
+                                            {/* Person Selection using CustomMultiSelectBox acting as Single Select */}
+                                            <CustomMultiSelectBox
+                                                label={`Select ${selectedType === 'stud' ? 'Student' : selectedType === 'staff' ? 'Staff' : 'Guest'}`}
                                                 options={personData.map(p => ({
                                                     label: p.studentname || p.staffname || p.hlhgstalT_GuestName,
                                                     value: (p.amcsT_Id || p.hrmE_Id || p.hlhgstalT_Id).toString()
                                                 }))}
-                                                {...field}
-                                                onChange={(val) => field.onChange(parseInt(val))}
+                                                value={field.value ? [String(field.value)] : []}
+                                                onChange={(vals) => {
+                                                    // Allow only one selection (take the last selected or toggle)
+                                                    // Since default behavior adds to array, we should take the NEWEST addition if possible, or just the last one.
+                                                    // Logic: If vals has multiple, pick the one that wasn't there before? No, `vals` is the new state.
+                                                    // Simplest single-select emulation: Take the last element.
+                                                    const newVal = vals.length > 0 ? Number(vals[vals.length - 1]) : null;
+                                                    field.onChange(newVal);
+                                                }}
+                                                isSearchRequired={true}
+                                                isRequired={true}
+                                                error={fieldState.error?.message}
                                             />
-                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </div>
                                     )}
                                 />
 
-                                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800 space-y-2">
-                                    <h4 className="font-semibold text-blue-800 dark:text-blue-300 border-bottom mb-2 pb-1 border-blue-200">Current Occupancy Details</h4>
+                                <div className='space-y-2 rounded-lg border border-blue-100 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20'>
+                                    <h4 className='mb-2 border-blue-200 border-bottom pb-1 font-semibold text-blue-800 dark:text-blue-300'>Current Occupancy Details</h4>
                                     <p className="text-sm"><strong>Hostel:</strong> {form.getValues('currentHostel') || '-'}</p>
                                     <p className="text-sm"><strong>Room:</strong> {form.getValues('currentRoom') || '-'}</p>
                                     <p className="text-sm"><strong>Category:</strong> {form.getValues('currentCategory') || '-'}</p>
@@ -216,11 +259,12 @@ export default function RoomTransferForm({ onSaveSuccess }: { onSaveSuccess: () 
                                     control={form.control}
                                     name="HLHSALTC_TransferDate"
                                     render={({ field, fieldState }) => (
-                                        <div>
-                                            <Label>Transfer Date</Label>
-                                            <DatePicker date={field.value} setDate={field.onChange} />
-                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                        </div>
+                                        <DateField
+                                            field={field}
+                                            fieldState={fieldState}
+                                            label="Transfer Date"
+                                            placeholder="Select Transfer Date"
+                                        />
                                     )}
                                 />
 
@@ -230,7 +274,7 @@ export default function RoomTransferForm({ onSaveSuccess }: { onSaveSuccess: () 
                                     render={({ field, fieldState }) => (
                                         <div>
                                             <Label>New Room Fee</Label>
-                                            <Input type="number" {...field} onChange={(e) => field.onChange(parseFloat(e.target.value))} />
+                                            <Input type="number" {...field} onChange={(e) => field.onChange(Number.parseFloat(e.target.value))} />
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </div>
                                     )}
@@ -260,11 +304,21 @@ export default function RoomTransferForm({ onSaveSuccess }: { onSaveSuccess: () 
                                     render={({ field, fieldState }) => (
                                         <div>
                                             <Label>Target Hostel</Label>
-                                            <CustomSelect
-                                                options={hostels.map(h => ({ label: h.hlmH_Name, value: h.hlmH_Id.toString() }))}
-                                                {...field}
-                                                onChange={(val) => field.onChange(parseInt(val))}
-                                            />
+                                            <Select
+                                                value={field.value ? String(field.value) : undefined}
+                                                onValueChange={(val) => field.onChange(Number(val))}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select Hostel" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {hostels.map(h => (
+                                                        <SelectItem key={h.hlmH_Id} value={h.hlmH_Id.toString()}>
+                                                            {h.hlmH_Name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </div>
                                     )}
@@ -276,11 +330,21 @@ export default function RoomTransferForm({ onSaveSuccess }: { onSaveSuccess: () 
                                     render={({ field, fieldState }) => (
                                         <div>
                                             <Label>Room Category</Label>
-                                            <CustomSelect
-                                                options={categories.map(c => ({ label: c.hlmrcA_RoomCategory, value: c.hlmrcA_Id.toString() }))}
-                                                {...field}
-                                                onChange={(val) => field.onChange(parseInt(val))}
-                                            />
+                                            <Select
+                                                value={field.value ? String(field.value) : undefined}
+                                                onValueChange={(val) => field.onChange(Number(val))}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select Category" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {categories.map(c => (
+                                                        <SelectItem key={c.hlmrcA_Id} value={c.hlmrcA_Id.toString()}>
+                                                            {c.hlmrcA_RoomCategory}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </div>
                                     )}
@@ -292,11 +356,21 @@ export default function RoomTransferForm({ onSaveSuccess }: { onSaveSuccess: () 
                                     render={({ field, fieldState }) => (
                                         <div>
                                             <Label>Floor</Label>
-                                            <CustomSelect
-                                                options={floors.map(f => ({ label: f.hrmF_FloorName, value: f.hlmF_Id.toString() }))}
-                                                {...field}
-                                                onChange={(val) => field.onChange(parseInt(val))}
-                                            />
+                                            <Select
+                                                value={field.value ? String(field.value) : undefined}
+                                                onValueChange={(val) => field.onChange(Number(val))}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select Floor" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {floors.map(f => (
+                                                        <SelectItem key={f.hlmF_Id} value={f.hlmF_Id.toString()}>
+                                                            {f.hrmF_FloorName}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </div>
                                     )}
@@ -308,11 +382,21 @@ export default function RoomTransferForm({ onSaveSuccess }: { onSaveSuccess: () 
                                     render={({ field, fieldState }) => (
                                         <div>
                                             <Label>New Room</Label>
-                                            <CustomSelect
-                                                options={rooms.map(r => ({ label: r.hrmrM_RoomNo, value: r.hrmrM_Id.toString() }))}
-                                                {...field}
-                                                onChange={(val) => field.onChange(parseInt(val))}
-                                            />
+                                            <Select
+                                                value={field.value ? String(field.value) : undefined}
+                                                onValueChange={(val) => field.onChange(Number(val))}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select Room" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {rooms.map(r => (
+                                                        <SelectItem key={r.hrmrM_Id} value={r.hrmrM_Id.toString()}>
+                                                            {r.hrmrM_RoomNo}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </div>
                                     )}

@@ -7,26 +7,29 @@ import { revalidatePath } from 'next/cache';
 const SERVICE_NAME = 'default';
 const API_BASE_URL = 'HostelAllotForGuest';
 
-export const getGuestAllotmentLoadData = async () => {
+export interface GuestAllotmentLoadData {
+    hstllist: any[];
+    categorylist: any[];
+    roomlist: any[];
+    alldata1: any[];
+}
+
+export const getGuestAllotmentLoadData = async (): Promise<GuestAllotmentLoadData> => {
     try {
-        const response = await api.get(SERVICE_NAME, `${API_BASE_URL}/loaddata/2`);
-        return response;
+        const response = await api.get<{ hstllist: any[], categorylist: any[], roomlist: any[], alldata1: any[] }>(SERVICE_NAME, `${API_BASE_URL}/loaddata/2`);
+        return {
+            hstllist: response.data?.hstllist || [],
+            categorylist: response.data?.categorylist || [],
+            roomlist: response.data?.roomlist || [],
+            alldata1: response.data?.alldata1 || []
+        };
     } catch (error) {
         console.error('Error fetching guest allotment load data:', error);
         return {
-            success: true,
-            hstllist: [
-                { hlmH_Id: 1, hlmH_Name: 'Hostel A' },
-                { hlmH_Id: 2, hlmH_Name: 'Hostel B' }
-            ],
-            categorylist: [
-                { hlmrcA_Id: 1, hlmrcA_RoomCategory: 'Deluxe' },
-                { hlmrcA_Id: 2, hlmrcA_RoomCategory: 'Standard' }
-            ],
-            roomlist: [
-                { hrmrM_Id: 1, hrmrM_RoomNo: '101' },
-                { hrmrM_Id: 2, hrmrM_RoomNo: '102' }
-            ]
+            hstllist: [],
+            categorylist: [],
+            roomlist: [],
+            alldata1: []
         };
     }
 };
@@ -34,43 +37,25 @@ export const getGuestAllotmentLoadData = async () => {
 export const getRoomDetails = async (payload: { HRMRM_Id: number }): Promise<any> => {
     try {
         const response = await api.post(SERVICE_NAME, `${API_BASE_URL}/get_roomdetails`, payload);
-        return response;
+        return response.data;
     } catch (error) {
         console.error('Error fetching room details:', error);
-        return {
-            success: true,
-            hlhgstalT_NoOfBeds: 2
-        };
+        return null;
     }
 };
 
 export const saveGuestAllotment = async (data: any) => {
-    const result = guestAllotmentSchema.safeParse(data);
-
-    if (!result.success) {
-        return { success: false, message: 'Validation failed', errors: result.error.flatten() };
-    }
-
     try {
         const payload = {
             ...data,
-            HLHGSTALT_AllotmentDate: data.HLHGSTALT_AllotmentDate.toISOString(),
+            HLHGSTALT_AllotmentDate: data.HLHGSTALT_AllotmentDate,
         };
 
         const response = await api.post(SERVICE_NAME, `${API_BASE_URL}/save`, payload);
-
-        if (response?.msg === 'saved' || response?.msg === 'updated') {
-            revalidatePath('/Hostel/transactions/guest-allotment');
-            return { success: true, message: response.msg === 'saved' ? 'Saved Successfully' : 'Updated Successfully' };
-        } else if (response?.returnval === true) {
-             return { success: false, message: 'Data Already Exists' };
-        }
-        else {
-            return { success: false, message: response?.msg || 'Failed to save' };
-        }
+        return response;
 
     } catch (error) {
         console.error('Error saving guest allotment:', error);
-        return { success: false, message: 'Failed to save guest allotment' };
+        return { success: false, message: 'Failed to save guest allotment', data: null };
     }
 };

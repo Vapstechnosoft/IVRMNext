@@ -10,13 +10,13 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { CalendarIcon, Loader2 } from 'lucide-react';
 import { vacateRoomSchema, type VacateRoomSchema } from '@/schemas/hostel/transactions/vacate-room.schema';
-import { saveVacate, getStudentDetail, getStaffDetail, getGuestDetail, getDetailsOnType } from '@/server/hostel/transactions/vacate-room';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormError, Label } from '@/components/ui/extension/field';
+import { getDetailsOnType, saveVacate, getStudentDetail, getStaffDetail, getGuestDetail } from '@/server/hostel/hostel-management/transactions/vacate-room';
 
 interface VacateFormProps {
     initialData: {
@@ -140,13 +140,10 @@ export default function VacateForm({ initialData, onSuccess, onTypeChange }: Vac
 
     return (
         <Card>
-            <CardHeader>
-                <CardTitle>Hostel Vacate</CardTitle>
-            </CardHeader>
             <CardContent>
                 <FormProvider {...methods}>
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                        <div className="flex justify-center pb-4">
+                        <div className="flex justify-center pb-4 mt-4">
                             <Controller
                                 control={control}
                                 name="type"

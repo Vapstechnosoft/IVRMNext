@@ -11,7 +11,8 @@ import AddMasterMessCategoryForm from './_components/add-form';
 import { messCategoryMappingColumns } from './_components/columns';
 import ToggleMasterMessCategoryForm from './_components/toggle-form';
 import { IMasterMessCategoryMappingDisplay } from '@/schemas/hostel/mess-category-mapping.schema';
-import { IMess, IMessCategory } from '@/server/hostel/master-mess-category/server-action';
+import { IMess, IMessCategory } from '@/types/hostel/hostel-management/masters';
+import { toast } from 'sonner';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
