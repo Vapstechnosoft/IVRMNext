@@ -67,6 +67,7 @@ export async function getpaymentgateway_dropdown(searchParams?: ApiSearchparams)
 
 export async function getAmountentrydetails(asmay_id: number, fmcC_id: number, fmG_id: number) {
     const url = `/fee_amount_entry/getgroupmappedheads/${asmay_id}/${fmcC_id}/${fmG_id}`;
+    console.info('fee_amount_entry/getgroupmappedheads', url);
     return await api.get<IMasterAmountEntryDetails[]>('fees', url);
 }
 

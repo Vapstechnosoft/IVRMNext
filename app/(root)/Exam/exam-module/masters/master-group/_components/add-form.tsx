@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -13,6 +13,7 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 
 import { Input } from '@/components/ui/input';
+import type { DataTableRef } from '@/components/ui/view-data-table/view-data-table';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 import { useMasterSubjectGroup } from '@/hooks/exam/exammodule/usemasters';
 import { masterSubjectGroupSchema } from '@/schemas/exam/exam-module/masters';
@@ -36,6 +37,8 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const { refetchAll } = useMasterSubjectGroup();
+    // Ref for the GenericDataTable to control selection reset
+    const tableRef = React.useRef<DataTableRef>(null);
 
     // Filter subjects based on search term
     const filteredSubjects = useMemo(() => {
@@ -60,7 +63,9 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
                 setIsLoading(true);
                 const res = await getAllMasterSubjectDetails();
                 const data = Array.isArray(res?.data) ? res.data : [];
-                setAllSubjects(data);
+                // Sort by OrderFlag to match Master Subject order
+                const sortedData = data.sort((a, b) => (a.ismS_OrderFlag || 0) - (b.ismS_OrderFlag || 0));
+                setAllSubjects(sortedData);
 
                 if (initialData?.subjects?.length) {
                     const selected = data.filter((s) => initialData.subjects?.some((i) => i.ismS_Id === s.ismS_Id));
@@ -93,21 +98,21 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
         reValidateMode: 'onChange',
         defaultValues: initialData
             ? {
-                  emG_GroupName: initialData.emG_GroupName,
-                  emG_TotSubjects: initialData.emG_TotSubjects,
-                  emG_MaxAplSubjects: initialData.emG_MaxAplSubjects,
-                  emG_MinAplSubjects: initialData.emG_MinAplSubjects,
-                  emG_BestOff: initialData.emG_BestOff,
-                  subject_list: initialData.subjects?.map((s) => ({ ismS_Id: s.ismS_Id })) ?? []
-              }
+                emG_GroupName: initialData.emG_GroupName,
+                emG_TotSubjects: initialData.emG_TotSubjects,
+                emG_MaxAplSubjects: initialData.emG_MaxAplSubjects,
+                emG_MinAplSubjects: initialData.emG_MinAplSubjects,
+                emG_BestOff: initialData.emG_BestOff,
+                subject_list: initialData.subjects?.map((s) => ({ ismS_Id: s.ismS_Id })) ?? []
+            }
             : {
-                  emG_GroupName: '',
-                  emG_TotSubjects: 1,
-                  emG_MaxAplSubjects: 1,
-                  emG_MinAplSubjects: 1,
-                  emG_BestOff: 1,
-                  subject_list: []
-              }
+                emG_GroupName: '',
+                emG_TotSubjects: 1,
+                emG_MaxAplSubjects: 1,
+                emG_MinAplSubjects: 1,
+                emG_BestOff: 1,
+                subject_list: []
+            }
     });
 
     // biome-ignore lint/correctness/noUnusedVariables: <explanation>
@@ -325,6 +330,7 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
 
                 {/* Subjects Table */}
                 <GenericDataTable
+                    ref={tableRef}
                     {...tableProps}
                     columns={MasterSubjectGroupDetailsColumns}
                     isLoading={isLoading}
@@ -361,6 +367,8 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
                         reset();
                         setSearchTerm('');
                         setSelectedSubjects([]);
+                        // Reset the table's internal selection state
+                        tableRef.current?.resetSelection();
                     }}>
                     Cancel
                 </Button>

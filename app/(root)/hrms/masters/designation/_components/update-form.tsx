@@ -137,24 +137,6 @@ export default function UpdateDesignationForm({ onSuccess, className = '', selec
                             )}
                         />
 
-                        <Controller
-                            name='hrmdeS_Order'
-                            control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='Order'
-                                    id='hrmdeS_Order'
-                                    value={field.value}
-                                    onChange={(value) => {
-                                        const numValue = value !== null && value !== undefined ? Number(value) : 0;
-                                        field.onChange(numValue);
-                                    }}
-                                    onBlur={field.onBlur}
-                                    error={errors.hrmdeS_Order?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
-                        />
 
                         <div className='flex items-center gap-2'>
                             <Controller

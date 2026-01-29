@@ -16,7 +16,7 @@ export const PromotionalGroupMappedExamColumns: ColumnDef<IPromotionalGroupMappe
         enableSorting: false
     },
     {
-        accessorKey: 'examName',
+        accessorKey: 'emE_ExamName',
         header: ({ column }) => <DataTableColumnHeader title='Exam Name' column={column} />,
         enableSorting: false
     },

@@ -6,7 +6,8 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileText, X } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { FileText, X, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { EmployeeSalarySlipDisplay } from './columns';
 import { getSalarySlipColumns } from './columns';
@@ -53,11 +54,11 @@ export function SalarySlipFilters({
     years,
     employees: _employees,
     filteredEmployees,
-    searchTerm: _searchTerm,
+    searchTerm,
     selectedCount,
     isLoading,
     onFilterChange,
-    onSearchChange: _onSearchChange,
+    onSearchChange,
     onOptionChange,
     onSelectAll,
     onSelectEmployee,
@@ -68,39 +69,6 @@ export function SalarySlipFilters({
     useEffect(() => {
         setCurrentYear(new Date().getFullYear());
     }, []);
-    // Hide "Search Columns" button - keep only "View" button
-    useEffect(() => {
-        const hideSearchColumnsButton = () => {
-            const wrapper = document.querySelector('.salary-slip-table-wrapper');
-            if (!wrapper) return;
-            const buttons = wrapper.querySelectorAll('button');
-            buttons.forEach((button) => {
-                const buttonText = button.textContent?.trim();
-                if (buttonText === 'Search Columns') {
-                    (button as HTMLElement).style.display = 'none';
-                }
-            });
-        };
-        // Run immediately
-        hideSearchColumnsButton();
-        // Use MutationObserver to catch dynamically rendered buttons
-        const observer = new MutationObserver(() => {
-            hideSearchColumnsButton();
-        });
-        const wrapper = document.querySelector('.salary-slip-table-wrapper');
-        if (wrapper) {
-            observer.observe(wrapper, {
-                childList: true,
-                subtree: true
-            });
-        }
-        // Also run after a delay to catch any buttons that render later
-        const timeoutId = setTimeout(hideSearchColumnsButton, 200);
-        return () => {
-            observer.disconnect();
-            clearTimeout(timeoutId);
-        };
-    }, [filteredEmployees, isLoading]);
     const columns = getSalarySlipColumns({ onSelectAll, onSelectEmployee });
     return (
         <CollapsibleSection
@@ -117,8 +85,8 @@ export function SalarySlipFilters({
                     <Label>Group Type</Label>
                     <MultiSelect
                         options={groupTypes.map((gt) => ({
-                            label: gt.HRMGT_EmployeeGroupType,
-                            value: gt.HRMGT_Id.toString()
+                            label: gt.value || gt.HRMGT_EmployeeGroupType,
+                            value: (gt.key || gt.HRMGT_Id).toString()
                         }))}
                         defaultValue={filters.groupType.map((id) => id.toString())}
                         onValueChange={(values) =>
@@ -135,8 +103,8 @@ export function SalarySlipFilters({
                     <Label>Department</Label>
                     <MultiSelect
                         options={departments.map((dept) => ({
-                            label: dept.HRMD_DepartmentName,
-                            value: dept.HRMD_Id.toString()
+                            label: dept.hrmD_DepartmentName || dept.HRMD_DepartmentName,
+                            value: (dept.hrmD_Id || dept.HRMD_Id).toString()
                         }))}
                         defaultValue={filters.department.map((id) => id.toString())}
                         onValueChange={(values) =>
@@ -153,8 +121,8 @@ export function SalarySlipFilters({
                     <Label>Designation</Label>
                     <MultiSelect
                         options={designations.map((desg) => ({
-                            label: desg.HRMDES_DesignationName,
-                            value: desg.HRMDES_Id.toString()
+                            label: desg.hrmdeS_DesignationName || desg.HRMDES_DesignationName,
+                            value: (desg.hrmdeS_Id || desg.HRMDES_Id).toString()
                         }))}
                         defaultValue={filters.designation.map((id) => id.toString())}
                         onValueChange={(values) =>
@@ -184,19 +152,30 @@ export function SalarySlipFilters({
                                     const value =
                                         month.monthName ||
                                         month.IVRM_Month_Name ||
+                                        month.value ||
+                                        month.name ||
                                         month.monthId?.toString() ||
                                         month.IVRM_Month_Id?.toString();
-                                    return value && value.trim() !== '';
+                                    return value && value.toString().trim() !== '';
                                 })
                                 .map((month: any, index: number) => {
                                     const monthValue =
                                         month.monthName ||
                                         month.IVRM_Month_Name ||
+                                        month.value ||
+                                        month.name ||
                                         month.monthId?.toString() ||
                                         month.IVRM_Month_Id?.toString();
-                                    const monthLabel = month.monthName || month.IVRM_Month_Name || month.monthId || month.IVRM_Month_Id;
+                                    const monthLabel =
+                                        month.monthName ||
+                                        month.IVRM_Month_Name ||
+                                        month.value ||
+                                        month.name ||
+                                        month.monthId ||
+                                        month.IVRM_Month_Id;
+                                    const key = month.monthId || month.IVRM_Month_Id || month.key || index;
                                     return (
-                                        <SelectItem key={`month-${index}-${monthValue}`} value={monthValue}>
+                                        <SelectItem key={`month-${index}-${key}`} value={monthValue}>
                                             {monthLabel}
                                         </SelectItem>
                                     );
@@ -216,17 +195,13 @@ export function SalarySlipFilters({
                         </SelectTrigger>
                         <SelectContent>
                             {years
-                                .filter((year: any) => {
-                                    const value =
-                                        year.yearName || year.HRMLY_LeaveYear || year.yearId?.toString() || year.HRMLY_Id?.toString();
-                                    return value && value.trim() !== '';
-                                })
                                 .map((year: any, index: number) => {
                                     const yearValue =
-                                        year.yearName || year.HRMLY_LeaveYear || year.yearId?.toString() || year.HRMLY_Id?.toString();
-                                    const yearLabel = year.yearName || year.HRMLY_LeaveYear || year.yearId || year.HRMLY_Id;
+                                        year.hrmlY_LeaveYear || year.HRMLY_LeaveYear || year.yearName || year.yearId?.toString();
+                                    const yearLabel = year.hrmlY_LeaveYear || year.HRMLY_LeaveYear || year.yearName || year.yearId;
+                                    const key = year.hrmlY_Id || year.HRMLY_Id || year.yearId || index;
                                     return (
-                                        <SelectItem key={`year-${index}-${yearValue}`} value={yearValue}>
+                                        <SelectItem key={`year-${index}-${key}`} value={yearValue}>
                                             {yearLabel}
                                         </SelectItem>
                                     );
@@ -249,12 +224,12 @@ export function SalarySlipFilters({
                             <SelectItem key='slip-per-page-2' value='2'>
                                 2 slips per page
                             </SelectItem>
-                            <SelectItem key='slip-per-page-3' value='3'>
+                            {/* <SelectItem key='slip-per-page-3' value='3'>
                                 3 slips per page
                             </SelectItem>
                             <SelectItem key='slip-per-page-4' value='4'>
                                 4 slips per page
-                            </SelectItem>
+                            </SelectItem> */}
                         </SelectContent>
                     </Select>
                 </div>
@@ -297,7 +272,20 @@ export function SalarySlipFilters({
             {/* Employee Table with Search */}
             <div className='space-y-4'>
                 <div className='mt-3 flex items-center justify-between'>
-                    <div className='font-medium text-foreground text-sm'>Employee List ({filteredEmployees.length} employees)</div>
+                    <div className='flex items-center gap-4'>
+                        <div className='font-medium text-foreground text-sm'>
+                            Employee List ({filteredEmployees.length} employees)
+                        </div>
+                        <div className="relative w-64">
+                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder="Search Name or Code..."
+                                className="pl-8 h-9"
+                                value={searchTerm}
+                                onChange={(e) => onSearchChange(e.target.value)}
+                            />
+                        </div>
+                    </div>
                     {selectedCount > 0 && <span className='text-muted-foreground text-sm'>{selectedCount} selected</span>}
                 </div>
                 {/* Data Table */}
@@ -308,7 +296,10 @@ export function SalarySlipFilters({
                         data={filteredEmployees}
                         totalItems={filteredEmployees.length}
                         showViewOptions={true}
-                        isSearchRequired={true}
+                        isSearchRequired={false}
+                        isPaginationRequired={false}
+                        scrollable={true}
+                        maxHeight="250px"
                         columnPinning={{ left: ['select', 'id'] }}
                     />
                 </div>

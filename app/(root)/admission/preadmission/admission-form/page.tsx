@@ -4,8 +4,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useActivePreadmissionDetails } from '@/hooks/admission/preadmission/useTransactions';
-import type { IPreadmissionStudentApplicationList } from '@/types/admission/preadmission/transactions';
+import type { IadmissionStudentApplicationList } from '@/types/admission/admission';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Plus, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
@@ -20,12 +19,12 @@ export default function StudentApplicationPage(props: {
     searchParams: SearchParams;
 }) {
     const searchParams = use(props.searchParams);
-    const { data: activePreadmission } = useActivePreadmissionDetails();
+    const { data: activePreadmission } = useGetAllAdmissionLists();
     const { data: response, isLoading, error, refetch } = useGetAllAdmissionLists(searchParams);
-    const { data: masterConfig } = useAcademicYearMasterConfiguration(activePreadmission?.data?.asmaY_Id ?? 0);
+    const { data: masterConfig } = useAcademicYearMasterConfiguration(0);
 
     return (
-        <FormProvider<IPreadmissionStudentApplicationList>>
+        <FormProvider<IadmissionStudentApplicationList>>
             <StudentApplicationPageContent
                 response={response}
                 isLoading={isLoading}
@@ -111,9 +110,9 @@ function StudentApplicationPageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IPreadmissionStudentApplicationList>
+                    <GenericDataTable<IadmissionStudentApplicationList>
                         {...tableProps}
-                        columns={studentApplicationColumns as ColumnDef<IPreadmissionStudentApplicationList>[]}
+                        columns={studentApplicationColumns as ColumnDef<IadmissionStudentApplicationList>[]}
                         isLoading={isLoading}
                         error={error}
                         showViewOptions={false}

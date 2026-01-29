@@ -92,7 +92,27 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
         }
     };
 
-    const handleReset = () => reset();
+    const handleReset = () => {
+        if (row) {
+            reset({
+                ismS_Id: row.ismS_Id,
+                mI_Id: row.mI_Id ?? 30,
+                ismS_SubjectName: row.ismS_SubjectName ?? '',
+                ismS_IVRSSubjectName: row.ismS_IVRSSubjectName ?? '',
+                ismS_SubjectCode: row.ismS_SubjectCode ?? '',
+                ismS_SubjectNameNew: row.ismS_SubjectNameNew ?? '',
+                ismS_Max_Marks: row.ismS_Max_Marks ?? 0,
+                ismS_Min_Marks: row.ismS_Min_Marks ?? 0,
+                ismS_PreadmFlag: row.ismS_PreadmFlag ? 1 : 0,
+                ismS_AttendanceFlag: row.ismS_AttendanceFlag ?? true,
+                ismS_BatchAppl: row.ismS_BatchAppl ? 1 : 0,
+                ismS_ExamFlag: row.ismS_ExamFlag ? 1 : 0,
+                ismS_LanguageFlg: row.ismS_LanguageFlg ? 1 : 0,
+                ismS_AtExtraFeeFlg: row.ismS_AtExtraFeeFlg ? 1 : 0,
+                ismS_ActiveFlag: 1
+            });
+        }
+    };
 
     return (
         <div className={className}>
@@ -155,30 +175,33 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                         { key: 'ismS_LanguageFlg', label: 'Language', isBoolean: false },
                         { key: 'ismS_AtExtraFeeFlg', label: 'Extra Fee', isBoolean: false }
                     ].map((flag) => (
-                        <div key={flag.key} className='group flex flex-col gap-1.5'>
-                            <Label htmlFor={flag.key}>
-                                {flag.label} <span className='ml-1 text-red-500'>*</span>
-                            </Label>
-                            <RadioGroup
-                                defaultValue={flag.isBoolean ? ((row as any)[flag.key] ? '1' : '0') : String((row as any)[flag.key])}
-                                onValueChange={(value) => {
-                                    if (flag.isBoolean) {
-                                        setValue(flag.key as any, value === '1');
-                                    } else {
-                                        setValue(flag.key as any, Number(value));
-                                    }
-                                }}
-                                className='flex gap-4'>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='1' id={`${flag.key}_yes`} />
-                                    <Label htmlFor={`${flag.key}_yes`}>Yes</Label>
+                        <Controller
+                            key={flag.key}
+                            control={control}
+                            name={flag.key as any}
+                            render={({ field }) => (
+                                <div className='group flex flex-col gap-1.5'>
+                                    <Label htmlFor={flag.key}>
+                                        {flag.label} <span className='ml-1 text-red-500'>*</span>
+                                    </Label>
+                                    <RadioGroup
+                                        value={flag.isBoolean ? (field.value ? '1' : '0') : String(field.value)}
+                                        onValueChange={(value) => {
+                                            field.onChange(flag.isBoolean ? value === '1' : Number(value));
+                                        }}
+                                        className='flex gap-4'>
+                                        <div className='flex items-center space-x-2'>
+                                            <RadioGroupItem value='1' id={`${flag.key}_yes`} />
+                                            <Label htmlFor={`${flag.key}_yes`}>Yes</Label>
+                                        </div>
+                                        <div className='flex items-center space-x-2'>
+                                            <RadioGroupItem value='0' id={`${flag.key}_no`} />
+                                            <Label htmlFor={`${flag.key}_no`}>No</Label>
+                                        </div>
+                                    </RadioGroup>
                                 </div>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='0' id={`${flag.key}_no`} />
-                                    <Label htmlFor={`${flag.key}_no`}>No</Label>
-                                </div>
-                            </RadioGroup>
-                        </div>
+                            )}
+                        />
                     ))}
                 </div>
 

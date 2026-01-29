@@ -6,7 +6,7 @@ import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useYearlyCategorySubjectMapping } from '@/hooks/exam/exammodule/exam-mapping';
-import { useMasterSubjectGroup } from '@/hooks/exam/exammodule/usemasters';
+import { useMasterSubjectGroup, useMasterSubjectGroupDropdownList } from '@/hooks/exam/exammodule/usemasters';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { categorySubjectMappingSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import { getCategoryDropDownByAcademicYearlist } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
@@ -54,7 +54,7 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
     const [subjects, setSubjects] = useState<{ ismS_Id: number; ismS_SubjectName: string }[]>([]);
 
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
-    const { data: subjectGroupList, error: subjectGroupError } = useMasterSubjectGroup();
+    const { data: subjectGroupList, error: subjectGroupError } = useMasterSubjectGroupDropdownList();
     const academicYears = academicYear?.data ? academicYear.data : [];
 
     useEffect(() => {

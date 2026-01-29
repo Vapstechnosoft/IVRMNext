@@ -24,6 +24,8 @@ export async function toggleMasterfeehead(id: number) {
 
 export async function updateSetOrder(data: any) {
     const url = '/fee_head/change-order';
+
+    console.info('Updating fee head set order with data:', data);
     return await api.post<any>('fees', url, data);
 }
 

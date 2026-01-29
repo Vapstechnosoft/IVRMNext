@@ -11,7 +11,7 @@ export async function getMasterGrade(searchParams?: ApiSearchparams) {
 }
 export async function getMasterGradeDropdownList() {
     const url = '/master_exam_grade/master_exam_grade_drop_down_list/30';
-    return await api.get<IMasterGrade>('exam', url);
+    return await api.get<IMasterGrade[]>('exam', url);
 }
 
 export async function addOrUpdateMasterGrade(data: any) {

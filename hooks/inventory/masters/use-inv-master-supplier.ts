@@ -8,7 +8,8 @@ export const useInvMasterSupplier = (searchParams?: ApiSearchparams) => {
 
     const query = useQuery({
         queryKey: [INVENTORY_QUERY_KEYS.INV_MASTER_SUPPLIER, searchParams ?? {}],
-        queryFn: async () => getInvMasterSupplier(searchParams),
+        queryFn: async () => getInvMasterSupplier(searchParams ?? {}),
+        staleTime: 0
     });
 
     return {

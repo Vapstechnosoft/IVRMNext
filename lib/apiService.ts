@@ -21,7 +21,7 @@ export interface ApiArrayResponse<T> extends Partial<PaginationData> {
     [key: string]: unknown;
 }
 // biome-ignore lint/style/useNodejsImportProtocol: <explanation>
-import https from 'https';
+// import https from 'https'; // Removed to avoid client-side bundling errors
 import { signOut } from '@/lib/auth';
 import type { ApiSearchparams } from '@/types';
 import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios';
@@ -44,7 +44,8 @@ export type ApiBaseUrlKey =
     | 'alumni'
     | 'sadmin'
     | 'portal'
-    | 'hostel';
+    | 'hostel'
+    | 'coe';
 
 class ApiService {
     private instances: Map<string, AxiosInstance>;
@@ -71,6 +72,7 @@ class ApiService {
             sports: process.env.NEXT_PUBLIC_SPORTS_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             alumni: process.env.NEXT_PUBLIC_ALUMNI_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             sadmin: process.env.NEXT_PUBLIC_SADMIN_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            coe: process.env.NEXT_PUBLIC_COE_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             portal: process.env.NEXT_PUBLIC_PORTAL_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || ''
         };
 
@@ -109,7 +111,7 @@ class ApiService {
 
             // Add SSL bypass for localhost in development mode
             if (isLocalhost && process.env.NODE_ENV === 'development' && typeof window === 'undefined') {
-                // This only runs on server-side (Node.js environment)
+                const https = require('https');
                 config.httpsAgent = new https.Agent({
                     rejectUnauthorized: false // Bypass SSL certificate validation
                 });
@@ -264,8 +266,8 @@ class ApiService {
 
             return response.data;
         } catch (error: any) {
-            console.error('❌ [API SERVICE] Request failed');
-            console.error('💥 [API SERVICE] Error details:', {
+            console.warn('❌ [API SERVICE] Request failed');
+            console.warn('💥 [API SERVICE] Error details:', {
                 message: error?.message,
                 code: error?.code,
                 status: error?.response?.status,

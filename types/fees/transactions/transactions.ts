@@ -1071,3 +1071,25 @@ export interface FineSlabItem {
     createdDate: string;
     updatedDate: string;
 }
+
+export interface IThirdPartyReceiptFlag {
+    imN_Id: number;
+    mI_Id: number;
+    imN_AutoManualFlag: string;
+    imN_DuplicatesFlag: string;
+    imN_StartingNo: string;
+    imN_WidthNumeric: string;
+    imN_ZeroPrefixFlag: 'Y' | 'N';
+    imN_PrefixAcadYearCode: boolean;
+    imN_PrefixParticular: string;
+    imN_SuffixAcadYearCode: boolean;
+    imN_SuffixParticular: string;
+    imN_RestartNumFlag: 'Y' | 'N';
+    imN_Flag: string;
+    imN_PrefixFinYearCode: boolean;
+    imN_PrefixCalYearCode: boolean;
+    imN_SuffixFinYearCode: boolean;
+    imN_SuffixCalYearCode: boolean;
+    createdDate: string; // ISO Date string
+    updatedDate: string; // ISO Date string
+}

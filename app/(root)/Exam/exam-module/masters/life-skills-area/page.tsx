@@ -6,8 +6,9 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { MasterViewDetails } from '@/components/ui/set-order/generic-set-order';
 import { useMasterLifeSkillArea } from '@/hooks/exam/exammodule/usemasters';
+import { getMasterLifeSkillAreaOrderList, setMasterLifeSkillAreaOrderList } from '@/server/exam/exam-module/masters/life-skills';
 import type { ILifeSkill, ILifeSkillArea } from '@/types/exam/exam-module/masters';
-import { GitCompareArrows, List, Plus, X } from 'lucide-react';
+import { GitCompareArrows, Plus, X } from 'lucide-react';
 import { use, useState } from 'react';
 import { toast } from 'sonner';
 import AddLifeSkillForm from './_components/add-form';
@@ -49,9 +50,16 @@ function LifeSkillPageContent({
     const handleSetOrder = async () => {
         try {
             setOrderModalOpen(true);
-
+            setIsOrderloading(true);
+            const response = await getMasterLifeSkillAreaOrderList();
+            console.log(response);
             const skillOrders: ILifeSkillArea[] = Array.isArray(response.data) ? response.data : [];
-            if (skillOrders.length === 0) return;
+
+            if (skillOrders.length === 0) {
+                setIsOrderloading(false);
+                return;
+            }
+
             const mappedData = skillOrders.map((d) => ({ ...d, id: d.ecsA_Id }));
             setOrderData(mappedData);
             setIsOrderloading(false);
@@ -67,23 +75,25 @@ function LifeSkillPageContent({
         setIsOrderSaving(true);
         try {
             const payload = updatedData.map((item, index) => ({
-                ecsA_Id: item.ecsA_Id,
-                ecsA_SkillOrder: index + 1
+                ECSA_Id: item.ecsA_Id,
+                ECSA_SkillOrder: index + 1
             }));
-            const response = await UpdatedOrderdLifeSkill(payload);
-            if (response.success) {
-                toast.success(response.message);
+            const response = await setMasterLifeSkillAreaOrderList(payload);
+
+            // Should check for response.status or success based on your API wrapper
+            // Assuming response is the data returned directly or standard wrapper
+            // Adjusting based on common pattern in this project:
+            if (response?.returnval === true || response?.success === true) {
+                toast.success('Order updated successfully');
                 refetchAll();
-                setIsOrderSaving(false);
                 setOrderModalOpen(false);
             } else {
-                toast.error(response.message);
+                toast.error('Failed to update order');
             }
         } catch (error: any) {
             toast.error(error.message);
         } finally {
             setIsOrderSaving(false);
-            setOrderModalOpen(false);
         }
     };
 
@@ -194,7 +204,7 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Life Skill'
+                        title='Edit Life Skill Area'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -218,12 +228,4 @@ function FormSections() {
             {isToggleFormOpen && selectedRow && <ToggleLifeSkillForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
-}
-
-function UpdatedOrderdLifeSkill(payload: { ecsA_Id: number; ecsA_SkillOrder: number }[]) {
-    return {
-        success: true,
-        message: 'Order updated successfully',
-        data: payload
-    };
 }

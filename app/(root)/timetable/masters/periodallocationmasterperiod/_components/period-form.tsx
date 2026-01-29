@@ -1,14 +1,14 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
+import { InputNumber } from '@/components/ui/extension/input-number';
+import { cn } from '@/lib/utils';
 import { masterPeriodSchema } from '@/schemas/timetable/masters';
 import { savePeriod } from '@/server/timetable/masters/periodallocation';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save } from 'lucide-react';
+import { CheckSquare, Save, Square } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -20,9 +20,10 @@ interface MasterPeriodFormProps {
 
 export default function MasterPeriodForm({ onSuccess }: MasterPeriodFormProps) {
     const {
-        register,
+        control,
         handleSubmit,
         watch,
+        setValue,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterPeriodSchema.save),
@@ -39,17 +40,22 @@ export default function MasterPeriodForm({ onSuccess }: MasterPeriodFormProps) {
     }
 
     const [periods, setPeriods] = useState<PeriodItem[]>([]);
+    const [selectedPeriods, setSelectedPeriods] = useState<number[]>([]);
 
     useEffect(() => {
         const count = Number(watchedNoOfPeriods);
-        if (Number.isNaN(count) || (!Number.isInteger(count) && count > 0 && count <= 20)) {
+        if (!Number.isNaN(count) && count > 0 && count <= 20) {
             const arr: PeriodItem[] = [];
             for (let i = 1; i <= count; i++) {
-                arr.push({ key: i, label: `${i}` });
+                arr.push({ key: i, label: `Period ${i}` });
             }
             setPeriods(arr);
+            // Auto-select all periods
+            const allKeys = arr.map((p) => p.key);
+            setSelectedPeriods(allKeys);
         } else {
             setPeriods([]);
+            setSelectedPeriods([]);
         }
     }, [watchedNoOfPeriods]);
 
@@ -75,36 +81,104 @@ export default function MasterPeriodForm({ onSuccess }: MasterPeriodFormProps) {
         }
     };
 
+    // Function to handle keyboard input prevention
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        // Allow only arrow keys, tab, and delete/backspace for clearing
+        if (
+            e.key !== 'ArrowUp' &&
+            e.key !== 'ArrowDown' &&
+            e.key !== 'Tab' &&
+            e.key !== 'Delete' &&
+            e.key !== 'Backspace' &&
+            e.key !== 'Enter'
+        ) {
+            e.preventDefault();
+        }
+    };
+
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className='space-y-4 p-4'>
-            <div className='flex flex-col items-end gap-4 md:flex-row'>
-                <div className='w-full md:w-1/3'>
-                    <InputText
-                        label='No of Period'
-                        type='number'
-                        required
-                        {...register('noOfPeriods')}
-                        error={errors.noOfPeriods?.message}
-                        min={1}
-                        max={20}
-                    />
-                </div>
-            </div>
-
+        <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 p-4'>
+            {/* No of Period Section - Number Input (disabled typing) */}
             <div className='space-y-2'>
-                <Label className='font-medium text-sm'>Generated Periods</Label>
-                <div className='flex flex-wrap gap-2 rounded-md border bg-muted/20 p-2'>
-                    {periods.map((p) => (
-                        <div key={p.key} className='flex items-center space-x-2 rounded border bg-background p-2'>
-                            <Checkbox checked disabled />
-                            <Label className='font-medium text-sm'>{p.label}</Label>
+                <Label>
+                    No of Period <span className='text-red-500'>*</span>
+                </Label>
+                <Controller
+                    name='noOfPeriods'
+                    control={control}
+                    render={({ field }) => (
+                        <InputNumber
+                            {...field}
+                            // Prevent manual typing
+                            onKeyDown={handleKeyDown}
+                            // Prevent paste
+                            onPaste={(e) => e.preventDefault()}
+                            onChange={(e) => {
+                                const value = Number(e);
+                                field.onChange(value);
+                                if (value > 20) {
+                                    toast.error('No of Period cannot exceed 20');
+                                    setValue('noOfPeriods', 20);
+                                } else if (value < 1) {
+                                    setValue('noOfPeriods', 1);
+                                }
+                            }}
+                            error={errors.noOfPeriods?.message}
+                            className='w-full select-none'
+                            // Optional: Add title/tooltip to indicate usage
+                        />
+                    )}
+                />
+            </div>
+
+            {/* Period Section - Multi-select checkbox display (disabled) */}
+            <div className='space-y-2'>
+                <Label>Period :</Label>
+
+                <div className='rounded-md border border-gray-300 bg-white p-3'>
+                    {/* Select All (disabled) */}
+                    {/* {periods.length > 0 && (
+                        <div
+                            className={cn(
+                                'mb-2 flex cursor-not-allowed items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm opacity-50',
+                                'border-gray-300 bg-gray-50'
+                            )}>
+                            <CheckSquare className='h-4 w-4 text-gray-400' />
+                            <span>Select All</span>
                         </div>
-                    ))}
+                    )} */}
+
+                    <div className='max-h-60 overflow-y-auto rounded-md border border-gray-300 p-1'>
+                        {periods.length === 0 ? (
+                            <div className='py-4 text-center text-gray-500 text-sm'>Enter No of Period to see periods</div>
+                        ) : (
+                            periods.map((p) => {
+                                const selected = selectedPeriods.includes(p.key);
+
+                                return (
+                                    <div
+                                        key={p.key}
+                                        className={cn(
+                                            'mb-1 flex cursor-not-allowed items-center gap-2 rounded-md border px-2 py-1.5 text-sm opacity-50',
+                                            selected ? 'border-gray-400 bg-gray-100' : 'border-gray-300 bg-gray-50'
+                                        )}>
+                                        {selected ? (
+                                            <CheckSquare className='h-4 w-4 text-gray-400' />
+                                        ) : (
+                                            <Square className='h-4 w-4 text-gray-400' />
+                                        )}
+                                        <span>{p.label}</span>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
                 </div>
             </div>
 
+            {/* Submit Button */}
             <div className='flex justify-end gap-3'>
-                <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting}>
+                <Button type='submit' disabled={isSubmitting || periods.length === 0} isLoading={isSubmitting}>
                     <Save className='mr-2 h-4 w-4' />
                     Save
                 </Button>

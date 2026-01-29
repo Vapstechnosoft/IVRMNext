@@ -63,6 +63,7 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterCategory }) {
             onEdit={handleEdit}
             onToggle={handleToggle}
             toggleConditionKey='emcA_ActiveFlag'
+            className='justify-center'
         />
     );
 }

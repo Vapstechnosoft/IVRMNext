@@ -562,83 +562,6 @@ export async function getUserAccessibleModules() {
                                     ]
                                 }
                             ]
-                        },
-                        {
-                            id: 3,
-                            name: 'Upload',
-                            icon: 'Upload',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Transactions',
-                                    icon: 'FileText',
-                                    pages: [
-                                        {
-                                            id: 221,
-                                            name: 'Upload ClassWork',
-                                            icon: 'BookOpen',
-                                            url: '/upload/transactions/ivrm-classwork',
-                                            title: 'Upload ClassWork',
-                                            description: 'Manage ClassWork'
-                                        },
-                                        {
-                                            id: 222,
-                                            name: 'Verify Class Work',
-                                            icon: 'BookOpen',
-                                            url: '/upload/transactions/verify-classwork',
-                                            title: 'Verify Class Work',
-                                            description: 'Verify and Enter Class Work Marks'
-                                        },
-                                        {
-                                            id: 223,
-                                            name: 'IVRM HomeWork',
-                                            icon: 'BookOpen',
-                                            url: '/upload/transactions/ivrm-homework',
-                                            title: 'Upload HomeWork',
-                                            description: 'Manage IVRM HomeWork'
-                                        },
-                                        {
-                                            id: 224,
-                                            name: 'HomeWork Marks Update',
-                                            icon: 'BookOpen',
-                                            url: '/upload/transactions/homework-marks-update',
-                                            title: 'Verify HomeWork',
-                                            description: 'Verify HomeWork Marks'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 2,
-                                    name: 'Reports',
-                                    icon: 'FileText',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'ClassWork Upload Report',
-                                            icon: 'FileText',
-                                            url: '/upload/reports/classwork-upload-report',
-                                            title: 'ClassWork Upload Report',
-                                            description: 'ClassWork Upload Report Details'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'HomeWork Upload Report',
-                                            icon: 'FileText',
-                                            url: '/upload/reports/homework-upload-report',
-                                            title: 'HomeWork Upload Report',
-                                            description: 'HomeWork Upload Report Details'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'NoticeBoard Report',
-                                            icon: 'FileText',
-                                            url: '/upload/reports/noticeboard-report',
-                                            title: 'NoticeBoard Report',
-                                            description: 'NoticeBoard Report Details'
-                                        }
-                                    ]
-                                }
-                            ]
                         }
                     ]
                 },
@@ -1011,6 +934,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Fee Staff Other Transaction',
                                             description: 'Fee Staff Other Transaction'
                                         }
+                                        // {
+                                        //     id: 519,
+                                        //     name: 'Fee Transaction',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/transactions/feetransactionstthomas',
+                                        //     title: 'Fee Transaction',
+                                        //     description: 'Fee Transaction'
+                                        // }
                                     ]
                                 },
                                 {
@@ -1020,11 +951,11 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 10011,
-                                            name: 'Yearly Fee Defaulter report',
+                                            name: 'Fee Defaulter report',
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/feereports/feedefaulterreport',
-                                            title: 'Yearly Fee Defaulter Report',
-                                            description: 'Yearly Fee Defaulter Report'
+                                            title: 'Fee Defaulter Report',
+                                            description: 'Fee Defaulter Report'
                                         },
                                         {
                                             id: 10012,
@@ -1777,50 +1708,51 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 },
-                                {
-                                    id: 2,
-                                    name: 'Employee',
-                                    icon: 'User',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Employee Register',
-                                            icon: 'UserPlus',
-                                            url: '/hrms/employee',
-                                            title: 'Employee Register',
-                                            description: 'Manage Employee Registration'
-                                        }
-                                    ]
-                                },
+                                // ,
+                                // {
+                                //     id: 2,
+                                //     name: 'Employee',
+                                //     icon: 'User',
+                                //     pages: [
+                                //         {
+                                //             id: 1,
+                                //             name: 'Employee Register',
+                                //             icon: 'UserPlus',
+                                //             url: '/hrms/employee',
+                                //             title: 'Employee Register',
+                                //             description: 'Manage Employee Registration'
+                                //         }
+                                //     ]
+                                // }
                                 {
                                     id: 3,
                                     name: 'Transactions',
                                     icon: 'FileText',
                                     pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Salary Approval',
-                                            icon: 'CheckSquare',
-                                            url: '/hrms/transactions/salary-approval',
-                                            title: 'Salary Approval',
-                                            description: 'Approve Calculated Salaries'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Salary Calculation',
-                                            icon: 'Calculator',
-                                            url: '/hrms/transactions/salary-calculation',
-                                            title: 'Salary Calculation',
-                                            description: 'Calculate Employee Salary'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Salary Increment Process',
-                                            icon: 'TrendingUp',
-                                            url: '/hrms/transactions/salary-increment',
-                                            title: 'Salary Increment Process',
-                                            description: 'Manage Salary Increments'
-                                        },
+                                        // {
+                                        //     id: 1,
+                                        //     name: 'Salary Approval',
+                                        //     icon: 'CheckSquare',
+                                        //     url: '/hrms/transactions/salary-approval',
+                                        //     title: 'Salary Approval',
+                                        //     description: 'Approve Calculated Salaries'
+                                        // },
+                                        // {
+                                        //     id: 2,
+                                        //     name: 'Salary Calculation',
+                                        //     icon: 'Calculator',
+                                        //     url: '/hrms/transactions/salary-calculation',
+                                        //     title: 'Salary Calculation',
+                                        //     description: 'Calculate Employee Salary'
+                                        // },
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'Salary Increment Process',
+                                        //     icon: 'TrendingUp',
+                                        //     url: '/hrms/transactions/salary-increment',
+                                        //     title: 'Salary Increment Process',
+                                        //     description: 'Manage Salary Increments'
+                                        // },
                                         {
                                             id: 4,
                                             name: 'Salary Updation',
@@ -1837,14 +1769,23 @@ export async function getUserAccessibleModules() {
                                             title: 'Mass Updation',
                                             description: 'Bulk Update Employee Data'
                                         },
-                                        {
-                                            id: 6,
-                                            name: 'Salary Advance',
-                                            icon: 'DollarSign',
-                                            url: '/hrms/transactions/salary-advance',
-                                            title: 'Salary Advance',
-                                            description: 'Manage Salary Advances'
-                                        },
+                                        // ,
+                                        // {
+                                        //     id: 5,
+                                        //     name: 'Mass Updation',
+                                        //     icon: 'RefreshCw',
+                                        //     url: '/hrms/transactions/mass-updation',
+                                        //     title: 'Mass Updation',
+                                        //     description: 'Bulk Update Employee Data'
+                                        // },
+                                        // {
+                                        //     id: 6,
+                                        //     name: 'Salary Advance',
+                                        //     icon: 'DollarSign',
+                                        //     url: '/hrms/transactions/salary-advance',
+                                        //     title: 'Salary Advance',
+                                        //     description: 'Manage Salary Advances'
+                                        // },
                                         {
                                             id: 7,
                                             name: 'Employee Loan',
@@ -1868,22 +1809,23 @@ export async function getUserAccessibleModules() {
                                             title: 'Cumulative Salary Report',
                                             description: 'Cumulative Salary Analysis'
                                         },
-                                        {
-                                            id: 2,
-                                            name: 'Employee Details',
-                                            icon: 'UserCheck',
-                                            url: '/hrms/reports/employee-details',
-                                            title: 'Employee Details',
-                                            description: 'Detailed Employee Information'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Employee Profile',
-                                            icon: 'User',
-                                            url: '/hrms/reports/employee-profile',
-                                            title: 'Employee Profile',
-                                            description: 'Employee Profile Report'
-                                        },
+                                        //,
+                                        // {
+                                        //     id: 2,
+                                        //     name: 'Employee Details',
+                                        //     icon: 'UserCheck',
+                                        //     url: '/hrms/reports/employee-details',
+                                        //     title: 'Employee Details',
+                                        //     description: 'Detailed Employee Information'
+                                        // },
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'Employee Profile',
+                                        //     icon: 'User',
+                                        //     url: '/hrms/reports/employee-profile',
+                                        //     title: 'Employee Profile',
+                                        //     description: 'Employee Profile Report'
+                                        // },
                                         {
                                             id: 4,
                                             name: 'Salary Slip',
@@ -1894,20 +1836,20 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 5,
-                                            name: 'Employee Contribution',
+                                            name: 'E-PF Contribution Register',
                                             icon: 'Coins',
-                                            url: '/hrms/reports/employee-contribution',
-                                            title: 'Employee Contribution',
-                                            description: 'Employee Contribution Report'
+                                            url: '/hrms/reports/e-pf-contribution-register',
+                                            title: 'E-PF Contribution Register',
+                                            description: 'E-PF Contribution Register Report'
                                         },
-                                        {
-                                            id: 6,
-                                            name: 'Employee Salary Details',
-                                            icon: 'DollarSign',
-                                            url: '/hrms/reports/employee-salary-details',
-                                            title: 'Employee Salary Details',
-                                            description: 'Detailed Salary Information'
-                                        },
+                                        // {
+                                        //     id: 6,
+                                        //     name: 'Employee Salary Details',
+                                        //     icon: 'DollarSign',
+                                        //     url: '/hrms/reports/employee-salary-details',
+                                        //     title: 'Employee Salary Details',
+                                        //     description: 'Detailed Salary Information'
+                                        // },
                                         {
                                             id: 7,
                                             name: 'Employee Strength',
@@ -1924,38 +1866,38 @@ export async function getUserAccessibleModules() {
                                             title: 'ESI Report',
                                             description: 'ESI Contribution Report'
                                         },
-                                        {
-                                            id: 9,
-                                            name: 'Head Wise Report',
-                                            icon: 'List',
-                                            url: '/hrms/reports/head-wise-report',
-                                            title: 'Head Wise Report',
-                                            description: 'Head-wise Analysis Report'
-                                        },
-                                        {
-                                            id: 10,
-                                            name: 'Bank Cash Report',
-                                            icon: 'Banknote',
-                                            url: '/hrms/reports/bank-cash-report',
-                                            title: 'Bank Cash Report',
-                                            description: 'Bank & Cash Summary'
-                                        },
-                                        {
-                                            id: 11,
-                                            name: 'Employee Service Report',
-                                            icon: 'Briefcase',
-                                            url: '/hrms/reports/employee-service-report',
-                                            title: 'Employee Service Report',
-                                            description: 'Employee Service Summary'
-                                        },
-                                        {
-                                            id: 1289,
-                                            name: 'Salary Certificate',
-                                            icon: 'Award',
-                                            url: '/hrms/reports/salary-certificate',
-                                            title: 'Salary Certificate',
-                                            description: 'Generate Salary Certificates'
-                                        },
+                                        // {
+                                        //     id: 9,
+                                        //     name: 'Head Wise Report',
+                                        //     icon: 'List',
+                                        //     url: '/hrms/reports/head-wise-report',
+                                        //     title: 'Head Wise Report',
+                                        //     description: 'Head-wise Analysis Report'
+                                        // },
+                                        // {
+                                        //     id: 10,
+                                        //     name: 'Bank Cash Report',
+                                        //     icon: 'Banknote',
+                                        //     url: '/hrms/reports/bank-cash-report',
+                                        //     title: 'Bank Cash Report',
+                                        //     description: 'Bank & Cash Summary'
+                                        // },
+                                        // {
+                                        //     id: 11,
+                                        //     name: 'Employee Service Report',
+                                        //     icon: 'Briefcase',
+                                        //     url: '/hrms/reports/employee-service-report',
+                                        //     title: 'Employee Service Report',
+                                        //     description: 'Employee Service Summary'
+                                        // },
+                                        // {
+                                        //     id: 1289,
+                                        //     name: 'Salary Certificate',
+                                        //     icon: 'Award',
+                                        //     url: '/hrms/reports/salary-certificate',
+                                        //     title: 'Salary Certificate',
+                                        //     description: 'Generate Salary Certificates'
+                                        // },
                                         {
                                             id: 13,
                                             name: 'PF Challan',
@@ -1988,30 +1930,30 @@ export async function getUserAccessibleModules() {
                                             title: 'PF Form6A',
                                             description: 'Provident Fund Form 6A'
                                         },
-                                        {
-                                            id: 17,
-                                            name: 'PF Form3A',
-                                            icon: 'FileType',
-                                            url: '/hrms/reports/pf-form3a',
-                                            title: 'PF Form3A',
-                                            description: 'Provident Fund Form 3A'
-                                        },
-                                        {
-                                            id: 18,
-                                            name: 'HRMS Monthend Report',
-                                            icon: 'CalendarCheck',
-                                            url: '/hrms/reports/hrms-monthend-report',
-                                            title: 'HRMS Monthend Report',
-                                            description: 'Monthly Closure Report'
-                                        },
-                                        {
-                                            id: 19,
-                                            name: 'Retirement Report',
-                                            icon: 'Clock',
-                                            url: '/hrms/reports/retirement-report',
-                                            title: 'Retirement Report',
-                                            description: 'Employee Retirement Report'
-                                        },
+                                        // {
+                                        //     id: 17,
+                                        //     name: 'PF Form3A',
+                                        //     icon: 'FileType',
+                                        //     url: '/hrms/reports/pf-form3a',
+                                        //     title: 'PF Form3A',
+                                        //     description: 'Provident Fund Form 3A'
+                                        // },
+                                        // {
+                                        //     id: 18,
+                                        //     name: 'HRMS Monthend Report',
+                                        //     icon: 'CalendarCheck',
+                                        //     url: '/hrms/reports/hrms-monthend-report',
+                                        //     title: 'HRMS Monthend Report',
+                                        //     description: 'Monthly Closure Report'
+                                        // },
+                                        // {
+                                        //     id: 19,
+                                        //     name: 'Retirement Report',
+                                        //     icon: 'Clock',
+                                        //     url: '/hrms/reports/retirement-report',
+                                        //     title: 'Retirement Report',
+                                        //     description: 'Employee Retirement Report'
+                                        // }
                                         {
                                             id: 20,
                                             name: 'Department Salary Report',
@@ -2020,14 +1962,15 @@ export async function getUserAccessibleModules() {
                                             title: 'Department Salary Report',
                                             description: 'Department-wise Salary'
                                         },
-                                        {
-                                            id: 21,
-                                            name: 'Advance Report',
-                                            icon: 'FileSearch',
-                                            url: '/hrms/reports/advance-report',
-                                            title: 'Advance Report',
-                                            description: 'View Advance Reports'
-                                        },
+                                        //,
+                                        // {
+                                        //     id: 21,
+                                        //     name: 'Advance Report',
+                                        //     icon: 'FileSearch',
+                                        //     url: '/hrms/reports/advance-report',
+                                        //     title: 'Advance Report',
+                                        //     description: 'View Advance Reports'
+                                        // }
                                         {
                                             id: 22,
                                             name: 'Employee offer letter',
@@ -2035,477 +1978,479 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/reports/employee-offer-letter',
                                             title: 'Employee offer letter',
                                             description: 'Generate Offer Letters'
-                                        },
-                                        {
-                                            id: 23,
-                                            name: 'Loan Report',
-                                            icon: 'CreditCard',
-                                            url: '/hrms/reports/loan-report',
-                                            title: 'Loan Report',
-                                            description: 'Employee Loan Report'
                                         }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            id: 2,
-                            name: 'Recruitment',
-                            icon: 'UserPlus',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Masters',
-                                    icon: 'Database',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Master Job',
-                                            icon: 'Briefcase',
-                                            url: '/hrms/recruitment/masters/master-job',
-                                            title: 'Master Job',
-                                            description: 'Manage Job Positions'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Master Location',
-                                            icon: 'MapPin',
-                                            url: '/hrms/recruitment/masters/master-location',
-                                            title: 'Master Location',
-                                            description: 'Manage Locations'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Master Position',
-                                            icon: 'Target',
-                                            url: '/hrms/recruitment/masters/master-position',
-                                            title: 'Master Position',
-                                            description: 'Manage Positions'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Master Position Type',
-                                            icon: 'Tag',
-                                            url: '/hrms/recruitment/masters/master-positionType',
-                                            title: 'Master Position Type',
-                                            description: 'Manage Position Types'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'Master Priority',
-                                            icon: 'Flag',
-                                            url: '/hrms/recruitment/masters/master-priority',
-                                            title: 'Master Priority',
-                                            description: 'Manage Priority Levels'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 2,
-                                    name: 'Transactions',
-                                    icon: 'FileText',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Add Candidate',
-                                            icon: 'UserPlus',
-                                            url: '/hrms/recruitment/transaction/add-candidate',
-                                            title: 'Add Candidate',
-                                            description: 'Add New Candidates'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Add Candidate Interview',
-                                            icon: 'Calendar',
-                                            url: '/hrms/recruitment/transaction/add-candidate-interview',
-                                            title: 'Add Candidate Interview',
-                                            description: 'Add Candidate Interview'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Candidate Interview List',
-                                            icon: 'List',
-                                            url: '/hrms/recruitment/transaction/candidate-interview-list',
-                                            title: 'Candidate Interview List',
-                                            description: 'View All Candidate Interviews'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Interviewer Feedback',
-                                            icon: 'MessageSquare',
-                                            url: '/hrms/recruitment/transaction/interviewer-feedback',
-                                            title: 'Interviewer Feedback',
-                                            description: 'Manage Interviewer Feedback'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'Job List',
-                                            icon: 'Briefcase',
-                                            url: '/hrms/recruitment/transaction/job-list',
-                                            title: 'Job List',
-                                            description: 'View All Jobs'
-                                        },
-                                        {
-                                            id: 6,
-                                            name: 'Job Posting List',
-                                            icon: 'FileText',
-                                            url: '/hrms/recruitment/transaction/job-posting-list',
-                                            title: 'Job Posting List',
-                                            description: 'View All Job Postings'
-                                        }
-                                    ]
-                                },
-                                // {
-                                //     id: 3,
-                                //     name: 'MRF Approval',
-                                //     icon: 'CheckSquare',
-                                //     pages: [
-                                //         {
-                                //             id: 1,
-                                //             name: 'MRF Requisition Form',
-                                //             icon: 'FileCheck',
-                                //             url: '/hrms/recruitment/mrf-approval/mrf-requisition-form',
-                                //             title: 'MRF Requisition Form',
-                                //             description: 'Approve MRF Requests'
-                                //         }
-                                //     ]
-                                // },
-                                // {
-                                //     id: 4,
-                                //     name: 'Feedback',
-                                //     icon: 'MessageSquare',
-                                //     pages: [
-                                //         {
-                                //             id: 1,
-                                //             name: 'Candidate Feedback',
-                                //             icon: 'Star',
-                                //             url: '/hrms/recruitment/feedback/candidate-feedback',
-                                //             title: 'Candidate Feedback',
-                                //             description: 'Record Candidate Feedback'
-                                //         }
-                                //     ]
-                                // },
-                                {
-                                    id: 5,
-                                    name: 'Reports',
-                                    icon: 'FileText',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Candidate Report',
-                                            icon: 'Users',
-                                            url: '/hrms/recruitment/reports/candidate-report',
-                                            title: 'Candidate Report',
-                                            description: 'Candidate Summary Report'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Interview Report',
-                                            icon: 'ClipboardList',
-                                            url: '/hrms/recruitment/reports/interview-report',
-                                            title: 'Interview Report',
-                                            description: 'Interview Summary Report'
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            id: 3,
-                            name: 'Attendance Management',
-                            icon: 'Clock',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Masters',
-                                    icon: 'Database',
-                                    pages: [
+                                        //,
                                         // {
-                                        //     id: 1,
-                                        //     name: 'Master Shift',
-                                        //     icon: 'Clock',
-                                        //     url: '/hrms/attendance-management/masters/master-shift',
-                                        //     title: 'Master Shift',
-                                        //     description: 'Manage Shift Definitions'
-                                        // },
-                                        // {
-                                        //     id: 2,
-                                        //     name: 'Employee Missing Logs',
-                                        //     icon: 'AlertCircle',
-                                        //     url: '/hrms/attendance-management/masters/employee-missing-logs',
-                                        //     title: 'Employee Missing Logs',
-                                        //     description: 'Track Missing Attendance Logs'
-                                        // },
-                                        {
-                                            id: 3,
-                                            name: 'Employee Shift Mapping',
-                                            icon: 'UserCog',
-                                            url: '/hrms/attendance-management/masters/employee-shift-mapping',
-                                            title: 'Employee Shift Mapping',
-                                            description: 'Map Employees to Shifts'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Master Holiday',
-                                            icon: 'CalendarOff',
-                                            url: '/hrms/attendance-management/masters/master-holiday',
-                                            title: 'Master Holiday',
-                                            description: 'Manage Holiday Calendar'
-                                        },
-                                        // {
-                                        //     id: 5,
-                                        //     name: 'Master Driver Shift',
-                                        //     icon: 'Truck',
-                                        //     url: '/hrms/attendance-management/masters/master-driver-shift',
-                                        //     title: 'Master Driver Shift',
-                                        //     description: 'Manage Driver Shifts'
-                                        // },
-                                        {
-                                            id: 6,
-                                            name: 'Shift Setting Master',
-                                            icon: 'Settings',
-                                            url: '/hrms/attendance-management/masters/shift-setting-master',
-                                            title: 'Shift Setting Master',
-                                            description: 'Configure Shift Settings'
-                                        }
-                                        // {
-                                        //     id: 7,
-                                        //     name: 'GPS Location Attendance',
-                                        //     icon: 'MapPin',
-                                        //     url: '/hrms/attendance-management/masters/gps-location-attendance',
-                                        //     title: 'GPS Location Attendance',
-                                        //     description: 'GPS-based Attendance'
-                                        // }
-                                    ]
-                                },
-                                {
-                                    id: 2,
-                                    name: 'Reports',
-                                    icon: 'FileText',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Employee In/Out Report',
-                                            icon: 'ClipboardList',
-                                            url: '/hrms/attendance-management/reports/employee-inout-report',
-                                            title: 'Employee In/Out Report',
-                                            description: 'In/Out Timing Report'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Late In Early Out Report',
-                                            icon: 'Clock',
-                                            url: '/hrms/attendance-management/reports/employee-lateInEarlyOut-report',
-                                            title: 'Late In Early Out Report',
-                                            description: 'Track Late/Early Attendance'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Employee Log Report',
-                                            icon: 'FileSearch',
-                                            url: '/hrms/attendance-management/reports/employee-log-report',
-                                            title: 'Employee Log Report',
-                                            description: 'Detailed Log Report'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Employee Yearly Report',
-                                            icon: 'Calendar',
-                                            url: '/hrms/attendance-management/reports/employee-yearly-report',
-                                            title: 'Employee Yearly Report',
-                                            description: 'Annual Attendance Summary'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'Employee Monthly Report',
-                                            icon: 'CalendarDays',
-                                            url: '/hrms/attendance-management/reports/employee-monthly-report',
-                                            title: 'Employee Monthly Report',
-                                            description: 'Monthly Attendance Report'
-                                        },
-                                        {
-                                            id: 6,
-                                            name: 'Month End Report',
-                                            icon: 'CalendarCheck',
-                                            url: '/hrms/attendance-management/reports/fo-monthend-report',
-                                            title: 'Month End Report',
-                                            description: 'Monthly Attendance Summary'
-                                        },
-                                        // {
-                                        //     id: 6,
-                                        //     name: 'GPS Location Report',
-                                        //     icon: 'MapPin',
-                                        //     url: '/hrms/attendance-management/reports/gps-location-report',
-                                        //     title: 'GPS Location Report',
-                                        //     description: 'GPS Attendance Report'
-                                        // },
-                                        {
-                                            id: 7,
-                                            name: 'Holiday Report',
-                                            icon: 'Calendar',
-                                            url: '/hrms/attendance-management/reports/holiday-report',
-                                            title: 'Holiday Report',
-                                            description: 'Holiday Report'
-                                        },
-                                        {
-                                            id: 8,
-                                            name: 'Employee Absent Report',
-                                            icon: 'UserX',
-                                            url: '/hrms/attendance-management/reports/employee-absent-report',
-                                            title: 'Employee Absent Report',
-                                            description: 'Employee Absent Detail Report'
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            id: 4,
-                            name: 'Leave Management',
-                            icon: 'Calendar',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Masters',
-                                    icon: 'Database',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Master Leave',
-                                            icon: 'Calendar',
-                                            url: '/hrms/leave-management/masters/master-leave',
-                                            title: 'Master Leave',
-                                            description: 'Manage Leave Types'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Leave Authorization',
-                                            icon: 'Shield',
-                                            url: '/hrms/leave-management/masters/leave-authorization',
-                                            title: 'Leave Authorization',
-                                            description: 'Configure Leave Approvers'
-                                        }
-                                        // {
-                                        //     id: 3,
-                                        //     name: 'Master Leave Year',
-                                        //     icon: 'CalendarRange',
-                                        //     url: '/hrms/leave-management/masters/master-leaveYear',
-                                        //     title: 'Master Leave Year',
-                                        //     description: 'Manage Leave Year'
-                                        // }
-                                    ]
-                                },
-                                {
-                                    id: 2,
-                                    name: 'Apply Leave',
-                                    icon: 'FileText',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Apply Leave',
-                                            icon: 'FilePlus',
-                                            url: '/hrms/leave-management/apply-leave',
-                                            title: 'Apply Leave',
-                                            description: 'Submit Leave Application'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Leave Approval',
-                                            icon: 'CheckCircle',
-                                            url: '/hrms/leave-management/leave-approval',
-                                            title: 'Leave Approval',
-                                            description: 'Approve or Reject Leave Requests'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 3,
-                                    name: 'Transaction',
-                                    icon: 'FileText',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Leave Transfer',
-                                            icon: 'Plus',
-                                            url: '/hrms/leave-management/transaction/leave-transfer',
-                                            title: 'Leave Transfer',
-                                            description: 'Transfer Leave'
-                                        },
-                                        // {
-                                        //     id: 2,
-                                        //     name: 'Comp Off Approval',
-                                        //     icon: 'CheckSquare',
-                                        //     url: '/hrms/leave-management/transaction/comp-off-approval',
-                                        //     title: 'Comp Off Approval',
-                                        //     description: 'Approve Compensatory Off'
-                                        // },
-                                        // {
-                                        //     id: 3,
-                                        //     name: 'Comp Off Request',
-                                        //     icon: 'FileText',
-                                        //     url: '/hrms/leave-management/transaction/comp-off-request',
-                                        //     title: 'Comp Off Request',
-                                        //     description: 'Request Compensatory Off'
-                                        // },
-                                        {
-                                            id: 4,
-                                            name: 'Leave Credit Details',
-                                            icon: 'Info',
-                                            url: '/hrms/leave-management/transaction/leave-credit-details',
-                                            title: 'Leave  Details',
-                                            description: 'View Leave Credit Details'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'Leave Transaction',
-                                            icon: 'List',
-                                            url: '/hrms/leave-management/transaction/leave-credit-transaction',
-                                            title: 'Leave Transaction',
-                                            description: 'Leave Transaction'
-                                        },
-                                        {
-                                            id: 6,
-                                            name: 'Leave Opening Balance',
-                                            icon: 'Database',
-                                            url: '/hrms/leave-management/transaction/leave-opening-balance',
-                                            title: 'Leave Opening Balance',
-                                            description: 'Manage Leave Opening Balance'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 4,
-                                    name: 'Report',
-                                    icon: 'FileText',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Leave Report',
-                                            icon: 'FileSearch',
-                                            url: '/hrms/leave-management/reports/leave-report',
-                                            title: 'Leave Report',
-                                            description: 'Leave Summary Report'
-                                        }
-                                        // {
-                                        //     id: 2,
-                                        //     name: 'Overall Report',
-                                        //     icon: 'BarChart3',
-                                        //     url: '/hrms/leave-management/reports/overAll-report',
-                                        //     title: 'Overall Report',
-                                        //     description: 'Overall Leave Analysis'
-                                        // },
-                                        // {
-                                        //     id: 3,
-                                        //     name: 'Unauthorized Leave Report',
-                                        //     icon: 'AlertTriangle',
-                                        //     url: '/hrms/leave-management/reports/unauthorizedLeaveCount-report',
-                                        //     title: 'Unauthorized Leave Report',
-                                        //     description: 'Unauthorized Leave Count'
+                                        //     id: 23,
+                                        //     name: 'Loan Report',
+                                        //     icon: 'CreditCard',
+                                        //     url: '/hrms/reports/loan-report',
+                                        //     title: 'Loan Report',
+                                        //     description: 'Employee Loan Report'
                                         // }
                                     ]
                                 }
                             ]
                         }
+                        // ,
+                        // {
+                        //     id: 2,
+                        //     name: 'Recruitment',
+                        //     icon: 'UserPlus',
+                        //     sub_menu: [
+                        //         {
+                        //             id: 1,
+                        //             name: 'Masters',
+                        //             icon: 'Database',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Master Job',
+                        //                     icon: 'Briefcase',
+                        //                     url: '/hrms/recruitment/masters/master-job',
+                        //                     title: 'Master Job',
+                        //                     description: 'Manage Job Positions'
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Master Location',
+                        //                     icon: 'MapPin',
+                        //                     url: '/hrms/recruitment/masters/master-location',
+                        //                     title: 'Master Location',
+                        //                     description: 'Manage Locations'
+                        //                 },
+                        //                 {
+                        //                     id: 3,
+                        //                     name: 'Master Position',
+                        //                     icon: 'Target',
+                        //                     url: '/hrms/recruitment/masters/master-position',
+                        //                     title: 'Master Position',
+                        //                     description: 'Manage Positions'
+                        //                 },
+                        //                 {
+                        //                     id: 4,
+                        //                     name: 'Master Position Type',
+                        //                     icon: 'Tag',
+                        //                     url: '/hrms/recruitment/masters/master-positionType',
+                        //                     title: 'Master Position Type',
+                        //                     description: 'Manage Position Types'
+                        //                 },
+                        //                 {
+                        //                     id: 5,
+                        //                     name: 'Master Priority',
+                        //                     icon: 'Flag',
+                        //                     url: '/hrms/recruitment/masters/master-priority',
+                        //                     title: 'Master Priority',
+                        //                     description: 'Manage Priority Levels'
+                        //                 }
+                        //             ]
+                        //         },
+                        //         {
+                        //             id: 2,
+                        //             name: 'Transactions',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Add Candidate',
+                        //                     icon: 'UserPlus',
+                        //                     url: '/hrms/recruitment/transaction/add-candidate',
+                        //                     title: 'Add Candidate',
+                        //                     description: 'Add New Candidates'
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Add Candidate Interview',
+                        //                     icon: 'Calendar',
+                        //                     url: '/hrms/recruitment/transaction/add-candidate-interview',
+                        //                     title: 'Add Candidate Interview',
+                        //                     description: 'Add Candidate Interview'
+                        //                 },
+                        //                 {
+                        //                     id: 3,
+                        //                     name: 'Candidate Interview List',
+                        //                     icon: 'List',
+                        //                     url: '/hrms/recruitment/transaction/candidate-interview-list',
+                        //                     title: 'Candidate Interview List',
+                        //                     description: 'View All Candidate Interviews'
+                        //                 },
+                        //                 {
+                        //                     id: 4,
+                        //                     name: 'Interviewer Feedback',
+                        //                     icon: 'MessageSquare',
+                        //                     url: '/hrms/recruitment/transaction/interviewer-feedback',
+                        //                     title: 'Interviewer Feedback',
+                        //                     description: 'Manage Interviewer Feedback'
+                        //                 },
+                        //                 {
+                        //                     id: 5,
+                        //                     name: 'Job List',
+                        //                     icon: 'Briefcase',
+                        //                     url: '/hrms/recruitment/transaction/job-list',
+                        //                     title: 'Job List',
+                        //                     description: 'View All Jobs'
+                        //                 },
+                        //                 {
+                        //                     id: 6,
+                        //                     name: 'Job Posting List',
+                        //                     icon: 'FileText',
+                        //                     url: '/hrms/recruitment/transaction/job-posting-list',
+                        //                     title: 'Job Posting List',
+                        //                     description: 'View All Job Postings'
+                        //                 }
+                        //             ]
+                        //         },
+                        //         // {
+                        //         //     id: 3,
+                        //         //     name: 'MRF Approval',
+                        //         //     icon: 'CheckSquare',
+                        //         //     pages: [
+                        //         //         {
+                        //         //             id: 1,
+                        //         //             name: 'MRF Requisition Form',
+                        //         //             icon: 'FileCheck',
+                        //         //             url: '/hrms/recruitment/mrf-approval/mrf-requisition-form',
+                        //         //             title: 'MRF Requisition Form',
+                        //         //             description: 'Approve MRF Requests'
+                        //         //         }
+                        //         //     ]
+                        //         // },
+                        //         // {
+                        //         //     id: 4,
+                        //         //     name: 'Feedback',
+                        //         //     icon: 'MessageSquare',
+                        //         //     pages: [
+                        //         //         {
+                        //         //             id: 1,
+                        //         //             name: 'Candidate Feedback',
+                        //         //             icon: 'Star',
+                        //         //             url: '/hrms/recruitment/feedback/candidate-feedback',
+                        //         //             title: 'Candidate Feedback',
+                        //         //             description: 'Record Candidate Feedback'
+                        //         //         }
+                        //         //     ]
+                        //         // },
+                        //         {
+                        //             id: 5,
+                        //             name: 'Reports',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Candidate Report',
+                        //                     icon: 'Users',
+                        //                     url: '/hrms/recruitment/reports/candidate-report',
+                        //                     title: 'Candidate Report',
+                        //                     description: 'Candidate Summary Report'
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Interview Report',
+                        //                     icon: 'ClipboardList',
+                        //                     url: '/hrms/recruitment/reports/interview-report',
+                        //                     title: 'Interview Report',
+                        //                     description: 'Interview Summary Report'
+                        //                 }
+                        //             ]
+                        //         }
+                        //     ]
+                        // },
+                        // {
+                        //     id: 3,
+                        //     name: 'Attendance Management',
+                        //     icon: 'Clock',
+                        //     sub_menu: [
+                        //         {
+                        //             id: 1,
+                        //             name: 'Masters',
+                        //             icon: 'Database',
+                        //             pages: [
+                        //                 // {
+                        //                 //     id: 1,
+                        //                 //     name: 'Master Shift',
+                        //                 //     icon: 'Clock',
+                        //                 //     url: '/hrms/attendance-management/masters/master-shift',
+                        //                 //     title: 'Master Shift',
+                        //                 //     description: 'Manage Shift Definitions'
+                        //                 // },
+                        //                 // {
+                        //                 //     id: 2,
+                        //                 //     name: 'Employee Missing Logs',
+                        //                 //     icon: 'AlertCircle',
+                        //                 //     url: '/hrms/attendance-management/masters/employee-missing-logs',
+                        //                 //     title: 'Employee Missing Logs',
+                        //                 //     description: 'Track Missing Attendance Logs'
+                        //                 // },
+                        //                 {
+                        //                     id: 3,
+                        //                     name: 'Employee Shift Mapping',
+                        //                     icon: 'UserCog',
+                        //                     url: '/hrms/attendance-management/masters/employee-shift-mapping',
+                        //                     title: 'Employee Shift Mapping',
+                        //                     description: 'Map Employees to Shifts'
+                        //                 },
+                        //                 {
+                        //                     id: 4,
+                        //                     name: 'Master Holiday',
+                        //                     icon: 'CalendarOff',
+                        //                     url: '/hrms/attendance-management/masters/master-holiday',
+                        //                     title: 'Master Holiday',
+                        //                     description: 'Manage Holiday Calendar'
+                        //                 },
+                        //                 // {
+                        //                 //     id: 5,
+                        //                 //     name: 'Master Driver Shift',
+                        //                 //     icon: 'Truck',
+                        //                 //     url: '/hrms/attendance-management/masters/master-driver-shift',
+                        //                 //     title: 'Master Driver Shift',
+                        //                 //     description: 'Manage Driver Shifts'
+                        //                 // },
+                        //                 {
+                        //                     id: 6,
+                        //                     name: 'Shift Setting Master',
+                        //                     icon: 'Settings',
+                        //                     url: '/hrms/attendance-management/masters/shift-setting-master',
+                        //                     title: 'Shift Setting Master',
+                        //                     description: 'Configure Shift Settings'
+                        //                 }
+                        //                 // {
+                        //                 //     id: 7,
+                        //                 //     name: 'GPS Location Attendance',
+                        //                 //     icon: 'MapPin',
+                        //                 //     url: '/hrms/attendance-management/masters/gps-location-attendance',
+                        //                 //     title: 'GPS Location Attendance',
+                        //                 //     description: 'GPS-based Attendance'
+                        //                 // }
+                        //             ]
+                        //         },
+                        //         {
+                        //             id: 2,
+                        //             name: 'Reports',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Employee In/Out Report',
+                        //                     icon: 'ClipboardList',
+                        //                     url: '/hrms/attendance-management/reports/employee-inout-report',
+                        //                     title: 'Employee In/Out Report',
+                        //                     description: 'In/Out Timing Report'
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Late In Early Out Report',
+                        //                     icon: 'Clock',
+                        //                     url: '/hrms/attendance-management/reports/employee-lateInEarlyOut-report',
+                        //                     title: 'Late In Early Out Report',
+                        //                     description: 'Track Late/Early Attendance'
+                        //                 },
+                        //                 {
+                        //                     id: 3,
+                        //                     name: 'Employee Log Report',
+                        //                     icon: 'FileSearch',
+                        //                     url: '/hrms/attendance-management/reports/employee-log-report',
+                        //                     title: 'Employee Log Report',
+                        //                     description: 'Detailed Log Report'
+                        //                 },
+                        //                 {
+                        //                     id: 4,
+                        //                     name: 'Employee Yearly Report',
+                        //                     icon: 'Calendar',
+                        //                     url: '/hrms/attendance-management/reports/employee-yearly-report',
+                        //                     title: 'Employee Yearly Report',
+                        //                     description: 'Annual Attendance Summary'
+                        //                 },
+                        //                 {
+                        //                     id: 5,
+                        //                     name: 'Employee Monthly Report',
+                        //                     icon: 'CalendarDays',
+                        //                     url: '/hrms/attendance-management/reports/employee-monthly-report',
+                        //                     title: 'Employee Monthly Report',
+                        //                     description: 'Monthly Attendance Report'
+                        //                 },
+                        //                 {
+                        //                     id: 6,
+                        //                     name: 'Month End Report',
+                        //                     icon: 'CalendarCheck',
+                        //                     url: '/hrms/attendance-management/reports/fo-monthend-report',
+                        //                     title: 'Month End Report',
+                        //                     description: 'Monthly Attendance Summary'
+                        //                 },
+                        //                 // {
+                        //                 //     id: 6,
+                        //                 //     name: 'GPS Location Report',
+                        //                 //     icon: 'MapPin',
+                        //                 //     url: '/hrms/attendance-management/reports/gps-location-report',
+                        //                 //     title: 'GPS Location Report',
+                        //                 //     description: 'GPS Attendance Report'
+                        //                 // },
+                        //                 {
+                        //                     id: 7,
+                        //                     name: 'Holiday Report',
+                        //                     icon: 'Calendar',
+                        //                     url: '/hrms/attendance-management/reports/holiday-report',
+                        //                     title: 'Holiday Report',
+                        //                     description: 'Holiday Report'
+                        //                 },
+                        //                 {
+                        //                     id: 8,
+                        //                     name: 'Employee Absent Report',
+                        //                     icon: 'UserX',
+                        //                     url: '/hrms/attendance-management/reports/employee-absent-report',
+                        //                     title: 'Employee Absent Report',
+                        //                     description: 'Employee Absent Detail Report'
+                        //                 }
+                        //             ]
+                        //         }
+                        //     ]
+                        // },
+                        // {
+                        //     id: 4,
+                        //     name: 'Leave Management',
+                        //     icon: 'Calendar',
+                        //     sub_menu: [
+                        //         {
+                        //             id: 1,
+                        //             name: 'Masters',
+                        //             icon: 'Database',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Master Leave',
+                        //                     icon: 'Calendar',
+                        //                     url: '/hrms/leave-management/masters/master-leave',
+                        //                     title: 'Master Leave',
+                        //                     description: 'Manage Leave Types'
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Leave Authorization',
+                        //                     icon: 'Shield',
+                        //                     url: '/hrms/leave-management/masters/leave-authorization',
+                        //                     title: 'Leave Authorization',
+                        //                     description: 'Configure Leave Approvers'
+                        //                 }
+                        //                 // {
+                        //                 //     id: 3,
+                        //                 //     name: 'Master Leave Year',
+                        //                 //     icon: 'CalendarRange',
+                        //                 //     url: '/hrms/leave-management/masters/master-leaveYear',
+                        //                 //     title: 'Master Leave Year',
+                        //                 //     description: 'Manage Leave Year'
+                        //                 // }
+                        //             ]
+                        //         },
+                        //         {
+                        //             id: 2,
+                        //             name: 'Apply Leave',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Apply Leave',
+                        //                     icon: 'FilePlus',
+                        //                     url: '/hrms/leave-management/apply-leave',
+                        //                     title: 'Apply Leave',
+                        //                     description: 'Submit Leave Application'
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Leave Approval',
+                        //                     icon: 'CheckCircle',
+                        //                     url: '/hrms/leave-management/leave-approval',
+                        //                     title: 'Leave Approval',
+                        //                     description: 'Approve or Reject Leave Requests'
+                        //                 }
+                        //             ]
+                        //         },
+                        //         {
+                        //             id: 3,
+                        //             name: 'Transaction',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Leave Transfer',
+                        //                     icon: 'Plus',
+                        //                     url: '/hrms/leave-management/transaction/leave-transfer',
+                        //                     title: 'Leave Transfer',
+                        //                     description: 'Transfer Leave'
+                        //                 },
+                        //                 // {
+                        //                 //     id: 2,
+                        //                 //     name: 'Comp Off Approval',
+                        //                 //     icon: 'CheckSquare',
+                        //                 //     url: '/hrms/leave-management/transaction/comp-off-approval',
+                        //                 //     title: 'Comp Off Approval',
+                        //                 //     description: 'Approve Compensatory Off'
+                        //                 // },
+                        //                 // {
+                        //                 //     id: 3,
+                        //                 //     name: 'Comp Off Request',
+                        //                 //     icon: 'FileText',
+                        //                 //     url: '/hrms/leave-management/transaction/comp-off-request',
+                        //                 //     title: 'Comp Off Request',
+                        //                 //     description: 'Request Compensatory Off'
+                        //                 // },
+                        //                 {
+                        //                     id: 4,
+                        //                     name: 'Leave Credit Details',
+                        //                     icon: 'Info',
+                        //                     url: '/hrms/leave-management/transaction/leave-credit-details',
+                        //                     title: 'Leave  Details',
+                        //                     description: 'View Leave Credit Details'
+                        //                 },
+                        //                 {
+                        //                     id: 5,
+                        //                     name: 'Leave Transaction',
+                        //                     icon: 'List',
+                        //                     url: '/hrms/leave-management/transaction/leave-credit-transaction',
+                        //                     title: 'Leave Transaction',
+                        //                     description: 'Leave Transaction'
+                        //                 },
+                        //                 {
+                        //                     id: 6,
+                        //                     name: 'Leave Opening Balance',
+                        //                     icon: 'Database',
+                        //                     url: '/hrms/leave-management/transaction/leave-opening-balance',
+                        //                     title: 'Leave Opening Balance',
+                        //                     description: 'Manage Leave Opening Balance'
+                        //                 }
+                        //             ]
+                        //         },
+                        //         {
+                        //             id: 4,
+                        //             name: 'Report',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Leave Report',
+                        //                     icon: 'FileSearch',
+                        //                     url: '/hrms/leave-management/reports/leave-report',
+                        //                     title: 'Leave Report',
+                        //                     description: 'Leave Summary Report'
+                        //                 }
+                        //                 // {
+                        //                 //     id: 2,
+                        //                 //     name: 'Overall Report',
+                        //                 //     icon: 'BarChart3',
+                        //                 //     url: '/hrms/leave-management/reports/overAll-report',
+                        //                 //     title: 'Overall Report',
+                        //                 //     description: 'Overall Leave Analysis'
+                        //                 // },
+                        //                 // {
+                        //                 //     id: 3,
+                        //                 //     name: 'Unauthorized Leave Report',
+                        //                 //     icon: 'AlertTriangle',
+                        //                 //     url: '/hrms/leave-management/reports/unauthorizedLeaveCount-report',
+                        //                 //     title: 'Unauthorized Leave Report',
+                        //                 //     description: 'Unauthorized Leave Count'
+                        //                 // }
+                        //             ]
+                        //         }
+                        //     ]
+                        // }
                         // {
                         //     id: 5,
                         //     name: 'Exit Management',
@@ -2645,8 +2590,351 @@ export async function getUserAccessibleModules() {
                     ]
                 },
                 {
+                    id: 12,
+                    name: 'Alumni',
+                    icon: 'Users',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Alumni Module',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Transactions',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Alumni NoticeBoard',
+                                            icon: 'Announcement',
+                                            url: '/alumni/alumni-module/transactions/alumni-noticeboard',
+                                            title: 'Alumni NoticeBoard',
+                                            description: 'Manage Alumni NoticeBoard Details'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Alumni Gallery',
+                                            icon: 'Image',
+                                            url: '/alumni/alumni-module/transactions/alumni-gallery',
+                                            title: 'Alumni Gallery',
+                                            description: 'Manage Alumni Gallery Details'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Alumni Interactions',
+                                            icon: 'MessageSquare',
+                                            url: '/alumni/alumni-module/transactions/alumni-interactions',
+                                            title: 'Alumni Interactions',
+                                            description: 'Manage Alumni Interaction Details'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Alumni Friend Request',
+                                            icon: 'UserPlus',
+                                            url: '/alumni/alumni-module/transactions/alumni-friend-request',
+                                            title: 'Alumni Friend Request',
+                                            description: 'Manage Alumni Friend Request Details'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Alumni Friend Request Accept',
+                                            icon: 'UserPlus',
+                                            url: '/alumni/alumni-module/transactions/alumni-friend-request-accept',
+                                            title: 'Alumni Friend Request Accept',
+                                            description: 'Manage Alumni Friend Request Accept Details'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Alumni Donation',
+                                            icon: 'HeartHandshake',
+                                            url: '/alumni/alumni-module/transactions/alumni-donation',
+                                            title: 'Alumni Donation',
+                                            description: 'Manage Alumni Donation Details'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Alumni Letters',
+                                            icon: 'MailOpen',
+                                            url: '/alumni/alumni-module/transactions/alumni-letters',
+                                            title: 'Alumni Letters',
+                                            description: 'Generate Alumni Letters'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'CLG Alumni Approval',
+                                            icon: 'UserCheck',
+                                            url: '/alumni/alumni-module/transactions/clg-alumni-approval',
+                                            title: 'CLG Alumni Approval',
+                                            description: 'Approve College Alumni Registrations'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'CLG Student Search',
+                                            icon: 'Search',
+                                            url: '/alumni/alumni-module/transactions/clg-alumni-student-search',
+                                            title: 'CLG Student Search',
+                                            description: 'Search College Alumni Students'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Reports',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Alumni Search',
+                                            icon: 'BookOpen',
+                                            url: '/alumni/alumni-module/reports/alumni-search',
+                                            title: 'Alumni Search',
+                                            description: 'Dynamic Alumni Search Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 25,
+                    name: 'COE',
+                    icon: 'Settings',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Calendar of Events',
+                            icon: 'Settings',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Master',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Master Event',
+                                            icon: 'Settings',
+                                            url: '/coe/master/masterevent',
+                                            title: 'Master Event',
+                                            description: 'Manage Master Event Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Report',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'COE Report',
+                                            icon: 'Settings',
+                                            url: '/coe/report/coereport',
+                                            title: 'COE Report',
+                                            description: 'Manage COE Report'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'COE Month End Report',
+                                            icon: 'Settings',
+                                            url: '/coe/report/coemonthendreport',
+                                            title: 'COE Month End Report',
+                                            description: 'Manage COE Month End Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+
+                {
+                    id: 26,
+                    name: 'UPLOAD',
+                    icon: 'Upload',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Upload',
+                            icon: 'Upload',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Transaction',
+                                    icon: 'Repeat',
+                                    pages: [
+                                        {
+                                            id: 221,
+                                            name: 'Upload ClassWork',
+                                            icon: 'BookOpen',
+                                            url: '/upload/transactions/ivrm-classwork',
+                                            title: 'Upload ClassWork',
+                                            description: 'Manage ClassWork'
+                                        },
+                                        {
+                                            id: 222,
+                                            name: 'Verify Class Work',
+                                            icon: 'CheckCircle',
+                                            url: '/upload/transactions/verify-classwork',
+                                            title: 'Verify Class Work',
+                                            description: 'Verify and Enter Class Work Marks'
+                                        },
+                                        {
+                                            id: 223,
+                                            name: 'IVRM HomeWork',
+                                            icon: 'BookOpen',
+                                            url: '/upload/transactions/ivrm-homework',
+                                            title: 'Upload HomeWork',
+                                            description: 'Manage IVRM HomeWork'
+                                        },
+                                        {
+                                            id: 224,
+                                            name: 'HomeWork Marks Update',
+                                            icon: 'CheckCircle',
+                                            url: '/upload/transactions/homework-marks-update',
+                                            title: 'Verify HomeWork',
+                                            description: 'Verify HomeWork Marks'
+                                        },
+                                        {
+                                            id: 225,
+                                            name: 'Upload Notice Board',
+                                            icon: 'BookOpen',
+                                            url: '/upload/transactions/notice-board',
+                                            title: 'Upload Notice Board',
+                                            description: 'Upload Notice Board'
+                                        },
+                                        {
+                                            id: 226,
+                                            name: 'Push Notification',
+                                            icon: 'BookOpen',
+                                            url: '/upload/transactions/push-notification',
+                                            title: 'Push Notification',
+                                            description: 'Push Notification'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Report',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'ClassWork Upload Report',
+                                            icon: 'FileText',
+                                            url: '/upload/reports/classwork-upload-report',
+                                            title: 'ClassWork Upload Report',
+                                            description: 'ClassWork Upload Report Details'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'HomeWork Upload Report',
+                                            icon: 'FileText',
+                                            url: '/upload/reports/homework-upload-report',
+                                            title: 'HomeWork Upload Report',
+                                            description: 'HomeWork Upload Report Details'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'NoticeBoard Report',
+                                            icon: 'FileText',
+                                            url: '/upload/reports/noticeboard-report',
+                                            title: 'NoticeBoard Report',
+                                            description: 'NoticeBoard Report Details'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 27,
+
+                    name: 'BirthDay',
+
+                    icon: 'Settings',
+
+                    menu: [
+                        {
+                            id: 1,
+
+                            name: 'BirthDay',
+
+                            icon: 'Settings',
+
+                            sub_menu: [
+                                {
+                                    id: 1,
+
+                                    name: 'Master',
+
+                                    icon: 'Settings',
+
+                                    pages: [
+                                        {
+                                            id: 1,
+
+                                            name: 'BirthDay',
+
+                                            icon: 'Settings',
+
+                                            url: '/birthday/master/masterbirthday',
+
+                                            title: 'Master BirthDay',
+
+                                            description: 'Manage Master BirthDay Details'
+                                        }
+                                    ]
+                                },
+
+                                {
+                                    id: 2,
+
+                                    name: 'Report',
+
+                                    icon: 'Settings',
+
+                                    pages: [
+                                        {
+                                            id: 1,
+
+                                            name: 'Student BirthDay Report',
+
+                                            icon: 'Settings',
+
+                                            url: '/birthday/report/studentbirthdayreport',
+
+                                            title: 'Student BirthDay Report',
+
+                                            description: 'Manage Student BirthDay Report'
+                                        },
+
+                                        {
+                                            id: 2,
+
+                                            name: 'Staff BirthDay Report',
+
+                                            icon: 'Settings',
+
+                                            url: '/birthday/report/staffbirthdayreport',
+
+                                            title: 'Staff BirthDay Report',
+
+                                            description: 'Manage Staff BirthDay Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+
+                {
                     id: 6,
-                    name: 'T',
+                    name: 'Time Table',
                     icon: 'Clock',
                     menu: [
                         {
@@ -2746,14 +3034,6 @@ export async function getUserAccessibleModules() {
                                             title: 'Master Period',
                                             description: 'Manage Master Period Details'
                                         },
-                                        {
-                                            id: 12,
-                                            name: 'Master Period Class',
-                                            icon: 'Clock',
-                                            url: '/timetable/masters/masterperiodclass',
-                                            title: 'Master Period Class',
-                                            description: 'Manage Master Period Class Details'
-                                        },
 
                                         {
                                             id: 10,
@@ -2770,6 +3050,14 @@ export async function getUserAccessibleModules() {
                                             url: '/timetable/masters/periodallocationmasterperiod',
                                             title: 'Period Allocation Master Period',
                                             description: 'Manage Period Allocation Master Period Details'
+                                        },
+                                        {
+                                            id: 12,
+                                            name: 'Master Period Class',
+                                            icon: 'Clock',
+                                            url: '/timetable/masters/masterperiodclass',
+                                            title: 'Master Period Class',
+                                            description: 'Manage Master Period Class Details'
                                         },
 
                                         {
@@ -2866,7 +3154,7 @@ export async function getUserAccessibleModules() {
                 },
                 {
                     id: 7,
-                    name: 'L',
+                    name: 'Library',
                     icon: 'BookOpen',
                     menu: [
                         {
@@ -3144,9 +3432,10 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
+
                 {
                     id: 8,
-                    name: 'H',
+                    name: 'Hostel Management',
                     icon: 'Home',
                     menu: [
                         {
@@ -3247,7 +3536,7 @@ export async function getUserAccessibleModules() {
                 },
                 {
                     id: 9,
-                    name: 'SP',
+                    name: 'Student Portal',
                     icon: 'Users',
                     menu: [
                         {
@@ -3471,7 +3760,7 @@ export async function getUserAccessibleModules() {
                 },
                 {
                     id: 10,
-                    name: 'I',
+                    name: 'Inventory Management',
                     icon: 'Users',
                     menu: [
                         {
@@ -3616,10 +3905,9 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
-
                 {
                     id: 11,
-                    name: 'S',
+                    name: 'Sports Management',
                     icon: 'Trophy',
                     menu: [
                         {
@@ -3681,239 +3969,12 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Master Competition Level'
                                         }
                                     ]
-                                },
-                                {
-                                    id: 2,
-                                    name: 'Transactions',
-                                    icon: 'Activity',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Events Sponsor Mapping',
-                                            icon: 'Activity',
-                                            url: '/Sports/Transactions/EventsSponsorMapping',
-                                            title: 'Events Sponsor Mapping',
-                                            description: 'Manage Events Sponsor Mapping'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'BMI Calculation',
-                                            icon: 'Activity',
-                                            url: '/Sports/Transactions/BMICalculation',
-                                            title: 'BMI Calculation',
-                                            description: 'Manage BMI Calculation'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Student Age Calculation',
-                                            icon: 'Activity',
-                                            url: '/Sports/Transactions/StudentAgeCalculation',
-                                            title: 'Student Age Calculation',
-                                            description: 'Manage Student Age Calculation'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Sport Venuewise Participation Report',
-                                            icon: 'Activity',
-                                            url: '/Sports/Transactions/SportVenuewiseParticipationReport',
-                                            title: 'Sport Venuewise Participation Report',
-                                            description: 'Manage Sport Venuewise Participation Report'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 3,
-                                    name: 'Reports',
-                                    icon: 'FileText',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Student Eligible Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/StudentEligbleReport',
-                                            title: 'Student Eligible Report',
-                                            description: 'Student Eligible Report'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Student Age Calculation Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/StudentAgeCalculationReport',
-                                            title: 'Student Age Calculation Report',
-                                            description: 'Student Age Calculation Report'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'BMI Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/BMIReport',
-                                            title: 'BMI Report',
-                                            description: 'BMI Report'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Sport House Committee Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/SportHouseCommitteeReport',
-                                            title: 'Sport House Committee Report',
-                                            description: 'Sport House Committee Report'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'House Incharge Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/HouseInchargeReport',
-                                            title: 'House Incharge Report',
-                                            description: 'House Incharge Report'
-                                        },
-                                        {
-                                            id: 6,
-                                            name: 'Sport House Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/SportHouseReport',
-                                            title: 'Sport House Report',
-                                            description: 'Sport House Report'
-                                        },
-                                        {
-                                            id: 7,
-                                            name: 'Sport Student Participation Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/SportStudentParticipationReport',
-                                            title: 'Sport Student Participation Report',
-                                            description: 'Sport Student Participation Report'
-                                        },
-                                        {
-                                            id: 8,
-                                            name: 'Sport Topper List Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/SportTopperListReport',
-                                            title: 'Sport Topper List Report',
-                                            description: 'Sport Topper List Report'
-                                        },
-                                        {
-                                            id: 9,
-                                            name: 'Sports Year End Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/SportsYearEndReport',
-                                            title: 'Sports Year End Report',
-                                            description: 'Sports Year End Report'
-                                        }
-                                    ]
                                 }
                             ]
                         }
                     ]
                 },
-                {
-                    id: 12,
-                    name: 'Alumni',
-                    icon: 'Users',
-                    menu: [
-                        {
-                            id: 1,
-                            name: 'Alumni Module',
-                            icon: 'BookOpen',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Transactions',
-                                    icon: 'Database',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Alumni NoticeBoard',
-                                            icon: 'Announcement',
-                                            url: '/alumni/alumni-module/transactions/alumni-noticeboard',
-                                            title: 'Alumni NoticeBoard',
-                                            description: 'Manage Alumni NoticeBoard Details'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Alumni Gallery',
-                                            icon: 'Image',
-                                            url: '/alumni/alumni-module/transactions/alumni-gallery',
-                                            title: 'Alumni Gallery',
-                                            description: 'Manage Alumni Gallery Details'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Alumni Interactions',
-                                            icon: 'MessageSquare',
-                                            url: '/alumni/alumni-module/transactions/alumni-interactions',
-                                            title: 'Alumni Interactions',
-                                            description: 'Manage Alumni Interaction Details'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Alumni Friend Request',
-                                            icon: 'UserPlus',
-                                            url: '/alumni/alumni-module/transactions/alumni-friend-request',
-                                            title: 'Alumni Friend Request',
-                                            description: 'Manage Alumni Friend Request Details'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'Alumni Friend Request Accept',
-                                            icon: 'UserPlus',
-                                            url: '/alumni/alumni-module/transactions/alumni-friend-request-accept',
-                                            title: 'Alumni Friend Request Accept',
-                                            description: 'Manage Alumni Friend Request Accept Details'
-                                        },
-                                        {
-                                            id: 6,
-                                            name: 'Alumni Donation',
-                                            icon: 'HeartHandshake',
-                                            url: '/alumni/alumni-module/transactions/alumni-donation',
-                                            title: 'Alumni Donation',
-                                            description: 'Manage Alumni Donation Details'
-                                        },
-                                        {
-                                            id: 7,
-                                            name: 'Alumni Letters',
-                                            icon: 'MailOpen',
-                                            url: '/alumni/alumni-module/transactions/alumni-letters',
-                                            title: 'Alumni Letters',
-                                            description: 'Generate Alumni Letters'
-                                        },
-                                        {
-                                            id: 8,
-                                            name: 'CLG Alumni Approval',
-                                            icon: 'UserCheck',
-                                            url: '/alumni/alumni-module/transactions/clg-alumni-approval',
-                                            title: 'CLG Alumni Approval',
-                                            description: 'Approve College Alumni Registrations'
-                                        },
-                                        {
-                                            id: 9,
-                                            name: 'CLG Student Search',
-                                            icon: 'Search',
-                                            url: '/alumni/alumni-module/transactions/clg-alumni-student-search',
-                                            title: 'CLG Student Search',
-                                            description: 'Search College Alumni Students'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 2,
-                                    name: 'Reports',
-                                    icon: 'FileText',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Alumni Search',
-                                            icon: 'BookOpen',
-                                            url: '/alumni/alumni-module/reports/alumni-search',
-                                            title: 'Alumni Search',
-                                            description: 'Dynamic Alumni Search Report'
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                },
-
-                {
+                   {
                     id: 13,
                     name: 'Super Admin',
                     icon: 'Settings',
@@ -3998,6 +4059,224 @@ export async function getUserAccessibleModules() {
                 }
             ]
         };
+    } else if (session?.role.toUpperCase() === 'STUDENT') {
+        response = {
+            success: true,
+            message: 'Data fetched successfully!!',
+            data: [
+                {
+                    id: 9,
+                    name: 'Student Portal',
+                    icon: 'Users',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Home',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Home',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 40000,
+                                            name: 'Dashboard',
+                                            icon: 'LayoutDashboard',
+                                            url: '/StudentPortal/student-dashboard',
+                                            title: 'StudentDashboard',
+                                            description: 'Main Dashboard'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+
+                        {
+                            id: 7,
+                            name: 'Interaction',
+                            icon: 'MessageSquare',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Student Interactions ',
+                                    icon: 'MessageSquare',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Interactions',
+                                            icon: 'MessageSquare',
+                                            url: '/StudentPortal/student-dashboard/Interaction/IVRM_Interaction/Interaction',
+                                            title: 'Interactions',
+                                            description: 'Interact with Staff and Students'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+
+                        {
+                            id: 2,
+                            name: 'Admission',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 2,
+                                    name: 'Admission',
+                                    icon: 'Database',
+                                    pages: [
+                                        // {
+                                        //     id: 40001,
+                                        //     name: 'Attendance Details',
+                                        //     icon: 'ClipboardList',
+                                        //     url: '/StudentPortal/student-dashboard/EnrolledStudents/Transaction/AttendanceDetails',
+                                        //     title: 'Attendance Details'
+                                        // },
+                                        {
+                                            id: 40001,
+                                            name: 'Attendance Details',
+                                            icon: 'ClipboardList',
+                                            url: '/StudentPortal/masters/attendance-details',
+                                            title: 'Attendance Details'
+                                        },
+                                        {
+                                            id: 40002,
+                                            name: 'Online Leave Apply',
+                                            icon: 'FilePlus',
+                                            url: '/StudentPortal/student-dashboard/Admission/OnlineLeaveApp',
+                                            title: 'Online Leave Application',
+                                            description: 'Apply for Leave'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            id: 3,
+                            name: 'Fees',
+                            icon: 'Banknote',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Transaction',
+                                    icon: 'CreditCard',
+                                    pages: [
+                                        {
+                                            id: 40003,
+                                            name: 'Cumulative Fee Analysis',
+                                            icon: 'CreditCard',
+                                            url: '/StudentPortal/masters/feecumulative',
+                                            title: 'Cumulative Fee Analysis',
+                                            description: 'View Fee Details'
+                                        },
+                                        {
+                                            id: 40004,
+                                            name: 'Fee Receipt',
+                                            icon: 'FileText',
+                                            url: '/StudentPortal/student-dashboard/Fees/Reports/PortalFeeReceipt',
+                                            title: 'Portal Fee Receipt',
+                                            description: 'View and Download Fee Receipts'
+                                        },
+                                        {
+                                            id: 40005,
+                                            name: 'Online Payment',
+                                            icon: 'CreditCard',
+                                            url: '/StudentPortal/masters/feeonlinpayment',
+                                            title: 'Fee Online Payment',
+                                            description: 'Pay Fees Online'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+
+                        {
+                            id: 4,
+                            name: 'Exam',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 40006,
+                                    name: 'Exam',
+                                    icon: 'BookOpen',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Exam Report Card ',
+                                            icon: 'BarChart3',
+                                            url: '/StudentPortal/student-dashboard/Exam/ExamReport',
+                                            title: 'Exam Report',
+                                            description: 'View Exam Report Performance'
+                                        },
+                                        {
+                                            id: 40007,
+                                            name: 'Progress Card Report( Report Card) ',
+                                            icon: 'BarChart3',
+                                            url: '/StudentPortal/student-dashboard/Exam/ExamReport',
+                                            title: 'Exam Report',
+                                            description: 'View Exam Report Performance'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+
+                        {
+                            id: 5,
+                            name: 'COE',
+                            icon: 'Calendar',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'COE',
+                                    icon: 'Calendar',
+                                    pages: [
+                                        {
+                                            id: 40008,
+                                            name: 'School Events',
+                                            icon: 'Calendar',
+                                            url: '/StudentPortal/coe/',
+                                            title: 'Calendar of Events',
+                                            description: 'View Calendar of Events'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            id: 6,
+                            name: 'Feedback',
+                            icon: 'MessageSquare',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Transaction',
+                                    icon: 'List',
+                                    pages: [
+                                        {
+                                            id: 40009,
+                                            name: 'Student Complaints',
+                                            icon: 'List',
+                                            url: '/StudentPortal/student-dashboard/Feedback/Transaction/StudentCompliantsView',
+                                            title: 'Student Complaints',
+                                            description: 'View Student Complaints'
+                                        },
+                                        {
+                                            id: 40010,
+                                            name: 'Student Feedback',
+                                            icon: 'List',
+                                            url: '/StudentPortal/feedback/studentfeedback',
+                                            title: 'Student Feedback Details',
+                                            description: 'Provide Feedback'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        };
     } else {
         response = {
             success: true,
@@ -4025,6 +4304,255 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/transactions/application-form',
                                             title: 'Admission Form',
                                             description: 'Apply for Admission'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 9,
+                    name: 'Student Portal',
+                    icon: 'Users',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Enrolled Students',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Enrolled Students',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 0,
+                                            name: 'Dashboard',
+                                            icon: 'LayoutDashboard',
+                                            url: '/StudentPortal/student-dashboard',
+                                            title: 'StudentDashboard',
+                                            description: 'Main Dashboard'
+                                        },
+                                        {
+                                            id: 1,
+                                            name: 'Online Transfer Certificate',
+                                            icon: 'FileText',
+                                            url: '/StudentPortal/student-dashboard/EnrolledStudents/Transaction/OnlineTransferCertificate',
+                                            title: 'Online Transfer Certificate',
+                                            description: 'Apply for Transfer Certificate'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+
+                        {
+                            id: 2,
+                            name: 'Admission',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 2,
+                                    name: 'Admission',
+                                    icon: 'Database',
+                                    pages: [
+                                        // {
+                                        //     id: 40001,
+                                        //     name: 'Attendance Details',
+                                        //     icon: 'ClipboardList',
+                                        //     url: '/StudentPortal/student-dashboard/EnrolledStudents/Transaction/AttendanceDetails',
+                                        //     title: 'Attendance Details'
+                                        // },
+                                        {
+                                            id: 40001,
+                                            name: 'Attendance Details',
+                                            icon: 'ClipboardList',
+                                            url: '/StudentPortal/masters/attendance-details',
+                                            title: 'Attendance Details'
+                                        },
+                                        {
+                                            id: 40002,
+                                            name: 'Online Leave Application',
+                                            icon: 'FilePlus',
+                                            url: '/StudentPortal/student-dashboard/Admission/OnlineLeaveApp',
+                                            title: 'Online Leave Application',
+                                            description: 'Apply for Leave'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+
+                        {
+                            id: 3,
+                            name: 'Interaction',
+                            icon: 'MessageSquare',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Interaction',
+                                    icon: 'MessageSquare',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Interactions',
+                                            icon: 'MessageSquare',
+                                            url: '/StudentPortal/student-dashboard/Interaction/IVRM_Interaction/Interaction',
+                                            title: 'Interactions',
+                                            description: 'Interact with Staff and Students'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            id: 4,
+                            name: 'Exam',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Exam',
+                                    icon: 'BookOpen',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Exam Report',
+                                            icon: 'BarChart3',
+                                            url: '/StudentPortal/student-dashboard/Exam/ExamReport',
+                                            title: 'Exam Report',
+                                            description: 'View Exam Report Performance'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            id: 5,
+                            name: 'Fees',
+                            icon: 'Banknote',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Transaction',
+                                    icon: 'CreditCard',
+                                    pages: [
+                                        // {
+                                        //     id: 1,
+                                        //     name: 'Fee Details',
+                                        //     icon: 'FileText',
+                                        //     url: '/StudentPortal/student-dashboard/Fees/FeeDetails',
+                                        //     title: 'Fee Details',
+                                        //     description: 'View Fee Details'
+                                        // },
+                                        {
+                                            id: 2,
+                                            name: 'Fee Online Payment',
+                                            icon: 'CreditCard',
+                                            url: '/StudentPortal/student-dashboard/Fees/FeeOnlinePayment',
+                                            title: 'Fee Online Payment',
+                                            description: 'Pay Fees Online'
+                                        },
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'CumulativeFeeAnalysis',
+                                        //     icon: 'CreditCard',
+                                        //     url: '/StudentPortal/masters/cumulative-fee-analysis',
+                                        //     title: 'Fee Online Payment',
+                                        //     description: 'Pay Fees Online'
+                                        // },
+
+                                        {
+                                            id: 4,
+                                            name: 'Cumulative Fee Analysis',
+                                            icon: 'CreditCard',
+                                            url: '/StudentPortal/masters/feecumulative',
+                                            title: 'Cumulative Fee Analysis',
+                                            description: 'View Fee Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Reports',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Portal Fee Receipt',
+                                            icon: 'FileText',
+                                            url: '/StudentPortal/student-dashboard/Fees/Reports/PortalFeeReceipt',
+                                            title: 'Portal Fee Receipt',
+                                            description: 'View and Download Fee Receipts'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            id: 6,
+                            name: 'COE',
+                            icon: 'Calendar',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'COE',
+                                    icon: 'Calendar',
+                                    pages: [
+                                        // {
+                                        //     id: 1,
+                                        //     name: 'Calendar of Events',
+                                        //     icon: 'Calendar',
+                                        //     url: '/StudentPortal/student-dashboard/COE/COE',
+                                        //     title: 'Calendar of Events',
+                                        //     description: 'View Calendar of Events'
+                                        // },
+                                        {
+                                            id: 1,
+                                            name: 'Calendar of Events',
+                                            icon: 'Calendar',
+                                            url: '/StudentPortal/coe/',
+                                            title: 'Calendar of Events',
+                                            description: 'View Calendar of Events'
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            id: 8,
+                            name: 'FEEDBACK',
+                            icon: 'Calendar',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'COE',
+                                    icon: 'Calendar',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Feedback College Parent Transaction',
+                                            icon: 'MessageSquare',
+                                            url: '/StudentPortal/student-dashboard/Feedback/Transaction/FeedbackCollegeParentTransaction',
+                                            title: 'Feedback College Parent Transaction',
+                                            description: 'Provide Feedback'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Student Feedback',
+                                            icon: 'MessageSquare',
+                                            url: '/StudentPortal/feedback/studentfeedback',
+                                            title: 'Student Feedback Details',
+                                            description: 'Provide Feedback'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Student Complaints',
+                                            icon: 'List',
+                                            url: '/StudentPortal/student-dashboard/Feedback/Transaction/StudentCompliantsView',
+                                            title: 'Student Complaints',
+                                            description: 'View Student Complaints'
                                         }
                                     ]
                                 }

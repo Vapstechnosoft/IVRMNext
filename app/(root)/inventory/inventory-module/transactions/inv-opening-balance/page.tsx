@@ -10,7 +10,8 @@ import { Plus, X } from 'lucide-react';
 import { useInvOpeningBalance } from '@/hooks/inventory/transactions/use-inv-opening-balance';
 import type { IInvOpeningBalance } from '@/types/inventory/transactions/inv-opening-balance';
 import AddOBForm from './_components/add-form';
-import { getColumns } from './_components/columns';
+import { invOpeningBalanceColumns } from './_components/columns';
+import { ToggleOBModal } from './_components/toggle-modal';
 import { Heading } from '@/components/layout/heading';
 // import UpdateOBForm from './_components/update-form'; // To be implemented
 // import ViewOBDetailsModal from './_components/view-details-modal'; // To be implemented
@@ -48,20 +49,12 @@ function InvOpeningBalancePageContent({
         openDetailsView,
         selectedRow,
         isDetailsViewOpen,
-        closeDetailsView
+        closeDetailsView,
+        isToggleFormOpen,
+        closeToggleForm
     } = useFormContext<IInvOpeningBalance>();
 
-    const { toggleActiveMutation } = useInvOpeningBalance();
-
-    const columns = getColumns({
-        onEdit: openEditForm,
-        onToggleActive: (item) => {
-            if (confirm(`Are you sure you want to ${item.invoB_ActiveFlg ? 'deactivate' : 'activate'} this Record?`)) {
-                toggleActiveMutation.mutate(item);
-            }
-        },
-        onView: openDetailsView
-    });
+    const { toggleActiveMutation } = useInvOpeningBalance(); // Unused here, kept if logic needs restore
 
     const tableProps = useDataTableProps(response?.data, {
         dataKey: 'get_openingbalance',
@@ -99,7 +92,7 @@ function InvOpeningBalancePageContent({
                     <GenericDataTable<IInvOpeningBalance>
                         {...tableProps}
                         data={response?.data?.get_openingbalance || []}
-                        columns={columns}
+                        columns={invOpeningBalanceColumns}
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
@@ -117,6 +110,10 @@ function InvOpeningBalancePageContent({
                         onClose={closeDetailsView}
                     />
                 )} */}
+
+                {isToggleFormOpen && selectedRow && (
+                    <ToggleOBModal rowData={selectedRow} onClose={closeToggleForm} />
+                )}
             </div>
         </div>
     );

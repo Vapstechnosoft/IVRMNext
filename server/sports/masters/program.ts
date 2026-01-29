@@ -6,57 +6,28 @@ import type { IMasterProgram } from '@/types/sports/masters/program';
 
 export async function getMasterPrograms(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/ProgramMaster/loadgrid/1?${urlParams}`;
+    const url = `/ProgramMaster/getDetails?${urlParams}`;
+    return await api.post<IMasterProgram[]>('sports', url, {});
+}
 
-    const dummyDataCount = 24;
-    const dummyData: IMasterProgram[] = Array.from({ length: dummyDataCount }, (_, i) => ({
-        spccpM_Id: 3000 + i,
-        mI_Id: 1,
-        spccpM_Name: `Program Name ${i + 1}`,
-        spccpM_Description: `Description for Program ${i + 1}`,
-        spccpM_ActiveFlag: ![4, 9, 14, 19, 23].includes(i),
-        createdDate: new Date().toISOString(),
-        updatedDate: new Date().toISOString()
-    }));
-
-    const page = searchParams?.page || 1;
-    const pageSize = searchParams?.page_size || 10;
-    const start = (page - 1) * pageSize;
-    const end = start + pageSize;
-
-    try {
-        const response = await api.get<IMasterProgram[]>('sports', url);
-
-        let allData = dummyData;
-        let totalCount = dummyDataCount;
-
-        if (response && response.success && Array.isArray(response.data)) {
-            allData = [...response.data, ...dummyData];
-            totalCount = (response.total || response.data.length) + dummyDataCount;
-        }
-
-        return {
-            success: true,
-            message: response?.message || 'Data loaded successfully',
-            data: allData.slice(start, end),
-            total: totalCount
-        };
-    } catch (error) {
-        return {
-            success: true,
-            message: 'Static data loaded (Backup)',
-            data: dummyData.slice(start, end),
-            total: dummyDataCount
-        };
-    }
+export async function getMasterProgramDetails(id: number) {
+    const url = `/ProgramMaster/EditDetails/${id}`;
+    return await api.get<IMasterProgram>('sports', url);
 }
 
 export async function saveMasterProgram(data: any) {
-    const url = '/ProgramMaster/saveRecord';
-    return await api.post<any>('sports', url, data);
+    const SPCCPM_Id = data.spccpM_Id || 0;
+    const SPCCPM_Name = encodeURIComponent(data.spccpM_Name || '');
+    const SPCCPM_Description = encodeURIComponent(data.spccpM_Description || '');
+
+    const url = `/ProgramMaster/save?SPCCPM_Id=${SPCCPM_Id}&SPCCPM_Name=${SPCCPM_Name}&SPCCPM_Description=${SPCCPM_Description}`;
+    return await api.post<any>('sports', url, {});
 }
 
 export async function deactivateMasterProgram(data: any) {
-    const url = '/ProgramMaster/deactivate/';
-    return await api.post<any>('sports', url, data);
+    const SPCCPM_Id = data.spccpM_Id;
+    const SPCCPM_ActiveFlag = data.spccpM_ActiveFlag;
+
+    const url = `/ProgramMaster/deactivate?SPCCPM_Id=${SPCCPM_Id}&SPCCPM_ActiveFlag=${SPCCPM_ActiveFlag}`;
+    return await api.post<any>('sports', url, {});
 }
