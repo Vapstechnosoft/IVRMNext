@@ -6,57 +6,28 @@ import type { IMasterEvent } from '@/types/sports/masters/events';
 
 export async function getMasterEvents(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/MasterEvent/getDetails/2?${urlParams}`;
+    const url = `/MasterEvents/getDetails?${urlParams}`;
+    return await api.post<IMasterEvent[]>('sports', url, {});
+}
 
-    const dummyDataCount = 20;
-    const dummyData: IMasterEvent[] = Array.from({ length: dummyDataCount }, (_, i) => ({
-        spccmE_Id: 1000 + i,
-        mI_Id: 1,
-        spccmE_EventName: `Annual Sports Day ${i + 1}`,
-        spccmE_EventNameDesc: `Annual Sports Celebration Event ${i + 1}`,
-        spccmE_ActiveFlag: ![0, 3, 7, 12, 16].includes(i),
-        createdDate: new Date().toISOString(),
-        updatedDate: new Date().toISOString()
-    }));
-
-    const page = searchParams?.page || 1;
-    const pageSize = searchParams?.page_size || 10;
-    const start = (page - 1) * pageSize;
-    const end = start + pageSize;
-
-    try {
-        const response = await api.get<IMasterEvent[]>('sports', url);
-
-        let allData = dummyData;
-        let totalCount = dummyDataCount;
-
-        if (response && response.success && Array.isArray(response.data)) {
-            allData = [...response.data, ...dummyData];
-            totalCount = (response.total || response.data.length) + dummyDataCount;
-        }
-
-        return {
-            success: true,
-            message: response?.message || 'Data loaded successfully',
-            data: allData.slice(start, end),
-            total: totalCount
-        };
-    } catch (error) {
-        return {
-            success: true,
-            message: 'Static data loaded (Backup)',
-            data: dummyData.slice(start, end),
-            total: dummyDataCount
-        };
-    }
+export async function getMasterEventDetails(id: number) {
+    const url = `/MasterEvents/EditDetails/${id}`;
+    return await api.get<IMasterEvent>('sports', url);
 }
 
 export async function saveMasterEvent(data: any) {
-    const url = '/MasterEvent/saveRecord';
-    return await api.post<any>('sports', url, data);
+    const SPCCME_Id = data.spccmE_Id || 0;
+    const SPCCME_EventName = encodeURIComponent(data.spccmE_EventName || '');
+    const SPCCME_EventNameDesc = encodeURIComponent(data.spccmE_EventNameDesc || '');
+
+    const url = `/MasterEvents/save?SPCCME_Id=${SPCCME_Id}&SPCCME_EventName=${SPCCME_EventName}&SPCCME_EventNameDesc=${SPCCME_EventNameDesc}`;
+    return await api.post<any>('sports', url, {});
 }
 
 export async function deactivateMasterEvent(data: any) {
-    const url = '/MasterEvent/deactivate/';
-    return await api.post<any>('sports', url, data);
+    const SPCCME_Id = data.spccmE_Id;
+    const SPCCME_ActiveFlag = data.spccmE_ActiveFlag;
+
+    const url = `/MasterEvents/deactivate?SPCCME_Id=${SPCCME_Id}&SPCCME_ActiveFlag=${SPCCME_ActiveFlag}`;
+    return await api.post<any>('sports', url, {});
 }

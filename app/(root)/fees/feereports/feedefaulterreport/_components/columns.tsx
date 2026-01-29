@@ -21,7 +21,7 @@ export default function FeeDefaulterCustomTable({ data, isLoading }: Props) {
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
     const [selectedRows, setSelectedRows] = useState<number[]>([]);
 
-    const [openSort, setOpenSort] = useState<null | 'feeGroup' | 'totalDue'>(null);
+    // const [openSort, setOpenSort] = useState<null | 'feeGroup' | 'totalDue'>(null);
 
     // 🔍 SEARCH + SORT
     const filteredData = useMemo(() => {
@@ -260,4 +260,85 @@ export function exportToExcelforFeeStudentorStaffWise(rows: any[], fileName: str
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
 
     XLSX.writeFile(workbook, `${fileName}.xlsx`);
+}
+
+export function exportToExcelforFeeStudentorStaffWiseofBalance(rows: any[], fileName: string, dynamicFeeNames: string[]) {
+    if (!rows || rows.length === 0) return;
+
+    const dataForExcel = rows.map((row, index) => {
+        const baseData: Record<string, any> = {
+            'Sl No': index + 1,
+            Name: row.studentName,
+            'Admission No': row.admno,
+            Class: row.className,
+            Section: row.sectionName,
+            'Father Name': row.fatherName,
+            'Mobile Number': row.mobileNo,
+            'Email ID': row.email
+        };
+        dynamicFeeNames.forEach((feeName) => {
+            const feeKey = feeName.toLowerCase().replace(/\s+/g, '_');
+            const feeAmount = row[feeKey] || row.feeCategories?.[feeName] || 0;
+            baseData[feeName] = feeAmount;
+        });
+        baseData['Total Balance'] = row.tobepaid || 0;
+        return baseData;
+    });
+
+    // Add total row
+    const totalRow: Record<string, any> = {
+        'Sl No': 'Total',
+        Name: '',
+        'Admission No': '',
+        Class: '',
+        Section: '',
+        'Father Name': '',
+        'Mobile Number': '',
+        'Email ID': ''
+    };
+    dynamicFeeNames.forEach((feeName) => {
+        const feeKey = feeName.toLowerCase().replace(/\s+/g, '_');
+        const totalFee = rows.reduce((sum, row) => {
+            const feeAmount = row[feeKey] || row.feeCategories?.[feeName] || 0;
+            return sum + feeAmount;
+        }, 0);
+        totalRow[feeName] = totalFee;
+    });
+
+    totalRow['Total Balance'] = rows.reduce((sum, row) => sum + (row.tobepaid || 0), 0);
+    dataForExcel.push(totalRow);
+    const worksheet = XLSX.utils.json_to_sheet(dataForExcel);
+    const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
+    const totalRowIndex = rows.length + 1;
+    for (let col = range.s.c; col <= range.e.c; col++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: totalRowIndex, c: col });
+        if (!worksheet[cellAddress]) continue;
+
+        if (!worksheet[cellAddress].s) {
+            worksheet[cellAddress].s = {};
+        }
+        worksheet[cellAddress].s = {
+            ...worksheet[cellAddress].s,
+            font: { bold: true },
+            fill: { fgColor: { rgb: 'FFCCCCCC' } }
+        };
+    }
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Fee Report');
+    const wscols = [
+        { wch: 8 },
+        { wch: 25 },
+        { wch: 15 },
+        { wch: 15 },
+        { wch: 15 },
+        { wch: 25 },
+        { wch: 15 },
+        { wch: 30 },
+        ...dynamicFeeNames.map(() => ({ wch: 15 })),
+        { wch: 15 }
+    ];
+    worksheet['!cols'] = wscols;
+
+    XLSX.writeFile(workbook, `${fileName}_${new Date().toISOString().split('T')[0]}.xlsx`);
 }

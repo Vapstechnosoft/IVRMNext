@@ -1,5 +1,4 @@
 'use client';
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
@@ -57,12 +56,14 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterSubSubject }) {
     );
 
     return (
-        <ActionButtons
-            rowData={rowData}
-            buttons={{ edit: true, toggle: true, delete: false }}
-            onEdit={handleEdit}
-            onToggle={handleToggle}
-            toggleConditionKey='emsS_ActiveFlag'
-        />
+        <div className='flex items-center justify-center py-1'>
+            <ActionButtons
+                rowData={rowData}
+                buttons={{ edit: true, toggle: true, delete: false }}
+                onEdit={handleEdit}
+                onToggle={handleToggle}
+                toggleConditionKey='emsS_ActiveFlag'
+            />
+        </div>
     );
 }

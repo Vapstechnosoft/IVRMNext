@@ -87,7 +87,7 @@ function ActionButtonsCell({ rowData }: { rowData: IPromotionalSubjectDetails })
     return (
         <div className='flex justify-center'>
             <MappingCell rowData={rowData} />
-            <ActionButtons rowData={rowData} buttons={{ toggle: true }} onToggle={handleToggle} toggleConditionKey='isActiveFlag' />
+            <ActionButtons rowData={rowData} buttons={{ toggle: true }} onToggle={handleToggle} toggleConditionKey='empS_ActiveFlag' />
         </div>
     );
 }

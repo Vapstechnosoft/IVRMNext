@@ -133,7 +133,7 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Category-Class Mapping'
+                        title='Edit Category Subject Mapping'
                         defaultOpen={true}
                         variant='outline'
                         size='md'

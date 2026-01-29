@@ -37,27 +37,36 @@ const MOCK_OBS: IInvOpeningBalance[] = Array.from({ length: 25 }, (_, i) => ({
 
 export async function getInvOpeningBalanceLoadData(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/INV_OpeningBalance/getloaddata?${urlParams}`;
+    const url = `/api/INV_OpeningBalance/getloaddata?${urlParams}`;
 
     try {
-        // Commenting out real API call for now to use mock data
-        // const response = await api.get<IInvOpeningBalanceLoadData>('inventory', url);
+        const response = await api.get<any>('inventory', url);
 
-        const page = Number(searchParams?.page) || 1;
-        const pageSize = Number(searchParams?.page_size) || 10;
-        const total = MOCK_OBS.length;
-        const start = (page - 1) * pageSize;
-        const end = start + pageSize;
-        const paginatedData = MOCK_OBS.slice(start, end);
+        const extractData = (res: any, key?: string) => {
+            if (!res) return [];
+            if (key && res.data?.[key] && Array.isArray(res.data[key])) return res.data[key];
+            if (key && res[key] && Array.isArray(res[key])) return res[key];
+            if (Array.isArray(res.data)) return res.data;
+            if (Array.isArray(res)) return res;
+            if (res.data?.$values) return res.data.$values;
+            if (res.$values) return res.$values;
+            if (key && res.data?.[key]?.$values) return res.data[key].$values;
+            return [];
+        };
+
+        const rawOBs = extractData(response, 'get_openingbalance');
+        const obList = rawOBs.map((item: any) => ({
+            ...item,
+            invoB_ActiveFlg: !!(item.invoB_ActiveFlg ?? item.INVOB_ActiveFlg ?? item.invob_activeflg)
+        }));
 
         return {
             success: true,
-            message: 'Data fetched successfully (Mock)',
             data: {
-                get_Store: MOCK_STORES,
-                get_item: MOCK_ITEMS,
-                get_openingbalance: paginatedData,
-                total: total,
+                get_openingbalance: obList,
+                total: response.total || obList.length,
+                get_Store: extractData(response, 'get_Store'),
+                get_item: extractData(response, 'get_item')
             }
         };
 
@@ -65,7 +74,6 @@ export async function getInvOpeningBalanceLoadData(searchParams?: ApiSearchparam
         console.error('Error fetching Opening Balance data:', error);
         return {
             success: false,
-            message: 'Failed to fetch data',
             data: {
                 get_Store: [],
                 get_item: [],

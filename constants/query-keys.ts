@@ -7,7 +7,13 @@ export const INVENTORY_QUERY_KEYS = {
     INV_MASTER_STORE: 'INV_MASTER_STORE',
     INV_MASTER_SUPPLIER: 'INV_MASTER_SUPPLIER',
     INV_MASTER_TAX: 'INV_MASTER_TAX',
-    INV_MASTER_GROUP: 'INV_MASTER_GROUP'
+
+    INV_MASTER_GROUP: 'INV_MASTER_GROUP',
+    INV_MASTER_ITEM: 'INV_MASTER_ITEM',
+    INV_MASTER_UOM: 'INV_MASTER_UOM'
+
+
+
 };
 
 export const SUPER_ADMIN_QUERY_KEYS = {
@@ -519,4 +525,8 @@ export const PORTAL_QUERY_KEYS = {
     CUMULATIVE_FEE_ANALYSIS: 'Cumulative_Fee_Analysis',
     FEE_ONLINE_PAYMENT_STUDENT_INFO:"fee_online_student_info",
     FEE_ONLINE_PAYMENT_GROUP_LIST:"fee_online_payment_group_list"
+};
+
+export const COE_QUERY_KEYS = {
+    MASTER_EVENT_COE: 'master_event_coe'
 };
