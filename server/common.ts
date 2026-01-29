@@ -3974,7 +3974,7 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
-                   {
+                {
                     id: 13,
                     name: 'Super Admin',
                     icon: 'Settings',
@@ -4050,6 +4050,80 @@ export async function getUserAccessibleModules() {
                                             url: '/SuperAdmin/super-admin-module/general-setting/module',
                                             title: 'Modules',
                                             description: 'Manage Master Modules'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Master Page',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-page',
+                                            title: 'Master Page',
+                                            description: 'Manage Master Page'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Page Mapping',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/page-mapping',
+                                            title: 'Page Mapping',
+                                            description: 'Map Pages to Modules'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'Master Role',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-role',
+                                            title: 'Master Role',
+                                            description: 'Manage Master Role'
+                                        },
+                                        {
+                                            id: 10,
+                                            name: 'Master Role Type',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-role-type',
+                                            title: 'Master Role Type',
+                                            description: 'Manage Master Role Type'
+                                        },
+                                        {
+                                            id: 11,
+                                            name: 'Privileges',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/privileges',
+                                            title: 'Privileges',
+                                            description: 'Privileges'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Master Main Menu',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-main-menu',
+                                            title: 'Master Main Menu',
+                                            description: 'Manage Master Main Menu'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Master Sub Menu',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-sub-menu',
+                                            title: 'Master Sub Menu',
+                                            description: 'Manage Master Sub Menu'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Master Menu Page Mapping',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-menu-page-mapping',
+                                            title: 'Master Menu Page Mapping',
+                                            description: 'Manage Master Menu Page Mapping'
+                                        },
+
+
+                                        {
+                                            id: 6,
+                                            name: 'Master School Type',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/general-setting/master-school-type',
+                                            title: 'Master School Type',
+                                            description: 'Manage Master School Type'
                                         }
                                     ]
                                 }
@@ -4091,6 +4165,163 @@ export async function getUserAccessibleModules() {
                                 }
                             ]
                         },
+
+                        // ,
+                        // {
+                        //     id: 12,
+                        //     name: 'Alumni',
+                        //     icon: 'Users',
+                        //     menu: [
+                        //         {
+                        //             id: 1,
+                        //             name: 'Alumni Module',
+                        //             icon: 'BookOpen',
+                        //             sub_menu: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Transactions',
+                        //                     icon: 'Database',
+                        //                     pages: [
+                        //                         {
+                        //                             id: 1,
+                        //                             name: 'Alumni NoticeBoard',
+                        //                             icon: 'Announcement',
+                        //                             url: '/alumni/alumni-module/transactions/alumni-noticeboard',
+                        //                             title: 'Alumni NoticeBoard',
+                        //                             description: 'Manage Alumni NoticeBoard Details'
+                        //                         },
+                        //                         {
+                        //                             id: 2,
+                        //                             name: 'Alumni Gallery',
+                        //                             icon: 'Image',
+                        //                             url: '/alumni/alumni-module/transactions/alumni-gallery',
+                        //                             title: 'Alumni Gallery',
+                        //                             description: 'Manage Alumni Gallery Details'
+                        //                         },
+                        //                         {
+                        //                             id: 3,
+                        //                             name: 'Alumni Interactions',
+                        //                             icon: 'MessageSquare',
+                        //                             url: '/alumni/alumni-module/transactions/alumni-interactions',
+                        //                             title: 'Alumni Interactions',
+                        //                             description: 'Manage Alumni Interaction Details'
+                        //                         },
+                        //                         {
+                        //                             id: 4,
+                        //                             name: 'Alumni Friend Request',
+                        //                             icon: 'UserPlus',
+                        //                             url: '/alumni/alumni-module/transactions/alumni-friend-request',
+                        //                             title: 'Alumni Friend Request',
+                        //                             description: 'Manage Alumni Friend Request Details'
+                        //                         },
+                        //                         {
+                        //                             id: 5,
+                        //                             name: 'Alumni Friend Request Accept',
+                        //                             icon: 'UserPlus',
+                        //                             url: '/alumni/alumni-module/transactions/alumni-friend-request-accept',
+                        //                             title: 'Alumni Friend Request Accept',
+                        //                             description: 'Manage Alumni Friend Request Accept Details'
+                        //                         },
+                        //                         {
+                        //                             id: 6,
+                        //                             name: 'Alumni Donation',
+                        //                             icon: 'HeartHandshake',
+                        //                             url: '/alumni/alumni-module/transactions/alumni-donation',
+                        //                             title: 'Alumni Donation',
+                        //                             description: 'Manage Alumni Donation Details'
+                        //                         },
+                        //                         {
+                        //                             id: 7,
+                        //                             name: 'Alumni Letters',
+                        //                             icon: 'MailOpen',
+                        //                             url: '/alumni/alumni-module/transactions/alumni-letters',
+                        //                             title: 'Alumni Letters',
+                        //                             description: 'Generate Alumni Letters'
+                        //                         },
+                        //                         {
+                        //                             id: 8,
+                        //                             name: 'CLG Alumni Approval',
+                        //                             icon: 'UserCheck',
+                        //                             url: '/alumni/alumni-module/transactions/clg-alumni-approval',
+                        //                             title: 'CLG Alumni Approval',
+                        //                             description: 'Approve College Alumni Registrations'
+                        //                         },
+                        //                         {
+                        //                             id: 9,
+                        //                             name: 'CLG Student Search',
+                        //                             icon: 'Search',
+                        //                             url: '/alumni/alumni-module/transactions/clg-alumni-student-search',
+                        //                             title: 'CLG Student Search',
+                        //                             description: 'Search College Alumni Students'
+                        //                         }
+                        //                     ]
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Reports',
+                        //                     icon: 'FileText',
+                        //                     pages: [
+                        //                         {
+                        //                             id: 1,
+                        //                             name: 'Alumni Search',
+                        //                             icon: 'BookOpen',
+                        //                             url: '/alumni/alumni-module/reports/alumni-search',
+                        //                             title: 'Alumni Search',
+                        //                             description: 'Dynamic Alumni Search Report'
+                        //                         }
+                        //                     ]
+                        //                 }
+                        //             ]
+                        //         }
+                        //     ]
+                        // },
+                        // {
+                        //     id: 14,
+                        //     name: 'Upload',
+                        //     icon: 'Upload',
+                        //     menu: [
+                        //         {
+                        //             id: 3,
+                        //             name: 'Upload Module',
+                        //             icon: 'Upload',
+                        //             sub_menu: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Transactions',
+                        //                     icon: 'FileText',
+                        //                     pages: [
+                        //                         {
+                        //                             id: 221,
+                        //                             name: 'Upload ClassWork',
+                        //                             icon: 'BookOpen',
+                        //                             url: '/upload/transactions/ivrm-classwork',
+                        //                             title: 'Upload ClassWork',
+                        //                             description: 'Manage ClassWork'
+                        //                         },
+                        //                         {
+                        //                             id: 222,
+                        //                             name: 'Verify Class Work',
+                        //                             icon: 'BookOpen',
+                        //                             url: '/upload/transactions/verify-classwork',
+                        //                             title: 'Verify Class Work',
+                        //                             description: 'Verify and Enter Class Work Marks'
+                        //                         },
+                        //                         {
+                        //                             id: 223,
+                        //                             name: 'IVRM HomeWork',
+                        //                             icon: 'BookOpen',
+                        //                             url: '/upload/transactions/ivrm-homework',
+                        //                             title: 'Upload HomeWork',
+                        //                             description: 'Manage IVRM HomeWork'
+                        //                         },
+                        //                         {
+                        //                             id: 224,
+                        //                             name: 'HomeWork Marks Update',
+                        //                             icon: 'BookOpen',
+                        //                             url: '/upload/transactions/homework-marks-update',
+                        //                             title: 'Verify HomeWork',
+                        //                             description: 'Verify HomeWork Marks'
+                        //                         },
 
                         {
                             id: 7,
