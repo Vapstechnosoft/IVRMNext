@@ -245,7 +245,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
             try {
                 const payload = {
                     asmaY_Id: selectedAsmayId,
-                    filterinitialdata: filterType,
+                    filterinitialdata: left === true || deactive === true ? 'NameAdmno' : filterType,
                     searchfilter: studentSearch,
                     asmcL_ID: selectedclassId ?? 0,
                     asmS_Id: selectedSectionId ?? 0,
@@ -522,9 +522,11 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
         if (type === 'left') {
             setLeft(checked);
             setDeative(false);
+            setFilterType('NameAdmno');
         } else if (type === 'inactive') {
             setDeative(checked);
             setLeft(false);
+            setFilterType('NameAdmno');
         } else if (type === 'class') {
             setClass(checked);
             if (!checked) {
@@ -1320,7 +1322,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                             />
                                         </td>
 
-                                        <td className='border p-2'>{f.fmG_GroupName}</td>
+                                        <td className='border p-2'>{f.fmH_FeeName}</td>
                                         <td className='border p-2'>{f.ftI_Name}</td>
                                         <td className='border p-2'>
                                             <input
