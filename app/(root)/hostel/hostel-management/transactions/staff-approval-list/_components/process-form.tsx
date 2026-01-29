@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { staffApprovalSchema, StaffApprovalValues } from '@/schemas/hostel/transactions/hostel-confirmations.schema';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { CustomSelect } from '@/components/ui/form/custom-select';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -76,36 +76,32 @@ export default function StaffApprovalForm({
                     <p className="text-sm"><strong>Dept:</strong> {processData.HRMD_DepartmentName}</p>
                 </div>
 
-                <Form {...form}>
+                <FormProvider {...form}>
                     <form className="space-y-4">
-                        <FormField
+                        <Controller
                             control={form.control}
                             name="HRMRM_Id"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Assign Room (Required for Approval)</FormLabel>
-                                    <FormControl>
-                                        <CustomSelect
-                                            options={rooms.map(r => ({ label: r.hrmrM_RoomNo, value: r.hrmrM_Id.toString() }))}
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
+                            render={({ field, fieldState }) => (
+                                <div>
+                                    <Label>Assign Room (Required for Approval)</Label>
+                                    <CustomSelect
+                                        options={rooms.map(r => ({ label: r.hrmrM_RoomNo, value: r.hrmrM_Id.toString() }))}
+                                        {...field}
+                                    />
+                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                </div>
                             )}
                         />
 
-                        <FormField
+                        <Controller
                             control={form.control}
                             name="HLHSTREQC_Remarks"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Approval/Reject Remarks</FormLabel>
-                                    <FormControl>
-                                        <Textarea {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
+                            render={({ field, fieldState }) => (
+                                <div>
+                                    <Label>Approval/Reject Remarks</Label>
+                                    <Textarea {...field} />
+                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                </div>
                             )}
                         />
 
@@ -131,7 +127,7 @@ export default function StaffApprovalForm({
                             </Button>
                         </div>
                     </form>
-                </Form>
+                </FormProvider>
             </CardContent>
         </Card>
     );

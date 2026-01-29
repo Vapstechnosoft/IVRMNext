@@ -1,50 +1,24 @@
-import { deleteMess, fetchMessData } from '@/server/hostel/hostel-management/masters/mess';
-import { IMess } from '@/types/hostel/hostel-management/masters';
-import { useState, useEffect, useCallback } from 'react';
-import { toast } from 'sonner';
+import { fetchMessData } from '@/server/hostel/hostel-management/masters/mess';
+import { ApiSearchparams } from '@/types';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
-export const useMasterMess = () => {
-    const [messList, setMessList] = useState<IMess[]>([]);
-    const [loading, setLoading] = useState(true);
+// Define a key for the query
+export const MASTER_MESS_QUERY_KEY = 'MASTER_MESS_DATA';
 
-    const loadData = useCallback(async () => {
-        try {
-            setLoading(true);
-            const response = await fetchMessData();
-            if (response.success && response.data) {
-                setMessList(response.data.messList);
-            }
-        } catch (error) {
-            console.error(error);
-            toast.error('Failed to load data');
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        loadData();
-    }, [loadData]);
-
-    const onDelete = async (id: number) => {
-        try {
-            const response = await deleteMess(id);
-            if (response.success) {
-                toast.success(response.message);
-                loadData();
-            } else {
-                toast.error(response.message);
-            }
-        } catch (error) {
-            console.error(error);
-            toast.error('An error occurred');
-        }
-    };
+export const useMasterMess = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
 
     return {
-        messList,
-        loading,
-        refetch: loadData,
-        onDelete
+        ...useQuery({
+            queryKey: [MASTER_MESS_QUERY_KEY, searchParams ?? {}],
+            queryFn: async () => fetchMessData(searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [MASTER_MESS_QUERY_KEY]
+            });
+        }
     };
 };

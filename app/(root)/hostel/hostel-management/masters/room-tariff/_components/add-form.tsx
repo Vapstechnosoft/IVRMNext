@@ -5,11 +5,14 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RoomTariffSchema, RoomTariffSchemaType } from '@/schemas/hostel/room-tariff.schema';
-import { getBedCount, IAcademicYear, IRoom, saveRoomTariff } from '@/server/hostel/room-tariff/server-action';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RefreshCw, Save } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { IAcademicYear, IRoom, IRoomTariff } from '@/types/hostel/hostel-management/masters';
+import { getBedCount, saveRoomTariff } from '@/server/hostel/hostel-management/masters/room-tariff';
+
+
 
 interface AddRoomTariffFormProps {
     onSuccess?: () => void;

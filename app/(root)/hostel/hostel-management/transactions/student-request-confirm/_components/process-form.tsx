@@ -1,16 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { studentRequestConfirmSchema, StudentRequestConfirmValues } from '@/schemas/hostel/transactions/hostel-confirmations.schema';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { CustomSelect } from '@/components/ui/form/custom-select';
+import { FormError, Label } from '@/components/ui/extension/field';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { approveStudentRequest, rejectStudentRequest } from '@/server/hostel/transactions/student-request-actions';
+import { Loader2 } from 'lucide-react';
 
 export default function StudentConfirmForm({
     onSaveSuccess,
@@ -26,8 +27,8 @@ export default function StudentConfirmForm({
     const form = useForm<StudentRequestConfirmValues>({
         resolver: zodResolver(studentRequestConfirmSchema),
         defaultValues: {
-            HLHSREQ_Id: processData.HLHSREQ_Id,
-            HLHSREQC_Id: processData.HLHSREQC_Id || 0,
+            HLHSREQ_Id: processData.HLHSREQ_Id as number,
+            HLHSREQC_Id: (processData.HLHSREQC_Id || 0) as number,
             HLHSREQC_Remarks: '',
         },
     });
@@ -38,29 +39,41 @@ export default function StudentConfirmForm({
             return;
         }
         setLoading(true);
-        const result = await approveStudentRequest({
-            ...values,
-            HRMRM_Id: parseInt(values.HRMRM_Id)
-        });
-        if (result?.returnval === true) {
-            toast.success("Request approved!");
-            onSaveSuccess();
-        } else {
-            toast.error("Failed to approve request");
+        try {
+            const result = await approveStudentRequest({
+                ...values,
+                HRMRM_Id: parseInt(values.HRMRM_Id)
+            });
+            if (result?.returnval === true) {
+                toast.success("Request approved!");
+                onSaveSuccess();
+            } else {
+                toast.error("Failed to approve request");
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("An error occurred");
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     }
 
     async function handleReject(values: StudentRequestConfirmValues) {
         setLoading(true);
-        const result = await rejectStudentRequest(values);
-        if (result?.returnval === true) {
-            toast.success("Request rejected!");
-            onSaveSuccess();
-        } else {
-            toast.error("Failed to reject request");
+        try {
+            const result = await rejectStudentRequest(values);
+            if (result?.returnval === true) {
+                toast.success("Request rejected!");
+                onSaveSuccess();
+            } else {
+                toast.error("Failed to reject request");
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("An error occurred");
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     }
 
     return (
@@ -76,36 +89,40 @@ export default function StudentConfirmForm({
                     <p className="text-sm"><strong>Requested:</strong> {processData.HLHSREQ_RequestDate ? new Date(processData.HLHSREQ_RequestDate).toLocaleDateString() : '-'}</p>
                 </div>
 
-                <Form {...form}>
+                <FormProvider {...form}>
                     <form className="space-y-4">
-                        <FormField
+                        <Controller
                             control={form.control}
                             name="HRMRM_Id"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Assign Room (Required for Approval)</FormLabel>
-                                    <FormControl>
-                                        <CustomSelect
-                                            options={rooms.map(r => ({ label: r.hrmrM_RoomNo, value: r.hrmrM_Id.toString() }))}
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
+                            render={({ field, fieldState }) => (
+                                <div>
+                                    <Label>Assign Room (Required for Approval)</Label>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select Room" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {rooms.map(r => (
+                                                <SelectItem key={r.hrmrM_Id} value={String(r.hrmrM_Id)}>
+                                                    {r.hrmrM_RoomNo}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                </div>
                             )}
                         />
 
-                        <FormField
+                        <Controller
                             control={form.control}
                             name="HLHSREQC_Remarks"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Confirm/Reject Remarks</FormLabel>
-                                    <FormControl>
-                                        <Textarea {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
+                            render={({ field, fieldState }) => (
+                                <div>
+                                    <Label>Confirm/Reject Remarks</Label>
+                                    <Textarea {...field} />
+                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                </div>
                             )}
                         />
 
@@ -119,6 +136,7 @@ export default function StudentConfirmForm({
                                 onClick={form.handleSubmit(handleReject)}
                                 disabled={loading}
                             >
+                                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 Reject Request
                             </Button>
                             <Button
@@ -127,11 +145,12 @@ export default function StudentConfirmForm({
                                 onClick={form.handleSubmit(handleApprove)}
                                 disabled={loading}
                             >
+                                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 Approve Request
                             </Button>
                         </div>
                     </form>
-                </Form>
+                </FormProvider>
             </CardContent>
         </Card>
     );

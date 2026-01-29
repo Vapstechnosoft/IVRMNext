@@ -11,11 +11,11 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { guestAllotmentSchema, type GuestAllotmentSchema } from '@/schemas/hostel/transactions/guest-allotment.schema';
-import { saveGuestAllotment, getRoomDetails } from '@/server/hostel/transactions/guest-allotment';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
+import { getRoomDetails, saveGuestAllotment } from '@/server/hostel/hostel-management/transactions/guest-allotment';
 
 interface AddFormProps {
     dropdowns: {
@@ -63,7 +63,7 @@ export default function GuestAllotmentForm({ dropdowns, onSuccess }: AddFormProp
         (async () => {
             const res = await getRoomDetails({ HRMRM_Id: Number(selectedRoomId) });
             if (res) {
-                setValue('HLHGSTALT_NoOfBeds', res.hlhgstalT_NoOfBeds);
+                setValue('HLHGSTALT_NoOfBeds', res?.hlhgstalT_NoOfBeds);
             }
         })();
     }, [selectedRoomId, setValue]);
@@ -72,11 +72,11 @@ export default function GuestAllotmentForm({ dropdowns, onSuccess }: AddFormProp
         try {
             const res = await saveGuestAllotment(data);
             if (res.success) {
-                toast.success(res.message);
+                toast.success(res.message.toString());
                 reset();
                 onSuccess?.();
             } else {
-                toast.error(res.message);
+                toast.error(res.message.toString());
             }
         } catch (error) {
             console.error(error);
@@ -97,7 +97,7 @@ export default function GuestAllotmentForm({ dropdowns, onSuccess }: AddFormProp
                             name="HLHGSTALT_GuestName"
                             render={({ field }) => (
                                 <div className="space-y-1">
-                                    <Label required>Guest Name</Label>
+                                    <Label>Guest Name <span className="text-red-500">*</span></Label>
                                     <Input {...field} placeholder="Enter Guest Name" />
                                     {errors.HLHGSTALT_GuestName && <FormError>{errors.HLHGSTALT_GuestName.message}</FormError>}
                                 </div>
@@ -110,7 +110,7 @@ export default function GuestAllotmentForm({ dropdowns, onSuccess }: AddFormProp
                             name="HLHGSTALT_GuestPhoneNo"
                             render={({ field }) => (
                                 <div className="space-y-1">
-                                    <Label required>Guest Phone No</Label>
+                                    <Label>Guest Phone No <span className="text-red-500">*</span></Label>
                                     <Input {...field} placeholder="Enter Phone No" maxLength={10} />
                                     {errors.HLHGSTALT_GuestPhoneNo && <FormError>{errors.HLHGSTALT_GuestPhoneNo.message}</FormError>}
                                 </div>
@@ -123,7 +123,7 @@ export default function GuestAllotmentForm({ dropdowns, onSuccess }: AddFormProp
                             name="HLHGSTALT_GuestEmailId"
                             render={({ field }) => (
                                 <div className="space-y-1">
-                                    <Label required>Guest Email ID</Label>
+                                    <Label>Guest Email ID <span className="text-red-500">*</span></Label>
                                     <Input {...field} placeholder="Enter Email" />
                                     {errors.HLHGSTALT_GuestEmailId && <FormError>{errors.HLHGSTALT_GuestEmailId.message}</FormError>}
                                 </div>
@@ -136,7 +136,7 @@ export default function GuestAllotmentForm({ dropdowns, onSuccess }: AddFormProp
                             name="HLHGSTALT_AllotmentDate"
                             render={({ field }) => (
                                 <div className="space-y-1">
-                                    <Label required>Alloted Date</Label>
+                                    <Label>Alloted Date <span className="text-red-500">*</span></Label>
                                     <Popover>
                                         <PopoverTrigger asChild>
                                             <Button
@@ -170,7 +170,7 @@ export default function GuestAllotmentForm({ dropdowns, onSuccess }: AddFormProp
                             name="HLMH_Id"
                             render={({ field }) => (
                                 <div className="space-y-1">
-                                    <Label required>Hostel</Label>
+                                    <Label>Hostel <span className="text-red-500">*</span></Label>
                                     <Select
                                         value={String(field.value || '')}
                                         onValueChange={(v) => field.onChange(Number(v))}
@@ -197,7 +197,7 @@ export default function GuestAllotmentForm({ dropdowns, onSuccess }: AddFormProp
                             name="HLMRCA_Id"
                             render={({ field }) => (
                                 <div className="space-y-1">
-                                    <Label required>Room Category</Label>
+                                    <Label>Room Category <span className="text-red-500">*</span></Label>
                                     <Select
                                         value={String(field.value || '')}
                                         onValueChange={(v) => field.onChange(Number(v))}
@@ -224,7 +224,7 @@ export default function GuestAllotmentForm({ dropdowns, onSuccess }: AddFormProp
                             name="HRMRM_Id"
                             render={({ field }) => (
                                 <div className="space-y-1">
-                                    <Label required>Room</Label>
+                                    <Label>Room <span className="text-red-500">*</span></Label>
                                     <Select
                                         value={String(field.value || '')}
                                         onValueChange={(v) => field.onChange(Number(v))}
@@ -263,7 +263,7 @@ export default function GuestAllotmentForm({ dropdowns, onSuccess }: AddFormProp
                             name="HLHGSTALT_AddressProof"
                             render={({ field }) => (
                                 <div className="space-y-1">
-                                    <Label required>Guest Proof</Label>
+                                    <Label>Guest Proof <span className="text-red-500">*</span></Label>
                                     <Input {...field} placeholder="Enter Guest Proof" />
                                     {errors.HLHGSTALT_AddressProof && <FormError>{errors.HLHGSTALT_AddressProof.message}</FormError>}
                                 </div>
@@ -276,7 +276,7 @@ export default function GuestAllotmentForm({ dropdowns, onSuccess }: AddFormProp
                             name="HLHGSTALT_AllotRemarks"
                             render={({ field }) => (
                                 <div className="space-y-1">
-                                    <Label required>Remarks</Label>
+                                    <Label>Remarks <span className="text-red-500">*</span></Label>
                                     <Input {...field} placeholder="Enter Remarks" />
                                     {errors.HLHGSTALT_AllotRemarks && <FormError>{errors.HLHGSTALT_AllotRemarks.message}</FormError>}
                                 </div>
@@ -290,7 +290,7 @@ export default function GuestAllotmentForm({ dropdowns, onSuccess }: AddFormProp
                         name="HLHGSTALT_GuestAddress"
                         render={({ field }) => (
                             <div className="space-y-1">
-                                <Label required>Guest Address</Label>
+                                <Label>Guest Address <span className="text-red-500">*</span></Label>
                                 <Textarea {...field} placeholder="Enter Address" maxLength={350} />
                                 {errors.HLHGSTALT_GuestAddress && <FormError>{errors.HLHGSTALT_GuestAddress.message}</FormError>}
                             </div>

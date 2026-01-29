@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { staffAllotmentSchema, type StaffAllotmentSchema } from '@/schemas/hostel/transactions/staff-allotment.schema';
-import { getStaffInfo, getRoomDetails, saveStaffAllotment } from '@/server/hostel/transactions/staff-allotment';
+import { getStaffInfo, getRoomDetails, saveStaffAllotment } from '@/server/hostel/hostel-management/transactions/staff-allotment';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
@@ -160,7 +160,7 @@ export default function StaffAllotmentForm({ dropdowns, onSuccess }: AddFormProp
                             name="HLMH_Id"
                             render={({ field }) => (
                                 <div className="space-y-1">
-                                    <Label required>Hostel</Label>
+                                    <Label>Hostel <span className="text-red-500">*</span></Label>
                                     <Select
                                         value={String(field.value || '')}
                                         onValueChange={(v) => field.onChange(Number(v))}
@@ -187,7 +187,7 @@ export default function StaffAllotmentForm({ dropdowns, onSuccess }: AddFormProp
                             name="HLHSTALT_AllotmentDate"
                             render={({ field }) => (
                                 <div className="space-y-1">
-                                    <Label required>Allotment Date</Label>
+                                    <Label>Allotment Date <span className="text-red-500">*</span></Label>
                                     <Popover>
                                         <PopoverTrigger asChild>
                                             <Button
@@ -221,7 +221,7 @@ export default function StaffAllotmentForm({ dropdowns, onSuccess }: AddFormProp
                             name="HRME_Id"
                             render={({ field }) => (
                                 <div className="space-y-1">
-                                    <Label required>Employee Name</Label>
+                                    <Label>Employee Name <span className="text-red-500">*</span></Label>
                                     <Select
                                         value={String(field.value || '')}
                                         onValueChange={(v) => field.onChange(Number(v))}
@@ -283,7 +283,7 @@ export default function StaffAllotmentForm({ dropdowns, onSuccess }: AddFormProp
                             name="HLMRCA_Id"
                             render={({ field }) => (
                                 <div className="space-y-1">
-                                    <Label required>Room Category</Label>
+                                    <Label>Room Category <span className="text-red-500">*</span></Label>
                                     <Select value={String(field.value || '')} disabled>
                                         <SelectTrigger className="bg-gray-50"><SelectValue placeholder="Room Category" /></SelectTrigger>
                                         <SelectContent>
@@ -301,7 +301,7 @@ export default function StaffAllotmentForm({ dropdowns, onSuccess }: AddFormProp
                             name="HRMRM_Id"
                             render={({ field }) => (
                                 <div className="space-y-1">
-                                    <Label required>Room No</Label>
+                                    <Label>Room No <span className="text-red-500">*</span></Label>
                                     <Select
                                         value={String(field.value || '')}
                                         onValueChange={(v) => field.onChange(Number(v))}

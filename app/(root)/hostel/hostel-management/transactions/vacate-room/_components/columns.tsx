@@ -1,11 +1,22 @@
 'use client';
 
-import { ColumnHeader } from '@/components/ui/view-data-table/data-table-column-header';
+import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 
 // STUDENT COLUMNS
 export const studentColumns: ColumnDef<any>[] = [
+    {
+        accessorKey: 'sn',
+        header: ({ column }) => <ColumnHeader column={column} title='Sl.No' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            return <div>{pageIndex * pageSize + row.index + 1}</div>;
+        },
+        enableSorting: false,
+        enableHiding: false
+    },
     {
         accessorKey: 'studentname',
         header: ({ column }) => <ColumnHeader column={column} title='Student Name' />
@@ -40,6 +51,17 @@ export const studentColumns: ColumnDef<any>[] = [
 // STAFF COLUMNS
 export const staffColumns: ColumnDef<any>[] = [
     {
+        accessorKey: 'sn',
+        header: ({ column }) => <ColumnHeader column={column} title='Sl.No' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            return <div>{pageIndex * pageSize + row.index + 1}</div>;
+        },
+        enableSorting: false,
+        enableHiding: false
+    },
+    {
         accessorKey: 'staffname',
         header: ({ column }) => <ColumnHeader column={column} title='Staff Name' />
     },
@@ -72,6 +94,17 @@ export const staffColumns: ColumnDef<any>[] = [
 
 // GUEST COLUMNS
 export const guestColumns: ColumnDef<any>[] = [
+    {
+        accessorKey: 'sn',
+        header: ({ column }) => <ColumnHeader column={column} title='Sl.No' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            return <div>{pageIndex * pageSize + row.index + 1}</div>;
+        },
+        enableSorting: false,
+        enableHiding: false
+    },
     {
         accessorKey: 'HLHGSTALT_GuestName',
         header: ({ column }) => <ColumnHeader column={column} title='Guest Name' />

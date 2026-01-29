@@ -4,37 +4,47 @@ import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
 
-export const columns = (onApprove: (data: any) => void): ColumnDef<any>[] => [
+export const staffApprovalListColumns = (onApprove: (data: any) => void): ColumnDef<any>[] => [
     {
-        id: 'slNo',
-        header: 'SL.No.',
-        cell: ({ row }) => row.index + 1,
+        accessorKey: 'sn',
+        header: ({ column }) => <ColumnHeader column={column} title='Sl.No' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            return <div>{pageIndex * pageSize + row.index + 1}</div>;
+        },
+        enableSorting: false,
+        enableHiding: false
     },
     {
         accessorKey: 'empName',
-        header: 'Staff Name',
+        header: ({ column }) => <ColumnHeader column={column} title='Staff Name' />,
     },
     {
         accessorKey: 'HRMD_DepartmentName',
-        header: 'Department',
+        header: ({ column }) => <ColumnHeader column={column} title='Department' />,
     },
     {
         accessorKey: 'HLMH_Name',
-        header: 'Requested Hostel',
+        header: ({ column }) => <ColumnHeader column={column} title='Requested Hostel' />,
     },
     {
         accessorKey: 'HLMRCA_RoomCategory',
-        header: 'Category',
+        header: ({ column }) => <ColumnHeader column={column} title='Category' />,
     },
     {
         accessorKey: 'HLHSTREQ_RequestDate',
-        header: 'Req. Date',
-        cell: ({ row }) => format(new Date(row.original.HLHSTREQ_RequestDate), 'dd/MM/yyyy'),
+        header: ({ column }) => <ColumnHeader column={column} title='Req. Date' />,
+        cell: ({ row }) => {
+            const date = row.original.HLHSTREQ_RequestDate;
+            return date ? format(new Date(date), 'dd/MM/yyyy') : '';
+        },
     },
     {
         accessorKey: 'HLHSTREQ_BookingStatus',
-        header: 'Status',
+        header: ({ column }) => <ColumnHeader column={column} title='Status' />,
         cell: ({ row }) => {
             const status = row.original.HLHSTREQ_BookingStatus;
             return (
@@ -46,7 +56,7 @@ export const columns = (onApprove: (data: any) => void): ColumnDef<any>[] => [
     },
     {
         id: 'actions',
-        header: 'Action',
+        header: ({ column }) => <ColumnHeader column={column} title='Action' className='text-center' />,
         cell: ({ row }) => (
             row.original.HLHSTREQ_BookingStatus === 'Waiting' && (
                 <Button variant="outline" size="sm" onClick={() => onApprove(row.original)}>

@@ -1,64 +1,187 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-
-// --- Interfaces ---
-
-export interface IBed {
-    hlmB_Id: number;
-    hlmH_Id: number;
-    hlmF_Id: number;
-    hrmrM_Id: number;
-    hlmB_BedName: string;
-    hlmB_MattressFlg: boolean;
-    hlmB_BedSheetFlg: boolean;
-    hlmB_PillowFlg: boolean;
-    hlmB_StudyTableFlg: boolean;
-    hlmB_LampFlg: boolean;
-    hlmB_ActiveFlag: boolean;
-}
-
-export interface IBedDisplay extends IBed {
-    hlmH_Name: string;
-    hrmF_FloorName: string;
-    hrmrM_RoomNo: string;
-}
-
-export interface IHostel {
-    hlmH_Id: number;
-    hlmH_Name: string;
-}
-
-export interface IFloor {
-    hlmF_Id: number;
-    hrmF_FloorName: string;
-    hlmH_Id: number;
-}
-
-export interface IRoom {
-    hrmrM_Id: number;
-    hrmrM_RoomNo: string;
-    hlmF_Id: number;
-}
+import { IBed, IBedDisplay, IFloor, IHostel, IRoom, IRoomCategory } from '@/types/hostel/hostel-management/masters';
 
 // --- Mock Data ---
 
 const MOCK_HOSTELS: IHostel[] = [
-    { hlmH_Id: 1, hlmH_Name: 'Main Hostel - Boys' },
-    { hlmH_Id: 2, hlmH_Name: 'Main Hostel - Girls' },
+    { 
+        hlmH_Id: 1, 
+        hlmH_Name: 'Main Hostel - Boys',
+        hlmH_ActiveFlag: true,
+        hlmH_BoysGirlsFlg: 'Boys',
+        hlmH_TotalCapacity: 100,
+        hlmH_ContactNo: '1234567890',
+        hlmH_Address: 'Address 1',
+        ivrmmC_Id: 1,
+        ivrmmS_Id: 1,
+        hlmH_City: 'City',
+        hlmH_Pincode: 560000,
+        hlmH_TotalFloor: 3,
+        hlmH_TotalRoom: 30,
+        facilities: [],
+        wardens: [],
+        messes: [],
+        documents: []
+    },
+    { 
+        hlmH_Id: 2, 
+        hlmH_Name: 'Main Hostel - Girls',
+        hlmH_ActiveFlag: true,
+        hlmH_BoysGirlsFlg: 'Girls',
+        hlmH_TotalCapacity: 100,
+        hlmH_ContactNo: '1234567890',
+        hlmH_Address: 'Address 2',
+        ivrmmC_Id: 1,
+        ivrmmS_Id: 1,
+        hlmH_City: 'City',
+        hlmH_Pincode: 560000,
+        hlmH_TotalFloor: 3,
+        hlmH_TotalRoom: 30,
+        facilities: [],
+        wardens: [],
+        messes: [],
+        documents: []
+    },
 ];
 
 const MOCK_FLOORS: IFloor[] = [
-    { hlmF_Id: 1, hrmF_FloorName: 'Ground Floor', hlmH_Id: 1 },
-    { hlmF_Id: 2, hrmF_FloorName: 'First Floor', hlmH_Id: 1 },
-    { hlmF_Id: 3, hrmF_FloorName: 'Ground Floor', hlmH_Id: 2 },
+    { 
+        hlmF_Id: 1, 
+        hrmF_FloorName: 'Ground Floor', 
+        hlmH_Id: 1,
+        hrmF_TotalRooms: 10,
+        hrmF_FloorDesc: 'Ground Floor Description',
+        hrmF_ActiveFlag: true,
+        facilities: []
+    },
+    { 
+        hlmF_Id: 2, 
+        hrmF_FloorName: 'First Floor', 
+        hlmH_Id: 1,
+        hrmF_TotalRooms: 12,
+        hrmF_FloorDesc: 'First Floor Description',
+        hrmF_ActiveFlag: true,
+        facilities: []
+    },
+    { 
+        hlmF_Id: 3, 
+        hrmF_FloorName: 'Ground Floor', 
+        hlmH_Id: 2,
+        hrmF_TotalRooms: 10,
+        hrmF_FloorDesc: 'Ground Girls Floor',
+        hrmF_ActiveFlag: true,
+        facilities: []
+    },
 ];
 
 const MOCK_ROOMS: IRoom[] = [
-    { hrmrM_Id: 1, hrmrM_RoomNo: '101', hlmF_Id: 1 },
-    { hrmrM_Id: 2, hrmrM_RoomNo: '102', hlmF_Id: 1 },
-    { hrmrM_Id: 3, hrmrM_RoomNo: '201', hlmF_Id: 2 },
-    { hrmrM_Id: 4, hrmrM_RoomNo: 'G-01', hlmF_Id: 3 },
+    { 
+        hrmrM_Id: 1, 
+        hrmrM_RoomNo: '101', 
+        hlmF_Id: 1,
+        hlmH_Id: 1,
+        hlmrcA_Id: 1,
+        hrmrM_BedCapacity: 2,
+        hrmrM_ACFlg: false,
+        hrmrM_SharingFlg: true,
+        hrmrM_RoomForStudentFlg: true,
+        hrmrM_RoomForStaffFlg: false,
+        hrmrM_RoomForGuestFlg: false,
+        hrmrM_ActiveFlag: true,
+        facilities: []
+    },
+    { 
+        hrmrM_Id: 2, 
+        hrmrM_RoomNo: '102', 
+        hlmF_Id: 1,
+        hlmH_Id: 1,
+        hlmrcA_Id: 1,
+        hrmrM_BedCapacity: 3,
+        hrmrM_ACFlg: true,
+        hrmrM_SharingFlg: true,
+        hrmrM_RoomForStudentFlg: true,
+        hrmrM_RoomForStaffFlg: false,
+        hrmrM_RoomForGuestFlg: false,
+        hrmrM_ActiveFlag: true,
+        facilities: []
+    },
+    { 
+        hrmrM_Id: 3, 
+        hrmrM_RoomNo: '201', 
+        hlmF_Id: 2,
+        hlmH_Id: 1,
+        hlmrcA_Id: 2,
+        hrmrM_BedCapacity: 4,
+        hrmrM_ACFlg: false,
+        hrmrM_SharingFlg: true,
+        hrmrM_RoomForStudentFlg: true,
+        hrmrM_RoomForStaffFlg: false,
+        hrmrM_RoomForGuestFlg: false,
+        hrmrM_ActiveFlag: true,
+        facilities: []
+    },
+    { 
+        hrmrM_Id: 4, 
+        hrmrM_RoomNo: 'G-01', 
+        hlmF_Id: 3,
+        hlmH_Id: 2,
+        hlmrcA_Id: 3,
+        hrmrM_BedCapacity: 2,
+        hrmrM_ACFlg: true,
+        hrmrM_SharingFlg: true,
+        hrmrM_RoomForStudentFlg: true,
+        hrmrM_RoomForStaffFlg: false,
+        hrmrM_RoomForGuestFlg: true,
+        hrmrM_ActiveFlag: true,
+        facilities: []
+    },
+];
+
+const MOCK_ROOM_CATEGORIES: IRoomCategory[] = [
+    {
+        hlmrcA_Id: 1,
+        hlmH_Id: 1,
+        hlmF_Id: 1,
+        fmG_Id: 1,
+        hlmrcA_RoomCategory: 'Deluxe',
+        hlmrcA_SORate: 5000,
+        hlmrcA_RoomRate: 5000,
+        hlmrcA_MaxCapacity: 2,
+        hlmrcA_Description: 'Deluxe Room',
+        hlmrcA_ACFlg: true,
+        hlmrcA_SharingFlg: true,
+        hlmrcA_ActiveFlag: true
+    },
+    {
+        hlmrcA_Id: 2,
+        hlmH_Id: 1,
+        hlmF_Id: 1,
+        fmG_Id: 1,
+        hlmrcA_RoomCategory: 'Standard',
+        hlmrcA_SORate: 3000,
+        hlmrcA_RoomRate: 3000,
+        hlmrcA_MaxCapacity: 4,
+        hlmrcA_Description: 'Standard Room',
+        hlmrcA_ACFlg: false,
+        hlmrcA_SharingFlg: true,
+        hlmrcA_ActiveFlag: true
+    },
+     {
+        hlmrcA_Id: 3,
+        hlmH_Id: 2,
+        hlmF_Id: 3,
+        fmG_Id: 1,
+        hlmrcA_RoomCategory: 'Deluxe Girls',
+        hlmrcA_SORate: 5000,
+        hlmrcA_RoomRate: 5000,
+        hlmrcA_MaxCapacity: 2,
+        hlmrcA_Description: 'Deluxe Room',
+        hlmrcA_ACFlg: true,
+        hlmrcA_SharingFlg: true,
+        hlmrcA_ActiveFlag: true
+    },
 ];
 
 let MOCK_BEDS: IBed[] = [
@@ -114,7 +237,8 @@ export async function fetchBedData() {
 export async function fetchFloors(hostelId: number) {
     await new Promise(resolve => setTimeout(resolve, 300));
     const floors = MOCK_FLOORS.filter(f => f.hlmH_Id === hostelId);
-    return { floors };
+    const categories = MOCK_ROOM_CATEGORIES.filter(c => c.hlmH_Id === hostelId);
+    return { floors, categories };
 }
 
 export async function fetchRooms(floorId: number) {

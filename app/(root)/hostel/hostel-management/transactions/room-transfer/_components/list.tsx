@@ -1,7 +1,7 @@
 'use client';
 
 import { DataTable } from '@/components/ui/data-table';
-import { columns } from './columns';
+import { roomTransferColumns } from './columns'; // Updated import
 
 interface RoomTransferListProps {
     data: any[];
@@ -10,9 +10,10 @@ interface RoomTransferListProps {
 export default function RoomTransferList({ data }: RoomTransferListProps) {
     return (
         <DataTable
-            columns={columns}
+            columns={roomTransferColumns} // Updated prop
             data={data}
-            searchKey="studentname"
+            totalItems={data.length} // Added required prop
+            manualPagination={false} // Enable client-side pagination
         />
     );
 }

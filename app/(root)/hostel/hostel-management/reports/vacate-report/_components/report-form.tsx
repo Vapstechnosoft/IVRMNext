@@ -9,13 +9,14 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, Loader2, Search } from 'lucide-react';
 import { vacateReportSchema, type VacateReportSchema } from '@/schemas/hostel/reports/vacate-report.schema';
 import { getVacateReport, getStudentListForReport, getVacateReportLoadData } from '@/server/hostel/reports/vacate-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface ReportFormProps {
     initialData: {
@@ -81,6 +82,7 @@ export default function VacateReportForm({ initialData, onReportGenerated }: Rep
                 onReportGenerated(res.gridlistdata, data.type);
             } else {
                 toast.error('No records found');
+                onReportGenerated([], data.type);
             }
         } catch (error) {
             console.error(error);
@@ -89,212 +91,246 @@ export default function VacateReportForm({ initialData, onReportGenerated }: Rep
     };
 
     return (
-        <div className="w-full rounded-2xl bg-white p-6 shadow-sm border">
-            <FormProvider {...methods}>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                    <h3 className="text-lg font-semibold text-gray-800 text-center">Hostel Vacate Report</h3>
+        <Card>
+            <CardHeader>
+                <CardTitle>Hostel Vacate Report</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <FormProvider {...methods}>
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                        <div className="flex flex-col items-center gap-6">
+                            {/* Occupant Type */}
+                            <Controller
+                                control={control}
+                                name="type"
+                                render={({ field }) => (
+                                    <RadioGroup
+                                        onValueChange={field.onChange}
+                                        value={field.value}
+                                        className="flex gap-8 border p-4 rounded-lg bg-gray-50"
+                                    >
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="student" id="t1" />
+                                            <Label htmlFor="t1">Student</Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="staff" id="t2" />
+                                            <Label htmlFor="t2">Staff</Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="guest" id="t3" />
+                                            <Label htmlFor="t3">Guest</Label>
+                                        </div>
+                                    </RadioGroup>
+                                )}
+                            />
 
-                    <div className="flex flex-col items-center gap-6">
-                        {/* Occupant Type */}
-                        <Controller
-                            control={control}
-                            name="type"
-                            render={({ field }) => (
-                                <RadioGroup
-                                    onValueChange={field.onChange}
-                                    value={field.value}
-                                    className="flex gap-8 border p-4 rounded-lg bg-gray-50"
-                                >
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="student" id="t1" />
-                                        <Label htmlFor="t1">Student</Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="staff" id="t2" />
-                                        <Label htmlFor="t2">Staff</Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="guest" id="t3" />
-                                        <Label htmlFor="t3">Guest</Label>
-                                    </div>
-                                </RadioGroup>
+                            {/* Filter Type */}
+                            <Controller
+                                control={control}
+                                name="type2"
+                                render={({ field }) => (
+                                    <RadioGroup
+                                        onValueChange={field.onChange}
+                                        value={field.value}
+                                        className="flex gap-8 border p-4 rounded-lg bg-gray-50"
+                                    >
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="all" id="f1" />
+                                            <Label htmlFor="f1">All</Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="Hostel" id="f2" />
+                                            <Label htmlFor="f2">Hostel</Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="individual" id="f3" />
+                                            <Label htmlFor="f3">Individual</Label>
+                                        </div>
+                                    </RadioGroup>
+                                )}
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Academic Year for Students */}
+                            {selectedType === 'student' && (
+                                <div className="space-y-1">
+                                    <Label>Academic Year <span className="text-red-500">*</span></Label>
+                                    <Controller
+                                        control={control}
+                                        name="ASMAY_Id"
+                                        render={({ field }) => (
+                                            <Select
+                                                value={String(field.value || '')}
+                                                onValueChange={(v) => field.onChange(Number(v))}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select Year" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {dropdowns.yerlist?.map((y: any) => (
+                                                        <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                                            {y.asmaY_Year}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        )}
+                                    />
+                                    {errors.ASMAY_Id && <FormError>{errors.ASMAY_Id.message}</FormError>}
+                                </div>
                             )}
-                        />
 
-                        {/* Filter Type */}
-                        <Controller
-                            control={control}
-                            name="type2"
-                            render={({ field }) => (
-                                <RadioGroup
-                                    onValueChange={field.onChange}
-                                    value={field.value}
-                                    className="flex gap-8 border p-4 rounded-lg bg-gray-50"
-                                >
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="all" id="f1" />
-                                        <Label htmlFor="f1">All</Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="Hostel" id="f2" />
-                                        <Label htmlFor="f2">Hostel</Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="individual" id="f3" />
-                                        <Label htmlFor="f3">Individual</Label>
-                                    </div>
-                                </RadioGroup>
-                            )}
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Academic Year for Students */}
-                        {selectedType === 'student' && (
-                            <div className="space-y-1">
-                                <Label required>Academic Year</Label>
+                            {/* Date Range */}
+                            <div className="grid grid-cols-2 gap-4">
                                 <Controller
                                     control={control}
-                                    name="ASMAY_Id"
+                                    name="Fromdate"
                                     render={({ field }) => (
-                                        <Select
-                                            value={String(field.value || '')}
-                                            onValueChange={(v) => field.onChange(Number(v))}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select Year" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {dropdowns.yerlist?.map((y: any) => (
-                                                    <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                        {y.asmaY_Year}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
+                                        <div className="space-y-1">
+                                            <Label>Start Date <span className="text-red-500">*</span></Label>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button variant="outline" className="w-full justify-start text-left font-normal">
+                                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                                        {field.value ? format(field.value, "PPP") : <span>Start</span>}
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto p-0">
+                                                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} />
+                                                </PopoverContent>
+                                            </Popover>
+                                        </div>
                                     )}
                                 />
-                                {errors.ASMAY_Id && <FormError>{errors.ASMAY_Id.message}</FormError>}
+                                <Controller
+                                    control={control}
+                                    name="ToDate"
+                                    render={({ field }) => (
+                                        <div className="space-y-1">
+                                            <Label>End Date <span className="text-red-500">*</span></Label>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button variant="outline" className="w-full justify-start text-left font-normal">
+                                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                                        {field.value ? format(field.value, "PPP") : <span>End</span>}
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto p-0">
+                                                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} />
+                                                </PopoverContent>
+                                            </Popover>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Multi-Select Filters */}
+                        {selectedFilter === 'Hostel' && (
+                            <div className="space-y-2 border p-4 rounded-lg bg-gray-50 max-h-48 overflow-y-auto">
+                                <Label>Hostels</Label>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                    {dropdowns.hostelist?.map((h: any) => (
+                                        <div key={h.hlmH_Id} className="flex items-center space-x-2">
+                                            <Controller
+                                                control={control}
+                                                name="SelectedHostellist"
+                                                render={({ field }) => (
+                                                    <Checkbox
+                                                        checked={field.value?.some((item: any) => item.HLMH_Id === h.hlmH_Id)}
+                                                        onCheckedChange={(checked) => {
+                                                            const current = field.value || [];
+                                                            if (checked) field.onChange([...current, { HLMH_Id: h.hlmH_Id }]);
+                                                            else field.onChange(current.filter((x: any) => x.HLMH_Id !== h.hlmH_Id));
+                                                        }}
+                                                    />
+                                                )}
+                                            />
+                                            <span className="text-sm">{h.hlmH_Name}</span>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         )}
 
-                        {/* Date Range */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <Controller
-                                control={control}
-                                name="Fromdate"
-                                render={({ field }) => (
-                                    <div className="space-y-1">
-                                        <Label required>Start Date</Label>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button variant="outline" className="w-full justify-start text-left font-normal">
-                                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                                    {field.value ? format(field.value, "PPP") : <span>Start</span>}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0">
-                                                <Calendar mode="single" selected={field.value} onSelect={field.onChange} />
-                                            </PopoverContent>
-                                        </Popover>
-                                    </div>
-                                )}
-                            />
-                            <Controller
-                                control={control}
-                                name="ToDate"
-                                render={({ field }) => (
-                                    <div className="space-y-1">
-                                        <Label required>End Date</Label>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button variant="outline" className="w-full justify-start text-left font-normal">
-                                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                                    {field.value ? format(field.value, "PPP") : <span>End</span>}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0">
-                                                <Calendar mode="single" selected={field.value} onSelect={field.onChange} />
-                                            </PopoverContent>
-                                        </Popover>
-                                    </div>
-                                )}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Multi-Select Filters */}
-                    {selectedFilter === 'Hostel' && (
-                        <div className="space-y-2 border p-4 rounded-lg bg-gray-50 max-h-48 overflow-y-auto">
-                            <Label>Hostels</Label>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                {dropdowns.hostelist?.map((h: any) => (
-                                    <div key={h.hlmH_Id} className="flex items-center space-x-2">
-                                        <Checkbox
-                                            onCheckedChange={(checked) => {
-                                                const current = methods.getValues('SelectedHostellist') || [];
-                                                if (checked) setValue('SelectedHostellist', [...current, { HLMH_Id: h.hlmH_Id }]);
-                                                else setValue('SelectedHostellist', current.filter(x => x.HLMH_Id !== h.hlmH_Id));
-                                            }}
-                                        />
-                                        <span className="text-sm">{h.hlmH_Name}</span>
-                                    </div>
-                                ))}
+                        {selectedFilter === 'individual' && (
+                            <div className="space-y-2 border p-4 rounded-lg bg-gray-50 max-h-48 overflow-y-auto">
+                                <Label>Individuals</Label>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                    {selectedType === 'student' && dropdowns.studentlist?.map((s: any) => (
+                                        <div key={s.amsT_Id} className="flex items-center space-x-2">
+                                            <Controller
+                                                control={control}
+                                                name="SelectedStudentlist"
+                                                render={({ field }) => (
+                                                    <Checkbox
+                                                        checked={field.value?.some((item: any) => item.AMST_Id === s.amsT_Id)}
+                                                        onCheckedChange={(checked) => {
+                                                            const current = field.value || [];
+                                                            if (checked) field.onChange([...current, { AMST_Id: s.amsT_Id }]);
+                                                            else field.onChange(current.filter((x: any) => x.AMST_Id !== s.amsT_Id));
+                                                        }}
+                                                    />
+                                                )}
+                                            />
+                                            <span className="text-sm">{s.studentname}</span>
+                                        </div>
+                                    ))}
+                                    {selectedType === 'staff' && dropdowns.stafflist?.map((s: any) => (
+                                        <div key={s.hrmE_Id} className="flex items-center space-x-2">
+                                            <Controller
+                                                control={control}
+                                                name="Selectedstafflist"
+                                                render={({ field }) => (
+                                                    <Checkbox
+                                                        checked={field.value?.some((item: any) => item.HRME_Id === s.hrmE_Id)}
+                                                        onCheckedChange={(checked) => {
+                                                            const current = field.value || [];
+                                                            if (checked) field.onChange([...current, { HRME_Id: s.hrmE_Id }]);
+                                                            else field.onChange(current.filter((x: any) => x.HRME_Id !== s.hrmE_Id));
+                                                        }}
+                                                    />
+                                                )}
+                                            />
+                                            <span className="text-sm">{s.hrmE_EmployeeFirstName}</span>
+                                        </div>
+                                    ))}
+                                    {selectedType === 'guest' && dropdowns.guestlist?.map((g: any) => (
+                                        <div key={g.hlhgstalT_Id} className="flex items-center space-x-2">
+                                            <Controller
+                                                control={control}
+                                                name="Selectedguestlist"
+                                                render={({ field }) => (
+                                                    <Checkbox
+                                                        checked={field.value?.some((item: any) => item.HLHGSTALT_Id === g.hlhgstalT_Id)}
+                                                        onCheckedChange={(checked) => {
+                                                            const current = field.value || [];
+                                                            if (checked) field.onChange([...current, { HLHGSTALT_Id: g.hlhgstalT_Id }]);
+                                                            else field.onChange(current.filter((x: any) => x.HLHGSTALT_Id !== g.hlhgstalT_Id));
+                                                        }}
+                                                    />
+                                                )}
+                                            />
+                                            <span className="text-sm">{g.hlhgstalT_GuestName}</span>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
 
-                    {selectedFilter === 'individual' && (
-                        <div className="space-y-2 border p-4 rounded-lg bg-gray-50 max-h-48 overflow-y-auto">
-                            <Label>Individuals</Label>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                {selectedType === 'student' && dropdowns.studentlist?.map((s: any) => (
-                                    <div key={s.amsT_Id} className="flex items-center space-x-2">
-                                        <Checkbox
-                                            onCheckedChange={(checked) => {
-                                                const current = methods.getValues('SelectedStudentlist') || [];
-                                                if (checked) setValue('SelectedStudentlist', [...current, { AMST_Id: s.amsT_Id }]);
-                                                else setValue('SelectedStudentlist', current.filter(x => x.AMST_Id !== s.amsT_Id));
-                                            }}
-                                        />
-                                        <span className="text-sm">{s.studentname}</span>
-                                    </div>
-                                ))}
-                                {selectedType === 'staff' && dropdowns.stafflist?.map((s: any) => (
-                                    <div key={s.hrmE_Id} className="flex items-center space-x-2">
-                                        <Checkbox
-                                            onCheckedChange={(checked) => {
-                                                const current = methods.getValues('Selectedstafflist') || [];
-                                                if (checked) setValue('Selectedstafflist', [...current, { HRME_Id: s.hrmE_Id }]);
-                                                else setValue('Selectedstafflist', current.filter(x => x.HRME_Id !== s.hrmE_Id));
-                                            }}
-                                        />
-                                        <span className="text-sm">{s.hrmE_EmployeeFirstName}</span>
-                                    </div>
-                                ))}
-                                {selectedType === 'guest' && dropdowns.guestlist?.map((g: any) => (
-                                    <div key={g.hlhgstalT_Id} className="flex items-center space-x-2">
-                                        <Checkbox
-                                            onCheckedChange={(checked) => {
-                                                const current = methods.getValues('Selectedguestlist') || [];
-                                                if (checked) setValue('Selectedguestlist', [...current, { HLHGSTALT_Id: g.hlhgstalT_Id }]);
-                                                else setValue('Selectedguestlist', current.filter(x => x.HLHGSTALT_Id !== g.hlhgstalT_Id));
-                                            }}
-                                        />
-                                        <span className="text-sm">{g.hlhgstalT_GuestName}</span>
-                                    </div>
-                                ))}
-                            </div>
+                        {/* Actions */}
+                        <div className="flex items-center justify-center gap-4 pt-4">
+                            <Button type="button" variant="outline" onClick={() => reset()} className="w-32">Cancel</Button>
+                            <Button type="submit" disabled={isSubmitting} className="w-32">
+                                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+                                Report
+                            </Button>
                         </div>
-                    )}
-
-                    {/* Actions */}
-                    <div className="flex items-center justify-center gap-4 pt-4">
-                        <Button type="button" variant="outline" onClick={() => reset()}>Cancel</Button>
-                        <Button type="submit" disabled={isSubmitting}>Report</Button>
-                    </div>
-                </form>
-            </FormProvider>
-        </div>
+                    </form>
+                </FormProvider>
+            </CardContent>
+        </Card>
     );
 }

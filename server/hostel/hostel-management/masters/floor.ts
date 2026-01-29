@@ -7,10 +7,10 @@ export interface IFloor {
   hlmF_Id: number;
   hlmH_Id: number;
   hrmF_FloorName: string;
-  hrmF_TotalRooms: number;
-  hrmF_FloorDesc: string;
-  hrmF_ActiveFlag: boolean;
-  facilities: number[]; // Array of Facility IDs
+  hrmF_TotalRooms?: number;
+  hrmF_FloorDesc?: string;
+  hrmF_ActiveFlag?: boolean;
+  facilities?: number[]; // Array of Facility IDs
 }
 
 export interface IHostel {
@@ -88,7 +88,7 @@ export async function fetchMappedFacilities(floorId: number) {
     const floor = MOCK_FLOORS.find(f => f.hlmF_Id === floorId);
     if (!floor) return [];
 
-    const mapped = floor.facilities.map(fid => MOCK_FACILITIES.find(f => f.hlmftY_Id === fid)).filter(Boolean) as IFacility[];
+    const mapped = (floor.facilities || []).map(fid => MOCK_FACILITIES.find(f => f.hlmftY_Id === fid)).filter(Boolean) as IFacility[];
     return mapped;
 }
 

@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { staffRequestSchema, StaffRequestValues } from '@/schemas/hostel/transactions/hostel-requests.schema';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { CustomSelect } from '@/components/ui/form/custom-select';
 import { DatePicker } from '@/components/ui/form/date-picker';
 import { Textarea } from '@/components/ui/textarea';
@@ -103,112 +103,104 @@ export default function StaffRequestForm({
                     <p><strong>Desig:</strong> {staffProfile?.HRMDES_DesignationName || '-'}</p>
                 </div>
 
-                <Form {...form}>
+                <FormProvider {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <FormField
+                            <Controller
                                 control={form.control}
                                 name="HLMH_Id"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Hostel</FormLabel>
-                                        <FormControl>
-                                            <CustomSelect
-                                                options={hostels.map(h => ({ label: h.hlmH_Name, value: h.hlmH_Id.toString() }))}
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
+                                render={({ field, fieldState }) => (
+                                    <div>
+                                        <Label>Hostel</Label>
+                                        <CustomSelect
+                                            options={hostels.map(h => ({ label: h.hlmH_Name, value: h.hlmH_Id.toString() }))}
+                                            {...field}
+                                        />
+                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                    </div>
                                 )}
                             />
 
-                            <FormField
+                            <Controller
                                 control={form.control}
                                 name="HLMRCA_Id"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Room Category</FormLabel>
-                                        <FormControl>
-                                            <CustomSelect
-                                                options={categories.map(c => ({ label: c.hlmrcA_RoomCategory, value: c.hlmrcA_Id.toString() }))}
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
+                                render={({ field, fieldState }) => (
+                                    <div>
+                                        <Label>Room Category</Label>
+                                        <CustomSelect
+                                            options={categories.map(c => ({ label: c.hlmrcA_RoomCategory, value: c.hlmrcA_Id.toString() }))}
+                                            {...field}
+                                        />
+                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                    </div>
                                 )}
                             />
 
-                            <FormField
+                            <Controller
                                 control={form.control}
                                 name="HLHSTREQ_RequestDate"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Request Date</FormLabel>
-                                        <FormControl>
-                                            <DatePicker date={field.value} setDate={field.onChange} disabled />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
+                                render={({ field, fieldState }) => (
+                                    <div>
+                                        <Label>Request Date</Label>
+                                        <DatePicker date={field.value} setDate={field.onChange} disabled />
+                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                    </div>
                                 )}
                             />
 
                             <div className="grid grid-cols-2 gap-2 pt-8">
-                                <FormField
+                                <Controller
                                     control={form.control}
                                     name="HLHSTREQ_VegMessFlg"
                                     render={({ field }) => (
-                                        <FormItem className="flex items-center space-x-2 space-y-0">
-                                            <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
-                                            <FormLabel>Veg Mess</FormLabel>
-                                        </FormItem>
+                                        <div className="flex items-center space-x-2 space-y-0">
+                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                            <Label>Veg Mess</Label>
+                                        </div>
                                     )}
                                 />
-                                <FormField
+                                <Controller
                                     control={form.control}
                                     name="HLHSTREQ_NonVegMessFlg"
                                     render={({ field }) => (
-                                        <FormItem className="flex items-center space-x-2 space-y-0">
-                                            <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
-                                            <FormLabel>Non-Veg Mess</FormLabel>
-                                        </FormItem>
+                                        <div className="flex items-center space-x-2 space-y-0">
+                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                            <Label>Non-Veg Mess</Label>
+                                        </div>
                                     )}
                                 />
-                                <FormField
+                                <Controller
                                     control={form.control}
                                     name="HLHSTREQ_ACRoomFlg"
                                     render={({ field }) => (
-                                        <FormItem className="flex items-center space-x-2 space-y-0">
-                                            <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
-                                            <FormLabel>AC Room</FormLabel>
-                                        </FormItem>
+                                        <div className="flex items-center space-x-2 space-y-0">
+                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                            <Label>AC Room</Label>
+                                        </div>
                                     )}
                                 />
-                                <FormField
+                                <Controller
                                     control={form.control}
                                     name="HLHSTREQ_SingleRoomFlg"
                                     render={({ field }) => (
-                                        <FormItem className="flex items-center space-x-2 space-y-0">
-                                            <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
-                                            <FormLabel>Single Room</FormLabel>
-                                        </FormItem>
+                                        <div className="flex items-center space-x-2 space-y-0">
+                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                            <Label>Single Room</Label>
+                                        </div>
                                     )}
                                 />
                             </div>
                         </div>
 
-                        <FormField
+                        <Controller
                             control={form.control}
                             name="HLHSTREQ_Remarks"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Remarks</FormLabel>
-                                    <FormControl>
-                                        <Textarea {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
+                            render={({ field, fieldState }) => (
+                                <div>
+                                    <Label>Remarks</Label>
+                                    <Textarea {...field} />
+                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                </div>
                             )}
                         />
 
@@ -217,7 +209,7 @@ export default function StaffRequestForm({
                             <Button type="submit" disabled={loading}>Submit Request</Button>
                         </div>
                     </form>
-                </Form>
+                </FormProvider>
             </CardContent>
         </Card>
     );

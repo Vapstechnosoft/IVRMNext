@@ -2,56 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 
-// --- Interfaces ---
-
-export interface IRoom {
-    hrmrM_Id: number;
-    hlmH_Id: number;
-    hlmF_Id: number;
-    hlmrcA_Id: number;
-    hrmrM_RoomNo: string;
-    hrmrM_BedCapacity: number;
-    hrmrM_RoomDesc?: string;
-    hrmrM_ACFlg: boolean;
-    hrmrM_SharingFlg: boolean;
-    hrmrM_RoomForStudentFlg: boolean;
-    hrmrM_RoomForStaffFlg: boolean;
-    hrmrM_RoomForGuestFlg: boolean;
-    hrmrM_ActiveFlag: boolean;
-    facilities: number[];
-}
-
-export interface IRoomDisplay extends IRoom {
-    hlmH_Name: string;
-    hrmF_FloorName: string;
-    hlmrcA_RoomCategory: string;
-    mappedFacilities?: IFacility[];
-}
-
-export interface IHostel {
-    hlmH_Id: number;
-    hlmH_Name: string;
-}
-
-export interface IFloor {
-    hlmF_Id: number;
-    hrmF_FloorName: string;
-    hlmH_Id: number;
-}
-
-export interface IRoomCategory {
-    hlmrcA_Id: number;
-    hlmrcA_RoomCategory: string;
-    hlmF_Id: number; // Assuming linked to floor or hostel, but usually independent? User req says dependent on floor? 
-    // Wait, the user code has `categorydetails` which suggests it might just be a list, but the user plan said dependent.
-    // Looking at the AngularJS code: `Floor()` loads `room_catlist`. So Category is likely fetched based on Hostel/Floor.
-    // Actually in `HS_Master/floor` it returns `room_catlist`.
-}
-
-export interface IFacility {
-    hlmftY_Id: number;
-    hlmftY_FacilityName: string;
-}
+import { IRoom, IRoomDisplay, IHostel, IFloor, IRoomCategory, IFacility } from '@/types/hostel/hostel-management/masters';
 
 // --- Mock Data ---
 
@@ -109,7 +60,7 @@ export async function fetchRoomData() {
         hlmH_Name: MOCK_HOSTELS.find(h => h.hlmH_Id === room.hlmH_Id)?.hlmH_Name || 'Unknown',
         hrmF_FloorName: MOCK_FLOORS.find(f => f.hlmF_Id === room.hlmF_Id)?.hrmF_FloorName || 'Unknown',
         hlmrcA_RoomCategory: MOCK_ROOM_CATEGORIES.find(c => c.hlmrcA_Id === room.hlmrcA_Id)?.hlmrcA_RoomCategory || 'Unknown',
-        mappedFacilities: room.facilities.map(fid => MOCK_FACILITIES.find(f => f.hlmftY_Id === fid)).filter((f): f is IFacility => !!f)
+        mappedFacilities: (room.facilities || []).map(fid => MOCK_FACILITIES.find(f => f.hlmftY_Id === fid)).filter((f): f is IFacility => !!f)
     }));
 
     return {

@@ -17,15 +17,15 @@ export interface RoomCategoryDataResponse {
 export interface IRoomCategory {
   hlmrcA_Id: number;
   hlmH_Id: number;
-  fmG_Id: number;
+  fmG_Id?: number;
   hlmrcA_RoomCategory: string;
-  hlmrcA_SORate: number;
-  hlmrcA_RoomRate: number;
-  hlmrcA_MaxCapacity: number;
-  hlmrcA_Description: string;
-  hlmrcA_ACFlg: boolean;
-  hlmrcA_SharingFlg: boolean;
-  hlmrcA_ActiveFlag: boolean;
+  hlmrcA_SORate?: number;
+  hlmrcA_RoomRate?: number;
+  hlmrcA_MaxCapacity?: number;
+  hlmrcA_Description?: string;
+  hlmrcA_ACFlg?: boolean;
+  hlmrcA_SharingFlg?: boolean;
+  hlmrcA_ActiveFlag?: boolean;
   hlmH_Name?: string; // from join likely
   fmG_GroupName?: string; // from join likely
 }
