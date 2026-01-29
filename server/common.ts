@@ -2851,7 +2851,7 @@ export async function getUserAccessibleModules() {
                     ]
                 },
                 {
-                    id: 26,
+                    id: 27,
 
                     name: 'BirthDay',
 
