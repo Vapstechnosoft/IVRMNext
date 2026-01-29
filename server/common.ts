@@ -4030,6 +4030,279 @@ export async function getUserAccessibleModules() {
                     ]
                 },
              
+                // },
+
+                // {
+                //     id: 11,
+                //     name: 'Sports Management',
+                //     icon: 'Trophy',
+                //     menu: [
+                //         {
+                //             id: 1,
+                //             name: 'Sports Management',
+                //             icon: 'Activity',
+                //             sub_menu: [
+                //                 {
+                //                     id: 1,
+                //                     name: 'Masters',
+                //                     icon: 'Database',
+                //                     pages: [
+                //                         {
+                //                             id: 1,
+                //                             name: 'Events',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/Events',
+                //                             title: 'Sports Events',
+                //                             description: 'Manage Sports Events'
+                //                         },
+                //                         {
+                //                             id: 2,
+                //                             name: 'Venue',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/Venue',
+                //                             title: 'Sports Venue',
+                //                             description: 'Manage Sports Venue'
+                //                         },
+                //                         {
+                //                             id: 3,
+                //                             name: 'Program Master',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/ProgramMaster',
+                //                             title: 'Program Master',
+                //                             description: 'Manage Program Master'
+                //                         },
+                //                         {
+                //                             id: 4,
+                //                             name: 'Master Sponsor',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/Sponsors',
+                //                             title: 'Master Sponsor',
+                //                             description: 'Manage Master Sponsor'
+                //                         },
+                //                         {
+                //                             id: 5,
+                //                             name: 'Master Division',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/Division',
+                //                             title: 'Master Division',
+                //                             description: 'Manage Master Division'
+                //                         },
+                //                         {
+                //                             id: 6,
+                //                             name: 'Competition Level',
+                //                             icon: 'Trophy',
+                //                             url: '/Sports/Masters/CompetitionLevel',
+                //                             title: 'Master Competition Level',
+                //                             description: 'Manage Master Competition Level'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 2,
+                //                     name: 'Transactions',
+                //                     icon: 'Activity',
+                //                     pages: [
+                //                         {
+                //                             id: 1,
+                //                             name: 'Events Sponsor Mapping',
+                //                             icon: 'Activity',
+                //                             url: '/Sports/Transactions/EventsSponsorMapping',
+                //                             title: 'Events Sponsor Mapping',
+                //                             description: 'Manage Events Sponsor Mapping'
+                //                         },
+                //                         {
+                //                             id: 2,
+                //                             name: 'BMI Calculation',
+                //                             icon: 'Activity',
+                //                             url: '/Sports/Transactions/BMICalculation',
+                //                             title: 'BMI Calculation',
+                //                             description: 'Manage BMI Calculation'
+                //                         },
+                //                         {
+                //                             id: 3,
+                //                             name: 'Student Age Calculation',
+                //                             icon: 'Activity',
+                //                             url: '/Sports/Transactions/StudentAgeCalculation',
+                //                             title: 'Student Age Calculation',
+                //                             description: 'Manage Student Age Calculation'
+                //                         },
+                //                         {
+                //                             id: 4,
+                //                             name: 'Sport Venuewise Participation Report',
+                //                             icon: 'Activity',
+                //                             url: '/Sports/Transactions/SportVenuewiseParticipationReport',
+                //                             title: 'Sport Venuewise Participation Report',
+                //                             description: 'Manage Sport Venuewise Participation Report'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 3,
+                //                     name: 'Reports',
+                //                     icon: 'FileText',
+                //                     pages: [
+                //                         {
+                //                             id: 1,
+                //                             name: 'Student Eligible Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/StudentEligbleReport',
+                //                             title: 'Student Eligible Report',
+                //                             description: 'Student Eligible Report'
+                //                         },
+                //                         {
+                //                             id: 2,
+                //                             name: 'Student Age Calculation Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/StudentAgeCalculationReport',
+                //                             title: 'Student Age Calculation Report',
+                //                             description: 'Student Age Calculation Report'
+                //                         },
+                //                         {
+                //                             id: 3,
+                //                             name: 'BMI Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/BMIReport',
+                //                             title: 'BMI Report',
+                //                             description: 'BMI Report'
+                //                         },
+                //                         {
+                //                             id: 4,
+                //                             name: 'Sport House Committee Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/SportHouseCommitteeReport',
+                //                             title: 'Sport House Committee Report',
+                //                             description: 'Sport House Committee Report'
+                //                         },
+                //                         {
+                //                             id: 5,
+                //                             name: 'House Incharge Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/HouseInchargeReport',
+                //                             title: 'House Incharge Report',
+                //                             description: 'House Incharge Report'
+                //                         },
+                //                         {
+                //                             id: 6,
+                //                             name: 'Sport House Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/SportHouseReport',
+                //                             title: 'Sport House Report',
+                //                             description: 'Sport House Report'
+                //                         },
+                //                         {
+                //                             id: 7,
+                //                             name: 'Sport Student Participation Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/SportStudentParticipationReport',
+                //                             title: 'Sport Student Participation Report',
+                //                             description: 'Sport Student Participation Report'
+                //                         },
+                //                         {
+                //                             id: 8,
+                //                             name: 'Sport Topper List Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/SportTopperListReport',
+                //                             title: 'Sport Topper List Report',
+                //                             description: 'Sport Topper List Report'
+                //                         },
+                //                         {
+                //                             id: 9,
+                //                             name: 'Sports Year End Report',
+                //                             icon: 'FileText',
+                //                             url: '/Sports/Reports/SportsYearEndReport',
+                //                             title: 'Sports Year End Report',
+                //                             description: 'Sports Year End Report'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // },
+
+                // {
+                //     id: 13,
+                //     name: 'Super Admin',
+                //     icon: 'Settings',
+                //     menu: [
+                //         {
+                //             id: 1,
+                //             name: 'Super Admin Module',
+                //             icon: 'Settings',
+                //             sub_menu: [
+                //                 {
+                //                     id: 1,
+                //                     name: 'Master Trust',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 1,
+                //                             name: 'Master Trust',
+                //                             icon: 'Settings',
+                //                             url: '/SuperAdmin/super-admin-module/masters/trust-master',
+                //                             title: 'Master Trust',
+                //                             description: 'Manage Master Trust Details'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 2,
+                //                     name: 'Institution',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 1,
+                //                             name: 'Master Institution',
+                //                             icon: 'Settings',
+                //                             url: '/SuperAdmin/super-admin-module/institution/master-institution',
+                //                             title: 'Master Institution',
+                //                             description: 'Manage Master Institution'
+                //                         },
+                //                         {
+                //                             id: 2,
+                //                             name: 'Institution Subscription',
+                //                             icon: 'Settings',
+                //                             url: '/SuperAdmin/super-admin-module/institution/institution-subscription',
+                //                             title: 'Institution Subscription',
+                //                             description: 'Manage Institution Subscription'
+                //                         },
+                //                         {
+                //                             id: 3,
+                //                             name: 'Auto Mapping',
+                //                             icon: 'Settings',
+                //                             url: '/SuperAdmin/super-admin-module/institution/auto-mapping',
+                //                             title: 'Auto Mapping',
+                //                             description: 'Manage Institution Auto Mapping'
+                //                         }
+                //                     ]
+                //                 },
+                //                 {
+                //                     id: 3,
+                //                     name: 'General Setting',
+                //                     icon: 'Settings',
+                //                     pages: [
+                //                         {
+                //                             id: 1,
+                //                             name: 'General Setting Wizard',
+                //                             icon: 'Settings',
+                //                             url: '/SuperAdmin/super-admin-module/general-setting/wizard',
+                //                             title: 'General Setting Wizard',
+                //                             description: 'General Setting Wizard'
+                //                         },
+                //                         {
+                //                             id: 2,
+                //                             name: 'Modules',
+                //                             icon: 'Settings',
+                //                             url: '/SuperAdmin/super-admin-module/general-setting/module',
+                //                             title: 'Modules',
+                //                             description: 'Manage Master Modules'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // }
             ]
         };
     } else if (session?.role.toUpperCase() === 'STUDENT') {
