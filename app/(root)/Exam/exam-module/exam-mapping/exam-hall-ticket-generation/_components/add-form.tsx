@@ -421,9 +421,7 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                                             Exam Name <span className='text-red-500'>*</span>
                                         </Label>
                                         <div className='flex-1'>
-                                            <Select
-                                                onValueChange={(v) => field.onChange(Number(v))}
-                                                value={String(field.value)}>
+                                            <Select onValueChange={(v) => field.onChange(Number(v))} value={String(field.value)}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Exam' />
                                                 </SelectTrigger>

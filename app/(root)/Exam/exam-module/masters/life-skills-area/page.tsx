@@ -8,7 +8,7 @@ import { MasterViewDetails } from '@/components/ui/set-order/generic-set-order';
 import { useMasterLifeSkillArea } from '@/hooks/exam/exammodule/usemasters';
 import { getMasterLifeSkillAreaOrderList, setMasterLifeSkillAreaOrderList } from '@/server/exam/exam-module/masters/life-skills';
 import type { ILifeSkill, ILifeSkillArea } from '@/types/exam/exam-module/masters';
-import { GitCompareArrows, List, Plus, X } from 'lucide-react';
+import { GitCompareArrows, Plus, X } from 'lucide-react';
 import { use, useState } from 'react';
 import { toast } from 'sonner';
 import AddLifeSkillForm from './_components/add-form';
@@ -57,8 +57,8 @@ function LifeSkillPageContent({
 
             if (skillOrders.length === 0) {
                 setIsOrderloading(false);
-                return
-            };
+                return;
+            }
 
             const mappedData = skillOrders.map((d) => ({ ...d, id: d.ecsA_Id }));
             setOrderData(mappedData);
