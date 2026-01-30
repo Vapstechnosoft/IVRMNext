@@ -3666,6 +3666,204 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Room Tariffs'
                                         }
                                     ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Transactions',
+                                    icon: 'Repeat',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Student Request',
+                                            icon: 'FileText',
+                                            url: '/hostel/hostel-management/transactions/student-request',
+                                            title: 'Student Request',
+                                            description: 'Student Hostel Request'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Student Request Confirm',
+                                            icon: 'Home',
+                                            url: '/hostel/hostel-management/transactions/student-request-confirm',
+                                            title: 'Student Request Confirm',
+                                            description: 'Confirm Student Requests'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Hostel Allotment For Student',
+                                            icon: 'Home',
+                                            url: '/hostel/hostel-management/transactions/student-allotment',
+                                            title: 'Hostel Allotment For Student',
+                                            description: 'Allot Hostel for Student'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Hostel Vacate',
+                                            icon: 'LogOut',
+                                            url: '/hostel/hostel-management/transactions/vacate-room',
+                                            title: 'Hostel Vacate',
+                                            description: 'Vacate Hostel Room'
+                                        },
+                                        // {
+                                        //     id: 5,
+                                        //     name: 'College Hostel Allotment',
+                                        //     icon: 'Building',
+                                        //     url: '/hostel/hostel-management/transactions/college-student-allotment',
+                                        //     title: 'College Hostel Allotment',
+                                        //     description: 'Allot Hostel for College Student'
+                                        // },
+                                        // {
+                                        //     id: 6,
+                                        //     name: 'College Hostel Vacate',
+                                        //     icon: 'LogOut',
+                                        //     url: '/hostel/hostel-management/transactions/college-vacate-room',
+                                        //     title: 'College Hostel Vacate',
+                                        //     description: 'Vacate College Hostel Room'
+                                        // },
+                                        // {
+                                        //     id: 7,
+                                        //     name: 'College Gate Pass',
+                                        //     icon: 'CreditCard',
+                                        //     url: '/hostel/hostel-management/transactions/college-gatepass',
+                                        //     title: 'College Gate Pass',
+                                        //     description: 'Manage College Gate Pass'
+                                        // },
+                                        {
+                                            id: 8,
+                                            name: 'Staff Request',
+                                            icon: 'FileText',
+                                            url: '/hostel/hostel-management/transactions/staff-request',
+                                            title: 'Staff Request',
+                                            description: 'Staff Hostel Request'
+                                        },
+                                        // {
+                                        //     id: 9,
+                                        //     name: 'Staff Request Confirm',
+                                        //     icon: 'CheckSquare',
+                                        //     url: '/hostel/hostel-management/transactions/staff-request-confirm',
+                                        //     title: 'Staff Request Confirm',
+                                        //     description: 'Confirm Staff Requests'
+                                        // },
+                                        {
+                                            id: 10,
+                                            name: 'Hostel Allotment For Staff',
+                                            icon: 'User',
+                                            url: '/hostel/hostel-management/transactions/staff-allotment',
+                                            title: 'Hostel Allotment For Staff',
+                                            description: 'Allot Hostel for Staff'
+                                        },
+                                        {
+                                            id: 11,
+                                            name: 'Hostel Allotment For Guest',
+                                            icon: 'UserPlus',
+                                            url: '/hostel/hostel-management/transactions/guest-allotment',
+                                            title: 'Hostel Allotment For Guest',
+                                            description: 'Allot Hostel for Guest'
+                                        },
+                                        {
+                                            id: 12,
+                                            name: 'Room Transfer',
+                                            icon: 'Home',
+                                            url: '/hostel/hostel-management/transactions/room-transfer',
+                                            title: 'Room Transfer',
+                                            description: 'Transfer Room'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Reports',
+                                    icon: 'BarChart',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Hostel Allotment Report',
+                                            icon: 'FileText',
+                                            url: '/hostel/hostel-management/reports/allotment-report',
+                                            title: 'Hostel Allotment Report',
+                                            description: 'View Alotment Report'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Hostel Confirm Report',
+                                            icon: 'FileText',
+                                            url: '/hostel/hostel-management/reports/confirm-report',
+                                            title: 'Hostel Confirm Report',
+                                            description: 'View Confirm Report'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Hostel Request Report',
+                                            icon: 'FileText',
+                                            url: '/hostel/hostel-management/reports/request-report',
+                                            title: 'Hostel Request Report',
+                                            description: 'View Request Report'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Hostel Vacate Report',
+                                            icon: 'FileText',
+                                            url: '/hostel/hostel-management/reports/vacate-report',
+                                            title: 'Hostel Vacate Report',
+                                            description: 'View Vacate Report'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Student Gatepass Report',
+                                            icon: 'FileText',
+                                            url: '/hostel/hostel-management/reports/student-gatepass-report',
+                                            title: 'Student Gatepass Report',
+                                            description: 'View Student Gatepass Report'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Student Attendance Report',
+                                            icon: 'FileText',
+                                            url: '/hostel/hostel-management/reports/student-attendance-report',
+                                            title: 'Student Attendance Report',
+                                            description: 'View Student Attendance Report'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Food Conveyance Report',
+                                            icon: 'FileText',
+                                            url: '/hostel/hostel-management/reports/food-conveyance-report',
+                                            title: 'Food Conveyance Report',
+                                            description: 'View Food Conveyance Report'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'College Allotment Report',
+                                            icon: 'FileText',
+                                            url: '/hostel/hostel-management/reports/college-allotment-report',
+                                            title: 'College Allotment Report',
+                                            description: 'View College Allotment Report'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'College Confirm Report',
+                                            icon: 'FileText',
+                                            url: '/hostel/hostel-management/reports/college-confirm-report',
+                                            title: 'College Confirm Report',
+                                            description: 'View College Confirm Report'
+                                        },
+                                        {
+                                            id: 10,
+                                            name: 'College Request Report',
+                                            icon: 'FileText',
+                                            url: '/hostel/hostel-management/reports/college-request-report',
+                                            title: 'College Request Report',
+                                            description: 'View College Request Report'
+                                        },
+                                        {
+                                            id: 11,
+                                            name: 'College Vacate Report',
+                                            icon: 'FileText',
+                                            url: '/hostel/hostel-management/reports/college-vacate-report',
+                                            title: 'College Vacate Report',
+                                            description: 'View College Vacate Report'
+                                        }
+                                    ]
                                 }
                             ]
                         }

@@ -2,9 +2,9 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ColumnDef } from '@tanstack/react-table';
-import { IFacility, IRoomDisplay } from '@/server/hostel/master-room/server-action';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
+import { IFacility, IRoomDisplay } from '@/types/hostel/hostel-management/masters';
 
 interface ViewFacilitiesModalProps {
     isOpen: boolean;

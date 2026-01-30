@@ -9,11 +9,14 @@ import { FormTextarea } from '@/components/ui/form/form-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { masterRoomSchema, IMasterRoomForm } from '@/schemas/hostel/master-room.schema';
-import { fetchFloors, fetchRoomCategories, IFacility, IFloor, IHostel, IRoomCategory, saveRoom } from '@/server/hostel/master-room/server-action';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import { use, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { IFacility, IFloor, IHostel, IRoomCategory } from '@/types/hostel/hostel-management/masters';
+import { fetchFloors } from '@/server/hostel/hostel-management/masters/bed';
+import { saveRoom } from '@/server/hostel/hostel-management/masters/room';
 
 interface AddMasterRoomFormProps {
     onSuccess: () => void;
@@ -55,9 +58,19 @@ export default function AddMasterRoomForm({ onSuccess, hostels, facilities: init
     useEffect(() => {
         if (selectedHostel) {
             const loadFloors = async () => {
-                const result = await fetchFloors(Number(selectedHostel));
-                setFloors(result.floors);
-                setCategories(result.categories); // Depending on API this might be here or dependent on floor
+                try {
+                    const result = await fetchFloors(Number(selectedHostel));
+                    setFloors(result.floors);
+                    if (result.categories) {
+                        setCategories(result.categories);
+                    }
+                } catch (error) {
+                    console.error("Failed to load floors:", error);
+                    toast.error("Failed to load floor details.");
+                    // Fallback static data if needed, or clear check:
+                    setFloors([]);
+                    setCategories([]); // Clear on error
+                }
             };
             loadFloors();
         } else {

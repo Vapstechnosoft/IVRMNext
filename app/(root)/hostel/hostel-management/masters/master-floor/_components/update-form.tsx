@@ -1,7 +1,8 @@
 'use client';
 
-import { IFloorDisplay, IFacility, IHostel } from "@/server/hostel/master-floor/server-action";
+import { IFloorDisplay } from "@/server/hostel/hostel-management/masters/floor";
 import AddMasterFloorForm from "./add-form";
+import { IFacility, IHostel } from "@/types/hostel/hostel-management/masters";
 
 interface UpdateMasterFloorFormProps {
     rowData: IFloorDisplay | any;
