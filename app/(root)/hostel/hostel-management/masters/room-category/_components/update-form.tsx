@@ -10,8 +10,9 @@ import { RefreshCw, Save } from 'lucide-react';
 import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { IFeeGroup, IHostel, IRoomCategory, saveRoomCategory } from '@/server/hostel/room-category/server-action';
 import { RoomCategorySchema, RoomCategorySchemaType } from '@/schemas/hostel/room-category.schema';
+import { IFeeGroup, IHostel, IRoomCategory } from '@/types/hostel/hostel-management/masters';
+import { saveRoomCategory } from '@/server/hostel/hostel-management/masters/room-category';
 
 interface UpdateRoomCategoryFormProps {
     initialData: IRoomCategory;
@@ -84,11 +85,11 @@ export default function UpdateRoomCategoryForm({
         try {
             const result = await saveRoomCategory(data);
 
-            if (result && result.returnval) {
+            if (result?.returnval) {
                 toast.success('Room Category updated successfully');
                 onSuccess?.();
             } else {
-                if (result && result.duplicate) {
+                if (result?.duplicate) {
                     toast.error('Record already exists');
                 } else {
                     toast.error('Failed to update Room Category');

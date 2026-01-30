@@ -5,7 +5,7 @@ import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/ex
 import { FormError } from '@/components/ui/extension/field';
 import { useMasterMessCategory } from '@/hooks/hostel/useMasterMessCategory';
 import { masterMessCategoryMappingDeleteSchema, IMasterMessCategoryMappingDisplay } from '@/schemas/hostel/mess-category-mapping.schema';
-import { deleteMessCategoryMapping } from '@/server/hostel/master-mess-category/server-action';
+import { deleteMessCategoryMapping } from '@/server/hostel/hostel-management/masters/mess-category';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';

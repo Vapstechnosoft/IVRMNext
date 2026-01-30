@@ -11,25 +11,30 @@ import { useCallback } from 'react';
 const columnHelper = createColumnHelper<IMasterMessCategoryMappingDisplay>();
 
 export const messCategoryMappingColumns: ColumnDef<IMasterMessCategoryMappingDisplay, any>[] = [
-    columnHelper.display({
-        id: 'sn',
-        header: 'SL NO',
-        cell: (info) => info.row.index + 1,
-        enableSorting: false
-    }),
-    columnHelper.accessor('hlmM_Name', {
-        header: ({ column }) => <ColumnHeader column={column} title='Mess Name' />,
-        meta: { title: 'Mess Name' }
-    }),
-    columnHelper.accessor('hlmmC_Name', {
-        header: ({ column }) => <ColumnHeader column={column} title='Category Name' />,
-        meta: { title: 'Category Name' }
-    }),
-    columnHelper.accessor('hlmmmC_ActiveFlag', {
+    {
+        accessorKey: 'sn',
+        header: ({ column }) => <ColumnHeader column={column} title='Sl.No' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            return <div>{pageIndex * pageSize + row.index + 1}</div>;
+        },
+        enableSorting: false,
+        enableHiding: false
+    },
+    {
+        accessorKey: 'hlmM_Name',
+        header: ({ column }) => <ColumnHeader column={column} title='Mess Name' />
+    },
+    {
+        accessorKey: 'hlmmC_Name',
+        header: ({ column }) => <ColumnHeader column={column} title='Category Name' />
+    },
+    {
+        accessorKey: 'hlmmmC_ActiveFlag',
         header: ({ column }) => <ColumnHeader column={column} title='Status' />,
-        meta: { title: 'Status' },
-        cell: (info) =>
-            info.getValue() ? (
+        cell: ({ row }) =>
+            row.original.hlmmmC_ActiveFlag ? (
                 <span className='flex items-center text-green-600 font-medium'>
                     <Check className='mr-1 h-4 w-4' /> Active
                 </span>
@@ -38,12 +43,12 @@ export const messCategoryMappingColumns: ColumnDef<IMasterMessCategoryMappingDis
                     <X className='mr-1 h-4 w-4' /> Inactive
                 </span>
             )
-    }),
-    columnHelper.display({
+    },
+    {
         id: 'actions',
-        header: 'Actions',
+        header: ({ column }) => <ColumnHeader column={column} title='Actions' className='text-center' />,
         cell: (info) => <ActionButtonsCell rowData={info.row.original} />
-    })
+    }
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterMessCategoryMappingDisplay }) {

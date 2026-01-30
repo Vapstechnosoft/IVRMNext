@@ -1,10 +1,7 @@
+import { deleteBed, fetchBedData } from '@/server/hostel/hostel-management/masters/bed';
+import { IBedDisplay, IHostel } from '@/types/hostel/hostel-management/masters';
 import { useState, useEffect, useCallback } from 'react';
-import { 
-    fetchBedData, 
-    deleteBed, 
-    IBedDisplay, 
-    IHostel
-} from '@/server/hostel/master-bed/server-action';
+
 import { toast } from 'sonner';
 
 export const useMasterBed = () => {
@@ -18,7 +15,7 @@ export const useMasterBed = () => {
             const response = await fetchBedData();
             if (response.success && response.data) {
                 setBedList(response.data.bedList);
-                setHostels(response.data.hostels);
+                //setHostels(response.data.hostels);
             }
         } catch (error) {
             console.error(error);

@@ -5,14 +5,13 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
-import { useMasterFloor } from '@/hooks/hostel/useMasterFloor';
-import { deleteFloor, IFloorDisplay, IFacility, IHostel } from '@/server/hostel/master-floor/server-action';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import { toast } from 'sonner';
 import AddMasterFloorForm from './_components/add-form';
 import { masterFloorColumns } from './_components/columns';
 import UpdateMasterFloorForm from './_components/update-form';
+import { deleteFloor, IFacility, IFloorDisplay, IHostel } from '@/server/hostel/hostel-management/masters/floor';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -212,3 +211,7 @@ function FormSections({
         </>
     );
 }
+function useMasterFloor(): { floorList: any; hostelList: any; facilityList: any; isLoading: any; refetch: any; } {
+    throw new Error('Function not implemented.');
+}
+

@@ -1,4 +1,4 @@
-import { fetchMessCategoryMappingData } from '@/server/hostel/master-mess-category/server-action';
+import { fetchMessCategoryMappingData } from '@/server/hostel/hostel-management/masters/mess-category';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const MASTER_MESS_CATEGORY_QUERY_KEY = 'MASTER_MESS_CATEGORY_DATA';
