@@ -8,30 +8,50 @@ import { IRoom, IRoomDisplay, IHostel, IFloor, IRoomCategory, IFacility } from '
 
 const MOCK_HOSTELS: IHostel[] = [
     { hlmH_Id: 1, hlmH_Name: 'Main Hostel - Boys' },
-    { hlmH_Id: 2, hlmH_Name: 'Main Hostel - Girls' },
+    { hlmH_Id: 2, hlmH_Name: 'Main Hostel - Girls' }
 ];
 
 const MOCK_FLOORS: IFloor[] = [
     { hlmF_Id: 1, hrmF_FloorName: 'Ground Floor', hlmH_Id: 1 },
     { hlmF_Id: 2, hrmF_FloorName: 'First Floor', hlmH_Id: 1 },
-    { hlmF_Id: 3, hrmF_FloorName: 'Ground Floor', hlmH_Id: 2 },
+    { hlmF_Id: 3, hrmF_FloorName: 'Ground Floor', hlmH_Id: 2 }
 ];
 
 const MOCK_ROOM_CATEGORIES: IRoomCategory[] = [
-    { hlmrcA_Id: 1, hlmrcA_RoomCategory: 'Standard', hlmF_Id: 1 },
-    { hlmrcA_Id: 2, hlmrcA_RoomCategory: 'Deluxe', hlmF_Id: 1 },
-    { hlmrcA_Id: 3, hlmrcA_RoomCategory: 'Standard', hlmF_Id: 2 },
-    { hlmrcA_Id: 4, hlmrcA_RoomCategory: 'Suite', hlmF_Id: 3 },
+    {
+        hlmrcA_Id: 1,
+        hlmrcA_RoomCategory: 'Standard',
+        hlmF_Id: 1,
+        hlmH_Id: 0
+    },
+    {
+        hlmrcA_Id: 2,
+        hlmrcA_RoomCategory: 'Deluxe',
+        hlmF_Id: 1,
+        hlmH_Id: 0
+    },
+    {
+        hlmrcA_Id: 3,
+        hlmrcA_RoomCategory: 'Standard',
+        hlmF_Id: 2,
+        hlmH_Id: 0
+    },
+    {
+        hlmrcA_Id: 4,
+        hlmrcA_RoomCategory: 'Suite',
+        hlmF_Id: 3,
+        hlmH_Id: 0
+    }
 ];
 
 const MOCK_FACILITIES: IFacility[] = [
     { hlmftY_Id: 1, hlmftY_FacilityName: 'Table' },
     { hlmftY_Id: 2, hlmftY_FacilityName: 'Chair' },
     { hlmftY_Id: 3, hlmftY_FacilityName: 'Fan' },
-    { hlmftY_Id: 4, hlmftY_FacilityName: 'Cupboard' },
+    { hlmftY_Id: 4, hlmftY_FacilityName: 'Cupboard' }
 ];
 
-let MOCK_ROOMS: IRoom[] = [
+const MOCK_ROOMS: IRoom[] = [
     {
         hrmrM_Id: 1,
         hlmH_Id: 1,
@@ -53,14 +73,16 @@ let MOCK_ROOMS: IRoom[] = [
 // --- Actions ---
 
 export async function fetchRoomData() {
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-    const gridData: IRoomDisplay[] = MOCK_ROOMS.map(room => ({
+    const gridData: IRoomDisplay[] = MOCK_ROOMS.map((room) => ({
         ...room,
-        hlmH_Name: MOCK_HOSTELS.find(h => h.hlmH_Id === room.hlmH_Id)?.hlmH_Name || 'Unknown',
-        hrmF_FloorName: MOCK_FLOORS.find(f => f.hlmF_Id === room.hlmF_Id)?.hrmF_FloorName || 'Unknown',
-        hlmrcA_RoomCategory: MOCK_ROOM_CATEGORIES.find(c => c.hlmrcA_Id === room.hlmrcA_Id)?.hlmrcA_RoomCategory || 'Unknown',
-        mappedFacilities: (room.facilities || []).map(fid => MOCK_FACILITIES.find(f => f.hlmftY_Id === fid)).filter((f): f is IFacility => !!f)
+        hlmH_Name: MOCK_HOSTELS.find((h) => h.hlmH_Id === room.hlmH_Id)?.hlmH_Name || 'Unknown',
+        hrmF_FloorName: MOCK_FLOORS.find((f) => f.hlmF_Id === room.hlmF_Id)?.hrmF_FloorName || 'Unknown',
+        hlmrcA_RoomCategory: MOCK_ROOM_CATEGORIES.find((c) => c.hlmrcA_Id === room.hlmrcA_Id)?.hlmrcA_RoomCategory || 'Unknown',
+        mappedFacilities: (room.facilities || [])
+            .map((fid) => MOCK_FACILITIES.find((f) => f.hlmftY_Id === fid))
+            .filter((f): f is IFacility => !!f)
     }));
 
     return {
@@ -74,44 +96,44 @@ export async function fetchRoomData() {
 }
 
 export async function fetchFloors(hostelId: number) {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    const floors = MOCK_FLOORS.filter(f => f.hlmH_Id === hostelId);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    const floors = MOCK_FLOORS.filter((f) => f.hlmH_Id === hostelId);
     // In real app, might also fetch categories here if they depend on hostel?
     // But assume categories depend on floor or just general list filtered?
     // User code: `Floor()` calls `HS_Master/floor` which returns `floor_list` and `room_catlist`.
     // So I'll return categories too, assume they are filtered by hostel in backend or just all available for that hostel structure?
     // I'll return all categories for now or filter if I add hlmH_Id to categories.
     // Let's just return all mock categories for this demo or mock filter.
-    const categories = MOCK_ROOM_CATEGORIES; 
+    const categories = MOCK_ROOM_CATEGORIES;
     return { floors, categories };
 }
 
 export async function fetchRoomCategories(floorId: number) {
-     await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise((resolve) => setTimeout(resolve, 300));
     // Implementation for specificity if needed
-    const categories = MOCK_ROOM_CATEGORIES.filter(c => c.hlmF_Id === floorId); 
+    const categories = MOCK_ROOM_CATEGORIES.filter((c) => c.hlmF_Id === floorId);
     // Note: The user's angular code fetched categories on Floor change? No, `Floor()` fetched `room_catlist`.
     // Then `Floordetails()` (on floor change) fetched `facilities_list`.
     // So: Hostel Change -> Fetch Floors & Categories.
     // Floor Change -> Fetch Facilities (but facilities might be global or room specific? User code `HS_Master/floordetails` returns facilities).
-    // I'll stick to passing facilities globally for simplicity unless requested otherwise, but the user code does `get_Roomloaddata` 
+    // I'll stick to passing facilities globally for simplicity unless requested otherwise, but the user code does `get_Roomloaddata`
     // which gets `facilities_list` commented out? And `Floordetails` gets them.
     // I'll keep facilities global in `fetchRoomData` for now as it's easier for the multiselect.
-    
+
     // Actually the user code:
     // `Floor()` -> `floor_list`, `room_catlist`.
     // `Floordetails()` -> `facilities_list`.
-    
+
     // I will simulate this behavior.
     return { categories };
 }
 
 export async function saveRoom(data: any) {
-    await new Promise(resolve => setTimeout(resolve, 800));
+    await new Promise((resolve) => setTimeout(resolve, 800));
 
     try {
         const isUpdate = !!data.hrmrM_Id;
-        
+
         const newRoom: IRoom = {
             hrmrM_Id: data.hrmrM_Id || Math.floor(Math.random() * 100000),
             hlmH_Id: Number(data.hlmH_Id),
@@ -130,7 +152,7 @@ export async function saveRoom(data: any) {
         };
 
         if (isUpdate) {
-            const index = MOCK_ROOMS.findIndex(r => r.hrmrM_Id === Number(data.hrmrM_Id));
+            const index = MOCK_ROOMS.findIndex((r) => r.hrmrM_Id === Number(data.hrmrM_Id));
             if (index !== -1) {
                 MOCK_ROOMS[index] = { ...MOCK_ROOMS[index], ...newRoom };
                 revalidatePath('/hostel/master-room');
@@ -149,8 +171,8 @@ export async function saveRoom(data: any) {
 }
 
 export async function deleteRoom(id: number) {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    const index = MOCK_ROOMS.findIndex(r => r.hrmrM_Id === id);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    const index = MOCK_ROOMS.findIndex((r) => r.hrmrM_Id === id);
     if (index !== -1) {
         const room = MOCK_ROOMS[index];
         room.hrmrM_ActiveFlag = !room.hrmrM_ActiveFlag;
