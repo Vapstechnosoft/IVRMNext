@@ -781,7 +781,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                 smsconfig: sms,
                 emailconfig: email
             };
-
+            console.log('save fee transaction payload', JSON.stringify(payload));
             const response = await saveFeeTransaction(payload);
 
             if (response?.displaymessage) {

@@ -92,23 +92,108 @@ export function ExportToExcelData(reportData: any, formattedDate: string, school
 }
 
 export function ExporttoPrint(htmlContent: string) {
-    const originalContents = document.body.innerHTML;
+    const printWindow = window.open('', '_blank', 'width=1200,height=800');
+    if (!printWindow) return;
 
-    document.body.innerHTML = `
+    printWindow.document.open();
+    printWindow.document.write(`
         <html>
             <head>
                 <title>Fee Month End Report</title>
+
                 <style>
-                    body { font-family: Arial, sans-serif; }
-                    table { width: 100%; border-collapse: collapse; }
-                    td, th { border: 1px solid #000; padding: 6px; }
+                   @page {
+    size: A4 landscape;
+    margin: 12mm;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    background: white;
+    font-family: Arial, sans-serif;
+}
+
+/* REMOVE flex from body */
+body {
+    width: 100%;
+}
+
+/* Center the printable content */
+.print-container {
+    width: 100%;
+    max-width: 297mm;
+    margin: 0 auto;     /* ✅ THIS centers horizontally */
+    box-sizing: border-box;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+th, td {
+    border: 1px solid #000;
+    padding: 6px;
+}
+
+/* Logo */
+img {
+    display: block;
+    margin: 0 auto;
+    max-height: 100px;
+}
+
+/* Page break helper */
+.page-break {
+    page-break-before: always;
+}
+
+/* Hide buttons */
+button {
+    display: none !important;
+}
+
                 </style>
             </head>
-            <body>${htmlContent}</body>
-        </html>
-    `;
 
-    window.print();
-    document.body.innerHTML = originalContents;
-    window.location.reload();
+            <body>
+                <div class="print-container">
+                    ${htmlContent}
+                </div>
+            </body>
+        </html>
+    `);
+
+    printWindow.document.close();
+
+    // ✅ Wait for images to load
+    const waitForImages = () => {
+        const images = printWindow.document.images;
+        let loaded = 0;
+
+        if (images.length === 0) {
+            triggerPrint();
+            return;
+        }
+
+        for (const img of images) {
+            img.onload = img.onerror = () => {
+                loaded++;
+                if (loaded === images.length) {
+                    triggerPrint();
+                }
+            };
+        }
+    };
+
+    const triggerPrint = () => {
+        printWindow.focus();
+        printWindow.print();
+        printWindow.close();
+    };
+
+    waitForImages();
 }
