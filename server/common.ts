@@ -3432,108 +3432,6 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
-
-                // {
-                //     id: 8,
-                //     name: 'Hostel Management',
-                //     icon: 'Home',
-                //     menu: [
-                //         {
-                //             id: 1,
-                //             name: 'Master',
-                //             icon: 'Settings',
-                //             sub_menu: [
-                //                 {
-                //                     id: 1,
-                //                     name: 'Masters',
-                //                     icon: 'Database',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Master Facility',
-                //                             icon: 'Wifi',
-                //                             url: '/hostel/hostel-management/masters/master-facility',
-                //                             title: 'Master Facility',
-                //                             description: 'Manage Hostel Facilities'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Master Hostel',
-                //                             icon: 'Building',
-                //                             url: '/hostel/hostel-management/masters/master-hostel',
-                //                             title: 'Master Hostel',
-                //                             description: 'Manage Hostel Details'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Master Mess Category',
-                //                             icon: 'Home',
-                //                             url: '/hostel/hostel-management/masters/master-mess-category',
-                //                             title: 'Master Mess Category',
-                //                             description: 'Manage Mess Category Mapping'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Master Floor',
-                //                             icon: 'Layers',
-                //                             url: '/hostel/hostel-management/masters/master-floor',
-                //                             title: 'Master Floor',
-                //                             description: 'Manage Floor Details'
-                //                         },
-                //                         {
-                //                             id: 5,
-                //                             name: 'Master Room',
-                //                             icon: 'Home',
-                //                             url: '/hostel/hostel-management/masters/master-room',
-                //                             title: 'Master Room',
-                //                             description: 'Manage Room Details'
-                //                         },
-                //                         {
-                //                             id: 6,
-                //                             name: 'Master Bed',
-                //                             icon: 'Home',
-                //                             url: '/hostel/hostel-management/masters/master-bed',
-                //                             title: 'Master Bed',
-                //                             description: 'Manage Bed Details'
-                //                         },
-                //                         {
-                //                             id: 7,
-                //                             name: 'Master Mess',
-                //                             icon: 'Home',
-                //                             url: '/hostel/hostel-management/masters/master-mess',
-                //                             title: 'Master Mess',
-                //                             description: 'Manage Mess Details'
-                //                         },
-                //                         {
-                //                             id: 8,
-                //                             name: 'Mess Menu',
-                //                             icon: 'Home',
-                //                             url: '/hostel/hostel-management/masters/mess-menu',
-                //                             title: 'Mess Menu',
-                //                             description: 'Manage Mess Menu Details'
-                //                         },
-                //                         {
-                //                             id: 9,
-                //                             name: 'Room Category',
-                //                             icon: 'Home',
-                //                             url: '/hostel/hostel-management/masters/room-category',
-                //                             title: 'Room Category',
-                //                             description: 'Manage Room Categories'
-                //                         },
-                //                         {
-                //                             id: 10,
-                //                             name: 'Room Tariff',
-                //                             icon: 'Home',
-                //                             url: '/hostel/hostel-management/masters/room-tariff',
-                //                             title: 'Room Tariff',
-                //                             description: 'Manage Room Tariffs'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // },
                 // {
                 //     id: 9,
                 //     name: 'Student Portal',
@@ -4875,7 +4773,6 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Master Menu Page Mapping'
                                         },
 
-
                                         {
                                             id: 6,
                                             name: 'Master School Type',
@@ -4890,7 +4787,6 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 }
-
 
                 // {
                 //     id: 13,
