@@ -53,7 +53,7 @@ interface AddStudentFeeGroupMappingFilter {
     onSuccess?: () => void;
 }
 
-export default function MasterStudentGroupMappingPage({ onSuccess }: AddStudentFeeGroupMappingFilter) {
+export default function AddMasterStudentFeeGroupMapping({ onSuccess }: AddStudentFeeGroupMappingFilter) {
     const [isEditFormOpen, setIsEditFormOpen] = useState(false);
     const [selectedRow, setSelectedRow] = useState<any>(null);
 
@@ -112,7 +112,7 @@ function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFeeGroupMappingFi
     const [heads, setHeads] = useState<Record<number, IMasterFeeHeadList[]>>({});
     const [installment, setInstallment] = useState<Record<number, Record<number, IMasterFeeInstallmentList[]>>>({});
     const [selectedStudents, setSelectedStudents] = useState<IMasterStudentClassMappingList[]>([]);
-
+    const { data: academicYearData, isLoading: academicYearLoading, error: academicYearError } = useMasterStudentFeeGrouMappingAcademic();
     const {
         control,
         handleSubmit,
@@ -126,14 +126,14 @@ function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFeeGroupMappingFi
         mode: 'onChange',
         defaultValues: {
             // asmaY_Id: academicYear,
-            //  asmaY_Id: 0,
+            asmaY_Id: academicYearData?.data?.[0]?.asmaY_Id || 0,
             mI_Id: '',
             institutionName: ''
         }
     });
 
     //-------------Academic Year---------------
-    const { data: academicYearData, isLoading: academicYearLoading, error: academicYearError } = useMasterStudentFeeGrouMappingAcademic();
+
     const [academicYearOptions, setAcademicYearOptions] = useState<DropdownOption[]>([]);
     // useEffect(() => {
     //     if (academicYearError) {
