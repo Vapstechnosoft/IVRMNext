@@ -14,6 +14,7 @@ import {
     getDesignationDropdown,
     getEmployeeById,
     getEmployeeList,
+    getEmployeeRegisterOnload,
     getEmployeeTypeDropdown,
     getGenderDropdown,
     getGradeDropdown,
@@ -29,9 +30,24 @@ import {
     getStateDropdown,
     getTeachingTypeDropdown,
     saveEmployee,
+    saveEmployeeArrears,
+    saveEmployeeDeductions,
+    saveEmployeeDocument,
+    saveEmployeeEarnings,
     saveEmployeeExperience,
+    saveEmployeeMedical,
+    saveEmployeeOtherDetails,
     saveEmployeeQualification,
-    toggleEmployee
+    saveBankDetails,
+    toggleEmployee,
+    uploadStaffPhoto,
+    getEmployeeSalaryDetailsByHead,
+    getEarningList,
+    getDeductionList,
+    getArrearsList,
+    updateEmployeeSalaryDetailsByHead,
+    saveEmployeeSalaryDetails,
+    getEmployeeEarningsDeductions
 } from '@/server/hrms/hrmsConfig/employee/register';
 import type { ApiSearchparams } from '@/types';
 import type { IEmployeeSaveRequest } from '@/types/hrms/hrms-config/employee';
@@ -168,12 +184,13 @@ export function useReligionDropdown() {
     };
 }
 
-export function useCasteCategoryDropdown() {
+export function useCasteCategoryDropdown(religionId?: number | string) {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
-            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'dropdown', 'caste-category'],
-            queryFn: async () => getCasteCategoryDropdown(),
+            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'dropdown', 'caste-category', religionId],
+            queryFn: async () => getCasteCategoryDropdown(religionId || 0),
+            enabled: !!religionId, // Only fetch if religion is selected
             staleTime: 1000 * 60 * 5
         }),
         refetchAll: () => {
@@ -184,12 +201,13 @@ export function useCasteCategoryDropdown() {
     };
 }
 
-export function useCasteDropdown() {
+export function useCasteDropdown(casteCategoryId?: number | string) {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
-            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'dropdown', 'caste'],
-            queryFn: async () => getCasteDropdown(),
+            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'dropdown', 'caste', casteCategoryId],
+            queryFn: async () => getCasteDropdown(casteCategoryId || 0),
+            enabled: !!casteCategoryId, // Only fetch if caste category is selected
             staleTime: 1000 * 60 * 5
         }),
         refetchAll: () => {
@@ -420,6 +438,89 @@ export function useContactTypeDropdown() {
     };
 }
 
+// ==================== Payroll List Hooks ====================
+
+export function useEarningList() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'payroll', 'earnings'],
+            queryFn: async () => getEarningList(),
+            staleTime: 1000 * 60 * 5
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'payroll', 'earnings']
+            });
+        }
+    };
+}
+
+export function useDeductionList() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'payroll', 'deductions'],
+            queryFn: async () => getDeductionList(),
+            staleTime: 1000 * 60 * 5
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'payroll', 'deductions']
+            });
+        }
+    };
+}
+
+export function useArrearsList() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'payroll', 'arrears'],
+            queryFn: async () => getArrearsList(),
+            staleTime: 1000 * 60 * 5
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'payroll', 'arrears']
+            });
+        }
+    };
+}
+
+// ==================== Employee Onload Hook ====================
+
+/**
+ * Hook to fetch employee registration onload data
+ * This fetches all initial data including dropdowns and configurations
+ */
+export function useEmployeeRegisterOnload(MI_Id: number, HRME_Id?: number) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'onload', MI_Id, HRME_Id],
+        queryFn: async () => {
+            console.log(`📡 [HOOK] Fetching onload data for MI_Id: ${MI_Id}, HRME_Id: ${HRME_Id}`);
+            const data = await getEmployeeRegisterOnload(MI_Id, HRME_Id);
+            console.log('📡 [HOOK] RAW API RESPONSE:', data);
+
+            // Explicitly check for qualification array existence in raw response
+            if (data) {
+                const keys = Object.keys(data);
+                const qualKeys = keys.filter(k => k.toLowerCase().includes('qual') || k.toLowerCase().includes('educ'));
+                console.log('📡 [HOOK] Potential Qualification Keys found in root:', qualKeys);
+
+                if (data.data) {
+                    const dataKeys = Object.keys(data.data);
+                    const dataQualKeys = dataKeys.filter(k => k.toLowerCase().includes('qual') || k.toLowerCase().includes('educ'));
+                    console.log('📡 [HOOK] Potential Qualification Keys found in data.data:', dataQualKeys);
+                }
+            }
+            return data;
+        },
+        enabled: !!MI_Id && MI_Id > 0,
+        staleTime: 1000 * 60 * 5 // 5 minutes
+    });
+}
+
 // ==================== Employee CRUD Hooks ====================
 
 /**
@@ -447,11 +548,29 @@ export function useEmployeeList(searchParams?: ApiSearchparams) {
 export function useEmployeeById(id: number | null) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, id],
-        queryFn: () => {
+        queryFn: async () => {
             if (!id || id === 0) {
                 return Promise.resolve(null);
             }
-            return getEmployeeById(id);
+            console.log(`📡 [HOOK] Fetching Employee By ID: ${id}`);
+            const data = await getEmployeeById(id);
+            console.log('📡 [HOOK] RAW useEmployeeById RESPONSE:', data);
+            if (data) {
+                const keys = Object.keys(data);
+                const qualKeys = keys.filter(k => k.toLowerCase().includes('qual') || k.toLowerCase().includes('educ'));
+                console.log('📡 [HOOK - ById] Potential Qualification Keys found in root:', qualKeys);
+
+                // Check inside potential wrappers like 'employeeDetails' or 'data'
+                const possibleWrappers = ['data', 'employeeDetails', 'employeedetails', 'editEmployee'];
+                possibleWrappers.forEach(wrapper => {
+                    if ((data as any)[wrapper]) {
+                        const wKeys = Object.keys((data as any)[wrapper]);
+                        const wQualKeys = wKeys.filter(k => k.toLowerCase().includes('qual'));
+                        if (wQualKeys.length > 0) console.log(`📡 [HOOK - ById] Found qualification keys inside '${wrapper}':`, wQualKeys);
+                    }
+                });
+            }
+            return data;
         },
         enabled: !!id && id > 0,
         staleTime: 1000 * 60 * 5 // 5 minutes
@@ -562,5 +681,256 @@ export function useDeleteEmployee() {
         onError: (error: Error) => {
             toast.error(error.message || 'An error occurred while deleting employee');
         }
+    });
+}
+
+/**
+ * Hook to save employee document details
+ */
+export function useSaveEmployeeDocument() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: any[]) => saveEmployeeDocument(data),
+        onSuccess: (response) => {
+            if (response?.success) {
+                toast.success(response.message || 'Document details saved successfully');
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
+                });
+            } else if (response?.message) {
+                toast.info(response.message);
+            }
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || 'An error occurred while saving document details');
+        }
+    });
+}
+
+/**
+ * Hook to save employee medical details
+ */
+export function useSaveEmployeeMedical() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: any) => saveEmployeeMedical(data),
+        onSuccess: (response) => {
+            if (response?.success) {
+                toast.success(response.message || 'Medical details saved successfully');
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
+                });
+            } else if (response?.message) {
+                toast.info(response.message);
+            }
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || 'An error occurred while saving medical details');
+        }
+    });
+}
+
+/**
+ * Hook to save employee other details
+ */
+export function useSaveEmployeeOtherDetails() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: any) => saveEmployeeOtherDetails(data),
+        onSuccess: (response) => {
+            if (response?.success) {
+                toast.success(response.message || 'Other details saved successfully');
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
+                });
+            } else if (response?.message) {
+                toast.info(response.message);
+            }
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || 'An error occurred while saving other details');
+        }
+    });
+}
+
+/**
+ * Hook to upload staff photo
+ */
+export function useUploadStaffPhoto() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (formData: FormData) => uploadStaffPhoto(formData),
+        onSuccess: (response) => {
+            if (response?.success) {
+                toast.success(response.message || 'Photo uploaded successfully');
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
+                });
+            } else if (response?.message) {
+                toast.info(response.message);
+            }
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || 'An error occurred while uploading photo');
+        }
+    });
+}
+/**
+ * Hook to save employee earning details
+ */
+export function useSaveEmployeeEarnings() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: any) => saveEmployeeEarnings(data),
+        onSuccess: (response) => {
+            if (response?.success) {
+                toast.success(response.message || 'Earning details saved successfully');
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
+                });
+            } else if (response?.message) {
+                toast.info(response.message);
+            }
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || 'An error occurred while saving earning details');
+        }
+    });
+}
+
+/**
+ * Hook to save employee deduction details
+ */
+export function useSaveEmployeeDeductions() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: any) => saveEmployeeDeductions(data),
+        onSuccess: (response) => {
+            if (response?.success) {
+                toast.success(response.message || 'Deduction details saved successfully');
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
+                });
+            } else if (response?.message) {
+                toast.info(response.message);
+            }
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || 'An error occurred while saving deduction details');
+        }
+    });
+}
+
+/**
+ * Hook to save employee arrear details
+ */
+export function useSaveEmployeeArrears() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: any) => saveEmployeeArrears(data),
+        onSuccess: (response) => {
+            if (response?.success) {
+                toast.success(response.message || 'Arrear details saved successfully');
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
+                });
+            } else if (response?.message) {
+                toast.info(response.message);
+            }
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || 'An error occurred while saving arrear details');
+        }
+    });
+}
+
+/**
+ * Hook to save employee bank details
+ */
+export function useSaveBankDetails() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: any) => saveBankDetails(data),
+        onSuccess: (response) => {
+            if (response?.success) {
+                toast.success(response.message || 'Bank details saved successfully');
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
+                });
+            } else if (response?.message) {
+                toast.info(response.message);
+            }
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || 'An error occurred while saving bank details');
+        }
+    });
+}
+
+/**
+ * Hook to get employee salary details calculated by head
+ */
+export function useGetEmployeeSalaryDetailsByHead() {
+    return useMutation({
+        mutationFn: (data: any) => getEmployeeSalaryDetailsByHead(data),
+        onError: (error: Error) => {
+            console.error('Failed to calculate salary details:', error);
+        }
+    });
+}
+
+/**
+ * Hook to update employee salary details by head
+ */
+export function useUpdateEmployeeSalaryDetailsByHead() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: any) => updateEmployeeSalaryDetailsByHead(data),
+        onSuccess: (response) => {
+            if (response?.success) {
+                toast.success(response.message || 'Salary detail updated effectively');
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
+                });
+            } else if (response?.message) {
+                toast.info(response.message);
+            }
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || 'An error occurred while updating salary detail');
+        }
+    });
+}
+/**
+ * Hook to save employee salary details
+ */
+export function useSaveEmployeeSalaryDetails() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ hrme_id, MI_Id }: { hrme_id: number; MI_Id: number }) => saveEmployeeSalaryDetails(hrme_id, MI_Id),
+        onSuccess: (response) => {
+            if (response?.success) {
+                toast.success(response.message || 'Salary details saved successfully');
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
+                });
+            } else if (response?.message) {
+                toast.error(response.message);
+            }
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || 'An error occurred while saving salary details');
+        }
+    });
+}
+
+/**
+ * Hook to fetch employee earnings and deductions
+ */
+export function useEmployeeEarningsDeductions(hrme_id: number | null) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'earnings-deductions', hrme_id],
+        queryFn: () => getEmployeeEarningsDeductions(hrme_id!),
+        enabled: !!hrme_id && hrme_id > 0
     });
 }

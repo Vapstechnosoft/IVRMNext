@@ -19,8 +19,14 @@ const routeMatcher = createRouterMatcher([
 ]);
 
 export async function middleware(request: NextRequest) {
-    const session = await auth();
     const { pathname } = request.nextUrl;
+
+    // ✅ Skip middleware for API auth routes to prevent fetch errors/recursion
+    if (pathname.startsWith('/api/auth/')) {
+        return NextResponse.next();
+    }
+
+    const session = await auth();
 
     const isLoggedIn = session;
     const userRole = session?.role;

@@ -13,6 +13,8 @@ import {
     useBloodGroupDropdown,
     useCasteCategoryDropdown,
     useCasteDropdown,
+    useDepartmentDropdown,
+
     useContactTypeDropdown,
     useCountryDropdown,
     useCourseDropdown,
@@ -33,7 +35,17 @@ import {
     useSaveEmployeeQualification,
     useScoreTypeDropdown,
     useSpecializationDropdown,
-    useTeachingTypeDropdown
+    useTeachingTypeDropdown,
+    useSaveEmployeeDocument,
+    useSaveEmployeeMedical,
+    useSaveEmployeeOtherDetails,
+    useUploadStaffPhoto,
+    useSaveBankDetails,
+    useEmployeeRegisterOnload,
+    useEarningList,
+    useDeductionList,
+    useArrearsList,
+    useSaveEmployeeSalaryDetails
 } from '@/hooks/hrms/useEmployeeRegister';
 import { getIconByName } from '@/lib/lucide-icon-registry';
 import { cn } from '@/lib/utils';
@@ -48,6 +60,7 @@ import type {
     IContactTypeDropdown,
     ICountryDropdown,
     ICourseDropdown,
+    IDepartmentDropdown,
     IDesignationDropdown,
     IEmployeeTypeDropdown,
     IGenderDropdown,
@@ -66,7 +79,7 @@ import type {
 } from '@/types/hrms/hrms-config/employee';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { Check, ChevronLeft, ChevronRight, Plus, Save, Trash2, Upload, X } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, Plus, RefreshCw, Save, Trash2, Upload, X } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
@@ -74,6 +87,8 @@ import { toast } from 'sonner';
 import type { z } from 'zod';
 import {
     employeeRegisterSteps,
+    fileToBase64,
+    mapApiResponseToFormFields,
     mapApiResponseToTab1Fields,
     mapApiResponseToTab2Fields,
     mapApiResponseToTab3Fields,
@@ -161,32 +176,11 @@ function QualificationStateDropdown({
     );
 }
 
-// Helper functions for SelectItem - prevents empty string values
-const SafeSelectItem = ({
-    value,
-    children,
-    ...props
-}: {
-    value: any;
-    children: React.ReactNode;
-    [key: string]: any;
-}) => {
-    if (value == null || value === undefined || value === '') {
-        return null;
-    }
-    const strValue = String(value);
-    if (strValue === '' || strValue.trim() === '' || strValue.length === 0) {
-        return null;
-    }
-    const trimmedValue = strValue.trim();
-    if (trimmedValue === '' || trimmedValue.length === 0) {
-        return null;
-    }
-    return (
-        <SelectItem {...props} value={trimmedValue}>
-            {children}
-        </SelectItem>
-    );
+// Helper to validate value for SelectItem
+const getSafeValue = (value: any) => {
+    if (value == null || value === undefined || value === '') return null;
+    const strValue = String(value).trim();
+    return strValue === '' ? null : strValue;
 };
 
 // Type definition using imported schema
@@ -200,6 +194,8 @@ interface UpdateEmployeeFormProps {
     className?: string;
 }
 
+const DebugPanel = null;
+
 /**
  * Update Employee Form - Standalone form for updating existing employees
  * Matches the pattern from preadmission application-form update-form
@@ -208,156 +204,194 @@ interface UpdateEmployeeFormProps {
 export default function UpdateEmployeeForm({ selectedRow, onSuccess, className = '' }: UpdateEmployeeFormProps): React.ReactElement {
     // Grade dropdown - API: /api/MasterDropDown/GetGradeList
     const { data: gradeDropdownResponse, isLoading: isLoadingGrades } = useGradeDropdown();
-    // Extract data from response (handle ApiResponse wrapper if needed)
-    const gradeDropdown: IGradeDropdown[] = Array.isArray(gradeDropdownResponse)
-        ? gradeDropdownResponse
-        : (gradeDropdownResponse as any)?.data || [];
+    // Memoize dropdown to prevent infinite loops from unstable array references
+    const gradeDropdown: IGradeDropdown[] = useMemo(() =>
+        Array.isArray(gradeDropdownResponse) ? gradeDropdownResponse : (gradeDropdownResponse as any)?.data || [],
+        [gradeDropdownResponse]);
 
     // Group Type dropdown - API: /api/MasterDropDown/GroupType
     const { data: groupTypeDropdownResponse, isLoading: isLoadingGroupTypes } = useGroupTypeDropdown();
-    // Extract and transform data from response (handle ApiResponse wrapper if needed)
-    const rawGroupTypes = Array.isArray(groupTypeDropdownResponse)
-        ? groupTypeDropdownResponse
-        : (groupTypeDropdownResponse as any)?.data || [];
-    // Transform to { key, value } format if needed
-    const groupTypeDropdown: IGroupTypeDropdown[] = rawGroupTypes
-        .map((item: any) => {
-            // If already in { key, value } format, return as is
-            if (item.key !== undefined && item.value !== undefined) {
-                return item;
-            }
-            // Otherwise transform from API structure { HRMGT_Id, HRMGT_EmployeeGroupType }
-            return {
-                key: String(item.HRMGT_Id ?? item.key ?? ''),
-                value: String(item.HRMGT_EmployeeGroupType ?? item.value ?? item.label ?? '')
-            };
-        })
-        .filter((item: IGroupTypeDropdown) => item.key != null && item.key !== undefined && item.key !== 0);
+    // Memoize and transform to ensure stable reference
+    const groupTypeDropdown: IGroupTypeDropdown[] = useMemo(() => {
+        const rawGroupTypes = Array.isArray(groupTypeDropdownResponse)
+            ? groupTypeDropdownResponse
+            : (groupTypeDropdownResponse as any)?.data || [];
+
+        return rawGroupTypes
+            .map((item: any) => {
+                if (item.key !== undefined && item.value !== undefined) return item;
+                return {
+                    key: String(item.HRMGT_Id ?? item.key ?? ''),
+                    value: String(item.HRMGT_EmployeeGroupType ?? item.value ?? item.label ?? '')
+                };
+            })
+            .filter((item: IGroupTypeDropdown) => item.key != null && item.key !== undefined && item.key !== 0);
+    }, [groupTypeDropdownResponse]);
 
     // Employee Type dropdown - API: /api/MasterDropDown/GetEmployeeType
     const { data: employeeTypeDropdownResponse, isLoading: isLoadingEmployeeTypes } = useEmployeeTypeDropdown();
-    // Extract and transform data from response (handle ApiResponse wrapper if needed)
-    const rawEmployeeTypes = Array.isArray(employeeTypeDropdownResponse)
-        ? employeeTypeDropdownResponse
-        : (employeeTypeDropdownResponse as any)?.data || [];
-    // Transform to { key, value } format if needed
-    const employeeTypeDropdown: IEmployeeTypeDropdown[] = rawEmployeeTypes
-        .map((item: any) => {
-            // If already in { key, value } format, return as is
-            if (item.key !== undefined && item.value !== undefined) {
-                return item;
-            }
-            // Otherwise transform from API structure { HRMET_Id, HRMET_EmployeeType }
-            return {
-                key: String(item.HRMET_Id ?? item.key ?? ''),
-                value: String(item.HRMET_EmployeeType ?? item.value ?? item.label ?? '')
-            };
-        })
-        .filter((item: IEmployeeTypeDropdown) => item.key != null && item.key !== undefined && item.key !== 0);
+
+    const employeeTypeDropdown: IEmployeeTypeDropdown[] = useMemo(() => {
+        const rawEmployeeTypes = Array.isArray(employeeTypeDropdownResponse)
+            ? employeeTypeDropdownResponse
+            : (employeeTypeDropdownResponse as any)?.data || [];
+
+        return rawEmployeeTypes
+            .map((item: any) => {
+                if (item.key !== undefined && item.value !== undefined) return item;
+                return {
+                    key: String(item.HRMET_Id ?? item.key ?? ''),
+                    value: String(item.HRMET_EmployeeType ?? item.value ?? item.label ?? '')
+                };
+            })
+            .filter((item: IEmployeeTypeDropdown) => item.key != null && item.key !== undefined && item.key !== 0);
+    }, [employeeTypeDropdownResponse]);
 
     // Institution dropdown - API: /api/MasterDropDown/GetInstitutionList
     const { data: institutionDropdownResponse, isLoading: isLoadingInstitutions } = useInstitutionDropdown();
-    // Extract data from response (handle ApiResponse wrapper if needed)
-    const institutionDropdown: IInstitutionDropdown[] = Array.isArray(institutionDropdownResponse)
-        ? institutionDropdownResponse
-        : (institutionDropdownResponse as any)?.data || [];
+    const institutionDropdown: IInstitutionDropdown[] = useMemo(() =>
+        Array.isArray(institutionDropdownResponse) ? institutionDropdownResponse : (institutionDropdownResponse as any)?.data || [],
+        [institutionDropdownResponse]);
 
     // Designation dropdown - API: /api/MasterDropDown/GetDesignation
     const { data: designationDropdownResponse, isLoading: isLoadingDesignations } = useDesignationDropdown();
-    // Extract data from response (handle ApiResponse wrapper if needed)
-    const designationDropdown: IDesignationDropdown[] = Array.isArray(designationDropdownResponse)
-        ? designationDropdownResponse
-        : (designationDropdownResponse as any)?.data || [];
+    const designationDropdown: IDesignationDropdown[] = useMemo(() =>
+        Array.isArray(designationDropdownResponse) ? designationDropdownResponse : (designationDropdownResponse as any)?.data || [],
+        [designationDropdownResponse]);
+
+    // Department dropdown (for School field) - API: /api/MasterDepartment
+    const { data: departmentDropdownResponse, isLoading: isLoadingDepartments } = useDepartmentDropdown();
+
+    const departmentDropdown: any[] = useMemo(() => {
+        const rawData = Array.isArray(departmentDropdownResponse) ? departmentDropdownResponse : (departmentDropdownResponse as any)?.data || [];
+        console.log('🔍 [DEBUG] Department Raw Data:', rawData);
+        return rawData
+            .map((item: any) => {
+                if (item.key !== undefined && item.value !== undefined) return item;
+                // Try logging individual item to see structure
+                if (rawData.indexOf(item) === 0) console.log('🔍 [DEBUG] First Department Item:', item);
+                return {
+                    key: String(item.hrmD_Id ?? item.HRMD_Id ?? item.departmentId ?? item.key ?? ''),
+                    value: String(
+                        item.hrmD_DepartmentName ??
+                        item.HRMD_DepartmentName ??
+                        item.hrmD_Name ??
+                        item.HRMD_Name ??
+                        item.name ??
+                        item.departmentName ??
+                        item.HRMD_ProjectName ??
+                        item.value ??
+                        item.label ??
+                        ''
+                    )
+                };
+            })
+            .filter((item: any) => item.key != null && item.key !== undefined && item.key !== '' && item.key !== '0');
+    }, [departmentDropdownResponse]);
+
+
 
     // Gender dropdown - API: /api/MasterDropDown/GetGenderList
     const { data: genderDropdownResponse, isLoading: isLoadingGenders } = useGenderDropdown();
-    const genderDropdown: IGenderDropdown[] = Array.isArray(genderDropdownResponse)
-        ? genderDropdownResponse
-        : (genderDropdownResponse as any)?.data || [];
+    const genderDropdown: IGenderDropdown[] = useMemo(() =>
+        Array.isArray(genderDropdownResponse) ? genderDropdownResponse : (genderDropdownResponse as any)?.data || [],
+        [genderDropdownResponse]);
 
     // Marital Status dropdown - API: /api/MasterDropDown/GetMaritalStateList
     const { data: maritalStatusDropdownResponse, isLoading: isLoadingMaritalStatuses } = useMaritalStatusDropdown();
-    const maritalStatusDropdown: IMaritalStatusDropdown[] = Array.isArray(maritalStatusDropdownResponse)
-        ? maritalStatusDropdownResponse
-        : (maritalStatusDropdownResponse as any)?.data || [];
+    const maritalStatusDropdown: IMaritalStatusDropdown[] = useMemo(() =>
+        Array.isArray(maritalStatusDropdownResponse) ? maritalStatusDropdownResponse : (maritalStatusDropdownResponse as any)?.data || [],
+        [maritalStatusDropdownResponse]);
 
     // Religion dropdown - API: /api/MasterDropDown/GeAllReligionList
     const { data: religionDropdownResponse, isLoading: isLoadingReligions } = useReligionDropdown();
-    const religionDropdown: IReligionDropdown[] = Array.isArray(religionDropdownResponse)
-        ? religionDropdownResponse
-        : (religionDropdownResponse as any)?.data || [];
 
-    // Caste Category dropdown - API: /api/MasterDropDown/GeAllCasteCategoriesList
-    const { data: casteCategoryDropdownResponse, isLoading: isLoadingCasteCategories } = useCasteCategoryDropdown();
-    const casteCategoryDropdown: ICasteCategoryDropdown[] = Array.isArray(casteCategoryDropdownResponse)
-        ? casteCategoryDropdownResponse
-        : (casteCategoryDropdownResponse as any)?.data || [];
+    const religionDropdown: IReligionDropdown[] = useMemo(() => {
+        const rawData = Array.isArray(religionDropdownResponse) ? religionDropdownResponse : (religionDropdownResponse as any)?.data || [];
+        console.log('🔍 [DEBUG] Religion Raw Data:', rawData);
+        return rawData
+            .map((item: any) => {
+                if (item.key !== undefined && item.value !== undefined) return item;
+                if (rawData.indexOf(item) === 0) console.log('🔍 [DEBUG] First Religion Item:', item);
+                return {
+                    key: String(item.ivrmmR_Id ?? item.IVRMMR_Id ?? item.hrmR_Id ?? item.religionId ?? item.ReligionId ?? item.id ?? item.key ?? ''),
+                    value: String(
+                        item.ivrmmR_Name ??
+                        item.IVRMMR_Name ??
+                        item.hrmR_Name ??
+                        item.name ??
+                        item.religionName ??
+                        item.ReligionName ??
+                        item.value ??
+                        item.label ??
+                        ''
+                    )
+                };
+            })
+            .filter((item: any) => item.key != null && item.key !== undefined && item.key !== '' && item.key !== '0');
+    }, [religionDropdownResponse]);
 
-    // Caste dropdown - API: /api/MasterDropDown/GetAllCasteList
-    const { data: casteDropdownResponse, isLoading: isLoadingCastes } = useCasteDropdown();
-    const casteDropdown: ICasteDropdown[] = Array.isArray(casteDropdownResponse)
-        ? casteDropdownResponse
-        : (casteDropdownResponse as any)?.data || [];
+
 
     // Payment Mode dropdown - API: /api/MasterDropDown/GetPaymentModeList
     const { data: paymentModeDropdownResponse, isLoading: isLoadingPaymentModes } = usePaymentModeDropdown();
-    const paymentModeDropdown: IPaymentModeDropdown[] = Array.isArray(paymentModeDropdownResponse)
-        ? paymentModeDropdownResponse
-        : (paymentModeDropdownResponse as any)?.data || [];
+    const paymentModeDropdown: IPaymentModeDropdown[] = useMemo(() =>
+        Array.isArray(paymentModeDropdownResponse) ? paymentModeDropdownResponse : (paymentModeDropdownResponse as any)?.data || [],
+        [paymentModeDropdownResponse]);
 
     // Bank dropdown - API: /api/MasterDropDown/GetBankList
     const { data: bankDropdownResponse, isLoading: isLoadingBanks } = useBankDropdown();
-    const bankDropdown: IBankDropdown[] = Array.isArray(bankDropdownResponse)
-        ? bankDropdownResponse
-        : (bankDropdownResponse as any)?.data || [];
+    const bankDropdown: IBankDropdown[] = useMemo(() =>
+        Array.isArray(bankDropdownResponse) ? bankDropdownResponse : (bankDropdownResponse as any)?.data || [],
+        [bankDropdownResponse]);
 
     // Country dropdown - API: /api/MasterDropDown/GetCountryList
     const { data: countryDropdownResponse, isLoading: isLoadingCountries } = useCountryDropdown();
-    const countryDropdown: ICountryDropdown[] = Array.isArray(countryDropdownResponse)
-        ? countryDropdownResponse
-        : (countryDropdownResponse as any)?.data || [];
+    const countryDropdown: ICountryDropdown[] = useMemo(() =>
+        Array.isArray(countryDropdownResponse) ? countryDropdownResponse : (countryDropdownResponse as any)?.data || [],
+        [countryDropdownResponse]);
 
     // Specialization dropdown - API: /api/MasterDropDown/GetSpecialisationList
     const { data: specializationDropdownResponse, isLoading: isLoadingSpecializations } = useSpecializationDropdown();
-    const specializationDropdown: ISpecializationDropdown[] = Array.isArray(specializationDropdownResponse)
-        ? specializationDropdownResponse
-        : (specializationDropdownResponse as any)?.data || [];
+    const specializationDropdown: ISpecializationDropdown[] = useMemo(() =>
+        Array.isArray(specializationDropdownResponse) ? specializationDropdownResponse : (specializationDropdownResponse as any)?.data || [],
+        [specializationDropdownResponse]);
 
     // Leave Reason dropdown - API: /api/MasterDropDown/GetLeaveReasonList
     const { data: leaveReasonDropdownResponse, isLoading: isLoadingLeaveReasons } = useLeaveReasonDropdown();
-    const leaveReasonDropdown: ILeaveReasonDropdown[] = Array.isArray(leaveReasonDropdownResponse)
-        ? leaveReasonDropdownResponse
-        : (leaveReasonDropdownResponse as any)?.data || [];
+    const leaveReasonDropdown: ILeaveReasonDropdown[] = useMemo(() =>
+        Array.isArray(leaveReasonDropdownResponse) ? leaveReasonDropdownResponse : (leaveReasonDropdownResponse as any)?.data || [],
+        [leaveReasonDropdownResponse]);
 
     // Blood Group dropdown - API: /api/MasterDropDown/GetBloodGroupList
     const { data: bloodGroupDropdownResponse, isLoading: isLoadingBloodGroups } = useBloodGroupDropdown();
-    const bloodGroupDropdown: IBloodGroupDropdown[] = Array.isArray(bloodGroupDropdownResponse)
-        ? bloodGroupDropdownResponse
-        : (bloodGroupDropdownResponse as any)?.data || [];
+    const bloodGroupDropdown: IBloodGroupDropdown[] = useMemo(() =>
+        Array.isArray(bloodGroupDropdownResponse) ? bloodGroupDropdownResponse : (bloodGroupDropdownResponse as any)?.data || [],
+        [bloodGroupDropdownResponse]);
 
     // Salary Type dropdown - API: /api/MasterDropDown/GetSalaryTypeList
     const { data: salaryTypeDropdownResponse, isLoading: isLoadingSalaryTypes } = useSalaryTypeDropdown();
-    const salaryTypeDropdown: ISalaryTypeDropdown[] = Array.isArray(salaryTypeDropdownResponse)
-        ? salaryTypeDropdownResponse
-        : (salaryTypeDropdownResponse as any)?.data || [];
+    const salaryTypeDropdown: ISalaryTypeDropdown[] = useMemo(() =>
+        Array.isArray(salaryTypeDropdownResponse) ? salaryTypeDropdownResponse : (salaryTypeDropdownResponse as any)?.data || [],
+        [salaryTypeDropdownResponse]);
 
     // Teaching Type dropdown - API: /api/MasterDropDown/GetTeachingTypeList
     const { data: teachingTypeDropdownResponse, isLoading: isLoadingTeachingTypes } = useTeachingTypeDropdown();
-    const teachingTypeDropdown: ITeachingTypeDropdown[] = Array.isArray(teachingTypeDropdownResponse)
-        ? teachingTypeDropdownResponse
-        : (teachingTypeDropdownResponse as any)?.data || [];
+    const teachingTypeDropdown: ITeachingTypeDropdown[] = useMemo(() =>
+        Array.isArray(teachingTypeDropdownResponse) ? teachingTypeDropdownResponse : (teachingTypeDropdownResponse as any)?.data || [],
+        [teachingTypeDropdownResponse]);
 
     // Score Type dropdown - API: /api/MasterDropDown/ScoreTypeList
     const { data: scoreTypeDropdownResponse, isLoading: isLoadingScoreTypes } = useScoreTypeDropdown();
-    const scoreTypeDropdown: IScoreTypeDropdown[] = Array.isArray(scoreTypeDropdownResponse)
-        ? scoreTypeDropdownResponse
-        : (scoreTypeDropdownResponse as any)?.data || [];
+    const scoreTypeDropdown: IScoreTypeDropdown[] = useMemo(() =>
+        Array.isArray(scoreTypeDropdownResponse) ? scoreTypeDropdownResponse : (scoreTypeDropdownResponse as any)?.data || [],
+        [scoreTypeDropdownResponse]);
 
     // Contact Type dropdown - API: /api/MasterDropDown/GetContactType
     const { data: contactTypeDropdownResponse, isLoading: isLoadingContactTypes } = useContactTypeDropdown();
-    const contactTypeDropdown: IContactTypeDropdown[] = Array.isArray(contactTypeDropdownResponse)
-        ? contactTypeDropdownResponse
-        : (contactTypeDropdownResponse as any)?.data || [];
+    const contactTypeDropdown: IContactTypeDropdown[] = useMemo(() =>
+        Array.isArray(contactTypeDropdownResponse) ? contactTypeDropdownResponse : (contactTypeDropdownResponse as any)?.data || [],
+        [contactTypeDropdownResponse]);
 
     // Course dropdown - API: /api/MasterDropDown/GetCourseList
     const { data: courseDropdownResponse, isLoading: isLoadingCourses } = useCourseDropdown();
@@ -365,7 +399,152 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         ? courseDropdownResponse
         : (courseDropdownResponse as any)?.data || [];
 
-    // Options object - Multiple dropdowns are integrated, others will be added one by one as APIs are provided
+
+
+    const { mutate: saveEmployeeMutation, isPending } = useSaveEmployee();
+    const { mutate: saveQualificationMutation, isPending: isSavingQualification } = useSaveEmployeeQualification();
+    const { mutate: saveExperienceDetails, isPending: isSavingExperience } = useSaveEmployeeExperience();
+    const { mutate: saveDocumentDetails, mutateAsync: saveDocumentDetailsAsync, isPending: isSavingDocument } = useSaveEmployeeDocument();
+    const { mutate: saveMedicalDetails, isPending: isSavingMedical } = useSaveEmployeeMedical();
+    const { mutate: saveOtherDetails, isPending: isSavingOther } = useSaveEmployeeOtherDetails();
+    const { mutate: saveSalaryDetails, isPending: isSavingSalaryDetails } = useSaveEmployeeSalaryDetails();
+    const { mutate: uploadStaffPhoto, isPending: isUploadingPhoto } = useUploadStaffPhoto();
+    const { mutate: saveBankDetails, isPending: isSavingBankDetails } = useSaveBankDetails();
+
+    // Alias for consistency
+    const savePersonalDetails = saveEmployeeMutation;
+    const saveQualificationDetails = saveQualificationMutation;
+
+    // Bank details might use saveEmployeeMutation if it's part of main employee update,
+    // or if there is a specific hook. Assuming saveEmployee for now as per original code,
+    // but clearly marked.
+    const _saveBankDetails = saveEmployeeMutation;
+    const isSavingBank = isPending;
+
+    // Update form - edit mode enabled
+    const _isEditMode = true;
+    const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+    const [_photoFile, setPhotoFile] = useState<File | null>(null);
+    const [currentStep, setCurrentStep] = useState(1);
+    const [savedEmployeeId, setSavedEmployeeId] = useState<number | null>(selectedRow?.hrmE_Id || null);
+    const [isFormInitialized, setIsFormInitialized] = useState(false);
+
+    // Empty default values for update form
+    const formDefaultValues = useMemo(
+        () => ({
+            firstName: '',
+            middleName: '',
+            lastName: '',
+            employeeCode: '',
+            typeOfEmployment: '',
+            employeeGroup: '',
+            department: '',
+            designation: '',
+            gender: '',
+            maritalStatus: '',
+            religion: '',
+            casteCategory: '',
+            caste: '',
+            bloodGroup: '',
+            salaryType: '',
+            modeOfPayment: '',
+            contactCountry: '',
+            contactState: '',
+            permanentCountry: '',
+            permanentState: '',
+            sameAsCommunicationAddress: false,
+            qualificationDetails: [],
+            experienceDetails: [],
+            documentList: [],
+            mobileDetails: [{ mobileNo: '', type: 'Default' }],
+            emailDetails: [{ emailId: '', type: 'Default' }],
+            bankDetails: [],
+            dateOfBirth: '',
+            dateOfRetirement: ''
+        }),
+        []
+    );
+    // Refs for tracking initialization state
+    const _employeeDetailsRef = useRef<any>(null);
+
+    const { control, register, handleSubmit, reset, watch, getValues, setValue, trigger, setError, clearErrors, formState } =
+        useForm<FormFields>({
+            resolver: zodResolver(employeeRegisterSchemas.add),
+            mode: 'onChange',
+            reValidateMode: 'onChange',
+            defaultValues: formDefaultValues,
+            shouldUnregister: false // Ensure values persist when tabs unmount
+        });
+
+    const { errors, isSubmitting } = formState;
+
+    const isSubmittingAny =
+        isSubmitting ||
+        isSavingQualification ||
+        isSavingExperience ||
+        isSavingDocument ||
+        isSavingMedical ||
+        isSavingBank ||
+        isSavingOther ||
+        isSavingSalaryDetails;
+
+
+
+
+
+    // Get MI_Id from selectedRow or assume it's available (fallback to 0 which might fail if API is strict)
+    const MI_Id = selectedRow?.mI_Id || 0;
+    const { data: onloadData, isLoading: isLoadingEmployee, refetch: refetchEmployee } = useEmployeeRegisterOnload(MI_Id, selectedRow?.hrmE_Id);
+
+    // Fetch payroll lists explicitly as requested by user
+    const { data: earningListData } = useEarningList();
+    const { data: deductionListData } = useDeductionList();
+    const { data: arrearsListData } = useArrearsList();
+
+    // Value watchers for dependent dropdowns (Moved after useForm)
+    const religionId = useWatch({ control, name: 'religion' });
+    const casteCategoryId = useWatch({ control, name: 'casteCategory' });
+    const selectedReligionId = religionId ? (Number.isNaN(Number(religionId)) ? null : Number(religionId)) : null;
+    const selectedCasteCategoryId = casteCategoryId ? (Number.isNaN(Number(casteCategoryId)) ? null : Number(casteCategoryId)) : null;
+
+    // Caste Category dropdown - Dependent on Religion
+    const { data: casteCategoryDropdownResponse, isLoading: isLoadingCasteCategories } = useCasteCategoryDropdown(selectedReligionId || 0);
+
+    const casteCategoryDropdown: ICasteCategoryDropdown[] = useMemo(() => {
+        const rawData = Array.isArray(casteCategoryDropdownResponse) ? casteCategoryDropdownResponse : (casteCategoryDropdownResponse as any)?.data || [];
+        console.log('🔍 [DEBUG] CasteCategory Raw Data:', rawData);
+        return rawData
+            .map((item: any) => {
+                if (item.key !== undefined && item.value !== undefined) return item;
+                if (rawData.indexOf(item) === 0) console.log('🔍 [DEBUG] First CasteCategory Item:', item);
+                return {
+                    key: String(item.IMCC_Id ?? item.imcC_Id ?? item.key ?? ''),
+                    value: String(item.IMCC_CategoryName ?? item.imcC_CategoryName ?? item.value ?? item.label ?? '')
+                };
+            })
+            .filter((item: any) => item.key != null && item.key !== undefined && item.key !== '' && item.key !== '0');
+    }, [casteCategoryDropdownResponse]);
+
+    // Caste dropdown - Dependent on Caste Category
+    const { data: casteDropdownResponse, isLoading: isLoadingCastes } = useCasteDropdown(selectedCasteCategoryId || 0);
+
+    const casteDropdown: ICasteDropdown[] = useMemo(() => {
+        const rawData = Array.isArray(casteDropdownResponse) ? casteDropdownResponse : (casteDropdownResponse as any)?.data || [];
+        console.log('🔍 [DEBUG] Caste Raw Data:', rawData);
+        return rawData
+            .map((item: any) => {
+                if (item.key !== undefined && item.value !== undefined) return item;
+                if (rawData.indexOf(item) === 0) console.log('🔍 [DEBUG] First Caste Item:', item);
+                return {
+                    key: String(item.IMC_Id ?? item.imC_Id ?? item.key ?? ''),
+                    value: String(item.IMC_CasteName ?? item.imC_CasteName ?? item.value ?? item.label ?? '')
+                };
+            })
+            .filter((item: any) => item.key != null && item.key !== undefined && item.key !== '' && item.key !== '0');
+    }, [casteDropdownResponse]);
+
+
+    // Options object - Moved here to have access to dependent dropdowns
     const options = useMemo(() => {
         return {
             grades: gradeDropdown || [],
@@ -381,7 +560,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             modeOfPayment: paymentModeDropdown || [],
             banks: bankDropdown || [],
             countries: countryDropdown || [],
-            departments: [],
+            departments: departmentDropdown || [],
             states: [],
             courses: courseDropdown || [],
             specialisations: specializationDropdown || [],
@@ -393,10 +572,10 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             contactTypes: contactTypeDropdown || [],
             cgpaPercentageTypes: scoreTypeDropdown || [],
             leavingReasons: leaveReasonDropdown || [],
-            earningList: [],
-            detectionList: [],
-            arrearList: [],
-            grossList: [],
+            earningList: (Array.isArray(earningListData) ? earningListData : (earningListData as any)?.data) || (onloadData as any)?.data?.earningList || [],
+            detectionList: (Array.isArray(deductionListData) ? deductionListData : (deductionListData as any)?.data) || (onloadData as any)?.data?.detectionList || [],
+            arrearList: (Array.isArray(arrearsListData) ? arrearsListData : (arrearsListData as any)?.data) || (onloadData as any)?.data?.arrearList || [],
+            grossList: (onloadData as any)?.data?.grossList || [],
             documentList: [],
             employeedetailList: []
         };
@@ -414,34 +593,81 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         paymentModeDropdown,
         bankDropdown,
         countryDropdown,
+        departmentDropdown,
         courseDropdown,
         specializationDropdown,
         leaveReasonDropdown,
         bloodGroupDropdown,
         salaryTypeDropdown,
         teachingTypeDropdown,
-        scoreTypeDropdown
+        scoreTypeDropdown,
+        onloadData, // Add onloadData dependency
+        earningListData,
+        deductionListData,
+        arrearsListData
     ]);
 
-    const { mutate: saveEmployeeMutation, isPending } = useSaveEmployee();
-    const { mutate: saveQualificationMutation, isPending: isSavingQualification } = useSaveEmployeeQualification();
-    const { mutate: saveExperienceDetails, isPending: isSavingExperience } = useSaveEmployeeExperience();
-    const savePersonalDetails = saveEmployeeMutation;
-    const saveQualificationDetails = saveQualificationMutation;
-    const saveDocumentDetails = saveEmployeeMutation;
-    const saveMedicalDetails = saveEmployeeMutation;
-    const _saveBankDetails = saveEmployeeMutation;
-    const isSavingDocument = isPending;
-    const isSavingMedical = isPending;
-    const isSavingBank = isPending;
+    // Consolidate loading states for UI usage
+    const dropdownLoadingStates = {
+        grades: isLoadingGrades,
+        groupTypes: isLoadingGroupTypes,
+        empTypes: isLoadingEmployeeTypes,
+        institutions: isLoadingInstitutions,
+        departments: isLoadingDepartments,
+        designations: isLoadingDesignations,
+        genders: isLoadingGenders,
+        maritalStatuses: isLoadingMaritalStatuses,
+        religions: isLoadingReligions,
+        casteCategories: isLoadingCasteCategories,
+        castes: isLoadingCastes,
+        paymentModes: isLoadingPaymentModes,
+        banks: isLoadingBanks,
+        countries: isLoadingCountries,
+        specializations: isLoadingSpecializations,
+        leaveReasons: isLoadingLeaveReasons,
+        bloodGroups: isLoadingBloodGroups,
+        salaryTypes: isLoadingSalaryTypes,
+        teachingTypes: isLoadingTeachingTypes,
+        scoreTypes: isLoadingScoreTypes,
+        contactTypes: isLoadingContactTypes,
+        courses: isLoadingCourses
+    };
 
-    // Update form - edit mode enabled
-    const _isEditMode = true;
-    const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
-    const [_photoFile, setPhotoFile] = useState<File | null>(null);
-    const [currentStep, setCurrentStep] = useState(1);
-    const [savedEmployeeId, setSavedEmployeeId] = useState<number | null>(selectedRow?.hrmE_Id || null);
-    const [isFormInitialized, setIsFormInitialized] = useState(false);
+
+
+    // Fetch full employee details when selectedRow changes
+    // MOVED HERE: To ensure 'reset' from useForm is defined
+    // Use the onload API which returns comprehensive data + dropdowns
+
+
+    // Effect to refetch when selectedRow changes (ensures fresh data on repeated edits)
+    useEffect(() => {
+        if (selectedRow?.hrmE_Id) {
+            console.log('🔄 [UPDATE-FORM] Selected row changed to ID:', selectedRow.hrmE_Id);
+            setSavedEmployeeId(selectedRow.hrmE_Id);
+            setIsFormInitialized(false); // Reset initialization flag
+            hasAppliedDetailedData.current = false; // Reset detailed data flag
+            refetchEmployee();
+        }
+    }, [selectedRow?.hrmE_Id, refetchEmployee]);
+
+
+
+    // SAFETY: Re-hydrate arrays when switching tabs if they appear empty but data exists
+
+
+
+    // Define local mapping helpers that were missing
+    const mapFormDataToApiFormatLocal = (data: FormFields): SavePersonalDetailsApiRequest => {
+        // Fallback to employeeIdFromDetails if savedEmployeeId is not yet set
+        const empId = savedEmployeeId || 0;
+        return mapFormDataToApiFormat(data, empId, selectedPhoto);
+    };
+
+    const mapFormDataToApiFormatWithoutAddressLocal = (data: FormFields): SavePersonalDetailsApiRequest => {
+        const empId = savedEmployeeId || 0;
+        return mapFormDataToApiFormatWithoutAddress(data, empId, selectedPhoto);
+    };
 
     // Helper to get current tab key from step
     const getCurrentTabKey = () => steps.find((s) => s.id === currentStep)?.tabKey || 'employee';
@@ -545,7 +771,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             console.log('  - Permanent Address:', payload.hrmE_PerStreet, payload.hrmE_PerCity, payload.hrmE_PerStateId);
             console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Calling savePersonalDetails...');
 
-            savePersonalDetails(payload, {
+            savePersonalDetails(payload as any, {
                 onSuccess: (response: any) => {
                     console.log('✅ [DEBUG] Tab 1 (Employee Information) - Save Success:', response);
                     // Show API response message
@@ -613,7 +839,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             });
             console.log('🔍 [DEBUG] Tab 2 (Address Information) - Calling savePersonalDetails...');
 
-            savePersonalDetails(payload, {
+            savePersonalDetails(payload as any, {
                 onSuccess: (response: any) => {
                     console.log('✅ [DEBUG] Tab 2 (Address Information) - Save Success:', response);
                     console.log('🔍 [DEBUG] Tab 2 - Full API Response:', JSON.stringify(response, null, 2));
@@ -708,6 +934,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     hrmeQ_Id: id, // Use existing ID if updating, 0 for new
                     hrmC_Id: Number(qual.course) || 0,
                     hrmE_Id: employeeId,
+                    mI_Id: MI_Id,
                     hrmE_QualificationName: qual.qualification || '',
                     hrmeQ_CollegeName: qual.college || '',
                     hrmeQ_UniversityName: qual.university || '',
@@ -754,12 +981,13 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 onSuccess: (response: any) => {
                     console.log('✅ [DEBUG] Qualification Save Success:', response);
                     // Show API response message
-                    if (response?.success && response?.message) {
-                        toast.success(response.message);
-                    } else if (response?.message) {
-                        toast.info(response.message);
+                    if (response?.success) {
+                        if (response.message) toast.success(response.message);
+                        setCurrentStep(4);
+                    } else {
+                        console.warn('⚠️ [DEBUG] Tab 3 - API returned success: false', response);
+                        toast.error(response?.message || 'Failed to save qualification details');
                     }
-                    setCurrentStep(4);
                 },
                 onError: (error: any) => {
                     console.error('❌ [DEBUG] Qualification Save Error:', error);
@@ -814,6 +1042,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 const mapped = {
                     hrmeE_Id: id, // Use existing ID if updating, 0 for new
                     hrmE_Id: employeeId,
+                    mI_Id: MI_Id,
                     hrmeE_OrganisationName: exp.organisationName || '',
                     hrmeE_OrganisationAddress: exp.organisationAddress || '',
                     hrmeE_Department: exp.department || '',
@@ -864,16 +1093,13 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     }
 
                     // Show API response message
-                    if (response?.success && response?.message) {
-                        toast.success(response.message);
-                    } else if (response?.message) {
-                        toast.info(response.message);
-                    } else if (response?.success === false) {
-                        console.warn('⚠️ [DEBUG] Tab 4 - API returned success: false');
-                        toast.warning('Experience saved but API returned success: false. Please verify the data was saved.');
+                    if (response?.success) {
+                        if (response.message) toast.success(response.message);
+                        setCurrentStep(5);
+                    } else {
+                        console.warn('⚠️ [DEBUG] Tab 4 - API returned success: false', response);
+                        toast.error(response?.message || 'Failed to save experience details');
                     }
-
-                    setCurrentStep(5);
                 },
                 onError: (error: any) => {
                     console.error('❌ [DEBUG] Tab 4 (Experience) - Save Error:', error);
@@ -885,13 +1111,170 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     toast.error(errorMessage);
                 }
             });
+        } else if (currentStepId === 5) {
+            // Document tab - save document details
+            console.log('🔍 [DEBUG] Tab 5 (Document) - handling save via handleDocumentSave');
+            await handleDocumentSave();
+        } else if (currentStepId === 6) {
+            // Medical tab
+            console.log('🔍 [DEBUG] Tab 6 (Medical) - Starting save process');
+            if (!savedEmployeeId) {
+                toast.error('Please save Employee and Address details first');
+                setCurrentStep(1);
+                return;
+            }
+            const payload = mapFormDataToApiFormatLocal(data);
+            payload.hrmE_Id = savedEmployeeId;
+            saveMedicalDetails(payload, {
+                onSuccess: (response: any) => {
+                    console.log('✅ [API DEBUG] Tab 6 (Medical) - Save Success Response:', response);
+                    if (response?.success) {
+                        toast.success(response.message || 'Medical details saved successfully');
+                        setCurrentStep(7);
+                    } else {
+                        console.error('❌ [API DEBUG] Tab 6 (Medical) - API returned success: false', response);
+                        toast.error(response?.message || 'Failed to save medical details');
+                    }
+                },
+                onError: (error: any) => {
+                    console.error('❌ [API DEBUG] Tab 6 (Medical) - API Error:', error);
+                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save medical details';
+                    toast.error(errorMessage);
+                }
+            });
+        } else if (currentStepId === 7) {
+            // Other Details tab
+            console.log('🔍 [DEBUG] Tab 7 (Other) - Starting save process');
+            if (!savedEmployeeId) {
+                toast.error('Please save Employee and Address details first');
+                setCurrentStep(1);
+                return;
+            }
+            const payload = mapFormDataToApiFormatLocal(data);
+            payload.hrmE_Id = savedEmployeeId;
+            saveOtherDetails(payload, {
+                onSuccess: (response: any) => {
+                    console.log('✅ [API DEBUG] Tab 7 (Other) - Save Success Response:', response);
+                    if (response?.success) {
+                        toast.success(response.message || 'Other details saved successfully');
+                        // Call salary details save API as requested by user
+                        if (savedEmployeeId) {
+                            saveSalaryDetails({ hrme_id: savedEmployeeId, MI_Id: MI_Id }, {
+                                onSuccess: (salaryResponse: any) => {
+                                    console.log('✅ [API DEBUG] Tab 7 (Salary Save) - Success:', salaryResponse);
+                                    setCurrentStep(8);
+                                },
+                                onError: (salaryError: any) => {
+                                    console.error('❌ [API DEBUG] Tab 7 (Salary Save) - Error:', salaryError);
+                                    // Move to next step anyway as requested, but warning is fine.
+                                    setCurrentStep(8);
+                                }
+                            });
+                        } else {
+                            setCurrentStep(8);
+                        }
+                    } else {
+                        console.error('❌ [API DEBUG] Tab 7 (Other) - API returned success: false', response);
+                        toast.error(response?.message || 'Failed to save other details');
+                    }
+                },
+                onError: (error: any) => {
+                    console.error('❌ [API DEBUG] Tab 7 (Other) - API Error:', error);
+                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save other details';
+                    toast.error(errorMessage);
+                }
+            });
+
         } else {
             // For other steps, just move to next step without API call
-            console.log('🔍 [DEBUG] nextStep - Falling through to else clause');
-            console.log('🔍 [DEBUG] nextStep - Current Step ID:', currentStepId);
-            console.log('🔍 [DEBUG] nextStep - This means Tab 4 condition was NOT met!');
-            console.warn('⚠️ [DEBUG] nextStep - Tab 4 API call was skipped - moving to next step without saving');
+            console.log('🔍 [DEBUG] nextStep - Falling through to else clause (Step 8)');
             setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+        }
+    };
+
+    // Helper to handle document save logic (shared between nextStep and onFormSubmit)
+    const handleDocumentSave = async () => {
+        const data = getValues();
+        const documentList = data.documentList || [];
+
+        if (!savedEmployeeId) {
+            toast.error('Please save Employee details first');
+            setCurrentStep(1);
+            return;
+        }
+
+        if (documentList.length === 0) {
+            setError('documentList', {
+                type: 'required',
+                message: 'Please add at least one document'
+            });
+            return;
+        }
+
+        const toastId = toast.loading('Processing documents...', { id: 'doc-upload-update' });
+
+        try {
+            // Process documents - convert to base64 if file exists
+            const processedDocuments = await Promise.all(
+                documentList.map(async (doc: any) => {
+                    const documentName = doc.documentName || doc.name || '';
+                    const documentDescription = doc.description || doc.documentDescription || '';
+
+                    let blobBase64 = '';
+                    let fileName = '';
+
+                    const fileObj = doc.document?.[0] || doc.file || null;
+                    if (fileObj instanceof File) {
+                        blobBase64 = await fileToBase64(fileObj);
+                        fileName = fileObj.name;
+                    } else {
+                        // Fallback for existing documents
+                        blobBase64 = doc.blobBase64 || '';
+                        fileName = doc.fileName || doc.documentImageName || doc.imageName || '';
+                    }
+
+                    return {
+                        hrmedS_Id: doc.hrmedS_Id || 0,
+                        hrmE_Id: savedEmployeeId,
+                        mI_Id: 30, // Default Institution ID
+                        MI_Id: 30,
+                        hrmedS_DocumentName: documentName,
+                        hrmedS_DocumentImageName: fileName,
+                        hrmedS_DucumentDescription: documentDescription,
+                        blobBase64: blobBase64,
+                        fileName: fileName
+                    };
+                })
+            );
+
+            console.log('🔍 [API DEBUG] Tab 5 (Document) - Array Payload:', JSON.stringify(processedDocuments, null, 2));
+
+            // Use mutateAsync to await completion
+            await saveDocumentDetailsAsync(processedDocuments, {
+                onSuccess: (response: any) => {
+                    console.log('✅ [API DEBUG] Tab 5 (Document) - Save Success Response:', response);
+                    if (response?.success) {
+                        // Toast handled by hook or generic success toast
+                        // If hook handles it commit message, we don't need to duplicate success toast here unless logic demands
+                        // But we MUST dismiss the loading toast.
+                        toast.dismiss(toastId);
+                        if (currentStep === 5) {
+                            setCurrentStep(6);
+                        }
+                    } else {
+                        console.error('❌ [API DEBUG] Tab 5 (Document) - API returned success: false', response);
+                        toast.error(response?.message || 'Failed to save document details', { id: toastId });
+                    }
+                },
+                onError: (error: any) => {
+                    console.error('❌ [API DEBUG] Tab 5 (Document) - API Error:', error);
+                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save document details';
+                    toast.error(errorMessage, { id: toastId });
+                }
+            });
+        } catch (error: any) {
+            console.error('❌ [DEBUG] Tab 5 - Document processing error:', error);
+            toast.error('An error occurred while processing documents', { id: toastId });
         }
     };
 
@@ -913,64 +1296,13 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     const _originalQualificationIds = useRef<number[]>([]);
     const _originalExperienceIds = useRef<number[]>([]);
     const _hasInitializedTab8 = useRef(false);
-    const _lastEmployeeId = useRef<number | null>(null);
-    const _employeeDetailsRef = useRef<any>(null);
+    const lastResetEmployeeId = useRef<number | null>(null);
+    const hasRehydratedStep = useRef<Record<number, boolean>>({});
+    // Track if we have applied the full detailed data (to override onload data)
+    const hasAppliedDetailedData = useRef(false);
 
-    // Fetch full employee details when in edit mode
-    const { data: employeeDetails, isLoading: isLoadingEmployee } = useEmployeeById(selectedRow?.hrmE_Id || null);
 
-    // Store employeeDetails in ref to avoid dependency issues
-    useEffect(() => {
-        if (employeeDetails) {
-            _employeeDetailsRef.current = employeeDetails;
-        }
-    }, [employeeDetails]);
 
-    // Empty default values for update form
-    const formDefaultValues = useMemo(
-        () => ({
-            firstName: '',
-            middleName: '',
-            lastName: '',
-            employeeCode: '',
-            typeOfEmployment: '',
-            employeeGroup: '',
-            school: '',
-            designation: '',
-            gender: '',
-            maritalStatus: '',
-            religion: '',
-            casteCategory: '',
-            caste: '',
-            bloodGroup: '',
-            salaryType: '',
-            modeOfPayment: '',
-            contactCountry: '',
-            contactState: '',
-            permanentCountry: '',
-            permanentState: '',
-            sameAsCommunicationAddress: false,
-            qualificationDetails: [],
-            experienceDetails: [],
-            documentList: [],
-            mobileDetails: [{ mobileNo: '', type: 'Default' }],
-            emailDetails: [{ emailId: '', type: 'Default' }],
-            bankDetails: [],
-            dateOfBirth: '',
-            dateOfRetirement: ''
-        }),
-        []
-    );
-
-    const { control, register, handleSubmit, reset, watch, getValues, setValue, trigger, setError, clearErrors, formState } =
-        useForm<FormFields>({
-            resolver: zodResolver(employeeRegisterSchemas.add),
-            mode: 'onChange',
-            reValidateMode: 'onChange',
-            defaultValues: formDefaultValues
-        });
-
-    const { errors, isSubmitting } = formState;
 
     // Watch for country changes
     const contactCountry = useWatch({ control, name: 'contactCountry' });
@@ -1050,217 +1382,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         }
     }, [sameAsCommunicationAddress, contactAddress, contactArea, contactCity, contactState, contactPincode, contactCountry, setValue]);
 
-    // Get employee ID from employeeDetails to use as dependency - memoize to prevent unnecessary re-renders
-    const employeeIdFromDetails = useMemo(() => {
-        return employeeDetails?.data?.hrmE_Id || null;
-    }, [employeeDetails?.data?.hrmE_Id]);
 
-    // DEBUG: Watch form values for dropdown fields
-    const designationValue = useWatch({ control, name: 'designation' });
-    const typeOfEmploymentValue = useWatch({ control, name: 'typeOfEmployment' });
-    const employeeGroupValue = useWatch({ control, name: 'employeeGroup' });
-    const schoolValue = useWatch({ control, name: 'school' });
-    const gradeValue = useWatch({ control, name: 'grade' });
 
-    useEffect(() => {
-        if (designationValue && designationDropdown.length > 0) {
-            const matchingDesignation = designationDropdown.find(
-                (dg: IDesignationDropdown) => dg.key?.toString().trim() === designationValue?.toString().trim()
-            );
-            console.log('🔍 [DEBUG] Designation Value Watcher:', {
-                formValue: designationValue,
-                formValueType: typeof designationValue,
-                dropdownLength: designationDropdown.length,
-                matchingDesignation: matchingDesignation
-                    ? {
-                          key: matchingDesignation.key,
-                          value: matchingDesignation.value
-                      }
-                    : null,
-                firstFewKeys: designationDropdown.slice(0, 3).map((dg) => dg.key?.toString().trim())
-            });
-        }
-    }, [designationValue, designationDropdown]);
-
-    // Initialize Tab 1 (Employee Information) when employee details are loaded
-    useEffect(() => {
-        const currentEmployeeDetails = _employeeDetailsRef.current;
-        if (
-            employeeIdFromDetails &&
-            currentEmployeeDetails?.data &&
-            !_hasInitializedTab1.current &&
-            _lastEmployeeId.current !== employeeIdFromDetails
-        ) {
-            _lastEmployeeId.current = employeeIdFromDetails;
-
-            try {
-                const tab1Data = mapApiResponseToTab1Fields(currentEmployeeDetails);
-
-                // DEBUG: Log API response and mapped data
-                console.log('🔍 [DEBUG] Tab 1 Data Loading:', {
-                    employeeId: employeeIdFromDetails,
-                    apiData: {
-                        hrmdeS_Id: currentEmployeeDetails?.data?.hrmdeS_Id,
-                        hrmeT_Id: currentEmployeeDetails?.data?.hrmeT_Id,
-                        hrmgT_Id: currentEmployeeDetails?.data?.hrmgT_Id,
-                        hrmD_Id: currentEmployeeDetails?.data?.hrmD_Id,
-                        hrmG_Id: currentEmployeeDetails?.data?.hrmG_Id
-                    },
-                    mappedData: {
-                        designation: tab1Data.designation,
-                        typeOfEmployment: tab1Data.typeOfEmployment,
-                        employeeGroup: tab1Data.employeeGroup,
-                        school: tab1Data.school,
-                        grade: tab1Data.grade
-                    },
-                    dropdownsLoaded: {
-                        designations: designationDropdown?.length || 0,
-                        employeeTypes: employeeTypeDropdown?.length || 0,
-                        groupTypes: groupTypeDropdown?.length || 0,
-                        institutions: institutionDropdown?.length || 0,
-                        grades: gradeDropdown?.length || 0
-                    }
-                });
-
-                // Set Tab 1 fields using setValue to avoid resetting the entire form
-                Object.entries(tab1Data).forEach(([key, value]) => {
-                    setValue(key as keyof FormFields, value as any, {
-                        shouldValidate: false,
-                        shouldDirty: false
-                    });
-                });
-
-                // DEBUG: Log after setting values
-                console.log('🔍 [DEBUG] After setValue - Form values:', {
-                    designation: tab1Data.designation,
-                    typeOfEmployment: tab1Data.typeOfEmployment,
-                    employeeGroup: tab1Data.employeeGroup,
-                    school: tab1Data.school,
-                    grade: tab1Data.grade
-                });
-
-                // Set saved employee ID
-                setSavedEmployeeId(employeeIdFromDetails);
-
-                // Mark Tab 1 as initialized
-                _hasInitializedTab1.current = true;
-                setIsFormInitialized(true);
-            } catch (error) {
-                console.error('Error loading Tab 1 data:', error);
-                toast.error('Failed to load employee information');
-            }
-        } else if (!employeeIdFromDetails && !isLoadingEmployee && !_hasInitializedTab1.current) {
-            // If no employee ID and not loading, mark as initialized to show empty form
-            _hasInitializedTab1.current = true;
-            setIsFormInitialized(true);
-        }
-    }, [
-        employeeIdFromDetails,
-        setValue,
-        setSavedEmployeeId,
-        isLoadingEmployee,
-        designationDropdown,
-        employeeTypeDropdown,
-        groupTypeDropdown,
-        institutionDropdown,
-        gradeDropdown
-    ]);
-
-    // Load Tab 2 (Address) data when user navigates to Tab 2
-    useEffect(() => {
-        if (currentStep === 2 && !_hasInitializedTab2.current && _employeeDetailsRef.current?.data) {
-            try {
-                const tab2Data = mapApiResponseToTab2Fields(_employeeDetailsRef.current);
-
-                // Check if permanent address is same as contact address
-                const isSameAddress =
-                    tab2Data.contactAddress === tab2Data.permanentAddress &&
-                    tab2Data.contactArea === tab2Data.permanentArea &&
-                    tab2Data.contactCity === tab2Data.permanentCity &&
-                    tab2Data.contactState === tab2Data.permanentState &&
-                    tab2Data.contactCountry === tab2Data.permanentCountry &&
-                    tab2Data.contactPincode === tab2Data.permanentPincode;
-
-                if (isSameAddress) {
-                    tab2Data.sameAsCommunicationAddress = true;
-                }
-
-                // Set Tab 2 fields
-                Object.entries(tab2Data).forEach(([key, value]) => {
-                    setValue(key as keyof FormFields, value as any, {
-                        shouldValidate: false,
-                        shouldDirty: false
-                    });
-                });
-
-                _hasInitializedTab2.current = true;
-            } catch (error) {
-                console.error('Error loading Tab 2 data:', error);
-            }
-        }
-    }, [currentStep, setValue]);
-
-    // Load Tab 6 (Medical) data when user navigates to Tab 6
-    useEffect(() => {
-        if (currentStep === 6 && !_hasInitializedTab6.current && _employeeDetailsRef.current?.data) {
-            try {
-                const tab6Data = mapApiResponseToTab6Fields(_employeeDetailsRef.current);
-
-                // Set Tab 6 fields
-                Object.entries(tab6Data).forEach(([key, value]) => {
-                    setValue(key as keyof FormFields, value as any, {
-                        shouldValidate: false,
-                        shouldDirty: false
-                    });
-                });
-
-                _hasInitializedTab6.current = true;
-            } catch (error) {
-                console.error('Error loading Tab 6 data:', error);
-            }
-        }
-    }, [currentStep, setValue]);
-
-    // Load Tab 7 (Other Details) data when user navigates to Tab 7
-    useEffect(() => {
-        if (currentStep === 7 && !_hasInitializedTab7.current && _employeeDetailsRef.current?.data) {
-            try {
-                const tab7Data = mapApiResponseToTab7Fields(_employeeDetailsRef.current);
-
-                // Set Tab 7 fields
-                Object.entries(tab7Data).forEach(([key, value]) => {
-                    setValue(key as keyof FormFields, value as any, {
-                        shouldValidate: false,
-                        shouldDirty: false
-                    });
-                });
-
-                _hasInitializedTab7.current = true;
-            } catch (error) {
-                console.error('Error loading Tab 7 data:', error);
-            }
-        }
-    }, [currentStep, setValue]);
-
-    // Auto-calculate retirement date from DOB
-    useEffect(() => {
-        if (dateOfBirth) {
-            try {
-                const dob = new Date(dateOfBirth);
-                if (!Number.isNaN(dob.getTime())) {
-                    const retirementDate = new Date(dob);
-                    retirementDate.setFullYear(retirementDate.getFullYear() + 60);
-                    const formattedDate = format(retirementDate, 'yyyy-MM-dd');
-                    setValue('dateOfRetirement', formattedDate, {
-                        shouldValidate: false,
-                        shouldDirty: false
-                    });
-                }
-            } catch (_error) {
-                // Invalid date, ignore
-            }
-        }
-    }, [dateOfBirth, setValue]);
 
     // Memoize bank options specifically to prevent Select recreation
     const memoizedBankOptions = useMemo(() => {
@@ -1314,34 +1437,41 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     const {
         fields: mobileFields,
         append: appendMobile,
-        remove: removeMobile
+        remove: removeMobile,
+        replace: replaceMobile
     } = useFieldArray({
         control,
         name: 'mobileDetails'
     });
 
+
     const {
         fields: emailFields,
         append: appendEmail,
-        remove: removeEmail
+        remove: removeEmail,
+        replace: replaceEmail
     } = useFieldArray({
         control,
         name: 'emailDetails'
     });
 
+
     const {
         fields: bankFields,
         append: appendBank,
-        remove: removeBank
+        remove: removeBank,
+        replace: replaceBank
     } = useFieldArray({
         control,
         name: 'bankDetails'
     });
 
+
     const {
         fields: qualificationFields,
         append: appendQualification,
-        remove: removeQualification
+        remove: removeQualification,
+        replace: replaceQualification
     } = useFieldArray({
         control,
         name: 'qualificationDetails'
@@ -1350,7 +1480,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     const {
         fields: experienceFields,
         append: appendExperience,
-        remove: removeExperience
+        remove: removeExperience,
+        replace: replaceExperience
     } = useFieldArray({
         control,
         name: 'experienceDetails'
@@ -1359,146 +1490,169 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     const {
         fields: documentFields,
         append: appendDocument,
-        remove: removeDocument
+        remove: removeDocument,
+        replace: replaceDocument
     } = useFieldArray({
         control,
         name: 'documentList'
     });
 
-    // Load Tab 3 (Qualification) data when user navigates to Tab 3
-    useEffect(() => {
-        if (currentStep === 3 && !_hasInitializedTab3.current && _employeeDetailsRef.current?.data) {
-            try {
-                const tab3Data = mapApiResponseToTab3Fields(_employeeDetailsRef.current);
 
-                // Use replace to update qualificationDetails array
-                if (tab3Data.qualificationDetails && Array.isArray(tab3Data.qualificationDetails)) {
-                    // Clear existing qualifications first (remove from end to avoid index issues)
-                    const currentLength = qualificationFields.length;
-                    for (let i = currentLength - 1; i >= 0; i--) {
-                        removeQualification(i);
-                    }
 
-                    // Add qualifications from API
-                    console.log('🔍 [DEBUG] Loading Qualifications from API:', tab3Data.qualificationDetails);
-                    // Track original IDs for deletion detection
-                    _originalQualificationIds.current = tab3Data.qualificationDetails
-                        .map((qual: any) => qual.hrmeQ_Id || qual.HRMEQ_Id || 0)
-                        .filter((id: number) => id > 0);
-                    console.log('🔍 [DEBUG] Original Qualification IDs:', _originalQualificationIds.current);
 
-                    tab3Data.qualificationDetails.forEach((qual: any, index: number) => {
-                        console.log(`🔍 [DEBUG] Qualification #${index + 1} - ID:`, qual.hrmeQ_Id || qual.HRMEQ_Id, 'Full object:', qual);
-                        appendQualification(qual);
-                    });
-                }
-
-                _hasInitializedTab3.current = true;
-            } catch (error) {
-                console.error('Error loading Tab 3 data:', error);
-            }
-        }
-    }, [currentStep, appendQualification, removeQualification, qualificationFields.length]);
-
-    // Load Tab 4 (Experience) data when user navigates to Tab 4
-    useEffect(() => {
-        if (currentStep === 4 && !_hasInitializedTab4.current && _employeeDetailsRef.current?.data) {
-            try {
-                const tab4Data = mapApiResponseToTab4Fields(_employeeDetailsRef.current);
-
-                // Use replace to update experienceDetails array
-                if (tab4Data.experienceDetails && Array.isArray(tab4Data.experienceDetails)) {
-                    // Clear existing experiences first (remove from end to avoid index issues)
-                    const currentLength = experienceFields.length;
-                    for (let i = currentLength - 1; i >= 0; i--) {
-                        removeExperience(i);
-                    }
-
-                    // Add experiences from API
-                    console.log('🔍 [DEBUG] Loading Experiences from API:', tab4Data.experienceDetails);
-                    // Track original IDs for deletion detection
-                    _originalExperienceIds.current = tab4Data.experienceDetails
-                        .map((exp: any) => exp.hrmeE_Id || exp.HRMEE_Id || 0)
-                        .filter((id: number) => id > 0);
-                    console.log('🔍 [DEBUG] Original Experience IDs:', _originalExperienceIds.current);
-
-                    tab4Data.experienceDetails.forEach((exp: any, index: number) => {
-                        console.log(`🔍 [DEBUG] Experience #${index + 1} - ID:`, exp.hrmeE_Id, 'Full object:', exp);
-                        appendExperience(exp);
-                    });
-                }
-
-                _hasInitializedTab4.current = true;
-            } catch (error) {
-                console.error('Error loading Tab 4 data:', error);
-            }
-        }
-    }, [currentStep, appendExperience, removeExperience, experienceFields.length]);
-
-    // Load Tab 5 (Documents) data when user navigates to Tab 5
-    useEffect(() => {
-        if (currentStep === 5 && !_hasInitializedTab5.current && _employeeDetailsRef.current?.data) {
-            try {
-                const tab5Data = mapApiResponseToTab5Fields(_employeeDetailsRef.current);
-
-                // Use replace to update documentList array
-                if (tab5Data.documentList && Array.isArray(tab5Data.documentList)) {
-                    // Clear existing documents first (remove from end to avoid index issues)
-                    const currentLength = documentFields.length;
-                    for (let i = currentLength - 1; i >= 0; i--) {
-                        removeDocument(i);
-                    }
-
-                    // Add documents from API
-                    tab5Data.documentList.forEach((doc: any) => {
-                        appendDocument(doc);
-                    });
-                }
-
-                _hasInitializedTab5.current = true;
-            } catch (error) {
-                console.error('Error loading Tab 5 data:', error);
-            }
-        }
-    }, [currentStep, appendDocument, removeDocument, documentFields.length]);
-
-    // Load Tab 8 (Bank Details) data when user navigates to Tab 8
-    useEffect(() => {
-        if (currentStep === 8 && !_hasInitializedTab8.current && _employeeDetailsRef.current?.data) {
-            try {
-                const tab8Data = mapApiResponseToTab8Fields(_employeeDetailsRef.current);
-
-                // Use replace to update bankDetails array
-                if (tab8Data.bankDetails && Array.isArray(tab8Data.bankDetails)) {
-                    // Clear existing bank details first (remove from end to avoid index issues)
-                    const currentLength = bankFields.length;
-                    for (let i = currentLength - 1; i >= 0; i--) {
-                        removeBank(i);
-                    }
-
-                    // Add bank details from API
-                    tab8Data.bankDetails.forEach((bank: any) => {
-                        appendBank(bank);
-                    });
-                }
-
-                _hasInitializedTab8.current = true;
-            } catch (error) {
-                console.error('Error loading Tab 8 data:', error);
-            }
-        }
-    }, [currentStep, appendBank, removeBank, bankFields.length]);
 
     // Map form data to API format - use helper functions
-    const mapFormDataToApiFormatLocal = (data: FormFields): SavePersonalDetailsApiRequest => {
-        return mapFormDataToApiFormat(data, savedEmployeeId || 0, selectedPhoto);
-    };
+    // Map form data to API format - use helper functions
 
-    const mapFormDataToApiFormatWithoutAddressLocal = (data: FormFields): SavePersonalDetailsApiRequest => {
-        return mapFormDataToApiFormatWithoutAddress(data, savedEmployeeId || 0, selectedPhoto);
-    };
 
     // Custom submit handler - same as add-form
+
+    // Effect to populate form when employeeData is loaded
+    // Fetch specific employee details using the ID-based endpoint (likely has better data)
+    const { data: employeeDetailsData, isLoading: isLoadingDetails } = useEmployeeById(selectedRow?.hrmE_Id || null);
+
+    // Effect to populate form when employeeData is loaded
+    useEffect(() => {
+        // PRIORITIZE employeeDetailsData (from GetEmployeeDetailsById) over onloadData
+        // But we still need onloadData for everything else to be ready? 
+        // Actually, let's try to map WHICHEVER is available and has data.
+
+        const sourceData = employeeDetailsData || onloadData;
+
+        if (sourceData) {
+            const currentSelectedId = selectedRow?.hrmE_Id || 0;
+
+            // Only proceed if we haven't successfully initialized for this ID yet
+            // OR if we are switching sources (e.g. details arrived after onload)
+            // Fix: Wait for detailed data if available, or if checking against same ID but we haven't applied detailed data yet
+            const needsInitialization = lastResetEmployeeId.current !== currentSelectedId;
+            const canApplyDetailedData = employeeDetailsData && !hasAppliedDetailedData.current;
+
+            if (needsInitialization || canApplyDetailedData) {
+                console.log(`🔍 [UPDATE-FORM DEBUG] Attempting to map data for ID: ${currentSelectedId}`);
+                console.log('🔍 [UPDATE-FORM DEBUG] Source:', employeeDetailsData ? 'GetEmployeeDetailsById' : 'OnloadData');
+                console.log('🔍 [UPDATE-FORM DEBUG] Initialization Reason:', needsInitialization ? 'New ID' : 'Detailed Data Arrived');
+
+                if (employeeDetailsData) {
+                    console.log('🔍 [UPDATE-FORM DEBUG] Detailed Data Keys:', Object.keys(employeeDetailsData));
+                    if ((employeeDetailsData as any).data) console.log('🔍 [UPDATE-FORM DEBUG] Detailed Data.data Keys:', Object.keys((employeeDetailsData as any).data));
+                }
+                if (onloadData) console.log('🔍 [UPDATE-FORM DEBUG] Onload Data Keys:', Object.keys(onloadData));
+
+                try {
+                    const formData = mapApiResponseToFormFields(sourceData, currentSelectedId);
+
+                    // VALIDATION: Ensure we actually found the employee data
+                    const hasData = (formData as any).firstName || (formData as any).employeeCode || (formData as any).hrmE_Id;
+
+                    if (hasData || currentSelectedId === 0) {
+                        console.log('✅ [UPDATE-FORM DEBUG] Mapped Data found, performing binding:', formData);
+
+                        // Mark as initialized
+                        setIsFormInitialized(true);
+                        lastResetEmployeeId.current = currentSelectedId;
+
+                        if (employeeDetailsData) {
+                            hasAppliedDetailedData.current = true;
+                        }
+
+                        console.log('🔍 [UPDATE-FORM DEBUG] Raw Source Data:', sourceData);
+                        console.log('🔍 [UPDATE-FORM DEBUG] Mapped formData:', formData);
+                        console.log('🔍 [UPDATE-FORM DEBUG] Qualification Details in formData:', (formData as any).qualificationDetails);
+                        console.log('🔍 [UPDATE-FORM DEBUG] Qualification Details LENGTH:', (formData as any).qualificationDetails?.length);
+                        console.log('🔍 [UPDATE-FORM DEBUG] Experience Details in formData:', (formData as any).experienceDetails);
+
+                        // Fix for Photo binding - explicitly set the state
+                        if ((formData as any).photo) {
+                            console.log('✅ [UPDATE-FORM DEBUG] Found photo in mapped data:', (formData as any).photo);
+                            setSelectedPhoto((formData as any).photo);
+                        } else {
+                            console.warn('⚠️ [UPDATE-FORM DEBUG] No photo found in mapped formData');
+                        }
+
+                        // Bind all fields manually to ensure arrays are populated correctly
+                        Object.entries(formData).forEach(([key, value]) => {
+                            if (['mobileDetails', 'emailDetails', 'bankDetails', 'qualificationDetails', 'experienceDetails', 'documentList'].includes(key)) {
+                                // Arrays - use replace directly
+                                const arrVal = Array.isArray(value) ? value : [];
+                                if (key === 'mobileDetails') replaceMobile(arrVal as any);
+                                if (key === 'emailDetails') replaceEmail(arrVal as any);
+                                if (key === 'bankDetails') replaceBank(arrVal as any);
+                                if (key === 'qualificationDetails') {
+                                    console.log('🔄 [UPDATE-FORM] Replacing qualificationDetails with:', arrVal);
+                                    replaceQualification(arrVal as any);
+                                }
+                                if (key === 'experienceDetails') replaceExperience(arrVal as any);
+                                if (key === 'documentList') replaceDocument(arrVal as any);
+                            } else {
+                                // Scalar values - use setValue
+                                if (value !== undefined) {
+                                    setValue(key as any, value);
+                                }
+                            }
+                        });
+
+                    } else {
+                        console.warn('⚠️ [UPDATE-FORM DEBUG] Mapped data appears empty, waiting for more data...');
+                    }
+
+                } catch (err) {
+                    console.error('❌ [UPDATE-FORM DEBUG] Error mapping data:', err);
+                }
+            }
+        }
+    }, [onloadData, employeeDetailsData, selectedRow?.hrmE_Id, setValue, replaceMobile, replaceEmail, replaceBank, replaceQualification, replaceExperience, replaceDocument]);
+
+
+
+    // SAFETY: Re-hydrate arrays when switching tabs if they appear empty but data exists
+    useEffect(() => {
+        if (!isFormInitialized) return;
+
+        // Logic to force re-hydration if length matches but first item is empty
+        const rehydrateIfEmpty = (fieldName: any, currentFields: any[], replaceFn: any, contentKey?: string) => {
+            const currentVals = getValues(fieldName);
+            if (!currentVals || currentVals.length === 0) return;
+
+            // Check if fields are empty or if first item is basically empty
+            const needsSync = (!currentFields || currentFields.length === 0) ||
+                (contentKey && currentFields.length > 0 && !currentFields[0][contentKey] && currentVals[0][contentKey]);
+
+            if (needsSync) {
+                console.log(`🔄 [TAB-SWITCH] Re-hydrating ${fieldName} fields...`);
+                replaceFn(currentVals);
+            }
+        };
+
+        // Step 1: Employee Info (Mobile/Email)
+        if (currentStep === 1) {
+            rehydrateIfEmpty('mobileDetails', mobileFields, replaceMobile, 'mobileNo');
+            rehydrateIfEmpty('emailDetails', emailFields, replaceEmail, 'emailId');
+        }
+
+        // Step 2: Bank Details (Personal)
+        if (currentStep === 2) {
+            rehydrateIfEmpty('bankDetails', bankFields, replaceBank, 'bankAccountNo');
+        }
+
+        // Step 3: Qualification
+        if (currentStep === 3) {
+            rehydrateIfEmpty('qualificationDetails', qualificationFields, replaceQualification, 'qualification');
+        }
+
+        // Step 4: Experience
+        if (currentStep === 4) {
+            rehydrateIfEmpty('experienceDetails', experienceFields, replaceExperience, 'organisationName');
+        }
+
+        // Step 5: Document Upload
+        if (currentStep === 5) {
+            rehydrateIfEmpty('documentList', documentFields, replaceDocument, 'documentName');
+        }
+    }, [currentStep, isFormInitialized, mobileFields, emailFields, bankFields, qualificationFields, experienceFields, documentFields, getValues, replaceMobile, replaceEmail, replaceBank, replaceQualification, replaceExperience, replaceDocument]);
+
+
+
     const onFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         e.stopPropagation();
@@ -1539,21 +1693,67 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         try {
             if (currentStepId === 1) {
                 // Employee tab - save without address
-                const payload = mapFormDataToApiFormatWithoutAddressLocal(data);
-                savePersonalDetails(payload, {
+                const rawPayload = mapFormDataToApiFormatWithoutAddressLocal(data);
+                const payload: any = {
+                    ...rawPayload,
+                    hrmE_EmployeeFirstName: rawPayload.hrmE_EmployeeFirstName ?? '',
+                    hrmE_EmployeeMiddleName: rawPayload.hrmE_EmployeeMiddleName ?? '',
+                    hrmE_EmployeeLastName: rawPayload.hrmE_EmployeeLastName ?? '',
+                    hrmE_EmployeeCode: rawPayload.hrmE_EmployeeCode ?? '',
+                    hrmE_FatherName: rawPayload.hrmE_FatherName ?? '',
+                    hrmE_MotherName: rawPayload.hrmE_MotherName ?? '',
+                    hrmE_BloodGroup: rawPayload.hrmE_BloodGroup ?? '',
+                    hrmE_SalaryType: rawPayload.hrmE_SalaryType ?? '',
+                    hrmE_MobileNo: rawPayload.hrmE_MobileNo ?? '',
+                    hrmE_EmailId: rawPayload.hrmE_EmailId ?? '',
+                    hrmE_PANCardNo: rawPayload.hrmE_PANCardNo ?? '',
+                    hrmE_NationalSSN: rawPayload.hrmE_NationalSSN ?? '',
+                    hrmE_Id: savedEmployeeId || (data as any).hrmE_Id || 0
+                };
+                savePersonalDetails(payload as any, {
                     onSuccess: (response: any) => {
-                        // Show API response message
-                        if (response?.success && response?.message) {
-                            toast.success(response.message);
-                        } else if (response?.message) {
-                            toast.info(response.message);
-                        }
-                        const employeeId = response?.data?.HRME_Id || response?.HRME_Id || savedEmployeeId || 0;
-                        if (employeeId) {
-                            setSavedEmployeeId(employeeId);
-                            setCurrentStep(2);
+                        console.log('✅ [API DEBUG] Tab 1 (Employee) - Save Success Response:', response);
+                        if (response?.success) {
+                            if (response.message) toast.success(response.message);
+                            const employeeId = response?.data?.HRME_Id || response?.HRME_Id || response?.data?.hrmE_Id || response?.hrmE_Id || savedEmployeeId || 0;
+                            if (employeeId) {
+                                setSavedEmployeeId(employeeId);
+
+                                // Check for bank details to save - specific user request
+                                const bankList = data.bankDetails || [];
+                                if (bankList.length > 0) {
+                                    const bankPayload = {
+                                        mI_Id: selectedRow?.mI_Id || 30,
+                                        hrmE_Id: employeeId,
+                                        bankDetails: bankList.map((bank: any) => ({
+                                            hrmeB_Id: bank.hrmeB_Id || 0,
+                                            hrmE_Id: employeeId,
+                                            hrmbD_Id: Number(bank.employerBankName) || 0,
+                                            hrmeB_AccountNo: bank.bankAccountNo || '',
+                                            hrmeB_ActiveFlag: bank.isActive ?? true
+                                        }))
+                                    };
+                                    console.log('🔍 [API DEBUG] Saving Bank Details:', bankPayload);
+                                    saveBankDetails(bankPayload, {
+                                        onSuccess: (bankRes: any) => {
+                                            console.log('✅ [API DEBUG] Bank Save Success:', bankRes);
+                                            setCurrentStep(2);
+                                        },
+                                        onError: (err: any) => {
+                                            console.error('❌ [API DEBUG] Bank Save Error:', err);
+                                            // Proceed to next step but warn user
+                                            setCurrentStep(2);
+                                        }
+                                    });
+                                } else {
+                                    setCurrentStep(2);
+                                }
+                            } else {
+                                toast.error('Failed to get employee ID from response');
+                            }
                         } else {
-                            toast.error('Failed to get employee ID from response');
+                            console.warn('⚠️ [API DEBUG] Tab 1 (Employee) - API returned success: false', response);
+                            toast.error(response?.message || 'Failed to save employee details');
                         }
                     },
                     onError: (error: any) => {
@@ -1569,17 +1769,33 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     setCurrentStep(1);
                     return;
                 }
-                const payload = mapFormDataToApiFormatLocal(data);
-                payload.hrmE_Id = savedEmployeeId;
+                const rawPayload = mapFormDataToApiFormatLocal(data);
+                const payload: any = {
+                    ...rawPayload,
+                    hrmE_EmployeeFirstName: rawPayload.hrmE_EmployeeFirstName ?? '',
+                    hrmE_EmployeeMiddleName: rawPayload.hrmE_EmployeeMiddleName ?? '',
+                    hrmE_EmployeeLastName: rawPayload.hrmE_EmployeeLastName ?? '',
+                    hrmE_EmployeeCode: rawPayload.hrmE_EmployeeCode ?? '',
+                    hrmE_FatherName: rawPayload.hrmE_FatherName ?? '',
+                    hrmE_MotherName: rawPayload.hrmE_MotherName ?? '',
+                    hrmE_BloodGroup: rawPayload.hrmE_BloodGroup ?? '',
+                    hrmE_SalaryType: rawPayload.hrmE_SalaryType ?? '',
+                    hrmE_MobileNo: rawPayload.hrmE_MobileNo ?? '',
+                    hrmE_EmailId: rawPayload.hrmE_EmailId ?? '',
+                    hrmE_PANCardNo: rawPayload.hrmE_PANCardNo ?? '',
+                    hrmE_NationalSSN: rawPayload.hrmE_NationalSSN ?? '',
+                    hrmE_Id: savedEmployeeId
+                };
                 savePersonalDetails(payload, {
                     onSuccess: (response: any) => {
-                        // Show API response message
-                        if (response?.success && response?.message) {
-                            toast.success(response.message);
-                        } else if (response?.message) {
-                            toast.info(response.message);
+                        console.log('✅ [API DEBUG] Tab 2 (Address) - Save Success Response:', response);
+                        if (response?.success) {
+                            if (response.message) toast.success(response.message);
+                            setCurrentStep(3);
+                        } else {
+                            console.warn('⚠️ [API DEBUG] Tab 2 (Address) - API returned success: false', response);
+                            toast.error(response?.message || 'Failed to save address details');
                         }
-                        setCurrentStep(3);
                     },
                     onError: (error: any) => {
                         // Show API error message
@@ -1623,6 +1839,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                         hrmeQ_Id: id, // Use existing ID if updating, 0 for new
                         hrmC_Id: Number(qual.course) || 0,
                         hrmE_Id: savedEmployeeId,
+                        mI_Id: 30, // Default MI_Id
+                        MI_Id: 30, // PascalCase fallback
                         hrmE_QualificationName: qual.qualification || '',
                         hrmeQ_CollegeName: qual.college || '',
                         hrmeQ_UniversityName: qual.university || '',
@@ -1721,6 +1939,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     const mapped = {
                         hrmeE_Id: id, // Use existing ID if updating, 0 for new
                         hrmE_Id: savedEmployeeId,
+                        mI_Id: 30, // Default MI_Id
+                        MI_Id: 30, // PascalCase fallback
                         hrmeE_OrganisationName: exp.organisationName || '',
                         hrmeE_OrganisationAddress: exp.organisationAddress || '',
                         hrmeE_Department: exp.department || '',
@@ -1800,48 +2020,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 });
             } else if (currentStepId === 5) {
                 // Document tab
-                if (!savedEmployeeId) {
-                    toast.error('Please save Employee and Address details first');
-                    setCurrentStep(1);
-                    return;
-                }
-                const documentList = data.documentList || [];
-                if (documentList.length === 0) {
-                    setError('documentList', {
-                        type: 'required',
-                        message: 'Please add at least one document'
-                    });
-                    return;
-                }
-                const documentsPayload = documentList.map((doc: any) => {
-                    const documentName = doc.documentName || doc.name || '';
-                    const documentImageName = doc.document?.[0]?.name || doc.imageName || '';
-                    const documentDescription = doc.description || doc.documentDescription || '';
-                    return {
-                        CreatedDate: new Date().toISOString(),
-                        UpdatedDate: new Date().toISOString(),
-                        HRME_Id: savedEmployeeId,
-                        HRMEDS_DocumentName: documentName,
-                        HRMEDS_DucumentDescription: documentDescription,
-                        HRMEDS_DocumentImageName: documentImageName
-                    };
-                });
-                saveDocumentDetails(documentsPayload, {
-                    onSuccess: (response: any) => {
-                        // Show API response message
-                        if (response?.success && response?.message) {
-                            toast.success(response.message);
-                        } else if (response?.message) {
-                            toast.info(response.message);
-                        }
-                        setCurrentStep(6);
-                    },
-                    onError: (error: any) => {
-                        // Show API error message
-                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save document details';
-                        toast.error(errorMessage);
-                    }
-                });
+                await handleDocumentSave();
+                if (savedEmployeeId) setCurrentStep(6); // Move to next step if saved logic doesn't do it (it does do it in onSuccess, but double check)
             } else if (currentStepId === 6) {
                 // Medical tab
                 if (!savedEmployeeId) {
@@ -1849,8 +2029,23 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     setCurrentStep(1);
                     return;
                 }
-                const payload = mapFormDataToApiFormatLocal(data);
-                payload.hrmE_Id = savedEmployeeId;
+                const rawPayload = mapFormDataToApiFormatLocal(data);
+                const payload: any = {
+                    ...rawPayload,
+                    hrmE_EmployeeFirstName: rawPayload.hrmE_EmployeeFirstName ?? '',
+                    hrmE_EmployeeMiddleName: rawPayload.hrmE_EmployeeMiddleName ?? '',
+                    hrmE_EmployeeLastName: rawPayload.hrmE_EmployeeLastName ?? '',
+                    hrmE_EmployeeCode: rawPayload.hrmE_EmployeeCode ?? '',
+                    hrmE_FatherName: rawPayload.hrmE_FatherName ?? '',
+                    hrmE_MotherName: rawPayload.hrmE_MotherName ?? '',
+                    hrmE_BloodGroup: rawPayload.hrmE_BloodGroup ?? '',
+                    hrmE_SalaryType: rawPayload.hrmE_SalaryType ?? '',
+                    hrmE_MobileNo: rawPayload.hrmE_MobileNo ?? '',
+                    hrmE_EmailId: rawPayload.hrmE_EmailId ?? '',
+                    hrmE_PANCardNo: rawPayload.hrmE_PANCardNo ?? '',
+                    hrmE_NationalSSN: rawPayload.hrmE_NationalSSN ?? '',
+                    hrmE_Id: savedEmployeeId
+                };
                 saveMedicalDetails(payload, {
                     onSuccess: (response: any) => {
                         // Show API response message
@@ -1876,7 +2071,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 }
                 const payload = mapFormDataToApiFormatLocal(data);
                 payload.hrmE_Id = savedEmployeeId;
-                savePersonalDetails(payload, {
+                saveOtherDetails(payload, {
                     onSuccess: (response: any) => {
                         // Show API response message
                         if (response?.success && response?.message) {
@@ -1916,8 +2111,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         }
     };
 
-    const isSubmittingAny =
-        isSubmitting || isSavingQualification || isSavingExperience || isSavingDocument || isSavingMedical || isSavingBank;
 
     // Show loading for dropdowns or employee details
     if (
@@ -1925,6 +2118,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         isLoadingGroupTypes ||
         isLoadingEmployeeTypes ||
         isLoadingInstitutions ||
+        isLoadingDepartments ||
         isLoadingDesignations ||
         isLoadingGenders ||
         isLoadingMaritalStatuses ||
@@ -1962,6 +2156,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     }
                 }}
                 className='space-y-6'>
+
+
                 {/* Main Layout: Vertical Stepper + Form */}
                 <div className='flex flex-col gap-6 lg:flex-row'>
                     {/* Stepper - Vertical on desktop, horizontal on mobile */}
@@ -1983,8 +2179,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                         currentStep === step.id
                                                             ? 'border-blue-600 bg-blue-600 text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                              ? 'border-green-500 bg-green-500 text-white'
-                                                              : 'border-gray-300 bg-white text-gray-400'
+                                                                ? 'border-green-500 bg-green-500 text-white'
+                                                                : 'border-gray-300 bg-white text-gray-400'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-5 w-5' />
@@ -2033,8 +2229,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                         currentStep === step.id
                                                             ? 'border-secondary bg-secondary text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                              ? 'border-green-500 bg-green-500 text-white'
-                                                              : 'border-gray-300 bg-white text-gray-500'
+                                                                ? 'border-green-500 bg-green-500 text-white'
+                                                                : 'border-gray-300 bg-white text-gray-500'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-6 w-6' />
@@ -2311,13 +2507,13 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                         it.key !== 0
                                                                                     );
                                                                                 })
-                                                                                .map((it: IEmployeeTypeDropdown) => {
-                                                                                    const val = it.key?.toString().trim();
-                                                                                    if (!val || val === '') return null;
+                                                                                .map((item: any) => {
+                                                                                    const val = getSafeValue(item.key);
+                                                                                    if (!val) return null;
                                                                                     return (
-                                                                                        <SafeSelectItem key={it.key} value={val}>
-                                                                                            {it.value || String(it.key)}
-                                                                                        </SafeSelectItem>
+                                                                                        <SelectItem key={item.key} value={val}>
+                                                                                            {item.value || String(item.key)}
+                                                                                        </SelectItem>
                                                                                     );
                                                                                 })
                                                                                 .filter(Boolean)}
@@ -2368,12 +2564,12 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                     );
                                                                                 })
                                                                                 .map((gt: IGroupTypeDropdown) => {
-                                                                                    const val = gt.key?.toString().trim();
-                                                                                    if (!val || val === '') return null;
+                                                                                    const val = getSafeValue(gt.key);
+                                                                                    if (!val) return null;
                                                                                     return (
-                                                                                        <SafeSelectItem key={gt.key} value={val}>
+                                                                                        <SelectItem key={gt.key} value={val}>
                                                                                             {gt.value || String(gt.key)}
-                                                                                        </SafeSelectItem>
+                                                                                        </SelectItem>
                                                                                     );
                                                                                 })
                                                                                 .filter(Boolean)}
@@ -2389,22 +2585,22 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                         }}
                                                     />
                                                     <Controller
-                                                        name='school'
+                                                        name='department'
                                                         control={control}
                                                         render={({ field, fieldState }) => {
                                                             const selectValue = field.value ? String(field.value).trim() : '';
-                                                            const availableOptions = (options?.institutions || []).filter(
-                                                                (inst: IInstitutionDropdown) => {
-                                                                    return inst.key != null && inst.key !== undefined && inst.key !== 0;
+                                                            const availableOptions = (options?.departments || []).filter(
+                                                                (dept: any) => {
+                                                                    return dept.key != null && dept.key !== undefined && dept.key !== 0;
                                                                 }
                                                             );
                                                             return (
                                                                 <div className='flex flex-col gap-1.5'>
                                                                     <Label>
-                                                                        School <span className='text-red-500'>*</span>
+                                                                        Department <span className='text-red-500'>*</span>
                                                                     </Label>
                                                                     <Select
-                                                                        key={`school-${selectValue}-${availableOptions.length}`}
+                                                                        key={`department-${selectValue}-${availableOptions.length}`}
                                                                         onValueChange={field.onChange}
                                                                         value={selectValue || undefined}>
                                                                         <SelectTrigger
@@ -2416,24 +2612,34 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                             <SelectValue placeholder='--Select--' />
                                                                         </SelectTrigger>
                                                                         <SelectContent>
-                                                                            {(options?.institutions || [])
-                                                                                .filter((inst: IInstitutionDropdown) => {
-                                                                                    return (
-                                                                                        inst.key != null &&
-                                                                                        inst.key !== undefined &&
-                                                                                        inst.key !== 0
-                                                                                    );
-                                                                                })
-                                                                                .map((inst: IInstitutionDropdown) => {
-                                                                                    const val = inst.key?.toString().trim();
-                                                                                    if (!val || val === '') return null;
-                                                                                    return (
-                                                                                        <SafeSelectItem key={inst.key} value={val}>
-                                                                                            {inst.value || String(inst.key)}
-                                                                                        </SafeSelectItem>
-                                                                                    );
-                                                                                })
-                                                                                .filter(Boolean)}
+                                                                            {dropdownLoadingStates.departments ? (
+                                                                                <SelectItem value='__loading__' disabled>
+                                                                                    Loading departments...
+                                                                                </SelectItem>
+                                                                            ) : (options?.departments || []).length === 0 ? (
+                                                                                <SelectItem value='__no_options__' disabled>
+                                                                                    No options available
+                                                                                </SelectItem>
+                                                                            ) : (
+                                                                                (options?.departments || [])
+                                                                                    .filter((dept: any) => {
+                                                                                        return (
+                                                                                            dept.key != null &&
+                                                                                            dept.key !== undefined &&
+                                                                                            dept.key !== 0
+                                                                                        );
+                                                                                    })
+                                                                                    .map((dept: IDepartmentDropdown) => {
+                                                                                        const val = getSafeValue(dept.key);
+                                                                                        if (!val) return null;
+                                                                                        return (
+                                                                                            <SelectItem key={dept.key} value={val}>
+                                                                                                {dept.value || String(dept.key)}
+                                                                                            </SelectItem>
+                                                                                        );
+                                                                                    })
+                                                                                    .filter(Boolean)
+                                                                            )}
                                                                         </SelectContent>
                                                                     </Select>
                                                                     {fieldState.error && (
@@ -2475,9 +2681,9 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                         fieldValueType: typeof field.value,
                                                                         matchingOption: matchingOption
                                                                             ? {
-                                                                                  key: matchingOption.key,
-                                                                                  value: matchingOption.value
-                                                                              }
+                                                                                key: matchingOption.key,
+                                                                                value: matchingOption.value
+                                                                            }
                                                                             : null,
                                                                         sampleKeys: availableOptions.slice(0, 3).map((dg) => ({
                                                                             key: dg.key,
@@ -2524,12 +2730,12 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                         <SelectContent>
                                                                             {availableOptions
                                                                                 .map((dg: IDesignationDropdown) => {
-                                                                                    const val = dg.key?.toString().trim();
-                                                                                    if (!val || val === '') return null;
+                                                                                    const val = getSafeValue(dg.key);
+                                                                                    if (!val) return null;
                                                                                     return (
-                                                                                        <SafeSelectItem key={dg.key} value={val}>
+                                                                                        <SelectItem key={dg.key} value={val}>
                                                                                             {dg.value || String(dg.key)}
-                                                                                        </SafeSelectItem>
+                                                                                        </SelectItem>
                                                                                     );
                                                                                 })
                                                                                 .filter(Boolean)}
@@ -2589,12 +2795,12 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                     );
                                                                                 })
                                                                                 .map((gr: IGradeDropdown) => {
-                                                                                    const val = gr.key?.toString().trim();
-                                                                                    if (!val || val === '') return null;
+                                                                                    const val = getSafeValue(gr.key);
+                                                                                    if (!val) return null;
                                                                                     return (
-                                                                                        <SafeSelectItem key={gr.key} value={val}>
+                                                                                        <SelectItem key={gr.key} value={val}>
                                                                                             {gr.value || String(gr.key)}
-                                                                                        </SafeSelectItem>
+                                                                                        </SelectItem>
                                                                                     );
                                                                                 })
                                                                                 .filter(Boolean)}
@@ -2741,9 +2947,9 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                 const val = tt.key?.toString().trim();
                                                                                 if (!val || val === '') return null;
                                                                                 return (
-                                                                                    <SafeSelectItem key={tt.key} value={val}>
+                                                                                    <SelectItem key={tt.key} value={val}>
                                                                                         {tt.value || String(tt.key)}
-                                                                                    </SafeSelectItem>
+                                                                                    </SelectItem>
                                                                                 );
                                                                             })}
                                                                         </SelectContent>
@@ -2975,12 +3181,12 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                         </SelectTrigger>
                                                                         <SelectContent>
                                                                             {availableOptions.map((rel: IReligionDropdown) => {
-                                                                                const val = rel.key?.toString().trim();
-                                                                                if (!val || val === '') return null;
+                                                                                const val = getSafeValue(rel.key);
+                                                                                if (!val) return null;
                                                                                 return (
-                                                                                    <SafeSelectItem key={rel.key} value={val}>
+                                                                                    <SelectItem key={rel.key} value={val}>
                                                                                         {rel.value || String(rel.key)}
-                                                                                    </SafeSelectItem>
+                                                                                    </SelectItem>
                                                                                 );
                                                                             })}
                                                                         </SelectContent>
@@ -3022,12 +3228,12 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                         </SelectTrigger>
                                                                         <SelectContent>
                                                                             {availableOptions.map((cc: ICasteCategoryDropdown) => {
-                                                                                const val = cc.key?.toString().trim();
-                                                                                if (!val || val === '') return null;
+                                                                                const val = getSafeValue(cc.key);
+                                                                                if (!val) return null;
                                                                                 return (
-                                                                                    <SafeSelectItem key={cc.key} value={val}>
+                                                                                    <SelectItem key={cc.key} value={val}>
                                                                                         {cc.value || String(cc.key)}
-                                                                                    </SafeSelectItem>
+                                                                                    </SelectItem>
                                                                                 );
                                                                             })}
                                                                         </SelectContent>
@@ -3068,12 +3274,12 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                         </SelectTrigger>
                                                                         <SelectContent>
                                                                             {availableOptions.map((c: ICasteDropdown) => {
-                                                                                const val = c.key?.toString().trim();
-                                                                                if (!val || val === '') return null;
+                                                                                const val = getSafeValue(c.key);
+                                                                                if (!val) return null;
                                                                                 return (
-                                                                                    <SafeSelectItem key={c.key} value={val}>
+                                                                                    <SelectItem key={c.key} value={val}>
                                                                                         {c.value || String(c.key)}
-                                                                                    </SafeSelectItem>
+                                                                                    </SelectItem>
                                                                                 );
                                                                             })}
                                                                         </SelectContent>
@@ -3111,17 +3317,17 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                 <div className='flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-muted-foreground text-sm'>
                                                                     {field.value
                                                                         ? (() => {
-                                                                              try {
-                                                                                  const date = new Date(field.value);
-                                                                                  return date.toLocaleDateString('en-GB', {
-                                                                                      day: '2-digit',
-                                                                                      month: '2-digit',
-                                                                                      year: 'numeric'
-                                                                                  });
-                                                                              } catch {
-                                                                                  return field.value;
-                                                                              }
-                                                                          })()
+                                                                            try {
+                                                                                const date = new Date(field.value);
+                                                                                return date.toLocaleDateString('en-GB', {
+                                                                                    day: '2-digit',
+                                                                                    month: '2-digit',
+                                                                                    year: 'numeric'
+                                                                                });
+                                                                            } catch {
+                                                                                return field.value;
+                                                                            }
+                                                                        })()
                                                                         : 'Pick date of retirement'}
                                                                 </div>
                                                                 {fieldState?.error && (
@@ -3159,12 +3365,12 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                         </SelectTrigger>
                                                                         <SelectContent>
                                                                             {availableOptions.map((g: IGenderDropdown) => {
-                                                                                const val = g.key?.toString().trim();
-                                                                                if (!val || val === '') return null;
+                                                                                const val = getSafeValue(g.key);
+                                                                                if (!val) return null;
                                                                                 return (
-                                                                                    <SafeSelectItem key={g.key} value={val}>
+                                                                                    <SelectItem key={g.key} value={val}>
                                                                                         {g.value || String(g.key)}
-                                                                                    </SafeSelectItem>
+                                                                                    </SelectItem>
                                                                                 );
                                                                             })}
                                                                         </SelectContent>
@@ -3206,12 +3412,12 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                         </SelectTrigger>
                                                                         <SelectContent>
                                                                             {availableOptions.map((ms: IMaritalStatusDropdown) => {
-                                                                                const val = ms.key?.toString().trim();
-                                                                                if (!val || val === '') return null;
+                                                                                const val = getSafeValue(ms.key);
+                                                                                if (!val) return null;
                                                                                 return (
-                                                                                    <SafeSelectItem key={ms.key} value={val}>
+                                                                                    <SelectItem key={ms.key} value={val}>
                                                                                         {ms.value || String(ms.key)}
-                                                                                    </SafeSelectItem>
+                                                                                    </SelectItem>
                                                                                 );
                                                                             })}
                                                                         </SelectContent>
@@ -3260,23 +3466,19 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                 );
                                                                                             })
                                                                                             .map((item: any) => {
-                                                                                                const key = (
-                                                                                                    item.key ||
-                                                                                                    item.value ||
-                                                                                                    item.id
-                                                                                                )
-                                                                                                    ?.toString()
-                                                                                                    .trim();
+                                                                                                const val = getSafeValue(
+                                                                                                    item.key || item.value || item.id
+                                                                                                );
+                                                                                                if (!val) return null;
                                                                                                 const value =
                                                                                                     item.value ||
                                                                                                     item.label ||
                                                                                                     item.name ||
-                                                                                                    String(key);
-                                                                                                if (!key || key === '') return null;
+                                                                                                    String(val);
                                                                                                 return (
-                                                                                                    <SafeSelectItem key={key} value={key}>
+                                                                                                    <SelectItem key={val} value={val}>
                                                                                                         {value}
-                                                                                                    </SafeSelectItem>
+                                                                                                    </SelectItem>
                                                                                                 );
                                                                                             })
                                                                                             .filter(Boolean)
@@ -3301,21 +3503,35 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                     </Button>
                                                                 </div>
                                                             ))}
-                                                            <Button
-                                                                type='button'
-                                                                variant='outline'
-                                                                size='sm'
-                                                                className='w-full'
-                                                                onClick={() =>
-                                                                    appendMobile({
-                                                                        mobileNo: '',
-                                                                        type: 'Default'
-                                                                    })
-                                                                }>
-                                                                <Plus className='mr-1 h-4 w-4' /> Add Mobile
-                                                            </Button>
+                                                            <div className='flex gap-2'>
+                                                                <Button
+                                                                    type='button'
+                                                                    variant='outline'
+                                                                    size='sm'
+                                                                    className='flex-1 border-primary/30 text-primary hover:bg-primary/10'
+                                                                    onClick={() => {
+                                                                        const vals = getValues('mobileDetails');
+                                                                        if (vals && vals.length > 0) replaceMobile(vals);
+                                                                    }}>
+                                                                    <RefreshCw className='mr-1 h-3.5 w-3.5' /> Force Binding
+                                                                </Button>
+                                                                <Button
+                                                                    type='button'
+                                                                    variant='outline'
+                                                                    size='sm'
+                                                                    className='flex-1'
+                                                                    onClick={() =>
+                                                                        appendMobile({
+                                                                            mobileNo: '',
+                                                                            type: 'Default'
+                                                                        })
+                                                                    }>
+                                                                    <Plus className='mr-1 h-4 w-4' /> Add Mobile
+                                                                </Button>
+                                                            </div>
                                                         </div>
                                                     </div>
+
                                                     {/* Multiple Email IDs */}
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Label>Email -Id</Label>
@@ -3349,23 +3565,19 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                 );
                                                                                             })
                                                                                             .map((item: any) => {
-                                                                                                const key = (
-                                                                                                    item.key ||
-                                                                                                    item.value ||
-                                                                                                    item.id
-                                                                                                )
-                                                                                                    ?.toString()
-                                                                                                    .trim();
+                                                                                                const val = getSafeValue(
+                                                                                                    item.key || item.value || item.id
+                                                                                                );
+                                                                                                if (!val) return null;
                                                                                                 const value =
                                                                                                     item.value ||
                                                                                                     item.label ||
                                                                                                     item.name ||
-                                                                                                    String(key);
-                                                                                                if (!key || key === '') return null;
+                                                                                                    String(val);
                                                                                                 return (
-                                                                                                    <SafeSelectItem key={key} value={key}>
+                                                                                                    <SelectItem key={val} value={val}>
                                                                                                         {value}
-                                                                                                    </SafeSelectItem>
+                                                                                                    </SelectItem>
                                                                                                 );
                                                                                             })
                                                                                             .filter(Boolean)
@@ -3391,14 +3603,32 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                     </Button>
                                                                 </div>
                                                             ))}
-                                                            <Button
-                                                                type='button'
-                                                                variant='outline'
-                                                                size='sm'
-                                                                className='w-full'
-                                                                onClick={() => appendEmail({ emailId: '', type: 'Default' })}>
-                                                                <Plus className='mr-1 h-4 w-4' /> Add Email
-                                                            </Button>
+                                                            <div className='flex gap-2'>
+                                                                <Button
+                                                                    type='button'
+                                                                    variant='outline'
+                                                                    size='sm'
+                                                                    className='flex-1 border-primary/30 text-primary hover:bg-primary/10'
+                                                                    onClick={() => {
+                                                                        const vals = getValues('emailDetails');
+                                                                        if (vals && vals.length > 0) replaceEmail(vals);
+                                                                    }}>
+                                                                    <RefreshCw className='mr-1 h-3.5 w-3.5' /> Force Binding
+                                                                </Button>
+                                                                <Button
+                                                                    type='button'
+                                                                    variant='outline'
+                                                                    size='sm'
+                                                                    className='flex-1'
+                                                                    onClick={() =>
+                                                                        appendEmail({
+                                                                            emailId: '',
+                                                                            type: 'Default'
+                                                                        })
+                                                                    }>
+                                                                    <Plus className='mr-1 h-4 w-4' /> Add Email
+                                                                </Button>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                     <InputText
@@ -3485,12 +3715,12 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                         </SelectTrigger>
                                                                         <SelectContent>
                                                                             {availableOptions.map((bg: IBloodGroupDropdown) => {
-                                                                                const val = bg.key?.toString().trim();
-                                                                                if (!val || val === '') return null;
+                                                                                const val = getSafeValue(bg.key);
+                                                                                if (!val) return null;
                                                                                 return (
-                                                                                    <SafeSelectItem key={bg.key} value={val}>
+                                                                                    <SelectItem key={bg.key} value={val}>
                                                                                         {bg.value || String(bg.key)}
-                                                                                    </SafeSelectItem>
+                                                                                    </SelectItem>
                                                                                 );
                                                                             })}
                                                                         </SelectContent>
@@ -3531,12 +3761,12 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                         </SelectTrigger>
                                                                         <SelectContent>
                                                                             {availableOptions.map((st: ISalaryTypeDropdown) => {
-                                                                                const val = st.key?.toString().trim();
-                                                                                if (!val || val === '') return null;
+                                                                                const val = getSafeValue(st.key);
+                                                                                if (!val) return null;
                                                                                 return (
-                                                                                    <SafeSelectItem key={st.key} value={val}>
+                                                                                    <SelectItem key={st.key} value={val}>
                                                                                         {st.value || String(st.key)}
-                                                                                    </SafeSelectItem>
+                                                                                    </SelectItem>
                                                                                 );
                                                                             })}
                                                                         </SelectContent>
@@ -3579,12 +3809,12 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                         </SelectTrigger>
                                                                         <SelectContent>
                                                                             {availableOptions.map((pm: IPaymentModeDropdown) => {
-                                                                                const val = pm.key?.toString().trim();
-                                                                                if (!val || val === '') return null;
+                                                                                const val = getSafeValue(pm.key);
+                                                                                if (!val) return null;
                                                                                 return (
-                                                                                    <SafeSelectItem key={pm.key} value={val}>
+                                                                                    <SelectItem key={pm.key} value={val}>
                                                                                         {pm.value || String(pm.key)}
-                                                                                    </SafeSelectItem>
+                                                                                    </SelectItem>
                                                                                 );
                                                                             })}
                                                                         </SelectContent>
@@ -3681,13 +3911,17 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                 <SelectValue placeholder='--Select--' />
                                                                                             </SelectTrigger>
                                                                                             <SelectContent>
-                                                                                                {memoizedBankOptions.map((bank: any) => (
-                                                                                                    <SafeSelectItem
-                                                                                                        key={bank.id}
-                                                                                                        value={bank.value}>
-                                                                                                        {bank.name}
-                                                                                                    </SafeSelectItem>
-                                                                                                ))}
+                                                                                                {memoizedBankOptions.map((bank: any) => {
+                                                                                                    const val = getSafeValue(bank.value);
+                                                                                                    if (!val) return null;
+                                                                                                    return (
+                                                                                                        <SelectItem
+                                                                                                            key={bank.id}
+                                                                                                            value={val}>
+                                                                                                            {bank.name}
+                                                                                                        </SelectItem>
+                                                                                                    );
+                                                                                                })}
                                                                                             </SelectContent>
                                                                                         </Select>
                                                                                     )}
@@ -3741,7 +3975,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                             </SelectTrigger>
                                                                                             <SelectContent>
                                                                                                 {(options?.contactTypes || []).length ===
-                                                                                                0 ? (
+                                                                                                    0 ? (
                                                                                                     <SelectItem value='no-options' disabled>
                                                                                                         No options available
                                                                                                     </SelectItem>
@@ -3759,26 +3993,14 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                             );
                                                                                                         })
                                                                                                         .map((item: any) => {
-                                                                                                            const key = (
-                                                                                                                item.key ||
-                                                                                                                item.value ||
-                                                                                                                item.id
-                                                                                                            )
-                                                                                                                ?.toString()
-                                                                                                                .trim();
-                                                                                                            const value =
-                                                                                                                item.value ||
-                                                                                                                item.label ||
-                                                                                                                item.name ||
-                                                                                                                String(key);
-                                                                                                            if (!key || key === '')
-                                                                                                                return null;
+                                                                                                            const val = getSafeValue(item.key || item.value || item.id);
+                                                                                                            if (!val) return null;
                                                                                                             return (
-                                                                                                                <SafeSelectItem
-                                                                                                                    key={key}
-                                                                                                                    value={key}>
-                                                                                                                    {value}
-                                                                                                                </SafeSelectItem>
+                                                                                                                <SelectItem
+                                                                                                                    key={item.key || item.value || item.id}
+                                                                                                                    value={val}>
+                                                                                                                    {item.value || item.label || item.name || String(item.key || item.value || item.id)}
+                                                                                                                </SelectItem>
                                                                                                             );
                                                                                                         })
                                                                                                         .filter(Boolean)
@@ -3857,93 +4079,112 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                 <Controller
                                                                     name='contactCountry'
                                                                     control={control}
-                                                                    render={({ field }) => (
-                                                                        <>
-                                                                            <Label>Country</Label>
-                                                                            <Select onValueChange={field.onChange} value={field.value}>
-                                                                                <SelectTrigger>
-                                                                                    <SelectValue placeholder='Select Country' />
-                                                                                </SelectTrigger>
-                                                                                <SelectContent>
-                                                                                    {(options?.countries || [])
-                                                                                        .filter((country: ICountryDropdown) => {
-                                                                                            return (
-                                                                                                country.key != null &&
-                                                                                                country.key !== undefined &&
-                                                                                                country.key !== 0
-                                                                                            );
-                                                                                        })
-                                                                                        .map((country: ICountryDropdown) => {
-                                                                                            const key = country.key?.toString().trim();
-                                                                                            if (!key || key === '') return null;
-                                                                                            // Remove "Country" prefix if present
-                                                                                            let displayValue =
-                                                                                                country.value || String(country.key);
-                                                                                            if (displayValue.startsWith('Country ')) {
-                                                                                                displayValue = displayValue.replace(
-                                                                                                    /^Country\s+/i,
-                                                                                                    ''
+                                                                    render={({ field }) => {
+                                                                        console.log('🔍 [DROPDOWN] Contact Country:', {
+                                                                            fieldValue: field.value,
+                                                                            fieldValueType: typeof field.value,
+                                                                            availableCountries: options?.countries?.length,
+                                                                            firstCountryKey: options?.countries?.[0]?.key,
+                                                                            firstCountryKeyType: typeof options?.countries?.[0]?.key
+                                                                        });
+                                                                        return (
+                                                                            <>
+                                                                                <Label>Country</Label>
+                                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                                    <SelectTrigger>
+                                                                                        <SelectValue placeholder='Select Country' />
+                                                                                    </SelectTrigger>
+                                                                                    <SelectContent>
+                                                                                        {(options?.countries || [])
+                                                                                            .filter((country: ICountryDropdown) => {
+                                                                                                return (
+                                                                                                    country.key != null &&
+                                                                                                    country.key !== undefined &&
+                                                                                                    country.key !== 0
                                                                                                 );
-                                                                                            }
-                                                                                            return (
-                                                                                                <SafeSelectItem
-                                                                                                    key={country.key}
-                                                                                                    value={key}>
-                                                                                                    {displayValue}
-                                                                                                </SafeSelectItem>
-                                                                                            );
-                                                                                        })
-                                                                                        .filter(Boolean)}
-                                                                                </SelectContent>
-                                                                            </Select>
-                                                                        </>
-                                                                    )}
+                                                                                            })
+                                                                                            .map((country: ICountryDropdown) => {
+                                                                                                const val = getSafeValue(country.key);
+                                                                                                if (!val) return null;
+                                                                                                // Remove "Country" prefix if present
+                                                                                                let displayValue =
+                                                                                                    country.value || String(country.key);
+                                                                                                if (displayValue.startsWith('Country ')) {
+                                                                                                    displayValue = displayValue.replace(
+                                                                                                        /^Country\s+/i,
+                                                                                                        ''
+                                                                                                    );
+                                                                                                }
+                                                                                                return (
+                                                                                                    <SelectItem
+                                                                                                        key={country.key}
+                                                                                                        value={val}>
+                                                                                                        {displayValue}
+                                                                                                    </SelectItem>
+                                                                                                );
+                                                                                            })
+                                                                                            .filter(Boolean)}
+                                                                                    </SelectContent>
+                                                                                </Select>
+                                                                            </>
+                                                                        );
+                                                                    }}
                                                                 />
                                                             </div>
                                                             <div className='space-y-2'>
                                                                 <Controller
                                                                     name='contactState'
                                                                     control={control}
-                                                                    render={({ field }) => (
-                                                                        <>
-                                                                            <Label>State</Label>
-                                                                            <Select onValueChange={field.onChange} value={field.value}>
-                                                                                <SelectTrigger>
-                                                                                    <SelectValue placeholder='Select State' />
-                                                                                </SelectTrigger>
-                                                                                <SelectContent>
-                                                                                    {isLoadingContactStates ? (
-                                                                                        <SelectItem value='loading' disabled>
-                                                                                            Loading states...
-                                                                                        </SelectItem>
-                                                                                    ) : (
-                                                                                        availableContactStates
-                                                                                            .filter((state: IStateDropdown) => {
-                                                                                                return (
-                                                                                                    state.key != null &&
-                                                                                                    state.key !== undefined &&
-                                                                                                    state.key !== 0
-                                                                                                );
-                                                                                            })
-                                                                                            .map((state: IStateDropdown) => {
-                                                                                                const key = state.key?.toString().trim();
-                                                                                                if (!key || key === '') return null;
-                                                                                                const value =
-                                                                                                    state.value || String(state.key);
-                                                                                                return (
-                                                                                                    <SafeSelectItem
-                                                                                                        key={`contact-state-${state.key}`}
-                                                                                                        value={key}>
-                                                                                                        {value}
-                                                                                                    </SafeSelectItem>
-                                                                                                );
-                                                                                            })
-                                                                                            .filter(Boolean)
-                                                                                    )}
-                                                                                </SelectContent>
-                                                                            </Select>
-                                                                        </>
-                                                                    )}
+                                                                    render={({ field }) => {
+                                                                        console.log('🔍 [DROPDOWN] Contact State:', {
+                                                                            fieldValue: field.value,
+                                                                            fieldValueType: typeof field.value,
+                                                                            contactCountryId: contactCountryId,
+                                                                            availableStates: availableContactStates?.length,
+                                                                            firstStateKey: availableContactStates?.[0]?.key,
+                                                                            firstStateKeyType: typeof availableContactStates?.[0]?.key
+                                                                        });
+                                                                        return (
+                                                                            <>
+                                                                                <Label>State</Label>
+                                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                                    <SelectTrigger>
+                                                                                        <SelectValue placeholder='Select State' />
+                                                                                    </SelectTrigger>
+                                                                                    <SelectContent>
+                                                                                        {isLoadingContactStates ? (
+                                                                                            <SelectItem value='loading' disabled>
+                                                                                                Loading states...
+                                                                                            </SelectItem>
+                                                                                        ) : (
+                                                                                            availableContactStates
+                                                                                                .filter((state: IStateDropdown) => {
+                                                                                                    return (
+                                                                                                        state.key != null &&
+                                                                                                        state.key !== undefined &&
+                                                                                                        state.key !== 0
+                                                                                                    );
+                                                                                                })
+                                                                                                .map((state: IStateDropdown) => {
+                                                                                                    const val = getSafeValue(state.key);
+                                                                                                    if (!val) return null;
+                                                                                                    const value =
+                                                                                                        state.value || String(state.key);
+                                                                                                    return (
+                                                                                                        <SelectItem
+                                                                                                            key={`contact-state-${state.key}`}
+                                                                                                            value={val}>
+                                                                                                            {value}
+                                                                                                        </SelectItem>
+                                                                                                    );
+                                                                                                })
+                                                                                                .filter(Boolean)
+                                                                                        )}
+                                                                                    </SelectContent>
+                                                                                </Select>
+                                                                            </>
+                                                                        );
+                                                                    }}
                                                                 />
                                                             </div>
                                                             <InputText
@@ -4047,8 +4288,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                             );
                                                                                         })
                                                                                         .map((country: ICountryDropdown) => {
-                                                                                            const key = country.key?.toString().trim();
-                                                                                            if (!key || key === '') return null;
+                                                                                            const val = getSafeValue(country.key);
+                                                                                            if (!val) return null;
                                                                                             // Remove "Country" prefix if present
                                                                                             let displayValue =
                                                                                                 country.value || String(country.key);
@@ -4059,11 +4300,11 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                 );
                                                                                             }
                                                                                             return (
-                                                                                                <SafeSelectItem
+                                                                                                <SelectItem
                                                                                                     key={country.key}
-                                                                                                    value={key}>
+                                                                                                    value={val}>
                                                                                                     {displayValue}
-                                                                                                </SafeSelectItem>
+                                                                                                </SelectItem>
                                                                                             );
                                                                                         })
                                                                                         .filter(Boolean)}
@@ -4102,16 +4343,16 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                 );
                                                                                             })
                                                                                             .map((state: IStateDropdown) => {
-                                                                                                const key = state.key?.toString().trim();
-                                                                                                if (!key || key === '') return null;
+                                                                                                const val = getSafeValue(state.key);
+                                                                                                if (!val) return null;
                                                                                                 const value =
                                                                                                     state.value || String(state.key);
                                                                                                 return (
-                                                                                                    <SafeSelectItem
+                                                                                                    <SelectItem
                                                                                                         key={`permanent-state-${state.key}`}
-                                                                                                        value={key}>
+                                                                                                        value={val}>
                                                                                                         {value}
-                                                                                                    </SafeSelectItem>
+                                                                                                    </SelectItem>
                                                                                                 );
                                                                                             })
                                                                                             .filter(Boolean)
@@ -4172,503 +4413,510 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                 {currentStep === 3 && (
                                     <div className='space-y-6'>
                                         <div>
-                                            <h2 className='font-bold text-2xl text-gray-900'>Qualification</h2>
+                                            <h2 className='font-bold text-2xl text-gray-900'>Qualification & Educational Details</h2>
                                             <p className='mt-1 text-gray-500 text-sm'>
-                                                Please provide the employee&apos;s educational qualifications
+                                                Please provide the employee&apos;s educational and qualification details
                                             </p>
                                         </div>
                                         <div className='space-y-4'>
                                             <div className='rounded-md border'>
                                                 <div className='flex items-center justify-between border-b bg-muted px-4 py-2'>
                                                     <h3 className='font-semibold text-base text-gray-900 uppercase'>
-                                                        EMPLOYEE QUALIFICATION DETAILS
+                                                        EMPLOYEE QUALIFICATION & EDUCATIONAL DETAILS
                                                     </h3>
-                                                    <Button
-                                                        type='button'
-                                                        className='h-7 w-auto rounded-md bg-secondary px-2.5 py-1.5 text-secondary-foreground text-xs shadow-sm hover:bg-secondary/80'
-                                                        onClick={() => {
-                                                            appendQualification({
-                                                                hrmeQ_Id: 0, // New record - use lowercase to match form field
-                                                                qualification: '',
-                                                                course: '',
-                                                                college: '',
-                                                                university: '',
-                                                                yearOfPassing: '',
-                                                                cgpaOrPercentage: 'CGPA',
-                                                                cgpa: '',
-                                                                qualificationCountry: '',
-                                                                qualificationState: '',
-                                                                registrationNo: '',
-                                                                result: '',
-                                                                areaOfSpecialisation: '',
-                                                                medicalCouncil: '',
-                                                                phdFlag: false,
-                                                                thesisTitle: '',
-                                                                registrationYear: '',
-                                                                guideName: '',
-                                                                qualifiedDate: '',
-                                                                hardcopy: ''
-                                                            } as any as z.infer<typeof qualificationDetailSchema>);
-                                                        }}>
-                                                        <Plus className='mr-1 h-3.5 w-3.5' /> Add Qualification
-                                                    </Button>
+                                                    <div className='flex items-center gap-2'>
+
+                                                        <Button
+                                                            type='button'
+                                                            className='h-7 w-auto rounded-md bg-secondary px-2.5 py-1.5 text-secondary-foreground text-xs shadow-sm hover:bg-secondary/80'
+                                                            onClick={() => {
+                                                                appendQualification({
+
+                                                                    hrmeQ_Id: 0, // New record - use lowercase to match form field
+                                                                    qualification: '',
+                                                                    course: '',
+                                                                    college: '',
+                                                                    university: '',
+                                                                    yearOfPassing: '',
+                                                                    cgpaOrPercentage: 'CGPA',
+                                                                    cgpa: '',
+                                                                    qualificationCountry: '',
+                                                                    qualificationState: '',
+                                                                    registrationNo: '',
+                                                                    result: '',
+                                                                    areaOfSpecialisation: '',
+                                                                    medicalCouncil: '',
+                                                                    phdFlag: false,
+                                                                    thesisTitle: '',
+                                                                    registrationYear: '',
+                                                                    guideName: '',
+                                                                    qualifiedDate: '',
+                                                                    hardcopy: ''
+                                                                } as any as z.infer<typeof qualificationDetailSchema>);
+                                                            }}>
+                                                            <Plus className='mr-1 h-3.5 w-3.5' /> Add Qualification
+                                                        </Button>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            {qualificationFields.length === 0 && (
-                                                <div className='rounded-md border p-6 text-muted-foreground text-sm'>
-                                                    No qualifications added yet. Click "Add Qualification" to start.
-                                                </div>
-                                            )}
-                                            <div className='space-y-4'>
-                                                {qualificationFields.map((field, index) => {
-                                                    const qualificationDetails = watch('qualificationDetails') as any[];
-                                                    const cgpaOrPercentage = qualificationDetails[index]?.cgpaOrPercentage || 'CGPA';
-                                                    return (
-                                                        <div key={field.id} className='rounded-lg border bg-card p-4 shadow-sm'>
-                                                            <div className='mb-4 flex items-center justify-between'>
-                                                                <div className='flex items-center gap-2'>
-                                                                    <Badge variant='secondary'>Serial NO. {index + 1}</Badge>
-                                                                    <div className='font-semibold'>Qualification #{index + 1}</div>
-                                                                </div>
-                                                                <Button
-                                                                    type='button'
-                                                                    className='h-7 w-auto rounded-md px-2.5 py-1.5 text-xs hover:bg-accent hover:text-accent-foreground'
-                                                                    onClick={() => removeQualification(index)}>
-                                                                    <Trash2 className='mr-1 h-3.5 w-3.5' /> Remove
-                                                                </Button>
-                                                            </div>
-                                                            <div className='space-y-4'>
-                                                                {/* Row 1: Qualification, Course */}
-                                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                                                    <InputText
-                                                                        label='Qualification *'
-                                                                        id={`qualificationDetails.${index}.qualification`}
-                                                                        maxLength={50}
-                                                                        {...register(`qualificationDetails.${index}.qualification`)}
-                                                                    />
-                                                                    <Controller
-                                                                        name={`qualificationDetails.${index}.course`}
-                                                                        control={control}
-                                                                        render={({ field }) => {
-                                                                            const courses = options?.courses || [];
-                                                                            return (
-                                                                                <div className='flex flex-col gap-1.5'>
-                                                                                    <Label>Course *</Label>
-                                                                                    <Select
-                                                                                        onValueChange={field.onChange}
-                                                                                        value={field.value || ''}>
-                                                                                        <SelectTrigger className='h-9'>
-                                                                                            <SelectValue placeholder='Select Course' />
-                                                                                        </SelectTrigger>
-                                                                                        <SelectContent>
-                                                                                            {isLoadingCourses ? (
-                                                                                                <SelectItem value='loading' disabled>
-                                                                                                    Loading courses...
-                                                                                                </SelectItem>
-                                                                                            ) : courses.length === 0 ? (
-                                                                                                <SelectItem value='no-options' disabled>
-                                                                                                    No courses available
-                                                                                                </SelectItem>
-                                                                                            ) : (
-                                                                                                courses
-                                                                                                    .filter((course: ICourseDropdown) => {
+                                                {qualificationFields.length === 0 && (
+                                                    <div className='rounded-md border p-6 text-muted-foreground text-sm'>
+                                                        No qualifications added yet. Click "Add Qualification" to start.
+                                                    </div>
+                                                )}
+                                                <div className='space-y-4'>
+                                                    {(() => {
+                                                        const allQuals = watch('qualificationDetails') || [];
+                                                        return qualificationFields.map((field, index) => {
+                                                            const cgpaOrPercentage = allQuals[index]?.cgpaOrPercentage || 'CGPA';
+
+                                                            return (
+                                                                <div key={field.id} className='rounded-lg border bg-card p-4 shadow-sm'>
+                                                                    <div className='mb-4 flex items-center justify-between'>
+                                                                        <div className='flex items-center gap-2'>
+                                                                            <Badge variant='secondary'>Serial NO. {index + 1}</Badge>
+                                                                            <div className='font-semibold'>Qualification #{index + 1}</div>
+                                                                        </div>
+                                                                        <Button
+                                                                            type='button'
+                                                                            className='h-7 w-auto rounded-md px-2.5 py-1.5 text-xs hover:bg-accent hover:text-accent-foreground'
+                                                                            onClick={() => removeQualification(index)}>
+                                                                            <Trash2 className='mr-1 h-3.5 w-3.5' /> Remove
+                                                                        </Button>
+                                                                    </div>
+                                                                    <div className='space-y-4'>
+                                                                        {/* Row 1: Qualification, Course */}
+                                                                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                                            <InputText
+                                                                                label='Qualification *'
+                                                                                id={`qualificationDetails.${index}.qualification`}
+                                                                                maxLength={50}
+                                                                                {...register(`qualificationDetails.${index}.qualification`)}
+                                                                            />
+                                                                            <Controller
+                                                                                name={`qualificationDetails.${index}.course`}
+                                                                                control={control}
+                                                                                render={({ field }) => {
+                                                                                    const courses = options?.courses || [];
+                                                                                    return (
+                                                                                        <div className='flex flex-col gap-1.5'>
+                                                                                            <Label>Course *</Label>
+                                                                                            <Select
+                                                                                                onValueChange={field.onChange}
+                                                                                                value={field.value || ''}>
+                                                                                                <SelectTrigger className='h-9'>
+                                                                                                    <SelectValue placeholder='Select Course' />
+                                                                                                </SelectTrigger>
+                                                                                                <SelectContent>
+                                                                                                    {isLoadingCourses ? (
+                                                                                                        <SelectItem value='loading' disabled>
+                                                                                                            Loading courses...
+                                                                                                        </SelectItem>
+                                                                                                    ) : courses.length === 0 ? (
+                                                                                                        <SelectItem value='no-options' disabled>
+                                                                                                            No courses available
+                                                                                                        </SelectItem>
+                                                                                                    ) : (
+                                                                                                        courses
+                                                                                                            .filter((course: ICourseDropdown) => {
+                                                                                                                return (
+                                                                                                                    course.key != null &&
+                                                                                                                    course.key !== undefined &&
+                                                                                                                    course.key !== 0
+                                                                                                                );
+                                                                                                            })
+                                                                                                            .map((course: ICourseDropdown) => {
+                                                                                                                const key = course.key
+                                                                                                                    ?.toString()
+                                                                                                                    .trim();
+                                                                                                                if (!key || key === '') return null;
+                                                                                                                const value =
+                                                                                                                    course.value ||
+                                                                                                                    String(course.key);
+                                                                                                                return (
+                                                                                                                    <SelectItem
+                                                                                                                        key={course.key}
+                                                                                                                        value={key}>
+                                                                                                                        {value}
+                                                                                                                    </SelectItem>
+                                                                                                                );
+                                                                                                            })
+                                                                                                            .filter(Boolean)
+                                                                                                    )}
+                                                                                                </SelectContent>
+                                                                                            </Select>
+                                                                                        </div>
+                                                                                    );
+                                                                                }}
+                                                                            />
+                                                                        </div>
+                                                                        {/* Row 2: College, University */}
+                                                                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                                            <InputText
+                                                                                label='College *'
+                                                                                id={`qualificationDetails.${index}.college`}
+                                                                                maxLength={100}
+                                                                                {...register(`qualificationDetails.${index}.college`)}
+                                                                            />
+                                                                            <InputText
+                                                                                label='University *'
+                                                                                id={`qualificationDetails.${index}.university`}
+                                                                                maxLength={100}
+                                                                                {...register(`qualificationDetails.${index}.university`)}
+                                                                            />
+                                                                        </div>
+                                                                        {/* Row 3: Year Of Passing, Country, State */}
+                                                                        <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                                                                            <InputText
+                                                                                label='Year Of Passing *'
+                                                                                id={`qualificationDetails.${index}.yearOfPassing`}
+                                                                                maxLength={4}
+                                                                                onKeyDown={(e) => {
+                                                                                    const controlKeys = [
+                                                                                        'Backspace',
+                                                                                        'Delete',
+                                                                                        'Tab',
+                                                                                        'Escape',
+                                                                                        'Enter',
+                                                                                        'ArrowLeft',
+                                                                                        'ArrowRight',
+                                                                                        'ArrowUp',
+                                                                                        'ArrowDown'
+                                                                                    ];
+                                                                                    if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                                                                                        return;
+                                                                                    }
+                                                                                    if (e.key === ' ') {
+                                                                                        e.preventDefault();
+                                                                                        return;
+                                                                                    }
+                                                                                    if (!/^[0-9]$/.test(e.key)) {
+                                                                                        e.preventDefault();
+                                                                                    }
+                                                                                }}
+                                                                                {...register(`qualificationDetails.${index}.yearOfPassing`)}
+                                                                            />
+                                                                            <Controller
+                                                                                name={`qualificationDetails.${index}.qualificationCountry`}
+                                                                                control={control}
+                                                                                render={({ field }) => (
+                                                                                    <div className='flex flex-col gap-1.5'>
+                                                                                        <Label>Country*</Label>
+                                                                                        <Select
+                                                                                            onValueChange={(value) => {
+                                                                                                field.onChange(value);
+                                                                                                setValue(
+                                                                                                    `qualificationDetails.${index}.qualificationState`,
+                                                                                                    '',
+                                                                                                    {
+                                                                                                        shouldValidate: false
+                                                                                                    }
+                                                                                                );
+                                                                                            }}
+                                                                                            value={field.value || ''}>
+                                                                                            <SelectTrigger className='h-9'>
+                                                                                                <SelectValue placeholder='Select Country' />
+                                                                                            </SelectTrigger>
+                                                                                            <SelectContent>
+                                                                                                {(options?.countries || [])
+                                                                                                    .filter((country: ICountryDropdown) => {
                                                                                                         return (
-                                                                                                            course.key != null &&
-                                                                                                            course.key !== undefined &&
-                                                                                                            course.key !== 0
+                                                                                                            country.key != null &&
+                                                                                                            country.key !== undefined &&
+                                                                                                            country.key !== 0
                                                                                                         );
                                                                                                     })
-                                                                                                    .map((course: ICourseDropdown) => {
-                                                                                                        const key = course.key
-                                                                                                            ?.toString()
-                                                                                                            .trim();
-                                                                                                        if (!key || key === '') return null;
-                                                                                                        const value =
-                                                                                                            course.value ||
-                                                                                                            String(course.key);
+                                                                                                    .map((country: ICountryDropdown) => {
+                                                                                                        const val = getSafeValue(country.key);
+                                                                                                        if (!val) return null;
+                                                                                                        // Remove "Country" prefix if present
+                                                                                                        let displayValue =
+                                                                                                            country.value || String(country.key);
+                                                                                                        if (displayValue.startsWith('Country ')) {
+                                                                                                            displayValue = displayValue.replace(
+                                                                                                                /^Country\s+/i,
+                                                                                                                ''
+                                                                                                            );
+                                                                                                        }
                                                                                                         return (
                                                                                                             <SelectItem
-                                                                                                                key={course.key}
-                                                                                                                value={key}>
-                                                                                                                {value}
+                                                                                                                key={country.key}
+                                                                                                                value={val}>
+                                                                                                                {displayValue}
                                                                                                             </SelectItem>
                                                                                                         );
                                                                                                     })
-                                                                                                    .filter(Boolean)
-                                                                                            )}
-                                                                                        </SelectContent>
-                                                                                    </Select>
-                                                                                </div>
-                                                                            );
-                                                                        }}
-                                                                    />
-                                                                </div>
-                                                                {/* Row 2: College, University */}
-                                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                                                    <InputText
-                                                                        label='College *'
-                                                                        id={`qualificationDetails.${index}.college`}
-                                                                        maxLength={100}
-                                                                        {...register(`qualificationDetails.${index}.college`)}
-                                                                    />
-                                                                    <InputText
-                                                                        label='University *'
-                                                                        id={`qualificationDetails.${index}.university`}
-                                                                        maxLength={100}
-                                                                        {...register(`qualificationDetails.${index}.university`)}
-                                                                    />
-                                                                </div>
-                                                                {/* Row 3: Year Of Passing, Country, State */}
-                                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                                                                    <InputText
-                                                                        label='Year Of Passing *'
-                                                                        id={`qualificationDetails.${index}.yearOfPassing`}
-                                                                        maxLength={4}
-                                                                        onKeyDown={(e) => {
-                                                                            const controlKeys = [
-                                                                                'Backspace',
-                                                                                'Delete',
-                                                                                'Tab',
-                                                                                'Escape',
-                                                                                'Enter',
-                                                                                'ArrowLeft',
-                                                                                'ArrowRight',
-                                                                                'ArrowUp',
-                                                                                'ArrowDown'
-                                                                            ];
-                                                                            if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
-                                                                                return;
-                                                                            }
-                                                                            if (e.key === ' ') {
-                                                                                e.preventDefault();
-                                                                                return;
-                                                                            }
-                                                                            if (!/^[0-9]$/.test(e.key)) {
-                                                                                e.preventDefault();
-                                                                            }
-                                                                        }}
-                                                                        {...register(`qualificationDetails.${index}.yearOfPassing`)}
-                                                                    />
-                                                                    <Controller
-                                                                        name={`qualificationDetails.${index}.qualificationCountry`}
-                                                                        control={control}
-                                                                        render={({ field }) => (
-                                                                            <div className='flex flex-col gap-1.5'>
-                                                                                <Label>Country*</Label>
-                                                                                <Select
-                                                                                    onValueChange={(value) => {
-                                                                                        field.onChange(value);
-                                                                                        setValue(
-                                                                                            `qualificationDetails.${index}.qualificationState`,
-                                                                                            '',
-                                                                                            {
-                                                                                                shouldValidate: false
-                                                                                            }
-                                                                                        );
-                                                                                    }}
-                                                                                    value={field.value || ''}>
-                                                                                    <SelectTrigger className='h-9'>
-                                                                                        <SelectValue placeholder='Select Country' />
-                                                                                    </SelectTrigger>
-                                                                                    <SelectContent>
-                                                                                        {(options?.countries || [])
-                                                                                            .filter((country: ICountryDropdown) => {
-                                                                                                return (
-                                                                                                    country.key != null &&
-                                                                                                    country.key !== undefined &&
-                                                                                                    country.key !== 0
-                                                                                                );
-                                                                                            })
-                                                                                            .map((country: ICountryDropdown) => {
-                                                                                                const key = country.key?.toString().trim();
-                                                                                                if (!key || key === '') return null;
-                                                                                                // Remove "Country" prefix if present
-                                                                                                let displayValue =
-                                                                                                    country.value || String(country.key);
-                                                                                                if (displayValue.startsWith('Country ')) {
-                                                                                                    displayValue = displayValue.replace(
-                                                                                                        /^Country\s+/i,
-                                                                                                        ''
-                                                                                                    );
-                                                                                                }
-                                                                                                return (
-                                                                                                    <SafeSelectItem
-                                                                                                        key={country.key}
-                                                                                                        value={key}>
-                                                                                                        {displayValue}
-                                                                                                    </SafeSelectItem>
-                                                                                                );
-                                                                                            })
-                                                                                            .filter(Boolean)}
-                                                                                    </SelectContent>
-                                                                                </Select>
-                                                                            </div>
-                                                                        )}
-                                                                    />
-                                                                    <QualificationStateDropdown
-                                                                        control={control}
-                                                                        index={index}
-                                                                        countryId={
-                                                                            (watch('qualificationDetails') as any[])?.[index]
-                                                                                ?.qualificationCountry || null
-                                                                        }
-                                                                        setValue={setValue}
-                                                                        fallbackStates={options?.states || []}
-                                                                    />
-                                                                </div>
-                                                                {/* Row 4: Registration No., Result */}
-                                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                                                    <InputText
-                                                                        label='Registration No.'
-                                                                        id={`qualificationDetails.${index}.registrationNo`}
-                                                                        maxLength={50}
-                                                                        {...register(`qualificationDetails.${index}.registrationNo`)}
-                                                                    />
-                                                                    <InputText
-                                                                        label='Result *'
-                                                                        id={`qualificationDetails.${index}.result`}
-                                                                        maxLength={20}
-                                                                        {...register(`qualificationDetails.${index}.result`)}
-                                                                    />
-                                                                </div>
-                                                                {/* Row 5: CGPA Or Percentage dropdown */}
-                                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                                                    <Controller
-                                                                        name={`qualificationDetails.${index}.cgpaOrPercentage`}
-                                                                        control={control}
-                                                                        render={({ field, fieldState }) => (
-                                                                            <div className='flex flex-col gap-1.5'>
-                                                                                <Label>CGPA Or Percentage *</Label>
-                                                                                <Select
-                                                                                    onValueChange={field.onChange}
-                                                                                    value={field.value || 'CGPA'}>
-                                                                                    <SelectTrigger
-                                                                                        className={cn(
-                                                                                            'h-9',
-                                                                                            fieldState.error
-                                                                                                ? 'border-destructive focus-visible:ring-destructive'
-                                                                                                : 'border-input focus-visible:ring-ring'
-                                                                                        )}>
-                                                                                        <SelectValue placeholder='Select' />
-                                                                                    </SelectTrigger>
-                                                                                    <SelectContent>
-                                                                                        {(options?.cgpaPercentageTypes || [])
-                                                                                            .filter((st: IScoreTypeDropdown) => {
-                                                                                                return (
-                                                                                                    st.key != null &&
-                                                                                                    st.key !== '' &&
-                                                                                                    String(st.key).trim() !== ''
-                                                                                                );
-                                                                                            })
-                                                                                            .map((st: IScoreTypeDropdown) => {
-                                                                                                const val = st.key?.toString().trim();
-                                                                                                if (!val || val === '') return null;
-                                                                                                return (
-                                                                                                    <SafeSelectItem
-                                                                                                        key={st.key}
-                                                                                                        value={val}>
-                                                                                                        {st.value || String(st.key)}
-                                                                                                    </SafeSelectItem>
-                                                                                                );
-                                                                                            })
-                                                                                            .filter(Boolean)}
-                                                                                    </SelectContent>
-                                                                                </Select>
-                                                                                {fieldState.error && (
-                                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
-                                                                                        {fieldState.error.message}
+                                                                                                    .filter(Boolean)}
+                                                                                            </SelectContent>
+                                                                                        </Select>
                                                                                     </div>
                                                                                 )}
-                                                                            </div>
-                                                                        )}
-                                                                    />
-                                                                    <InputText
-                                                                        label={cgpaOrPercentage === 'Percentage' ? 'Percentage' : 'CGPA'}
-                                                                        id={`qualificationDetails.${index}.cgpa`}
-                                                                        maxLength={cgpaOrPercentage === 'Percentage' ? 3 : 4}
-                                                                        onKeyDown={(e) => {
-                                                                            const controlKeys = [
-                                                                                'Backspace',
-                                                                                'Delete',
-                                                                                'Tab',
-                                                                                'Escape',
-                                                                                'Enter',
-                                                                                'ArrowLeft',
-                                                                                'ArrowRight',
-                                                                                'ArrowUp',
-                                                                                'ArrowDown'
-                                                                            ];
-                                                                            if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
-                                                                                return;
-                                                                            }
-                                                                            if (e.key === ' ') {
-                                                                                e.preventDefault();
-                                                                                return;
-                                                                            }
-                                                                            if (cgpaOrPercentage === 'Percentage') {
-                                                                                if (!/^[0-9]$/.test(e.key)) {
-                                                                                    e.preventDefault();
+                                                                            />
+                                                                            <QualificationStateDropdown
+                                                                                control={control}
+                                                                                index={index}
+                                                                                countryId={
+                                                                                    (watch('qualificationDetails') as any[])?.[index]
+                                                                                        ?.qualificationCountry || null
                                                                                 }
-                                                                                return;
-                                                                            }
-                                                                            if (cgpaOrPercentage === 'CGPA') {
-                                                                                if (e.key === '.') {
-                                                                                    const target = e.target as HTMLInputElement;
-                                                                                    if (target.value.includes('.')) {
-                                                                                        e.preventDefault();
+                                                                                setValue={setValue}
+                                                                                fallbackStates={options?.states || []}
+                                                                            />
+                                                                        </div>
+                                                                        {/* Row 4: Registration No., Result */}
+                                                                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                                            <InputText
+                                                                                label='Registration No.'
+                                                                                id={`qualificationDetails.${index}.registrationNo`}
+                                                                                maxLength={50}
+                                                                                {...register(`qualificationDetails.${index}.registrationNo`)}
+                                                                            />
+                                                                            <InputText
+                                                                                label='Result *'
+                                                                                id={`qualificationDetails.${index}.result`}
+                                                                                maxLength={20}
+                                                                                {...register(`qualificationDetails.${index}.result`)}
+                                                                            />
+                                                                        </div>
+                                                                        {/* Row 5: CGPA Or Percentage dropdown */}
+                                                                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                                            <Controller
+                                                                                name={`qualificationDetails.${index}.cgpaOrPercentage`}
+                                                                                control={control}
+                                                                                render={({ field, fieldState }) => (
+                                                                                    <div className='flex flex-col gap-1.5'>
+                                                                                        <Label>CGPA Or Percentage *</Label>
+                                                                                        <Select
+                                                                                            onValueChange={field.onChange}
+                                                                                            value={field.value || 'CGPA'}>
+                                                                                            <SelectTrigger
+                                                                                                className={cn(
+                                                                                                    'h-9',
+                                                                                                    fieldState.error
+                                                                                                        ? 'border-destructive focus-visible:ring-destructive'
+                                                                                                        : 'border-input focus-visible:ring-ring'
+                                                                                                )}>
+                                                                                                <SelectValue placeholder='Select' />
+                                                                                            </SelectTrigger>
+                                                                                            <SelectContent>
+                                                                                                {(options?.cgpaPercentageTypes || [])
+                                                                                                    .filter((st: IScoreTypeDropdown) => {
+                                                                                                        return (
+                                                                                                            st.key != null &&
+                                                                                                            st.key !== '' &&
+                                                                                                            String(st.key).trim() !== ''
+                                                                                                        );
+                                                                                                    })
+                                                                                                    .map((st: IScoreTypeDropdown) => {
+                                                                                                        const val = getSafeValue(st.key);
+                                                                                                        if (!val) return null;
+                                                                                                        return (
+                                                                                                            <SelectItem
+                                                                                                                key={st.key}
+                                                                                                                value={val}>
+                                                                                                                {st.value || String(st.key)}
+                                                                                                            </SelectItem>
+                                                                                                        );
+                                                                                                    })
+                                                                                                    .filter(Boolean)}
+                                                                                            </SelectContent>
+                                                                                        </Select>
+                                                                                        {fieldState.error && (
+                                                                                            <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                                                {fieldState.error.message}
+                                                                                            </div>
+                                                                                        )}
+                                                                                    </div>
+                                                                                )}
+                                                                            />
+                                                                            <InputText
+                                                                                label={cgpaOrPercentage === 'Percentage' ? 'Percentage' : 'CGPA'}
+                                                                                id={`qualificationDetails.${index}.cgpa`}
+                                                                                maxLength={cgpaOrPercentage === 'Percentage' ? 3 : 4}
+                                                                                onKeyDown={(e) => {
+                                                                                    const controlKeys = [
+                                                                                        'Backspace',
+                                                                                        'Delete',
+                                                                                        'Tab',
+                                                                                        'Escape',
+                                                                                        'Enter',
+                                                                                        'ArrowLeft',
+                                                                                        'ArrowRight',
+                                                                                        'ArrowUp',
+                                                                                        'ArrowDown'
+                                                                                    ];
+                                                                                    if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                                                                                        return;
                                                                                     }
-                                                                                } else if (!/^[0-9]$/.test(e.key)) {
-                                                                                    e.preventDefault();
-                                                                                }
-                                                                            }
-                                                                        }}
-                                                                        {...register(`qualificationDetails.${index}.cgpa`)}
-                                                                    />
-                                                                </div>
-                                                                {/* Row 6: Area Of Specialization */}
-                                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                                                    <Controller
-                                                                        name={`qualificationDetails.${index}.areaOfSpecialisation`}
-                                                                        control={control}
-                                                                        render={({ field }) => {
-                                                                            const specialisations = options?.specialisations || [];
-                                                                            return (
-                                                                                <div className='flex flex-col gap-1.5'>
-                                                                                    <Label>Area Of Specialization*</Label>
-                                                                                    <Select
-                                                                                        onValueChange={field.onChange}
-                                                                                        value={field.value || ''}>
-                                                                                        <SelectTrigger className='h-9'>
-                                                                                            <SelectValue placeholder='Select' />
-                                                                                        </SelectTrigger>
-                                                                                        <SelectContent>
-                                                                                            {specialisations
-                                                                                                .filter((spec: ISpecializationDropdown) => {
-                                                                                                    return (
-                                                                                                        spec.key != null &&
-                                                                                                        spec.key !== undefined &&
-                                                                                                        spec.key !== 0
-                                                                                                    );
-                                                                                                })
-                                                                                                .map((spec: ISpecializationDropdown) => {
-                                                                                                    const key = spec.key?.toString().trim();
-                                                                                                    if (!key || key === '') return null;
-                                                                                                    const value =
-                                                                                                        spec.value || String(spec.key);
-                                                                                                    return (
-                                                                                                        <SafeSelectItem
-                                                                                                            key={spec.key}
-                                                                                                            value={key}>
-                                                                                                            {value}
-                                                                                                        </SafeSelectItem>
-                                                                                                    );
-                                                                                                })
-                                                                                                .filter(Boolean)}
-                                                                                        </SelectContent>
-                                                                                    </Select>
-                                                                                </div>
-                                                                            );
-                                                                        }}
-                                                                    />
-                                                                </div>
-                                                                {/* Row 7: PHD checkbox */}
-                                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                                                    <div className='flex items-center space-x-2'>
-                                                                        <Controller
-                                                                            name={`qualificationDetails.${index}.phdFlag`}
-                                                                            control={control}
-                                                                            render={({ field }) => (
-                                                                                <div className='flex items-center space-x-2'>
-                                                                                    <Checkbox
-                                                                                        id={`qualificationDetails.${index}.phdFlag`}
-                                                                                        checked={field.value || false}
-                                                                                        onCheckedChange={field.onChange}
-                                                                                    />
-                                                                                    <Label
-                                                                                        htmlFor={`qualificationDetails.${index}.phdFlag`}
-                                                                                        className='cursor-pointer'>
-                                                                                        PHD
-                                                                                    </Label>
-                                                                                </div>
-                                                                            )}
-                                                                        />
-                                                                    </div>
-                                                                </div>
-                                                                {/* Row 8: Thesis Title and Medical Council */}
-                                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                                                    <InputText
-                                                                        label='Thesis Title'
-                                                                        id={`qualificationDetails.${index}.thesisTitle`}
-                                                                        maxLength={255}
-                                                                        {...register(`qualificationDetails.${index}.thesisTitle`)}
-                                                                    />
-                                                                    <InputText
-                                                                        label='Medical Council'
-                                                                        id={`qualificationDetails.${index}.medicalCouncil`}
-                                                                        maxLength={50}
-                                                                        {...register(`qualificationDetails.${index}.medicalCouncil`)}
-                                                                    />
-                                                                </div>
-                                                                {/* Row 9: Registration Year, Guide Name, Qualified Date */}
-                                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                                                                    <InputText
-                                                                        label='Registration Year'
-                                                                        id={`qualificationDetails.${index}.registrationYear`}
-                                                                        maxLength={4}
-                                                                        placeholder='Enter year (e.g., 2024)'
-                                                                        onKeyDown={(e) => {
-                                                                            const controlKeys = [
-                                                                                'Backspace',
-                                                                                'Delete',
-                                                                                'Tab',
-                                                                                'Escape',
-                                                                                'Enter',
-                                                                                'ArrowLeft',
-                                                                                'ArrowRight',
-                                                                                'ArrowUp',
-                                                                                'ArrowDown'
-                                                                            ];
-                                                                            if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
-                                                                                return;
-                                                                            }
-                                                                            if (e.key === ' ') {
-                                                                                e.preventDefault();
-                                                                                return;
-                                                                            }
-                                                                            if (!/^[0-9]$/.test(e.key)) {
-                                                                                e.preventDefault();
-                                                                            }
-                                                                        }}
-                                                                        {...register(`qualificationDetails.${index}.registrationYear`)}
-                                                                        error={
-                                                                            errors.qualificationDetails?.[index]?.registrationYear?.message
-                                                                        }
-                                                                    />
-                                                                    <InputText
-                                                                        label='Guide Name'
-                                                                        id={`qualificationDetails.${index}.guideName`}
-                                                                        maxLength={100}
-                                                                        {...register(`qualificationDetails.${index}.guideName`)}
-                                                                    />
-                                                                    <Controller
-                                                                        name={`qualificationDetails.${index}.qualifiedDate`}
-                                                                        control={control}
-                                                                        render={({ field, fieldState }) => (
-                                                                            <div className='flex flex-col gap-1.5 [&>div]:mt-0'>
-                                                                                <DateField
-                                                                                    field={field}
-                                                                                    fieldState={fieldState}
-                                                                                    label='Qualified Date'
-                                                                                    placeholder='Pick qualified date'
+                                                                                    if (e.key === ' ') {
+                                                                                        e.preventDefault();
+                                                                                        return;
+                                                                                    }
+                                                                                    if (cgpaOrPercentage === 'Percentage') {
+                                                                                        if (!/^[0-9]$/.test(e.key)) {
+                                                                                            e.preventDefault();
+                                                                                        }
+                                                                                        return;
+                                                                                    }
+                                                                                    if (cgpaOrPercentage === 'CGPA') {
+                                                                                        if (e.key === '.') {
+                                                                                            const target = e.target as HTMLInputElement;
+                                                                                            if (target.value.includes('.')) {
+                                                                                                e.preventDefault();
+                                                                                            }
+                                                                                        } else if (!/^[0-9]$/.test(e.key)) {
+                                                                                            e.preventDefault();
+                                                                                        }
+                                                                                    }
+                                                                                }}
+                                                                                {...register(`qualificationDetails.${index}.cgpa`)}
+                                                                            />
+                                                                        </div>
+                                                                        {/* Row 6: Area Of Specialization */}
+                                                                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                                            <Controller
+                                                                                name={`qualificationDetails.${index}.areaOfSpecialisation`}
+                                                                                control={control}
+                                                                                render={({ field }) => {
+                                                                                    const specialisations = options?.specialisations || [];
+                                                                                    return (
+                                                                                        <div className='flex flex-col gap-1.5'>
+                                                                                            <Label>Area Of Specialization*</Label>
+                                                                                            <Select
+                                                                                                onValueChange={field.onChange}
+                                                                                                value={field.value || ''}>
+                                                                                                <SelectTrigger className='h-9'>
+                                                                                                    <SelectValue placeholder='Select' />
+                                                                                                </SelectTrigger>
+                                                                                                <SelectContent>
+                                                                                                    {specialisations
+                                                                                                        .filter((spec: ISpecializationDropdown) => {
+                                                                                                            return (
+                                                                                                                spec.key != null &&
+                                                                                                                spec.key !== undefined &&
+                                                                                                                spec.key !== 0
+                                                                                                            );
+                                                                                                        })
+                                                                                                        .map((spec: ISpecializationDropdown) => {
+                                                                                                            const val = getSafeValue(spec.key);
+                                                                                                            if (!val) return null;
+                                                                                                            const value =
+                                                                                                                spec.value || String(spec.key);
+                                                                                                            return (
+                                                                                                                <SelectItem
+                                                                                                                    key={spec.key}
+                                                                                                                    value={val}>
+                                                                                                                    {value}
+                                                                                                                </SelectItem>
+                                                                                                            );
+                                                                                                        })
+                                                                                                        .filter(Boolean)}
+                                                                                                </SelectContent>
+                                                                                            </Select>
+                                                                                        </div>
+                                                                                    );
+                                                                                }}
+                                                                            />
+                                                                        </div>
+                                                                        {/* Row 7: PHD checkbox */}
+                                                                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                                            <div className='flex items-center space-x-2'>
+                                                                                <Controller
+                                                                                    name={`qualificationDetails.${index}.phdFlag`}
+                                                                                    control={control}
+                                                                                    render={({ field }) => (
+                                                                                        <div className='flex items-center space-x-2'>
+                                                                                            <Checkbox
+                                                                                                id={`qualificationDetails.${index}.phdFlag`}
+                                                                                                checked={field.value || false}
+                                                                                                onCheckedChange={field.onChange}
+                                                                                            />
+                                                                                            <Label
+                                                                                                htmlFor={`qualificationDetails.${index}.phdFlag`}
+                                                                                                className='cursor-pointer'>
+                                                                                                PHD
+                                                                                            </Label>
+                                                                                        </div>
+                                                                                    )}
                                                                                 />
                                                                             </div>
-                                                                        )}
-                                                                    />
+                                                                        </div>
+                                                                        {/* Row 8: Thesis Title and Medical Council */}
+                                                                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                                            <InputText
+                                                                                label='Thesis Title'
+                                                                                id={`qualificationDetails.${index}.thesisTitle`}
+                                                                                maxLength={255}
+                                                                                {...register(`qualificationDetails.${index}.thesisTitle`)}
+                                                                            />
+                                                                            <InputText
+                                                                                label='Medical Council'
+                                                                                id={`qualificationDetails.${index}.medicalCouncil`}
+                                                                                maxLength={50}
+                                                                                {...register(`qualificationDetails.${index}.medicalCouncil`)}
+                                                                            />
+                                                                        </div>
+                                                                        {/* Row 9: Registration Year, Guide Name, Qualified Date */}
+                                                                        <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                                                                            <InputText
+                                                                                label='Registration Year'
+                                                                                id={`qualificationDetails.${index}.registrationYear`}
+                                                                                maxLength={4}
+                                                                                placeholder='Enter year (e.g., 2024)'
+                                                                                onKeyDown={(e) => {
+                                                                                    const controlKeys = [
+                                                                                        'Backspace',
+                                                                                        'Delete',
+                                                                                        'Tab',
+                                                                                        'Escape',
+                                                                                        'Enter',
+                                                                                        'ArrowLeft',
+                                                                                        'ArrowRight',
+                                                                                        'ArrowUp',
+                                                                                        'ArrowDown'
+                                                                                    ];
+                                                                                    if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                                                                                        return;
+                                                                                    }
+                                                                                    if (e.key === ' ') {
+                                                                                        e.preventDefault();
+                                                                                        return;
+                                                                                    }
+                                                                                    if (!/^[0-9]$/.test(e.key)) {
+                                                                                        e.preventDefault();
+                                                                                    }
+                                                                                }}
+                                                                                {...register(`qualificationDetails.${index}.registrationYear`)}
+                                                                                error={
+                                                                                    errors.qualificationDetails?.[index]?.registrationYear?.message
+                                                                                }
+                                                                            />
+                                                                            <InputText
+                                                                                label='Guide Name'
+                                                                                id={`qualificationDetails.${index}.guideName`}
+                                                                                maxLength={100}
+                                                                                {...register(`qualificationDetails.${index}.guideName`)}
+                                                                            />
+                                                                            <Controller
+                                                                                name={`qualificationDetails.${index}.qualifiedDate`}
+                                                                                control={control}
+                                                                                render={({ field, fieldState }) => (
+                                                                                    <div className='flex flex-col gap-1.5 [&>div]:mt-0'>
+                                                                                        <DateField
+                                                                                            field={field}
+                                                                                            fieldState={fieldState}
+                                                                                            label='Qualified Date'
+                                                                                            placeholder='Pick qualified date'
+                                                                                        />
+                                                                                    </div>
+                                                                                )}
+                                                                            />
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })}
+                                                            );
+                                                        });
+                                                    })()}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -4687,28 +4935,33 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                     <h3 className='font-semibold text-base text-gray-900 uppercase'>
                                                         PREVIOUS EMPLOYMENT DETAILS
                                                     </h3>
-                                                    <Button
-                                                        type='button'
-                                                        className='h-7 w-auto rounded-md bg-secondary px-2.5 py-1.5 text-secondary-foreground text-xs shadow-sm hover:bg-secondary/80'
-                                                        onClick={() =>
-                                                            appendExperience({
-                                                                hrmeE_Id: 0, // New record - use lowercase to match form field
-                                                                organisationName: '',
-                                                                organisationAddress: '',
-                                                                department: '',
-                                                                designation: '',
-                                                                joinDate: '',
-                                                                exitDate: '',
-                                                                noOfYears: '',
-                                                                noOfMonths: '',
-                                                                annualSalary: '',
-                                                                reasonForLeaving: ''
-                                                            } as any)
-                                                        }>
-                                                        <Plus className='mr-1 h-3.5 w-3.5' /> Add Experience
-                                                    </Button>
+                                                    <div className='flex items-center gap-2'>
+
+                                                        <Button
+                                                            type='button'
+                                                            className='h-7 w-auto rounded-md bg-secondary px-2.5 py-1.5 text-secondary-foreground text-xs shadow-sm hover:bg-secondary/80'
+                                                            onClick={() =>
+
+                                                                appendExperience({
+                                                                    hrmeE_Id: 0, // New record - use lowercase to match form field
+                                                                    organisationName: '',
+                                                                    organisationAddress: '',
+                                                                    department: '',
+                                                                    designation: '',
+                                                                    joinDate: '',
+                                                                    exitDate: '',
+                                                                    noOfYears: '',
+                                                                    noOfMonths: '',
+                                                                    annualSalary: '',
+                                                                    reasonForLeaving: ''
+                                                                } as any)
+                                                            }>
+                                                            <Plus className='mr-1 h-3.5 w-3.5' /> Add Experience
+                                                        </Button>
+                                                    </div>
                                                 </div>
                                             </div>
+
                                             {experienceFields.length === 0 && (
                                                 <div className='rounded-md border p-6 text-muted-foreground text-sm'>
                                                     No experience added yet. Click "Add Experience" to start.
@@ -4931,12 +5184,24 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                     <h3 className='font-semibold text-base text-gray-900 uppercase'>
                                                         DOCUMENT UPLOAD DETAILS [ONLY JPEG,DOCX,DOC,PDF FILES (0-2MB)]
                                                     </h3>
-                                                    <Button
-                                                        type='button'
-                                                        className='h-7 w-auto rounded-md bg-secondary px-2.5 py-1.5 text-secondary-foreground text-xs shadow-sm hover:bg-secondary/80'
-                                                        onClick={() => appendDocument({} as any)}>
-                                                        <Plus className='mr-1 h-3.5 w-3.5' /> Add Document
-                                                    </Button>
+                                                    <div className='flex items-center gap-2'>
+                                                        <Button
+                                                            type='button'
+                                                            variant='outline'
+                                                            className='h-7 w-auto border-primary/30 text-primary hover:bg-primary/10'
+                                                            onClick={() => {
+                                                                const vals = getValues('documentList');
+                                                                if (vals && vals.length > 0) replaceDocument(vals);
+                                                            }}>
+                                                            <RefreshCw className='mr-1 h-3.5 w-3.5' /> Force Binding
+                                                        </Button>
+                                                        <Button
+                                                            type='button'
+                                                            className='h-7 w-auto rounded-md bg-secondary px-2.5 py-1.5 text-secondary-foreground text-xs shadow-sm hover:bg-secondary/80'
+                                                            onClick={() => appendDocument({} as any)}>
+                                                            <Plus className='mr-1 h-3.5 w-3.5' /> Add Document
+                                                        </Button>
+                                                    </div>
                                                 </div>
                                             </div>
                                             {documentFields.length === 0 && (
@@ -5342,9 +5607,9 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                         if (!key || key === '') return null;
                                                                                         const value = reason.value || String(reason.key);
                                                                                         return (
-                                                                                            <SafeSelectItem key={reason.key} value={key}>
+                                                                                            <SelectItem key={reason.key} value={key}>
                                                                                                 {value}
-                                                                                            </SafeSelectItem>
+                                                                                            </SelectItem>
                                                                                         );
                                                                                     })
                                                                                     .filter(Boolean)}
@@ -5377,10 +5642,11 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                             <PayrollTab
                                                 employeeId={savedEmployeeId}
                                                 employeeCode={watch('employeeCode')}
-                                                grossList={[]}
-                                                earningList={[]}
-                                                detectionList={[]}
-                                                arrearList={[]}
+                                                grossList={options.grossList}
+                                                earningList={options.earningList}
+                                                detectionList={options.detectionList}
+                                                arrearList={options.arrearList}
+                                                MI_Id={selectedRow?.mI_Id}
                                                 onSuccess={onSuccess}
                                             />
                                         ) : (

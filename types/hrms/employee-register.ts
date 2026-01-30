@@ -1448,16 +1448,16 @@ export interface SaveIncrementDetailsResponse {
 
 // Save Earning Details Request
 export interface SaveEarningDetailsRequest {
-    Employee: {
-        MI_Id: number;
-        HRME_Id: number;
+    employee: {
+        hrmE_Id: number;
     };
-    EmployeeEarningDeductionArrear: Array<{
-        HREED_Id: number;
-        HRMED_Id: number;
-        HREED_Amount: number;
-        HREED_Percentage: string; // Should be "0" if zero, not empty string
-        HREED_ActiveFlag: boolean;
+    employeeEarningDeductionArrear: Array<{
+        hreeD_Id: number;
+        hrmeD_Id: number;
+        hreeD_Amount: number;
+        hreeD_Percentage: string; // Should be "0" if zero, not empty string
+        hreeD_ApplicableMaxValue?: number;
+        hreeD_ActiveFlag: boolean;
     }>;
 }
 
@@ -1470,16 +1470,16 @@ export interface SaveEarningDetailsResponse {
 
 // Save Arrear Details Request
 export interface SaveArrearDetailsRequest {
-    Employee: {
-        MI_Id: number;
-        HRME_Id: number;
+    employee: {
+        hrmE_Id: number;
     };
-    EmployeeEarningDeductionArrear: Array<{
-        HREED_Id: number;
-        HRMED_Id: number;
-        HREED_Amount: number;
-        HREED_Percentage: string; // Should be "0" if zero, not empty string
-        HREED_ActiveFlag: boolean;
+    employeeEarningDeductionArrear: Array<{
+        hreeD_Id: number;
+        hrmeD_Id: number;
+        hreeD_Amount: number;
+        hreeD_Percentage: string; // Should be "0" if zero, not empty string
+        hreeD_ApplicableMaxValue?: number;
+        hreeD_ActiveFlag: boolean;
     }>;
 }
 
@@ -1492,16 +1492,16 @@ export interface SaveArrearDetailsResponse {
 
 // Save Deduction Details Request
 export interface SaveDeductionDetailsRequest {
-    Employee: {
-        MI_Id: number;
-        HRME_Id: number;
+    employee: {
+        hrmE_Id: number;
     };
-    EmployeeEarningDeductionArrear: Array<{
-        HREED_Id: number;
-        HRMED_Id: number;
-        HREED_Amount: number;
-        HREED_Percentage: string; // Should be "0" if zero, not empty string
-        HREED_ActiveFlag: boolean;
+    employeeEarningDeductionArrear: Array<{
+        hreeD_Id: number;
+        hrmeD_Id: number;
+        hreeD_Amount: number;
+        hreeD_Percentage: string; // Should be "0" if zero, not empty string
+        hreeD_ApplicableMaxValue?: number;
+        hreeD_ActiveFlag: boolean;
     }>;
 }
 
@@ -1534,4 +1534,18 @@ export interface SaveBankDetailsResponse {
     message?: string;
     retrunMsg?: string;
     [key: string]: any;
+}
+// Update Employee Salary Details By Head Request
+export interface UpdateEmployeeSalaryDetailsByHeadRequest {
+    hreeD_Id: number;
+    mI_Id: number;
+    hrmE_Id: number;
+    hrmeD_Id: number;
+    hreeD_Amount: number;
+    hreeD_Percentage: string;
+    hreeD_ActiveFlag: boolean;
+    hreeD_MaxApplicableFlg: boolean;
+    hreeD_ApplicableMaxValue: number;
+    updatedDate: string;
+    hreeD_UpdatedBy: number;
 }

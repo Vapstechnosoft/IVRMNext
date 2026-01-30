@@ -294,7 +294,7 @@ class ApiService {
             const transformedResponse: ApiResponse<T[]> = {
                 success: response.data.success,
                 message: response.data.message,
-                data: response.data.data?.$values || null,
+                data: response.data.data?.$values ?? (Array.isArray(response.data.data) ? response.data.data : null),
                 total: response.data.total,
                 page: response.data.page,
                 page_Size: response.data.page_Size
