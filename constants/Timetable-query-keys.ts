@@ -20,5 +20,6 @@ export const TIMETABLE_QUERY_KEYS = {
     ACADEMIC_YEAR_DROPDOWN_MASTERDAYCLASSWISE: 'academic_year_dropdown_masterdayclasswise',
     CATEGORY_DROPDOWN_MASTERDAYCLASSWISE: 'category_dropdown_masterdayclasswise',
     CLASS_DROPDOWN_MASTERDAYCLASSWISE: 'class_dropdown_masterdayclasswise',
-    DAYS_DROPDOWN_MASTERDAYCLASSWISE: 'days_dropdown_masterdayclasswise'
+    DAYS_DROPDOWN_MASTERDAYCLASSWISE: 'days_dropdown_masterdayclasswise',
+    CATEGORY_DROPDOWN_MASTERPERIOD: 'category_dropdown_masterperiod'
 };

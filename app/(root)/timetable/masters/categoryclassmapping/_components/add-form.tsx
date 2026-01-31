@@ -12,10 +12,12 @@ import {
 } from '@/hooks/timetable/useMasters';
 import { cn } from '@/lib/utils';
 import { categoryClassMappingSchema } from '@/schemas/timetable/masters';
+import { addOrUpdateCategoryClassMapping } from '@/server/timetable/masters/categoryclassmapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, Save, Square } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof categoryClassMappingSchema.addOrUpdate>;
@@ -119,24 +121,28 @@ export default function AddCategoryClassMappingForm({ onSuccess, buildingname = 
     const filteredClasses = classdata?.data?.filter((h) => h.asmcL_ClassName?.toLowerCase().includes(classseach.toLowerCase())) ?? [];
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
-        // try {
-        //     // const { ttmB_BuildingName } = data;
-        //     // const payload = {
-        //     //     ttmB_BuildingName: ttmB_BuildingName
-        //     // };
-        //     // console.log(payload);
-        //     // const response = await addOrUpdateMasterBuilding(payload);
-        //     // if (response.success) {
-        //     //     toast.success(response.message);
-        //     //     reset();
-        //     //     refetchAll();
-        //     //     onSuccess?.();
-        //     // } else {
-        //     //     toast.error(response.message);
-        //     // }
-        // } catch (error: any) {
-        //     toast.error(error.message);
-        // }
+        try {
+            const { asmay_id, ttmC_Id, calssids } = data;
+
+            const classes = calssids.map((id) => ({ asmcL_Id: Number(id) }));
+            const payload = {
+                asmaY_Id: asmay_id,
+                ttmC_Id: ttmC_Id,
+                clssids: classes
+            };
+            console.log('payload', JSON.stringify(payload));
+            const response = await addOrUpdateCategoryClassMapping(payload);
+            if (response.success) {
+                toast.success(response.message);
+                reset();
+                refetchAll();
+                onSuccess?.();
+            } else {
+                toast.error(response.message);
+            }
+        } catch (error: any) {
+            toast.error(error.message);
+        }
     };
 
     const handleReset = () => {

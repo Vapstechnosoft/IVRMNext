@@ -101,7 +101,7 @@ export const masterPeriodSchema = {
     save: z.object({
         periodname: number().min(1, 'Please select Academic Year'),
         periodorder: number().min(1, 'Please enter Period Order'),
-        dayids: z.array(z.string()).nonempty('Please select at least one Day'),
+        categoryids: z.array(z.string()).nonempty('Please select at least one Category'),
         noOfPeriods: z.number().min(1, 'Enter at least 1 period').max(20, 'Max 20 periods allowed'),
         half: z.string().optional()
     })

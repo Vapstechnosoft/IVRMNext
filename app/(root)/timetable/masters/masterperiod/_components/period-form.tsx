@@ -3,11 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useDayDropDownMasterDayClasswise } from '@/hooks/timetable/useMasters';
+import { useCategoryDropDownMasterPeriod } from '@/hooks/timetable/useMasters';
 import { cn } from '@/lib/utils';
 
 import { masterPeriodSchema } from '@/schemas/timetable/masters';
-import { savePeriod } from '@/server/timetable/masters/periodallocation';
+import { ADDORUPDATEMasterPeriod } from '@/server/timetable/masters/masterperiod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, Save, Square } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -35,34 +35,34 @@ export default function MasterPeriodForm({ onSuccess }: MasterPeriodFormProps) {
             noOfPeriods: 1
         }
     });
-    const [daySearch, setDaySearch] = useState('');
+    const [PeriodSearch, setPeriodSearch] = useState('');
 
     const watchedNoOfPeriods = watch('noOfPeriods');
     const [periods, setPeriods] = useState<any[]>([]);
 
-    const day_ids = watch('dayids') || [];
+    const Category_ids = watch('categoryids') || [];
     const {
-        data: Masterdaydata,
-        isLoading: masterdaydataloading,
-        error: masterdaydataError,
-        refetchAll: masterdaydataRefetch
-    } = useDayDropDownMasterDayClasswise();
+        data: MasterPerioddata,
+        isLoading: masterPerioddataloading,
+        error: masterPerioddataError,
+        refetchAll: masterPerioddataRefetch
+    } = useCategoryDropDownMasterPeriod();
 
-    const filteredDayIds = Masterdaydata?.data?.filter((d) => d.ttmD_DayName.toLowerCase().includes(daySearch.toLowerCase())) ?? [];
+    const filteredPeriodIds = MasterPerioddata?.data?.filter((d) => d.amC_Name.toLowerCase().includes(PeriodSearch.toLowerCase())) ?? [];
 
-    const toggleDay = (id: string) => {
+    const togglePeriod = (id: string) => {
         let updated: string[] = [];
 
-        if (day_ids.includes(id)) {
-            updated = day_ids.filter((v) => v !== id);
+        if (Category_ids.includes(id)) {
+            updated = Category_ids.filter((v) => v !== id);
         } else {
-            updated = [...day_ids, id];
+            updated = [...Category_ids, id];
         }
 
         if (updated.length === 0) {
-            setValue('dayids', undefined as any);
+            setValue('categoryids', undefined as any);
         } else {
-            setValue('dayids', updated as [string, ...string[]], {
+            setValue('categoryids', updated as [string, ...string[]], {
                 shouldValidate: true
             });
         }
@@ -83,16 +83,22 @@ export default function MasterPeriodForm({ onSuccess }: MasterPeriodFormProps) {
 
     const onSubmit = async (data: FormFields) => {
         try {
+            const { periodname, periodorder } = data;
+
             const payload = {
-                tempperiods: periods.map((p) => ({
-                    key: p.key,
-                    TTMP_PeriodName: p.label
-                }))
+                imP_PeriodName: periodname,
+                imP_PeriodOrder: periodorder,
+                half: data.half,
+                selectedCategoryDetails: Category_ids.map((id) => ({ amC_Id: Number(id) }))
             };
-            const response = await savePeriod(payload);
+
+            console.info('Payload', JSON.stringify(payload));
+
+            const response = await ADDORUPDATEMasterPeriod(payload);
             if (response.returnval) {
                 toast.success('Saved successfully');
                 onSuccess?.();
+                masterPerioddataRefetch();
             } else if (response.returnduplicatestatus === 'Duplicate') {
                 toast.error('Records Already Exist');
             } else {
@@ -245,31 +251,31 @@ export default function MasterPeriodForm({ onSuccess }: MasterPeriodFormProps) {
             </div>
             <div className='space-y-2'>
                 <Label>
-                    Day <span className='text-red-500'>*</span>
+                    Period <span className='text-red-500'>*</span>
                 </Label>
 
                 <div className='mt-2 rounded-md border border-gray-300 bg-white p-3'>
                     <InputText
-                        placeholder='Search Day...'
-                        value={daySearch}
-                        onChange={(e) => setDaySearch(e.target.value)}
+                        placeholder='Search Period...'
+                        value={PeriodSearch}
+                        onChange={(e) => setPeriodSearch(e.target.value)}
                         className='mb-3'
                     />
 
                     <div className='max-h-40 overflow-y-auto rounded-md border border-gray-300 p-1'>
-                        {masterdaydataloading ? (
-                            <div className='py-4 text-center text-gray-500 text-sm'>Loading Days...</div>
-                        ) : filteredDayIds.length === 0 ? (
-                            <div className='py-4 text-center text-gray-500 text-sm'>No Day found</div>
+                        {masterPerioddataloading ? (
+                            <div className='py-4 text-center text-gray-500 text-sm'>Loading Periods...</div>
+                        ) : filteredPeriodIds.length === 0 ? (
+                            <div className='py-4 text-center text-gray-500 text-sm'>No Period found</div>
                         ) : (
-                            filteredDayIds.map((d) => {
-                                const id = d.ttmD_Id.toString();
-                                const selected = day_ids.includes(id);
+                            filteredPeriodIds.map((d) => {
+                                const id = d.amC_Id.toString();
+                                const selected = Category_ids.includes(id);
 
                                 return (
                                     <div
-                                        key={d.ttmD_Id}
-                                        onClick={() => toggleDay(id)}
+                                        key={d.amC_Id}
+                                        onClick={() => togglePeriod(id)}
                                         className={cn(
                                             'mb-1 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm transition-all',
                                             selected
@@ -281,7 +287,7 @@ export default function MasterPeriodForm({ onSuccess }: MasterPeriodFormProps) {
                                         ) : (
                                             <Square className='h-4 w-4 text-gray-400' />
                                         )}
-                                        <span>{d.ttmD_DayName}</span>
+                                        <span>{d.amC_Name}</span>
                                     </div>
                                 );
                             })
@@ -289,7 +295,7 @@ export default function MasterPeriodForm({ onSuccess }: MasterPeriodFormProps) {
                     </div>
                 </div>
 
-                {errors.dayids && <span className='text-red-500 text-sm'>{errors.dayids.message}</span>}
+                {errors.categoryids && <span className='text-red-500 text-sm'>{errors.categoryids.message}</span>}
             </div>
 
             <div className='space-y-2'>
