@@ -57,7 +57,7 @@ export default function StaffDashboardPage() {
         );
     }
 
-    const basicDetails = dashboard?.filldepartment?.[0];
+    const basicDetails = dashboard?.filldepartment?.[0]!;
     const profileStatus = dashboard?.empProfile?.[0];
     const isTeaching = dashboard?.hrmE_TechNonTeachingFlg === 'Teaching';
 

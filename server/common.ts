@@ -4846,7 +4846,7 @@ export async function getUserAccessibleModules() {
                             ]
                         },
                         {
-                            id: 6,
+                            id: 3,
                             name: 'Fees',
                             icon: 'BadgeIndianRupee',
                             sub_menu: [
@@ -4868,7 +4868,7 @@ export async function getUserAccessibleModules() {
                             ]
                         },
                         {
-                            id: 5,
+                            id: 4,
                             name: 'Examination',
                             icon: 'GraduationCap',
                             sub_menu: [
@@ -4898,7 +4898,7 @@ export async function getUserAccessibleModules() {
                             ]
                         },
                         {
-                            id: 4,
+                            id: 5,
                             name: 'HRMS',
                             icon: 'Wallet',
                             sub_menu: [
@@ -4920,7 +4920,7 @@ export async function getUserAccessibleModules() {
                             ]
                         },
                         {
-                            id: 3,
+                            id: 6,
                             name: 'Leave',
                             icon: 'CalendarRange',
                             sub_menu: [
@@ -4963,6 +4963,54 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 }
+                            ]
+                        },
+                         {
+                            id: 8,
+                            name: 'Upload',
+                            icon: 'MessageSquare',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Home Work',
+                                    icon: 'MessagesSquare',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Homework',
+                                            icon: 'MessageSquare',
+                                            url: '/StaffPortal/Upload/homework',
+                                            title: 'Home Work',
+                                            description: 'Upload Home Work'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Homework Marks Update',
+                                            icon: 'MessageSquare',
+                                            url: '/StaffPortal/Upload/homework-marks-entry',
+                                            title: 'Home Work',
+                                            description: 'Homework Marks Update'
+                                        },
+                                         {
+                                            id: 3,
+                                            name: 'Homework Upload Report',
+                                            icon: 'MessageSquare',
+                                            url: '/StaffPortal/Upload/homework-upload-report',
+                                            title: 'Home Work',
+                                            description: 'Homework Upload Report'
+                                        },
+                                         {
+                                            id: 4,
+                                            name: 'Notice Board',
+                                            icon: 'MessageSquare',
+                                            url: '/StaffPortal/Upload/notice-board',
+                                            title: 'Notice Board',
+                                            description: 'Notice Board'
+                                        }
+                                    ]
+                                }
+                                
+                                
                             ]
                         }
                     ]
