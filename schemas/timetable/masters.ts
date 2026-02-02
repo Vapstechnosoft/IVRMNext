@@ -114,6 +114,9 @@ export const periodAllocationmasterPeriod = {
         // categoryids: z.array(z.string()).nonempty('Please select at least one Category'),
         noOfPeriods: z.number().optional()
         // half: z.string().optional()
+    }),
+    delete: z.object({
+        ttmP_Id: deleteIdSchema('ttmP_Id')
     })
 };
 
@@ -133,6 +136,9 @@ export const masterPeriodClassSchema = {
         ttmC_Id: number().min(1, 'Please select Category'),
         calssids: z.array(z.string()).nonempty('Please select at least one Class'),
         noOfPeriods: z.coerce.number().min(1, 'Enter at least 1 period')
+    }),
+    delete: z.object({
+        ttmpC_Id: deleteIdSchema('ttmpC_Id')
     })
 };
 

@@ -23,7 +23,7 @@ import {
 } from '@/hooks/timetable/useMasters';
 import { cn } from '@/lib/utils';
 import {
-    getClassDropDownMasterDayClasswiseOnchnageofCatandyEarData,
+    ClassDropDownDataOnchnGeYrAndCategory,
     getClassDropDownMasterDayClasswiseOnchnageofCatandyr
 } from '@/server/timetable/masters/masterdayclasswise';
 import type { ClassDropDownDataTT, IMasterDayList } from '@/types/timetable/masters/masters';
@@ -118,7 +118,7 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
             const fetchClasses = async () => {
                 try {
                     setIsLoadingClasses(true);
-                    const res = await getClassDropDownMasterDayClasswiseOnchnageofCatandyEarData(academicyear, category);
+                    const res = await ClassDropDownDataOnchnGeYrAndCategory(academicyear, category);
 
                     console.log('getClassDropDownMasterDayClasswiseOnchnageofCatandyr res', res);
 

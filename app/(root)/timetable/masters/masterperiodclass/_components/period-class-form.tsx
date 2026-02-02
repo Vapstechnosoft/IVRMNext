@@ -14,7 +14,7 @@ import {
 import { cn } from '@/lib/utils';
 import { masterPeriodClassSchema } from '@/schemas/timetable/masters';
 import {
-    getClassDropDownMasterDayClasswiseOnchnageofCatandyEarData,
+    ClassDropDownDataOnchnGeYrAndCategory,
     getClassDropDownMasterDayClasswiseOnchnageofCatandyr
 } from '@/server/timetable/masters/masterdayclasswise';
 import { savePeriodClass } from '@/server/timetable/masters/periodallocation';
@@ -66,6 +66,7 @@ export default function MasterPeriodClassForm({ onSuccess }: MasterPeriodClassFo
     const [selectedcalssidsItems, setSelectedcalssidsItems] = useState<{ asmcL_Id: string }[]>([]);
 
     const {
+        reset,
         register,
         handleSubmit,
         watch,
@@ -87,14 +88,17 @@ export default function MasterPeriodClassForm({ onSuccess }: MasterPeriodClassFo
     useEffect(() => {
         const fetchClasses = async () => {
             if (watchedAcademicYear && watchedCategory) {
+                setClassList([]);
                 try {
                     // const res = await getClassByCategory({
                     //     asmay_id: watchedAcademicYear,
                     //     TTMC_Id: watchedCategory
                     // });
 
-                    const res = await getClassDropDownMasterDayClasswiseOnchnageofCatandyEarData(watchedAcademicYear, watchedCategory);
-                    if (res?.success && Array.isArray(res.data)) {
+                    const res = await ClassDropDownDataOnchnGeYrAndCategory(watchedAcademicYear, watchedCategory);
+                    console.log('ClassDropDownDataOnchnGeYrAndCategory', res);
+
+                    if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
                         setClassList(res.data);
                     } else {
                         setClassList([]);
@@ -219,6 +223,10 @@ export default function MasterPeriodClassForm({ onSuccess }: MasterPeriodClassFo
             setSelectedPeriods([]);
         }
     }, [watchedNoOfPeriods]);
+
+    const handleReset = () => {
+        reset();
+    };
 
     const onSubmit = async (data: FormFields) => {
         try {
@@ -538,10 +546,32 @@ export default function MasterPeriodClassForm({ onSuccess }: MasterPeriodClassFo
                 </div> */}
             </div>
 
-            <div className='flex justify-end gap-3'>
+            {/* <div className='flex justify-end gap-3'>
                 <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting}>
                     <Save className='mr-2 h-4 w-4' />
                     Save
+                </Button>
+            </div> */}
+
+            <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
+                <Button
+                    type='button'
+                    variant='outline'
+                    onClick={handleReset}
+                    disabled={isSubmitting}
+                    className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                    Reset
+                </Button>
+                <Button
+                    type='submit'
+                    disabled={isSubmitting}
+                    className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                    isLoading={isSubmitting}
+                    loadingText='Saving...'>
+                    <div className='flex items-center'>
+                        <Save className='mr-2 h-4 w-4' />
+                        Save Master Period ClassWise
+                    </div>
                 </Button>
             </div>
         </form>

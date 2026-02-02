@@ -8,7 +8,7 @@ import { useTimeTableAcademicYear, useTimeTableCategoryClassMapping, useTimeTabl
 import { cn } from '@/lib/utils';
 import { categoryClassMappingSchema } from '@/schemas/timetable/masters';
 import { addOrUpdateCategoryClassMapping } from '@/server/timetable/masters/categoryclassmapping';
-import { getClassDropDownMasterDayClasswiseOnchnageofCatandyEarData } from '@/server/timetable/masters/masterdayclasswise';
+import { ClassDropDownDataOnchnGeYrAndCategory } from '@/server/timetable/masters/masterdayclasswise';
 import type { ClassDropDownDataTT } from '@/types/timetable/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, Save, Square } from 'lucide-react';
@@ -84,7 +84,7 @@ export default function AddCategoryClassMappingForm({ onSuccess, buildingname = 
             const fetchClasses = async () => {
                 try {
                     setIsLoadingClasses(true);
-                    const res = await getClassDropDownMasterDayClasswiseOnchnageofCatandyEarData(academicyear, category);
+                    const res = await ClassDropDownDataOnchnGeYrAndCategory(academicyear, category);
 
                     console.log('getClassDropDownMasterDayClasswiseOnchnageofCatandyr res', res);
 

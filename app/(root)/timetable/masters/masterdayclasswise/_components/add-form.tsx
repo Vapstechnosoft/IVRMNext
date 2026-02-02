@@ -12,7 +12,7 @@ import {
 } from '@/hooks/timetable/useMasters';
 import { cn } from '@/lib/utils';
 import { masterDayClasswiseSchema } from '@/schemas/timetable/masters';
-import { getClassDropDownMasterDayClasswiseOnchnageofCatandyEarData } from '@/server/timetable/masters/masterdayclasswise';
+import { ClassDropDownDataOnchnGeYrAndCategory } from '@/server/timetable/masters/masterdayclasswise';
 import { savePeriodClass } from '@/server/timetable/masters/periodallocation';
 import type { ClassDropDownDataTT } from '@/types/timetable/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -85,7 +85,7 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
             const fetchClasses = async () => {
                 try {
                     setIsLoadingClasses(true);
-                    const res = await getClassDropDownMasterDayClasswiseOnchnageofCatandyEarData(academicyear, category);
+                    const res = await ClassDropDownDataOnchnGeYrAndCategory(academicyear, category);
 
                     console.log('getClassDropDownMasterDayClasswiseOnchnageofCatandyr res', res);
 

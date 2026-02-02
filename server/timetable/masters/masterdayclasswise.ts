@@ -55,3 +55,8 @@ export async function getClassDropDownMasterDayClasswiseOnchnageofCatandyEarData
     const url = `/CategoryClassMappFacade/ClassDataByAcademicYearAndCategory/${asmay_id}/${TTMC_Id}`;
     return await api.get<ClassDropDownDataTT[]>('timetable', url);
 }
+
+export async function ClassDropDownDataOnchnGeYrAndCategory(asmay_id: number, TTMC_Id: number) {
+    const url = `/PeriodAllocationFacade/getclassesOnCategoryAcademicYrBase/${asmay_id}/${TTMC_Id}`;
+    return await api.get<ClassDropDownDataTT[]>('timetable', url);
+}

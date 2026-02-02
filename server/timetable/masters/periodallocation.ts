@@ -20,14 +20,14 @@ export async function savePeriodClass(data: any) {
     return await api.post<any>('timetable', url, data);
 }
 
-export async function deactivatePeriod(data: any) {
-    const url = '/PeriodAllocation/deactivate';
-    return await api.post<any>('timetable', url, data);
+export async function deactivatePeriod(TTMP_Id: number) {
+    const url = `/PeriodAllocationFacade/MasterPeriodActivateDeactive/${TTMP_Id}`;
+    return await api.put<any>('timetable', url);
 }
 
-export async function deactivatePeriodClass(data: any) {
-    const url = '/PeriodAllocation/deactivate1';
-    return await api.post<any>('timetable', url, data);
+export async function deactivatePeriodClass(TTMPC_Id: number) {
+    const url = `/PeriodAllocationFacade/MasterPeriodClassWiseActivateDeactive/${TTMPC_Id}`;
+    return await api.put<any>('timetable', url);
 }
 
 export async function getPeriodClass(data: any) {
