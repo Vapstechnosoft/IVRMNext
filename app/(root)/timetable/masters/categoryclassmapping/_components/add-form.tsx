@@ -4,18 +4,15 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import {
-    useTimeTableAcademicYear,
-    useTimeTableCategoryClassMapping,
-    useTimeTableCategoryDropDownData,
-    useTimeTableClassDropdownData
-} from '@/hooks/timetable/useMasters';
+import { useTimeTableAcademicYear, useTimeTableCategoryClassMapping, useTimeTableCategoryDropDownData } from '@/hooks/timetable/useMasters';
 import { cn } from '@/lib/utils';
 import { categoryClassMappingSchema } from '@/schemas/timetable/masters';
 import { addOrUpdateCategoryClassMapping } from '@/server/timetable/masters/categoryclassmapping';
+import { getClassDropDownMasterDayClasswiseOnchnageofCatandyEarData } from '@/server/timetable/masters/masterdayclasswise';
+import type { ClassDropDownDataTT } from '@/types/timetable/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, Save, Square } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -31,9 +28,13 @@ export default function AddCategoryClassMappingForm({ onSuccess, buildingname = 
     const { refetchAll } = useTimeTableCategoryClassMapping();
 
     const [classseach, setClassseach] = useState('');
+    const [isLoadingClasses, setIsLoadingClasses] = useState(false);
 
     const [selectedClassItems, setSelectedClassItems] = useState<{ asmcl_Id: string }[]>([]);
+    const [classdata, setClassdata] = useState<ClassDropDownDataTT[]>([]);
+    const [classSearch, setClassSearch] = useState('');
 
+    const [selectedcalssidsItems, setSelectedcalssidsItems] = useState<{ asmcL_Id: string }[]>([]);
     const {
         data: academicyeardata,
         isLoading: academicyearloading,
@@ -49,12 +50,12 @@ export default function AddCategoryClassMappingForm({ onSuccess, buildingname = 
         refetchAll: refetchAllCategory
     } = useTimeTableCategoryDropDownData();
 
-    const {
-        data: classdata,
-        isLoading: classdropdownloading,
-        error: classdropdownerror,
-        refetchAll: refetchAllClass
-    } = useTimeTableClassDropdownData();
+    // const {
+    //     data: classdata,
+    //     isLoading: classdropdownloading,
+    //     error: classdropdownerror,
+    //     refetchAll: refetchAllClass
+    // } = useTimeTableClassDropdownData();
 
     const {
         register,
@@ -74,8 +75,47 @@ export default function AddCategoryClassMappingForm({ onSuccess, buildingname = 
         }
     });
 
+    const academicyear = watch('asmay_id');
+    const category = watch('ttmC_Id');
+
+    // Fetch classes when academic year or category changes
+    useEffect(() => {
+        if (academicyear && category) {
+            const fetchClasses = async () => {
+                try {
+                    setIsLoadingClasses(true);
+                    const res = await getClassDropDownMasterDayClasswiseOnchnageofCatandyEarData(academicyear, category);
+
+                    console.log('getClassDropDownMasterDayClasswiseOnchnageofCatandyr res', res);
+
+                    if (res?.success && Array.isArray(res.data)) {
+                        setClassdata(res.data);
+                    } else {
+                        setClassdata([]);
+                    }
+
+                    // Reset class selection when data changes
+                    setValue('calssids', undefined as any);
+                    setSelectedcalssidsItems([]);
+                    setClassSearch('');
+                } catch (err) {
+                    console.error('Error fetching classes', err);
+                    setClassdata([]);
+                } finally {
+                    setIsLoadingClasses(false);
+                }
+            };
+            fetchClasses();
+        } else {
+            // Clear class data if either academic year or category is not selected
+            setClassdata([]);
+            setValue('calssids', undefined as any);
+            setSelectedcalssidsItems([]);
+        }
+    }, [academicyear, category]);
+
     const ClassOptions =
-        classdata?.data?.map((h) => ({
+        classdata.map((h) => ({
             id: String(h.asmcL_Id),
             label: h.asmcL_ClassName
         })) ?? [];
@@ -118,7 +158,7 @@ export default function AddCategoryClassMappingForm({ onSuccess, buildingname = 
         }
     };
 
-    const filteredClasses = classdata?.data?.filter((h) => h.asmcL_ClassName?.toLowerCase().includes(classseach.toLowerCase())) ?? [];
+    const filteredClasses = classdata.filter((h) => h.asmcL_ClassName?.toLowerCase().includes(classSearch.toLowerCase()));
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
@@ -150,7 +190,7 @@ export default function AddCategoryClassMappingForm({ onSuccess, buildingname = 
         refetchAll();
         refetchAllAcademicYear();
         refetchAllCategory();
-        refetchAllClass();
+        setSelectedClassItems([]);
     };
 
     return (
@@ -306,42 +346,50 @@ export default function AddCategoryClassMappingForm({ onSuccess, buildingname = 
 
                     <div className='w-96'>
                         <div className='mt-2 rounded-md border border-gray-300 bg-white p-3'>
+                            {/* Fix: Use single search state */}
                             <InputText
                                 placeholder='Search Class...'
-                                value={classseach}
-                                onChange={(e) => setClassseach(e.target.value)}
+                                value={classSearch}
+                                onChange={(e) => setClassSearch(e.target.value)}
                                 className='mb-3'
                             />
 
-                            {/* {classdata?.data && (
-                                                        <div
-                                                            onClick={selectAllClasses}
-                                                            className={cn(
-                                                                'mb-2 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm transition-all',
-                                                                calssids.length === ClassOptions.length && ClassOptions.length
-                                                                    ? 'border-primary bg-primary/5 text-primary'
-                                                                    : 'border-gray-300 hover:border-primary/40'
-                                                            )}>
-                                                            {calssids.length === ClassOptions.length && ClassOptions.length ? (
-                                                                <CheckSquare className='h-4 w-4 text-primary' />
-                                                            ) : (
-                                                                <Square className='h-4 w-4 text-gray-400' />
-                                                            )}
-                                                            <span>Select All</span>
-                                                        </div>
-                                                    )} */}
+                            {/* Optional: Add Select All functionality */}
+                            {filteredClasses.length > 0 && (
+                                <div
+                                    onClick={selectAllClasses}
+                                    className={cn(
+                                        'mb-2 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm transition-all',
+                                        calssids?.length === filteredClasses.length && filteredClasses.length > 0
+                                            ? 'border-primary bg-primary/5 text-primary'
+                                            : 'border-gray-300 hover:border-primary/40'
+                                    )}>
+                                    {calssids?.length === filteredClasses.length && filteredClasses.length > 0 ? (
+                                        <CheckSquare className='h-4 w-4 text-primary' />
+                                    ) : (
+                                        <Square className='h-4 w-4 text-gray-400' />
+                                    )}
+                                    <span>Select All</span>
+                                </div>
+                            )}
 
                             <div className='max-h-40 overflow-y-auto rounded-md border border-gray-300 p-1'>
-                                {classdata?.isLoading ? (
+                                {isLoadingClasses ? (
                                     <div className='py-4 text-center text-gray-500 text-sm'>Loading Classes...</div>
-                                ) : classdata?.data?.length === 0 ? (
-                                    <div className='py-4 text-center text-gray-500 text-sm'>No Classes found</div>
+                                ) : !academicyear || !category ? (
+                                    <div className='py-4 text-center text-gray-500 text-sm'>
+                                        Please select Academic Year and Category first
+                                    </div>
+                                ) : filteredClasses.length === 0 ? (
+                                    <div className='py-4 text-center text-gray-500 text-sm'>
+                                        {classSearch ? `No classes found for "${classSearch}"` : 'No classes available'}
+                                    </div>
                                 ) : (
                                     filteredClasses
                                         .filter((u) => u.asmcL_Id != null)
                                         .map((u) => {
                                             const id = String(u.asmcL_Id);
-                                            const selected = calssids.includes(id);
+                                            const selected = calssids?.includes(id);
 
                                             return (
                                                 <div

@@ -12,7 +12,7 @@ import {
 } from '@/hooks/timetable/useMasters';
 import { cn } from '@/lib/utils';
 import { masterDayClasswiseSchema } from '@/schemas/timetable/masters';
-import { getClassDropDownMasterDayClasswiseOnchnageofCatandyr } from '@/server/timetable/masters/masterdayclasswise';
+import { getClassDropDownMasterDayClasswiseOnchnageofCatandyEarData } from '@/server/timetable/masters/masterdayclasswise';
 import { savePeriodClass } from '@/server/timetable/masters/periodallocation';
 import type { ClassDropDownDataTT } from '@/types/timetable/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -67,13 +67,13 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterDayClasswiseSchema.addOrUpdate),
-        defaultValues: {}
-        // defaultValues: {
-        //     asmay_id: undefined,
-        //     ttmC_Id: undefined,
-        //     calssids: undefined,
-        //     dayids: undefined
-        // }
+        //  defaultValues: {}
+        defaultValues: {
+            asmay_id: undefined,
+            ttmC_Id: undefined,
+            calssids: undefined,
+            dayids: undefined
+        }
     });
 
     const academicyear = watch('asmay_id');
@@ -85,7 +85,7 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
             const fetchClasses = async () => {
                 try {
                     setIsLoadingClasses(true);
-                    const res = await getClassDropDownMasterDayClasswiseOnchnageofCatandyr(academicyear, category);
+                    const res = await getClassDropDownMasterDayClasswiseOnchnageofCatandyEarData(academicyear, category);
 
                     console.log('getClassDropDownMasterDayClasswiseOnchnageofCatandyr res', res);
 
@@ -256,23 +256,23 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
     };
 
     const handleReset = () => {
-        //   reset({
-        //     asmay_id: null,
-        //     ttmC_Id: null,
-        //     calssids: [],
-        //     dayids: []
-        //   });
-        academicRefetch();
-        categoryRefetch();
-        masterdaydataRefetch();
-        setSelectedcalssidsItems([]);
-        setClassSearch('');
-        setDaySearch('');
-        setIsLoadingClasses(false);
+        reset();
+        // //     asmay_id: null,
+        // //     ttmC_Id: null,
+        // //     calssids: [],
+        // //     dayids: []
+        // //   });
+        // academicRefetch();
+        // categoryRefetch();
+        // masterdaydataRefetch();
+        // setSelectedcalssidsItems([]);
+        // setClassSearch('');
+        // setDaySearch('');
+        // setIsLoadingClasses(false);
 
-        // 🔥 IMPORTANT
-        setOverrideClassData([]);
-        setSelectedcalssidsItems([]);
+        // // 🔥 IMPORTANT
+        // setOverrideClassData([]);
+        // setSelectedcalssidsItems([]);
     };
 
     return (
@@ -287,8 +287,9 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
                         control={control}
                         render={({ field }) => (
                             <Select
+                                key={field.value?.toString() || 'empty'}
                                 onValueChange={(value) => {
-                                    field.onChange(Number(value) || '');
+                                    field.onChange(value ? Number(value) : '');
                                 }}
                                 value={field.value?.toString() || undefined}>
                                 <SelectTrigger className='w-full'>
@@ -326,8 +327,9 @@ export default function MasterDayClassWiseAddForm({ onSuccess }: MasterPeriodCla
                         control={control}
                         render={({ field }) => (
                             <Select
+                                key={field.value?.toString() || 'empty'}
                                 onValueChange={(value) => {
-                                    field.onChange(Number(value) || '');
+                                    field.onChange(value ? Number(value) : '');
                                 }}
                                 value={field.value?.toString() || undefined}>
                                 <SelectTrigger className='w-full'>

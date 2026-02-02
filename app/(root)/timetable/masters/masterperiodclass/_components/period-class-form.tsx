@@ -13,8 +13,11 @@ import {
 } from '@/hooks/timetable/useMasters';
 import { cn } from '@/lib/utils';
 import { masterPeriodClassSchema } from '@/schemas/timetable/masters';
-import { getClassDropDownMasterDayClasswiseOnchnageofCatandyr } from '@/server/timetable/masters/masterdayclasswise';
-import { getClassByCategory, savePeriodClass } from '@/server/timetable/masters/periodallocation';
+import {
+    getClassDropDownMasterDayClasswiseOnchnageofCatandyEarData,
+    getClassDropDownMasterDayClasswiseOnchnageofCatandyr
+} from '@/server/timetable/masters/masterdayclasswise';
+import { savePeriodClass } from '@/server/timetable/masters/periodallocation';
 import type { ClassDropDownDataTT } from '@/types/timetable/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, Save, Square } from 'lucide-react';
@@ -85,12 +88,14 @@ export default function MasterPeriodClassForm({ onSuccess }: MasterPeriodClassFo
         const fetchClasses = async () => {
             if (watchedAcademicYear && watchedCategory) {
                 try {
-                    const res = await getClassByCategory({
-                        asmay_id: watchedAcademicYear,
-                        TTMC_Id: watchedCategory
-                    });
-                    if (res?.tempararyArray) {
-                        setClassList(res.tempararyArray as any[]);
+                    // const res = await getClassByCategory({
+                    //     asmay_id: watchedAcademicYear,
+                    //     TTMC_Id: watchedCategory
+                    // });
+
+                    const res = await getClassDropDownMasterDayClasswiseOnchnageofCatandyEarData(watchedAcademicYear, watchedCategory);
+                    if (res?.success && Array.isArray(res.data)) {
+                        setClassList(res.data);
                     } else {
                         setClassList([]);
                     }
@@ -381,10 +386,18 @@ export default function MasterPeriodClassForm({ onSuccess }: MasterPeriodClassFo
                         )}
 
                         <div className='max-h-40 overflow-y-auto rounded-md border border-gray-300 p-1'>
-                            {classloading ? (
+                            {/* {classloading ? (
                                 <div className='py-4 text-center text-gray-500 text-sm'>Loading Class...</div>
                             ) : classData?.data?.length === 0 ? (
                                 <div className='py-4 text-center text-gray-500 text-sm'>No Class found</div>
+                            ) : ( */}
+
+                            {isLoadingClasses ? (
+                                <div className='py-4 text-center text-gray-500 text-sm'>Loading Classes...</div>
+                            ) : !watchedAcademicYear || !watchedCategory ? (
+                                <div className='py-4 text-center text-gray-500 text-sm'>Please select Academic Year and Category first</div>
+                            ) : filteredcalssids.length === 0 ? (
+                                <div className='py-4 text-center text-gray-500 text-sm'>No classes found</div>
                             ) : (
                                 filteredcalssids.map((u) => {
                                     const id = u.asmcL_Id.toString();

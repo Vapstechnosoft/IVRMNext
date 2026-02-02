@@ -107,6 +107,16 @@ export const masterPeriodSchema = {
     })
 };
 
+export const periodAllocationmasterPeriod = {
+    save: z.object({
+        //   periodname: number().min(1, 'Please select Academic Year'),
+        periodorder: number().optional(),
+        // categoryids: z.array(z.string()).nonempty('Please select at least one Category'),
+        noOfPeriods: z.number().optional()
+        // half: z.string().optional()
+    })
+};
+
 export const masterPeriodClassSchema = {
     save: z.object({
         // asmaY_Id: z.number().min(1, 'Academic Year is required'),

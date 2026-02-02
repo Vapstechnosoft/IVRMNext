@@ -11,7 +11,7 @@ export async function getAllPeriodDetails(searchParams?: ApiSearchparams) {
 }
 
 export async function savePeriod(data: any) {
-    const url = '/PeriodAllocation/saveperiod/';
+    const url = '/PeriodAllocationFacade/PeriodAllocationMasterPeriodSave';
     return await api.post<any>('timetable', url, data);
 }
 

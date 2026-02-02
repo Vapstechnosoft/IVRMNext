@@ -26,6 +26,7 @@ export default function MasterPeriodForm({ onSuccess }: MasterPeriodFormProps) {
         register,
         handleSubmit,
         watch,
+        reset,
         control,
         setValue,
         formState: { errors, isSubmitting }
@@ -80,6 +81,10 @@ export default function MasterPeriodForm({ onSuccess }: MasterPeriodFormProps) {
             setPeriods([]);
         }
     }, [watchedNoOfPeriods]);
+
+    const handleReset = () => {
+        reset();
+    };
 
     const onSubmit = async (data: FormFields) => {
         try {
@@ -342,10 +347,31 @@ export default function MasterPeriodForm({ onSuccess }: MasterPeriodFormProps) {
                 {errors.half && <span className='text-red-500 text-sm'>{errors.half.message}</span>}
             </div>
 
-            <div className='flex justify-end gap-3'>
+            {/* <div className='flex justify-end gap-3'>
                 <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting}>
                     <Save className='mr-2 h-4 w-4' />
                     Save
+                </Button>
+            </div> */}
+            <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
+                <Button
+                    type='button'
+                    variant='outline'
+                    onClick={handleReset}
+                    disabled={isSubmitting}
+                    className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                    Reset
+                </Button>
+                <Button
+                    type='submit'
+                    disabled={isSubmitting}
+                    className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                    isLoading={isSubmitting}
+                    loadingText='Saving...'>
+                    <div className='flex items-center'>
+                        <Save className='mr-2 h-4 w-4' />
+                        Save Master Period
+                    </div>
                 </Button>
             </div>
         </form>
