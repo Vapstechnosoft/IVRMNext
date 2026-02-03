@@ -19,6 +19,8 @@ interface DateFieldProps {
     toDate?: Date;
     restricted_tofieldName?: string;
     restricted_fromfieldName?: string;
+    disabled?: boolean;
+    outputFormat?: 'date' | 'string';
 }
 
 export const DateField: React.FC<DateFieldProps> = ({
@@ -29,7 +31,9 @@ export const DateField: React.FC<DateFieldProps> = ({
     fromDate,
     toDate,
     restricted_tofieldName,
-    restricted_fromfieldName
+    restricted_fromfieldName,
+    disabled,
+    outputFormat = 'string'
 }) => {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -72,7 +76,7 @@ export const DateField: React.FC<DateFieldProps> = ({
             return;
         }
         setSelectedDate(date);
-        field.onChange(date.toISOString());
+        field.onChange(outputFormat === 'date' ? date : date.toISOString());
         setIsOpen(false);
     };
 
@@ -87,6 +91,7 @@ export const DateField: React.FC<DateFieldProps> = ({
                 <PopoverTrigger asChild>
                     <Button
                         variant='outline'
+                        disabled={disabled}
                         className={cn('w-full justify-between font-normal', !selectedDate && 'text-muted-foreground')}>
                         {selectedDate ? format(selectedDate, 'dd-MM-yyyy') : <span>{placeholder}</span>}
                         <Calendar className='ml-auto h-4 w-4 opacity-50' />

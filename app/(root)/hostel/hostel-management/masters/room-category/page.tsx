@@ -9,9 +9,9 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddRoomCategoryForm from './_components/add-form';
 import { roomCategoryColumns } from './_components/columns';
-import { IRoomCategory } from '@/server/hostel/room-category/server-action';
 import UpdateRoomCategoryForm from './_components/update-form';
 import { ToggleRoomCategory } from './_components/toggle-form';
+import { IRoomCategory } from '@/types/hostel/hostel-management/masters';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -79,7 +79,7 @@ function PageContent({
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<IRoomCategory>
                         {...tableProps}
-                        columns={roomCategoryColumns({ onEdit: openEditForm, onToggle: openToggleForm })}
+                        columns={roomCategoryColumns}
                         isLoading={isLoading}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading room categories...'

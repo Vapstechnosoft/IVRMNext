@@ -6,7 +6,7 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { Textarea } from '@/components/ui/textarea';
 import { useMasterFacility } from '@/hooks/hostel/useMasterFacility';
 import { masterFacilitySchema } from '@/schemas/hostel/masters';
-import { saveMasterFacility } from '@/server/hostel/master-facility/masters/server-action';
+import { addOrUpdateMasterFacility } from '@/server/hostel/hostel-management/masters/facility';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RefreshCw, Save } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
@@ -36,14 +36,14 @@ export default function AddMasterFacilityForm({ onSuccess, className = '' }: Add
             hlmftY_FacilityName: '',
             hlmftY_FacilityDesc: '',
             hlmftY_ActiveFlag: true,
-            hlmftY_FacilityFileName: null,
-            hlmftY_FacilityFilePath: null
+            hlmftY_FacilityFileName: '',
+            hlmftY_FacilityFilePath: ''
         }
     });
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const response = await saveMasterFacility(data);
+            const response = await addOrUpdateMasterFacility(data);
 
             if (response.success) {
                 toast.success(response.message);
@@ -118,7 +118,6 @@ export default function AddMasterFacilityForm({ onSuccess, className = '' }: Add
                             {errors.hlmftY_FacilityFileName && <FormError>{errors.hlmftY_FacilityFileName.message}</FormError>}
                         </div>
                     </div>
-
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 

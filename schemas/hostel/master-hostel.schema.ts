@@ -14,28 +14,31 @@ export const masterHostelSchema = z.object({
     .min(10, 'Contact Number must be 10 digits')
     .max(10, 'Contact Number must be 10 digits')
     .regex(/^[6-9]{1}[0-9]{9}$/, 'Enter valid Contact Number'),
-  hlmH_TotalCapacity: z.string().regex(/^\d+$/, 'Enter Number').max(5, 'Max 5 digits'),
-  facilities: z.array(z.number()).min(1, 'Please Select Facility'),
-  hlmhW_WardenType: z.string().optional(),
-  wardens: z.array(z.number()).min(1, 'Please Select Warden'),
-  messes: z.array(z.number()).min(1, 'Please Select Mess'),
+  hlmH_TotalCapacity: z.string().or(z.number()),
   
-  hlmH_BoysGirlsFlg: z.enum(['Boys', 'Girls'], {
+  // API expects these specific names for multi-selects
+  selectedFacilityIds: z.array(z.number()).min(1, 'Please Select Facility'),
+  selectedWardenIds: z.array(z.number()).min(1, 'Please Select Warden'),
+  selectedMessIds: z.array(z.number()).min(1, 'Please Select Mess'),
+  
+  hlmhW_WardenType: z.string().optional(),
+  
+  hlmH_BoysGirlsFlg: z.enum(['Boys', 'Girls', 'Both'], {
     required_error: 'Please Select Any One Category',
-  }),
+  }).or(z.string()), // Allow string from API if needed
   
   hlmH_Address: z.string().min(1, 'Enter the Address'),
-  ivrmmC_Id: z.string().min(1, 'Select Country'),
-  ivrmmS_Id: z.string().min(1, 'Select State'),
+  ivrmmC_Id: z.number().or(z.string().transform(Number)),
+  ivrmmS_Id: z.number().or(z.string().transform(Number)),
   hlmH_City: z.string().min(1, 'Enter City Name').max(50),
-  hlmH_Pincode: z.string().regex(/^\d+$/, 'Enter Number').max(6).min(1, 'Please Enter Pincode'),
+  hlmH_Pincode: z.string().or(z.number()),
   
-  hlmH_TotalFloor: z.string().regex(/^\d+$/, 'Please Enter Number').max(50, 'Max 50 digits?').min(1, 'Please Enter Total Floor'),
-  hlmH_TotalRoom: z.string().regex(/^\d+$/, 'Please Enter Number').max(50).min(1, 'Please Enter Total Room'),
+  hlmH_TotalFloor: z.string().or(z.number()),
+  hlmH_TotalRoom: z.string().or(z.number()),
   
   hlmH_Desc: z.string().max(250).optional(),
   
-  documents: z.array(hostelFileSchema).optional(),
+  hostelPhotos: z.array(hostelFileSchema).optional(),
   
   hlmH_ActiveFlag: z.boolean().optional().default(true),
 });

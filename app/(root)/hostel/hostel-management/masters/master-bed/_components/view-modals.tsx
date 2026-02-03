@@ -2,10 +2,10 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ColumnDef } from '@tanstack/react-table';
-import { IBedDisplay } from '@/server/hostel/master-bed/server-action';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 import { Check, X } from 'lucide-react';
+import { IBedDisplay } from '@/types/hostel/hostel-management/masters';
 
 interface ViewFacilitiesModalProps {
     isOpen: boolean;

@@ -10,6 +10,7 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterSponsorForm from './_components/add-form';
 import { MasterSponsorColumns } from './_components/columns';
+import ToggleMasterSponsorForm from './_components/toggle-form';
 import UpdateMasterSponsorForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -39,15 +40,27 @@ function MasterSponsorPageContent({
     const {
         isAddFormOpen,
         isEditFormOpen,
+        isToggleFormOpen,
         selectedRow,
         openAddForm,
         closeAddForm,
         closeEditForm,
+        closeToggleForm,
         addFormRef,
         editFormRef
     } = useFormContext<IMasterSponsor>();
 
     const tableProps = useDataTableProps(response);
+
+    const handleAddSuccess = () => {
+        closeAddForm();
+        refetchAll();
+    };
+
+    const handleEditSuccess = () => {
+        closeEditForm();
+        refetchAll();
+    };
 
     return (
         <div className='min-h-screen'>
@@ -103,7 +116,7 @@ function MasterSponsorPageContent({
                                         className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                         <X className='h-4 w-4 text-destructive' /> Close
                                     </Button>
-                                    <AddMasterSponsorForm onSuccess={closeAddForm} />
+                                    <AddMasterSponsorForm onSuccess={handleAddSuccess} />
                                 </div>
                             </CollapsibleSection>
                         </div>
@@ -127,12 +140,21 @@ function MasterSponsorPageContent({
                                         className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                         <X className='h-4 w-4 text-destructive' /> Close
                                     </Button>
-                                    <UpdateMasterSponsorForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                                    <UpdateMasterSponsorForm selectedRow={selectedRow} onSuccess={handleEditSuccess} />
                                 </div>
                             </CollapsibleSection>
                         </div>
                     )}
                 </>
+
+                {/* Toggle Form */}
+                {isToggleFormOpen && selectedRow && (
+                    <ToggleMasterSponsorForm
+                        rowData={selectedRow}
+                        onClose={closeToggleForm}
+                        onSuccess={refetchAll}
+                    />
+                )}
             </div>
         </div>
     );

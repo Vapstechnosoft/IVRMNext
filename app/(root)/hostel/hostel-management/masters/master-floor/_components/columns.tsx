@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { IFloorDisplay } from '@/server/hostel/master-floor/server-action';
+import { IFloorDisplay } from '@/server/hostel/hostel-management/masters/floor';
 import { ColumnDef } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
 import { useCallback, useState } from 'react';
@@ -12,15 +12,14 @@ import ViewFacilityModal from './view-facility-modal';
 
 export const masterFloorColumns: ColumnDef<IFloorDisplay>[] = [
     {
-        accessorKey: 'hlmF_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
+        accessorKey: 'slNo',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
-            const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div className='w-full pl-6'>{continuousIndex}</div>;
+            return <div>{pageIndex * pageSize + row.index + 1}</div>;
         },
-        enableSorting: true,
+        enableSorting: false,
         enableHiding: false
     },
     {

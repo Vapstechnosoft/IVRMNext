@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useMasterFacility } from '@/hooks/hostel/useMasterFacility';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterFacilityForm from './_components/add-form';
@@ -13,6 +12,7 @@ import UpdateMasterFacilityForm from './_components/update-form';
 import { toast } from 'sonner';
 import { IMasterFacility } from '@/schemas/hostel/masters';
 import ToggleMasterFacilityForm from './_components/toggle-form';
+import { useMasterFacility } from '@/hooks/hostel/hostel-management/usemasters';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 

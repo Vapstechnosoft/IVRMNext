@@ -3,43 +3,53 @@
 import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { IBedDisplay } from '@/server/hostel/master-bed/server-action';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
 import { useState } from 'react';
 import { ViewFacilitiesModal } from './view-modals';
+import { IBedDisplay } from '@/types/hostel/hostel-management/masters';
 
 const columnHelper = createColumnHelper<IBedDisplay>();
 
 export const masterBedColumns: ColumnDef<IBedDisplay, any>[] = [
-    columnHelper.display({
-        id: 'sn',
-        header: 'SL NO',
-        cell: (info) => info.row.index + 1,
-        enableSorting: false
-    }),
-    columnHelper.accessor('hlmH_Name', {
+    {
+        accessorKey: 'sn',
+        header: ({ column }) => <ColumnHeader column={column} title='Sl.No' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            return <div>{pageIndex * pageSize + row.index + 1}</div>;
+        },
+        enableSorting: false,
+        enableHiding: false
+    },
+    {
+        accessorKey: 'hlmH_Name',
         header: ({ column }) => <ColumnHeader column={column} title='Hostel Name' />
-    }),
-    columnHelper.accessor('hrmF_FloorName', {
+    },
+    {
+        accessorKey: 'hrmF_FloorName',
         header: ({ column }) => <ColumnHeader column={column} title='Floor Name' />
-    }),
-    columnHelper.accessor('hrmrM_RoomNo', {
+    },
+    {
+        accessorKey: 'hrmrM_RoomNo',
         header: ({ column }) => <ColumnHeader column={column} title='Room No' />
-    }),
-    columnHelper.accessor('hlmB_BedName', {
+    },
+    {
+        accessorKey: 'hlmB_BedName',
         header: ({ column }) => <ColumnHeader column={column} title='Bed Name' />
-    }),
-    columnHelper.display({
+    },
+    {
         id: 'facilityList',
-        header: 'Facility',
-        cell: (info) => <ViewFacilitiesCell rowData={info.row.original} />
-    }),
-    columnHelper.display({
+        header: ({ column }) => <ColumnHeader column={column} title='Facility' />,
+        cell: (info) => <ViewFacilitiesCell rowData={info.row.original} />,
+        enableSorting: false
+    },
+    {
         id: 'actions',
-        header: 'Action',
+        header: ({ column }) => <ColumnHeader column={column} title='Action' className='text-center' />,
         cell: (info) => <ActionButtonsCell rowData={info.row.original} />
-    })
+    }
 ];
 
 function ViewFacilitiesCell({ rowData }: { rowData: IBedDisplay }) {
