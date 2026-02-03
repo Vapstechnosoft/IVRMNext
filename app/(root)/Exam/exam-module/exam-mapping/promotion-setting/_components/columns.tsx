@@ -41,8 +41,9 @@ export const PromotionSettingColumns: ColumnDef<IPromotionSetting>[] = [
 
     // Promotion Type
     {
-        accessorKey: 'promotion_type',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Promotion Type' />
+        accessorKey: 'emP_MarksPerFlg',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Promotion Type' />,
+        cell: ({ row }) => getStatusBadge((row.getValue('emP_MarksPerFlg') as string) === 'M' ? 'Marks' : 'Percentage')
     },
 
     // Pass To Individual
