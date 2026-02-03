@@ -213,6 +213,8 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
         apiSearchParams
     );
 
+    console.log('headQuery', headQuery);
+
     useEffect(() => {
         if (isEditFormOpen) return;
 

@@ -454,8 +454,8 @@ export const feesRefundableSchema = {
         refundableflag: z.string().optional(),
         academicYearId: z.number().int({ message: 'Academic Year is required' }),
         sectionId: z.number().int({ message: 'Section is required' }),
-        fR_BankName: createOptionalStringSchema('Bank Name', 1, 100),
-        fR_CheqNo: createNumberOnlyStringSchema('Cheque No.', 13, 100),
+        fR_BankName: createOptionalStringSchema('Bank Name', 1, 100).optional(),
+        fR_CheqNo: createNumberOnlyStringSchema('Cheque No.', 13, 100).optional(),
 
         fR_Date: z.string().min(1, 'Refund date is required').optional(),
 

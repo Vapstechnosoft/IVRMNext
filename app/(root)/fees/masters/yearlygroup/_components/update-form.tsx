@@ -174,7 +174,7 @@ export default function UpdateYearlyGroupForm({ onSuccess, selectedRow }: Update
                 fyG_PartialRebateAmtOrPercentageValue: data.rebateApplicable && data.rebateValue ? Number(data.rebateValue) : 0
             };
 
-            console.warn('Calling addOrUpdateMasterGroupYearlyCategory with payload:', payload);
+            console.warn('Calling addOrUpdateMasterGroupYearlyCategory with payload:', JSON.stringify(payload));
             const response = await addOrUpdateMasterGroupYearlyCategory(payload);
             console.warn('addOrUpdateMasterGroupYearlyCategory response:', response);
 
