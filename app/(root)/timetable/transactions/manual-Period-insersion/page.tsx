@@ -11,7 +11,6 @@ export default function ManualPeriodInsertionPage() {
     return (
         <div className='container mx-auto max-w-7xl space-y-8 p-4'>
             {/* Header */}
-            <div className='mb-2 flex flex-col gap-1'></div>
 
             <ManualPeriodInsertionForm onFetch={setFilterData} />
 
