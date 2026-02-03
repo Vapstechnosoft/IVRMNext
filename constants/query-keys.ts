@@ -221,7 +221,7 @@ export const FEES_QUERY_KEYS = {
     FEE_PAYMENTGATEWAY_INSTITUTION_NAME: 'fee_paymentgateway_institution_name',
     FEE_AMOUNT_ENTRY_STTHOMAS: 'fee_amount_entry_stthomas',
     ACADEMIC_DROPDOWN_FEES_STTHOMAS: 'academic_dropdown_fees_stthomas',
-
+    FEE_TERM_DROPDOWNDATA_REPORTS: 'fee_term_dropdowndata_reports',
     FEE_DEFAULTER_REPORT: 'fee_defaulter_report',
     FEE_GROUP_DEFAULTER: 'fee_group_defaulter_report',
     FEE_TERM_DEFAULTER: 'fee_term_defaulter_report',
