@@ -26,7 +26,7 @@ export default function PromotionalGroupMappingsDetailsPage({
 }
 
 function GroupMappingContent({ rowData, onClose }: { rowData: IPromotionalSubjectDetails; onClose: () => void }) {
-    const { data: response, isLoading, refetchAll } = usePromotionalGroupMappings(rowData?.emP_Id);
+    const { data: response, isLoading, refetchAll } = usePromotionalGroupMappings(rowData?.empS_Id);
 
     const tableProps = useDataTableProps(response);
     useEffect(() => {
@@ -66,7 +66,7 @@ function GroupMappingContent({ rowData, onClose }: { rowData: IPromotionalSubjec
                     columnPinning={{ right: ['mapping', 'actions'] }}
                 />
 
-                <GroupMappingSections />
+                <GroupMappingSections promSubjObj={rowData} />
             </div>
         </div>
     );
@@ -75,13 +75,13 @@ function GroupMappingContent({ rowData, onClose }: { rowData: IPromotionalSubjec
 /* ==========================================================
    HANDLES POPUP VIEW + EDIT
 ========================================================== */
-function GroupMappingSections() {
+function GroupMappingSections({ promSubjObj }: { promSubjObj: IPromotionalSubjectDetails }) {
     const { isToggleFormOpen, isMappedviewOpen, selectedRow, closeMappedview, closeToggleForm } =
         useFormContext<IPromotionalGroupDetails>();
 
     return (
         <>
-            {isToggleFormOpen && selectedRow && <PromotionalGroupMappingToggleForm rowData={selectedRow} onClose={closeToggleForm} />}
+            {isToggleFormOpen && selectedRow && <PromotionalGroupMappingToggleForm rowData={selectedRow} onClose={closeToggleForm} promSubjObj={promSubjObj} />}
 
             {isMappedviewOpen && selectedRow && <PromotionalGroupMappedExamsPage rowData={selectedRow} onClose={closeMappedview} />}
         </>

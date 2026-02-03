@@ -1258,11 +1258,11 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 56,
-                                            name: 'Yearly Category Date Mapping',
-                                            icon: 'CalendarDays',
-                                            url: '/Exam/exam-module/exam-mapping/yearly-category-dates-mapping',
-                                            title: 'Yearly Category Date Mapping',
-                                            description: 'Manage Yearly Category Date Mapping Details'
+                                            name: 'Student Subject Mapping',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/exam-mapping/student-subject-mapping',
+                                            title: 'Student Subject Mapping',
+                                            description: 'Manage Student Subject Mapping Details'
                                         },
                                         {
                                             id: 57,
@@ -1314,11 +1314,11 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 63,
-                                            name: 'Student Subject Mapping',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/exam-mapping/student-subject-mapping',
-                                            title: 'Student Subject Mapping',
-                                            description: 'Manage Student Subject Mapping Details'
+                                            name: 'Yearly Category Date Mapping',
+                                            icon: 'CalendarDays',
+                                            url: '/Exam/exam-module/exam-mapping/yearly-category-dates-mapping',
+                                            title: 'Yearly Category Date Mapping',
+                                            description: 'Manage Yearly Category Date Mapping Details'
                                         },
                                         {
                                             id: 64,
