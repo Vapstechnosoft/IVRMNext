@@ -163,10 +163,19 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
             const result = await getReportDetails(data);
             const enrichedParams = {
                 ...data,
-                ASMAY_Year: academicYears.find((y: any) => String(y.asmaY_Id) === data.ASMAY_Id)?.asmaY_Year,
-                ASMCL_Id_Name: classes.find((c) => String(c.asmcL_Id) === parseInt(data.ASMCL_Id))?.asmcL_ClassName,
-                ASMS_Id_Name: sections.find((s) => String(s.asmS_Id) === parseInt(data.ASMS_Id))?.asmC_SectionName
+                ASMAY_Year: academicYears.find(
+                    (y: any) => y.asmaY_Id === Number(data.ASMAY_Id)
+                )?.asmaY_Year,
+
+                ASMCL_Id_Name: classes.find(
+                    (c) => c.asmcL_Id === Number(data.ASMCL_Id)
+                )?.asmcL_ClassName,
+
+                ASMS_Id_Name: sections.find(
+                    (s) => s.asmS_Id === Number(data.ASMS_Id)
+                )?.asmC_SectionName
             };
+
             onReportGenerated(result, enrichedParams);
         } catch (error) {
             console.error('Error:', error);
