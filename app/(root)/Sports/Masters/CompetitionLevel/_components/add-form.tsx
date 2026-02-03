@@ -6,6 +6,7 @@ import { masterCompetitionLevelSchema } from '@/schemas/sports/masters/competiti
 import { saveMasterCompetitionLevel } from '@/server/sports/masters/competition-level';
 import { useMasterCompetitionLevels } from '@/hooks/sports/useMasterCompetitionLevels';
 import type { IMasterCompetitionLevel } from '@/types/sports/masters/competition-level';
+import { toast } from 'sonner';
 
 interface AddMasterCompetitionLevelFormProps {
     selectedRow?: IMasterCompetitionLevel;
@@ -28,17 +29,29 @@ export default function AddMasterCompetitionLevelForm({
                 spccmcL_ActiveFlag: selectedRow?.spccmcL_ActiveFlag ?? true
             }}
             onSubmit={async (values) => {
-                const response = await saveMasterCompetitionLevel(values);
+                try {
+                    const response = await saveMasterCompetitionLevel(values);
 
-                if (response?.success) {
-                    await refetchAll();
-                    onSuccess?.();
+                    // Relaxed check: Accept truthy returnval (e.g. "true" string or true boolean)
+                    if (response?.success || response?.returnval == true) {
+                        toast.success(response.message || 'Level added successfully');
+                        refetchAll();
+                        onSuccess?.();
+                    } else {
+                        toast.error(response?.message || 'Failed to add level');
+                    }
+                } catch (error: any) {
+                    toast.error(error.message || 'Something went wrong');
                 }
             }}
             mode={selectedRow ? 'edit' : 'create'}
             successMessage={`Level ${selectedRow ? 'updated' : 'added'} successfully`}
             errorMessage={`Failed to ${selectedRow ? 'update' : 'add'} level`}
-            onSuccess={onSuccess}
+            onSuccess={() => {
+                // Double ensure refetch happens
+                refetchAll();
+                onSuccess?.();
+            }}
             className='space-y-4'
         >
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>

@@ -1,6 +1,6 @@
 'use server';
 
-import { type ApiResponse, api } from '@/lib/apiService';
+import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
 import { masterModuleSchema } from '@/schemas/super-admin/super-admin-module/general-setting/module';
 import type { IMasterModule } from '@/types/super-admin/super-admin-module/general-setting/module';
 import { revalidatePath } from 'next/cache';
@@ -18,59 +18,92 @@ export async function saveMasterModule(data: any) {
         };
     }
 
-    // Stubbing the API call
-    console.log('Saving Master Module:', data);
+    const payload = {
+        ...data,
+        ...validation.data,
+        ivrmM_Id: data.ivrmM_Id ?? 0,
+        userid: data.userid ?? 0,
+        createdDate: data.createdDate ?? new Date().toISOString(),
+        updatedDate: new Date().toISOString(),
+    };
 
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    const response = await api.post<any>('sadmin', 'MastersModuleFacade', payload);
 
-    // Simulate success
-    revalidatePath('/SuperAdmin/super-admin-module/general-setting/module');
+    if (response.success) {
+        revalidatePath('/SuperAdmin/super-admin-module/general-setting/module');
+        return {
+            success: true,
+            message: response.message || 'Master Module saved successfully!',
+            data: response.data,
+        };
+    }
+
     return {
-        success: true,
-        message: 'Master Module saved successfully!',
-        data: { ...data, ivrmM_Id: Math.floor(Math.random() * 1000) },
+        success: false,
+        message: response.message || 'Failed to save module',
     };
 }
 
-export async function getMasterModules() {
-    // Stub data based on the user's snippet structure
-    const stubData: IMasterModule[] = [
-        {
-            ivrmM_Id: 1,
-            ivrmM_ModuleName: 'Admission',
-            ivrmM_ModuleDesc: 'Admission Module for student enrollment',
-            module_ActiveFlag: 1,
-            id: 1
-        },
-        {
-            ivrmM_Id: 2,
-            ivrmM_ModuleName: 'Fees',
-            ivrmM_ModuleDesc: 'Fee Management Module',
-            module_ActiveFlag: 1,
-            id: 2
-        },
-        {
-            ivrmM_Id: 3,
-            ivrmM_ModuleName: 'Exam',
-            ivrmM_ModuleDesc: 'Examination Module',
-            module_ActiveFlag: 0,
-            id: 3
-        }
-    ];
+export async function getMasterModules(searchParams: any) {
+    const query = getSearchParamsUrl(searchParams);
+    const url = `MastersModuleFacade/get_master_module_onload_grid?${query}`;
+
+    const response = await api.get<any>('sadmin', url);
+
+    if (response.success && response.data?.masterModulesname) {
+        return {
+            success: true,
+            data: response.data.masterModulesname as IMasterModule[],
+            message: response.message,
+            total: response.data.total ?? response.total,
+            page: response.data.page ?? response.page,
+            page_size: response.data.page_size ?? response.page_Size
+        };
+    }
 
     return {
-        success: true,
-        data: stubData,
-        message: 'Data fetched successfully'
+        success: false,
+        data: [],
+        message: response.message || 'Failed to fetch data',
+        total: 0,
+        page: 0,
+        page_size: 0
     };
 }
 
-export async function deleteMasterModule(id: number) {
-    console.log('Deleting/Deactivating Master Module:', id);
-    revalidatePath('/SuperAdmin/super-admin-module/general-setting/module');
+export async function getMasterModuleById(id: number) {
+    const url = `MastersModuleFacade/get_details_byID/${id}`;
+    const response = await api.get<any>('sadmin', url);
+
+    if (response.success && response.data?.masterModulesname && response.data.masterModulesname.length > 0) {
+        return {
+            success: true,
+            data: response.data.masterModulesname[0] as IMasterModule,
+            message: response.message
+        };
+    }
+
     return {
-        success: true,
-        message: 'Record status updated successfully'
+        success: false,
+        data: null,
+        message: response.message || 'Failed to fetch details'
+    };
+}
+
+export async function activateDeactivateMasterModule(id: number) {
+    const url = `MastersModuleFacade/activate_deactivate_master_module/${id}`;
+    const response = await api.put<any>('sadmin', url, {});
+
+    if (response.success) {
+        revalidatePath('/SuperAdmin/super-admin-module/general-setting/module');
+        return {
+            success: true,
+            message: response.message || 'Module status updated successfully',
+        };
+    }
+
+    return {
+        success: false,
+        message: response.message || 'Failed to update module status',
     };
 }

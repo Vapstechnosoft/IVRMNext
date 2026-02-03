@@ -6,13 +6,16 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
 import { useMasterRoom } from '@/hooks/hostel/useMasterRoom';
-import { deleteRoom, IFacility, IHostel, IRoomDisplay } from '@/server/hostel/master-room/server-action';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import { toast } from 'sonner';
 import AddMasterRoomForm from './_components/add-form';
 import { masterRoomColumns } from './_components/columns';
 import UpdateMasterRoomForm from './_components/update-form';
+import type { IRoomDisplay } from '@/types/hostel/hostel-management/masters';
+import { deleteRoom } from '@/server/hostel/hostel-management/masters/room';
+import type { IHostel } from '@/types/hostel/hostel-management/masters';
+import type { IFacility } from '@/types/hostel/hostel-management/masters';
 import { ViewFacilitiesModal } from './_components/view-modals';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;

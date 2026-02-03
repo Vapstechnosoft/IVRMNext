@@ -1,8 +1,9 @@
 'use client';
 
-import { deleteRoomCategory, IRoomCategory } from '@/server/hostel/room-category/server-action';
 import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
 import { toast } from 'sonner';
+import { IRoomCategory } from '@/types/hostel/hostel-management/masters';
+import { deleteRoomCategory } from '@/server/hostel/hostel-management/masters/room-category';
 
 interface ToggleRoomCategoryProps {
     data: IRoomCategory;

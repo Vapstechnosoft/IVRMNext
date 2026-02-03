@@ -3,54 +3,67 @@
 import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { IRoomDisplay } from '@/server/hostel/master-room/server-action';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
 import { useState } from 'react';
 import { ViewFacilitiesModal } from './view-modals';
+import { IRoomDisplay } from '@/types/hostel/hostel-management/masters';
 
 const columnHelper = createColumnHelper<IRoomDisplay>();
 
 export const masterRoomColumns: ColumnDef<IRoomDisplay, any>[] = [
-    columnHelper.display({
-        id: 'sn',
-        header: 'SL NO',
-        cell: (info) => info.row.index + 1,
-        enableSorting: false
-    }),
-    columnHelper.accessor('hlmH_Name', {
+    {
+        accessorKey: 'sn',
+        header: ({ column }) => <ColumnHeader column={column} title='Sl.No' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            return <div>{pageIndex * pageSize + row.index + 1}</div>;
+        },
+        enableSorting: false,
+        enableHiding: false
+    },
+    {
+        accessorKey: 'hlmH_Name',
         header: ({ column }) => <ColumnHeader column={column} title='Hostel Name' />
-    }),
-    columnHelper.accessor('hrmF_FloorName', {
+    },
+    {
+        accessorKey: 'hrmF_FloorName',
         header: ({ column }) => <ColumnHeader column={column} title='Floor' />
-    }),
-    columnHelper.accessor('hlmrcA_RoomCategory', {
+    },
+    {
+        accessorKey: 'hlmrcA_RoomCategory',
         header: ({ column }) => <ColumnHeader column={column} title='Room Category' />
-    }),
-    columnHelper.accessor('hrmrM_SharingFlg', {
+    },
+    {
+        accessorKey: 'hrmrM_SharingFlg',
         header: ({ column }) => <ColumnHeader column={column} title='Sharing' />,
         cell: (info) => info.getValue() ? 'Yes' : 'No'
-    }),
-    columnHelper.accessor('hrmrM_ACFlg', {
+    },
+    {
+        accessorKey: 'hrmrM_ACFlg',
         header: ({ column }) => <ColumnHeader column={column} title='Room Type' />,
         cell: (info) => info.getValue() ? 'AC' : 'Non-AC'
-    }),
-    columnHelper.accessor('hrmrM_RoomNo', {
+    },
+    {
+        accessorKey: 'hrmrM_RoomNo',
         header: ({ column }) => <ColumnHeader column={column} title='Room No.' />
-    }),
-    columnHelper.accessor('hrmrM_BedCapacity', {
+    },
+    {
+        accessorKey: 'hrmrM_BedCapacity',
         header: ({ column }) => <ColumnHeader column={column} title='Bed Capacity' />
-    }),
-    columnHelper.display({
+    },
+    {
         id: 'facilityList',
-        header: 'Facility List',
-        cell: (info) => <ViewFacilitiesCell rowData={info.row.original} />
-    }),
-    columnHelper.display({
+        header: ({ column }) => <ColumnHeader column={column} title='Facility List' />,
+        cell: (info) => <ViewFacilitiesCell rowData={info.row.original} />,
+        enableSorting: false
+    },
+    {
         id: 'actions',
-        header: 'Action',
+        header: ({ column }) => <ColumnHeader column={column} title='Action' className='text-center' />,
         cell: (info) => <ActionButtonsCell rowData={info.row.original} />
-    })
+    }
 ];
 
 function ViewFacilitiesCell({ rowData }: { rowData: IRoomDisplay }) {

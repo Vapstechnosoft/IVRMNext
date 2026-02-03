@@ -6,38 +6,50 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
 import { useMasterMess } from '@/hooks/hostel/useMasterMess';
-import { deleteMess, IMess } from '@/server/hostel/master-mess/server-action';
+import { deleteMess, IMess } from '@/server/hostel/hostel-management/masters/mess';
 import { Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
 import AddMasterMessForm from './_components/add-form';
 import { masterMessColumns } from './_components/columns';
 import UpdateMasterMessForm from './_components/update-form';
+import { use } from 'react';
 
-export default function MasterMessPage() {
-    const { messList, loading, refetch } = useMasterMess();
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function MasterMessPage(props: { searchParams: SearchParams }) {
+    const searchParams = use(props.searchParams);
+    const { data: response, isLoading, refetchAll } = useMasterMess(searchParams);
 
     return (
         <FormProvider<IMess>>
             <PageContent
-                messList={messList}
-                isLoading={loading}
-                refetch={refetch}
+                response={response}
+                isLoading={isLoading}
+                refetchAll={refetchAll}
             />
         </FormProvider>
     );
 }
 
 function PageContent({
-    messList,
+    response,
     isLoading,
-    refetch
+    refetchAll
 }: {
-    messList: IMess[];
+    response: any;
     isLoading: boolean;
-    refetch: () => void;
+    refetchAll: () => void;
 }) {
     const { openAddForm } = useFormContext<IMess>();
-    const tableProps = useDataTableProps({ data: messList, total: messList.length });
+
+    // Transform response data to match GenericDataTable expectations
+    // API returns data in response.data.get_messlist, but GenericDataTable expects response.data to be the array
+    const processedResponse = {
+        ...response,
+        data: response?.data?.get_messlist || []
+    };
+
+    const tableProps = useDataTableProps(processedResponse);
 
     return (
         <div className='min-h-screen'>
@@ -72,7 +84,7 @@ function PageContent({
 
                 {/* Forms */}
                 <FormSections
-                    onSuccess={refetch}
+                    onSuccess={refetchAll}
                 />
             </div>
         </div>

@@ -10,16 +10,19 @@ import type { ApiSearchparams } from '@/types';
 export interface IAlumniGalleryResponse {
     success: boolean;
     message: string;
-    get_galleryimg: IAlumniGallery[];
+    data: IAlumniGallery[];
+    get_galleryimg?: IAlumniGallery[];
     total: number;
-    mI_Id: number;
-    asmaY_Id: number;
+    page: number;
+    page_size: number;
+    mI_Id?: number;
+    asmaY_Id?: number;
 }
 
 export async function getAlumniGalleryData(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'algA_GalleryName');
     const url = `/Alumni_Gallery/get_loaddata?IVRMRT_Id=30&Role_flag=Alumni&${urlParams}`;
-    return await api.get<any>('alumni', url);
+    return await api.get<IAlumniGalleryResponse>('alumni', url);
 }
 
 export async function saveAlumniGallery(data: any) {

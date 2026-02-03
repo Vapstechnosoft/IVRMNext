@@ -9,9 +9,9 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddRoomTariffForm from './_components/add-form';
 import { roomTariffColumns } from './_components/columns';
-import { IRoomTariff } from '@/server/hostel/room-tariff/server-action';
-import UpdateRoomTariffForm from './_components/update-form';
 import ToggleRoomTariff from './_components/toggle-form';
+import { IRoomTariff } from '@/types/hostel/hostel-management/masters';
+import UpdateRoomTariffForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
