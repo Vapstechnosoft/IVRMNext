@@ -10,6 +10,7 @@ declare module 'next-auth' {
         email: string;
         token: string;
         role: Role;
+        roleId?: number;
         designation: string;
         user_image: string | null;
         expires: string;
@@ -21,9 +22,10 @@ declare module 'next-auth' {
         email: string;
         token: string;
         role: Role;
+        roleId?: number;
         designation: string;
         user_image: string | null;
     }
 
-    interface JWT extends User {}
+    interface JWT extends User { }
 }
