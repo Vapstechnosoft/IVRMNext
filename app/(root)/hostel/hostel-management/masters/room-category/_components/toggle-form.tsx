@@ -3,7 +3,8 @@
 import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
 import { toast } from 'sonner';
 import { IRoomCategory } from '@/types/hostel/hostel-management/masters';
-import { deleteRoomCategory } from '@/server/hostel/hostel-management/masters/room-category';
+import { deactivateRoomCategory } from '@/server/hostel/hostel-management/masters/room-category';
+import { useRoomCategory } from '@/hooks/hostel/useRoomCategory';
 
 interface ToggleRoomCategoryProps {
     data: IRoomCategory;
@@ -12,19 +13,21 @@ interface ToggleRoomCategoryProps {
 }
 
 export const ToggleRoomCategory = ({ data, onClose, onSuccess }: ToggleRoomCategoryProps) => {
+    const { refetchAll } = useRoomCategory();
     const onConfirm = async () => {
         try {
-            const result = await deleteRoomCategory(data);
+            const result = await deactivateRoomCategory(data.hlmrcA_Id);
 
-            if (result?.returnval) {
+            if (result?.success) {
                 toast.success(
                     data.hlmrcA_ActiveFlag
                         ? 'Room Category deactivated successfully'
                         : 'Room Category activated successfully'
                 );
                 onSuccess();
+                refetchAll();
             } else {
-                toast.error('Failed to toggle Room Category status');
+                toast.error(result?.message);
             }
         } catch (error) {
             toast.error('Failed to update Room Category status');

@@ -1,22 +1,13 @@
-import { fetchMessCategoryMappingData } from '@/server/hostel/hostel-management/masters/mess-category';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+'use client';
 
-export const MASTER_MESS_CATEGORY_QUERY_KEY = 'MASTER_MESS_CATEGORY_DATA';
+import { useQuery } from '@tanstack/react-query';
+import { getMessCategoryList } from '@/server/hostel/hostel-management/masters/mess-category';
+import { ApiSearchparams } from '@/types';
 
-export const useMasterMessCategory = (searchParams?: { [key: string]: string | string[] | undefined }) => {
-    const queryClient = useQueryClient();
-
-    return {
-        ...useQuery({
-            queryKey: [MASTER_MESS_CATEGORY_QUERY_KEY, searchParams ?? {}],
-            queryFn: async () => fetchMessCategoryMappingData(searchParams || {}),
-            staleTime: 0
-        }),
-
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: [MASTER_MESS_CATEGORY_QUERY_KEY]
-            });
-        }
-    };
+export const useMasterMessCategory = (searchParams?: ApiSearchparams) => {
+    return useQuery({
+        queryKey: ['master-mess-category', searchParams],
+        queryFn: () => getMessCategoryList(searchParams),
+        staleTime: 5 * 60 * 1000, 
+    });
 };

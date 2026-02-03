@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useRoomCategory } from '@/hooks/hostel/useRoomCategory';
@@ -47,15 +47,13 @@ function PageContent({
 }) {
     const { openAddForm, openEditForm, openToggleForm } = useFormContext<IRoomCategory>();
 
-    const gridData = response?.griddata || [];
-    const hostelList = response?.hostellist || [];
-    const feeGroupList = response?.feegroupe || [];
+    const gridData = response?.data?.griddata || [];
+    const hostelList = response?.data?.hostellist || [];
+    const feeGroupList = response?.data?.feegroupe || [];
 
-    const tableProps = {
-        data: gridData,
-        totalItems: gridData.length,
-        isLoading
-    };
+    const updatedResponse = { ...response, data: gridData }
+    console.log(updatedResponse)
+    const tableProps = useDataTableProps(updatedResponse)
 
     return (
         <div className='min-h-screen'>

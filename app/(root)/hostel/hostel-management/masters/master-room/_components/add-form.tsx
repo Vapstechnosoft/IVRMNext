@@ -3,35 +3,35 @@
 import { Button } from '@/components/ui/button';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { useFormContext } from '@/components/ui/form/form-provider';
 import { FormInput } from '@/components/ui/form/form-input';
-import { FormTextarea } from '@/components/ui/form/form-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { masterRoomSchema, IMasterRoomForm } from '@/schemas/hostel/master-room.schema';
-
+import { Textarea } from '@/components/ui/textarea';
+import { IMasterRoomForm, masterRoomSchema } from '@/schemas/hostel/master-room.schema';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { use, useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useEffect, useState } from 'react';
+import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
-import { IFacility, IFloor, IHostel, IRoomCategory } from '@/types/hostel/hostel-management/masters';
-import { fetchFloors } from '@/server/hostel/hostel-management/masters/bed';
-import { saveRoom } from '@/server/hostel/hostel-management/masters/room';
+import { useMasterRoom, useFloorsByHostel, useRoomCategoryByHostel } from '@/hooks/hostel/useMasterRoom';
+import { useHostelDropdownList, useFacilityDropdownList } from '@/hooks/hostel/useMasterHostel';
+import { getRoomDetails, saveRoom, getMappedFacilitiesForRoom } from '@/server/hostel/hostel-management/masters/room';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface AddMasterRoomFormProps {
     onSuccess: () => void;
-    hostels: IHostel[];
-    facilities: IFacility[];
+    initialData?: any;
 }
 
-export default function AddMasterRoomForm({ onSuccess, hostels, facilities: initialFacilities }: AddMasterRoomFormProps) {
-    const { closeAddForm } = useFormContext();
-    const [floors, setFloors] = useState<IFloor[]>([]);
-    const [categories, setCategories] = useState<IRoomCategory[]>([]);
-    // If strict on facilities per floor, we'd fetch them. For now use global.
-    const [facilities] = useState<IFacility[]>(initialFacilities);
+export default function AddMasterRoomForm({
+    onSuccess,
+    initialData
+}: AddMasterRoomFormProps) {
+    const { refetchAll } = useMasterRoom();
+    const { data: hostels } = useHostelDropdownList();
+    const { data: facilities } = useFacilityDropdownList();
 
-    const form = useForm<IMasterRoomForm>({
+    const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+
+    const methods = useForm<IMasterRoomForm>({
         resolver: zodResolver(masterRoomSchema),
         defaultValues: {
             hlmH_Id: '',
@@ -45,280 +45,280 @@ export default function AddMasterRoomForm({ onSuccess, hostels, facilities: init
             hrmrM_RoomForStudentFlg: false,
             hrmrM_RoomForStaffFlg: false,
             hrmrM_RoomForGuestFlg: false,
-            facilities: [],
+            selectedFacilityIds: []
         },
+        mode: 'onChange'
     });
 
-    const { control, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = form;
+    const {
+        control,
+        handleSubmit,
+        setValue,
+        reset,
+        formState: { errors, isSubmitting }
+    } = methods;
 
-    const selectedHostel = watch('hlmH_Id');
-    const selectedFloor = watch('hlmF_Id');
+    const selectedHostel = useWatch({ control, name: 'hlmH_Id' });
 
-    // Fetch floors when Hostel changes
+    // Fetch dependent dropdowns
+    const { data: floors } = useFloorsByHostel(selectedHostel);
+    const { data: roomCategories } = useRoomCategoryByHostel(selectedHostel); // Assuming categories depend on hostel
+
+    // Handle Edit Mode Binding
     useEffect(() => {
-        if (selectedHostel) {
-            const loadFloors = async () => {
+        const fetchEditDetails = async () => {
+            if (initialData?.hrmrM_Id) {
+                setIsLoadingDetails(true);
                 try {
-                    const result = await fetchFloors(Number(selectedHostel));
-                    setFloors(result.floors);
-                    if (result.categories) {
-                        setCategories(result.categories);
+                    // Fetch mapped facilities
+                    const res = await getMappedFacilitiesForRoom(initialData.hrmrM_Id);
+                    let mappedIds: string[] = [];
+                    if (res.success && res.data) {
+                        const mappedFacilities = Array.isArray(res.data) ? res.data : (res.data.facilities_list || []);
+                        mappedIds = mappedFacilities.map((f: any) => f.hlmftY_Id.toString());
                     }
-                } catch (error) {
-                    console.error("Failed to load floors:", error);
-                    toast.error("Failed to load floor details.");
-                    // Fallback static data if needed, or clear check:
-                    setFloors([]);
-                    setCategories([]); // Clear on error
-                }
-            };
-            loadFloors();
-        } else {
-            setFloors([]);
-            setCategories([]);
-        }
-    }, [selectedHostel]);
 
-    // Fetch categories when Floor changes (if strictly dependent on floor)
-    // In my server action `fetchFloors` returned categories too, assuming they are just filtered by hostel?
-    // But let's refine: if categories are floor specific, we should filter them.
-    // The server action `fetchFloors` returned all categories for the hostel (or all mock).
-    // Let's filter categories client side if they have hlmF_Id, or fetch again.
-    // My mock data has `hlmF_Id` in `IRoomCategory`.
-    const filteredCategories = categories.filter(c => !selectedFloor || c.hlmF_Id === Number(selectedFloor));
+                    setValue('selectedFacilityIds', mappedIds);
+
+                    // Set other fields
+                    setValue('hrmrM_RoomNo', initialData.hrmrM_RoomNo);
+                    setValue('hrmrM_BedCapacity', initialData.hrmrM_BedCapacity.toString());
+                    setValue('hrmrM_RoomDesc', initialData.hrmrM_RoomDesc || '');
+                    setValue('hrmrM_ACFlg', initialData.hrmrM_ACFlg);
+                    setValue('hrmrM_SharingFlg', initialData.hrmrM_SharingFlg);
+                    setValue('hrmrM_RoomForStudentFlg', initialData.hrmrM_RoomForStudentFlg);
+                    setValue('hrmrM_RoomForStaffFlg', initialData.hrmrM_RoomForStaffFlg);
+                    setValue('hrmrM_RoomForGuestFlg', initialData.hrmrM_RoomForGuestFlg);
+
+                    // Set Dropdowns sequentially to ensure options are loaded (though React Query handles caching well)
+                    setValue('hlmH_Id', initialData.hlmH_Id?.toString() || '');
+
+                    // Small timeout or simply setting them works if options are available. 
+                    // React Query dependent queries will run when hlmH_Id changes.
+                    // We might need to wait for list return or just set value.
+                    // Since 'floors' and 'roomCategories' hooks depend on 'selectedHostel', 
+                    // setting 'hlmH_Id' triggers them. We just need to ensure values are set.
+                    setValue('hlmF_Id', initialData.hlmF_Id?.toString() || '');
+                    setValue('hlmrcA_Id', initialData.hlmrcA_Id?.toString() || '');
+
+                } catch (error) {
+                    console.error("Failed to fetch room details", error);
+                    toast.error("Failed to load room details.");
+                } finally {
+                    setIsLoadingDetails(false);
+                }
+            }
+        };
+
+        if (initialData) {
+            fetchEditDetails();
+        }
+    }, [initialData, setValue]);
 
     const onSubmit = async (data: IMasterRoomForm) => {
-        const result = await saveRoom(data);
-        if (result.success) {
-            toast.success(result.message);
-            onSuccess();
-            closeAddForm();
-        } else {
-            toast.error(result.message);
+        try {
+            const payload = {
+                ...data,
+                hrmrM_Id: initialData?.hrmrM_Id || 0,
+                hlmH_Id: Number(data.hlmH_Id),
+                hlmF_Id: Number(data.hlmF_Id),
+                hlmrcA_Id: Number(data.hlmrcA_Id),
+                hrmrM_BedCapacity: Number(data.hrmrM_BedCapacity),
+                facilities: (data.selectedFacilityIds || []).map(id => ({
+                    hlmftY_Id: Number(id),
+                    hrmrmF_ActiveFlg: true
+                }))
+            };
+
+            // Remove helper field
+            // @ts-ignore
+            delete payload.selectedFacilityIds;
+
+            const result = await saveRoom(payload);
+            if (result.success) {
+                toast.success(result.message);
+                refetchAll();
+                onSuccess();
+                if (!initialData) reset();
+            } else {
+                toast.error(result.message);
+            }
+        } catch (error: any) {
+            console.error('Save error', error);
+            toast.error(error.message || 'Failed to save room');
         }
     };
 
+    if (isLoadingDetails) {
+        return <div className="p-4 text-center">Loading room details...</div>;
+    }
+
     return (
-        <div className="p-4 bg-background rounded-lg border">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* LEFT COLUMN */}
-                    <div className="space-y-4">
-                        {/* Hostel */}
-                        <div className="space-y-2">
-                            <Label>Hostel Name <span className='ml-1 text-red-500'>*</span></Label>
-                            <Controller
-                                control={control}
-                                name="hlmH_Id"
-                                render={({ field }) => (
-                                    <Select onValueChange={(val) => {
-                                        field.onChange(val);
-                                        setValue('hlmF_Id', ''); // Reset floor
-                                        setValue('hlmrcA_Id', ''); // Reset category
-                                    }} value={field.value}>
-                                        <SelectTrigger className={errors.hlmH_Id ? 'border-destructive' : ''}>
-                                            <SelectValue placeholder="--Select--" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {hostels.map((h) => (
-                                                <SelectItem key={h.hlmH_Id} value={h.hlmH_Id.toString()}>
-                                                    {h.hlmH_Name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                            <FormError>{errors.hlmH_Id?.message}</FormError>
-                        </div>
+        <div className='flex w-full flex-col gap-6'>
+            <FormProvider {...methods}>
+                <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md' noValidate>
+                    <div className='flex flex-col gap-6 md:flex-row'>
+                        <div className='flex flex-1 flex-col gap-4'>
 
-                        {/* Floor */}
-                        <div className="space-y-2">
-                            <Label>Floor Name <span className='ml-1 text-red-500'>*</span></Label>
-                            <Controller
-                                control={control}
-                                name="hlmF_Id"
-                                render={({ field }) => (
-                                    <Select onValueChange={(val) => {
-                                        field.onChange(val);
-                                        setValue('hlmrcA_Id', ''); // Reset category
-                                    }} value={field.value} disabled={!selectedHostel}>
-                                        <SelectTrigger className={errors.hlmF_Id ? 'border-destructive' : ''}>
-                                            <SelectValue placeholder="--Select--" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {floors.map((f) => (
-                                                <SelectItem key={f.hlmF_Id} value={f.hlmF_Id.toString()}>
-                                                    {f.hrmF_FloorName}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                            <FormError>{errors.hlmF_Id?.message}</FormError>
-                        </div>
+                            {/* Hostel Selection */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <Label>Hostel Name <span className='text-red-500'>*</span></Label>
+                                    <Controller
+                                        control={control}
+                                        name='hlmH_Id'
+                                        render={({ field, fieldState }) => (
+                                            <>
+                                                <Select value={field.value} onValueChange={(val) => {
+                                                    field.onChange(val);
+                                                    setValue('hlmF_Id', ''); // Reset dependent fields
+                                                    setValue('hlmrcA_Id', '');
+                                                }}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select Hostel" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {hostels && hostels.map((h: any) => (
+                                                            <SelectItem key={h.hlmH_Id} value={h.hlmH_Id.toString()}>{h.hlmH_Name}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                            </>
+                                        )}
+                                    />
+                                </div>
 
-                        {/* Room Category */}
-                        <div className="space-y-2">
-                            <Label>Room Category <span className='ml-1 text-red-500'>*</span></Label>
-                            <Controller
-                                control={control}
-                                name="hlmrcA_Id"
-                                render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={!selectedFloor}>
-                                        <SelectTrigger className={errors.hlmrcA_Id ? 'border-destructive' : ''}>
-                                            <SelectValue placeholder="--Select--" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {filteredCategories.map((c) => (
-                                                <SelectItem key={c.hlmrcA_Id} value={c.hlmrcA_Id.toString()}>
-                                                    {c.hlmrcA_RoomCategory}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                            <FormError>{errors.hlmrcA_Id?.message}</FormError>
-                        </div>
+                                <div>
+                                    <Label>Floor Name <span className='text-red-500'>*</span></Label>
+                                    <Controller
+                                        control={control}
+                                        name='hlmF_Id'
+                                        render={({ field, fieldState }) => (
+                                            <>
+                                                <Select value={field.value} onValueChange={field.onChange} disabled={!selectedHostel}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select Floor" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {floors && floors.map((f: any) => (
+                                                            <SelectItem key={f.hlmF_Id} value={f.hlmF_Id.toString()}>{f.hrmF_FloorName}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                            </>
+                                        )}
+                                    />
+                                </div>
 
-                        {/* Room No */}
-                        <FormInput
-                            control={control}
-                            name="hrmrM_RoomNo"
-                            label="Room No."
-                            placeholder="Enter Room No."
-                            required
-                        />
+                                <div>
+                                    <Label>Room Category <span className='text-red-500'>*</span></Label>
+                                    <Controller
+                                        control={control}
+                                        name='hlmrcA_Id'
+                                        render={({ field, fieldState }) => (
+                                            <>
+                                                <Select value={field.value} onValueChange={field.onChange} disabled={!selectedHostel}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select Room Category" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {roomCategories && roomCategories.map((c: any) => (
+                                                            <SelectItem key={c.hlmrcA_Id} value={c.hlmrcA_Id.toString()}>{c.hlmrcA_RoomCategory}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                            </>
+                                        )}
+                                    />
+                                </div>
 
-                        {/* Bed Capacity */}
-                        <FormInput
-                            control={control}
-                            name="hrmrM_BedCapacity"
-                            label="Bed Capacity"
-                            placeholder="Enter Bed Capacity"
-                            required
-                            pattern="^[0-9]*$"
-                            maxLength={5}
-                        />
-                    </div>
+                                <FormInput control={control} name="hrmrM_RoomNo" label="Room No." required placeholder='Enter Room No.' />
+                            </div>
 
-                    {/* RIGHT COLUMN */}
-                    <div className="space-y-4">
-                        {/* Facilities */}
-                        <Controller
-                            control={control}
-                            name="facilities"
-                            render={({ field }) => (
-                                <CustomMultiSelectBox
-                                    label="Room Facilities"
-                                    isRequired
-                                    options={facilities.map(f => ({ label: f.hlmftY_FacilityName, value: f.hlmftY_Id.toString() }))}
-                                    value={field.value?.map(String) || []}
-                                    onChange={(vals) => field.onChange(vals.map(Number))}
-                                    error={errors.facilities?.message}
-                                    isSearchRequired
+                            <FormInput control={control} name="hrmrM_BedCapacity" label="Bed Capacity" required placeholder='Enter Bed Capacity' type="number" />
+
+                            <div>
+                                <Label>Description</Label>
+                                <Controller
+                                    control={control}
+                                    name='hrmrM_RoomDesc'
+                                    render={({ field }) => (
+                                        <Textarea {...field} placeholder='Enter Description' />
+                                    )}
                                 />
-                            )}
-                        />
+                            </div>
 
-                        {/* Description */}
-                        <FormTextarea
-                            control={control}
-                            name="hrmrM_RoomDesc"
-                            label="Description"
-                            placeholder="Enter Description..."
-                        />
-                    </div>
-                </div>
+                            {/* Checkboxes Group */}
+                            <div className="flex flex-wrap gap-4 p-4 border rounded-md">
+                                {[
+                                    { name: 'hrmrM_ACFlg', label: 'AC Room' },
+                                    { name: 'hrmrM_SharingFlg', label: 'Sharing Room' },
+                                    { name: 'hrmrM_RoomForStudentFlg', label: 'For Student' },
+                                    { name: 'hrmrM_RoomForStaffFlg', label: 'For Staff' },
+                                    { name: 'hrmrM_RoomForGuestFlg', label: 'For Guest' },
+                                ].map((item) => (
+                                    <Controller
+                                        key={item.name}
+                                        control={control}
+                                        name={item.name as keyof IMasterRoomForm}
+                                        render={({ field }) => (
+                                            <div className="flex items-center space-x-2">
+                                                <Checkbox
+                                                    id={item.name}
+                                                    checked={field.value as boolean}
+                                                    onCheckedChange={field.onChange}
+                                                />
+                                                <Label htmlFor={item.name} className="cursor-pointer">
+                                                    {item.label}
+                                                </Label>
+                                            </div>
+                                        )}
+                                    />
+                                ))}
+                            </div>
 
-                {/* Additional Settings Row */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
-                    {/* AC Checkbox */}
-                    <div className="space-y-2 border p-2 rounded text-center">
-                        <Label>Room Type</Label>
-                        <div className="flex items-center justify-center space-x-2 mt-2">
+                            {/* Facilities MultiSelect */}
                             <Controller
                                 control={control}
-                                name="hrmrM_ACFlg"
+                                name="selectedFacilityIds"
                                 render={({ field }) => (
-                                    <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
+                                    <CustomMultiSelectBox
+                                        label="Facilities"
+                                        options={(facilities?.data || []).map((f: any) => ({
+                                            label: f.hlmftY_FacilityName,
+                                            value: f.hlmftY_Id.toString()
+                                        }))}
+                                        value={field.value || []}
+                                        onChange={(vals) => field.onChange(vals)}
+                                        error={errors.selectedFacilityIds?.message}
+                                        isSearchRequired
                                     />
                                 )}
                             />
-                            <span className="text-sm font-medium">Whether The Room Is Have AC?</span>
+
                         </div>
                     </div>
 
-                    {/* Room Only For */}
-                    <div className="space-y-2 border p-2 rounded">
-                        <Label>Room Only for :</Label>
-                        <div className="flex flex-col space-y-2 mt-2 pl-4">
-                            <div className="flex items-center space-x-2">
-                                <Controller
-                                    control={control}
-                                    name="hrmrM_RoomForStudentFlg"
-                                    render={({ field }) => (
-                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                                    )}
-                                />
-                                <span>Students</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <Controller
-                                    control={control}
-                                    name="hrmrM_RoomForStaffFlg"
-                                    render={({ field }) => (
-                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                                    )}
-                                />
-                                <span>Staffs</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <Controller
-                                    control={control}
-                                    name="hrmrM_RoomForGuestFlg"
-                                    render={({ field }) => (
-                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                                    )}
-                                />
-                                <span>Guests</span>
-                            </div>
-                        </div>
+                    <div className='flex justify-center gap-2'>
+                        <Button type='submit' disabled={isSubmitting}>
+                            {isSubmitting ? (initialData ? 'Updating...' : 'Saving...') : (initialData ? 'Update' : 'Save')}
+                        </Button>
+                        <Button
+                            type='button'
+                            variant='outline'
+                            onClick={() => {
+                                reset();
+                                onSuccess();
+                            }}
+                        >
+                            Cancel
+                        </Button>
                     </div>
-
-                    {/* Sharing Checkbox */}
-                    <div className="space-y-2 border p-2 rounded text-center">
-                        <Label>Room Share</Label>
-                        <div className="flex items-center justify-center space-x-2 mt-2">
-                            <Controller
-                                control={control}
-                                name="hrmrM_SharingFlg"
-                                render={({ field }) => (
-                                    <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                )}
-                            />
-                            <span className="text-sm font-medium">Whether This Room Is Sharing?</span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex justify-center gap-4 pt-4 border-t mt-4">
-                    <Button type="submit" disabled={isSubmitting} className="w-32">
-                        {isSubmitting ? 'Saving...' : 'Save'}
-                    </Button>
-                    <Button type="button" variant="destructive" onClick={closeAddForm} className="w-32">
-                        Cancel
-                    </Button>
-                </div>
-            </form>
+                </form>
+            </FormProvider>
         </div>
     );
 }

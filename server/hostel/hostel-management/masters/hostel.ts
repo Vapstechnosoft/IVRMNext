@@ -88,12 +88,8 @@ export async function getFacilities() {
     return await api.get<any>('hostel', '/MasterHostel/get_facilities');
 }
 
-export async function getMessList() {
-    return await api.get<any>('hostel', '/MasterMess/get_mess_list');
-}
-
 export async function getEmployees() {
-    return await api.get<any>('hostel', '/MasterHostel/get_employees');
+    return await api.get<any>('hostel', '/MasterHostel/get_wardens');
 }
 
 
@@ -134,4 +130,9 @@ export async function deleteHostel(id: number) {
     const url = `/MasterHostel/toggle_hostel_status/${id}`;
     return await api.put<any>('hostel', url);
 }
+
+export async function getHostelDropdownList() {
+    return await api.get<any>('hostel', `/MasterHostel/get_hostel_list`);
+}
+
 
