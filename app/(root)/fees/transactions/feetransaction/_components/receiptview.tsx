@@ -16,9 +16,10 @@ interface ReceiptViewPageProps {
     rowData: Ifeetransaction;
     onClose: () => void;
     asmayId: number;
+    asmayYear: string;
 }
 
-export default function ReceiptViewPage({ rowData, onClose, asmayId }: ReceiptViewPageProps) {
+export default function ReceiptViewPage({ rowData, onClose, asmayId, asmayYear }: ReceiptViewPageProps) {
     const receiptRef = useRef<HTMLDivElement>(null);
     const [institute, setInstitute] = useState<IInstituteDetails>({});
     const [loading, setLoading] = useState(true);
@@ -76,11 +77,12 @@ export default function ReceiptViewPage({ rowData, onClose, asmayId }: ReceiptVi
     // const bank_name = currentPaymentDetails[0]?.fyP_Bank_Name;
     // const cheque_no = currentPaymentDetails[0]?.fyP_DD_Cheque_No;
     const class_name = rowData.classname;
-    const academic_year = studentDetails[0]?.asmay_Year || '2025-2026';
-    const fee_head_name = studentDetails[0]?.fmh_feename;
-    const feeAmount = studentDetails[0]?.feeAmount;
-    const discountAmount = studentDetails[0]?.concession_amount;
-    const paidAmount = studentDetails[0]?.paid_amount;
+    const academic_year = asmayYear || '';
+    const last = studentDetails[studentDetails.length - 1];
+    const fee_head_name = last?.fmh_feename;
+    const feeAmount = last?.feeAmount;
+    const discountAmount = last?.concession_amount;
+    const paidAmount = last?.paid_amount;
     const currentPaidAmount = currentPaymentDetails.reduce((sum, p) => {
         return sum + p.fyppM_TotalPaidAmount;
     }, 0);
