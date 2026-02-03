@@ -6,6 +6,7 @@ import { masterDivisionSchema } from '@/schemas/sports/masters/division';
 import { saveMasterDivision } from '@/server/sports/masters/division';
 import { useMasterDivisions } from '@/hooks/sports/useMasterDivisions';
 import type { IMasterDivision } from '@/types/sports/masters/division';
+import { toast } from 'sonner';
 
 interface AddMasterDivisionFormProps {
     selectedRow?: IMasterDivision;
@@ -28,17 +29,27 @@ export default function AddMasterDivisionForm({
                 spccmD_ActiveFlag: selectedRow?.spccmD_ActiveFlag ?? true
             }}
             onSubmit={async (values) => {
-                const response = await saveMasterDivision(values);
+                try {
+                    const response = await saveMasterDivision(values);
 
-                if (response?.success) {
-                    await refetchAll();
-                    onSuccess?.();
+                    if (response?.success || response?.returnval == true) {
+                        toast.success(response.message || 'Division saved successfully');
+                        refetchAll();
+                        onSuccess?.();
+                    } else {
+                        toast.error(response?.message || 'Failed to save division');
+                    }
+                } catch (error: any) {
+                    toast.error(error.message || 'Something went wrong');
                 }
             }}
             mode={selectedRow ? 'edit' : 'create'}
             successMessage={`Division ${selectedRow ? 'updated' : 'added'} successfully`}
             errorMessage={`Failed to ${selectedRow ? 'update' : 'add'} division`}
-            onSuccess={onSuccess}
+            onSuccess={() => {
+                refetchAll();
+                onSuccess?.();
+            }}
             className='space-y-4'
         >
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>

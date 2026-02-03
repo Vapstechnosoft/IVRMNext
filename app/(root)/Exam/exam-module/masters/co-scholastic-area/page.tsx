@@ -191,7 +191,7 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Master Subject'
+                        title='Edit Co-Scholastic Area'
                         defaultOpen={true}
                         variant='outline'
                         size='md'

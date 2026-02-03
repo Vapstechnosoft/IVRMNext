@@ -1,43 +1,46 @@
 'use client';
 
-import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
+import { ColumnDef } from '@tanstack/react-table';
 import { Check, X } from 'lucide-react';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import { useCallback } from 'react';
-import { IMessMenu } from '@/server/hostel/mess-menu/server-action';
-
-const columnHelper = createColumnHelper<IMessMenu>();
+import { IMessMenu } from '@/server/hostel/hostel-management/masters/menu';
 
 export const messMenuColumns: ColumnDef<IMessMenu, any>[] = [
-    columnHelper.display({
-        id: 'sn',
-        header: 'SL NO',
-        cell: (info) => info.row.index + 1,
-        enableSorting: false
-    }),
-    columnHelper.accessor('hlmM_Name', {
+    {
+        accessorKey: 'sn',
+        header: ({ column }) => <ColumnHeader column={column} title='Sl.No' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            return <div>{pageIndex * pageSize + row.index + 1}</div>;
+        },
+        enableSorting: false,
+        enableHiding: false
+    },
+    {
+        accessorKey: 'hlmM_Name',
         header: ({ column }) => <ColumnHeader column={column} title='Mess Name' />,
-        meta: { title: 'Mess Name' }
-    }),
-    columnHelper.accessor('hlmmC_Name', {
+    },
+    {
+        accessorKey: 'hlmmC_Name',
         header: ({ column }) => <ColumnHeader column={column} title='Mess Category' />,
-        meta: { title: 'Mess Category' }
-    }),
-    columnHelper.accessor('hlmmN_MenuName', {
+    },
+    {
+        accessorKey: 'hlmmN_MenuName',
         header: ({ column }) => <ColumnHeader column={column} title='Menu Name' />,
-        meta: { title: 'Menu Name' }
-    }),
-    columnHelper.accessor('hlmmN_MenuDesc', {
+    },
+    {
+        accessorKey: 'hlmmN_MenuDesc',
         header: ({ column }) => <ColumnHeader column={column} title='Description' />,
-        meta: { title: 'Description' }
-    }),
-    columnHelper.accessor('hlmmN_ActiveFlag', {
+    },
+    {
+        accessorKey: 'hlmmN_ActiveFlag',
         header: ({ column }) => <ColumnHeader column={column} title='Status' />,
-        meta: { title: 'Status' },
-        cell: (info) =>
-            info.getValue() ? (
+        cell: ({ row }) =>
+            row.original.hlmmN_ActiveFlag ? (
                 <span className='flex items-center text-green-600 font-medium'>
                     <Check className='mr-1 h-4 w-4' /> Active
                 </span>
@@ -46,12 +49,12 @@ export const messMenuColumns: ColumnDef<IMessMenu, any>[] = [
                     <X className='mr-1 h-4 w-4' /> Inactive
                 </span>
             )
-    }),
-    columnHelper.display({
+    },
+    {
         id: 'actions',
-        header: 'Actions',
-        cell: (info) => <ActionButtonsCell rowData={info.row.original} />
-    })
+        header: ({ column }) => <ColumnHeader column={column} title='Actions' className='text-center' />,
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
+    }
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMessMenu }) {

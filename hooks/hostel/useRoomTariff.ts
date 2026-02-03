@@ -1,7 +1,7 @@
 'use client';
 
+import { getRoomTariffData } from '@/server/hostel/hostel-management/masters/room-tariff';
 import { useQuery } from '@tanstack/react-query';
-import { getRoomTariffData } from '@/server/hostel/room-tariff/server-action';
 
 const ROOM_TARIFF_QUERY_KEY = ['ROOM_TARIFF_LIST'];
 

@@ -29,9 +29,16 @@ export default function TaxLedgerSheet({ isOpen, onClose, tax }: TaxLedgerSheetP
     const { data: detailsData, isLoading: isLoadingDetails } = useInvMasterTaxDetails(tax?.invmT_Id || 0);
     const { data: allData, isLoading: isLoadingAll, refetchAll } = useInvMasterTax();
 
-    // ✅ Safely default to empty arrays
-    const companies = Array.isArray(detailsData?.companynames) ? detailsData.companynames : [];
-    const ledgers = Array.isArray(detailsData?.ledgernames) ? detailsData.ledgernames : [];
+    // ✅ Safely default to empty arrays and deduplicate to avoid key collisions
+    const companies = useMemo(() => {
+        const raw = Array.isArray(detailsData?.companynames) ? detailsData.companynames : [];
+        return Array.from(new Map(raw.map((item: any) => [item.famcomP_Id, item])).values());
+    }, [detailsData]);
+
+    const ledgers = useMemo(() => {
+        const raw = Array.isArray(detailsData?.ledgernames) ? detailsData.ledgernames : [];
+        return Array.from(new Map(raw.map((item: any) => [item.famleD_Id, item])).values());
+    }, [detailsData]);
 
     const {
         control,
@@ -43,7 +50,7 @@ export default function TaxLedgerSheet({ isOpen, onClose, tax }: TaxLedgerSheetP
         resolver: zodResolver(invMasterTaxLedgerSchema),
         defaultValues: {
             invmtleD_TaxName: '',
-            invmT_Id: tax?.invmT_Id,
+            INVMT_Id: tax?.invmT_Id,
             famcomP_Id: undefined,
             famleD_Id: undefined,
             ledgerunderids: []
@@ -52,11 +59,15 @@ export default function TaxLedgerSheet({ isOpen, onClose, tax }: TaxLedgerSheetP
 
     const selectedLedgerId = watch('famleD_Id');
     const { data: ledgerUnderData } = useLedgerUnder(selectedLedgerId);
-    const ledgerUnderOptions = Array.isArray(ledgerUnderData?.ledgeunderrnames) ? ledgerUnderData.ledgeunderrnames : [];
+
+    const ledgerUnderOptions = useMemo(() => {
+        const raw = Array.isArray(ledgerUnderData?.ledgeunderrnames) ? ledgerUnderData.ledgeunderrnames : [];
+        return Array.from(new Map(raw.map((item: any) => [item.famgrP_Id, item])).values());
+    }, [ledgerUnderData]);
 
     const onSubmit = async (data: InvMasterTaxLedgerSchema) => {
         try {
-            const payload = { ...data, invmT_Id: tax?.invmT_Id || 0 };
+            const payload = { ...data, INVMT_Id: tax?.invmT_Id || 0 };
             const result = await saveInvMasterTaxLedger(payload);
             if (result.returnval) {
                 toast.success('Ledger mapping saved successfully');
@@ -66,7 +77,7 @@ export default function TaxLedgerSheet({ isOpen, onClose, tax }: TaxLedgerSheetP
                     famcomP_Id: undefined,
                     famleD_Id: undefined,
                     ledgerunderids: [],
-                    invmT_Id: tax?.invmT_Id
+                    INVMT_Id: tax?.invmT_Id
                 });
             } else {
                 toast.error('Failed to save ledger mapping');
@@ -105,7 +116,7 @@ export default function TaxLedgerSheet({ isOpen, onClose, tax }: TaxLedgerSheetP
 
     // ✅ Safely default to empty array for table and filter by tax ID
     const taxLedgers: IInvMasterTaxLedger[] = Array.isArray(allData?.getloaddata)
-        ? (allData.getloaddata as IInvMasterTaxLedger[]).filter((item) => item.invmT_Id === tax?.invmT_Id)
+        ? (allData.getloaddata as IInvMasterTaxLedger[]).filter((item: any) => item.invmT_Id === tax?.invmT_Id)
         : [];
 
     return (

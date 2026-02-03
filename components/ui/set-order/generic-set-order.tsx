@@ -54,7 +54,20 @@ export function MasterViewDetails<T extends { id: number }>({
         if (over && active.id !== over.id) {
             const oldIndex = items.findIndex((i) => i.id === active.id);
             const newIndex = items.findIndex((i) => i.id === over.id);
-            setItems(arrayMove(items, oldIndex, newIndex));
+            const newItems = arrayMove(items, oldIndex, newIndex);
+
+            // Dynamically find the order key from columns (e.g., label containing "Order")
+            const orderColumn = [...columns].reverse().find((col) => col.label.toLowerCase().includes('order'));
+            const orderKey = orderColumn?.key;
+
+            const updatedItems = newItems.map((item, index) => {
+                if (orderKey && orderKey !== 'id') {
+                    return { ...item, [orderKey]: index + 1 };
+                }
+                return item;
+            });
+
+            setItems(updatedItems);
         }
     };
 

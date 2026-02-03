@@ -100,7 +100,7 @@ export default function UpdateCoScholasticAreaForm({ onSuccess, className = '', 
                         error={errors.ecactA_SkillArea?.message}
                         onInput={(e) => {
                             const input = e.currentTarget; // <-- HTMLInputElement
-                            input.value = input.value.replace(/[^A-Za-z0-9]/g, '');
+                            input.value = input.value.replace(/[^A-Za-z0-9\s]/g, '');
                         }}
                     />
                     <InputText

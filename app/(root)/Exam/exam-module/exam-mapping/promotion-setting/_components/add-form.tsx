@@ -6,22 +6,20 @@ import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMasterGradeDropdownList } from '@/hooks/exam/exammodule/usemasters';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import {
     addOrUpdatePromotionSettings,
     getExamSubjectsByCategoryId,
     getIndividualPromotionDetailsById,
-    getPromotionCategoryByAcademicYear,
-    viewIndividualSubjectGroups,
-    viewSubjectsGroupExams
+    getPromotionCategoryByAcademicYear
 } from '@/server/exam/exam-module/exam-mapping/promotional-setting';
-import { useMasterGradeDropdownList } from '@/hooks/exam/exammodule/usemasters';
+import type { IPromotionCategory, IPromotionSetting } from '@/types/exam/exam-module/exam-mapping';
 import { Eye } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { ViewExamsModal } from './group-mapped-exam-model';
 import { ViewGroupsModal } from './group-mapping-model';
-import type { IPromotionSetting, IPromotionCategory } from '@/types/exam/exam-module/exam-mapping';
 
 /**
  * Types
@@ -186,33 +184,33 @@ export default function AddPromotionalSettingForm({
 
             const subjectsData = Array.isArray(payload.subjectlist)
                 ? payload.subjectlist.map(
-                    (subject: any): SubjectRow => ({
-                        ismS_Id: subject.ismS_Id,
-                        ismS_SubjectName: subject.ismS_SubjectName,
-                        ismS_SubjectCode: subject.ismS_SubjectCode || null,
-                        EMPS_MaxMarks: subject.empS_MaxMarks || subject.ismS_Max_Marks || null,
-                        EMPS_MinMarks: subject.empS_MinMarks || subject.ismS_Min_Marks || null,
-                        EMPS_ConvertForMarks: subject.empS_ConvertForMarks || null,
-                        EMPS_AppToResultFlg: subject.empS_AppToResultFlg ?? true,
-                        EMGR_Id: subject.emgR_Id || null,
-                        EMPS_Id: subject.empS_Id,
-                        checkedvalue: false
-                    })
-                )
+                      (subject: any): SubjectRow => ({
+                          ismS_Id: subject.ismS_Id,
+                          ismS_SubjectName: subject.ismS_SubjectName,
+                          ismS_SubjectCode: subject.ismS_SubjectCode || null,
+                          EMPS_MaxMarks: subject.empS_MaxMarks || subject.ismS_Max_Marks || null,
+                          EMPS_MinMarks: subject.empS_MinMarks || subject.ismS_Min_Marks || null,
+                          EMPS_ConvertForMarks: subject.empS_ConvertForMarks || null,
+                          EMPS_AppToResultFlg: subject.empS_AppToResultFlg ?? true,
+                          EMGR_Id: subject.emgR_Id || null,
+                          EMPS_Id: subject.empS_Id,
+                          checkedvalue: false
+                      })
+                  )
                 : [];
 
             const examsData = Array.isArray(payload.examlist)
                 ? payload.examlist.map(
-                    (exam: any): ExamItem => ({
-                        emE_Id: exam.emE_Id,
-                        emE_ExamName: exam.emE_ExamName,
-                        emE_ExamCode: exam.emE_ExamCode,
-                        checked: false,
-                        ForMaxMarkrs: 0,
-                        ForMaxMarkrs_Temp: 0,
-                        ConvertionReqOrNot: false
-                    })
-                )
+                      (exam: any): ExamItem => ({
+                          emE_Id: exam.emE_Id,
+                          emE_ExamName: exam.emE_ExamName,
+                          emE_ExamCode: exam.emE_ExamCode,
+                          checked: false,
+                          ForMaxMarkrs: 0,
+                          ForMaxMarkrs_Temp: 0,
+                          ConvertionReqOrNot: false
+                      })
+                  )
                 : [];
 
             setSubjects(subjectsData);
@@ -249,7 +247,6 @@ export default function AddPromotionalSettingForm({
 
                     // Fetch categories for this year
                     await fetchCategories(rowData.asmaY_Id, rowData.emcA_CategoryName, rowData.eyC_Id);
-
 
                     setSelectedCategory(rowData.eyC_Id);
                     setSelectedGrade(String(rowData.emgR_Id));
@@ -353,7 +350,6 @@ export default function AddPromotionalSettingForm({
                         bestOff: rowData.emP_BestOf,
                         subjects: finalSubjects
                     });
-
                 } catch (error) {
                     console.error('Error initializing edit:', error);
                     toast.error('Failed to load details for editing');
@@ -614,9 +610,13 @@ export default function AddPromotionalSettingForm({
             setBestApplicable(false);
             setBestOff(null);
             setPromotionType('P');
-            toast.info('Form reset');
+            setPromotionType('P');
+            // Only show toast if something was reset (e.g. year was selected)
+            if (selectedYear !== 0) {
+                toast.info('Form reset');
+            }
         }
-    }, [rowData, initialState]);
+    }, [rowData, initialState, selectedYear]);
 
     // Check if table should be visible
     const isTableVisible = promotionType !== 'F' && selectedCategory && subjects.length > 0;
@@ -632,7 +632,8 @@ export default function AddPromotionalSettingForm({
             {isEditLoading && (
                 <div className='absolute inset-0 z-50 flex items-center justify-center bg-white/50 backdrop-blur-sm'>
                     <div className='flex flex-col items-center gap-2'>
-                        <div className='h-8 w-8 animate-spin rounded-full border-b-2 border-primary border-t-2'></div>
+                        {/* biome-ignore lint/style/useSelfClosingElements: <explanation> */}
+                        <div className='h-8 w-8 animate-spin rounded-full border-primary border-t-2 border-b-2'></div>
                         <p className='font-medium text-sm'>Loading data...</p>
                     </div>
                 </div>
@@ -645,11 +646,17 @@ export default function AddPromotionalSettingForm({
                         {/* Academic Year */}
                         <div>
                             <Label>Academic Year *</Label>
-                            <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(Number(v))}>
+                            <Select
+                                key={selectedYear}
+                                value={selectedYear !== 0 ? String(selectedYear) : undefined}
+                                onValueChange={(v) => setSelectedYear(Number(v))}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Academic Year' />
                                 </SelectTrigger>
                                 <SelectContent>
+                                    <SelectItem value='0' disabled>
+                                        --Select--
+                                    </SelectItem>
                                     {academicYearLoading ? (
                                         <SelectItem value='__loading' disabled>
                                             Loading Academic Year...
@@ -669,6 +676,7 @@ export default function AddPromotionalSettingForm({
                         <div>
                             <Label>Category *</Label>
                             <Select
+                                key={selectedCategory}
                                 value={selectedCategory ? String(selectedCategory) : '__none'}
                                 onValueChange={(v) => setSelectedCategory(v && v !== '__none' ? Number(v) : null)}>
                                 <SelectTrigger>
@@ -691,6 +699,7 @@ export default function AddPromotionalSettingForm({
                         <div>
                             <Label>Grade *</Label>
                             <Select
+                                key={selectedGrade}
                                 value={selectedGrade || '__none'}
                                 onValueChange={(v) => setSelectedGrade(v && v !== '__none' ? v : null)}>
                                 <SelectTrigger>

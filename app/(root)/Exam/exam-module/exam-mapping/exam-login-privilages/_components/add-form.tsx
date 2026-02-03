@@ -113,7 +113,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
         const fetchEditData = async () => {
             if (!rowData?.elP_Id || employeeData?.data.length === 0 || classTeachersData?.data.length === 0 || subjects.length === 0)
                 return;
-
+            reset();
             setIsLoadingEditData(true);
             try {
                 // Set edit mode
@@ -389,8 +389,8 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
             Array.isArray(v.classList) && v.classList.length
                 ? v.classList
                 : v.asmcL_Id
-                    ? classes.filter((c) => c.asmcL_Id === v.asmcL_Id)
-                    : [];
+                  ? classes.filter((c) => c.asmcL_Id === v.asmcL_Id)
+                  : [];
 
         if (rawClasses.length === 0) {
             toast.error('No classes selected');
@@ -411,9 +411,9 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
         // FIXED: Use emsS_Id instead of issS_Id
         const selectedSSubjects: any[] = Array.isArray(v.subSubjectList)
             ? v.subSubjectList.map((ss: any) => ({
-                emsS_Id: ss.emsS_Id,
-                emsS_SubSubjectName: ss.emsS_SubSubjectName || ''
-            }))
+                  emsS_Id: ss.emsS_Id,
+                  emsS_SubSubjectName: ss.emsS_SubSubjectName || ''
+              }))
             : [];
 
         const rows: DetailRow[] = [];
@@ -773,7 +773,9 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                     disabled={editingId !== null || editMode === 'edit'}
                                     render={({ field, fieldState }) => (
                                         <div className='w-full'>
-                                            <Label>Academic Year <span className='text-red-500'>*</span></Label>
+                                            <Label>
+                                                Academic Year <span className='text-red-500'>*</span>
+                                            </Label>
                                             <Select
                                                 key={field.value}
                                                 onValueChange={(v) => field.onChange(Number(v))}
@@ -810,7 +812,9 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                     disabled={editingId !== null || editMode === 'edit'}
                                     render={({ field, fieldState }) => (
                                         <div className='w-full'>
-                                            <Label>Employee Name <span className='text-red-500'>*</span></Label>
+                                            <Label>
+                                                Employee Name <span className='text-red-500'>*</span>
+                                            </Label>
 
                                             <Select
                                                 key={field.value}
@@ -888,6 +892,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                 disabled={disableClassSection || activeTab === 0 || editMode === 'edit'}
                                                 error={fieldState?.error?.message}
                                                 isLoading={masterClassLoading}
+                                                resetKey={activeTab}
                                             />
                                         );
                                     }}
@@ -919,6 +924,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                 isRequired={true}
                                                 error={fieldState?.error?.message}
                                                 isLoading={masterSubjectLoading}
+                                                resetKey={activeTab}
                                             />
                                         );
                                     }}
@@ -932,7 +938,9 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                     disabled={editingId !== null || editMode === 'edit'}
                                     render={({ field, fieldState }) => (
                                         <div className='w-full'>
-                                            <Label>User Name <span className='text-red-500'>*</span></Label>
+                                            <Label>
+                                                User Name <span className='text-red-500'>*</span>
+                                            </Label>
                                             <Select
                                                 key={field.value}
                                                 onValueChange={(v) => field.onChange(Number(v))}
@@ -990,6 +998,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                 disabled={disableClassSection || activeTab === 0 || editMode === 'edit'}
                                                 error={fieldState?.error?.message}
                                                 isLoading={masterSectionLoading}
+                                                resetKey={activeTab}
                                             />
                                         );
                                     }}
@@ -1026,6 +1035,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                 isSearchRequired
                                                 error={fieldState?.error?.message}
                                                 isLoading={masterSubSubjectLoading}
+                                                resetKey={activeTab}
                                             />
                                         );
                                     }}
@@ -1115,8 +1125,8 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                 ? 'Updating...'
                                                 : 'Saving...'
                                             : editMode === 'edit'
-                                                ? 'Update'
-                                                : 'Save'}
+                                              ? 'Update'
+                                              : 'Save'}
                                     </Button>
 
                                     {editMode === 'edit' && (

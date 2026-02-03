@@ -13,6 +13,7 @@ export const invTSalesItemSchema = z.object({
     invtsL_Amount: z.number().min(0, 'Amount must be non-negative'),
     invtsL_Naration: z.string().optional(),
     invtsL_ActiveFlg: z.boolean().optional(),
+    availableStock: z.number().optional(),
     // Tax list for item
     SalesItemTax: z.array(z.object({
         invmT_Id: z.number(),

@@ -38,8 +38,6 @@ export function SortableItem<T>({ id, row, columns, index, onHoverChange }: Sort
                 <td key={col.key} className={`border px-4 py-2 ${col.className || ''}`}>
                     {col.key === 'id' ? (
                         <span className='font-bold'>{index + 1}</span>
-                    ) : col.key === columns[columns.length - 1].key ? (
-                        index + 1
                     ) : (
                         (row as any)[col.key]
                     )}

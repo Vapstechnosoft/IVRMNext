@@ -9,6 +9,7 @@ export interface IInstitutionSubscription {
     misV_ToDate: string;
     misV_ActiveFlag: boolean;
     misV_ApprovalFlag?: string; // From snippet ( Renewal Request condition)
+    misV_SubscriptionNo?: string;
     createdDate?: string;
     updatedDate?: string;
 }

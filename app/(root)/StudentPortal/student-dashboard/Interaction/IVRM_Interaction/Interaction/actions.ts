@@ -2,7 +2,7 @@
 import { api } from '@/lib/apiService';
 
 export async function getInteractionLoadData(data: any) {
-    const url = `/api/IVRM_Interactions/getloaddata`;
+    const url = `/IVRM_Interactions/getloaddata`;
     try {
         const response = await api.post<any>('default', url, data);
         // Sometimes 404 returns generic error page html, ensure we have data
@@ -61,7 +61,7 @@ export async function getInteractionLoadData(data: any) {
 }
 
 export async function getInteractionDetails(data: any) {
-    const url = `/api/IVRM_Interactions/getdetails`;
+    const url = `/IVRM_Interactions/getdetails`;
     try {
         const response = await api.post<any>('default', url, data);
         return response.data;
@@ -78,7 +78,7 @@ export async function getInteractionDetails(data: any) {
 }
 
 export async function getSection(data: any) {
-    const url = `/api/EmployeeStudentAttendenceDetails/Getsection`;
+    const url = `/EmployeeStudentAttendenceDetails/Getsection`;
     try {
         const response = await api.post<any>('default', url, data);
         return response.data;
@@ -94,7 +94,7 @@ export async function getSection(data: any) {
 }
 
 export async function getStudent(data: any) {
-    const url = `/api/IVRM_Interactions/getstudent`;
+    const url = `/IVRM_Interactions/getstudent`;
     try {
         const response = await api.post<any>('default', url, data);
         return response.data;
@@ -114,7 +114,7 @@ export async function getStudent(data: any) {
 }
 
 export async function saveInteraction(data: any) {
-    const url = `/api/IVRM_Interactions/savedata`;
+    const url = `/IVRM_Interactions/savedata`;
     try {
         const response = await api.post<any>('default', url, data);
         return response.data;
@@ -125,7 +125,7 @@ export async function saveInteraction(data: any) {
 }
 
 export async function deleteInteraction(data: any) {
-    const url = `/api/IVRM_Interactions/deletemsg`;
+    const url = `/IVRM_Interactions/deletemsg`;
     try {
         const response = await api.post<any>('default', url, data);
         return response.data;
@@ -136,7 +136,7 @@ export async function deleteInteraction(data: any) {
 }
 
 export async function replyInteraction(data: any) {
-    const url = `/api/IVRM_Interactions/reply`;
+    const url = `/IVRM_Interactions/reply`;
     try {
         const response = await api.post<any>('default', url, data);
         return response.data;

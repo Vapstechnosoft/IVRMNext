@@ -5,12 +5,13 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RoomTariffSchema, RoomTariffSchemaType } from '@/schemas/hostel/room-tariff.schema';
-import { getBedCount, IAcademicYear, IRoom, IRoomTariff, saveRoomTariff } from '@/server/hostel/room-tariff/server-action';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RefreshCw, Save } from 'lucide-react';
 import { useEffect } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { IAcademicYear, IRoom, IRoomTariff } from '@/types/hostel/hostel-management/masters';
+import { getBedCount, saveRoomTariff } from '@/server/hostel/hostel-management/masters/room-tariff';
 
 interface UpdateRoomTariffFormProps {
     initialData: IRoomTariff;
@@ -68,7 +69,7 @@ export default function UpdateRoomTariffForm({
         if (!roomId || !singleRate) return;
 
         const response = await getBedCount(roomId, singleRate);
-        if (response && response.hrmrM_BedCapacity) {
+        if (response?.hrmrM_BedCapacity) {
             const totalRate = singleRate * response.hrmrM_BedCapacity;
             setValue('HLMRTF_RoomRate', totalRate);
         }
@@ -78,11 +79,11 @@ export default function UpdateRoomTariffForm({
         try {
             const result = await saveRoomTariff(data);
 
-            if (result && result.returnval) {
+            if (result?.returnval) {
                 toast.success('Room Tariff updated successfully');
                 onSuccess?.();
             } else {
-                if (result && result.duplicate) {
+                if (result?.duplicate) {
                     toast.error('Record already exists');
                 } else {
                     toast.error('Failed to update Room Tariff');

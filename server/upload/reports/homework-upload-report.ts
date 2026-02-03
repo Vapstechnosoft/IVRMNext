@@ -1,8 +1,6 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type { IHomeWorkReportPayload, IHomeWorkReportResponse, IHomeWorkAttachmentResponse } from '@/types/upload/reports/homework-upload-report';
-import type { IInitialData } from '@/types/upload/reports/classwork-upload-report';
 
 // Initial Data
 export async function getHomeWorkInitialData(_pageId: number) {
@@ -17,12 +15,16 @@ export async function getHomeWorkInitialData(_pageId: number) {
             classlist: [
                 { asmcL_Id: 1, asmcL_ClassName: 'Grade 1', asmcL_ActiveFlag: true, mI_Id: 30 },
                 { asmcL_Id: 2, asmcL_ClassName: 'Grade 2', asmcL_ActiveFlag: true, mI_Id: 30 },
-                { asmcL_Id: 3, asmcL_ClassName: 'Grade 3', asmcL_ActiveFlag: true, mI_Id: 30 },
+                { asmcL_Id: 3, asmcL_ClassName: 'Grade 3', asmcL_ActiveFlag: true, mI_Id: 30 }
             ]
         }
     } as any;
 }
 
+export async function getHomeWorkReport(_data: any) {
+    const url = '/HomeworkUploadFacade/home_work_report';
+    return await api.post<any>('portal', url, _data);
+}
 // Get Report Data
 export async function getHomeWorkReportData(_data: any) {
     // const url = `/HomeworkUpload/getreport_home`;
@@ -137,4 +139,3 @@ export async function viewHomeWorkAttachmentData(_data: any) {
         }
     } as any;
 }
-

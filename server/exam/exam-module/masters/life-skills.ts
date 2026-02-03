@@ -11,6 +11,11 @@ export async function getMasterLifeSkills(mi_id: number, searchParams?: ApiSearc
     return await api.get<ILifeSkill>('exam', url);
 }
 
+export async function getMasterLifeSkillDrpdownList(mi_id: number) {
+    const url = `/MasterLifeSkillFacade/get_master_life_skill_dropdown_list/${mi_id}`;
+    return await api.get<ILifeSkill>('exam', url);
+}
+
 // fetch edit details of a life skill
 export async function getMasterLifeSkillEditDetails(ecs_id: number) {
     const url = `/MasterLifeSkillFacade/get_master_life_skill_edit_details/${ecs_id}`;
@@ -42,6 +47,15 @@ export async function getMasterLifeSkillAreas(mi_id: number, searchParams?: ApiS
     return await api.get<ILifeSkillArea>('exam', url);
 }
 
+export async function getMasterLifeSkillAreaOrderList() {
+    const url = '/MasterLifeSkillFacade/get_master_life_skill_Area_Order_List';
+    return await api.get<ILifeSkillArea>('exam', url);
+}
+export async function setMasterLifeSkillAreaOrderList(data: any) {
+    const url = '/MasterLifeSkillFacade/set_order_master_life_skill_areas';
+    return await api.post<any>('exam', url, data);
+}
+
 // fetch edit details of a life skill area
 export async function getMasterLifeSkillAreaEditDetails(ecsa_id: number) {
     const url = `/MasterLifeSkillFacade/get_master_life_skill_area_edit_details/${ecsa_id}`;
@@ -53,8 +67,6 @@ export async function toggleMasterLifeSkillArea(id: number) {
     const url = `/MasterLifeSkillFacade/activate_deactivate_master_life_skill_area/${id}`;
     return await api.put('exam', url);
 }
-
-
 
 // add or update life skill area mapping
 export async function addOrUpdateMasterLifeSkillMapping(data: any) {

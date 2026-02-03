@@ -179,8 +179,8 @@ export default function FeeOnlinePaymentClient({ initialData }: any) { // Using 
                                 <SelectValue placeholder="Select Academic Year" />
                             </SelectTrigger>
                             <SelectContent>
-                                {initialData.academicyrlist?.map((year: any) => (
-                                    <SelectItem key={year.asmaY_Id} value={String(year.asmaY_Id)}>
+                                {initialData.academicyrlist?.map((year: any, index: number) => (
+                                    <SelectItem key={`${year.asmaY_Id}-${index}`} value={String(year.asmaY_Id)}>
                                         {year.asmaY_Year}
                                     </SelectItem>
                                 ))}
@@ -221,7 +221,7 @@ export default function FeeOnlinePaymentClient({ initialData }: any) { // Using 
                             <h3 className="font-bold mb-4 text-primary">Group List <span className="text-red-500">*</span></h3>
                             <div className="space-y-2">
                                 {groupTermList.map((grpItem, grpIndex) => (
-                                    <div key={grpItem.grp.fmgG_Id} className="space-y-1">
+                                    <div key={`${grpItem.grp.fmgG_Id}-${grpIndex}`} className="space-y-1">
                                         <div className="flex items-center space-x-2">
                                             <Checkbox
                                                 checked={grpItem.grp.checkedgrplst}
@@ -232,7 +232,7 @@ export default function FeeOnlinePaymentClient({ initialData }: any) { // Using 
                                         </div>
                                         <div className="ml-6 space-y-1">
                                             {grpItem.trm_list.map((trm, trmIndex) => (
-                                                <div key={trm.fmT_Id} className="flex items-center space-x-2">
+                                                <div key={`${trm.fmT_Id}-${trmIndex}`} className="flex items-center space-x-2">
                                                     <Checkbox
                                                         checked={trm.checkedheadlst}
                                                         onCheckedChange={(checked) => handleTermCheck(grpIndex, trmIndex, !!checked)}

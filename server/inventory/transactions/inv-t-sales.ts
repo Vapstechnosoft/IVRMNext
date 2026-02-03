@@ -24,71 +24,56 @@ const MOCK_SALES_DATA: IInvTSales[] = Array.from({ length: 20 }, (_, i) => ({
 
 export async function getInvTSalesLoadData(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/INV_T_Sales/getloaddata?${urlParams}`;
+    const url = `/api/INV_T_Sales/getloaddata?${urlParams}`;
 
     try {
-        const response = await api.get<IInvTSalesLoadData>('inventory', url);
+        const response = await api.get<any>('inventory', url);
 
-        if (response.success && response.data) {
-            // Use API data if available
-        }
+        const extractData = (res: any, key?: string) => {
+            if (!res) return [];
+            if (key && res.data?.[key] && Array.isArray(res.data[key])) return res.data[key];
+            if (key && res[key] && Array.isArray(res[key])) return res[key];
+            if (Array.isArray(res.data)) return res.data;
+            if (Array.isArray(res)) return res;
+            if (res.data?.$values) return res.data.$values;
+            if (res.$values) return res.$values;
+            if (key && res.data?.[key]?.$values) return res.data[key].$values;
+            return [];
+        };
 
-        // Mock data fallback
-        const page = Number(searchParams?.page) || 1;
-        const pageSize = Number(searchParams?.page_size) || 10;
-        const total = MOCK_SALES_DATA.length;
-        const start = (page - 1) * pageSize;
-        const end = start + pageSize;
-        const paginatedData = MOCK_SALES_DATA.slice(start, end);
+        const rawSales = extractData(response, 'get_Sale');
+        const salesList = rawSales.map((item: any) => ({
+            ...item,
+            invmsL_ActiveFlg: !!(item.invmsL_ActiveFlg ?? item.INVMSL_ActiveFlg ?? item.invmsl_activeflg)
+        }));
 
         return {
             success: true,
-            message: 'Success (Mock Data)',
             data: {
-                get_Sale: paginatedData,
-                total: total,
-                get_Store: [
-                    { invmsT_Id: 1, invmS_StoreName: 'Main Store' },
-                    { invmsT_Id: 2, invmS_StoreName: 'Sub Store' }
-                ],
-                get_Product: [],
-                get_employee: [
-                    { hrmE_Id: 1, employeename: 'Staff A' },
-                    { hrmE_Id: 2, employeename: 'Staff B' }
-                ],
-                get_customer: [
-                    { invmC_Id: 1, invmC_CustomerName: 'Customer X' },
-                    { invmC_Id: 2, invmC_CustomerName: 'Customer Y' }
-                ],
-                get_item: [
-                    { invmI_Id: 1, invmI_ItemName: 'Notebook', invstO_SalesRate: 50, invstO_BatchNo: 'B1' },
-                    { invmI_Id: 2, invmI_ItemName: 'Pen', invstO_SalesRate: 10, invstO_BatchNo: 'B2' }
-                ]
+                get_Sale: salesList,
+                total: response.total || salesList.length,
+                get_Store: extractData(response, 'get_Store'),
+                get_Product: extractData(response, 'get_Product'),
+                get_employee: extractData(response, 'get_employee'),
+                get_customer: extractData(response, 'get_customer'),
+                get_item: extractData(response, 'get_item')
             }
-        } as any;
+        };
 
     } catch (error) {
         console.error('Error fetching Sales load data:', error);
-        const page = Number(searchParams?.page) || 1;
-        const pageSize = Number(searchParams?.page_size) || 10;
-        const total = MOCK_SALES_DATA.length;
-        const start = (page - 1) * pageSize;
-        const end = start + pageSize;
-        const paginatedData = MOCK_SALES_DATA.slice(start, end);
-
         return {
-            success: true,
-            message: 'Success (Mock Data)',
+            success: false,
             data: {
-                get_Sale: paginatedData,
-                total: total,
+                get_Sale: [],
+                total: 0,
                 get_Store: [],
                 get_Product: [],
                 get_employee: [],
                 get_customer: [],
                 get_item: []
             }
-        } as any;
+        };
     }
 }
 

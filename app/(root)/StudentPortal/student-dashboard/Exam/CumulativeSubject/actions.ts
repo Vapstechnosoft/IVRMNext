@@ -31,7 +31,7 @@ const mockExamDetails: ExamDetailsResponse = {
 
 
 export async function getCumulativeSubjectLoadData() {
-    const url = `/api/CumulativeSubject/getloaddata`;
+    const url = `/CumulativeSubject/getloaddata`;
     try {
         const response = await api.post<CumulativeSubjectLoadData>('default', url, {});
         // Ensure we always return a flat object if the API returns wrapped data
@@ -44,7 +44,7 @@ export async function getCumulativeSubjectLoadData() {
 }
 
 export async function getSubjectsData(data: any) {
-    const url = `/api/CumulativeSubject/getSubjectsdata`;
+    const url = `/CumulativeSubject/getSubjectsdata`;
     try {
         const response = await api.post<SubjectListResponse>('default', url, data);
         if (response && response.data) return response.data;
@@ -56,7 +56,7 @@ export async function getSubjectsData(data: any) {
 }
 
 export async function getExamDetails(data: any) {
-    const url = `/api/CumulativeSubject/getexamdetails`;
+    const url = `/CumulativeSubject/getexamdetails`;
     try {
         const response = await api.post<ExamDetailsResponse>('default', url, data);
         if (response && response.data) return response.data;

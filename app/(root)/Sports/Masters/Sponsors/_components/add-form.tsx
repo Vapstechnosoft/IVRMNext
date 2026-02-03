@@ -6,6 +6,7 @@ import { masterSponsorSchema } from '@/schemas/sports/masters/sponsors';
 import { saveMasterSponsor } from '@/server/sports/masters/sponsors';
 import { useMasterSponsors } from '@/hooks/sports/useMasterSponsors';
 import type { IMasterSponsor } from '@/types/sports/masters/sponsors';
+import { toast } from 'sonner';
 
 interface AddMasterSponsorFormProps {
     selectedRow?: IMasterSponsor;
@@ -30,17 +31,27 @@ export default function AddMasterSponsorForm({
                 spccmsP_ActiveFlag: selectedRow?.spccmsP_ActiveFlag ?? true
             }}
             onSubmit={async (values) => {
-                const response = await saveMasterSponsor(values);
+                try {
+                    const response = await saveMasterSponsor(values);
 
-                if (response?.success) {
-                    await refetchAll();
-                    onSuccess?.();
+                    if (response?.success || response?.returnval == true) {
+                        toast.success(response.message || 'Sponsor saved successfully');
+                        refetchAll();
+                        onSuccess?.();
+                    } else {
+                        toast.error(response?.message || 'Failed to save sponsor');
+                    }
+                } catch (error: any) {
+                    toast.error(error.message || 'Something went wrong');
                 }
             }}
             mode={selectedRow ? 'edit' : 'create'}
             successMessage={`Sponsor ${selectedRow ? 'updated' : 'added'} successfully`}
             errorMessage={`Failed to ${selectedRow ? 'update' : 'add'} sponsor`}
-            onSuccess={onSuccess}
+            onSuccess={() => {
+                refetchAll();
+                onSuccess?.();
+            }}
             className='space-y-4'
         >
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
