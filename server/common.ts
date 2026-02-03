@@ -8,6 +8,7 @@ export async function getCommonDropdown(name: string) {
     return await api.get<IDropdown[]>('default', url);
 }
 
+
 export async function getUserNotificationList(_priority?: string) {
     // const url = `/v1/user_notification?priority=${priority ?? 'normal'}`;
 
@@ -4793,28 +4794,28 @@ export async function getUserAccessibleModules() {
                     name: 'Staff Portal',
                     icon: 'Settings',
                     menu: [
-                        {
-                            id: 1,
-                            name: 'Dashboard',
-                            icon: 'LayoutDashboard',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Dashboard',
-                                    icon: 'LayoutDashboard',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Staff Dashboard',
-                                            icon: 'LayoutDashboard',
-                                            url: '/StaffPortal/staff-dashboard',
-                                            title: 'Staff Dashboard',
-                                            description: 'Overall Staff Statistics'
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
+                        // {
+                        //     id: 700,
+                        //     name: 'Dashboard',
+                        //     icon: 'LayoutDashboard',
+                        //     sub_menu: [
+                        //         {
+                        //             id: 1,
+                        //             name: 'Dashboard',
+                        //             icon: 'LayoutDashboard',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Staff Dashboard',
+                        //                     icon: 'LayoutDashboard',
+                        //                     url: '/StaffPortal/staff-dashboard',
+                        //                     title: 'Staff Dashboard',
+                        //                     description: 'Overall Staff Statistics'
+                        //                 }
+                        //             ]
+                        //         }
+                        //     ]
+                        // },
                         {
                             id: 2,
                             name: 'Attendance',
@@ -4822,20 +4823,35 @@ export async function getUserAccessibleModules() {
                             sub_menu: [
                                 {
                                     id: 1,
-                                    name: 'Attendance Entry',
+                                    name: 'Transaction',
                                     icon: 'CalendarCheck',
                                     pages: [
                                         {
                                             id: 1,
-                                            name: 'Mark Attendance',
+                                            name: 'Attendance Entry',
                                             icon: 'UserCheck',
                                             url: '/StaffPortal/attendance/attendance-entry',
-                                            title: 'Mark Attendance',
+                                            title: 'Attendance Entry',
                                             description: 'Daily Student Attendance'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 1,
+                                    name: 'Report',
+                                    icon: 'CalendarCheck',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: '100% Attendance Report',
+                                            icon: 'UserCheck',
+                                            url: '/StaffPortal/attendance/100_attendance-entry',
+                                            title: '100% Attendance Report ',
+                                            description: '100% Attendance Report '
                                         },
                                         {
                                             id: 2,
-                                            name: 'Attendance Report',
+                                            name: 'Student Attendance Report ',
                                             icon: 'FilePieChart',
                                             url: '/StaffPortal/attendance/student-attendance-report',
                                             title: 'Student Attendance Report',
@@ -4843,42 +4859,22 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 }
-                            ]
+                            ],
+
                         },
+
                         {
-                            id: 3,
-                            name: 'Fees',
-                            icon: 'BadgeIndianRupee',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Fee Reports',
-                                    icon: 'FileBarChart',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Defaulter Report',
-                                            icon: 'UserX',
-                                            url: '/StaffPortal/fees/staff-fee-defaulter-report',
-                                            title: 'Fee Defaulter Report',
-                                            description: 'Monitor Fee Defaulters'
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            id: 4,
-                            name: 'Examination',
+                            id: 701,
+                            name: 'Exam',
                             icon: 'GraduationCap',
                             sub_menu: [
                                 {
-                                    id: 1,
-                                    name: 'Exam Management',
+                                    id: 701,
+                                    name: 'Marks Entry',
                                     icon: 'ClipboardEdit',
                                     pages: [
                                         {
-                                            id: 1,
+                                            id: 701,
                                             name: 'Marks Entry',
                                             icon: 'PenSquare',
                                             url: '/StaffPortal/exam/marks-entry',
@@ -4886,51 +4882,158 @@ export async function getUserAccessibleModules() {
                                             description: 'Direct Marks Entry'
                                         },
                                         {
-                                            id: 2,
-                                            name: 'Transaction CCE',
+                                            id: 702,
+                                            name: 'Promotion Remarks',
+                                            icon: 'Layers',
+                                            url: '/StaffPortal/exam/promotion-remarks',
+                                            title: 'Promotion Remarks',
+                                            description: 'Promotion Remarks'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 703,
+                                    name: 'CCE',
+                                    icon: 'ClipboardEdit',
+                                    pages: [
+
+
+                                        {
+                                            id: 703,
+                                            name: 'Student Transaction',
                                             icon: 'Layers',
                                             url: '/StaffPortal/exam/student-transaction-cce',
                                             title: 'Student Transaction CCE',
                                             description: 'CCE Transaction Entry'
                                         }
+
+                                    ]
+                                },
+
+                                {
+                                    id: 704,
+                                    name: 'Transaction ',
+                                    icon: 'ClipboardEdit',
+                                    pages: [
+
+
+                                        {
+                                            id: 704,
+                                            name: 'Exam Student Wise Remarks Entry',
+                                            icon: 'Layers',
+                                            url: '/StaffPortal/exam/transaction/examwise-student-remarks',
+                                            title: 'Exam Student Wise Remarks Entry',
+                                            description: 'Exam Student Wise Remarks Entry'
+                                        }
+
+                                    ]
+                                }, {
+                                    id: 705,
+                                    name: 'Report ',
+                                    icon: 'ClipboardEdit',
+                                    pages: [
+
+
+                                        {
+                                            id: 705,
+                                            name: 'Cumulative Report',
+                                            icon: 'Layers',
+                                            url: '/StaffPortal/exam/report/cumulative-report',
+                                            title: 'Cumulative Report',
+                                            description: 'Cumulative Report BB'
+                                        }
+
                                     ]
                                 }
+
                             ]
-                        },
+                        }
+                        ,
                         {
-                            id: 5,
-                            name: 'HRMS',
-                            icon: 'Wallet',
+                            id: 706,
+                            name: 'Upload',
+                            icon: 'MessageSquare',
                             sub_menu: [
                                 {
-                                    id: 1,
-                                    name: 'HRMS',
-                                    icon: 'Currency',
+                                    id: 706,
+                                    name: 'Transaction',
+                                    icon: 'MessagesSquare',
                                     pages: [
                                         {
-                                            id: 1,
-                                            name: 'Salary Slip',
-                                            icon: 'FileText',
-                                            url: '/StaffPortal/salary/staff-salary-slip',
-                                            title: 'Staff Salary Slip',
-                                            description: 'View and Download Pay Slips'
+                                            id: 706,
+                                            name: 'Homework',
+                                            icon: 'MessageSquare',
+                                            url: '/StaffPortal/Upload/homework',
+                                            title: 'Home Work',
+                                            description: 'Upload Home Work'
+                                        },
+                                        {
+                                            id: 707,
+                                            name: 'Homework Marks Update',
+                                            icon: 'MessageSquare',
+                                            url: '/StaffPortal/Upload/homework-marks-entry',
+                                            title: 'Home Work',
+                                            description: 'Homework Marks Update'
+                                        },
+                                        {
+                                            id: 708,
+                                            name: 'Homework Upload Report',
+                                            icon: 'MessageSquare',
+                                            url: '/StaffPortal/Upload/homework-upload-report',
+                                            title: 'Home Work',
+                                            description: 'Homework Upload Report'
+                                        },
+                                        {
+                                            id: 709,
+                                            name: 'Interactions',
+                                            icon: 'MessageSquare',
+                                            url: '/StaffPortal/interactions',
+                                            title: 'Interactions',
+                                            description: 'Interact with Students/Staff'
+
+                                        },
+                                        {
+                                            id: 710,
+                                            name: 'Notice Board',
+                                            icon: 'MessageSquare',
+                                            url: '/StaffPortal/Upload/notice-board',
+                                            title: 'Notice Board',
+                                            description: 'Notice Board'
+                                        },
+                                        {
+                                            id: 711,
+                                            name: 'Classwork Upload',
+                                            icon: 'MessageSquare',
+                                            url: '/StaffPortal/Upload/classwork-upload',
+                                            title: 'Classwork Upload',
+                                            description: 'Classwork Upload'
+                                        },
+                                        {
+                                            id: 712,
+                                            name: 'Classwork Marks Update',
+                                            icon: 'Classwork Marks Update',
+                                            url: '/StaffPortal/Upload/classwork-marks',
+                                            title: 'Classwork Marks Update',
+                                            description: 'Classwork Marks Update'
                                         }
                                     ]
                                 }
+
+
                             ]
                         },
                         {
-                            id: 6,
+                            id: 713,
                             name: 'Leave',
                             icon: 'CalendarRange',
                             sub_menu: [
                                 {
-                                    id: 1,
+                                    id: 713,
                                     name: 'Leave Management',
                                     icon: 'CalendarDays',
                                     pages: [
                                         {
-                                            id: 1,
+                                            id: 713,
                                             name: 'Leave Application',
                                             icon: 'FilePlus',
                                             url: '/StaffPortal/leave-management/online-leave-application',
@@ -4942,77 +5045,80 @@ export async function getUserAccessibleModules() {
                             ]
                         },
 
+                        // {
+                        //     id: 714,
+                        //     name: 'Biometric Report  ',
+                        //     icon: 'Wallet',
+                        //     sub_menu: [
+                        //         {
+                        //             id: 714,
+                        //             name: 'Report ',
+                        //             icon: 'Currency',
+                        //             pages: [
 
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Employee Punch Report ',
+                        //                     icon: 'FileText',
+                        //                     url: '/StaffPortal/salary/staff-salary-slip',
+                        //                     title: 'Staff Salary Slip',
+                        //                     description: 'View and Download Pay Slips'
+                        //                 }
+                        //             ]
+                        //         }
+                        //     ]
+                        // },
                         {
-                            id: 7,
-                            name: 'Interactions',
-                            icon: 'MessageSquare',
+                            id: 715,
+                            name: 'Fees',
+                            icon: 'BadgeIndianRupee',
                             sub_menu: [
                                 {
-                                    id: 1,
-                                    name: 'Involved Communication',
-                                    icon: 'MessagesSquare',
+                                    id: 715,
+                                    name: 'Reports',
+                                    icon: 'FileBarChart',
                                     pages: [
                                         {
-                                            id: 1,
-                                            name: 'Interactions',
-                                            icon: 'MessageSquare',
-                                            url: '/StaffPortal/interactions',
-                                            title: 'Interactions',
-                                            description: 'Interact with Students/Staff'
+                                            id: 715,
+                                            name: 'Defaulter Report',
+                                            icon: 'UserX',
+                                            url: '/StaffPortal/fees/staff-fee-defaulter-report',
+                                            title: 'Fee Defaulter Report',
+                                            description: 'Monitor Fee Defaulters'
                                         }
                                     ]
                                 }
-                            ]
-                        },
-                         {
-                            id: 8,
-                            name: 'Upload',
-                            icon: 'MessageSquare',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Home Work',
-                                    icon: 'MessagesSquare',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Homework',
-                                            icon: 'MessageSquare',
-                                            url: '/StaffPortal/Upload/homework',
-                                            title: 'Home Work',
-                                            description: 'Upload Home Work'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Homework Marks Update',
-                                            icon: 'MessageSquare',
-                                            url: '/StaffPortal/Upload/homework-marks-entry',
-                                            title: 'Home Work',
-                                            description: 'Homework Marks Update'
-                                        },
-                                         {
-                                            id: 3,
-                                            name: 'Homework Upload Report',
-                                            icon: 'MessageSquare',
-                                            url: '/StaffPortal/Upload/homework-upload-report',
-                                            title: 'Home Work',
-                                            description: 'Homework Upload Report'
-                                        },
-                                         {
-                                            id: 4,
-                                            name: 'Notice Board',
-                                            icon: 'MessageSquare',
-                                            url: '/StaffPortal/Upload/notice-board',
-                                            title: 'Notice Board',
-                                            description: 'Notice Board'
-                                        }
-                                    ]
-                                }
-                                
-                                
                             ]
                         }
+                        //    ,
+                        //        {
+                        //         id: 8,
+                        //         name: 'HRMS',
+                        //         icon: 'Wallet',
+                        //         sub_menu: [
+                        //             {
+                        //                 id: 1,
+                        //                 name: 'Report',
+                        //                 icon: 'Currency',
+                        //                 pages: [
+                        //                     {
+                        //                         id: 1,
+                        //                         name: 'Generate Employee Salary Slip',
+                        //                         icon: 'FileText',
+                        //                         url: '/StaffPortal/salary/staff-salary-slip',
+                        //                         title: 'Staff Salary Slip',
+                        //                         description: 'View and Download Pay Slips'
+                        //                     }
+
+                        //                 ]
+                        //             }
+                        //         ]
+                        //     },
+
+
+
+
+
                     ]
                 }
 
