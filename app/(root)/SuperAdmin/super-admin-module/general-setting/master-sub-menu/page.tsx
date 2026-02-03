@@ -4,9 +4,11 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { getMasterSubMenuData, deleteMasterSubMenu } from '@/server/super-admin/super-admin-module/general-setting/master-sub-menu';
+import { tableSearchVariables } from '@/lib/data-table.config';
+import { deleteMasterSubMenu, getMasterSubMenuData } from '@/server/super-admin/super-admin-module/general-setting/master-sub-menu';
 import type { IMasterSubMenu } from '@/types/super-admin/super-admin-module/general-setting/master-sub-menu';
 import { Plus, X } from 'lucide-react';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import AddMasterSubMenuForm from './_components/add-form';
@@ -35,12 +37,42 @@ function MasterSubMenuPageContent() {
     const { openAddForm } = useFormContext<IMasterSubMenu>();
     const [data, setData] = useState<IMasterSubMenu[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [totalItems, setTotalItems] = useState(0);
+
+    // Sync with URL params
+    const [page] = useQueryState(
+        tableSearchVariables.page,
+        parseAsInteger.withOptions({ shallow: false }).withDefault(1)
+    );
+    const [pageSize] = useQueryState(
+        tableSearchVariables.page_size,
+        parseAsInteger.withOptions({ shallow: false, history: 'push' }).withDefault(10)
+    );
+    const [sortBy] = useQueryState(
+        tableSearchVariables.sort_column,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+    const [sortDirection] = useQueryState(
+        tableSearchVariables.sort_direction,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+    const [searchQuery] = useQueryState(
+        tableSearchVariables.search,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
 
     const fetchData = () => {
         setIsLoading(true);
-        getMasterSubMenuData().then(res => {
+        getMasterSubMenuData({
+            page,
+            page_size: pageSize,
+            sort_column: sortBy,
+            sort_direction: sortDirection,
+            search_query: searchQuery
+        }).then(res => {
             if (res.success) {
                 setData(res.data || []);
+                setTotalItems(res.total || 0);
             }
             setIsLoading(false);
         });
@@ -48,7 +80,7 @@ function MasterSubMenuPageContent() {
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [page, pageSize, sortBy, sortDirection, searchQuery]);
 
     const refreshData = () => {
         fetchData();
@@ -79,7 +111,7 @@ function MasterSubMenuPageContent() {
                         data={data}
                         columns={columns}
                         isLoading={isLoading}
-                        totalItems={data.length}
+                        totalItems={totalItems}
                     />
                 </div>
             </CollapsibleSection>
@@ -111,7 +143,7 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
     };
 
     const handleDelete = async () => {
-        if (!selectedRow) return;
+        if (!selectedRow || !selectedRow.ivrmmS_Id) return;
         setIsDeleting(true);
         try {
             const res = await deleteMasterSubMenu(selectedRow.ivrmmS_Id);

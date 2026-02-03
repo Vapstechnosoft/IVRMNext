@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { getOnLoadData, deleteMasterSchoolType } from '@/server/super-admin/super-admin-module/general-setting/master-school-type';
+import { getMasterSchoolTypeData, deleteMasterSchoolType } from '@/server/super-admin/super-admin-module/general-setting/master-school-type';
 import { IMasterSchoolType } from '@/types/super-admin/super-admin-module/general-setting/master-school-type';
 import { Plus, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
@@ -38,18 +38,11 @@ function MasterSchoolTypePageContent() {
 
     const fetchData = () => {
         setIsLoading(true);
-        getOnLoadData().then(res => {
+        getMasterSchoolTypeData({}).then(res => {
             if (res.success) {
-                // Assuming the list is returned in a property called 'students' based on Angular code "ng-repeat student in students" or "user in students"
-                // But typically API returns 'getDetails' or similar. I'll check response.data.
-                // Looking at Angular: "students" contains the list.
-                // The server action returns "response" which is api.get('sadmin', url).
-                // I'll assume res.data.getDetails or similar, or just res.data if it's an array.
-                // Angular code says: ng-init="getAllDetails()".
-                // Safest to inspect previous patterns. Usually res.data.something.
-                // master-menu-page-mapping used res.data.GridDetails.
-                // I'll try res.data.students || res.data.getDetails || []
-                setData(res.data.students || res.data.getDetails || []);
+                setData(res.data || []);
+            } else {
+                setData([]);
             }
             setIsLoading(false);
         });
@@ -121,14 +114,14 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
         if (!selectedRow) return;
         setIsDeleting(true);
         try {
-            const res = await deleteMasterSchoolType(selectedRow); // Pass object or ID? Angular says delete(user), so likely object or ID. Server action defined to take 'data'.
-            if (res.success) {
-                toast.success('Record deleted successfully');
-                closeDeleteForm();
-                onRefresh();
-            } else {
-                toast.error(res.message || 'Failed to delete record');
-            }
+            const res = await deleteMasterSchoolType(selectedRow.ivrmmtyP_Id);
+            // if (res.success || res.returnval === true) {
+            //     toast.success('Record deleted successfully');
+            //     closeDeleteForm();
+            //     onRefresh();
+            // } else {
+            //     toast.error(res.message || 'Failed to delete record');
+            // }
         } catch (error) {
             toast.error('An error occurred');
         } finally {
