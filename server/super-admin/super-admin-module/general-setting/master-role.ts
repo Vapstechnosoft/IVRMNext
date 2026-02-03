@@ -10,11 +10,7 @@ export async function getMasterRoles(searchParams: any) {
 
     try {
         const response = await api.get<any>('sadmin', url);
-        // The API returns { data: { pagesdata: [...] }, total: ..., page: ..., page_size: ... }
-        // or potentially directly { pagesdata: [...] } depending on standard.
-        // Based on user snippet: 
-        // "data": { "pagesdata": [ ... ] }, "total": 28 ...
-
+        
         if (response.success && response.data) {
             const dataList = response.data.pagesdata || [];
             return {

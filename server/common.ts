@@ -2777,7 +2777,7 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
-                  {
+                {
                     id: 6,
                     name: 'Super Admin',
                     icon: 'Settings',
@@ -2830,6 +2830,38 @@ export async function getUserAccessibleModules() {
                                             url: '/SuperAdmin/super-admin-module/institution/auto-mapping',
                                             title: 'Auto Mapping',
                                             description: 'Manage Institution Auto Mapping'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Configuration Setting',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Institution Module Page',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/configuration-setting/institution-module-page',
+                                            title: 'Institution Module Page',
+                                            description: 'Master Institution Role and Module Mapping'
+                                        },
+
+                                        {
+                                            id: 2,
+                                            name: 'Master Main Menu INS',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/configuration-setting/master-main-menu-ins',
+                                            title: 'Master Main Menu INS',
+                                            description: 'Master Main Menu Institution Mapping'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Master Sub Menu INS',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/configuration-setting/master-sub-menu-ins',
+                                            title: 'Master Sub Menu INS',
+                                            description: 'Master Sub Menu Institution Mapping'
                                         }
                                     ]
                                 },
@@ -2934,7 +2966,7 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 }
-            
+
                 // ,
                 // {
                 //     id: 12,
