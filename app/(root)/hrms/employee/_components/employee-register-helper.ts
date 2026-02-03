@@ -48,8 +48,8 @@ export function mapFormDataToApiFormat(
     // Get bank account from bank details (take first/default)
     const defaultBankAccount = data.bankDetails?.[0]?.bankAccountNo || '';
 
-    // Map form data to API format matching user request structure
-    const payload: any = {
+    // Construct Employee Object
+    const employee: any = {
         hrmE_Id: employeeId,
         HRME_Id: employeeId, // Alias for PascalCase backend requirements
         mI_Id: Number(data.department) || 0, // Map Department to MI_Id (Institution)
@@ -148,6 +148,27 @@ export function mapFormDataToApiFormat(
         EmployeePhoto: toNullIfEmpty(selectedPhoto) || '',
         HrmeId: employeeId
     };
+
+    // Construct Payload
+    const payload: any = {
+        employee: employee
+    };
+
+    // Add Bank Request if details exist
+    if (data.bankDetails && data.bankDetails.length > 0) {
+        payload.bankRequest = {
+            mI_Id: Number(data.department) || 30, // Use department/institution ID
+            hrmE_Id: employeeId,
+            bankDetails: data.bankDetails.map((bank: any) => ({
+                hrmeB_Id: bank.hrmeB_Id || 0,
+                hrmE_Id: employeeId,
+                hrmbD_Id: Number(bank.employerBankName) || 0,
+                hrmeB_AccountNo: bank.bankAccountNo || '',
+                hrmeB_ActiveFlag: bank.isActive ?? true
+            }))
+        };
+    }
+
     return payload;
 }
 
@@ -161,20 +182,23 @@ export function mapFormDataToApiFormatWithoutAddress(
 ): SavePersonalDetailsApiRequest {
     const payload = mapFormDataToApiFormat(data, employeeId, selectedPhoto);
     // Set all address fields to empty string/0
-    payload.hrmE_LocStreet = '';
-    payload.hrmE_LocArea = '';
-    payload.hrmE_LocCity = '';
-    payload.hrmE_LocAdd4 = '';
-    payload.hrmE_LocStateId = 0;
-    payload.hrmE_LocCountryId = 0;
-    payload.hrmE_LocPincode = 0;
-    payload.hrmE_PerStreet = '';
-    payload.hrmE_PerArea = '';
-    payload.hrmE_PerCity = '';
-    payload.hrmE_PerAdd4 = '';
-    payload.hrmE_PerStateId = 0;
-    payload.hrmE_PerCountryId = 0;
-    payload.hrmE_PerPincode = 0;
+    // Now payload structure is { employee: {...}, bankRequest?: {...} }
+    if (payload.employee) {
+        payload.employee.hrmE_LocStreet = '';
+        payload.employee.hrmE_LocArea = '';
+        payload.employee.hrmE_LocCity = '';
+        payload.employee.hrmE_LocAdd4 = '';
+        payload.employee.hrmE_LocStateId = 0;
+        payload.employee.hrmE_LocCountryId = 0;
+        payload.employee.hrmE_LocPincode = 0;
+        payload.employee.hrmE_PerStreet = '';
+        payload.employee.hrmE_PerArea = '';
+        payload.employee.hrmE_PerCity = '';
+        payload.employee.hrmE_PerAdd4 = '';
+        payload.employee.hrmE_PerStateId = 0;
+        payload.employee.hrmE_PerCountryId = 0;
+        payload.employee.hrmE_PerPincode = 0;
+    }
     return payload;
 }
 
@@ -843,9 +867,10 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
         : [];
 
     // Map bank details
-    const bankData = getArrayFromResponse('employeebankDetails', 'EmployeeBankDetails', 'bankDetails', 'bank');
+    const bankData = getArrayFromResponse('hrmbD_Id', 'employeebankDetails', 'EmployeeBankDetails', 'bankDetails', 'bank', 'bank_details');
     const bankDetails = bankData.length > 0
         ? bankData.map((bank: any) => ({
+            hrmeB_Id: getValue(bank, 'hrmeB_Id') || 0, // Preserve ID for updates
             employerBankName: numToString(bank.hrmbD_Id), // Changed to employerBankName from bank to match type
             bankAccountNo: bank.hrmeB_AccountNo || '',
             accountType: '', // Added missing required property
@@ -1586,6 +1611,7 @@ export function mapApiResponseToTab8Fields(apiData: any): Partial<FormFields> {
     }
     const bankDetails = Array.isArray(bankData)
         ? bankData.map((bank: any) => ({
+            hrmeB_Id: getValue(bank, 'hrmeB_Id') || 0, // Preserve ID for updates
             employerBankName: numToString(getValue(bank, 'hrmbD_Id')),
             bankAccountNo: getValue(bank, 'hrmeB_AccountNo') || '',
             accountType: '',

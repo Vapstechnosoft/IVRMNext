@@ -653,11 +653,16 @@ export function useToggleEmployee() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (id: number) => toggleEmployee(id),
-        onSuccess: () => {
-            toast.success('Employee status updated successfully');
-            queryClient.invalidateQueries({
-                queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
-            });
+        onSuccess: (response: any) => {
+            // Some VAPS APIs don't return a success flag but if we have a response, it's a success
+            if (response?.success || (response && response.success === undefined)) {
+                toast.success(response?.message || 'Employee status updated successfully');
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
+                });
+            } else {
+                toast.error(response?.message || 'Failed to update employee status');
+            }
         },
         onError: (error: Error) => {
             toast.error(error.message || 'An error occurred while updating employee status');

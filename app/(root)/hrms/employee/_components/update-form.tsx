@@ -1694,22 +1694,36 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             if (currentStepId === 1) {
                 // Employee tab - save without address
                 const rawPayload = mapFormDataToApiFormatWithoutAddressLocal(data);
-                const payload: any = {
+
+                // IMPORTANT: The rawPayload now contains { employee: {...}, bankRequest: {...} }
+                // We need to merge any manual overrides into the 'employee' object
+                const payload = {
                     ...rawPayload,
-                    hrmE_EmployeeFirstName: rawPayload.hrmE_EmployeeFirstName ?? '',
-                    hrmE_EmployeeMiddleName: rawPayload.hrmE_EmployeeMiddleName ?? '',
-                    hrmE_EmployeeLastName: rawPayload.hrmE_EmployeeLastName ?? '',
-                    hrmE_EmployeeCode: rawPayload.hrmE_EmployeeCode ?? '',
-                    hrmE_FatherName: rawPayload.hrmE_FatherName ?? '',
-                    hrmE_MotherName: rawPayload.hrmE_MotherName ?? '',
-                    hrmE_BloodGroup: rawPayload.hrmE_BloodGroup ?? '',
-                    hrmE_SalaryType: rawPayload.hrmE_SalaryType ?? '',
-                    hrmE_MobileNo: rawPayload.hrmE_MobileNo ?? '',
-                    hrmE_EmailId: rawPayload.hrmE_EmailId ?? '',
-                    hrmE_PANCardNo: rawPayload.hrmE_PANCardNo ?? '',
-                    hrmE_NationalSSN: rawPayload.hrmE_NationalSSN ?? '',
-                    hrmE_Id: savedEmployeeId || (data as any).hrmE_Id || 0
+                    employee: {
+                        ...rawPayload.employee,
+                        hrmE_EmployeeFirstName: rawPayload.employee.hrmE_EmployeeFirstName ?? '',
+                        hrmE_EmployeeMiddleName: rawPayload.employee.hrmE_EmployeeMiddleName ?? '',
+                        hrmE_EmployeeLastName: rawPayload.employee.hrmE_EmployeeLastName ?? '',
+                        hrmE_EmployeeCode: rawPayload.employee.hrmE_EmployeeCode ?? '',
+                        hrmE_FatherName: rawPayload.employee.hrmE_FatherName ?? '',
+                        hrmE_MotherName: rawPayload.employee.hrmE_MotherName ?? '',
+                        hrmE_BloodGroup: rawPayload.employee.hrmE_BloodGroup ?? '',
+                        hrmE_SalaryType: rawPayload.employee.hrmE_SalaryType ?? '',
+                        hrmE_MobileNo: rawPayload.employee.hrmE_MobileNo ?? '',
+                        hrmE_EmailId: rawPayload.employee.hrmE_EmailId ?? '',
+                        hrmE_PANCardNo: rawPayload.employee.hrmE_PANCardNo ?? '',
+                        hrmE_NationalSSN: rawPayload.employee.hrmE_NationalSSN ?? '',
+                        hrmE_Id: savedEmployeeId || (data as any).hrmE_Id || 0
+                    }
                 };
+
+                // Remove bankRequest from payload if no bank details (optional, but cleaner)
+                if ((!data.bankDetails || data.bankDetails.length === 0) && payload.bankRequest) {
+                    delete payload.bankRequest;
+                }
+
+                console.log('🔍 [API DEBUG] Tab 1 (Employee + Bank) - Submitting Combined Payload:', payload);
+
                 savePersonalDetails(payload as any, {
                     onSuccess: (response: any) => {
                         console.log('✅ [API DEBUG] Tab 1 (Employee) - Save Success Response:', response);
@@ -1719,35 +1733,15 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                             if (employeeId) {
                                 setSavedEmployeeId(employeeId);
 
-                                // Check for bank details to save - specific user request
-                                const bankList = data.bankDetails || [];
-                                if (bankList.length > 0) {
-                                    const bankPayload = {
-                                        mI_Id: selectedRow?.mI_Id || 30,
-                                        hrmE_Id: employeeId,
-                                        bankDetails: bankList.map((bank: any) => ({
-                                            hrmeB_Id: bank.hrmeB_Id || 0,
-                                            hrmE_Id: employeeId,
-                                            hrmbD_Id: Number(bank.employerBankName) || 0,
-                                            hrmeB_AccountNo: bank.bankAccountNo || '',
-                                            hrmeB_ActiveFlag: bank.isActive ?? true
-                                        }))
-                                    };
-                                    console.log('🔍 [API DEBUG] Saving Bank Details:', bankPayload);
-                                    saveBankDetails(bankPayload, {
-                                        onSuccess: (bankRes: any) => {
-                                            console.log('✅ [API DEBUG] Bank Save Success:', bankRes);
-                                            setCurrentStep(2);
-                                        },
-                                        onError: (err: any) => {
-                                            console.error('❌ [API DEBUG] Bank Save Error:', err);
-                                            // Proceed to next step but warn user
-                                            setCurrentStep(2);
-                                        }
-                                    });
-                                } else {
-                                    setCurrentStep(2);
-                                }
+                                // FORCE DATA REFRESH:
+                                // Reset this ref so that when the invalidation triggers a refetch,
+                                // the useEffect in update-form will re-bind the fresh data (including new bank details) to the form.
+                                hasAppliedDetailedData.current = false;
+                                console.log('🔄 [API DEBUG] Reset hasAppliedDetailedData to force re-bind of fresh data');
+
+                                // Move to next step immediately
+                                setCurrentStep(2);
+
                             } else {
                                 toast.error('Failed to get employee ID from response');
                             }
@@ -1770,21 +1764,33 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     return;
                 }
                 const rawPayload = mapFormDataToApiFormatLocal(data);
+                // rawPayload is { employee: {...}, bankRequest: {...} }
+                // Verify rawPayload.employee exists
+                if (!rawPayload.employee) {
+                    console.error("❌ [API DEBUG] Payload missing employee object", rawPayload);
+                    toast.error("Form data mapping failed");
+                    return;
+                }
+
                 const payload: any = {
                     ...rawPayload,
-                    hrmE_EmployeeFirstName: rawPayload.hrmE_EmployeeFirstName ?? '',
-                    hrmE_EmployeeMiddleName: rawPayload.hrmE_EmployeeMiddleName ?? '',
-                    hrmE_EmployeeLastName: rawPayload.hrmE_EmployeeLastName ?? '',
-                    hrmE_EmployeeCode: rawPayload.hrmE_EmployeeCode ?? '',
-                    hrmE_FatherName: rawPayload.hrmE_FatherName ?? '',
-                    hrmE_MotherName: rawPayload.hrmE_MotherName ?? '',
-                    hrmE_BloodGroup: rawPayload.hrmE_BloodGroup ?? '',
-                    hrmE_SalaryType: rawPayload.hrmE_SalaryType ?? '',
-                    hrmE_MobileNo: rawPayload.hrmE_MobileNo ?? '',
-                    hrmE_EmailId: rawPayload.hrmE_EmailId ?? '',
-                    hrmE_PANCardNo: rawPayload.hrmE_PANCardNo ?? '',
-                    hrmE_NationalSSN: rawPayload.hrmE_NationalSSN ?? '',
-                    hrmE_Id: savedEmployeeId
+                    // Ensure we are updating the employee object
+                    employee: {
+                        ...rawPayload.employee,
+                        hrmE_EmployeeFirstName: rawPayload.employee.hrmE_EmployeeFirstName ?? '',
+                        hrmE_EmployeeMiddleName: rawPayload.employee.hrmE_EmployeeMiddleName ?? '',
+                        hrmE_EmployeeLastName: rawPayload.employee.hrmE_EmployeeLastName ?? '',
+                        hrmE_EmployeeCode: rawPayload.employee.hrmE_EmployeeCode ?? '',
+                        hrmE_FatherName: rawPayload.employee.hrmE_FatherName ?? '',
+                        hrmE_MotherName: rawPayload.employee.hrmE_MotherName ?? '',
+                        hrmE_BloodGroup: rawPayload.employee.hrmE_BloodGroup ?? '',
+                        hrmE_SalaryType: rawPayload.employee.hrmE_SalaryType ?? '',
+                        hrmE_MobileNo: rawPayload.employee.hrmE_MobileNo ?? '',
+                        hrmE_EmailId: rawPayload.employee.hrmE_EmailId ?? '',
+                        hrmE_PANCardNo: rawPayload.employee.hrmE_PANCardNo ?? '',
+                        hrmE_NationalSSN: rawPayload.employee.hrmE_NationalSSN ?? '',
+                        hrmE_Id: savedEmployeeId
+                    }
                 };
                 savePersonalDetails(payload, {
                     onSuccess: (response: any) => {

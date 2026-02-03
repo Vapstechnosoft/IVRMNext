@@ -41,6 +41,7 @@ export const validatePincode = (pincode: string) => {
 // Qualification details schema
 export const qualificationDetailSchema = z
     .object({
+        hrmeQ_Id: z.number().optional(), // ID for updates
         qualification: z.string().min(1, 'Qualification is required').max(50, 'Qualification must not exceed 50 characters'),
         course: z.string().min(1, 'Course is required'),
         college: z.string().min(1, 'College is required').max(100, 'College must not exceed 100 characters'),
@@ -98,6 +99,7 @@ export const qualificationDetailSchema = z
 // Experience details schema
 export const experienceDetailSchema = z
     .object({
+        hrmeE_Id: z.number().optional(), // ID for updates
         organisationName: z.string().min(1, 'Organisation Name is required').max(255, 'Organisation Name must not exceed 255 characters'),
         organisationAddress: z
             .string()
@@ -268,6 +270,7 @@ export const employeeRegisterFormSchema = z
         bankDetails: z
             .array(
                 z.object({
+                    hrmeB_Id: z.number().optional(), // ID for updates
                     employerBankName: z.string().min(1, 'Bank Name is required'),
                     bankAccountNo: z
                         .string()

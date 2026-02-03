@@ -522,11 +522,29 @@ export async function saveEmployee(data: IEmployeeSaveRequest) {
 
 /**
  * Toggle Employee (Activate/Deactivate)
- * PUT /api/EmployeeRegistrationNew/deactivateRecordById/{id}
+ * PUT /api/EmployeeRegistration/employee_registration_activate_deactivate/{id}
  */
 export async function toggleEmployee(id: number) {
-    const url = `/api/EmployeeRegistrationNew/deactivateRecordById/${id}`;
-    return await api.put('hrms', url);
+    try {
+        if (!id) {
+            return { success: false, message: 'Invalid Employee ID' };
+        }
+
+        // Exact pattern from working curl: GET with ID in path
+        const url = `/api/EmployeeRegistration/employee_registration_activate_deactivate/${id}`;
+
+        console.info(`📡 [API CALL] Toggling employee status (GET): ${url}`);
+
+        // Method is GET as per user's working backend test
+        const response = await api.get<any>('hrms', url);
+
+        return response;
+    } catch (error: any) {
+        console.error('❌ [SERVER ACTION ERROR] toggleEmployee:', error);
+        const backendMessage = error?.response?.data?.message || JSON.stringify(error?.response?.data);
+        const errorMessage = backendMessage || error?.message || 'An unknown error occurred';
+        return { success: false, message: `Toggle Failed: ${errorMessage}` };
+    }
 }
 
 /**

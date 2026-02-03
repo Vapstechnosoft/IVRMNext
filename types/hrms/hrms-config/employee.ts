@@ -221,7 +221,8 @@ export interface IEmployeeList {
 }
 
 // Employee Save Request/Response - Will be defined based on actual form payloads
-export interface IEmployeeSaveRequest {
+// Basic Employee Details
+export interface IEmployee {
     hrmE_Id: number;
     hrmeT_Id: number;
     hrmgT_Id: number;
@@ -314,6 +315,32 @@ export interface IEmployeeSaveRequest {
     hrmE_FPFNotApplicableFlg: boolean;
     hrmE_EPFNotApplicableFlg: boolean;
     hrmE_AllowSoftwareAccessFlg: boolean;
+    // Aliases for validation requirements
+    EmployeePhoto?: string;
+    HrmeId?: number;
+}
+
+// Bank Request Details
+export interface IBankRequestDetail {
+    hrmeB_Id: number;
+    hrmE_Id: number;
+    hrmbD_Id: number;
+    hrmeB_AccountNo: string;
+    hrmeB_ActiveFlag: boolean;
+}
+
+// Bank Request Wrapper
+export interface IBankRequest {
+    mI_Id: number;
+    hrmE_Id: number;
+    bankDetails: IBankRequestDetail[];
+}
+
+// Combined Save Request
+export interface IEmployeeSaveRequest {
+    employee: IEmployee;
+    bankRequest?: IBankRequest;
+    trans_id?: string; // Optional transaction ID if needed
 }
 
 export interface IEmployeeQualification {
