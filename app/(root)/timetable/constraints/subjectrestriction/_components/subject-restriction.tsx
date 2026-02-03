@@ -16,7 +16,7 @@ export default function SubjectRestriction({ initialData }: SubjectRestrictionPr
     const [activeTab, setActiveTab] = useState('day_period');
 
     return (
-        <div className='w-full'>
+        <div className='container mx-auto space-y-6 p-4'>
             {/* <Container> */}
             <Tabs defaultValue='day_period' value={activeTab} onValueChange={setActiveTab}>
                 {/* <div className='mb-4 flex items-center justify-between'>
