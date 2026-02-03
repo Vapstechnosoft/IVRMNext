@@ -1044,3 +1044,37 @@ export const useFeeStudentCurrentAcademicDetails = (amst_Id: number, asmay_Id: n
 //         }
 //     };
 // };
+
+export const useFeeAmountEntryforStThomas = (asmay_id?: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_AMOUNT_ENTRY_STTHOMAS, asmay_id, searchParams ?? {}],
+            queryFn: async () => getAmountEntrystthomas(asmay_id, searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_AMOUNT_ENTRY_STTHOMAS]
+            });
+        }
+    };
+};
+
+export const useacademicyerdropofStThomas = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.ACADEMIC_DROPDOWN_FEES_STTHOMAS, searchParams ?? {}],
+            queryFn: async () => getAcademicYearDropdownDatastthomas(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.ACADEMIC_DROPDOWN_FEES_STTHOMAS]
+            });
+        }
+    };
+};

@@ -1008,6 +1008,14 @@ export async function getUserAccessibleModules() {
                                     name: 'Transactions',
                                     icon: 'BadgeIndianRupee',
                                     pages: [
+                                        //   {
+                                        //     id: 55555,
+                                        //     name: 'Fee Amount Entry',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/transactions/feeamountentrystthomas',
+                                        //     title: 'Fee Amount Entry',
+                                        //     description: 'Manage Fee Amount Entry Details'
+                                        // },
                                         {
                                             id: 40,
                                             name: 'Fee Amount Entry',

@@ -219,6 +219,8 @@ export const FEES_QUERY_KEYS = {
     FEE_STUDENT_CURRENT_ACADEMIC_DETAILS: 'fee_student_current_academic_details',
     MASTER_SETTING_LIST: 'master_setting_list',
     FEE_PAYMENTGATEWAY_INSTITUTION_NAME: 'fee_paymentgateway_institution_name',
+    FEE_AMOUNT_ENTRY_STTHOMAS: 'fee_amount_entry_stthomas',
+    ACADEMIC_DROPDOWN_FEES_STTHOMAS: 'academic_dropdown_fees_stthomas',
 
     FEE_DEFAULTER_REPORT: 'fee_defaulter_report',
     FEE_GROUP_DEFAULTER: 'fee_group_defaulter_report',
@@ -517,6 +519,6 @@ export const PORTAL_QUERY_KEYS = {
     COE_LIST: 'coe_list',
     STUDENT_FEE_DETAILS2: 'student_fee_details2',
     CUMULATIVE_FEE_ANALYSIS: 'Cumulative_Fee_Analysis',
-    FEE_ONLINE_PAYMENT_STUDENT_INFO:"fee_online_student_info",
-    FEE_ONLINE_PAYMENT_GROUP_LIST:"fee_online_payment_group_list"
+    FEE_ONLINE_PAYMENT_STUDENT_INFO: 'fee_online_student_info',
+    FEE_ONLINE_PAYMENT_GROUP_LIST: 'fee_online_payment_group_list'
 };
