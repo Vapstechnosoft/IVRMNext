@@ -21,6 +21,7 @@ import {
     getFeesCommonSettingConfigSet,
     getFeesConcessionStudentData
 } from '@/server/fees/trasactions/FeeConcession';
+import { getAcademicYearDropdownDatastthomas, getAmountEntrystthomas } from '@/server/fees/trasactions/feeAmountEntryStThomas';
 import {
     getFeeAdjustmentFromHeadDropDown,
     getFeeAdjustmentGroupDropDown,
