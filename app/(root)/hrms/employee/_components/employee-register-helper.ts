@@ -1,3 +1,4 @@
+import { HRMS_MI_ID } from '@/constants/hrms-config';
 import type { employeeRegisterSchemas } from '@/schemas/hrms/employee-register-schemas';
 import type { SavePersonalDetailsApiRequest } from '@/types/hrms/employee-register';
 import { format } from 'date-fns';
@@ -52,10 +53,10 @@ export function mapFormDataToApiFormat(
     const employee: any = {
         hrmE_Id: employeeId,
         HRME_Id: employeeId, // Alias for PascalCase backend requirements
-        mI_Id: Number(data.department) || 0, // Map Department to MI_Id (Institution)
+        mI_Id: HRMS_MI_ID, // Fixed: Use HRMS_MI_ID (30) instead of department ID
         hrmeT_Id: Number(data.typeOfEmployment) || 0,
         hrmgT_Id: Number(data.employeeGroup) || 0,
-        hrmD_Id: Number(data.department) || 0, // Map Department to hrmD_Id as well per user request
+        hrmD_Id: Number(data.department) || 0, // Map Department to hrmD_Id correctly
         hrmdeS_Id: Number(data.designation) || 0,
         hrmG_Id: Number(data.grade) || 0,
         hrmE_EmployeeFirstName: toNullIfEmpty(data.firstName),
@@ -144,6 +145,20 @@ export function mapFormDataToApiFormat(
         hrmE_FPFNotApplicableFlg: !data.ppf,
         hrmE_EPFNotApplicableFlg: !data.epf,
         hrmE_AllowSoftwareAccessFlg: true,
+        // PascalCase Aliases for flat API requirements (Medical, Other details etc.)
+        MI_Id: HRMS_MI_ID,
+        HRMET_Id: Number(data.typeOfEmployment) || 0,
+        HRMGT_Id: Number(data.employeeGroup) || 0,
+        HRMD_Id: Number(data.department) || 0,
+        HRMDES_Id: Number(data.designation) || 0,
+        HRMG_Id: Number(data.grade) || 0,
+        HRME_Height: toNullIfEmpty(data.employeeHeight) || '',
+        HRME_HeightUOM: toNullIfEmpty(data.employeeHeightUnit) || '',
+        HRME_Weight: Number(data.employeeWeight) || 0,
+        HRME_WeightUOM: toNullIfEmpty(data.employeeHeightUnit) || '',
+        HRME_IdentificationMark: toNullIfEmpty(data.identificationMark) || '',
+        HRME_AnyHealthIssue: toNullIfEmpty(data.anyHealthIssue) || '',
+        HRME_EyeSightIssue: toNullIfEmpty(data.eyeSightIssue) || '',
         // Aliases for validation requirements
         EmployeePhoto: toNullIfEmpty(selectedPhoto) || '',
         HrmeId: employeeId
@@ -1622,4 +1637,126 @@ export function mapApiResponseToTab8Fields(apiData: any): Partial<FormFields> {
     return {
         bankDetails
     };
+}
+
+/**
+ * Map form data to STRICT PascalCase flat API format
+ * Required for Medical and Other details APIs
+ */
+export function mapFormDataToPascalCaseApiFormat(
+    data: FormFields,
+    employeeId: number,
+    selectedPhoto: string | null = null
+): any {
+    // Get mobile and email from arrays (take first/default)
+    const defaultMobile = Number(data.mobileDetails?.[0]?.mobileNo) || 0;
+    const defaultEmail = data.emailDetails?.[0]?.emailId || '';
+    const defaultBankAccount = data.bankDetails?.[0]?.bankAccountNo || '';
+
+    // Map to the EXACT hybrid casing and structure requested by the user in Step 1220
+    const payload: any = {
+        hrmE_Id: employeeId || 0,
+        hrmeT_Id: Number(data.typeOfEmployment) || 0,
+        hrmgT_Id: Number(data.employeeGroup) || 0,
+        hrmD_Id: Number(data.department) || 0,
+        hrmdeS_Id: Number(data.designation) || 0,
+        hrmG_Id: Number(data.grade) || 0,
+
+        hrmE_EmployeeFirstName: data.firstName || 'string',
+        hrmE_EmployeeMiddleName: data.middleName || '',
+        hrmE_EmployeeLastName: data.lastName || '',
+        hrmE_EmployeeCode: data.employeeCode || 'string',
+        hrmE_BiometricCode: data.biometricCode || '',
+        hrmE_RFCardId: data.rfCardId || '',
+
+        hrmE_PerStreet: data.permanentAddress || '',
+        hrmE_PerArea: data.permanentArea || '',
+        hrmE_PerCity: data.permanentCity || '',
+        hrmE_PerAdd4: '',
+        hrmE_PerStateId: Number(data.permanentState) || 0,
+        hrmE_PerCountryId: Number(data.permanentCountry) || 0,
+        hrmE_PerPincode: Number(data.permanentPincode) || 0,
+
+        hrmE_LocStreet: data.contactAddress || '',
+        hrmE_LocArea: data.contactArea || '',
+        hrmE_LocCity: data.contactCity || '',
+        hrmE_LocAdd4: '',
+        hrmE_LocStateId: Number(data.contactState) || 0,
+        hrmE_LocCountryId: Number(data.contactCountry) || 0,
+        hrmE_LocPincode: Number(data.contactPincode) || 0,
+
+        ivrmmmS_Id: Number(data.maritalStatus) || 0,
+        ivrmmG_Id: Number(data.gender) || 0,
+        casteCategoryId: Number(data.casteCategory) || 0,
+        casteId: Number(data.caste) || 0,
+        religionId: Number(data.religion) || 0,
+
+        hrmE_FatherName: data.fatherName || 'string',
+        hrmE_MotherName: data.motherName || 'string',
+        hrmE_SpouseName: (data as any).spouseName || '',
+        hrmE_SpouseOccupation: (data as any).spouseOccupation || '',
+        hrmE_SpouseMobileNo: Number((data as any).spouseMobileNo) || 0,
+        hrmE_SpouseEmailId: (data as any).spouseEmailId || '',
+        hrmE_SpouseAddress: (data as any).spouseAddress || '',
+
+        hrmE_DOB: data.dateOfBirth ? new Date(data.dateOfBirth).toISOString() : new Date().toISOString(),
+        hrmE_DOJ: data.dateOfJoining ? new Date(data.dateOfJoining).toISOString() : new Date().toISOString(),
+        hrmE_ExpectedRetirementDate: data.dateOfRetirement ? new Date(data.dateOfRetirement).toISOString() : new Date().toISOString(),
+        hrmE_PFDate: data.pfDate ? new Date(data.pfDate).toISOString() : new Date().toISOString(),
+        hrmE_ESIDate: data.esiDate ? new Date(data.esiDate).toISOString() : new Date().toISOString(),
+
+        hrmE_MobileNo: defaultMobile,
+        hrmE_EmailId: defaultEmail,
+        hrmE_BloodGroup: data.bloodGroup || '',
+        hrmE_PaymentType: data.modeOfPayment || '',
+        hrmE_BankAccountNo: defaultBankAccount,
+
+        hrmE_PFApplicableFlag: !!data.pfApplicable,
+        hrmE_PFMaxFlag: !!data.pfMaxAmount,
+        hrmE_PFFixedFlag: !!data.pfFixedAmount,
+        hrmE_PFAccNo: data.pfAccNo || '',
+        hrmE_ESIAccNo: data.esiAccNo || '',
+        hrmE_GratuityAccNo: data.gratuityAccNo || '',
+        hrmE_ESIApplicableFlag: !!data.esiApplicable,
+
+        hrmE_Photo: selectedPhoto || '',
+        hrmE_LeftFlag: !!data.employeeLeft,
+        hrmE_DOL: data.lastWorkingDay ? new Date(data.lastWorkingDay).toISOString() : new Date().toISOString(),
+        hrmE_LeavingReason: data.reasonForLeaving || '',
+        hrmE_Height: String(data.employeeHeight || '0'),
+        hrmE_HeightUOM: data.employeeHeightUnit || '',
+        hrmE_Weight: Number(data.employeeWeight) || 0,
+        hrmE_WeightUOM: data.employeeWeightUnit || '',
+        hrmE_IdentificationMark: data.identificationMark || 'string',
+        hrmE_ApprovalNo: '',
+        hrmE_PANCardNo: data.panCardNo || '',
+        hrmE_AadharCardNo: Number(data.aadharNo) || 0,
+        hrmE_SubstituteFlag: false,
+        hrmE_NationalSSN: data.nationalSSN || '',
+        hrmE_SalaryType: data.salaryType || '',
+        hrmE_EmployeeOrder: 0,
+        hrmE_ActiveFlag: true,
+        hrmE_UINumber: data.uanNumber || '',
+        hrmE_doc: data.dateOfConfirmation ? new Date(data.dateOfConfirmation).toISOString() : new Date().toISOString(),
+        hrmE_SubjectsTaught: data.subjectTaught || '',
+        hrmE_AppDownloadedDeviceId: '',
+        hrmE_PHDResearchGuideFlg: !!data.phdResearchGuide,
+        hrmE_TechNonTeachingFlg: data.teachingNonTeaching || 'string',
+        hrmE_RGRecognitionYear: Number(data.recognitionYear) || 0,
+        hrmE_AnyHealthIssue: data.anyHealthIssue || 'string',
+        hrmE_EyeSightIssue: data.eyeSightIssue || 'string',
+        hrmE_TransfferedTo: 0,
+        hrmE_RecordTransferredFlg: false,
+        hrmE_MSTeamsUserId: '',
+        hrmE_MSTeamsEmailId: '',
+        hrmE_MSTeamsPassword: '',
+        hrmE_ExcPunch: !!data.punchRelaxation,
+        hrmE_RetiredFlg: !!data.stopPension,
+        hrmE_PensionStoppedDate: data.dateOfStopPension ? new Date(data.dateOfStopPension).toISOString() : new Date().toISOString(),
+        hrmE_FPFNotApplicableFlg: !data.ppf,
+        hrmE_EPFNotApplicableFlg: !data.epf,
+        hrmE_AllowSoftwareAccessFlg: true
+    };
+
+    return payload;
 }

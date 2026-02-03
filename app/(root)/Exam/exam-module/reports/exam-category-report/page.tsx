@@ -29,6 +29,18 @@ export default function ExamCategoryReportPage() {
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
     const { data: masterCategory, isLoading: masterCategoryLoading, error: masterCategoryError } = useMasterCategoryDropdownList();
 
+    useEffect(() => {
+        if (!academicYearLoading && academicYear?.data && academicYear.data.length === 0) {
+            toast.info('No Academic Years found');
+        }
+    }, [academicYear, academicYearLoading]);
+
+    useEffect(() => {
+        if (!masterCategoryLoading && masterCategory?.data && masterCategory.data.length === 0) {
+            toast.info('No Categories found');
+        }
+    }, [masterCategory, masterCategoryLoading]);
+
     const {
         control,
         handleSubmit,
@@ -285,7 +297,7 @@ export default function ExamCategoryReportPage() {
                                     name='asmaY_Id'
                                     control={control}
                                     render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value}>
+                                        <Select key={field.value} onValueChange={field.onChange} value={field.value}>
                                             <SelectTrigger>
                                                 <SelectValue
                                                     placeholder={academicYearLoading ? 'Loading Academic Year...' : 'Select Academic Year'}
@@ -294,7 +306,7 @@ export default function ExamCategoryReportPage() {
                                             <SelectContent>
                                                 {academicYearLoading ? (
                                                     <SelectItem value='loading' disabled>
-                                                        Loading Academic Year...
+                                                        Academic Years are loading...
                                                     </SelectItem>
                                                 ) : academicYearError ? (
                                                     <SelectItem value='error' disabled>
@@ -302,7 +314,7 @@ export default function ExamCategoryReportPage() {
                                                     </SelectItem>
                                                 ) : academicYear?.data?.length === 0 ? (
                                                     <SelectItem value='none' disabled>
-                                                        No academic years available
+                                                        No Academic Years found
                                                     </SelectItem>
                                                 ) : (
                                                     academicYear?.data?.map((item) => (
@@ -326,14 +338,18 @@ export default function ExamCategoryReportPage() {
                                     name='emcA_Id'
                                     control={control}
                                     render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value} disabled={typeValue === '1'}>
+                                        <Select
+                                            key={field.value}
+                                            onValueChange={field.onChange}
+                                            value={field.value}
+                                            disabled={typeValue === '1'}>
                                             <SelectTrigger className={errors.emcA_Id ? 'border-destructive' : ''}>
                                                 <SelectValue placeholder='Select Category' />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {masterCategoryLoading ? (
                                                     <SelectItem value='loading' disabled>
-                                                        Loading Exam Master Categories...
+                                                        Categories are loading...
                                                     </SelectItem>
                                                 ) : masterCategoryError ? (
                                                     <SelectItem value='error' disabled>
@@ -341,7 +357,7 @@ export default function ExamCategoryReportPage() {
                                                     </SelectItem>
                                                 ) : masterCategory?.data?.length === 0 ? (
                                                     <SelectItem value='none' disabled>
-                                                        No Master Categories available
+                                                        No Categories found
                                                     </SelectItem>
                                                 ) : (
                                                     masterCategory?.data?.map((item) => (

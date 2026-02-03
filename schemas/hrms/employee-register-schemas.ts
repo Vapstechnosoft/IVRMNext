@@ -271,11 +271,8 @@ export const employeeRegisterFormSchema = z
             .array(
                 z.object({
                     hrmeB_Id: z.number().optional(), // ID for updates
-                    employerBankName: z.string().min(1, 'Bank Name is required'),
-                    bankAccountNo: z
-                        .string()
-                        .min(1, 'Bank Account No. is required')
-                        .max(20, 'Bank Account No. must not exceed 20 characters'),
+                    employerBankName: z.string().optional(),
+                    bankAccountNo: z.string().optional(),
                     accountType: z.string().optional()
                 })
             )

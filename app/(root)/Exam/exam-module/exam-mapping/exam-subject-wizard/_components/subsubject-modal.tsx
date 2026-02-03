@@ -110,22 +110,26 @@ export default function SubSubjectModal({
     // Optimized update function
     const updateRowValue = useCallback(
         (idx: number, field: keyof SubSubject, value: any) => {
-            const list = getValues('subsubject_list').map((r, i) => (i === idx ? { ...r, [field]: value } : r));
-            setValue('subsubject_list', list, { shouldDirty: true, shouldValidate: true });
+            // Update specific field only
+            setValue(`subsubject_list.${idx}.${field}`, value, { shouldDirty: true, shouldValidate: false });
+
+            // Clear specific error
             clearErrors(`subsubject_list.${idx}.${field}`);
 
             // Trigger validation for the specific field
             if (field === 'checkedvalue' && value) {
                 // If checking a row, validate required fields immediately
                 setTimeout(() => {
-                    trigger(`subsubject_list.${idx}.eycessS_MaxMarks`);
-                    trigger(`subsubject_list.${idx}.eycessS_MinMarks`);
-                    trigger(`subsubject_list.${idx}.eycessS_MarksEntryMax`);
-                    trigger(`subsubject_list.${idx}.EMGR_Id`);
+                    trigger([
+                        `subsubject_list.${idx}.eycessS_MaxMarks`,
+                        `subsubject_list.${idx}.eycessS_MinMarks`,
+                        `subsubject_list.${idx}.eycessS_MarksEntryMax`,
+                        `subsubject_list.${idx}.EMGR_Id`
+                    ]);
                 }, 0);
             }
         },
-        [getValues, setValue, clearErrors, trigger]
+        [setValue, clearErrors, trigger]
     );
 
     // Validation functions
@@ -186,10 +190,10 @@ export default function SubSubjectModal({
     // Handle field changes with immediate validation
     const handleMaxChange = useCallback(
         (idx: number, rawVal: string) => {
-            const val = rawVal === '' ? '' : Number(rawVal);
+            const val: number | '' = rawVal === '' ? '' : Number(rawVal);
             updateRowValue(idx, 'eycessS_MaxMarks', val);
 
-            const row = getValues('subsubject_list')[idx];
+            const row = { ...getValues('subsubject_list')[idx], eycessS_MaxMarks: val };
             const rowErrs = validateRowManually(row, idx);
 
             if (rowErrs.eycessS_MaxMarks) {
@@ -206,10 +210,10 @@ export default function SubSubjectModal({
 
     const handleMinChange = useCallback(
         (idx: number, rawVal: string) => {
-            const val = rawVal === '' ? '' : Number(rawVal);
+            const val: number | '' = rawVal === '' ? '' : Number(rawVal);
             updateRowValue(idx, 'eycessS_MinMarks', val);
 
-            const row = getValues('subsubject_list')[idx];
+            const row = { ...getValues('subsubject_list')[idx], eycessS_MinMarks: val };
             const rowErrs = validateRowManually(row, idx);
 
             if (rowErrs.eycessS_MinMarks) {
@@ -226,10 +230,10 @@ export default function SubSubjectModal({
 
     const handleEntryChange = useCallback(
         (idx: number, rawVal: string) => {
-            const val = rawVal === '' ? '' : Number(rawVal);
+            const val: number | '' = rawVal === '' ? '' : Number(rawVal);
             updateRowValue(idx, 'eycessS_MarksEntryMax', val);
 
-            const row = getValues('subsubject_list')[idx];
+            const row = { ...getValues('subsubject_list')[idx], eycessS_MarksEntryMax: val };
             const rowErrs = validateRowManually(row, idx);
 
             if (rowErrs.eycessS_MarksEntryMax) {
@@ -248,7 +252,7 @@ export default function SubSubjectModal({
         (idx: number, value: string) => {
             updateRowValue(idx, 'EMGR_Id', value);
 
-            const row = getValues('subsubject_list')[idx];
+            const row = { ...getValues('subsubject_list')[idx], EMGR_Id: value };
             const rowErrs = validateRowManually(row, idx);
 
             if (rowErrs.EMGR_Id) {
@@ -277,7 +281,7 @@ export default function SubSubjectModal({
                 ] as any);
             } else {
                 // If checking, validate immediately
-                const row = getValues('subsubject_list')[idx];
+                const row = { ...getValues('subsubject_list')[idx], checkedvalue: checked };
                 const rowErrs = validateRowManually(row, idx);
 
                 Object.entries(rowErrs).forEach(([field, message]) => {

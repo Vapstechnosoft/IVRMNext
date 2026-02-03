@@ -61,7 +61,7 @@ const getPageIconWithFallback = (iconName: string | null | undefined, pageName: 
         'Employee Details': User,
         'Employee Profile': Users,
         'Salary Slip': ReceiptText,
-        'Employee Contribution': DollarSign,
+        'E-PF Contribution Register': DollarSign,
         'Employee Salary Details': DollarSign,
         'Employee Strength': Users,
         'ESI Report': Shield,

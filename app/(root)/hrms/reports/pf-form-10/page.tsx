@@ -1,263 +1,211 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { FormError } from '@/components/ui/extension/field';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMasterMonths, useMasterYears } from '@/hooks/hrms/useReports';
-import { type PFForm5FormFields, PFForm5FormReportSchema } from '@/schemas/hrms/employee-category-schemas';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { RefreshCw, Search } from 'lucide-react';
 import { useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormProvider } from '@/components/ui/form/form-provider';
+import { Label } from '@/components/ui/extension/field';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
+import { exportToExcel } from '@/lib/export-to-file';
+import { usePFForm10 } from '@/hooks/hrms/useReports';
+import { Loader2, Search, Download, Printer } from 'lucide-react';
 import { toast } from 'sonner';
-import type { z } from 'zod';
-import PfForm5Columns from './_components/columns';
+import { format } from 'date-fns';
 
-type FormFields = z.infer<typeof PFForm5FormReportSchema>;
+const MONTH_LIST = [
+    { id: 1, name: 'January' }, { id: 2, name: 'February' }, { id: 3, name: 'March' },
+    { id: 4, name: 'April' }, { id: 5, name: 'May' }, { id: 6, name: 'June' },
+    { id: 7, name: 'July' }, { id: 8, name: 'August' }, { id: 9, name: 'September' },
+    { id: 10, name: 'October' }, { id: 11, name: 'November' }, { id: 12, name: 'December' }
+];
 
-const tableProps = {
-    Form5: [
-        {
-            serialNo: 1,
-            accountNo: 'MH/56789/123',
-            memberName: 'RAHUL KUMAR SHARMA',
-            fatherOrHusbandName: 'Suresh Sharma',
-            dateOfLeaving: '2025-01-15',
-            reasonForLeaving: 'Resigned',
-            remarks: ''
-        },
-        {
-            serialNo: 2,
-            accountNo: 'MH/56789/456',
-            memberName: 'PRIYA SINGH',
-            fatherOrHusbandName: 'Rajesh Singh',
-            dateOfLeaving: '2025-01-20',
-            reasonForLeaving: 'Retired',
-            remarks: 'Completed 60 years'
-        }
-    ],
-    establishmentName: 'Vidya Vikasa Vidya Samsthe (R)',
-    establishmentCode: 'PF',
-    establishmentAddress: 'Basaveshwara Talkies rd, Gayatri circle, karantaka, 577501'
-};
+interface FilterFormValues {
+    year: string;
+    month: string;
+}
 
-export default function DepartmentSalaryReportPage() {
-    const [isSearching, setIsSearching] = useState(false);
+export default function PFForm10Page() {
+    return (
+        <FormProvider>
+            <PFForm10Content />
+        </FormProvider>
+    );
+}
+
+function PFForm10Content() {
     const [reportData, setReportData] = useState<any>(null);
-    const [selectedMonth, setSelectedMonth] = useState<string>('');
-    const [selectedYear, setSelectedYear] = useState<string>('');
-
-    const { data: masterMonths, isLoading: masterMonthsLoading, isError: masterMonthsError } = useMasterMonths();
-
-    const { data: masterYears, isLoading: masterYearsLoading, isError: masterYearsError } = useMasterYears();
-
-    const MonthsOptions =
-        masterMonths?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-
-    const YearsOptions =
-        masterYears?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-
-    const {
-        control,
-        handleSubmit,
-        reset,
-        formState: { errors, isSubmitting }
-    } = useForm<FormFields>({
-        resolver: zodResolver(PFForm5FormReportSchema),
+    const { control, handleSubmit } = useForm<FilterFormValues>({
         defaultValues: {
-            month: '',
-            year: ''
-        },
-        mode: 'onChange'
+            year: '',
+            month: ''
+        }
     });
 
-    const onSearch = async (data: PFForm5FormFields) => {
-        setIsSearching(true);
-        try {
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+    const { data: yearsData } = useLeaveYearDropdown();
+    const { mutate: generateReport, isPending } = usePFForm10();
 
-            // Get month and year labels for display
-            const monthLabel = MonthsOptions.find((opt: any) => opt.value === data.month)?.label || data.month;
-            const yearLabel = YearsOptions.find((opt: any) => opt.value === data.year)?.label || data.year;
-
-            // Store selected values
-            setSelectedMonth(monthLabel);
-            setSelectedYear(yearLabel);
-
-            // Set the report data (in real scenario, this would come from API)
-            setReportData(tableProps);
-
-            toast.success('Report generated successfully!');
-        } catch (error: any) {
-            toast.error(error.message || 'Failed to generate report');
-        } finally {
-            setIsSearching(false);
+    const onSubmit = (data: FilterFormValues) => {
+        if (!data.year || !data.month) {
+            toast.error('Please select Year and Month');
+            return;
         }
-    };
 
-    const handleReset = () => {
-        reset({
-            month: '',
-            year: ''
+        const selectedYearObj = yearsData?.data?.find((y: any) => y.hrmlY_Id.toString() === data.year);
+        const yearInt = parseInt(selectedYearObj?.hrmlY_LeaveYear?.split('-')[0] || data.year);
+
+        const selectedMonthObj = MONTH_LIST.find(m => m.id.toString() === data.month);
+        const monthName = selectedMonthObj?.name || '';
+
+        generateReport({
+            hreS_Year: yearInt,
+            hreS_Month: monthName
+        }, {
+            onSuccess: (res) => {
+                if (res.success && res.data) {
+                    setReportData(res.data);
+                    toast.success('Report generated successfully');
+                } else {
+                    toast.error(res.message || 'No data found');
+                }
+            }
         });
-        setReportData(null);
-        setSelectedMonth('');
-        setSelectedYear('');
-        toast.info('Form has been reset');
     };
 
-    const handleCancel = () => {
-        setReportData(null);
-        setSelectedMonth('');
-        setSelectedYear('');
+    const handleExport = () => {
+        if (!reportData || !reportData.pfreport || reportData.pfreport.length === 0) {
+            toast.error('No data to export');
+            return;
+        }
+
+        const exportColumns = [
+            { label: 'PF Account No', value: 'hrmE_PFAccNo' },
+            { label: 'Employee Name', value: (row: any) => `${row.hrmE_EmployeeFirstName || ''} ${row.hrmE_EmployeeMiddleName || ''} ${row.hrmE_EmployeeLastName || ''}`.trim() },
+            { label: 'Date of Leaving', value: (row: any) => row.hrmE_DOL ? format(new Date(row.hrmE_DOL), 'dd-MM-yyyy') : '' },
+            { label: 'Reason for Leaving', value: 'hrmE_LeavingReason' }
+        ];
+
+        const processedContent = reportData.pfreport.map((row: any) => ({
+            ...row,
+            empName: `${row.hrmE_EmployeeFirstName || ''} ${row.hrmE_EmployeeMiddleName || ''} ${row.hrmE_EmployeeLastName || ''}`.trim(),
+            leavingDate: row.hrmE_DOL ? format(new Date(row.hrmE_DOL), 'dd-MM-yyyy') : ''
+        }));
+
+        const safeColumns = [
+            { label: 'PF Account No', value: 'hrmE_PFAccNo' },
+            { label: 'Employee Name', value: 'empName' },
+            { label: 'Date of Leaving', value: 'leavingDate' },
+            { label: 'Reason for Leaving', value: 'hrmE_LeavingReason' }
+        ];
+
+        exportToExcel('PF_Form_10', JSON.stringify(safeColumns), JSON.stringify(processedContent));
     };
-    const handlePrint = () => {
-        window.print();
-    };
+
+    const columns = [
+        {
+            id: 'slNo',
+            header: 'SL.No',
+            cell: ({ row }: any) => row.index + 1
+        },
+        {
+            accessorKey: 'hrmE_PFAccNo',
+            header: 'PF Acc No'
+        },
+        {
+            header: 'Employee Name',
+            cell: ({ row }: any) => {
+                const e = row.original;
+                return `${e.hrmE_EmployeeFirstName || ''} ${e.hrmE_EmployeeMiddleName || ''} ${e.hrmE_EmployeeLastName || ''}`.trim();
+            }
+        },
+        {
+            header: 'Date of Leaving',
+            cell: ({ row }: any) => row.original.hrmE_DOL ? format(new Date(row.original.hrmE_DOL), 'dd-MM-yyyy') : ''
+        },
+        {
+            accessorKey: 'hrmE_LeavingReason',
+            header: 'Reason for Leaving'
+        }
+    ];
+
     return (
-        <div className='min-h-screen p-8'>
-            <div className='container space-y-4 p-1'>
-                <CollapsibleSection
-                    title='PF Form 10 Report'
-                    defaultOpen={true}
-                    variant='outline'
-                    size='md'
-                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                    <div className='space-y-6'>
-                        <div className='flex justify-center'>
-                            <div className='grid w-full max-w-2xl grid-cols-1 gap-6 md:grid-cols-2'>
-                                <div className='space-y-2'>
-                                    <Label htmlFor='month' className='font-medium text-sm text-white-900'>
-                                        Month: <span className='text-red-500'>*</span>
-                                    </Label>
-                                    <Controller
-                                        name='month'
-                                        control={control}
-                                        render={({ field }) => (
-                                            <Select onValueChange={field.onChange} value={field.value}>
-                                                <SelectTrigger className='w-full'>
-                                                    <SelectValue placeholder='Select Month' />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {masterMonthsLoading ? (
-                                                        <SelectItem value='loading' disabled>
-                                                            Loading...
-                                                        </SelectItem>
-                                                    ) : masterMonthsError ? (
-                                                        <SelectItem value='error' disabled>
-                                                            Error loading data
-                                                        </SelectItem>
-                                                    ) : (
-                                                        MonthsOptions?.map((opt: any) => (
-                                                            <SelectItem key={opt.value} value={opt.value}>
-                                                                {opt.label}
-                                                            </SelectItem>
-                                                        ))
-                                                    )}
-                                                </SelectContent>
-                                            </Select>
-                                        )}
-                                    />
-                                    {errors.month && <FormError>{errors.month.message}</FormError>}
-                                </div>
+        <div className='container min-h-screen space-y-4 p-2'>
+            <div className='flex items-center justify-between'>
+                <h2 className='text-2xl font-bold tracking-tight'>PF Form 10</h2>
+            </div>
 
-                                <div className='space-y-2'>
-                                    <Label htmlFor='year' className='font-medium text-sm text-white-900'>
-                                        Year: <span className='text-red-500'>*</span>
-                                    </Label>
-                                    <Controller
-                                        name='year'
-                                        control={control}
-                                        render={({ field }) => (
-                                            <Select onValueChange={field.onChange} value={field.value}>
-                                                <SelectTrigger className='w-full'>
-                                                    <SelectValue placeholder='Select Year' />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {masterYearsLoading ? (
-                                                        <SelectItem value='loading' disabled>
-                                                            Loading...
-                                                        </SelectItem>
-                                                    ) : masterYearsError ? (
-                                                        <SelectItem value='error' disabled>
-                                                            Error loading data
-                                                        </SelectItem>
-                                                    ) : (
-                                                        YearsOptions?.map((opt: any) => (
-                                                            <SelectItem key={opt.value} value={opt.value}>
-                                                                {opt.label}
-                                                            </SelectItem>
-                                                        ))
-                                                    )}
-                                                </SelectContent>
-                                            </Select>
-                                        )}
-                                    />
-                                    {errors.year && <FormError>{errors.year.message}</FormError>}
-                                </div>
-                            </div>
+            <CollapsibleSection defaultOpen={true} title="Report Criteria" variant='outline' className='shadow-sm'>
+                <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                    <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
+                        <div className='space-y-2'>
+                            <Label>Year <span className='text-destructive'>*</span></Label>
+                            <Controller name='year' control={control} render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select Year" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {yearsData?.data?.map((y: any) => (
+                                            <SelectItem key={y.hrmlY_Id} value={y.hrmlY_Id.toString()}>
+                                                {y.hrmlY_LeaveYear}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )} />
                         </div>
 
-                        <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-center'>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                onClick={handleReset}
-                                disabled={isSearching || isSubmitting}
-                                className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                                Reset
-                            </Button>
-                            <Button
-                                type='submit'
-                                onClick={handleSubmit(onSearch)}
-                                disabled={isSearching || isSubmitting}
-                                className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
-                                {isSearching ? (
-                                    <>
-                                        <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
-                                        Searching...
-                                    </>
-                                ) : (
-                                    <div className='flex items-center'>
-                                        <Search className='mr-2 h-4 w-4' />
-                                        Search
-                                    </div>
-                                )}
-                            </Button>
+                        <div className='space-y-2'>
+                            <Label>Month <span className='text-destructive'>*</span></Label>
+                            <Controller name='month' control={control} render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select Month" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {MONTH_LIST.map((m) => (
+                                            <SelectItem key={m.id} value={m.id.toString()}>
+                                                {m.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )} />
                         </div>
                     </div>
-                </CollapsibleSection>
 
-                {/* FIXED: Changed from isSearching to reportData */}
-                {reportData && (
-                    <CollapsibleSection
-                        title='PF Form 10 Report Results'
-                        defaultOpen={true}
-                        variant='outline'
-                        size='md'
-                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                        <PfForm5Columns
-                            membersLeavingService={reportData.Form5}
-                            establishmentName={reportData.establishmentName}
-                            establishmentCode={reportData.establishmentCode}
-                            establishmentAddress={reportData.establishmentAddress}
-                            month={selectedMonth}
-                            year={selectedYear}
-                            onCancel={handleCancel}
-                            onPrint={handlePrint}
-                            isLoading={false}
-                        />
-                    </CollapsibleSection>
-                )}
-            </div>
+                    <div className='flex justify-end'>
+                        <Button type='submit' disabled={isPending} className='w-32'>
+                            {isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
+                            Generate
+                        </Button>
+                    </div>
+                </form>
+            </CollapsibleSection>
+
+            {reportData && (
+                <CollapsibleSection title="Report Details" defaultOpen={true} className='shadow-md border'
+                    rightElement={
+                        <div className='flex gap-2'>
+                            <Button variant='outline' size='sm' onClick={handleExport} className='gap-2'>
+                                <Download className='h-4 w-4' />
+                                Export
+                            </Button>
+                        </div>
+                    }
+                >
+                    <GenericDataTable
+                        data={reportData.alldata || reportData.pfreport || []}
+                        columns={columns}
+                        totalItems={(reportData.alldata || reportData.pfreport || []).length}
+                        isPaginationRequired={false}
+                        isSearchRequired={false}
+                        isLoading={isPending}
+                    />
+                </CollapsibleSection>
+            )}
         </div>
     );
 }

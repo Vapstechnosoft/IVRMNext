@@ -99,6 +99,7 @@ import {
     mapApiResponseToTab8Fields,
     mapFormDataToApiFormat,
     mapFormDataToApiFormatWithoutAddress,
+    mapFormDataToPascalCaseApiFormat,
     tabFieldMap
 } from './employee-register-helper';
 import { PayrollTab } from './payroll-tab';
@@ -669,6 +670,25 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         return mapFormDataToApiFormatWithoutAddress(data, empId, selectedPhoto);
     };
 
+    const mapFormDataToPascalCaseLocal = (data: FormFields) => {
+        const empId = savedEmployeeId || 0;
+        const payload = mapFormDataToPascalCaseApiFormat(data, empId, selectedPhoto);
+
+        // Fix for Payment Mode: If NOT 'Bank', clear bank details
+        // Cast 'm' to any to avoid type error with IPaymentModeDropdown interface
+        const paymentMode = (options.modeOfPayment as any[])?.find((m: any) =>
+            String(m.ivrmmod_Id) === String(data.modeOfPayment) ||
+            String(m.key) === String(data.modeOfPayment)
+        )?.ivrmmod_ModeOfPayment;
+
+        if (paymentMode && paymentMode.toLowerCase() !== 'bank') {
+            console.log(`ℹ️ [PAYLOAD ADAPTER] Payment Mode is '${paymentMode}' - Clearing Bank Details`);
+            payload.hrmE_BankAccountNo = '';
+        }
+
+        return payload;
+    };
+
     // Helper to get current tab key from step
     const getCurrentTabKey = () => steps.find((s) => s.id === currentStep)?.tabKey || 'employee';
 
@@ -761,14 +781,14 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             // Employee Information tab - call /api/EmployeeRegistration/SavePersonalDetails
             // Save employee details without address (address fields will be null)
             const payload = mapFormDataToApiFormatWithoutAddressLocal(data);
-            payload.hrmE_Id = selectedRow?.hrmE_Id || 0; // Use existing employee ID
+            payload.employee.hrmE_Id = selectedRow?.hrmE_Id || 0; // Use existing employee ID
 
             console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Form Data:', data);
             console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Payload:', payload);
-            console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Employee ID:', payload.hrmE_Id);
+            console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Employee ID:', payload.employee.hrmE_Id);
             console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Address Fields Check:');
-            console.log('  - Contact Address:', payload.hrmE_LocStreet, payload.hrmE_LocCity, payload.hrmE_LocStateId);
-            console.log('  - Permanent Address:', payload.hrmE_PerStreet, payload.hrmE_PerCity, payload.hrmE_PerStateId);
+            console.log('  - Contact Address:', payload.employee.hrmE_LocStreet, payload.employee.hrmE_LocCity, payload.employee.hrmE_LocStateId);
+            console.log('  - Permanent Address:', payload.employee.hrmE_PerStreet, payload.employee.hrmE_PerCity, payload.employee.hrmE_PerStateId);
             console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Calling savePersonalDetails...');
 
             savePersonalDetails(payload as any, {
@@ -815,27 +835,27 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 return;
             }
             const payload = mapFormDataToApiFormatLocal(data);
-            payload.hrmE_Id = employeeId; // Use the employee ID
+            payload.employee.hrmE_Id = employeeId; // Use the employee ID
 
             console.log('🔍 [DEBUG] Tab 2 (Address Information) - Form Data:', data);
             console.log('🔍 [DEBUG] Tab 2 (Address Information) - Payload:', payload);
             console.log('🔍 [DEBUG] Tab 2 (Address Information) - Employee ID:', employeeId);
             console.log('🔍 [DEBUG] Tab 2 (Address Information) - Address Fields:');
             console.log('  - Contact Address:', {
-                street: payload.hrmE_LocStreet,
-                area: payload.hrmE_LocArea,
-                city: payload.hrmE_LocCity,
-                stateId: payload.hrmE_LocStateId,
-                countryId: payload.hrmE_LocCountryId,
-                pincode: payload.hrmE_LocPincode
+                street: payload.employee.hrmE_LocStreet,
+                area: payload.employee.hrmE_LocArea,
+                city: payload.employee.hrmE_LocCity,
+                stateId: payload.employee.hrmE_LocStateId,
+                countryId: payload.employee.hrmE_LocCountryId,
+                pincode: payload.employee.hrmE_LocPincode
             });
             console.log('  - Permanent Address:', {
-                street: payload.hrmE_PerStreet,
-                area: payload.hrmE_PerArea,
-                city: payload.hrmE_PerCity,
-                stateId: payload.hrmE_PerStateId,
-                countryId: payload.hrmE_PerCountryId,
-                pincode: payload.hrmE_PerPincode
+                street: payload.employee.hrmE_PerStreet,
+                area: payload.employee.hrmE_PerArea,
+                city: payload.employee.hrmE_PerCity,
+                stateId: payload.employee.hrmE_PerStateId,
+                countryId: payload.employee.hrmE_PerCountryId,
+                pincode: payload.employee.hrmE_PerPincode
             });
             console.log('🔍 [DEBUG] Tab 2 (Address Information) - Calling savePersonalDetails...');
 
@@ -860,20 +880,20 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     // Verify address fields were sent
                     console.log('🔍 [DEBUG] Tab 2 - Verification - Address fields sent in payload:');
                     console.log('  Contact:', {
-                        street: payload.hrmE_LocStreet,
-                        area: payload.hrmE_LocArea,
-                        city: payload.hrmE_LocCity,
-                        stateId: payload.hrmE_LocStateId,
-                        countryId: payload.hrmE_LocCountryId,
-                        pincode: payload.hrmE_LocPincode
+                        street: payload.employee.hrmE_LocStreet,
+                        area: payload.employee.hrmE_LocArea,
+                        city: payload.employee.hrmE_LocCity,
+                        stateId: payload.employee.hrmE_LocStateId,
+                        countryId: payload.employee.hrmE_LocCountryId,
+                        pincode: payload.employee.hrmE_LocPincode
                     });
                     console.log('  Permanent:', {
-                        street: payload.hrmE_PerStreet,
-                        area: payload.hrmE_PerArea,
-                        city: payload.hrmE_PerCity,
-                        stateId: payload.hrmE_PerStateId,
-                        countryId: payload.hrmE_PerCountryId,
-                        pincode: payload.hrmE_PerPincode
+                        street: payload.employee.hrmE_PerStreet,
+                        area: payload.employee.hrmE_PerArea,
+                        city: payload.employee.hrmE_PerCity,
+                        stateId: payload.employee.hrmE_PerStateId,
+                        countryId: payload.employee.hrmE_PerCountryId,
+                        pincode: payload.employee.hrmE_PerPincode
                     });
 
                     setCurrentStep(3);
@@ -1123,8 +1143,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 setCurrentStep(1);
                 return;
             }
-            const payload = mapFormDataToApiFormatLocal(data);
-            payload.hrmE_Id = savedEmployeeId;
+            const payload = mapFormDataToPascalCaseLocal(data);
+            console.log('Final Medical Payload to API:', JSON.stringify(payload, null, 2));
             saveMedicalDetails(payload, {
                 onSuccess: (response: any) => {
                     console.log('✅ [API DEBUG] Tab 6 (Medical) - Save Success Response:', response);
@@ -1150,8 +1170,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 setCurrentStep(1);
                 return;
             }
-            const payload = mapFormDataToApiFormatLocal(data);
-            payload.hrmE_Id = savedEmployeeId;
+            const payload = mapFormDataToPascalCaseLocal(data);
+            console.log('Final Other Details Payload to API:', JSON.stringify(payload, null, 2));
             saveOtherDetails(payload, {
                 onSuccess: (response: any) => {
                     console.log('✅ [API DEBUG] Tab 7 (Other) - Save Success Response:', response);
@@ -2035,23 +2055,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     setCurrentStep(1);
                     return;
                 }
-                const rawPayload = mapFormDataToApiFormatLocal(data);
-                const payload: any = {
-                    ...rawPayload,
-                    hrmE_EmployeeFirstName: rawPayload.hrmE_EmployeeFirstName ?? '',
-                    hrmE_EmployeeMiddleName: rawPayload.hrmE_EmployeeMiddleName ?? '',
-                    hrmE_EmployeeLastName: rawPayload.hrmE_EmployeeLastName ?? '',
-                    hrmE_EmployeeCode: rawPayload.hrmE_EmployeeCode ?? '',
-                    hrmE_FatherName: rawPayload.hrmE_FatherName ?? '',
-                    hrmE_MotherName: rawPayload.hrmE_MotherName ?? '',
-                    hrmE_BloodGroup: rawPayload.hrmE_BloodGroup ?? '',
-                    hrmE_SalaryType: rawPayload.hrmE_SalaryType ?? '',
-                    hrmE_MobileNo: rawPayload.hrmE_MobileNo ?? '',
-                    hrmE_EmailId: rawPayload.hrmE_EmailId ?? '',
-                    hrmE_PANCardNo: rawPayload.hrmE_PANCardNo ?? '',
-                    hrmE_NationalSSN: rawPayload.hrmE_NationalSSN ?? '',
-                    hrmE_Id: savedEmployeeId
-                };
+                const payload = mapFormDataToPascalCaseLocal(data);
+
                 saveMedicalDetails(payload, {
                     onSuccess: (response: any) => {
                         // Show API response message
@@ -2075,8 +2080,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     setCurrentStep(1);
                     return;
                 }
-                const payload = mapFormDataToApiFormatLocal(data);
-                payload.hrmE_Id = savedEmployeeId;
+                const payload = mapFormDataToPascalCaseLocal(data);
+
                 saveOtherDetails(payload, {
                     onSuccess: (response: any) => {
                         // Show API response message
@@ -5648,11 +5653,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                             <PayrollTab
                                                 employeeId={savedEmployeeId}
                                                 employeeCode={watch('employeeCode')}
-                                                grossList={options.grossList}
-                                                earningList={options.earningList}
-                                                detectionList={options.detectionList}
-                                                arrearList={options.arrearList}
-                                                MI_Id={selectedRow?.mI_Id}
+                                                MI_Id={30}
                                                 onSuccess={onSuccess}
                                             />
                                         ) : (

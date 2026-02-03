@@ -491,6 +491,9 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                             label='Term Start Date'
                                             placeholder='Select Date'
                                             fromDate={today}
+                                            toDate={watch('ecT_TermEndDate') ? new Date(watch('ecT_TermEndDate')) : undefined}
+                                            restricted_tofieldName='Term End Date'
+                                            restricted_fromfieldName='Today'
                                         />
                                     )}
                                 />
@@ -507,6 +510,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                             fromDate={
                                                 methods.watch('ecT_TermStartDate') === '' ? today : new Date(watch('ecT_TermStartDate'))
                                             }
+                                            restricted_fromfieldName='Term Start Date'
                                         />
                                     )}
                                 />
@@ -520,6 +524,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                             label='Term Publish Date'
                                             placeholder='Select Date'
                                             fromDate={methods.watch('ecT_TermEndDate') === '' ? today : new Date(watch('ecT_TermEndDate'))}
+                                            restricted_fromfieldName='Term End Date'
                                         />
                                     )}
                                 />

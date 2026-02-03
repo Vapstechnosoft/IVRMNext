@@ -1,536 +1,351 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { CalendarYear } from '@/components/ui/calendar_year';
-import { Checkbox } from '@/components/ui/checkbox';
-import { FormError } from '@/components/ui/extension/field';
+import { useState, useMemo } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Label } from '@/components/ui/label';
+import { FormProvider } from '@/components/ui/form/form-provider';
+import { Label } from '@/components/ui/extension/field';
 import { MultiSelect } from '@/components/ui/multi-select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { SelectItem } from '@/components/ui/select';
-import { useMasterDepartments, useMasterDesignations, useMasterGroupTypes } from '@/hooks/hrms/useReports';
-import { cn } from '@/lib/utils';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { format } from 'date-fns';
-import { CalendarIcon, RefreshCw, Search } from 'lucide-react';
-import { useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { DatePicker } from '@/components/ui/date-picker';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import {
+    useEmployeeStrengthReport,
+    useReportDepartments,
+    useReportDesignations,
+    useReportGroupTypes,
+    useEmployeeStrengthOnload
+} from '@/hooks/hrms/useReports';
+import { Loader2, Search, Download, Printer } from 'lucide-react';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
+import { exportToExcel } from '@/lib/export-to-file';
+import { printEmployeeStrengthReport } from './_components/print-utils';
 
-import { z } from 'zod';
+interface FilterFormValues {
+    groupType: string[];
+    department: string[];
+    designation: string[];
+    allEmployee: boolean;
+    departmentwise: boolean;
+    leftEmployee: boolean;
+    fromDate: Date | undefined;
+    toDate: Date | undefined;
+}
 
-const EmployeeStrengthReportSchema = z.object({
-    groupType: z.array(z.string()).min(1, 'Group Type is required'),
-    department: z.array(z.string()).min(1, 'Department is required'),
-    designation: z.array(z.string()).min(1, 'Designation is required'),
-    all_employees: z.boolean().optional(),
-    department_wise: z.boolean().optional(),
-    left_employee: z.boolean().optional()
-});
+export default function EmployeeStrengthReportPage() {
+    return (
+        <FormProvider>
+            <EmployeeStrengthReportContent />
+        </FormProvider>
+    );
+}
 
-type FormFields = z.infer<typeof EmployeeStrengthReportSchema>;
-
-const mockApiResponse = {
-    employeeSalaryslipDetails: [
-        {
-            hrmD_Id: 80,
-            hrmD_Group: 'Non Teaching',
-            hrmD_Designation: 'Assistant',
-            hrmD_DepartmentName: 'Teaching',
-            hrmd_ToNoEmployee: 22
-        },
-        {
-            hrmD_Id: 84,
-            hrmD_Group: 'Non Teaching',
-            hrmD_Designation: 'Assistant',
-            hrmD_DepartmentName: 'Non Teaching',
-            hrmd_ToNoEmployee: 31
-        },
-        {
-            hrmD_Id: 517,
-            hrmD_Group: 'Non Teaching',
-            hrmD_Designation: 'Watch Man',
-            hrmD_DepartmentName: 'STATE',
-            hrmd_ToNoEmployee: 30
-        },
-        {
-            hrmD_Id: 518,
-            hrmD_Group: 'Teaching',
-            hrmD_Designation: 'OFFICE STAFF',
-            hrmD_DepartmentName: 'ICSE',
-            hrmd_ToNoEmployee: 28
-        },
-        {
-            hrmD_Id: 519,
-            hrmD_Group: 'Teaching',
-            hrmD_Designation: 'Ashwini',
-            hrmD_DepartmentName: 'assistant',
-            hrmd_ToNoEmployee: 26
-        }
-    ],
-    total: 137,
-    TotalWorkingEmployees: 127,
-    TotalLeftEmployees: 10
-};
-
-export default function DepartmentSalaryReportPage() {
-    const [isSearching, setIsSearching] = useState(false);
-    const [reportData, setReportData] = useState<any[]>([]);
-    const [selectedRangeTypes, setSelectedRangeTypes] = useState<string[]>([]);
-    const [fromDate, setFromDate] = useState<string>('');
-    const [toDate, setToDate] = useState<string>('');
-    const { data: masterGroupTypes, isLoading: masterGroupTypesLoading, isError: masterGroupTypesError } = useMasterGroupTypes();
-    const { data: masterDepartments, isLoading: masterDepartmentsLoading, isError: masterDepartmentsError } = useMasterDepartments();
-
-    const { data: masterDesignations, isLoading: masterDesignationsLoading, isError: masterDesignationsError } = useMasterDesignations();
-
-    const groupTypeOptions =
-        masterGroupTypes?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-
-    const DeaparmentsOptions =
-        masterDepartments?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-
-    const DesignationOptions =
-        masterDesignations?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-    const {
-        control,
-        handleSubmit,
-        reset,
-        formState: { errors, isSubmitting }
-    } = useForm<FormFields>({
-        resolver: zodResolver(EmployeeStrengthReportSchema),
+function EmployeeStrengthReportContent() {
+    const [reportData, setReportData] = useState<any>(null);
+    const { control, handleSubmit, watch, setValue } = useForm<FilterFormValues>({
         defaultValues: {
             groupType: [],
             department: [],
             designation: [],
-            all_employees: false,
-            department_wise: false,
-            left_employee: false
-        },
-        mode: 'onChange'
+            allEmployee: false,
+            departmentwise: false,
+            leftEmployee: false,
+            fromDate: new Date(),
+            toDate: new Date()
+        }
     });
 
-    const onSearch = async () => {
-        setIsSearching(true);
-        try {
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+    const watchedGroupType = watch('groupType');
+    const watchedDepartment = watch('department');
+    const watchedAllEmployee = watch('allEmployee');
+    const watchedDepartmentwise = watch('departmentwise');
+    const watchedLeftEmployee = watch('leftEmployee');
 
-            toast.success('Report generated successfully!');
-            setReportData(mockApiResponse.employeeSalaryslipDetails);
-        } catch (error: any) {
-            toast.error(error.message || 'Failed to generate report');
-        } finally {
-            setIsSearching(false);
+    // Queries - Using generic cascading hooks for reliable loading (ref Cumulative Report)
+    const { data: onloadData } = useEmployeeStrengthOnload(30, Number(localStorage.getItem('userId')) || 0);
+    const { data: groupTypesData } = useReportGroupTypes();
+
+    const groupTypeIds = watchedGroupType?.join(',') || '';
+    const { data: departmentsData } = useReportDepartments(groupTypeIds);
+
+    const deptIds = watchedDepartment?.join(',') || '';
+    const { data: designationsData } = useReportDesignations(groupTypeIds, deptIds);
+
+    const { mutate: generateReport, isPending } = useEmployeeStrengthReport();
+
+    const onSubmit = (data: FilterFormValues) => {
+        if (data.groupType.length === 0 || data.department.length === 0 || data.designation.length === 0) {
+            toast.error('Please select Group Type, Department and Designation');
+            return;
         }
-    };
 
-    const handleReset = () => {
-        reset({
-            groupType: [],
-            department: [],
-            designation: []
-        });
-        setReportData([]);
-        setSelectedRangeTypes([]);
-        setFromDate('');
-        setToDate('');
-        toast.info('Form has been reset');
-    };
-
-    // Calculate totals
-    const calculateTotals = () => {
-        if (reportData.length === 0) return null;
-
-        const totals = {
-            basicPay: 0,
-            hra: 0,
-            da: 0,
-            otherAllowance: 0,
-            grossEarning: 0,
-            pfCont: 0,
-            esicCont: 0,
-            pt: 0,
-            tds: 0,
-            grossDeduction: 0,
-            netSalary: 0
+        const payload = {
+            MI_Id: 30,
+            designationSelected: data.designation.map(Number),
+            departmentSelected: data.department.map(Number),
+            groupTypeSelected: data.groupType.map(Number),
+            fromDate: data.fromDate ? format(data.fromDate, 'yyyy-MM-dd') : '',
+            toDate: data.toDate ? format(data.toDate, 'yyyy-MM-dd') : '',
+            allEmployee: data.allEmployee,
+            departmentwise: data.departmentwise,
+            leftEmployee: data.leftEmployee
         };
 
-        totals.netSalary = totals.grossEarning - totals.grossDeduction;
-
-        return totals;
+        generateReport(payload, {
+            onSuccess: (res) => {
+                if (res.success && res.data) {
+                    setReportData(res.data);
+                    toast.success('Report generated successfully');
+                } else {
+                    toast.error(res.message || 'No data found');
+                }
+            }
+        });
     };
 
+    const handleExport = () => {
+        const dataForExport = reportData?.employeeDetails || reportData?.alldata || reportData?.list || (Array.isArray(reportData) ? reportData : []);
+        if (!dataForExport || dataForExport.length === 0) {
+            toast.error('No data to export');
+            return;
+        }
+
+        const exportColumns = [
+            { label: 'SL.No', value: 'slNo' },
+            { label: 'Group Type', value: 'groupTypeName' },
+            { label: 'Department', value: 'departmentName' },
+            ...(!watchedDepartmentwise && !watchedLeftEmployee ? [{ label: 'Designation', value: 'designationName' }] : []),
+            { label: 'Total No. of Emp', value: 'totalEmployees' }
+        ];
+
+        const processedContent = dataForExport.map((row: any, index: number) => ({
+            ...row,
+            slNo: index + 1
+        }));
+
+        exportToExcel('EmployeeStrengthReport', JSON.stringify(exportColumns), JSON.stringify(processedContent));
+    };
+
+    const handlePrint = () => {
+        if (!reportData) {
+            toast.error('No data to print');
+            return;
+        }
+        printEmployeeStrengthReport(reportData, watchedDepartmentwise, watchedLeftEmployee);
+    };
+
+    const columns = useMemo(() => {
+        if (!reportData) return [];
+
+        const baseColumns = [
+            {
+                id: 'serialNumber',
+                header: 'Sl.No',
+                cell: ({ row }: any) => row.index + 1,
+            },
+            {
+                accessorKey: 'groupTypeName',
+                header: 'Group Type',
+            },
+            {
+                accessorKey: 'departmentName',
+                header: 'Department',
+            }
+        ];
+
+        if (!watchedDepartmentwise && !watchedLeftEmployee) {
+            baseColumns.push({
+                accessorKey: 'designationName',
+                header: 'Designation',
+            } as any);
+        }
+
+        baseColumns.push({
+            accessorKey: 'totalEmployees',
+            header: 'Total No. of Emp',
+            cell: ({ row }: any) => <div className="text-right">{row.original.totalEmployees}</div>
+        } as any);
+
+        return baseColumns;
+    }, [reportData, watchedDepartmentwise, watchedLeftEmployee]);
+
+    const totalEmployeesSum = useMemo(() => {
+        const dataArr = reportData?.employeeDetails || reportData?.alldata || reportData?.list || (Array.isArray(reportData) ? reportData : []);
+        return dataArr?.reduce((sum: number, item: any) => sum + (item.totalEmployees || item.total_employees || 0), 0) || 0;
+    }, [reportData]);
+
     return (
-        <div className='min-h-screen p-8'>
-            <div className='container space-y-4 p-1'>
-                <CollapsibleSection
-                    title='Employee Strength'
-                    defaultOpen={true}
-                    variant='outline'
-                    size='md'
-                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                    <div className='space-y-6'>
-                        <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
-                            <div className='space-y-2'>
-                                <Label htmlFor='group-type' className='font-medium text-sm text-white-900'>
-                                    Group Type: <span className='text-red-500'>*</span>
-                                </Label>
-                                {masterGroupTypesLoading ? (
-                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
-                                ) : groupTypeOptions.length === 0 ? (
-                                    <div className='text-sm text-white-500'>No group types available</div>
-                                ) : masterGroupTypesError ? (
-                                    <SelectItem value='error' disabled>
-                                        Error loading data
-                                    </SelectItem>
-                                ) : (
-                                    <>
-                                        <Controller
-                                            name='groupType'
-                                            control={control}
-                                            render={({ field }) => (
-                                                <MultiSelect
-                                                    options={groupTypeOptions}
-                                                    defaultValue={field.value}
-                                                    onValueChange={field.onChange}
-                                                    placeholder='Select Group Types'
-                                                    className='w-full'
-                                                    maxHeight={240}
-                                                />
-                                            )}
-                                        />
-                                        {errors.groupType && <FormError>{errors.groupType.message}</FormError>}
-                                    </>
-                                )}
-                            </div>
+        <div className='container min-h-screen space-y-4 p-2'>
+            <div className='flex items-center justify-between'>
+                <h2 className='text-2xl font-bold tracking-tight'>Employee Strength Report</h2>
+            </div>
 
-                            <div className='space-y-2'>
-                                <Label htmlFor='department' className='font-medium text-sm text-white-900'>
-                                    Department: <span className='text-red-500'>*</span>
-                                </Label>
-                                {masterDepartmentsLoading ? (
-                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
-                                ) : DeaparmentsOptions.length === 0 ? (
-                                    <div className='text-sm text-white-500'>No departments available</div>
-                                ) : masterDepartmentsError ? (
-                                    <SelectItem value='error' disabled>
-                                        Error loading data
-                                    </SelectItem>
-                                ) : (
-                                    <>
-                                        <Controller
-                                            name='department'
-                                            control={control}
-                                            render={({ field }) => (
-                                                <MultiSelect
-                                                    options={DeaparmentsOptions}
-                                                    defaultValue={field.value}
-                                                    onValueChange={field.onChange}
-                                                    placeholder='Select Departments'
-                                                    className='w-full'
-                                                    maxHeight={240}
-                                                />
-                                            )}
-                                        />
-                                        {errors.department && <FormError>{errors.department.message}</FormError>}
-                                    </>
-                                )}
-                            </div>
-
-                            <div className='space-y-2'>
-                                <Label htmlFor='designation' className='font-medium text-sm text-white-900'>
-                                    Designation: <span className='text-red-500'>*</span>
-                                </Label>
-                                {masterDesignationsLoading ? (
-                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
-                                ) : DesignationOptions.length === 0 ? (
-                                    <div className='text-sm text-white-500'>No designations available</div>
-                                ) : masterDesignationsError ? (
-                                    <SelectItem value='error' disabled>
-                                        Error loading data
-                                    </SelectItem>
-                                ) : (
-                                    <>
-                                        <Controller
-                                            name='designation'
-                                            control={control}
-                                            render={({ field }) => (
-                                                <MultiSelect
-                                                    options={DesignationOptions}
-                                                    defaultValue={field.value}
-                                                    onValueChange={field.onChange}
-                                                    placeholder='Select Designations'
-                                                    className='w-full'
-                                                    maxHeight={240}
-                                                />
-                                            )}
-                                        />
-                                        {errors.designation && <FormError>{errors.designation.message}</FormError>}
-                                    </>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className='flex items-center justify-center gap-6'>
-                            <div className='flex items-center space-x-2'>
-                                <Checkbox
-                                    checked={selectedRangeTypes.includes('all Employees')}
-                                    onCheckedChange={(checked) => {
-                                        setSelectedRangeTypes((prev) =>
-                                            checked ? [...prev, 'all Employees'] : prev.filter((x) => x !== 'all Employees')
-                                        );
-                                        if (checked) {
-                                            setFromDate('');
-                                            setToDate('');
-                                        }
+            <CollapsibleSection defaultOpen={true} title="Report Criteria" variant='outline' className='shadow-sm'>
+                <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                    <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
+                        {/* Group Type */}
+                        <div className='space-y-2'>
+                            <Label>Group Type <span className='text-destructive'>*</span></Label>
+                            <Controller name='groupType' control={control} render={({ field }) => (
+                                <MultiSelect
+                                    options={groupTypesData?.data?.map((gt: any) => ({
+                                        label: gt.value,
+                                        value: gt.key.toString()
+                                    })) || []}
+                                    defaultValue={field.value}
+                                    onValueChange={(vals) => {
+                                        field.onChange(vals);
+                                        setValue('department', []);
+                                        setValue('designation', []);
                                     }}
+                                    placeholder="Select Group Types"
                                 />
-                                <Label htmlFor='all_employees' className='cursor-pointer font-normal'>
-                                    All Employees
-                                </Label>
-                            </div>
+                            )} />
+                        </div>
 
-                            <div className='flex items-center space-x-2'>
-                                <Checkbox
-                                    checked={selectedRangeTypes.includes('Department wise')}
-                                    onCheckedChange={(checked) =>
-                                        setSelectedRangeTypes((prev) =>
-                                            checked ? [...prev, 'Department wise'] : prev.filter((x) => x !== 'Department wise')
-                                        )
-                                    }
+                        {/* Department */}
+                        <div className='space-y-2'>
+                            <Label>Department <span className='text-destructive'>*</span></Label>
+                            <Controller name='department' control={control} render={({ field }) => (
+                                <MultiSelect
+                                    options={departmentsData?.data?.map((d: any) => ({
+                                        label: d.hrmD_DepartmentName,
+                                        value: d.hrmD_Id.toString()
+                                    })) || []}
+                                    defaultValue={field.value}
+                                    onValueChange={(vals) => {
+                                        field.onChange(vals);
+                                        setValue('designation', []);
+                                    }}
+                                    placeholder="Select Departments"
+                                    disabled={!watchedGroupType.length}
                                 />
-                                <Label htmlFor='department_wise' className='cursor-pointer font-normal'>
-                                    Department wise
-                                </Label>
-                            </div>
+                            )} />
+                        </div>
 
-                            <div className='flex items-center space-x-2'>
-                                <Checkbox
-                                    checked={selectedRangeTypes.includes('Left Employee')}
-                                    onCheckedChange={(checked) =>
-                                        setSelectedRangeTypes((prev) =>
-                                            checked ? [...prev, 'Left Employee'] : prev.filter((x) => x !== 'Left Employee')
-                                        )
-                                    }
+                        {/* Designation */}
+                        <div className='space-y-2'>
+                            <Label>Designation <span className='text-destructive'>*</span></Label>
+                            <Controller name='designation' control={control} render={({ field }) => (
+                                <MultiSelect
+                                    options={designationsData?.data?.map((d: any) => ({
+                                        label: d.hrmdeS_DesignationName,
+                                        value: d.hrmdeS_Id.toString()
+                                    })) || []}
+                                    defaultValue={field.value}
+                                    onValueChange={field.onChange}
+                                    placeholder="Select Designations"
+                                    disabled={!watchedDepartment.length}
                                 />
-                                <Label htmlFor='left_employee' className='cursor-pointer font-normal'>
-                                    Left Employee
-                                </Label>
+                            )} />
+                        </div>
+                    </div>
+
+                    <div className='grid grid-cols-1 gap-6 lg:grid-cols-3 bg-muted/30 p-4 rounded-lg border'>
+                        <div className='flex flex-col space-y-4'>
+                            <div className='flex items-center space-x-2'>
+                                <Controller name='allEmployee' control={control} render={({ field }) => (
+                                    <Checkbox id="allEmployee" checked={field.value} onCheckedChange={field.onChange} />
+                                )} />
+                                <Label htmlFor="allEmployee" className="cursor-pointer">All Employee</Label>
+                            </div>
+                            <div className='flex items-center space-x-2'>
+                                <Controller name='departmentwise' control={control} render={({ field }) => (
+                                    <Checkbox id="departmentwise" checked={field.value} onCheckedChange={field.onChange} />
+                                )} />
+                                <Label htmlFor="departmentwise" className="cursor-pointer">Department wise</Label>
+                            </div>
+                            <div className='flex items-center space-x-2'>
+                                <Controller name='leftEmployee' control={control} render={({ field }) => (
+                                    <Checkbox id="leftEmployee" checked={field.value} onCheckedChange={field.onChange} />
+                                )} />
+                                <Label htmlFor="leftEmployee" className="cursor-pointer">Left Employee</Label>
                             </div>
                         </div>
-                        {!selectedRangeTypes.includes('all Employees') && (
-                            <div className='flex justify-center gap-2 '>
-                                <div>
-                                    <Label className='font-medium text-sm text-white-900'>
-                                        From Date<span className='text-red-600'>*</span>
-                                    </Label>
 
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                type='button'
-                                                variant='outline'
-                                                className={cn(
-                                                    'w-full justify-start text-left font-normal',
-                                                    !fromDate && 'text-muted-foreground'
-                                                )}>
-                                                <CalendarIcon className='mr-2 h-4 w-4' />
-                                                {fromDate ? format(new Date(fromDate), 'dd/MM/yyyy') : 'From date'}
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className='w-auto p-0' align='start'>
-                                            <CalendarYear
-                                                mode='single'
-                                                selected={fromDate ? new Date(fromDate) : undefined}
-                                                onSelect={(date: Date | undefined) => setFromDate(date?.toISOString() ?? '')}
-                                                captionLayout='dropdown'
-                                                fromYear={2000}
-                                                toYear={2050}
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
+                        {!watchedAllEmployee && (
+                            <>
+                                <div className='space-y-2'>
+                                    <Label>From Date</Label>
+                                    <Controller name='fromDate' control={control} render={({ field }) => (
+                                        <DatePicker date={field.value} setDate={field.onChange} placeholder="Select From Date" />
+                                    )} />
                                 </div>
-                                <div>
-                                    <Label className='font-medium text-sm text-white-900'>
-                                        To Date<span className='text-red-600'>*</span>
-                                    </Label>
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                type='button'
-                                                variant='outline'
-                                                className={cn(
-                                                    'w-full justify-start text-left font-normal',
-                                                    !toDate && 'text-muted-foreground'
-                                                )}>
-                                                <CalendarIcon className='mr-2 h-4 w-4' />
-                                                {toDate ? format(new Date(toDate), 'dd/MM/yyyy') : 'To date'}
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className='w-auto p-0' align='start'>
-                                            <CalendarYear
-                                                mode='single'
-                                                selected={toDate ? new Date(toDate) : undefined}
-                                                onSelect={(date: Date | undefined) => setToDate(date?.toISOString() ?? '')}
-                                                captionLayout='dropdown'
-                                                fromYear={2000}
-                                                toYear={2050}
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
+                                <div className='space-y-2'>
+                                    <Label>To Date</Label>
+                                    <Controller name='toDate' control={control} render={({ field }) => (
+                                        <DatePicker date={field.value} setDate={field.onChange} placeholder="Select To Date" />
+                                    )} />
                                 </div>
-                            </div>
+                            </>
                         )}
+                    </div>
 
-                        <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-center'>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                onClick={handleReset}
-                                disabled={isSearching || isSubmitting}
-                                className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                                Reset
+                    <div className='flex justify-end gap-2'>
+                        <Button type='button' variant="outline" onClick={() => setValue('groupType', [])}>Cancel</Button>
+                        <Button type='submit' disabled={isPending} className='w-32'>
+                            {isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
+                            Search
+                        </Button>
+                    </div>
+                </form>
+            </CollapsibleSection>
+
+            {reportData && (
+                <CollapsibleSection title="Report Details" defaultOpen={true} className='shadow-md border'
+                    rightElement={
+                        <div className='flex gap-2'>
+                            <Button variant='outline' size='sm' onClick={handleExport} className='gap-2'>
+                                <Download className='h-4 w-4' />
+                                Export
                             </Button>
-                            <Button
-                                type='button'
-                                onClick={handleSubmit(onSearch)}
-                                disabled={isSearching || isSubmitting}
-                                className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
-                                {isSearching ? (
-                                    <>
-                                        <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
-                                        Searching...
-                                    </>
-                                ) : (
-                                    <div className='flex items-center'>
-                                        <Search className='mr-2 h-4 w-4' />
-                                        Search
-                                    </div>
-                                )}
+                            <Button variant='outline' size='sm' onClick={handlePrint} className='gap-2'>
+                                <Printer className='h-4 w-4' />
+                                Print
                             </Button>
+                        </div>
+                    }
+                >
+                    <div className="space-y-4">
+                        <div className="text-center space-y-1 py-4 border-b">
+                            <h3 className="text-xl font-bold">{reportData.institutionDetails?.mI_Name}</h3>
+                            <p className="text-sm text-muted-foreground">
+                                {reportData.institutionDetails?.mI_Address1} {reportData.institutionDetails?.mI_Address2} {reportData.institutionDetails?.mI_Address3}
+                            </p>
+                            <p className="text-sm text-muted-foreground">{reportData.institutionDetails?.mI_Pincode}</p>
+                            <h4 className="text-lg font-semibold pt-2">Employee Strength Report</h4>
+                        </div>
+
+                        <GenericDataTable
+                            data={reportData?.employeeDetails || reportData?.alldata || reportData?.list || (Array.isArray(reportData) ? reportData : [])}
+                            columns={columns}
+                            totalItems={(reportData?.employeeDetails || reportData?.alldata || reportData?.list || (Array.isArray(reportData) ? reportData : [])).length}
+                            isPaginationRequired={false}
+                            isSearchRequired={false}
+                            showSearchColumns={false}
+                            isLoading={isPending}
+                        />
+
+                        {/* Footer Summary */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-muted/20 rounded-lg border">
+                            <div className="space-y-1">
+                                <p className="text-xs text-muted-foreground uppercase font-semibold">Total Employees</p>
+                                <p className="text-2xl font-bold">{totalEmployeesSum}</p>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-xs text-muted-foreground uppercase font-semibold">Working Employees</p>
+                                <p className="text-2xl font-bold text-green-600">{reportData.totalWorkingEmployees || 0}</p>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-xs text-muted-foreground uppercase font-semibold">Left Employees</p>
+                                <p className="text-2xl font-bold text-red-600">{reportData.totalLeftEmployees || 0}</p>
+                            </div>
                         </div>
                     </div>
                 </CollapsibleSection>
-
-                {reportData.length > 0 && (
-                    <CollapsibleSection
-                        title='Employee Strength'
-                        defaultOpen={true}
-                        variant='outline'
-                        size='md'
-                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                        <div className='mt-2 space-x-4'>
-                            <div className='overflow-x-auto rounded-lg border'>
-                                <table className='w-full border-collapse'>
-                                    <thead>
-                                        <tr className='border-white-300 border-b-2 bg-white-100'>
-                                            <th className='border border-white-300 px-3 py-3 text-center font-semibold text-sm' rowSpan={2}>
-                                                S.No
-                                            </th>
-                                            <th className='border border-white-300 px-3 py-3 text-center font-semibold text-sm' rowSpan={2}>
-                                                Group Type
-                                            </th>
-                                            <th className='border border-white-300 px-3 py-3 text-center font-semibold text-sm' rowSpan={2}>
-                                                Department
-                                            </th>
-                                            {selectedRangeTypes.includes('all Employees') ? (
-                                                <th
-                                                    className='border border-white-300 px-3 py-3 text-center font-semibold text-sm'
-                                                    rowSpan={2}>
-                                                    Designation
-                                                </th>
-                                            ) : null}
-                                            <th className='border border-white-300 px-3 py-3 text-center font-semibold text-sm' rowSpan={2}>
-                                                Total No. of Emp
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {reportData.map((dept, index) => (
-                                            <tr key={index} className='hover:bg-white-50'>
-                                                <td className='border border-white-300 px-3 py-2 text-center text-sm'>{index + 1}</td>
-                                                <td className='border border-white-300 px-3 py-2 text-left font-medium text-sm'>
-                                                    {dept.hrmD_Group}
-                                                </td>
-                                                {selectedRangeTypes.includes('all Employees') ? (
-                                                    <td className='border border-white-300 px-3 py-2 text-left font-medium text-sm'>
-                                                        {dept.hrmD_Designation}
-                                                    </td>
-                                                ) : null}
-                                                <td className='border border-white-300 px-3 py-2 text-left font-medium text-sm'>
-                                                    {dept.hrmD_DepartmentName}
-                                                </td>
-                                                <td className='border border-white-300 px-3 py-2 text-left font-medium text-sm'>
-                                                    {dept.hrmd_ToNoEmployee}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                        {((selectedRangeTypes.includes('Left Employee') ||
-                                            !selectedRangeTypes.includes('Department wise')) &&
-                                            !selectedRangeTypes.includes('Left Employee')) ||
-                                        (selectedRangeTypes.includes('all Employees') && selectedRangeTypes.includes('Left Employee')) ||
-                                        selectedRangeTypes.includes('Department wise') ? (
-                                            <>
-                                                <tr className='border-white-400 border-t-2 bg-white-200 font-bold'>
-                                                    <td
-                                                        colSpan={selectedRangeTypes.includes('all Employees') ? 4 : 3}
-                                                        className='border border-white-300 px-4 py-3 text-left text-sm'>
-                                                        Total
-                                                    </td>
-                                                    <td className='border border-white-300 px-4 py-3 text-right text-sm'>
-                                                        {mockApiResponse.total}
-                                                    </td>
-                                                </tr>
-                                                <tr className='border-white-400 border-t-2 bg-white-200 font-bold'>
-                                                    <td
-                                                        colSpan={selectedRangeTypes.includes('all Employees') ? 4 : 3}
-                                                        className='border border-white-300 px-4 py-3 text-left text-sm'>
-                                                        Total No. of Working Employees
-                                                    </td>
-                                                    <td className='border border-white-300 px-4 py-3 text-right text-sm'>
-                                                        {mockApiResponse.TotalWorkingEmployees}
-                                                    </td>
-                                                </tr>
-                                                <tr className='border-white-400 border-t-2 bg-white-200 font-bold'>
-                                                    <td
-                                                        colSpan={selectedRangeTypes.includes('all Employees') ? 4 : 3}
-                                                        className='border border-white-300 px-4 py-3 text-left text-sm'>
-                                                        Total No. of Left Employees
-                                                    </td>
-                                                    <td className='border border-white-300 px-4 py-3 text-right text-sm'>
-                                                        {mockApiResponse.TotalLeftEmployees}
-                                                    </td>
-                                                </tr>
-                                            </>
-                                        ) : (
-                                            <tr className='border-white-400 border-t-2 bg-white-200 font-bold'>
-                                                <td
-                                                    colSpan={selectedRangeTypes.includes('all Employees') ? 4 : 3}
-                                                    className='border border-white-300 px-4 py-3 text-left text-sm'>
-                                                    Total
-                                                </td>
-                                                <td className='border border-white-300 px-4 py-3 text-right text-sm'>
-                                                    {mockApiResponse.total}
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </CollapsibleSection>
-                )}
-            </div>
+            )}
         </div>
     );
 }

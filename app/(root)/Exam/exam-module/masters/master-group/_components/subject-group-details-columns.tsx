@@ -22,20 +22,24 @@ export const MasterSubjectGroupDetailsColumns: ColumnDef<IMasterSubjectGroupDeta
     {
         id: 'select',
         header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() ? true : table.getIsSomePageRowsSelected() ? 'indeterminate' : false}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
-            />
+            <div className='flex w-8 justify-center'>
+                <Checkbox
+                    checked={table.getIsAllPageRowsSelected() ? true : table.getIsSomePageRowsSelected() ? 'indeterminate' : false}
+                    onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                    aria-label='Select all'
+                />
+            </div>
         ),
         cell: ({ row }) => (
-            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
+            <div className='flex w-8 justify-center'>
+                <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
+            </div>
         ),
         enableSorting: false,
         enableHiding: false,
-        size: 50, // <-- Same width as Sl.No
-        minSize: 50,
-        maxSize: 50
+        size: 35,
+        minSize: 35,
+        maxSize: 35
     },
 
     {

@@ -35,6 +35,7 @@ export async function getStudentFeeGroupMapping(searchParams?: ApiSearchparams) 
 
 export async function deleteStudentFeeGroupMapping(AMST_Id: number, FMG_Id: number, FMSG_Id: number, asmay_Id: number, mi_Id: number) {
     const url = `/StudentFeeGroupMappingFacade/deleteStudentFeeGroupMapping?MI_Id=${mi_Id}&AMST_Id=${AMST_Id}&ASMAY_Id=${asmay_Id}&FMG_Id=${FMG_Id}&FMSG_Id=${FMSG_Id}`;
+    console.info('deleteStudentFeeGroupMapping', url);
     return await api.delete('fees', url);
 }
 

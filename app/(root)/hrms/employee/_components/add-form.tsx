@@ -83,6 +83,7 @@ import {
     fileToBase64,
     mapFormDataToApiFormat,
     mapFormDataToApiFormatWithoutAddress,
+    mapFormDataToPascalCaseApiFormat,
     tabFieldMap
 } from './employee-register-helper';
 import { PayrollTab } from './payroll-tab';
@@ -621,14 +622,30 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     const [isFormInitialized, setIsFormInitialized] = useState(false);
 
     // Define local mapping helpers that were missing
-    const mapFormDataToApiFormatLocal = (data: FormFields): SavePersonalDetailsApiRequest => {
-        const empId = savedEmployeeId || 0;
-        return mapFormDataToApiFormat(data, empId, selectedPhoto);
+    // Wrapper to map form data to API format
+    const mapFormDataToApiFormatLocal = (formData: FormFields) => {
+        return mapFormDataToApiFormat(formData, savedEmployeeId || 0);
     };
 
-    const mapFormDataToApiFormatWithoutAddressLocal = (data: FormFields): SavePersonalDetailsApiRequest => {
+    const mapFormDataToApiFormatWithoutAddressLocal = (data: FormFields) => {
         const empId = savedEmployeeId || 0;
         return mapFormDataToApiFormatWithoutAddress(data, empId, selectedPhoto);
+    };
+
+    // Wrapper to map form data to STRICT PascalCase API format
+    const mapFormDataToPascalCaseLocal = (formData: FormFields) => {
+        const payload = mapFormDataToPascalCaseApiFormat(formData, savedEmployeeId || 0, selectedPhoto);
+
+        // Note: Using options as that's what's available in this component scope, referencing line 490
+        // Cast 'options.modeOfPayment' to any[] to completely bypass the type definition issue
+        const paymentMode = (options.modeOfPayment as any[])?.find((m: any) => String(m.ivrmmod_Id) === String(formData.modeOfPayment))?.ivrmmod_ModeOfPayment;
+
+        if (paymentMode && paymentMode.toLowerCase() !== 'bank') {
+            console.log(`ℹ️ [PAYLOAD ADAPTER] Payment Mode is '${paymentMode}' - Clearing Bank Details`);
+            payload.hrmE_BankAccountNo = '';
+        }
+
+        return payload;
     };
 
     // Helper to get current tab key from step
@@ -672,40 +689,43 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             // Force string conversion for required fields to match IEmployeeSaveRequest
             const payload: any = {
                 ...rawPayload,
-                hrmE_EmployeeFirstName: rawPayload.hrmE_EmployeeFirstName ?? '',
-                hrmE_EmployeeMiddleName: rawPayload.hrmE_EmployeeMiddleName ?? '',
-                hrmE_EmployeeLastName: rawPayload.hrmE_EmployeeLastName ?? '',
-                hrmE_EmployeeCode: rawPayload.hrmE_EmployeeCode ?? '',
-                hrmE_FatherName: rawPayload.hrmE_FatherName ?? '',
-                hrmE_MotherName: rawPayload.hrmE_MotherName ?? '',
-                hrmE_BloodGroup: rawPayload.hrmE_BloodGroup ?? '',
-                hrmE_SalaryType: rawPayload.hrmE_SalaryType ?? '',
-                hrmE_MobileNo: rawPayload.hrmE_MobileNo ?? '',
-                hrmE_EmailId: rawPayload.hrmE_EmailId ?? '',
-                hrmE_PANCardNo: rawPayload.hrmE_PANCardNo ?? '',
-                hrmE_NationalSSN: rawPayload.hrmE_NationalSSN ?? '',
-                hrmE_Id: savedEmployeeId || 0
+                employee: {
+                    ...rawPayload.employee,
+                    hrmE_EmployeeFirstName: rawPayload.employee.hrmE_EmployeeFirstName ?? '',
+                    hrmE_EmployeeMiddleName: rawPayload.employee.hrmE_EmployeeMiddleName ?? '',
+                    hrmE_EmployeeLastName: rawPayload.employee.hrmE_EmployeeLastName ?? '',
+                    hrmE_EmployeeCode: rawPayload.employee.hrmE_EmployeeCode ?? '',
+                    hrmE_FatherName: rawPayload.employee.hrmE_FatherName ?? '',
+                    hrmE_MotherName: rawPayload.employee.hrmE_MotherName ?? '',
+                    hrmE_BloodGroup: rawPayload.employee.hrmE_BloodGroup ?? '',
+                    hrmE_SalaryType: rawPayload.employee.hrmE_SalaryType ?? '',
+                    hrmE_MobileNo: rawPayload.employee.hrmE_MobileNo ?? '',
+                    hrmE_EmailId: rawPayload.employee.hrmE_EmailId ?? '',
+                    hrmE_PANCardNo: rawPayload.employee.hrmE_PANCardNo ?? '',
+                    hrmE_NationalSSN: rawPayload.employee.hrmE_NationalSSN ?? '',
+                    hrmE_Id: savedEmployeeId || 0
+                }
             };
 
             console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Form Data:', data);
             console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Payload:', payload);
-            console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Employee ID:', payload.hrmE_Id);
+            console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Employee ID:', payload.employee.hrmE_Id);
             console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Address Fields Check (should be null/empty):');
             console.log('  - Contact Address:', {
-                street: payload.hrmE_LocStreet,
-                area: payload.hrmE_LocArea,
-                city: payload.hrmE_LocCity,
-                stateId: payload.hrmE_LocStateId,
-                countryId: payload.hrmE_LocCountryId,
-                pincode: payload.hrmE_LocPincode
+                street: payload.employee.hrmE_LocStreet,
+                area: payload.employee.hrmE_LocArea,
+                city: payload.employee.hrmE_LocCity,
+                stateId: payload.employee.hrmE_LocStateId,
+                countryId: payload.employee.hrmE_LocCountryId,
+                pincode: payload.employee.hrmE_LocPincode
             });
             console.log('  - Permanent Address:', {
-                street: payload.hrmE_PerStreet,
-                area: payload.hrmE_PerArea,
-                city: payload.hrmE_PerCity,
-                stateId: payload.hrmE_PerStateId,
-                countryId: payload.hrmE_PerCountryId,
-                pincode: payload.hrmE_PerPincode
+                street: payload.employee.hrmE_PerStreet,
+                area: payload.employee.hrmE_PerArea,
+                city: payload.employee.hrmE_PerCity,
+                stateId: payload.employee.hrmE_PerStateId,
+                countryId: payload.employee.hrmE_PerCountryId,
+                pincode: payload.employee.hrmE_PerPincode
             });
             console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Calling savePersonalDetails...');
 
@@ -750,7 +770,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
 
                     console.log('🔍 [DEBUG] Tab 1 - Request vs Response Comparison:');
                     keyFields.forEach(({ req, res }) => {
-                        const reqValue = payload[req as keyof typeof payload];
+                        const reqValue = (payload.employee as any)[req];
                         const resValue = responseData[res as keyof typeof responseData];
                         const match =
                             reqValue === resValue ||
@@ -773,7 +793,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
 
                     console.log('🔍 [DEBUG] Tab 1 - Date Fields Comparison:');
                     dateFields.forEach(({ req, res }) => {
-                        const reqValue = payload[req as keyof typeof payload];
+                        const reqValue = (payload.employee as any)[req];
                         const resValue = responseData[res as keyof typeof responseData];
                         if (reqValue && resValue) {
                             const reqDate = new Date(String(reqValue)).toISOString().split('T')[0];
@@ -806,7 +826,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
 
                     console.log('🔍 [DEBUG] Tab 1 - Payroll Fields Comparison:');
                     payrollFields.forEach(({ req, res }) => {
-                        const reqValue = payload[req as keyof typeof payload];
+                        const reqValue = (payload.employee as any)[req];
                         const resValue = responseData[res as keyof typeof responseData];
                         const match =
                             reqValue === resValue ||
@@ -865,27 +885,27 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 return;
             }
             const payload = mapFormDataToApiFormatLocal(data);
-            payload.hrmE_Id = savedEmployeeId; // Use the ID from step 1
+            payload.employee.hrmE_Id = savedEmployeeId; // Use the ID from step 1
 
             console.log('🔍 [DEBUG] Tab 2 (Address Information) - Form Data:', data);
             console.log('🔍 [DEBUG] Tab 2 (Address Information) - Payload:', payload);
             console.log('🔍 [DEBUG] Tab 2 (Address Information) - Employee ID:', savedEmployeeId);
             console.log('🔍 [DEBUG] Tab 2 (Address Information) - Address Fields:');
             console.log('  - Contact Address:', {
-                street: payload.hrmE_LocStreet,
-                area: payload.hrmE_LocArea,
-                city: payload.hrmE_LocCity,
-                stateId: payload.hrmE_LocStateId,
-                countryId: payload.hrmE_LocCountryId,
-                pincode: payload.hrmE_LocPincode
+                street: payload.employee.hrmE_LocStreet,
+                area: payload.employee.hrmE_LocArea,
+                city: payload.employee.hrmE_LocCity,
+                stateId: payload.employee.hrmE_LocStateId,
+                countryId: payload.employee.hrmE_LocCountryId,
+                pincode: payload.employee.hrmE_LocPincode
             });
             console.log('  - Permanent Address:', {
-                street: payload.hrmE_PerStreet,
-                area: payload.hrmE_PerArea,
-                city: payload.hrmE_PerCity,
-                stateId: payload.hrmE_PerStateId,
-                countryId: payload.hrmE_PerCountryId,
-                pincode: payload.hrmE_PerPincode
+                street: payload.employee.hrmE_PerStreet,
+                area: payload.employee.hrmE_PerArea,
+                city: payload.employee.hrmE_PerCity,
+                stateId: payload.employee.hrmE_PerStateId,
+                countryId: payload.employee.hrmE_PerCountryId,
+                pincode: payload.employee.hrmE_PerPincode
             });
             console.log('🔍 [DEBUG] Tab 2 (Address Information) - Calling savePersonalDetails...');
 
@@ -915,7 +935,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
 
                     console.log('📍 Contact Address:');
                     contactAddressFields.forEach(({ req, res }) => {
-                        const reqValue = payload[req as keyof typeof payload];
+                        const reqValue = (payload.employee as any)[req];
                         const resValue = responseData[res as keyof typeof responseData];
                         const match =
                             reqValue === resValue ||
@@ -940,7 +960,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
 
                     console.log('📍 Permanent Address:');
                     permanentAddressFields.forEach(({ req, res }) => {
-                        const reqValue = payload[req as keyof typeof payload];
+                        const reqValue = (payload.employee as any)[req];
                         const resValue = responseData[res as keyof typeof responseData];
                         const match =
                             reqValue === resValue ||
@@ -978,7 +998,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
 
                     console.log('🔍 [DEBUG] Tab 2 - Other Key Fields Verification:');
                     keyFields.forEach(({ req, res }) => {
-                        const reqValue = payload[req as keyof typeof payload];
+                        const reqValue = (payload.employee as any)[req];
                         const resValue = responseData[res as keyof typeof responseData];
                         const match = reqValue === resValue;
                         if (!match) {
@@ -1400,23 +1420,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 setCurrentStep(1);
                 return;
             }
-            const rawPayload = mapFormDataToApiFormatLocal(data);
-            const payload: any = {
-                ...rawPayload,
-                hrmE_EmployeeFirstName: rawPayload.hrmE_EmployeeFirstName ?? '',
-                hrmE_EmployeeMiddleName: rawPayload.hrmE_EmployeeMiddleName ?? '',
-                hrmE_EmployeeLastName: rawPayload.hrmE_EmployeeLastName ?? '',
-                hrmE_EmployeeCode: rawPayload.hrmE_EmployeeCode ?? '',
-                hrmE_FatherName: rawPayload.hrmE_FatherName ?? '',
-                hrmE_MotherName: rawPayload.hrmE_MotherName ?? '',
-                hrmE_BloodGroup: rawPayload.hrmE_BloodGroup ?? '',
-                hrmE_SalaryType: rawPayload.hrmE_SalaryType ?? '',
-                hrmE_MobileNo: rawPayload.hrmE_MobileNo ?? '',
-                hrmE_EmailId: rawPayload.hrmE_EmailId ?? '',
-                hrmE_PANCardNo: rawPayload.hrmE_PANCardNo ?? '',
-                hrmE_NationalSSN: rawPayload.hrmE_NationalSSN ?? '',
-                hrmE_Id: savedEmployeeId
-            };
+            const payload = mapFormDataToPascalCaseLocal(data);
+            console.log('Final Medical Payload to API:', JSON.stringify(payload, null, 2));
             saveMedicalDetails(payload, {
                 onSuccess: (response: any) => {
                     console.log('✅ [API DEBUG] Tab 6 (Medical) - Save Success Response:', response);
@@ -1441,23 +1446,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 setCurrentStep(1);
                 return;
             }
-            const rawPayload = mapFormDataToApiFormatLocal(data);
-            const payload: any = {
-                ...rawPayload,
-                hrmE_EmployeeFirstName: rawPayload.hrmE_EmployeeFirstName ?? '',
-                hrmE_EmployeeMiddleName: rawPayload.hrmE_EmployeeMiddleName ?? '',
-                hrmE_EmployeeLastName: rawPayload.hrmE_EmployeeLastName ?? '',
-                hrmE_EmployeeCode: rawPayload.hrmE_EmployeeCode ?? '',
-                hrmE_FatherName: rawPayload.hrmE_FatherName ?? '',
-                hrmE_MotherName: rawPayload.hrmE_MotherName ?? '',
-                hrmE_BloodGroup: rawPayload.hrmE_BloodGroup ?? '',
-                hrmE_SalaryType: rawPayload.hrmE_SalaryType ?? '',
-                hrmE_MobileNo: rawPayload.hrmE_MobileNo ?? '',
-                hrmE_EmailId: rawPayload.hrmE_EmailId ?? '',
-                hrmE_PANCardNo: rawPayload.hrmE_PANCardNo ?? '',
-                hrmE_NationalSSN: rawPayload.hrmE_NationalSSN ?? '',
-                hrmE_Id: savedEmployeeId
-            };
+            const payload = mapFormDataToPascalCaseLocal(data);
+            console.log('Final Other Details Payload to API:', JSON.stringify(payload, null, 2));
             saveOtherDetails(payload, {
                 onSuccess: (response: any) => {
                     console.log('✅ [API DEBUG] Tab 7 (Other) - Save Success Response:', response);
@@ -1791,7 +1781,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 // Employee Information tab - call /api/EmployeeRegistration/SavePersonalDetails
                 // Save employee details without address (address fields will be null)
                 const payload = mapFormDataToApiFormatWithoutAddressLocal(data);
-                payload.hrmE_Id = 0; // New record
+                payload.employee.hrmE_Id = 0; // New record
                 savePersonalDetails(payload as any, {
                     onSuccess: (response: any) => {
                         // Show API response message
@@ -1828,19 +1818,22 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 // Force string conversion for required fields
                 const payload: any = {
                     ...rawPayload,
-                    hrmE_EmployeeFirstName: rawPayload.hrmE_EmployeeFirstName ?? '',
-                    hrmE_EmployeeMiddleName: rawPayload.hrmE_EmployeeMiddleName ?? '',
-                    hrmE_EmployeeLastName: rawPayload.hrmE_EmployeeLastName ?? '',
-                    hrmE_EmployeeCode: rawPayload.hrmE_EmployeeCode ?? '',
-                    hrmE_FatherName: rawPayload.hrmE_FatherName ?? '',
-                    hrmE_MotherName: rawPayload.hrmE_MotherName ?? '',
-                    hrmE_BloodGroup: rawPayload.hrmE_BloodGroup ?? '',
-                    hrmE_SalaryType: rawPayload.hrmE_SalaryType ?? '',
-                    hrmE_MobileNo: rawPayload.hrmE_MobileNo ?? '',
-                    hrmE_EmailId: rawPayload.hrmE_EmailId ?? '',
-                    hrmE_PANCardNo: rawPayload.hrmE_PANCardNo ?? '',
-                    hrmE_NationalSSN: rawPayload.hrmE_NationalSSN ?? '',
-                    hrmE_Id: savedEmployeeId // Use cached ID
+                    employee: {
+                        ...rawPayload.employee,
+                        hrmE_EmployeeFirstName: rawPayload.employee.hrmE_EmployeeFirstName ?? '',
+                        hrmE_EmployeeMiddleName: rawPayload.employee.hrmE_EmployeeMiddleName ?? '',
+                        hrmE_EmployeeLastName: rawPayload.employee.hrmE_EmployeeLastName ?? '',
+                        hrmE_EmployeeCode: rawPayload.employee.hrmE_EmployeeCode ?? '',
+                        hrmE_FatherName: rawPayload.employee.hrmE_FatherName ?? '',
+                        hrmE_MotherName: rawPayload.employee.hrmE_MotherName ?? '',
+                        hrmE_BloodGroup: rawPayload.employee.hrmE_BloodGroup ?? '',
+                        hrmE_SalaryType: rawPayload.employee.hrmE_SalaryType ?? '',
+                        hrmE_MobileNo: rawPayload.employee.hrmE_MobileNo ?? '',
+                        hrmE_EmailId: rawPayload.employee.hrmE_EmailId ?? '',
+                        hrmE_PANCardNo: rawPayload.employee.hrmE_PANCardNo ?? '',
+                        hrmE_NationalSSN: rawPayload.employee.hrmE_NationalSSN ?? '',
+                        hrmE_Id: savedEmployeeId // Use cached ID
+                    }
                 };
                 savePersonalDetails(payload, {
                     onSuccess: (response: any) => {
@@ -2191,19 +2184,22 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     const rawPayload = mapFormDataToApiFormatLocal(data);
                     const finalPayload: any = {
                         ...rawPayload,
-                        hrmE_EmployeeFirstName: rawPayload.hrmE_EmployeeFirstName ?? '',
-                        hrmE_EmployeeMiddleName: rawPayload.hrmE_EmployeeMiddleName ?? '',
-                        hrmE_EmployeeLastName: rawPayload.hrmE_EmployeeLastName ?? '',
-                        hrmE_EmployeeCode: rawPayload.hrmE_EmployeeCode ?? '',
-                        hrmE_FatherName: rawPayload.hrmE_FatherName ?? '',
-                        hrmE_MotherName: rawPayload.hrmE_MotherName ?? '',
-                        hrmE_BloodGroup: rawPayload.hrmE_BloodGroup ?? '',
-                        hrmE_SalaryType: rawPayload.hrmE_SalaryType ?? '',
-                        hrmE_MobileNo: rawPayload.hrmE_MobileNo ?? '',
-                        hrmE_EmailId: rawPayload.hrmE_EmailId ?? '',
-                        hrmE_PANCardNo: rawPayload.hrmE_PANCardNo ?? '',
-                        hrmE_NationalSSN: rawPayload.hrmE_NationalSSN ?? '',
-                        hrmE_Id: savedEmployeeId,
+                        employee: {
+                            ...rawPayload.employee,
+                            hrmE_EmployeeFirstName: rawPayload.employee.hrmE_EmployeeFirstName ?? '',
+                            hrmE_EmployeeMiddleName: rawPayload.employee.hrmE_EmployeeMiddleName ?? '',
+                            hrmE_EmployeeLastName: rawPayload.employee.hrmE_EmployeeLastName ?? '',
+                            hrmE_EmployeeCode: rawPayload.employee.hrmE_EmployeeCode ?? '',
+                            hrmE_FatherName: rawPayload.employee.hrmE_FatherName ?? '',
+                            hrmE_MotherName: rawPayload.employee.hrmE_MotherName ?? '',
+                            hrmE_BloodGroup: rawPayload.employee.hrmE_BloodGroup ?? '',
+                            hrmE_SalaryType: rawPayload.employee.hrmE_SalaryType ?? '',
+                            hrmE_MobileNo: rawPayload.employee.hrmE_MobileNo ?? '',
+                            hrmE_EmailId: rawPayload.employee.hrmE_EmailId ?? '',
+                            hrmE_PANCardNo: rawPayload.employee.hrmE_PANCardNo ?? '',
+                            hrmE_NationalSSN: rawPayload.employee.hrmE_NationalSSN ?? '',
+                            hrmE_Id: savedEmployeeId
+                        },
                         documentList: documentsPayload,
                         DocumentList: documentsPayload
                     };
@@ -2239,23 +2235,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     setCurrentStep(1);
                     return;
                 }
-                const rawPayload = mapFormDataToApiFormatLocal(data);
-                const payload: any = {
-                    ...rawPayload,
-                    hrmE_EmployeeFirstName: rawPayload.hrmE_EmployeeFirstName ?? '',
-                    hrmE_EmployeeMiddleName: rawPayload.hrmE_EmployeeMiddleName ?? '',
-                    hrmE_EmployeeLastName: rawPayload.hrmE_EmployeeLastName ?? '',
-                    hrmE_EmployeeCode: rawPayload.hrmE_EmployeeCode ?? '',
-                    hrmE_FatherName: rawPayload.hrmE_FatherName ?? '',
-                    hrmE_MotherName: rawPayload.hrmE_MotherName ?? '',
-                    hrmE_BloodGroup: rawPayload.hrmE_BloodGroup ?? '',
-                    hrmE_SalaryType: rawPayload.hrmE_SalaryType ?? '',
-                    hrmE_MobileNo: rawPayload.hrmE_MobileNo ?? '',
-                    hrmE_EmailId: rawPayload.hrmE_EmailId ?? '',
-                    hrmE_PANCardNo: rawPayload.hrmE_PANCardNo ?? '',
-                    hrmE_NationalSSN: rawPayload.hrmE_NationalSSN ?? '',
-                    hrmE_Id: savedEmployeeId
-                };
+                const payload = mapFormDataToPascalCaseLocal(data);
                 saveMedicalDetails(payload, {
                     onSuccess: (response: any) => {
                         console.log('✅ [API DEBUG] Tab 6 (Medical) - Save Success Response:', response);
@@ -2280,23 +2260,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     setCurrentStep(1);
                     return;
                 }
-                const rawPayload = mapFormDataToApiFormatLocal(data);
-                const payload: any = {
-                    ...rawPayload,
-                    hrmE_EmployeeFirstName: rawPayload.hrmE_EmployeeFirstName ?? '',
-                    hrmE_EmployeeMiddleName: rawPayload.hrmE_EmployeeMiddleName ?? '',
-                    hrmE_EmployeeLastName: rawPayload.hrmE_EmployeeLastName ?? '',
-                    hrmE_EmployeeCode: rawPayload.hrmE_EmployeeCode ?? '',
-                    hrmE_FatherName: rawPayload.hrmE_FatherName ?? '',
-                    hrmE_MotherName: rawPayload.hrmE_MotherName ?? '',
-                    hrmE_BloodGroup: rawPayload.hrmE_BloodGroup ?? '',
-                    hrmE_SalaryType: rawPayload.hrmE_SalaryType ?? '',
-                    hrmE_MobileNo: rawPayload.hrmE_MobileNo ?? '',
-                    hrmE_EmailId: rawPayload.hrmE_EmailId ?? '',
-                    hrmE_PANCardNo: rawPayload.hrmE_PANCardNo ?? '',
-                    hrmE_NationalSSN: rawPayload.hrmE_NationalSSN ?? '',
-                    hrmE_Id: savedEmployeeId
-                };
+                const payload = mapFormDataToPascalCaseLocal(data);
                 saveOtherDetails(payload, {
                     onSuccess: (response: any) => {
                         console.log('✅ [API DEBUG] Tab 7 (Other) - Save Success Response:', response);

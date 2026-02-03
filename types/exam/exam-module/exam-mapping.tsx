@@ -450,6 +450,11 @@ export interface IPromotionSetting {
     emP_BestOfApplicableFlg: boolean;
 }
 
+export interface IPromotionCategory {
+    eyC_Id: number;
+    emcA_CategoryName: string;
+}
+
 export interface IExamPromotionalSettingDetails {
     eycsE_Id: number; // Subject Mapping ID  (Row ID)
     eycE_Id: number; // Parent ExamId (FK)
@@ -537,6 +542,7 @@ export interface IPromotionalSubjectDetails {
 
     emcA_CategoryName: string;
     emgR_GradeName: string;
+    emgR_Id: number;
 
     ismS_SubjectName: string;
     ismS_SubjectCode: string;
@@ -890,4 +896,37 @@ export interface SaveCCEMarksParams {
     ecacT_Id?: number;
     ecactA_Id?: number;
     admno: string;
+}
+
+export interface IPromotionalSubGroupDetails {
+    empsG_Id: number;
+    empS_Id: number;
+    empsG_GroupName: string;
+    empsG_DisplayName: string;
+    empsG_PercentValue: number;
+    empsG_MarksValue: number;
+    empsG_MaxOff: number;
+    empsG_BestOff: number;
+    empsG_Order: number;
+    empsG_RoundOffFlag: boolean;
+    empsG_ActiveFlag: boolean;
+}
+
+export interface IPromotionalSubGroupExamDetails {
+    empsgE_Id: number;
+    empsG_Id: number;
+    emE_Id: number;
+    emE_ExamName: string;
+    empsgE_ForMaxMarkrs: number;
+    empsgE_ConvertionReqOrNot: boolean;
+    empsgE_ActiveFlag: boolean;
+}
+
+export interface IPromotionDetailsByIdResponse {
+    categoryDetails: IPromotionSetting;
+    promotionSubjects: {
+        promotion_Subject_List: IPromotionalSubjectDetails[];
+        promotion_SubGroup_List: IPromotionalSubGroupDetails[];
+        group_Exam_List: IPromotionalSubGroupExamDetails[];
+    };
 }

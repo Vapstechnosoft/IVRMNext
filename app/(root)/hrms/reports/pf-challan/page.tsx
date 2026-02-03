@@ -1,270 +1,241 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { FormError } from '@/components/ui/extension/field';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMasterMonths, useMasterYears } from '@/hooks/hrms/useReports';
-import { type PFChallenFields, PFChallenSchema } from '@/schemas/hrms/employee-category-schemas';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { RefreshCw, Search } from 'lucide-react';
 import { useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormProvider } from '@/components/ui/form/form-provider';
+import { Label } from '@/components/ui/extension/field';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
+import { exportToExcel } from '@/lib/export-to-file';
+import { usePFChallan, usePFChallanOnload } from '@/hooks/hrms/useReports';
+import { Loader2, Search, Download } from 'lucide-react';
 import { toast } from 'sonner';
-import type { z } from 'zod';
-import PFChallan from './_components/columns';
 
-type FormFields = z.infer<typeof PFChallenSchema>;
+const MONTH_LIST = [
+    { id: 1, name: 'January' }, { id: 2, name: 'February' }, { id: 3, name: 'March' },
+    { id: 4, name: 'April' }, { id: 5, name: 'May' }, { id: 6, name: 'June' },
+    { id: 7, name: 'July' }, { id: 8, name: 'August' }, { id: 9, name: 'September' },
+    { id: 10, name: 'October' }, { id: 11, name: 'November' }, { id: 12, name: 'December' }
+];
 
-const tableProps = {
-    Form5: [
-        {
-            serialNo: 1,
-            accountNo: 'MH/56789/123',
-            memberName: 'RAHUL KUMAR SHARMA',
-            fatherOrHusbandName: 'Suresh Sharma',
-            dateOfLeaving: '2025-01-15',
-            reasonForLeaving: 'Resigned',
-            remarks: ''
-        },
-        {
-            serialNo: 2,
-            accountNo: 'MH/56789/456',
-            memberName: 'PRIYA SINGH',
-            fatherOrHusbandName: 'Rajesh Singh',
-            dateOfLeaving: '2025-01-20',
-            reasonForLeaving: 'Retired',
-            remarks: 'Completed 60 years'
-        }
-    ],
-    establishmentName: 'Vidya Vikasa Vidya Samsthe (R)',
-    establishmentCode: '',
-    establishmentAddress: 'Basaveshwara Talkies rd, Gayatri circle, karantaka, 577501'
-};
+interface FilterFormValues {
+    year: string;
+    month: string;
+}
 
-export default function DepartmentSalaryReportPage() {
-    const [isSearching, setIsSearching] = useState(false);
-    const [reportData, setReportData] = useState<any>(null);
-    const [selectedMonth, setSelectedMonth] = useState<string>('');
-    const [selectedYear, setSelectedYear] = useState<string>('');
+export default function PFChallanPage() {
+    return (
+        <FormProvider>
+            <PFChallanContent />
+        </FormProvider>
+    );
+}
 
-    const { data: masterMonths, isLoading: masterMonthsLoading, isError: masterMonthsError } = useMasterMonths();
-
-    const { data: masterYears, isLoading: masterYearsLoading, isError: masterYearsError } = useMasterYears();
-
-    const MonthsOptions =
-        masterMonths?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-
-    const YearsOptions =
-        masterYears?.data?.map((item: any) => ({
-            value: item.key,
-            label: item.value
-        })) || [];
-
-    const {
-        control,
-        handleSubmit,
-        reset,
-        formState: { errors, isSubmitting }
-    } = useForm<FormFields>({
-        resolver: zodResolver(PFChallenSchema),
+function PFChallanContent() {
+    const [reportData, setReportData] = useState<any[] | null>(null);
+    const { control, handleSubmit } = useForm<FilterFormValues>({
         defaultValues: {
-            month: '',
-            year: ''
-        },
-        mode: 'onChange'
+            year: '',
+            month: ''
+        }
     });
 
-    const onSearch = async (data: PFChallenFields) => {
-        setIsSearching(true);
-        try {
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+    // Queries - Using facade onload for ID sync
+    const { data: onloadData } = usePFChallanOnload(30);
 
-            // Get month and year labels for display
-            const monthLabel = MonthsOptions.find((opt: any) => opt.value === data.month)?.label || data.month;
-            const yearLabel = YearsOptions.find((opt: any) => opt.value === data.year)?.label || data.year;
+    // Using general master for Years as reference Cumulative Report
+    const { data: yearsData } = useLeaveYearDropdown();
+    const monthsData = { data: onloadData?.data?.monthdropdown || [] };
 
-            // Store selected values
-            setSelectedMonth(monthLabel);
-            setSelectedYear(yearLabel);
+    const { mutate: generateReport, isPending } = usePFChallan();
 
-            // Set the report data (in real scenario, this would come from API)
-            setReportData(tableProps);
-
-            toast.success('Report generated successfully!');
-        } catch (error: any) {
-            toast.error(error.message || 'Failed to generate report');
-        } finally {
-            setIsSearching(false);
+    const onSubmit = (data: FilterFormValues) => {
+        if (!data.year || !data.month) {
+            toast.error('Please select Year and Month');
+            return;
         }
-    };
 
-    const handleReset = () => {
-        reset({
-            month: '',
-            year: ''
+
+        const selectedYearObj = yearsData?.data?.find((y: any) => y.hrmlY_Id.toString() === data.year);
+        const yearString = selectedYearObj?.hrmlY_LeaveYear?.split('-')[0] || data.year;
+
+        generateReport({
+            hreS_Year: yearString,
+            hreS_Month: data.month
+        }, {
+            onSuccess: (res) => {
+                if (res.success && res.data) {
+                    // Robust data binding: handle direct array or nested properties
+                    const dataArr = res.data.alldata || res.data.pfreport || (Array.isArray(res.data) ? res.data : []);
+                    setReportData(dataArr);
+                    toast.success('Report generated successfully');
+                } else {
+                    toast.error(res.message || 'No data found');
+                }
+            }
         });
-        setReportData(null);
-        setSelectedMonth('');
-        setSelectedYear('');
-        toast.info('Form has been reset');
     };
 
-    const handleCancel = () => {
-        setReportData(null);
-        setSelectedMonth('');
-        setSelectedYear('');
+    const handleExport = () => {
+        if (!reportData || reportData.length === 0) {
+            toast.error('No data to export');
+            return;
+        }
+
+        const exportColumns = [
+            { label: 'Wages', value: 'amountofWages' },
+            { label: 'EPF', value: 'hreS_EPF' },
+            { label: 'FPF', value: 'hreS_FPF' },
+            { label: 'Ac 21', value: 'hreS_Ac21' },
+            { label: 'Ac 22', value: 'hreS_Ac22' },
+            { label: 'Ac 5', value: 'hreS_Ac5' },
+            { label: 'Ac 10', value: 'hreS_Ac10' },
+            { label: 'PF Amount', value: 'pfAmount' },
+            { label: 'Father/Husband Name', value: 'fatherHusbandName' }
+        ];
+
+        exportToExcel('PF_Challan', JSON.stringify(exportColumns), JSON.stringify(reportData));
     };
+
+    const columns = [
+        {
+            id: 'slNo',
+            header: 'SL.No',
+            cell: ({ row }: any) => row.index + 1
+        },
+        {
+            accessorKey: 'amountofWages',
+            header: 'Wages',
+            cell: ({ row }: any) => Number(row.original.amountofWages || 0).toFixed(2)
+        },
+        {
+            accessorKey: 'hreS_EPF',
+            header: 'EPF',
+            cell: ({ row }: any) => Number(row.original.hreS_EPF || 0).toFixed(2)
+        },
+        {
+            accessorKey: 'hreS_FPF',
+            header: 'FPF',
+            cell: ({ row }: any) => Number(row.original.hreS_FPF || 0).toFixed(2)
+        },
+        {
+            accessorKey: 'hreS_Ac21',
+            header: 'Ac 21',
+            cell: ({ row }: any) => Number(row.original.hreS_Ac21 || 0).toFixed(2)
+        },
+        {
+            accessorKey: 'hreS_Ac22',
+            header: 'Ac 22',
+            cell: ({ row }: any) => Number(row.original.hreS_Ac22 || 0).toFixed(2)
+        },
+        {
+            accessorKey: 'hreS_Ac5',
+            header: 'Ac 5',
+            cell: ({ row }: any) => Number(row.original.hreS_Ac5 || 0).toFixed(2)
+        },
+        {
+            accessorKey: 'hreS_Ac10',
+            header: 'Ac 10',
+            cell: ({ row }: any) => Number(row.original.hreS_Ac10 || 0).toFixed(2)
+        },
+        {
+            accessorKey: 'pfAmount',
+            header: 'PF Amount',
+            cell: ({ row }: any) => Number(row.original.pfAmount || 0).toFixed(2)
+        },
+        {
+            accessorKey: 'fatherHusbandName',
+            header: 'Father/Husband Name',
+        }
+    ];
 
     return (
-        <div className='min-h-screen p-8'>
-            <div className='container space-y-4 p-1'>
-                <CollapsibleSection
-                    title='PF Challan'
-                    defaultOpen={true}
-                    variant='outline'
-                    size='md'
-                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                    <div className='space-y-6'>
-                        <div className='flex justify-center'>
-                            <div className='grid w-full max-w-2xl grid-cols-1 gap-6 md:grid-cols-2'>
-                                <div className='space-y-2'>
-                                    <Label htmlFor='month' className='font-medium text-sm text-white-900'>
-                                        Month: <span className='text-red-500'>*</span>
-                                    </Label>
-                                    <Controller
-                                        name='month'
-                                        control={control}
-                                        render={({ field }) => (
-                                            <Select onValueChange={field.onChange} value={field.value}>
-                                                <SelectTrigger className='w-full'>
-                                                    <SelectValue placeholder='Select Month' />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {masterMonthsLoading ? (
-                                                        <SelectItem value='loading' disabled>
-                                                            Loading...
-                                                        </SelectItem>
-                                                    ) : masterMonthsError ? (
-                                                        <SelectItem value='error' disabled>
-                                                            Error loading data
-                                                        </SelectItem>
-                                                    ) : (
-                                                        MonthsOptions?.map((opt: any) => (
-                                                            <SelectItem key={opt.value} value={opt.value}>
-                                                                {opt.label}
-                                                            </SelectItem>
-                                                        ))
-                                                    )}
-                                                </SelectContent>
-                                            </Select>
-                                        )}
-                                    />
-                                    {errors.month && <FormError>{errors.month.message}</FormError>}
-                                </div>
+        <div className='container min-h-screen space-y-4 p-2'>
+            <div className='flex items-center justify-between'>
+                <h2 className='text-2xl font-bold tracking-tight'>PF Challan Report</h2>
+            </div>
 
-                                <div className='space-y-2'>
-                                    <Label htmlFor='year' className='font-medium text-sm text-white-900'>
-                                        Year: <span className='text-red-500'>*</span>
-                                    </Label>
-                                    <Controller
-                                        name='year'
-                                        control={control}
-                                        render={({ field }) => (
-                                            <Select onValueChange={field.onChange} value={field.value}>
-                                                <SelectTrigger className='w-full'>
-                                                    <SelectValue placeholder='Select Year' />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {masterYearsLoading ? (
-                                                        <SelectItem value='loading' disabled>
-                                                            Loading...
-                                                        </SelectItem>
-                                                    ) : masterYearsError ? (
-                                                        <SelectItem value='error' disabled>
-                                                            Error loading data
-                                                        </SelectItem>
-                                                    ) : (
-                                                        YearsOptions?.map((opt: any) => (
-                                                            <SelectItem key={opt.value} value={opt.value}>
-                                                                {opt.label}
-                                                            </SelectItem>
-                                                        ))
-                                                    )}
-                                                </SelectContent>
-                                            </Select>
-                                        )}
-                                    />
-                                    {errors.year && <FormError>{errors.year.message}</FormError>}
-                                </div>
-                            </div>
+            <CollapsibleSection defaultOpen={true} title="Report Criteria" variant='outline' className='shadow-sm'>
+                <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                    <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
+                        <div className='space-y-2'>
+                            <Label>Year <span className='text-destructive'>*</span></Label>
+                            <Controller name='year' control={control} render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select Year" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {yearsData?.data?.map((y: any) => (
+                                            <SelectItem key={y.hrmlY_Id} value={y.hrmlY_Id.toString()}>
+                                                {y.hrmlY_LeaveYear}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )} />
                         </div>
 
-                        <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-center'>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                onClick={handleReset}
-                                disabled={isSearching || isSubmitting}
-                                className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                                Reset
-                            </Button>
-                            <Button
-                                type='submit'
-                                onClick={handleSubmit(onSearch)}
-                                disabled={isSearching || isSubmitting}
-                                className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
-                                {isSearching ? (
-                                    <>
-                                        <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
-                                        Searching...
-                                    </>
-                                ) : (
-                                    <div className='flex items-center'>
-                                        <Search className='mr-2 h-4 w-4' />
-                                        Search
-                                    </div>
-                                )}
-                            </Button>
+                        <div className='space-y-2'>
+                            <Label>Month <span className='text-destructive'>*</span></Label>
+                            <Controller name='month' control={control} render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select Month" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {monthsData?.data?.length > 0 ? (
+                                            monthsData.data.map((m: any) => (
+                                                <SelectItem key={m.ivrM_Month_Id || m.IVRM_Month_Id} value={m.ivrM_Month_Name || m.IVRM_Month_Name}>
+                                                    {m.ivrM_Month_Name || m.IVRM_Month_Name}
+                                                </SelectItem>
+                                            ))
+                                        ) : (
+                                            MONTH_LIST.map((m) => (
+                                                <SelectItem key={m.id} value={m.name}>
+                                                    {m.name}
+                                                </SelectItem>
+                                            ))
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                            )} />
                         </div>
                     </div>
-                </CollapsibleSection>
 
-                {/* FIXED: Changed from isSearching to reportData */}
-                {reportData && (
-                    <CollapsibleSection
-                        title='PF Challan'
-                        defaultOpen={true}
-                        variant='outline'
-                        size='md'
-                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                        <PFChallan
-                            data={{
-                                businessNo: reportData.establishmentCode || '',
-                                month: selectedMonth || '',
-                                year: selectedYear || '',
-                                vdrNo: '',
-                                employeeShareAc1: 0,
-                                employerShareAc1: 0,
-                                totalAc1: 0,
-                                ac2: 0,
-                                ac10: 0,
-                                ac21: 0,
-                                ac22: 0,
-                                establishmentName: reportData.establishmentName || '',
-                                establishmentAddress: reportData.establishmentAddress || '',
-                                pincode: '',
-                                modeOfPayment: 'Cheque'
-                            }}
-                            onClose={handleCancel}
-                        />
-                    </CollapsibleSection>
-                )}
-            </div>
+                    <div className='flex justify-end'>
+                        <Button type='submit' disabled={isPending} className='w-32'>
+                            {isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
+                            Generate
+                        </Button>
+                    </div>
+                </form>
+            </CollapsibleSection>
+
+            {reportData && (
+                <CollapsibleSection title="Report Details" defaultOpen={true} className='shadow-md border'
+                    rightElement={
+                        <div className='flex gap-2'>
+                            <Button variant='outline' size='sm' onClick={handleExport} className='gap-2'>
+                                <Download className='h-4 w-4' />
+                                Export
+                            </Button>
+                        </div>
+                    }
+                >
+                    <GenericDataTable
+                        data={reportData}
+                        columns={columns}
+                        totalItems={reportData.length}
+                        isPaginationRequired={false}
+                        isSearchRequired={false}
+                        isLoading={isPending}
+                    />
+                </CollapsibleSection>
+            )}
         </div>
     );
 }
