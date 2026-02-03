@@ -102,8 +102,8 @@ function FormSections() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add New Master building'
-                        description='Fill in the details below to create a new Master building'
+                        title='Add New Master Period'
+                        description='Fill in the details below to create a new Master Period'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -126,7 +126,7 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Master Building'
+                        title='Edit Master Period'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
