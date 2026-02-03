@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { usePromotionalSetting } from '@/hooks/exam/exammodule/exam-mapping';
+import { usePromotionalSetting, usePromotionalSettingDetails } from '@/hooks/exam/exammodule/exam-mapping';
 import { togglePromotionSubjects } from '@/server/exam/exam-module/exam-mapping/promotional-setting';
 import type { IPromotionalSubjectDetails } from '@/types/exam/exam-module/exam-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -25,7 +25,7 @@ interface Props {
 
 export default function PromotionalSettingDetailsToggleForm({ rowData, onClose }: Props) {
     const isActive = rowData.empS_ActiveFlag;
-    const { refetchAll } = usePromotionalSetting();
+    const { refetchAll } = usePromotionalSettingDetails(rowData.emP_Id);
 
     const {
         register,
@@ -39,11 +39,8 @@ export default function PromotionalSettingDetailsToggleForm({ rowData, onClose }
         }
     });
 
-    /*************  ✨ Windsurf Command ⭐  *************/
-    /**
-     * Resets the form and closes the dialog.
-     */
-    /*******  5a146f79-5790-446f-9a4f-18844a70cf26  *******/ function closeDialog() {
+
+    function closeDialog() {
         reset();
         onClose();
     }

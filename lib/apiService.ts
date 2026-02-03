@@ -115,6 +115,7 @@ class ApiService {
                 config.httpsAgent = new https.Agent({
                     rejectUnauthorized: false // Bypass SSL certificate validation
                 });
+               
 
                 console.info('🔵 [API SERVICE] SSL bypass enabled for:', baseURL);
             }

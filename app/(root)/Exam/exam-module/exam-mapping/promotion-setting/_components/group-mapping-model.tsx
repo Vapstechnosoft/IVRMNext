@@ -285,11 +285,14 @@ export function ViewGroupsModal({
             roundOff: false,
             exams: []
         });
-        setLeftExams([
-            { id: 101, name: 'Formative Assessment -04', isSelected: false, convertedMarks: '', conversionRequired: false },
-            { id: 102, name: 'Summative Assessment-02', isSelected: false, convertedMarks: '', conversionRequired: false },
-            { id: 103, name: 'Unit Test 1', isSelected: false, convertedMarks: '', conversionRequired: false }
-        ]);
+        const mappedExams = exams.map((exam: ExamDetail) => ({
+            id: exam.emE_Id,
+            name: exam.emE_ExamName,
+            isSelected: false,
+            convertedMarks: '',
+            conversionRequired: false
+        }));
+        setLeftExams(mappedExams);
         setErrors({});
         setEditingGroupId(null);
     };
@@ -349,19 +352,19 @@ export function ViewGroupsModal({
             const groupExam = group.Exm_M_Prom_Subj_Group_Exams_master.find((g: { emE_Id: number }) => g.emE_Id === exam.id);
             return groupExam
                 ? {
-                      ...exam,
-                      isSelected: true,
-                      convertedMarks: groupExam.EMPSGE_ForMaxMarkrs.toString(),
-                      conversionRequired: groupExam.EMPSGE_ConvertionReqOrNot || false,
-                      error: undefined
-                  }
+                    ...exam,
+                    isSelected: true,
+                    convertedMarks: groupExam.EMPSGE_ForMaxMarkrs.toString(),
+                    conversionRequired: groupExam.EMPSGE_ConvertionReqOrNot || false,
+                    error: undefined
+                }
                 : {
-                      ...exam,
-                      isSelected: false,
-                      convertedMarks: '',
-                      conversionRequired: false,
-                      error: undefined
-                  };
+                    ...exam,
+                    isSelected: false,
+                    convertedMarks: '',
+                    conversionRequired: false,
+                    error: undefined
+                };
         });
 
         setLeftExams(updatedLeftExams);

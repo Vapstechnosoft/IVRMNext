@@ -28,7 +28,7 @@ export async function getExamCalculation(
     };
 
     // Use GET with params instead of POST with body
-    const response = await api.get<ExamCalculationResponse>('exam', url, { params });
+    const response = await api.post<ExamCalculationResponse>('exam', url, params);
     console.info('response', response.data);
     console.info('url', url);
     return response.data ?? {};

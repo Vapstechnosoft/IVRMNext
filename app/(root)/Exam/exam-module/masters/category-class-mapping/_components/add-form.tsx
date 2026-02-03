@@ -296,6 +296,7 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                         name='asmaY_Id'
                         render={({ field }) => (
                             <Select
+                                key={field.value}
                                 value={!field.value ? '' : String(field.value)}
                                 onValueChange={(val) => field.onChange(Number(val))}
                                 disabled={mappingList.length > 0 && field.value !== 0}>
@@ -338,6 +339,7 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                         name='emcA_Id'
                         render={({ field }) => (
                             <Select
+                                key={field.value}
                                 value={field.value === 0 ? '' : String(field.value)}
                                 onValueChange={(val) => field.onChange(Number(val))}
                                 disabled={mappingList.length > 0 && field.value !== 0}>
@@ -369,6 +371,7 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                         name='asmcL_Id'
                         render={({ field }) => (
                             <Select
+                                key={field.value}
                                 value={field.value === 0 ? '' : String(field.value)}
                                 onValueChange={(val) => field.onChange(Number(val))}>
                                 <SelectTrigger id='asmcL_Id'>
@@ -435,12 +438,25 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                     variant='outline'
                     onClick={() => {
                         // Reset only class + sections but keep year & category
-                        setValue('asmcL_Id', 0);
-                        setValue('section_list', []);
-                        setValue('ecaC_Id', 0);
-                        setValue('asmcL_Id', 0);
-                        setSections([]);
-                        setEditIndex(null);
+                        if (mappingList.length > 0) {
+                            setValue('asmcL_Id', 0);
+                            setValue('section_list', []);
+                            setValue('ecaC_Id', 0);
+                            setValue('asmcL_Id', 0);
+                            setSections([]);
+                            setEditIndex(null);
+                        }
+                        else {
+                            setValue('asmaY_Id', 0);
+                            setValue('emcA_Id', 0);
+                            setValue('asmcL_Id', 0);
+                            setValue('section_list', []);
+                            setValue('ecaC_Id', 0);
+                            setValue('asmcL_Id', 0);
+                            setSections([]);
+                            setEditIndex(null);
+                        }
+
                     }}>
                     <X className='h-4 w-4 text-destructive' />
                     CLEAR
@@ -483,7 +499,7 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                                                     {
                                                         // academicYears stores ids as string in formatted list
                                                         academicYears.find((y) => String(y.asmaY_Id) === String(m.asmaY_Id))?.asmaY_Year ||
-                                                            String(m.asmaY_Id)
+                                                        String(m.asmaY_Id)
                                                     }
                                                 </td>
                                                 <td className='border p-2 text-center'>

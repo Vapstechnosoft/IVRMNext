@@ -5,6 +5,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { institutionSubscriptionSchema } from '@/schemas/super-admin/super-admin-module/institution/institution-subscription';
 import { addOrUpdateInstitutionSubscription } from '@/server/super-admin/super-admin-module/institution/institution-subscription';
@@ -16,11 +17,10 @@ import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-// Temporary Mock Data for Institutions
-const institutionOptions = [
-    { label: 'Vaps Institution', value: '1' },
-    { label: 'St. Thomas School', value: '2' }
-];
+import { getInstitutionDropdown, type InstitutionDropdown } from '@/server/super-admin/super-admin-module/masters/institution-facade';
+import { useEffect, useState } from 'react';
+
+// Mock Data Removed
 
 type FormFields = z.infer<typeof institutionSubscriptionSchema.addOrUpdate>;
 
@@ -42,6 +42,24 @@ export default function AddInstitutionSubscriptionForm({ onSuccess }: AddInstitu
             misV_ActiveFlag: true
         }
     });
+
+    const [institutionOptions, setInstitutionOptions] = useState<InstitutionDropdown[]>([]);
+
+    useEffect(() => {
+        const fetchDropdowns = async () => {
+            try {
+                const response = await getInstitutionDropdown();
+                if (response.success && response.data) {
+                    setInstitutionOptions(response.data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch institution dropdown', error);
+                toast.error('Failed to load institutions');
+            }
+        };
+
+        fetchDropdowns();
+    }, []);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
@@ -77,8 +95,8 @@ export default function AddInstitutionSubscriptionForm({ onSuccess }: AddInstitu
                                 </SelectTrigger>
                                 <SelectContent>
                                     {institutionOptions.map((option) => (
-                                        <SelectItem key={option.value} value={option.value}>
-                                            {option.label}
+                                        <SelectItem key={option.mI_Id} value={option.mI_Id.toString()}>
+                                            {option.mI_Name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -87,14 +105,6 @@ export default function AddInstitutionSubscriptionForm({ onSuccess }: AddInstitu
                     />
                     {errors.mI_Id && <FormError>{errors.mI_Id.message}</FormError>}
                 </div>
-
-                <InputText
-                    label='Subscription Type'
-                    required
-                    {...register('misV_SubscriptionType')}
-                    error={errors.misV_SubscriptionType?.message}
-                    placeholder='Enter Subscription Type'
-                />
 
                 {/* Start Date Picker */}
                 <div className='flex flex-col space-y-2'>
@@ -170,6 +180,31 @@ export default function AddInstitutionSubscriptionForm({ onSuccess }: AddInstitu
                         )}
                     />
                     {errors.misV_ToDate && <FormError>{errors.misV_ToDate.message}</FormError>}
+                </div>
+
+                <div className='flex flex-col space-y-3'>
+                    <Label>Subscription Type <span className='text-red-500'>*</span></Label>
+                    <Controller
+                        control={control}
+                        name='misV_SubscriptionType'
+                        render={({ field }) => (
+                            <RadioGroup
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                                className='flex flex-row space-x-4'
+                            >
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='Licence' id='r1' />
+                                    <Label htmlFor='r1' className='font-normal'>Licence</Label>
+                                </div>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='Trial' id='r2' />
+                                    <Label htmlFor='r2' className='font-normal'>Trial</Label>
+                                </div>
+                            </RadioGroup>
+                        )}
+                    />
+                    {errors.misV_SubscriptionType && <FormError>{errors.misV_SubscriptionType.message}</FormError>}
                 </div>
             </div>
 
