@@ -55,7 +55,7 @@ export async function saveMasterMainMenu(data: any) {
     }
 
     // URL provided by user
-    const url = `${FACADE_URL}/savedata`;
+    const url = `${FACADE_URL}`;
 
     try {
         // Construct payload as per user request
@@ -63,19 +63,41 @@ export async function saveMasterMainMenu(data: any) {
             ivrmmM_Id: data.ivrmmM_Id || 0,
             ivrmM_Id: Number(data.ivrmM_Id),
             ivrmmM_MenuName: data.ivrmmM_MenuName,
-            gridDetails: []
         };
+
+
+
+        console.log("Saving Master Main Menu with payload:", JSON.stringify(payload));
 
         const response = await api.post('sadmin', url, payload);
         if (response.success) {
             revalidatePath('/SuperAdmin/super-admin-module/general-setting/master-main-menu');
         }
         return response;
+
     } catch (error: any) {
         console.error("Save Error:", error);
+
+        let errorMessage = 'Failed to save data';
+        if (typeof error === 'string') {
+            errorMessage = error;
+        } else if (error?.response?.data) {
+            if (typeof error.response.data === 'string') {
+                errorMessage = error.response.data;
+            } else if (error.response.data.message) {
+                errorMessage = error.response.data.message;
+            } else {
+                errorMessage = JSON.stringify(error.response.data);
+            }
+        } else if (error?.message) {
+            errorMessage = error.message;
+        }
+
+        console.log("Error Message:", errorMessage);
+
         return {
             success: false,
-            message: error?.message || JSON.stringify(error) || 'Failed to save data',
+            message: errorMessage,
             error: error
         };
     }

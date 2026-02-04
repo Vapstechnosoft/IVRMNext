@@ -33,14 +33,15 @@ function MappedExamsContent({
     rowData,
     onClose
 }: {
-    rowData: any;
+    rowData: IPromotionalGroupDetails;
     onClose: () => void;
 }) {
-    const { data: response, isLoading, refetchAll } = usePromotionalGroupMappedExams(rowData?.slNo);
+    const { data: response, isLoading, refetchAll } = usePromotionalGroupMappedExams(rowData.empsG_Id);
 
     useEffect(() => {
+        console.log(response);
         refetchAll();
-    }, [rowData]);
+    }, [rowData, response]);
 
     const tableProps = useDataTableProps(response);
 
@@ -50,7 +51,7 @@ function MappedExamsContent({
                 <div className='mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                     <div className='space-y-1'>
                         <Heading
-                            title={`Mapped Exams - ${rowData?.groupName}`}
+                            title={`Mapped Exams - ${rowData.empsG_GroupName}`}
                             description='List of exams mapped under this promotional group'
                         />
                     </div>

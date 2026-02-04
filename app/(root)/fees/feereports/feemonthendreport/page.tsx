@@ -154,10 +154,34 @@ export default function FeeMonthEndReport() {
 
     const printRef = useRef<HTMLDivElement>(null);
 
-    const handlePrint = () => {
+    // const handlePrint = () => {
+    //     if (!printRef.current) return;
+    //     ExporttoPrint(printRef.current.innerHTML);
+    // };
+
+    const handlePrint = async () => {
         if (!printRef.current) return;
-        ExporttoPrint(printRef.current.innerHTML);
+
+        let html = printRef.current.innerHTML;
+
+        if (instituteLogo) {
+            const base64Logo = await imageToBase64(instituteLogo);
+            html = html.replace(instituteLogo, base64Logo);
+        }
+
+        ExporttoPrint(html);
     };
+
+    async function imageToBase64(url: string): Promise<string> {
+        const res = await fetch(url);
+        const blob = await res.blob();
+
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+        });
+    }
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         const response = await getFeeMonthEndReportData(
@@ -378,6 +402,9 @@ export default function FeeMonthEndReport() {
                                                             {instituteLogo && (
                                                                 <img src={instituteLogo} alt='Institute Logo' className='mx-auto' />
                                                             )}
+                                                        </div>
+                                                        <div className='text-center'>
+                                                            SCHOOL FEES {monthlabel.toUpperCase()} MONTH REPORT
                                                         </div>
 
                                                         {/* ================= INFO TABLE ================= */}
