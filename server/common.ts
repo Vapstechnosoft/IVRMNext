@@ -3126,7 +3126,7 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 },
-                                 {
+                                {
                                     id: 4,
                                     name: 'Transactions',
                                     icon: 'Clock',
@@ -4618,6 +4618,22 @@ export async function getUserAccessibleModules() {
                                             url: '/Sports/Masters/House',
                                             title: 'Master House',
                                             description: 'Manage Master House'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'Master House Designation',
+                                            icon: 'Trophy',
+                                            url: '/Sports/Masters/HouseDesignation',
+                                            title: 'Master House Designation',
+                                            description: 'Manage Master House Designation'
+                                        },
+                                        {
+                                            id: 10,
+                                            name: 'Master Sports CC Group',
+                                            icon: 'Trophy',
+                                            url: '/Sports/Masters/MasterSportsCCGroup',
+                                            title: 'Master Sports CC Group',
+                                            description: 'Manage Master Sports CC Group'
                                         }
                                     ]
                                 },
