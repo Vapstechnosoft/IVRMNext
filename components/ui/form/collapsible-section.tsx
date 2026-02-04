@@ -19,6 +19,7 @@ interface CollapsibleSectionProps {
     isOpen?: boolean;
     onToggle?: () => void;
     rightElement?: ReactNode;
+    icon?: ReactNode;
 }
 
 export function CollapsibleSection({
@@ -33,7 +34,8 @@ export function CollapsibleSection({
     variant = 'default',
     size = 'md',
     keepContentMounted = true,
-    rightElement
+    rightElement,
+    icon
 }: CollapsibleSectionProps) {
     const [isOpen, setIsOpen] = useState(defaultOpen);
     const [hasBeenOpened, setHasBeenOpened] = useState(defaultOpen);
@@ -71,6 +73,7 @@ export function CollapsibleSection({
                     <CardHeader
                         className={`flex cursor-pointer flex-row items-center justify-between transition-colors duration-200 hover:bg-muted/50 ${compactHeader} ${headerClassName}
                         `}>
+                        {icon && <div className="mr-3 text-muted-foreground">{icon}</div>}
                         {(title || description) && (
                             <div className='space-y-1'>
                                 {title && <div className={`font-semibold tracking-tight ${sizeClasses[size]}`}>{title}</div>}
