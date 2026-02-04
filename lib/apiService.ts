@@ -113,6 +113,7 @@ class ApiService {
 
             // Add SSL bypass for localhost in development mode
             if (isLocalhost && process.env.NODE_ENV === 'development' && typeof window === 'undefined') {
+                // biome-ignore lint/style/useNodejsImportProtocol: <explanation>
                 const https = require('https');
                 config.httpsAgent = new https.Agent({
                     rejectUnauthorized: false // Bypass SSL certificate validation

@@ -27,12 +27,12 @@ export interface IHostel {
     selectedMessIds?: number[];
     // Documents
     hostelPhotos?: IHostelDocument[];
-    
+
     // Display properties (from API)
     ivrmmC_CountryName?: string;
     ivrmmS_Name?: string;
     hlmM_Name?: string; // Comma separated? or single?
-    
+
     // Mapped Data for View (if returned)
     mappedFacilities?: IFacility[];
     mappedWardens?: IEmployee[];
@@ -92,7 +92,6 @@ export async function getEmployees() {
     return await api.get<any>('hostel', '/MasterHostel/get_wardens');
 }
 
-
 export async function getStates(countryId: number) {
     if (!countryId) return { success: false, data: [] };
     const url = `/MasterHostel/get_states/${countryId}`;
@@ -132,7 +131,5 @@ export async function deleteHostel(id: number) {
 }
 
 export async function getHostelDropdownList() {
-    return await api.get<any>('hostel', `/MasterHostel/get_hostel_list`);
+    return await api.get<any>('hostel', '/MasterHostel/get_hostel_list');
 }
-
-

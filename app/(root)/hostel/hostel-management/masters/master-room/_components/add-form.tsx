@@ -132,7 +132,7 @@ export default function AddMasterRoomForm({
 
             // Remove helper field
             // @ts-ignore
-            delete payload.selectedFacilityIds;
+            payload.selectedFacilityIds = undefined;
 
             const result = await saveRoom(payload);
             if (result.success) {
@@ -178,7 +178,7 @@ export default function AddMasterRoomForm({
                                                         <SelectValue placeholder="Select Hostel" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {hostels && hostels.map((h: any) => (
+                                                        {hostels?.map((h: any) => (
                                                             <SelectItem key={h.hlmH_Id} value={h.hlmH_Id.toString()}>{h.hlmH_Name}</SelectItem>
                                                         ))}
                                                     </SelectContent>
@@ -201,7 +201,7 @@ export default function AddMasterRoomForm({
                                                         <SelectValue placeholder="Select Floor" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {floors && floors.map((f: any) => (
+                                                        {floors?.map((f: any) => (
                                                             <SelectItem key={f.hlmF_Id} value={f.hlmF_Id.toString()}>{f.hrmF_FloorName}</SelectItem>
                                                         ))}
                                                     </SelectContent>
@@ -224,7 +224,7 @@ export default function AddMasterRoomForm({
                                                         <SelectValue placeholder="Select Room Category" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {roomCategories && roomCategories.map((c: any) => (
+                                                        {roomCategories?.map((c: any) => (
                                                             <SelectItem key={c.hlmrcA_Id} value={c.hlmrcA_Id.toString()}>{c.hlmrcA_RoomCategory}</SelectItem>
                                                         ))}
                                                     </SelectContent>

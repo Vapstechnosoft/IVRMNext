@@ -242,7 +242,7 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {fuelTypes?.getmasterfuel?.map((fuel: any) => (
+                                                {fuelTypes?.data?.map((fuel: any) => (
                                                     <SelectItem key={fuel.trmfT_Id} value={fuel.trmfT_Id.toString()}>
                                                         {fuel.trmfT_FuelType}
                                                     </SelectItem>
@@ -266,7 +266,7 @@ export default function AddVehicleForm({ onClose }: { onClose: () => void }) {
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {vehicleTypes?.getmastervehicle?.map((vc: any) => (
+                                                {vehicleTypes?.data?.map((vc: any) => (
                                                     <SelectItem key={vc.trmvT_Id} value={vc.trmvT_Id.toString()}>
                                                         {vc.trmvT_VehicleType}
                                                     </SelectItem>

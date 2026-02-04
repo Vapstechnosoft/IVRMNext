@@ -572,5 +572,6 @@ export const TRANSPORT_QUERY_KEYS = {
     VEHICLE_ROUTE_MAPPING: 'vehicle_route_mapping',
     VEHICLE_DROPDOWN: 'vehicle_dropdown',
     DRIVER_DROPDOWN: 'driver_dropdown',
-    ROUTE_DROPDOWN: 'route_dropdown'
+    ROUTE_DROPDOWN: 'route_dropdown',
+    SESSION_DROPDOWN: 'session_dropdown'
 };

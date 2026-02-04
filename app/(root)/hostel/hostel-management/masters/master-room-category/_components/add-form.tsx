@@ -113,7 +113,7 @@ export default function AddMasterRoomCategoryForm({
                                                 <SelectValue placeholder="Select Hostel" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {hostels && hostels.map((h: any) => (
+                                                {hostels?.map((h: any) => (
                                                     <SelectItem key={h.hlmH_Id} value={h.hlmH_Id.toString()}>{h.hlmH_Name}</SelectItem>
                                                 ))}
                                             </SelectContent>
