@@ -41,6 +41,7 @@ function InvTGRNPageContent({
     isLoading: boolean;
     error: any;
 }) {
+    console.log('InvTGRNPageContent: Response Data:', response?.data);
     const {
         openAddForm,
         openEditForm,

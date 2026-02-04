@@ -6,7 +6,9 @@ import {
     saveInvOpeningBalance,
     deactiveInvOpeningBalance,
     getSelectionItemDetails,
-    getOpeningBalanceDetails
+    getOpeningBalanceDetails,
+    getInvOpeningBalanceStores,
+    getInvOpeningBalanceItems
 } from '@/server/inventory/transactions/inv-opening-balance';
 import type { IInvOpeningBalance } from '@/types/inventory/transactions/inv-opening-balance';
 
@@ -24,12 +26,12 @@ export const useInvOpeningBalance = (searchParams?: any) => {
 
     const saveMutation = useMutation({
         mutationFn: saveInvOpeningBalance,
-        onSuccess: (result) => {
-            if (result.returnval) {
-                toast.success(result.message);
+        onSuccess: (result: any) => {
+            if (result.returnval || result.success) {
+                toast.success(result.message || 'Record saved successfully');
                 refetchAll();
             } else {
-                toast.error(result.message);
+                toast.error(result.message || 'Failed to save record');
             }
         },
         onError: (error: any) => {
@@ -39,17 +41,31 @@ export const useInvOpeningBalance = (searchParams?: any) => {
 
     const toggleActiveMutation = useMutation({
         mutationFn: deactiveInvOpeningBalance,
-        onSuccess: (result) => {
-            if (result.returnval) {
-                toast.success(result.message);
+        onSuccess: (result: any) => {
+            if (result.returnval || result.success) {
+                toast.success(result.message || 'Status updated successfully');
                 refetchAll();
             } else {
-                toast.error(result.message);
+                toast.error(result.message || 'Failed to update status');
             }
         },
         onError: (error: any) => {
             toast.error(error.message || 'An error occurred while updating status');
         },
+    });
+
+    const storesQuery = useQuery({
+        queryKey: ['inv-opening-balance-stores'],
+        queryFn: () => getInvOpeningBalanceStores(),
+        staleTime: 5 * 60 * 1000, // 5 minutes cache
+    });
+
+    const getStoresMutation = useMutation({
+        mutationFn: getInvOpeningBalanceStores
+    });
+
+    const getItemsMutation = useMutation({
+        mutationFn: getInvOpeningBalanceItems
     });
 
     return {
@@ -60,8 +76,12 @@ export const useInvOpeningBalance = (searchParams?: any) => {
         refetchAll,
         saveMutation,
         toggleActiveMutation,
+        getStoresMutation,
+        getItemsMutation,
+        storesQuery
     };
 };
+
 
 export const useInvOpeningBalanceItemDetails = () => {
     return useMutation({

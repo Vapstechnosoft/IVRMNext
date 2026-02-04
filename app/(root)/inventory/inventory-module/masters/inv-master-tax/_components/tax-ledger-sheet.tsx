@@ -29,16 +29,9 @@ export default function TaxLedgerSheet({ isOpen, onClose, tax }: TaxLedgerSheetP
     const { data: detailsData, isLoading: isLoadingDetails } = useInvMasterTaxDetails(tax?.invmT_Id || 0);
     const { data: allData, isLoading: isLoadingAll, refetchAll } = useInvMasterTax();
 
-    // ✅ Safely default to empty arrays and deduplicate to avoid key collisions
-    const companies = useMemo(() => {
-        const raw = Array.isArray(detailsData?.companynames) ? detailsData.companynames : [];
-        return Array.from(new Map(raw.map((item: any) => [item.famcomP_Id, item])).values());
-    }, [detailsData]);
-
-    const ledgers = useMemo(() => {
-        const raw = Array.isArray(detailsData?.ledgernames) ? detailsData.ledgernames : [];
-        return Array.from(new Map(raw.map((item: any) => [item.famleD_Id, item])).values());
-    }, [detailsData]);
+    // ✅ Safely default to empty arrays
+    const companies = Array.isArray(detailsData?.companynames) ? detailsData.companynames : [];
+    const ledgers = Array.isArray(detailsData?.ledgernames) ? detailsData.ledgernames : [];
 
     const {
         control,
@@ -59,11 +52,7 @@ export default function TaxLedgerSheet({ isOpen, onClose, tax }: TaxLedgerSheetP
 
     const selectedLedgerId = watch('famleD_Id');
     const { data: ledgerUnderData } = useLedgerUnder(selectedLedgerId);
-
-    const ledgerUnderOptions = useMemo(() => {
-        const raw = Array.isArray(ledgerUnderData?.ledgeunderrnames) ? ledgerUnderData.ledgeunderrnames : [];
-        return Array.from(new Map(raw.map((item: any) => [item.famgrP_Id, item])).values());
-    }, [ledgerUnderData]);
+    const ledgerUnderOptions = Array.isArray(ledgerUnderData?.ledgeunderrnames) ? ledgerUnderData.ledgeunderrnames : [];
 
     const onSubmit = async (data: InvMasterTaxLedgerSchema) => {
         try {
