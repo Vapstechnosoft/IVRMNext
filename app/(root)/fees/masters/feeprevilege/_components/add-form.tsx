@@ -98,19 +98,39 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
 
     const [resetKey, setResetKey] = useState(0);
 
+    const [shouldFetchHeads, setShouldFetchHeads] = useState(false);
+
+    // useEffect(() => {
+    //     if (academicYear && group) {
+    //         // Clear heads immediately when group changes
+    //         setHeadOptions([]);
+    //         setValue('heads', []);
+    //         // Then refetch for new group
+    //         refetchHeadNames();
+    //         //refetchHeadNames();
+    //     } else {
+    //         setHeadOptions([]);
+    //         setValue('heads', []);
+    //     }
+    // }, [academicYear, group, refetchHeadNames]);
+
+    // Also, modify your useEffect that depends on academicYear and group:
+    // Update the useEffect for heads
     useEffect(() => {
+        // Only fetch heads if both academicYear AND group have valid values
         if (academicYear && group) {
             // Clear heads immediately when group changes
-            setHeadOptions([]);
             setValue('heads', []);
-            // Then refetch for new group
-            refetchHeadNames();
-            //refetchHeadNames();
+            setHeadOptions([]);
+            // Set flag to fetch heads
+            setShouldFetchHeads(true);
         } else {
+            // Clear heads when either academicYear or group is empty
             setHeadOptions([]);
             setValue('heads', []);
+            setShouldFetchHeads(false);
         }
-    }, [academicYear, group, refetchHeadNames]);
+    }, [academicYear, group, resetKey]);
 
     useEffect(() => {
         setIsLoadingDropdowns(loadingAcademic || loadingRoles);
@@ -270,6 +290,13 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
     //     window.location.reload();
     // };
 
+    useEffect(() => {
+        if (shouldFetchHeads && academicYear && group) {
+            refetchHeadNames();
+            setShouldFetchHeads(false);
+        }
+    }, [shouldFetchHeads, academicYear, group, refetchHeadNames]);
+
     const handleReset = () => {
         // Reset form values
         reset({
@@ -292,12 +319,22 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
         setUserOptions([]);
         setHeadOptions([]);
         //setRoleOptions([]);
-
+        setShouldFetchHeads(false);
         // IMPORTANT: Force refetch groups with undefined academic year
         // This will clear the cached data for the previous academic year
         setTimeout(() => {
             setValue('academicYear', '', { shouldValidate: false });
             setValue('roles', '', { shouldValidate: false });
+        }, 0);
+        setTimeout(() => {
+            // Force refetch academic years
+            refetch();
+
+            // Force refetch groups with undefined academic year
+            refetchGroups();
+
+            // Force refetch heads with undefined parameters
+            refetchHeadNames();
         }, 0);
 
         setResetKey((prev) => prev + 1);
@@ -333,6 +370,8 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
                 grouphead: data.heads.map((h) => ({ FMH_Id: Number(h) })),
                 username: data.users.map((u) => ({ UserId: Number(u) }))
             };
+
+            console.log('Submitting payload:', JSON.stringify(payload));
 
             const res = await addOrUpdateFeePrivilege(payload);
             if (res) {
