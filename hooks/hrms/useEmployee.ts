@@ -34,25 +34,25 @@ export function useEmployeeById(id: number | null) {
 /**
  * Hook to create or update employee
  */
-export function useSaveEmployee() {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (data: EmployeeSaveRequest) => saveEmployee(data),
-        onSuccess: (response: ApiResponse<IEmployeeSaveResponse>) => {
-            if (response.success) {
-                toast.success(response.message || 'Employee saved successfully');
-                queryClient.invalidateQueries({
-                    queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
-                });
-            } else {
-                toast.error(response.message || 'Failed to save employee');
-            }
-        },
-        onError: (error: Error) => {
-            toast.error(error.message || 'An error occurred while saving employee');
-        }
-    });
-}
+// export function useSaveEmployee() {
+//     const queryClient = useQueryClient();
+//     return useMutation({
+//         mutationFn: (data: EmployeeSaveRequest) => saveEmployee(data),
+//         onSuccess: (response: ApiResponse<IEmployeeSaveResponse>) => {
+//             if (response.success) {
+//                 toast.success(response.message || 'Employee saved successfully');
+//                 queryClient.invalidateQueries({
+//                     queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
+//                 });
+//             } else {
+//                 toast.error(response.message || 'Failed to save employee');
+//             }
+//         },
+//         onError: (error: Error) => {
+//             toast.error(error.message || 'An error occurred while saving employee');
+//         }
+//     });
+// }
 /**
  * Hook to delete employee
  */
