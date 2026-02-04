@@ -9,23 +9,10 @@ import { Plus, X } from 'lucide-react';
 import AddInstitutionSubscriptionForm from './_components/add-form';
 import { InstitutionSubscriptionColumns } from './_components/columns';
 
-// Static Data
-const staticData: IInstitutionSubscription[] = [
-    {
-        misV_Id: 1,
-        mI_Id: 1,
-        institution: {
-            mI_Name: 'Vaps Institution'
-        },
-        misV_SubscriptionType: 'Annual Plan',
-        misV_FromDate: '2025-01-01',
-        misV_ToDate: '2025-12-31',
-        misV_ActiveFlag: true,
-        misV_ApprovalFlag: 'A',
-        createdDate: '2025-01-01',
-        updatedDate: '2025-01-01'
-    }
-];
+import { getInstitutionSubscriptionData } from '@/server/super-admin/super-admin-module/masters/institution-facade';
+import { useCallback, useEffect, useState } from 'react';
+
+// Static Data Removed
 
 export default function InstitutionSubscriptionPage() {
     return (
@@ -38,9 +25,25 @@ export default function InstitutionSubscriptionPage() {
 function InstitutionSubscriptionPageContent() {
     const { openAddForm } = useFormContext<IInstitutionSubscription>();
 
-    // Simulate API loading state
-    const isLoading = false;
-    const error = null;
+    const [data, setData] = useState<IInstitutionSubscription[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<Error | null>(null);
+
+    const fetchData = useCallback(async () => {
+        try {
+            setIsLoading(true);
+            const response = await getInstitutionSubscriptionData();
+            setData(response.data || []);
+        } catch (err) {
+            setError(err instanceof Error ? err : new Error('Failed to fetch data'));
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
     return (
         <div>
@@ -65,11 +68,11 @@ function InstitutionSubscriptionPageContent() {
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
                 >
                     <GenericDataTable<IInstitutionSubscription>
-                        data={staticData}
+                        data={data}
                         columns={InstitutionSubscriptionColumns}
                         isLoading={isLoading}
                         error={error}
-                        totalItems={staticData.length}
+                        totalItems={data.length}
                         loadingMessage='Loading subscription details...'
                         noDataTitle='No Subscription Details Found'
                         noDataDescription='No subscription details available currently.'
@@ -80,18 +83,23 @@ function InstitutionSubscriptionPageContent() {
                 </CollapsibleSection>
 
                 {/* Forms */}
-                <FormSections />
+                <FormSections onRefresh={fetchData} />
             </div>
         </div>
     );
 }
 
-function FormSections() {
+function FormSections({ onRefresh }: { onRefresh: () => void }) {
     const {
         isAddFormOpen,
         closeAddForm,
         addFormRef
     } = useFormContext<IInstitutionSubscription>();
+
+    const handleSuccess = () => {
+        closeAddForm();
+        onRefresh();
+    };
 
     return (
         <>
@@ -114,7 +122,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddInstitutionSubscriptionForm onSuccess={closeAddForm} />
+                            <AddInstitutionSubscriptionForm onSuccess={handleSuccess} />
                         </div>
                     </CollapsibleSection>
                 </div>

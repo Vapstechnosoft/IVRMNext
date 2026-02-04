@@ -1,4 +1,5 @@
-import { fetchRoomData, IFacility, IHostel, IRoomDisplay } from '@/server/hostel/master-room/server-action';
+import { fetchRoomData } from '@/server/hostel/hostel-management/masters/room';
+import { IFacility, IHostel, IRoomDisplay } from '@/types/hostel/hostel-management/masters';
 import { useEffect, useState } from 'react';
 
 export function useMasterRoom() {
@@ -13,7 +14,7 @@ export function useMasterRoom() {
             const result = await fetchRoomData();
             if (result.success && result.data) {
                 setRoomList(result.data.roomList);
-                setHostels(result.data.hostels);
+               // setHostels(result.data.hostels);
                 setFacilities(result.data.facilities);
             }
         } catch (error) {

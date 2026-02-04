@@ -120,5 +120,7 @@ export async function getOpeningInstallmentDropdownData(asmaY_Id: number, fmG_id
 
 export async function deleteOpeningBalance(fillbusroutestudents: string, fmoB_Id: number) {
     const url = `FeeOpeningBalance/delete?fillbusroutestudents=${fillbusroutestudents}&FMOB_Id=${fmoB_Id}`;
+
+    console.info('deleteOpeningBalance', url);
     return await api.delete<any>('fees', url);
 }

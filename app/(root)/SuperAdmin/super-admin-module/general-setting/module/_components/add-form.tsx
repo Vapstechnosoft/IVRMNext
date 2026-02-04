@@ -12,6 +12,10 @@ import { Save, X } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { useFormContext } from '@/components/ui/form/form-provider';
+import { getMasterModuleById } from '@/server/super-admin/super-admin-module/general-setting/module';
+import type { IMasterModule } from '@/types/super-admin/super-admin-module/general-setting/module';
+import { useEffect } from 'react';
 
 interface AddMasterModuleFormProps {
     onSuccess?: () => void;
@@ -29,13 +33,49 @@ export default function AddMasterModuleForm({ onSuccess }: AddMasterModuleFormPr
         },
     });
 
+    const { selectedRow } = useFormContext<IMasterModule>();
+
+    useEffect(() => {
+        const fetchDetails = async () => {
+            if (selectedRow?.ivrmM_Id) {
+                setIsLoading(true);
+                try {
+                    const response = await getMasterModuleById(selectedRow.ivrmM_Id);
+                    if (response.success && response.data) {
+                        reset(response.data);
+                    } else {
+                        toast.error('Failed to load module details');
+                    }
+                } catch (error) {
+                    console.error('Error fetching module details', error);
+                } finally {
+                    setIsLoading(false);
+                }
+            } else {
+                reset({
+                    ivrmM_ModuleName: '',
+                    ivrmM_ModuleDesc: '',
+                    module_ActiveFlag: 1,
+                });
+            }
+        };
+
+        fetchDetails();
+    }, [selectedRow, reset]);
+
     const onSubmit = async (data: MasterModuleSchema) => {
         setIsLoading(true);
         try {
-            // Simulate API call delay for effect
-            await new Promise(resolve => setTimeout(resolve, 500));
+            const payload = {
+                ...data,
+                ivrmM_Id: selectedRow?.ivrmM_Id || 0,
+                userid: selectedRow?.userid || 0,
+                createdDate: selectedRow?.createdDate || new Date().toISOString(),
+                updatedDate: new Date().toISOString(),
+                module_ActiveFlag: selectedRow?.module_ActiveFlag ?? data.module_ActiveFlag ?? 1, // Prefer existing, then form default (if added), then 1
+            };
 
-            const result = await saveMasterModule(data);
+            const result = await saveMasterModule(payload);
             if (result.success) {
                 toast.success('Master Module Saved Successfully');
                 reset();

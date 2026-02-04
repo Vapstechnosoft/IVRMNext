@@ -1,7 +1,6 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type { INoticeBoardInitialData, INoticeBoardReportPayload, INoticeBoardReportResponse, INoticeBoardAttachmentResponse } from '@/types/upload/reports/noticeboard-report';
 
 // Initial Data
 export async function getNoticeBoardInitialData(_pageId: number) {
@@ -15,15 +14,18 @@ export async function getNoticeBoardInitialData(_pageId: number) {
         data: {
             classlist: [
                 { asmcL_Id: 1, asmcL_ClassName: 'Grade 1', asmcL_ActiveFlag: true, mI_Id: 30 },
-                { asmcL_Id: 2, asmcL_ClassName: 'Grade 2', asmcL_ActiveFlag: true, mI_Id: 30 },
+                { asmcL_Id: 2, asmcL_ClassName: 'Grade 2', asmcL_ActiveFlag: true, mI_Id: 30 }
             ],
-            acayear:[
-                {asmaY_Id:1, asmaY_Year:'2024-2025', asmaY_From_Date: '2024-06-01', asmaY_To_Date: '2025-05-31'},
-                {asmaY_Id:2, asmaY_Year:'2025-2026', asmaY_From_Date: '2025-06-01', asmaY_To_Date: '2026-05-31'}
+            acayear: [
+                { asmaY_Id: 1, asmaY_Year: '2024-2025', asmaY_From_Date: '2024-06-01', asmaY_To_Date: '2025-05-31' },
+                { asmaY_Id: 2, asmaY_Year: '2025-2026', asmaY_From_Date: '2025-06-01', asmaY_To_Date: '2026-05-31' }
             ]
-
         }
     } as any;
+}
+export async function getNoticeBoardReport(_data: any) {
+    const url = '/HomeworkUploadFacade/notice_board_report';
+    return await api.post<any>('portal', url, _data);
 }
 
 // Get Report Data
@@ -152,4 +154,3 @@ export async function viewNoticeBoardAttachmentData(_data: { INTB_Id: number }) 
         }
     } as any;
 }
-

@@ -8,13 +8,14 @@ import { useFormContext } from '@/components/ui/form/form-provider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { masterRoomSchema, IMasterRoomForm } from '@/schemas/hostel/master-room.schema';
-import { fetchFloors, fetchRoomCategories, IFacility, IFloor, IHostel, IRoomCategory, IRoomDisplay, saveRoom } from '@/server/hostel/master-room/server-action';
+import { IFacility, IFloor, IHostel, IRoomCategory, IRoomDisplay } from '@/types/hostel/hostel-management/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { use, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { FormInput } from '@/components/ui/form/form-input';
 import { FormTextarea } from '@/components/ui/form/form-textarea';
+import { fetchFloors, saveRoom } from '@/server/hostel/hostel-management/masters/room';
 
 interface UpdateMasterRoomFormProps {
     rowData: IRoomDisplay;
@@ -33,11 +34,11 @@ export default function UpdateMasterRoomForm({ rowData, onSuccess, hostels, faci
         resolver: zodResolver(masterRoomSchema),
         defaultValues: {
             hrmrM_Id: rowData.hrmrM_Id,
-            hlmH_Id: rowData.hlmH_Id.toString(),
-            hlmF_Id: rowData.hlmF_Id.toString(),
-            hlmrcA_Id: rowData.hlmrcA_Id.toString(),
+            hlmH_Id: rowData.hlmH_Id?.toString() ?? '',
+            hlmF_Id: rowData.hlmF_Id?.toString() ?? '',
+            hlmrcA_Id: rowData.hlmrcA_Id?.toString() ?? '',
             hrmrM_RoomNo: rowData.hrmrM_RoomNo,
-            hrmrM_BedCapacity: rowData.hrmrM_BedCapacity.toString(),
+            hrmrM_BedCapacity: rowData.hrmrM_BedCapacity?.toString() ?? '',
             hrmrM_RoomDesc: rowData.hrmrM_RoomDesc || '',
             hrmrM_ACFlg: rowData.hrmrM_ACFlg,
             hrmrM_SharingFlg: rowData.hrmrM_SharingFlg,
@@ -114,7 +115,7 @@ export default function UpdateMasterRoomForm({ rowData, onSuccess, hostels, faci
                                     <Select onValueChange={(val) => {
                                         field.onChange(val);
                                         // Only reset if value is different from initial or we want to force recheck
-                                        if (val !== rowData.hlmH_Id.toString()) {
+                                        if (val !== rowData.hlmH_Id?.toString()) {
                                             setValue('hlmF_Id', '');
                                             setValue('hlmrcA_Id', '');
                                         }
@@ -144,7 +145,7 @@ export default function UpdateMasterRoomForm({ rowData, onSuccess, hostels, faci
                                 render={({ field }) => (
                                     <Select onValueChange={(val) => {
                                         field.onChange(val);
-                                        if (val !== rowData.hlmF_Id.toString()) {
+                                        if (val !== rowData.hlmF_Id?.toString()) {
                                             setValue('hlmrcA_Id', '');
                                         }
                                     }} value={field.value} disabled={!selectedHostel}>

@@ -114,6 +114,8 @@ export async function getStudentFeeInstallmentList(groupId: any, academicYear: n
 
 export async function getStudentFeeSummaryById(academicId: number, studentId: number): Promise<StudentFeeGroupSummaryById[]> {
     const url = `/StudentFeeGroupMappingFacade/getFeeMappingSummaryById?ASMAY_Id=${academicId}&AMST_Id=${studentId}`;
+
+    console.info('getStudentFeeSummaryById URL:', url);
     const response = await api.get<any>('fees', url);
     return response.data?.feeGroups ?? [];
 }

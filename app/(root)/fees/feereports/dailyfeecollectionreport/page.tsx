@@ -343,7 +343,9 @@ export default function DailyFeeCollectionReportForm() {
         // API CALL
         // ===================================================
         try {
+            setShowTable(false);
             setLoading(true);
+            setTableRows([]);
             // const tempParams: IDailyFeeCollectionRequest = {
             //     AsmayId: 176,
             //     FromDate: '2025-01-01',
@@ -439,6 +441,7 @@ export default function DailyFeeCollectionReportForm() {
             if (!Array.isArray(rawData?.list) || rawData.list.length === 0) {
                 toast.error('No data found');
                 setShowTable(false);
+                setTableRows([]);
                 return;
             }
 

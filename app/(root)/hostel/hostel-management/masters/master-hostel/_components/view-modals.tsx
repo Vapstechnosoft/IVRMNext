@@ -2,11 +2,11 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ColumnDef } from '@tanstack/react-table';
-import { IFacility, IEmployee, IHostelDocument, IHostel } from '@/server/hostel/master-hostel/server-action';
 import { Button } from '@/components/ui/button';
 import { Eye } from 'lucide-react';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { IFacility, IEmployee, IHostelDocument, IHostel } from '@/types/hostel/hostel-management/masters';
 
 // --- View Facilities Modal ---
 

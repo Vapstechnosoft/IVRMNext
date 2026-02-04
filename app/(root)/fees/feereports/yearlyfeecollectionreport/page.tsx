@@ -8,7 +8,7 @@ import {
     useFeeCustomGroupDefaulterreport,
     useFeeGroupDefaulterreport,
     useFeeSectionListDefaulterreport,
-    useFeeTermDefaulterreport,
+    useFeeTermDropDownDataForReports,
     useFeeTransInstallmentYearlyfeecollectionreport
 } from '@/hooks/fees/useReports';
 
@@ -164,7 +164,10 @@ export default function FeeYearlyCollectionReport() {
         refetch: refetchSections
     } = useFeeSectionListDefaulterreport();
     const { data: feegroupData, isLoading: loadingfeegroup, error: feegroupError } = useFeeGroupDefaulterreport();
-    const { data: feetermData, isLoading: loadingfeeterm, error: feetermError } = useFeeTermDefaulterreport();
+    //const { data: feetermData, isLoading: loadingfeeterm, error: feetermError } = useFeeTermDefaulterreport();
+
+    const { data: feetermData, isLoading: loadingfeeterm, error: feetermError } = useFeeTermDropDownDataForReports();
+
     const { data: busRouteResponse, isLoading: loadingBusRoutes, error: busRouteError } = useFeeBusRouteDefaulterreport();
     const { data: customGroupResponse, isLoading: loadingCustomGroup, error: customGroupError } = useFeeCustomGroupDefaulterreport();
 
@@ -343,8 +346,15 @@ export default function FeeYearlyCollectionReport() {
         // Optional: Keep validation
         if (!filters.academicYearId) return toast.error('Please select an Academic Year');
         if (filters.feeGroupIds.length === 0) return toast.error('Please select at least one Fee Group');
+        if (filters.breakdown === 'TRMW') {
+            if (filters.termIds.length === 0) return toast.error('Please select at least one Term');
+        }
 
-        if (filters.termIds.length === 0) return toast.error('Please select at least one Term');
+        if (filters.breakdown === 'FSW' || filters.breakdown === 'SWTPC' || filters.breakdown === 'CWTPC') {
+            if (filters.classId === 0) return toast.error('Please select Class');
+
+            if (filters.sectionId === 0) return toast.error('Please select Section');
+        }
 
         setReportLoading(true);
         setShowReport(false);
@@ -362,7 +372,7 @@ export default function FeeYearlyCollectionReport() {
 
                 // Term OR Installment Ids
                 FTI_ids: filters.breakdown === 'INMW' ? filters.installmentIds : filters.termIds,
-
+                FMT_Ids: filters.breakdown === 'FGW' ? filters.termIds : [],
                 // FMG_Ids: [385, 385, 377, 378],
                 //FTI_ids: [83],
 
@@ -415,11 +425,19 @@ export default function FeeYearlyCollectionReport() {
             // const response = await fetchFeeDefaulterReport(payload);
             const response = await getFeeYearlyCollectionReport(payload);
 
+            console.log('Fee yearly collection response 👉', response);
+
             const apiList = response?.data?.list ?? [];
 
             const tableData = mapYearlyCollectionReport(apiList, filters.breakdown as BreakdownType);
 
             setReportData(tableData);
+
+            if (apiList.length === 0) {
+                setShowReport(false);
+                toast.info('No records found for selected criteria');
+                return;
+            }
             setShowReport(true);
 
             toast.success(`Report generated (${tableData.length} records)`);
@@ -433,92 +451,6 @@ export default function FeeYearlyCollectionReport() {
         }
 
         // await new Promise((resolve) => setTimeout(resolve, 1200));
-
-        // // STATIC MOCK DATA - Looks 100% real!
-        // const mockData: IFeeDefaulterReportRow[] = [
-        //     {
-        //         feeGroup: 'Tuition Fee',
-        //         totalDue: 12500,
-        //         fsS_TotalToBePaid: 3000,
-        //         fsS_CurrentYrCharges: 10000,
-        //         fsS_AdjustedAmount: 1200,
-        //         fsS_ConcessionAmount: 1000,
-        //         fsS_FineAmount: 1000,
-        //         fsS_RefundAmount: 10000,
-        //         fsS_RunningExcessAmount: 1000,
-        //         fsS_PaidAmount: 2000,
-        //         fsS_WaivedAmount: 6000,
-        //         fsS_ToBePaid: 10000
-        //     },
-        //     {
-        //         feeGroup: 'Transport + Tuition',
-        //         totalDue: 28500,
-        //         fsS_TotalToBePaid: 100,
-        //         fsS_CurrentYrCharges: 10000,
-        //         fsS_AdjustedAmount: 4000,
-        //         fsS_ConcessionAmount: 1000,
-        //         fsS_FineAmount: 1000,
-        //         fsS_RefundAmount: 9800,
-        //         fsS_RunningExcessAmount: 1000,
-        //         fsS_PaidAmount: 2000,
-        //         fsS_WaivedAmount: 20000,
-        //         fsS_ToBePaid: 10000
-        //     },
-        //     {
-        //         feeGroup: 'Annual Charges',
-        //         totalDue: 200,
-        //         fsS_TotalToBePaid: 100,
-        //         fsS_CurrentYrCharges: 10000,
-        //         fsS_AdjustedAmount: 3000,
-        //         fsS_ConcessionAmount: 1000,
-        //         fsS_FineAmount: 1000,
-        //         fsS_RefundAmount: 10000,
-        //         fsS_RunningExcessAmount: 1000,
-        //         fsS_PaidAmount: 2000,
-        //         fsS_WaivedAmount: 4500,
-        //         fsS_ToBePaid: 4500
-        //     },
-        //     {
-        //         feeGroup: 'Tuition Fee',
-        //         totalDue: 15000,
-        //         fsS_TotalToBePaid: 100,
-        //         fsS_CurrentYrCharges: 10000,
-        //         fsS_AdjustedAmount: 1200,
-        //         fsS_ConcessionAmount: 4000,
-        //         fsS_FineAmount: 1000,
-        //         fsS_RefundAmount: 10000,
-        //         fsS_RunningExcessAmount: 1000,
-        //         fsS_PaidAmount: 2000,
-        //         fsS_WaivedAmount: 20000,
-        //         fsS_ToBePaid: 10000
-        //     },
-        //     {
-        //         feeGroup: 'Lab + Tuition',
-        //         totalDue: 42000,
-        //         fsS_TotalToBePaid: 100,
-        //         fsS_CurrentYrCharges: 10000,
-        //         fsS_AdjustedAmount: 1200,
-        //         fsS_ConcessionAmount: 1000,
-        //         fsS_FineAmount: 1000,
-        //         fsS_RefundAmount: 6000,
-        //         fsS_RunningExcessAmount: 1000,
-        //         fsS_PaidAmount: 2000,
-        //         fsS_WaivedAmount: 7000,
-        //         fsS_ToBePaid: 10000
-        //     }
-        // ];
-
-        // setReportData(mockData);
-        // setShowReport(true);
-        // setReportLoading(false);
-        // setLoading(false);
-
-        // toast.success(`Report generated successfully! Found ${mockData.length} defaulters`);
-
-        // // Auto scroll to report
-        // setTimeout(() => {
-        //     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        // }, 100);
     };
     const handlePrint = () => {
         const rows = tableData.filter((r): r is IFeeYearlyCollectionReportRow => !('__isTotal' in r));
@@ -856,7 +788,7 @@ export default function FeeYearlyCollectionReport() {
                                                 {/* Class */}
                                                 <div className='flex min-w-[220px] flex-grow items-center gap-3'>
                                                     <Label htmlFor='includeClass' className='whitespace-nowrap font-medium'>
-                                                        Class:
+                                                        Class <span className='text-red-500'>*</span>:
                                                     </Label>
                                                     <Select
                                                         value={filters.classId === 0 ? '' : String(filters.classId)}

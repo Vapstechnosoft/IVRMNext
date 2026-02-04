@@ -82,10 +82,17 @@ export interface IMasterAmountEntryDetails {
     ftdD_Day: string;
     ftdD_Month: string;
     fmA_DueDate: string;
+    ftddE_DueDate: string;
     viewFine: boolean;
     addFine: boolean;
     fmA_PartialRebateApplicableDate: string;
     fyghM_FineApplicableFlag?: string;
+}
+
+export interface TAmountEntryStThomasInstallment {
+    ftI_Id: number;
+    fmH_Id: number;
+    ftI_Name: string;
 }
 
 export interface IFeeTransactionWaivedOffList {

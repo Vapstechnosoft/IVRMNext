@@ -6,7 +6,7 @@ export const useMasterCompetitionLevels = (searchParams?: any) => {
 
     return {
         ...useQuery({
-            queryKey: ['master-competition-levels', searchParams],
+            queryKey: ['master-competition-levels', searchParams ?? {}],
             queryFn: async () => getMasterCompetitionLevels(searchParams),
             staleTime: 0
         }),

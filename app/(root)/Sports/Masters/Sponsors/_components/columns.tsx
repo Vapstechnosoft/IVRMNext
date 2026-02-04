@@ -15,8 +15,7 @@ import { toast } from 'sonner';
    ============================================ */
 function ActionsCell({ row }: { row: Row<IMasterSponsor> }) {
     const sponsor = row.original;
-    const { refetchAll } = useMasterSponsors();
-    const { openEditForm } = useFormContext<IMasterSponsor>();
+    const { openEditForm, openToggleForm } = useFormContext<IMasterSponsor>();
 
     return (
         <ActionButtons
@@ -27,19 +26,7 @@ function ActionsCell({ row }: { row: Row<IMasterSponsor> }) {
                 delete: false
             }}
             onEdit={() => openEditForm(sponsor)}
-            onToggle={async () => {
-                try {
-                    const response = await deactivateMasterSponsor(sponsor);
-                    if (response.success) {
-                        toast.success(response.message || `Sponsor ${sponsor.spccmsP_ActiveFlag ? 'deactivated' : 'activated'} successfully`);
-                        await refetchAll();
-                    } else {
-                        toast.error(response.message || 'Failed to update sponsor status');
-                    }
-                } catch (error) {
-                    toast.error('An error occurred while updating sponsor status');
-                }
-            }}
+            onToggle={() => openToggleForm(sponsor)}
             toggleConditionKey='spccmsP_ActiveFlag'
         />
     );

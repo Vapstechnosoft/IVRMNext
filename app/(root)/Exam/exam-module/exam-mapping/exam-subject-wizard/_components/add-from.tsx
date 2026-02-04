@@ -110,8 +110,24 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     const router = useRouter();
     const convertToISO = (dateStr: string) => {
         if (!dateStr) return '';
-        const [day, month, year] = dateStr.split('/');
-        return `${year}-${month}-${day}`; // convert to YYYY-MM-DD
+        if (dateStr.includes('T')) {
+            return dateStr.split('T')[0];
+        }
+        if (dateStr.includes('/')) {
+            const parts = dateStr.split('/');
+            // If already YYYY/MM/DD
+            if (parts[0].length === 4) return `${parts[0]}-${parts[1]}-${parts[2]}`;
+            // If DD/MM/YYYY
+            return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+        if (dateStr.includes('-')) {
+            const parts = dateStr.split('-');
+            // If already YYYY-MM-DD
+            if (parts[0].length === 4) return dateStr;
+            // If DD-MM-YYYY
+            return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+        return dateStr;
     };
     useEffect(() => {
         if (masterSubSubject && Array.isArray(masterSubSubject.data)) {
@@ -991,7 +1007,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                             label='Attendance From'
                                             placeholder='Select Attendance From Date'
                                             fromDate={today}
-                                            toDate={new Date(watch('EYCE_AttendanceToDate'))}
+                                            toDate={watch('EYCE_AttendanceToDate') ? new Date(watch('EYCE_AttendanceToDate')) : undefined}
                                             restricted_tofieldName='Attendence To-Date'
                                             restricted_fromfieldName='Attendence From-Date'
                                         />
@@ -1007,7 +1023,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                             fieldState={fieldState}
                                             label='Attendance To'
                                             placeholder='Select Attendance To Date'
-                                            fromDate={new Date(watch('EYCE_AttendanceFromDate'))}
+                                            fromDate={watch('EYCE_AttendanceFromDate') ? new Date(watch('EYCE_AttendanceFromDate')) : undefined}
                                         />
                                     )}
                                 />

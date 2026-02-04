@@ -18,7 +18,7 @@ export default function ToggleMasterPeriodForm({ rowData, onClose }: ToggleMaste
                 ttmP_Id: rowData.ttmP_Id,
                 ttmP_ActiveFlag: rowData.ttmP_ActiveFlag
             };
-            return await deactivatePeriod(payload);
+            return await deactivatePeriod(rowData.ttmP_Id);
         },
         onSuccess: (response) => {
             if (response.returnval) {

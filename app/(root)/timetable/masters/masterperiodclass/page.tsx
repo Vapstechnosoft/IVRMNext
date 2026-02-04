@@ -51,7 +51,7 @@ function MasterPeriodClassPageContent({
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
-                        Add Master Period Class
+                        Add Master Period Allocation Class
                     </Button>
                 </div>
 
@@ -81,11 +81,12 @@ function MasterPeriodClassPageContent({
 }
 
 function FormSections({ onSuccess }: { onSuccess: () => void }) {
-    const { isToggleFormOpen, selectedRow, closeToggleForm, isAddFormOpen, closeAddForm } = useFormContext<IMasterPeriodClassList>();
+    const { isToggleFormOpen, selectedRow, closeToggleForm, isAddFormOpen, closeAddForm, addFormRef } =
+        useFormContext<IMasterPeriodClassList>();
 
     return (
         <>
-            {isAddFormOpen && (
+            {/* {isAddFormOpen && (
                 <div>
                     <CollapsibleSection
                         title='Add Master Period Allocation Class'
@@ -108,6 +109,30 @@ function FormSections({ onSuccess }: { onSuccess: () => void }) {
                                     onSuccess();
                                 }}
                             />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )} */}
+
+            {isAddFormOpen && (
+                <div ref={addFormRef}>
+                    <CollapsibleSection
+                        title='Add Master Period Allocation Class'
+                        description='Fill in the details below to create a new Period class'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeAddForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <MasterPeriodClassForm onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>

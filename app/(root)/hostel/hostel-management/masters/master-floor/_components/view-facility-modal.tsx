@@ -3,10 +3,10 @@
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useMappedFacilities } from '@/hooks/hostel/useMasterFloor';
-import { IFloorDisplay } from '@/server/hostel/master-floor/server-action';
 import { ColumnDef } from '@tanstack/react-table';
-import { IFacility } from '@/server/hostel/master-floor/server-action';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { IFacility } from '@/types/hostel/hostel-management/masters';
+import { IFloorDisplay } from '@/server/hostel/hostel-management/masters/floor';
 
 interface ViewFacilityModalProps {
     isOpen: boolean;

@@ -8,12 +8,12 @@ import { useMessMenu } from '@/hooks/hostel/useMessMenu';
 import { Plus, X } from 'lucide-react';
 import { use, useEffect } from 'react';
 import { messMenuColumns } from './_components/columns';
-import { IMessMenu } from '@/server/hostel/mess-menu/server-action';
 import { toast } from 'sonner';
 
 import { ToggleMessMenuForm } from './_components/toggle-form';
 import AddForm from './_components/add-form';
 import UpdateMessMenuForm from './_components/update-form';
+import { IMessMenu } from '@/types/hostel/hostel-management/masters';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
