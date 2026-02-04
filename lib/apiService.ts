@@ -45,7 +45,8 @@ export type ApiBaseUrlKey =
     | 'sadmin'
     | 'portal'
     | 'hostel'
-    | 'coe';
+    | 'coe'
+    | 'transport';
 
 class ApiService {
     private instances: Map<string, AxiosInstance>;
@@ -73,7 +74,8 @@ class ApiService {
             alumni: process.env.NEXT_PUBLIC_ALUMNI_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             sadmin: process.env.NEXT_PUBLIC_SADMIN_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             coe: process.env.NEXT_PUBLIC_COE_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
-            portal: process.env.NEXT_PUBLIC_PORTAL_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || ''
+            portal: process.env.NEXT_PUBLIC_PORTAL_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            transport: process.env.NEXT_PUBLIC_TRANSPORT_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || ''
         };
 
         // Debug: info base URLs in development
@@ -115,7 +117,6 @@ class ApiService {
                 config.httpsAgent = new https.Agent({
                     rejectUnauthorized: false // Bypass SSL certificate validation
                 });
-               
 
                 console.info('🔵 [API SERVICE] SSL bypass enabled for:', baseURL);
             }
