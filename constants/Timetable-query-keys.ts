@@ -20,5 +20,23 @@ export const TIMETABLE_QUERY_KEYS = {
     ACADEMIC_YEAR_DROPDOWN_MASTERDAYCLASSWISE: 'academic_year_dropdown_masterdayclasswise',
     CATEGORY_DROPDOWN_MASTERDAYCLASSWISE: 'category_dropdown_masterdayclasswise',
     CLASS_DROPDOWN_MASTERDAYCLASSWISE: 'class_dropdown_masterdayclasswise',
-    DAYS_DROPDOWN_MASTERDAYCLASSWISE: 'days_dropdown_masterdayclasswise'
+    CATEGORY_DROPDOWN_MASTERPERIOD: 'category_dropdown_masterperiod',
+    DAYS_DROPDOWN_MASTERDAYCLASSWISE: 'days_dropdown_masterdayclasswise',
+    TT_CLASS_SECTION_REPORT: 'tt_Class Section_Report',
+    TT_TXN_CATEGORY_DROPDOWN: 'tt_txn_category_dropdown',
+    TT_TXN_CLASS_DROPDOWN: 'tt_txn_class_dropdown',
+    DEPUTATION_MASTERS: 'deputation_masters',
+    DEPUTATION_ABSENT_STAFF: 'deputation_absent_staff',
+    STAFF_TRANSFER_MASTERS: 'staff_transfer_masters',
+    STAFF_TRANSFER_SECTIONS: 'staff_transfer_sections',
+    STAFF_PERIOD_DETAILS: 'staff_period_details',
+
+    STAFF_REPLACEMENT_MASTERS: 'staff_replacement_masters',
+    STAFF_REPLACEMENT_SECTIONS: 'staff_replacement_sections',
+    STAFF_REPLACEMENT_EXISTING_STAFF: 'staff_replacement_existing_staff',
+    STAFF_REPLACEMENT_NEW_STAFF: 'staff_replacement_new_staff',
+    STAFF_REPLACEMENT_PERIOD_DETAILS: 'staff_replacement_period_details',
+
+    STAFF_REPLACEMENT_IN_THIER_TIMETABLE: 'staff_replacement_staff',
+    TT_GENERATION_MASTERS: 'tt_generation_masters'
 };

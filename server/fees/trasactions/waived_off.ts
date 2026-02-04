@@ -64,6 +64,8 @@ export async function getEditGroupList(asmay_Id: number, amst_Id: number, FMG_Id
 
 export async function getHeadList(asmay_Id: number, amst_Id: number, filterradio: string, fineWaivedOff: number, groupIds: any) {
     const url = `/FeeWaivedOff/gethead?asmay_id=${asmay_Id}&amst_id=${amst_Id}&filterradiobuttonvalue=${filterradio}&finewaiveoff=${fineWaivedOff}`;
+
+    console.info('FeeWaivedOff', url);
     return await api.post<feeTransactionWaivedOffHead[]>('fees', url, groupIds);
 }
 

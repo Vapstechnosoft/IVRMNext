@@ -58,6 +58,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
         handleSubmit,
         reset,
         control,
+        watch,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(feesStudentTransactionSchema.addOrUpdate),
@@ -234,6 +235,8 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
 
     const { data: feeSectionData, isLoading: feeSectionDataLoading } = useStudentSectionDropDown(section);
 
+    const asmcLID = watch('asmcl_Id');
+    const asmS_Id = watch('asms_Id');
     useEffect(() => {
         if (!studentSearch.trim()) {
             setStudents([]);
@@ -245,10 +248,10 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
             try {
                 const payload = {
                     asmaY_Id: selectedAsmayId,
-                    filterinitialdata: filterType,
+                    filterinitialdata: left === true || deactive === true ? 'NameAdmno' : filterType,
                     searchfilter: studentSearch,
-                    asmcL_ID: selectedclassId ?? 0,
-                    asmS_Id: selectedSectionId ?? 0,
+                    asmcL_ID: classs === true || section === true ? asmcLID : 0,
+                    asmS_Id: section === true ? asmS_Id : 0,
                     amsT_SOL: left === true ? 'L' : deactive === true ? 'D' : 'S'
                 };
 
@@ -522,9 +525,11 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
         if (type === 'left') {
             setLeft(checked);
             setDeative(false);
+            setFilterType('NameAdmno');
         } else if (type === 'inactive') {
             setDeative(checked);
             setLeft(false);
+            setFilterType('NameAdmno');
         } else if (type === 'class') {
             setClass(checked);
             if (!checked) {
@@ -776,7 +781,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                 smsconfig: sms,
                 emailconfig: email
             };
-
+            console.log('save fee transaction payload', JSON.stringify(payload));
             const response = await saveFeeTransaction(payload);
 
             if (response?.displaymessage) {
@@ -1320,7 +1325,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                             />
                                         </td>
 
-                                        <td className='border p-2'>{f.fmG_GroupName}</td>
+                                        <td className='border p-2'>{f.fmH_FeeName}</td>
                                         <td className='border p-2'>{f.ftI_Name}</td>
                                         <td className='border p-2'>
                                             <input

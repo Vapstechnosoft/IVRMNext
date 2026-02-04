@@ -1,7 +1,11 @@
 'use client';
 
-import { DataTable } from '@/components/ui/data-table/data-table';
+import { Button } from '@/components/ui/button';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type FixingDayPeriodSchema, fixingDayPeriodSchema } from '@/schemas/timetable/constraints/fixing';
 import {
     deactivateFixingDayPeriod,
@@ -13,6 +17,7 @@ import {
     saveFixingDayPeriod
 } from '@/server/timetable/constraints/fixing';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Plus, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -23,7 +28,8 @@ interface DayPeriodTabProps {
 }
 
 function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
-    const { isEditFormOpen, selectedRow, closeToggleForm, isToggleFormOpen } = useFormContext();
+    const { isAddFormOpen, isEditFormOpen, openAddForm, closeAddForm, closeEditForm, selectedRow, closeToggleForm, isToggleFormOpen } =
+        useFormContext();
 
     const [academicList, setAcademicList] = useState<any[]>(initialData?.yearlist || []);
     const [categoryList, setCategoryList] = useState<any[]>(initialData?.categorylist || []);
@@ -243,139 +249,262 @@ function DayPeriodTabContent({ initialData }: DayPeriodTabProps) {
     };
 
     return (
-        <div className='space-y-6'>
-            {/* <Form {...form}>
-                <form onSubmit={handleSubmit(onSubmit)} className='space-y-4 rounded-md border bg-white p-4 shadow-sm'>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                        <FormField control={form.control} name="ASMAY_Id" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Academic Year</FormLabel>
-                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
-                                    <SelectContent>
-                                        {academicList.map((item: any) => (
-                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>{item.asmaY_Year}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )} />
+        <div className='space-y-4'>
+            <div className='flex gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
+                <Button
+                    type='button'
+                    onClick={openAddForm}
+                    className='w-fit bg-orange-500 shadow-md transition-all duration-200 hover:scale-105 hover:bg-orange-600 hover:shadow-lg'>
+                    <Plus className='mr-2 h-4 w-4' />
+                    Add Day Period Constraint
+                </Button>
+            </div>
 
-                        <FormField control={form.control} name="TTMC_Id" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Category</FormLabel>
-                                <Select onValueChange={(v) => handleCategoryChange(Number(v))} value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
-                                    <SelectContent>
-                                        {categoryList.map((item: any) => (
-                                            <SelectItem key={item.ttmC_Id} value={item.ttmC_Id.toString()}>{item.ttmC_CategoryName}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )} />
+            <CollapsibleSection
+                title='Day Period Constraints List'
+                defaultOpen={true}
+                variant='default'
+                size='lg'
+                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                <GenericDataTable data={gridData} columns={dayPeriodColumns} totalItems={gridData.length} isLoading={false} />
+            </CollapsibleSection>
 
-                        <FormField control={form.control} name="ASMCL_Id" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Class</FormLabel>
-                                <Select onValueChange={(v) => handleClassChange(Number(v))} value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
-                                    <SelectContent>
-                                        {classList.map((item: any) => (
-                                            <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>{item.asmcL_ClassName}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )} />
+            {(isAddFormOpen || isEditFormOpen) && (
+                <CollapsibleSection
+                    title={isEditFormOpen ? 'Edit Day Period Constraint' : 'Add New Day Period Constraint'}
+                    defaultOpen={true}
+                    variant='outline'
+                    size='md'
+                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                    <div className='relative'>
+                        <Button
+                            type='button'
+                            onClick={isEditFormOpen ? closeEditForm : closeAddForm}
+                            variant='ghost'
+                            size='sm'
+                            className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                            <X className='h-4 w-4 text-destructive' /> Close
+                        </Button>
 
-                        <FormField control={form.control} name="ASMS_Id" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Section</FormLabel>
-                                <Select onValueChange={(v) => handleSectionChange(Number(v))} value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
-                                    <SelectContent>
-                                        {sectionList.map((item: any) => (
-                                            <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>{item.asmS_SectionName || item.asmC_SectionName}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )} />
+                        <Form {...form}>
+                            <form onSubmit={handleSubmit(onSubmit)} className='space-y-4 bg-white p-4 shadow-sm'>
+                                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                                    <FormField
+                                        control={form.control}
+                                        name='ASMAY_Id'
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Academic Year</FormLabel>
+                                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder='Select' />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        {academicList.map((item: any) => (
+                                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                                {item.asmaY_Year}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
 
-                        <FormField control={form.control} name="HRME_Id" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Staff</FormLabel>
-                                <Select onValueChange={(v) => handleStaffChange(Number(v))} value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
-                                    <SelectContent>
-                                        {staffList.map((item: any) => (
-                                            <SelectItem key={item.hrmE_Id} value={item.hrmE_Id.toString()}>{item.hrmE_EmployeeCode} - {item.hrmE_EmployeeFirstName}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )} />
+                                    <FormField
+                                        control={form.control}
+                                        name='TTMC_Id'
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Category</FormLabel>
+                                                <Select
+                                                    onValueChange={(v) => handleCategoryChange(Number(v))}
+                                                    value={field.value?.toString()}>
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder='Select' />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        {categoryList.map((item: any) => (
+                                                            <SelectItem key={item.ttmC_Id} value={item.ttmC_Id.toString()}>
+                                                                {item.ttmC_CategoryName}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
 
-                        <FormField control={form.control} name="ISMS_Id" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Subject</FormLabel>
-                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
-                                    <SelectContent>
-                                        {subjectList.map((item: any) => (
-                                            <SelectItem key={item.ismS_Id} value={item.ismS_Id.toString()}>{item.ismS_SubjectName}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )} />
+                                    <FormField
+                                        control={form.control}
+                                        name='ASMCL_Id'
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Class</FormLabel>
+                                                <Select onValueChange={(v) => handleClassChange(Number(v))} value={field.value?.toString()}>
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder='Select' />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        {classList.map((item: any) => (
+                                                            <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
+                                                                {item.asmcL_ClassName}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
 
-                        <FormField control={form.control} name="TTMD_Id" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Day</FormLabel>
-                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
-                                    <SelectContent>
-                                        {dayList.map((item: any) => (
-                                            <SelectItem key={item.ttmD_Id} value={item.ttmD_Id.toString()}>{item.ttmD_DayName}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )} />
+                                    <FormField
+                                        control={form.control}
+                                        name='ASMS_Id'
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Section</FormLabel>
+                                                <Select
+                                                    onValueChange={(v) => handleSectionChange(Number(v))}
+                                                    value={field.value?.toString()}>
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder='Select' />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        {sectionList.map((item: any) => (
+                                                            <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>
+                                                                {item.asmS_SectionName || item.asmC_SectionName}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
 
-                        <FormField control={form.control} name="TTMP_Id" render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Period</FormLabel>
-                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
-                                    <SelectContent>
-                                        {periodList.map((item: any) => (
-                                            <SelectItem key={item.ttmP_Id} value={item.ttmP_Id.toString()}>{item.ttmP_PeriodName}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )} />
+                                    <FormField
+                                        control={form.control}
+                                        name='HRME_Id'
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Staff</FormLabel>
+                                                <Select onValueChange={(v) => handleStaffChange(Number(v))} value={field.value?.toString()}>
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder='Select' />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        {staffList.map((item: any) => (
+                                                            <SelectItem key={item.hrmE_Id} value={item.hrmE_Id.toString()}>
+                                                                {item.hrmE_EmployeeCode} - {item.hrmE_EmployeeFirstName}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name='ISMS_Id'
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Subject</FormLabel>
+                                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder='Select' />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        {subjectList.map((item: any) => (
+                                                            <SelectItem key={item.ismS_Id} value={item.ismS_Id.toString()}>
+                                                                {item.ismS_SubjectName}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name='TTMD_Id'
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Day</FormLabel>
+                                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder='Select' />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        {dayList.map((item: any) => (
+                                                            <SelectItem key={item.ttmD_Id} value={item.ttmD_Id.toString()}>
+                                                                {item.ttmD_DayName}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name='TTMP_Id'
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Period</FormLabel>
+                                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder='Select' />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        {periodList.map((item: any) => (
+                                                            <SelectItem key={item.ttmP_Id} value={item.ttmP_Id.toString()}>
+                                                                {item.ttmP_PeriodName}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+
+                                <div className='flex justify-end gap-2'>
+                                    <Button type='button' variant='outline' onClick={() => reset()}>
+                                        Cancel
+                                    </Button>
+                                    <Button type='submit'>Save</Button>
+                                </div>
+                            </form>
+                        </Form>
                     </div>
-
-                    <div className="flex justify-end gap-2">
-                        <Button type="button" variant="outline" onClick={() => reset()}>Cancel</Button>
-                        <Button type="submit">Save</Button>
-                    </div>
-                </form>
-            </Form> */}
-
-            <DataTable data={gridData} columns={dayPeriodColumns} totalItems={gridData.length} />
+                </CollapsibleSection>
+            )}
         </div>
     );
 }
