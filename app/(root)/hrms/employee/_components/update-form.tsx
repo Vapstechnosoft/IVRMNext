@@ -670,24 +670,10 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         return mapFormDataToApiFormatWithoutAddress(data, empId, selectedPhoto);
     };
 
-    const mapFormDataToPascalCaseLocal = (data: FormFields) => {
-        const empId = savedEmployeeId || 0;
-        const payload = mapFormDataToPascalCaseApiFormat(data, empId, selectedPhoto);
-
-        // Fix for Payment Mode: If NOT 'Bank', clear bank details
-        // Cast 'm' to any to avoid type error with IPaymentModeDropdown interface
-        const paymentMode = (options.modeOfPayment as any[])?.find((m: any) =>
-            String(m.ivrmmod_Id) === String(data.modeOfPayment) ||
-            String(m.key) === String(data.modeOfPayment)
-        )?.ivrmmod_ModeOfPayment;
-
-        if (paymentMode && paymentMode.toLowerCase() !== 'bank') {
-            console.log(`ℹ️ [PAYLOAD ADAPTER] Payment Mode is '${paymentMode}' - Clearing Bank Details`);
-            payload.hrmE_BankAccountNo = '';
-        }
-
-        return payload;
+    const mapFormDataToPascalCaseLocal = (data: any) => {
+        return mapFormDataToPascalCaseApiFormat(data, savedEmployeeId || selectedRow?.hrmE_Id || 0, selectedPhoto);
     };
+
 
     // Helper to get current tab key from step
     const getCurrentTabKey = () => steps.find((s) => s.id === currentStep)?.tabKey || 'employee';
@@ -767,6 +753,29 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         const data = getValues();
         const currentStepId = currentStep;
 
+        // Apply robust payment mode fix to ensure the name is sent to API and bank details are cleared for non-Bank modes
+        const fixPaymentMode = (p: any) => {
+            const paymentModeObj = (options.modeOfPayment as any[])?.find((m: any) =>
+                String(m.key || m.ivrmmod_Id || '') === String(data.modeOfPayment) ||
+                String(m.value || m.ivrmmod_ModeOfPayment || '').toLowerCase() === String(data.modeOfPayment).toLowerCase()
+            );
+            const paymentModeName = paymentModeObj?.value || paymentModeObj?.ivrmmod_ModeOfPayment || data.modeOfPayment;
+
+            if (p.employee) {
+                p.employee.hrmE_PaymentType = paymentModeName;
+            }
+
+            if (paymentModeName && String(paymentModeName).toLowerCase() !== 'bank') {
+                if (p.employee) {
+                    p.employee.hrmE_BankAccountNo = null;
+                }
+                if (p.bankRequest) {
+                    delete p.bankRequest;
+                }
+            }
+            return p;
+        };
+
         console.log('🔍 [DEBUG] Proceeding to save - Step ID:', currentStepId);
         console.log('🔍 [DEBUG] nextStep - Checking conditions:');
         console.log('  - currentStepId === 1:', currentStepId === 1);
@@ -780,7 +789,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         if (currentStepId === 1) {
             // Employee Information tab - call /api/EmployeeRegistration/SavePersonalDetails
             // Save employee details without address (address fields will be null)
-            const payload = mapFormDataToApiFormatWithoutAddressLocal(data);
+            const payload = fixPaymentMode(mapFormDataToApiFormatWithoutAddressLocal(data));
             payload.employee.hrmE_Id = selectedRow?.hrmE_Id || 0; // Use existing employee ID
 
             console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Form Data:', data);
@@ -834,7 +843,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 setCurrentStep(1);
                 return;
             }
-            const payload = mapFormDataToApiFormatLocal(data);
+            const payload = fixPaymentMode(mapFormDataToApiFormatLocal(data));
             payload.employee.hrmE_Id = employeeId; // Use the employee ID
 
             console.log('🔍 [DEBUG] Tab 2 (Address Information) - Form Data:', data);
@@ -1710,6 +1719,29 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         const data = getValues();
         const currentStepId = currentStep;
 
+        // Apply robust payment mode fix to ensure the name is sent to API and bank details are cleared for non-Bank modes
+        const fixPaymentMode = (p: any) => {
+            const paymentModeObj = (options.modeOfPayment as any[])?.find((m: any) =>
+                String(m.key || m.ivrmmod_Id || '') === String(data.modeOfPayment) ||
+                String(m.value || m.ivrmmod_ModeOfPayment || '').toLowerCase() === String(data.modeOfPayment).toLowerCase()
+            );
+            const paymentModeName = paymentModeObj?.value || paymentModeObj?.ivrmmod_ModeOfPayment || data.modeOfPayment;
+
+            if (p.employee) {
+                p.employee.hrmE_PaymentType = paymentModeName;
+            }
+
+            if (paymentModeName && String(paymentModeName).toLowerCase() !== 'bank') {
+                if (p.employee) {
+                    p.employee.hrmE_BankAccountNo = null;
+                }
+                if (p.bankRequest) {
+                    delete p.bankRequest;
+                }
+            }
+            return p;
+        };
+
         try {
             if (currentStepId === 1) {
                 // Employee tab - save without address
@@ -1744,7 +1776,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
 
                 console.log('🔍 [API DEBUG] Tab 1 (Employee + Bank) - Submitting Combined Payload:', payload);
 
-                savePersonalDetails(payload as any, {
+                savePersonalDetails(fixPaymentMode(payload) as any, {
                     onSuccess: (response: any) => {
                         console.log('✅ [API DEBUG] Tab 1 (Employee) - Save Success Response:', response);
                         if (response?.success) {
@@ -1812,7 +1844,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                         hrmE_Id: savedEmployeeId
                     }
                 };
-                savePersonalDetails(payload, {
+                savePersonalDetails(fixPaymentMode(payload), {
                     onSuccess: (response: any) => {
                         console.log('✅ [API DEBUG] Tab 2 (Address) - Save Success Response:', response);
                         if (response?.success) {

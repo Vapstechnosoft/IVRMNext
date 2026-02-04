@@ -77,7 +77,12 @@ export function useEmployeeTypeDropdown() {
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'dropdown', 'employee-type'],
-            queryFn: async () => getEmployeeTypeDropdown(),
+            queryFn: async () => {
+                console.log('📡 [HOOK] fetching Employee Type Dropdown...');
+                const data = await getEmployeeTypeDropdown();
+                console.log('📡 [HOOK] Employee Type Dropdown Data:', data);
+                return data;
+            },
             staleTime: 1000 * 60 * 5
         }),
         refetchAll: () => {

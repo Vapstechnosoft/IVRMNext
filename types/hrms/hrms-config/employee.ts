@@ -7,6 +7,8 @@ export interface IGradeDropdown {
 export interface IEmployeeTypeDropdown {
     key: number;
     value: string;
+    hrmeT_Id?: number;
+    hrmeT_EmployeeType?: string;
 }
 
 export interface IGroupTypeDropdown {

@@ -56,9 +56,11 @@ export async function getGradeDropdown() {
  * GET /api/MasterDropDown/GetEmployeeType
  */
 export async function getEmployeeTypeDropdown() {
-    const url = '/api/MasterDropDown/GetEmployeeType';
+    const url = '/api/MasterEmployeeType';
+    console.log('🔍 [API DEBUG] Fetching Employee Type Dropdown from:', url);
     try {
         const response = await api.get<IEmployeeTypeDropdown[]>('hrms', url);
+        console.log('✅ [API DEBUG] Employee Type Dropdown Response:', JSON.stringify(response, null, 2));
         return response || [];
     } catch (error) {
         console.error('❌ [API ERROR] Failed to fetch Employee Type Dropdown:', error);
@@ -512,11 +514,16 @@ export async function getEmployeeById(id: number) {
  */
 export async function saveEmployee(data: IEmployeeSaveRequest) {
     const url = '/api/EmployeeRegistration/employee_registration_save_employee_details';
+    console.log('📦 [API DEBUG] saveEmployee Payload:', JSON.stringify(data, null, 2));
     try {
-        return await api.post<IEmployeeSaveResponse>('hrms', url, data);
+        const response = await api.post<IEmployeeSaveResponse>('hrms', url, data);
+        console.log('✅ [API DEBUG] saveEmployee Response:', JSON.stringify(response, null, 2));
+        return response;
     } catch (error: any) {
-        console.error('❌ [API ERROR] saveEmployee:', error);
-        return { success: false, message: error?.message || 'Failed to save personal details' };
+        console.error('❌ [API ERROR] saveEmployee Failed:', error);
+        console.error('❌ [API ERROR] Details:', JSON.stringify(error?.response?.data || {}, null, 2));
+        const backendMessage = error?.response?.data?.message || (typeof error?.response?.data === 'string' ? error.response.data : null);
+        return { success: false, message: backendMessage || error?.message || 'Failed to save personal details' };
     }
 }
 

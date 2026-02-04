@@ -89,38 +89,53 @@ import {
 import { PayrollTab } from './payroll-tab';
 
 
-// Helper component for Qualification State Dropdown (needs to be separate component to use hooks)
+// Helper component for Qualification State Dropdown
 function QualificationStateDropdown({
     control,
     index,
-    countryId,
+    countryId: propCountryId,
     setValue,
     fallbackStates = []
 }: {
     control: any;
     index: number;
-    countryId: string | null;
+    countryId?: string | null;
     setValue?: any;
     fallbackStates?: any[];
 }) {
+    // improved: useWatch directly for better reactivity
+    const watchedCountry = useWatch({
+        control,
+        name: `qualificationDetails.${index}.qualificationCountry`
+    });
+
+    const countryId = propCountryId ?? watchedCountry;
+
+    // Convert to number for API call
     const countryIdNum = countryId ? (Number.isNaN(Number(countryId)) ? null : Number(countryId)) : null;
+
     const { data: fetchedStates = [], isLoading } = useStateDropdown(countryIdNum);
+
     const availableStates: IStateDropdown[] = countryIdNum
         ? Array.isArray(fetchedStates)
             ? fetchedStates
             : []
         : (fallbackStates as IStateDropdown[]);
-    const prevCountryIdRef = useRef<string | null>(countryId);
+
+    const prevCountryIdRef = useRef<string | null>(countryId as string | null);
+
     useEffect(() => {
         if (!setValue) return;
+        // Only clear if country actually changed
         if (prevCountryIdRef.current !== countryId) {
-            prevCountryIdRef.current = countryId;
+            prevCountryIdRef.current = countryId as string | null;
             setValue(`qualificationDetails.${index}.qualificationState`, '', {
                 shouldValidate: false
             });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [countryId, index, setValue]);
+
     return (
         <Controller
             name={`qualificationDetails.${index}.qualificationState`}
@@ -136,6 +151,10 @@ function QualificationStateDropdown({
                             {isLoading ? (
                                 <SelectItem value='loading' disabled>
                                     Loading states...
+                                </SelectItem>
+                            ) : availableStates.length === 0 ? (
+                                <SelectItem value='no-options' disabled>
+                                    {countryIdNum ? 'No states found' : 'Select Country first'}
                                 </SelectItem>
                             ) : (
                                 availableStates
@@ -491,7 +510,10 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         return {
             grades: gradeDropdown || [],
             groupTypes: groupTypeDropdown || [],
-            empTypes: employeeTypeDropdown || [],
+            empTypes: employeeTypeDropdown.map((item) => ({
+                key: item.key || item.hrmeT_Id || 0,
+                value: item.value || item.hrmeT_EmployeeType || ''
+            })),
             institutions: institutionDropdown || [],
             designations: designationDropdown || [],
             genders: genderDropdown || [],
@@ -616,6 +638,11 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
 
     // Add form - no edit mode (removed isEditMode variable - not needed)
     const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+
+    // Local helper for PascalCase mapping used by Step 6/7
+    const mapFormDataToPascalCaseLocal = (data: any) => {
+        return mapFormDataToPascalCaseApiFormat(data, savedEmployeeId || 0, selectedPhoto);
+    };
     const [_photoFile, setPhotoFile] = useState<File | null>(null);
     const [currentStep, setCurrentStep] = useState(1);
     const [savedEmployeeId, setSavedEmployeeId] = useState<number | null>(null);
@@ -632,21 +659,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         return mapFormDataToApiFormatWithoutAddress(data, empId, selectedPhoto);
     };
 
-    // Wrapper to map form data to STRICT PascalCase API format
-    const mapFormDataToPascalCaseLocal = (formData: FormFields) => {
-        const payload = mapFormDataToPascalCaseApiFormat(formData, savedEmployeeId || 0, selectedPhoto);
-
-        // Note: Using options as that's what's available in this component scope, referencing line 490
-        // Cast 'options.modeOfPayment' to any[] to completely bypass the type definition issue
-        const paymentMode = (options.modeOfPayment as any[])?.find((m: any) => String(m.ivrmmod_Id) === String(formData.modeOfPayment))?.ivrmmod_ModeOfPayment;
-
-        if (paymentMode && paymentMode.toLowerCase() !== 'bank') {
-            console.log(`ℹ️ [PAYLOAD ADAPTER] Payment Mode is '${paymentMode}' - Clearing Bank Details`);
-            payload.hrmE_BankAccountNo = '';
-        }
-
-        return payload;
-    };
 
     // Helper to get current tab key from step
     const getCurrentTabKey = () => steps.find((s) => s.id === currentStep)?.tabKey || 'employee';
@@ -681,31 +693,52 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         const currentStepId = currentStep;
         console.log('🔍 [DEBUG] nextStep - Proceeding with step ID:', currentStepId);
 
+        // Apply robust payment mode fix to ensure the name is sent to API and bank details are cleared for non-bank modes
+        const fixPaymentMode = (p: any) => {
+            const paymentModeObj = (options.modeOfPayment as any[])?.find((m: any) =>
+                String(m.key || m.ivrmmod_Id || '') === String(data.modeOfPayment) ||
+                String(m.value || m.ivrmmod_ModeOfPayment || '').toLowerCase() === String(data.modeOfPayment).toLowerCase()
+            );
+            const paymentModeName = paymentModeObj?.value || paymentModeObj?.ivrmmod_ModeOfPayment || data.modeOfPayment;
+
+            if (p.employee) {
+                p.employee.hrmE_PaymentType = paymentModeName;
+            }
+
+            if (paymentModeName && String(paymentModeName).toLowerCase() !== 'bank') {
+                if (p.employee) {
+                    p.employee.hrmE_BankAccountNo = null;
+                }
+                if (p.bankRequest) {
+                    delete p.bankRequest;
+                }
+            }
+            return p;
+        };
+
         // For steps 1 and 2, we need to save data via API before moving to next step
         if (currentStepId === 1) {
             // Employee Information tab - call /api/EmployeeRegistration/SavePersonalDetails
             // Save employee details without address (address fields will be null)
             const rawPayload = mapFormDataToApiFormatWithoutAddressLocal(data);
             // Force string conversion for required fields to match IEmployeeSaveRequest
-            const payload: any = {
+            const payload: any = fixPaymentMode({
                 ...rawPayload,
                 employee: {
                     ...rawPayload.employee,
-                    hrmE_EmployeeFirstName: rawPayload.employee.hrmE_EmployeeFirstName ?? '',
-                    hrmE_EmployeeMiddleName: rawPayload.employee.hrmE_EmployeeMiddleName ?? '',
-                    hrmE_EmployeeLastName: rawPayload.employee.hrmE_EmployeeLastName ?? '',
-                    hrmE_EmployeeCode: rawPayload.employee.hrmE_EmployeeCode ?? '',
-                    hrmE_FatherName: rawPayload.employee.hrmE_FatherName ?? '',
-                    hrmE_MotherName: rawPayload.employee.hrmE_MotherName ?? '',
-                    hrmE_BloodGroup: rawPayload.employee.hrmE_BloodGroup ?? '',
-                    hrmE_SalaryType: rawPayload.employee.hrmE_SalaryType ?? '',
-                    hrmE_MobileNo: rawPayload.employee.hrmE_MobileNo ?? '',
-                    hrmE_EmailId: rawPayload.employee.hrmE_EmailId ?? '',
-                    hrmE_PANCardNo: rawPayload.employee.hrmE_PANCardNo ?? '',
-                    hrmE_NationalSSN: rawPayload.employee.hrmE_NationalSSN ?? '',
+                    // Force string conversion for required fields to match IEmployeeSaveRequest
+                    hrmE_EmployeeFirstName: String(data.firstName || ''),
+                    hrmE_EmployeeMiddleName: String(data.middleName || ''),
+                    hrmE_EmployeeLastName: String(data.lastName || ''),
+                    hrmE_EmployeeCode: String(data.employeeCode || ''),
+                    hrmE_FatherName: String(data.fatherName || ''),
+                    hrmE_MotherName: String(data.motherName || ''),
+                    hrmE_Gender: String(data.gender || ''),
+                    hrmE_DOB: data.dateOfBirth ? new Date(data.dateOfBirth).toISOString() : null,
+                    hrmE_DOJ: data.dateOfJoining ? new Date(data.dateOfJoining).toISOString() : null,
                     hrmE_Id: savedEmployeeId || 0
                 }
-            };
+            });
 
             console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Form Data:', data);
             console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Payload:', payload);
@@ -884,7 +917,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 setCurrentStep(1);
                 return;
             }
-            const payload = mapFormDataToApiFormatLocal(data);
+            const payload = fixPaymentMode(mapFormDataToApiFormatLocal(data));
             payload.employee.hrmE_Id = savedEmployeeId; // Use the ID from step 1
 
             console.log('🔍 [DEBUG] Tab 2 (Address Information) - Form Data:', data);
@@ -1554,6 +1587,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     // Clear state when country changes
     const prevContactCountryId = useRef<number | null>(contactCountryId);
     const prevPermanentCountryId = useRef<number | null>(permanentCountryId);
+    const prevContactValues = useRef<any>({});
 
     useEffect(() => {
         if (prevContactCountryId.current !== contactCountryId) {
@@ -1563,37 +1597,30 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     }, [contactCountryId, setValue]);
 
     useEffect(() => {
+        // Only clear permanent state if NOT syncing from communication address
         if (prevPermanentCountryId.current !== permanentCountryId) {
-            setValue('permanentState', '');
+            if (!sameAsCommunicationAddress) {
+                setValue('permanentState', '');
+            }
             prevPermanentCountryId.current = permanentCountryId;
         }
-    }, [permanentCountryId, setValue]);
+    }, [permanentCountryId, setValue, sameAsCommunicationAddress]);
 
     // Use fetched states if country is selected, otherwise fall back to empty array
     const availableContactStates: IStateDropdown[] = contactCountryId ? (Array.isArray(contactStates) ? contactStates : []) : [];
     const availablePermanentStates: IStateDropdown[] = permanentCountryId ? (Array.isArray(permanentStates) ? permanentStates : []) : [];
 
     // Copy communication address to permanent address when checkbox is checked
-    const prevSameAsAddress = useRef(sameAsCommunicationAddress);
-    const prevContactValues = useRef({
-        contactAddress,
-        contactArea,
-        contactCity,
-        contactState,
-        contactPincode,
-        contactCountry
-    });
-
+    // Removed strict prevSameAsAddress check to allow continuous sync when checked
     useEffect(() => {
-        if (sameAsCommunicationAddress && prevSameAsAddress.current !== sameAsCommunicationAddress) {
+        if (sameAsCommunicationAddress) {
             setValue('permanentAddress', contactAddress || '');
             setValue('permanentArea', contactArea || '');
             setValue('permanentCity', contactCity || '');
-            setValue('permanentState', contactState || '');
+            setValue('permanentState', contactState || ''); // This might need to wait for states to load? No, existing options should cover it if same country.
             setValue('permanentPincode', contactPincode || '');
             setValue('permanentCountry', contactCountry || '');
         }
-        prevSameAsAddress.current = sameAsCommunicationAddress;
     }, [sameAsCommunicationAddress, contactAddress, contactArea, contactCity, contactState, contactPincode, contactCountry, setValue]);
 
     useEffect(() => {
@@ -1776,11 +1803,34 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         const data = getValues();
         const currentStepId = currentStep;
 
+        // Apply robust payment mode fix to ensure the name is sent to API and bank details are cleared for non-Bank modes
+        const fixPaymentMode = (p: any) => {
+            const paymentModeObj = (options.modeOfPayment as any[])?.find((m: any) =>
+                String(m.key || m.ivrmmod_Id || '') === String(data.modeOfPayment) ||
+                String(m.value || m.ivrmmod_ModeOfPayment || '').toLowerCase() === String(data.modeOfPayment).toLowerCase()
+            );
+            const paymentModeName = paymentModeObj?.value || paymentModeObj?.ivrmmod_ModeOfPayment || data.modeOfPayment;
+
+            if (p.employee) {
+                p.employee.hrmE_PaymentType = paymentModeName;
+            }
+
+            if (paymentModeName && String(paymentModeName).toLowerCase() !== 'bank') {
+                if (p.employee) {
+                    p.employee.hrmE_BankAccountNo = null;
+                }
+                if (p.bankRequest) {
+                    delete p.bankRequest;
+                }
+            }
+            return p;
+        };
+
         try {
             if (currentStepId === 1) {
                 // Employee Information tab - call /api/EmployeeRegistration/SavePersonalDetails
                 // Save employee details without address (address fields will be null)
-                const payload = mapFormDataToApiFormatWithoutAddressLocal(data);
+                const payload = fixPaymentMode(mapFormDataToApiFormatWithoutAddressLocal(data));
                 payload.employee.hrmE_Id = 0; // New record
                 savePersonalDetails(payload as any, {
                     onSuccess: (response: any) => {
@@ -1814,27 +1864,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     setCurrentStep(1);
                     return;
                 }
-                const rawPayload = mapFormDataToApiFormatLocal(data);
-                // Force string conversion for required fields
-                const payload: any = {
-                    ...rawPayload,
-                    employee: {
-                        ...rawPayload.employee,
-                        hrmE_EmployeeFirstName: rawPayload.employee.hrmE_EmployeeFirstName ?? '',
-                        hrmE_EmployeeMiddleName: rawPayload.employee.hrmE_EmployeeMiddleName ?? '',
-                        hrmE_EmployeeLastName: rawPayload.employee.hrmE_EmployeeLastName ?? '',
-                        hrmE_EmployeeCode: rawPayload.employee.hrmE_EmployeeCode ?? '',
-                        hrmE_FatherName: rawPayload.employee.hrmE_FatherName ?? '',
-                        hrmE_MotherName: rawPayload.employee.hrmE_MotherName ?? '',
-                        hrmE_BloodGroup: rawPayload.employee.hrmE_BloodGroup ?? '',
-                        hrmE_SalaryType: rawPayload.employee.hrmE_SalaryType ?? '',
-                        hrmE_MobileNo: rawPayload.employee.hrmE_MobileNo ?? '',
-                        hrmE_EmailId: rawPayload.employee.hrmE_EmailId ?? '',
-                        hrmE_PANCardNo: rawPayload.employee.hrmE_PANCardNo ?? '',
-                        hrmE_NationalSSN: rawPayload.employee.hrmE_NationalSSN ?? '',
-                        hrmE_Id: savedEmployeeId // Use cached ID
-                    }
-                };
+                const payload = fixPaymentMode(mapFormDataToApiFormatLocal(data));
                 savePersonalDetails(payload, {
                     onSuccess: (response: any) => {
                         // Show API response message
@@ -4616,10 +4646,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     <QualificationStateDropdown
                                                                         control={control}
                                                                         index={index}
-                                                                        countryId={
-                                                                            (watch('qualificationDetails') || [])[index]
-                                                                                ?.qualificationCountry || null
-                                                                        }
                                                                         setValue={setValue}
                                                                         fallbackStates={options?.states || []}
                                                                     />

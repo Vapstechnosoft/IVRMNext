@@ -172,7 +172,7 @@ export function mapFormDataToApiFormat(
     // Add Bank Request if details exist
     if (data.bankDetails && data.bankDetails.length > 0) {
         payload.bankRequest = {
-            mI_Id: Number(data.department) || 30, // Use department/institution ID
+            mI_Id: HRMS_MI_ID, // Use consistent HRMS_MI_ID (30)
             hrmE_Id: employeeId,
             bankDetails: data.bankDetails.map((bank: any) => ({
                 hrmeB_Id: bank.hrmeB_Id || 0,
