@@ -4127,6 +4127,14 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Inventory Master Supplier'
                                         },
                                         {
+                                            id: 5,
+                                            name: 'Customer',
+                                            icon: 'Users',
+                                            url: '/inventory/inventory-module/masters/inv-master-customer',
+                                            title: 'Inventory Master Customer',
+                                            description: 'Manage Inventory Master Customer'
+                                        },
+                                        {
                                             id: 4,
                                             name: 'Group',
                                             icon: 'Users',
