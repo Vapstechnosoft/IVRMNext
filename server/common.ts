@@ -2615,6 +2615,14 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 1,
+                                            name: 'Alumni Dashboard',
+                                            icon: 'LayoutDashboard',
+                                            url: '/alumni/alumni-module/transactions/alumni-dashboard',
+                                            title: 'Alumni Dashboard',
+                                            description: 'Alumni Portal Dashboard'
+                                        },
+                                        {
+                                            id: 2,
                                             name: 'Alumni NoticeBoard',
                                             icon: 'Announcement',
                                             url: '/alumni/alumni-module/transactions/alumni-noticeboard',
@@ -2622,7 +2630,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Alumni NoticeBoard Details'
                                         },
                                         {
-                                            id: 2,
+                                            id: 3,
                                             name: 'Alumni Gallery',
                                             icon: 'Image',
                                             url: '/alumni/alumni-module/transactions/alumni-gallery',
@@ -2630,7 +2638,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Alumni Gallery Details'
                                         },
                                         {
-                                            id: 3,
+                                            id: 4,
                                             name: 'Alumni Interactions',
                                             icon: 'MessageSquare',
                                             url: '/alumni/alumni-module/transactions/alumni-interactions',
@@ -2638,7 +2646,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Alumni Interaction Details'
                                         },
                                         {
-                                            id: 4,
+                                            id: 5,
                                             name: 'Alumni Friend Request',
                                             icon: 'UserPlus',
                                             url: '/alumni/alumni-module/transactions/alumni-friend-request',
@@ -2646,7 +2654,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Alumni Friend Request Details'
                                         },
                                         {
-                                            id: 5,
+                                            id: 6,
                                             name: 'Alumni Friend Request Accept',
                                             icon: 'UserPlus',
                                             url: '/alumni/alumni-module/transactions/alumni-friend-request-accept',
@@ -2654,7 +2662,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Alumni Friend Request Accept Details'
                                         },
                                         {
-                                            id: 6,
+                                            id: 7,
                                             name: 'Alumni Donation',
                                             icon: 'HeartHandshake',
                                             url: '/alumni/alumni-module/transactions/alumni-donation',
@@ -2662,7 +2670,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Alumni Donation Details'
                                         },
                                         {
-                                            id: 7,
+                                            id: 8,
                                             name: 'Alumni Letters',
                                             icon: 'MailOpen',
                                             url: '/alumni/alumni-module/transactions/alumni-letters',
@@ -2670,7 +2678,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Generate Alumni Letters'
                                         },
                                         {
-                                            id: 8,
+                                            id: 9,
                                             name: 'CLG Alumni Approval',
                                             icon: 'UserCheck',
                                             url: '/alumni/alumni-module/transactions/clg-alumni-approval',
@@ -2678,12 +2686,36 @@ export async function getUserAccessibleModules() {
                                             description: 'Approve College Alumni Registrations'
                                         },
                                         {
-                                            id: 9,
+                                            id: 10,
                                             name: 'CLG Student Search',
                                             icon: 'Search',
                                             url: '/alumni/alumni-module/transactions/clg-alumni-student-search',
                                             title: 'CLG Student Search',
                                             description: 'Search College Alumni Students'
+                                        },
+                                        {
+                                            id: 11,
+                                            name: 'User Password Creation',
+                                            icon: 'KeyRound',
+                                            url: '/alumni/alumni-module/transactions/user-password-creation',
+                                            title: 'User Password Creation',
+                                            description: 'Generate Usernames and Passwords'
+                                        },
+                                        {
+                                            id: 12,
+                                            name: 'Student Password Creation',
+                                            icon: 'KeyRound',
+                                            url: '/alumni/alumni-module/transactions/student-password-creation',
+                                            title: 'Student Password Creation',
+                                            description: 'Student Credentials Management'
+                                        },
+                                        {
+                                            id: 13,
+                                            name: 'Alumnus Details',
+                                            icon: 'UserPlus',
+                                            url: '/alumni/alumni-module/transactions/alumni-details',
+                                            title: 'Alumnus Details',
+                                            description: 'Manage Alumnus Details and Profile'
                                         }
                                     ]
                                 },
@@ -2699,6 +2731,14 @@ export async function getUserAccessibleModules() {
                                             url: '/alumni/alumni-module/reports/alumni-search',
                                             title: 'Alumni Search',
                                             description: 'Dynamic Alumni Search Report'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Alumni Report',
+                                            icon: 'FileText',
+                                            url: '/alumni/alumni-module/reports/alumni-report',
+                                            title: 'Alumni Report',
+                                            description: 'Comprehensive Alumni Report and Address Book'
                                         }
                                     ]
                                 }
@@ -5221,9 +5261,9 @@ export async function getUserAccessibleModules() {
                             ]
                         },
                         {
-                            id: 715,
-                            name: 'Fees',
-                            icon: 'BadgeIndianRupee',
+                            id: 8,
+                            name: 'Upload',
+                            icon: 'MessageSquare',
                             sub_menu: [
                                 {
                                     id: 715,
@@ -5231,15 +5271,41 @@ export async function getUserAccessibleModules() {
                                     icon: 'FileBarChart',
                                     pages: [
                                         {
-                                            id: 715,
-                                            name: 'Defaulter Report',
-                                            icon: 'UserX',
-                                            url: '/StaffPortal/fees/staff-fee-defaulter-report',
-                                            title: 'Fee Defaulter Report',
-                                            description: 'Monitor Fee Defaulters'
+                                            id: 1,
+                                            name: 'Homework',
+                                            icon: 'MessageSquare',
+                                            url: '/StaffPortal/Upload/homework',
+                                            title: 'Home Work',
+                                            description: 'Upload Home Work'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Homework Marks Update',
+                                            icon: 'MessageSquare',
+                                            url: '/StaffPortal/Upload/homework-marks-entry',
+                                            title: 'Home Work',
+                                            description: 'Homework Marks Update'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Homework Upload Report',
+                                            icon: 'MessageSquare',
+                                            url: '/StaffPortal/Upload/homework-upload-report',
+                                            title: 'Home Work',
+                                            description: 'Homework Upload Report'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Notice Board',
+                                            icon: 'MessageSquare',
+                                            url: '/StaffPortal/Upload/notice-board',
+                                            title: 'Notice Board',
+                                            description: 'Notice Board'
                                         }
                                     ]
                                 }
+
+
                             ]
                         }
                         //    ,
@@ -5392,115 +5458,6 @@ export async function getUserAccessibleModules() {
                             ]
                         },
 
-                        // ,
-                        // {
-                        //     id: 12,
-                        //     name: 'Alumni',
-                        //     icon: 'Users',
-                        //     menu: [
-                        //         {
-                        //             id: 1,
-                        //             name: 'Alumni Module',
-                        //             icon: 'BookOpen',
-                        //             sub_menu: [
-                        //                 {
-                        //                     id: 1,
-                        //                     name: 'Transactions',
-                        //                     icon: 'Database',
-                        //                     pages: [
-                        //                         {
-                        //                             id: 1,
-                        //                             name: 'Alumni NoticeBoard',
-                        //                             icon: 'Announcement',
-                        //                             url: '/alumni/alumni-module/transactions/alumni-noticeboard',
-                        //                             title: 'Alumni NoticeBoard',
-                        //                             description: 'Manage Alumni NoticeBoard Details'
-                        //                         },
-                        //                         {
-                        //                             id: 2,
-                        //                             name: 'Alumni Gallery',
-                        //                             icon: 'Image',
-                        //                             url: '/alumni/alumni-module/transactions/alumni-gallery',
-                        //                             title: 'Alumni Gallery',
-                        //                             description: 'Manage Alumni Gallery Details'
-                        //                         },
-                        //                         {
-                        //                             id: 3,
-                        //                             name: 'Alumni Interactions',
-                        //                             icon: 'MessageSquare',
-                        //                             url: '/alumni/alumni-module/transactions/alumni-interactions',
-                        //                             title: 'Alumni Interactions',
-                        //                             description: 'Manage Alumni Interaction Details'
-                        //                         },
-                        //                         {
-                        //                             id: 4,
-                        //                             name: 'Alumni Friend Request',
-                        //                             icon: 'UserPlus',
-                        //                             url: '/alumni/alumni-module/transactions/alumni-friend-request',
-                        //                             title: 'Alumni Friend Request',
-                        //                             description: 'Manage Alumni Friend Request Details'
-                        //                         },
-                        //                         {
-                        //                             id: 5,
-                        //                             name: 'Alumni Friend Request Accept',
-                        //                             icon: 'UserPlus',
-                        //                             url: '/alumni/alumni-module/transactions/alumni-friend-request-accept',
-                        //                             title: 'Alumni Friend Request Accept',
-                        //                             description: 'Manage Alumni Friend Request Accept Details'
-                        //                         },
-                        //                         {
-                        //                             id: 6,
-                        //                             name: 'Alumni Donation',
-                        //                             icon: 'HeartHandshake',
-                        //                             url: '/alumni/alumni-module/transactions/alumni-donation',
-                        //                             title: 'Alumni Donation',
-                        //                             description: 'Manage Alumni Donation Details'
-                        //                         },
-                        //                         {
-                        //                             id: 7,
-                        //                             name: 'Alumni Letters',
-                        //                             icon: 'MailOpen',
-                        //                             url: '/alumni/alumni-module/transactions/alumni-letters',
-                        //                             title: 'Alumni Letters',
-                        //                             description: 'Generate Alumni Letters'
-                        //                         },
-                        //                         {
-                        //                             id: 8,
-                        //                             name: 'CLG Alumni Approval',
-                        //                             icon: 'UserCheck',
-                        //                             url: '/alumni/alumni-module/transactions/clg-alumni-approval',
-                        //                             title: 'CLG Alumni Approval',
-                        //                             description: 'Approve College Alumni Registrations'
-                        //                         },
-                        //                         {
-                        //                             id: 9,
-                        //                             name: 'CLG Student Search',
-                        //                             icon: 'Search',
-                        //                             url: '/alumni/alumni-module/transactions/clg-alumni-student-search',
-                        //                             title: 'CLG Student Search',
-                        //                             description: 'Search College Alumni Students'
-                        //                         }
-                        //                     ]
-                        //                 },
-                        //                 {
-                        //                     id: 2,
-                        //                     name: 'Reports',
-                        //                     icon: 'FileText',
-                        //                     pages: [
-                        //                         {
-                        //                             id: 1,
-                        //                             name: 'Alumni Search',
-                        //                             icon: 'BookOpen',
-                        //                             url: '/alumni/alumni-module/reports/alumni-search',
-                        //                             title: 'Alumni Search',
-                        //                             description: 'Dynamic Alumni Search Report'
-                        //                         }
-                        //                     ]
-                        //                 }
-                        //             ]
-                        //         }
-                        //     ]
-                        // },
                         // {
                         //     id: 14,
                         //     name: 'Upload',
@@ -5725,6 +5682,50 @@ export async function getUserAccessibleModules() {
                                             url: '/StudentPortal/feedback/studentfeedback',
                                             title: 'Student Feedback Details',
                                             description: 'Provide Feedback'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 12,
+                    name: 'Alumni',
+                    icon: 'Users',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Alumni Module',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Transactions',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Alumnus Details',
+                                            icon: 'UserPlus',
+                                            url: '/alumni/alumni-module/transactions/alumni-details',
+                                            title: 'Alumnus Details',
+                                            description: 'Manage Your Alumnus Profile'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Reports',
+                                    icon: 'FileText',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Alumni Report',
+                                            icon: 'FileText',
+                                            url: '/alumni/alumni-module/reports/alumni-report',
+                                            title: 'Alumni Report',
+                                            description: 'View and Print Alumni Report'
                                         }
                                     ]
                                 }

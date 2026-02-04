@@ -23,6 +23,7 @@ interface GenericDataTableProps<T> {
 
     isSearchRequired?: boolean;
     isPaginationRequired?: boolean;
+    showExportOptions?: boolean;
 
     // Row selection
     maxSelectableRows?: number;
@@ -74,6 +75,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         LoadingComponent,
         ErrorComponent,
         showSearchColumns = false,
+        showExportOptions = false,
         // manualPagination = true
         scrollable = false,
         maxHeight = '600px'
@@ -137,6 +139,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                     isPaginationRequired={isPaginationRequired}
                     columnPinning={columnPinning}
                     showSearchColumns={showSearchColumns}
+                    showExportOptions={showExportOptions}
                     maxSelectableRows={maxSelectableRows}
                     //manualPagination={manualPagination}
                     onRowSelectionChange={(selectedRows) => {
