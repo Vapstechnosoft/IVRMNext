@@ -5188,29 +5188,38 @@ export async function getUserAccessibleModules() {
                             ]
                         },
 
-                        // {
-                        //     id: 714,
-                        //     name: 'Biometric Report  ',
-                        //     icon: 'Wallet',
-                        //     sub_menu: [
-                        //         {
-                        //             id: 714,
-                        //             name: 'Report ',
-                        //             icon: 'Currency',
-                        //             pages: [
+                        {
+                            id: 714,
+                            name: 'Biometric Report  ',
+                            icon: 'Wallet',
+                            sub_menu: [
+                                {
+                                    id: 714,
+                                    name: 'Report ',
+                                    icon: 'Currency',
+                                    pages: [
 
-                        //                 {
-                        //                     id: 1,
-                        //                     name: 'Employee Punch Report ',
-                        //                     icon: 'FileText',
-                        //                     url: '/StaffPortal/salary/staff-salary-slip',
-                        //                     title: 'Staff Salary Slip',
-                        //                     description: 'View and Download Pay Slips'
-                        //                 }
-                        //             ]
-                        //         }
-                        //     ]
-                        // },
+                                        // {
+                                        //     id: 1,
+                                        //     name: 'Employee Punch Report ',
+                                        //     icon: 'FileText',
+                                        //     url: '/StaffPortal/BiometricReport/employeePunchAttendence',
+                                        //     title: 'Staff Salary Slip',
+                                        //     description: 'View and Download Pay Slips'
+                                        // },
+
+                                         {
+                                            id: 1,
+                                            name: 'Employee Punch Report ',
+                                            icon: 'FileText',
+                                            url: '/StaffPortal/BiometricReport/employeePunchAttendence',
+                                            title: 'Employee Punch Report ',
+                                            description: 'Employee Punch Report '
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
                         {
                             id: 715,
                             name: 'Fees',
