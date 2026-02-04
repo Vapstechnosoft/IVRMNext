@@ -45,7 +45,7 @@ type FormFields = z.infer<typeof feePrivilegeSchema.addOrUpdate>;
 export default function UpdateFeePrivilegeForm({ onSuccess, selectedRow, className = '' }: UpdateFeePrivilegeFormProps) {
     const [isInitializing, setIsInitializing] = useState(false);
     const queryClient = useQueryClient();
-
+    console.log('selectedRow', selectedRow);
     const {
         control,
         handleSubmit,

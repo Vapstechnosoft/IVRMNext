@@ -43,16 +43,6 @@ export const examSubjectColumns: ColumnDef<IMasterSubject>[] = [
         cell: ({ row }) => <div>{row.getValue('ismS_SubjectNameNew')}</div>
     },
     {
-        accessorKey: 'ismS_Max_Marks',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Max Marks' />,
-        cell: ({ row }) => <div>{row.getValue('ismS_Max_Marks')}</div>
-    },
-    {
-        accessorKey: 'ismS_Min_Marks',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Min Marks' />,
-        cell: ({ row }) => <div>{row.getValue('ismS_Min_Marks')}</div>
-    },
-    {
         accessorKey: 'ismS_PreadmFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Pre-Admission Flag' />,
         cell: ({ row }) => getStatusBadge((row.getValue('ismS_PreadmFlag') as number) === 1 ? 'yes' : 'no')

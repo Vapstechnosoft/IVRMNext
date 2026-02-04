@@ -1,6 +1,7 @@
 import { FEES_QUERY_KEYS } from '@/constants/query-keys';
 import { getClassDropDown } from '@/server/fees/reports/daily_fee_collection_report';
 import {
+    FeesTermDropDownForReports,
     getAcademicYeardropdown,
     getFeesBusRoutesDropDown,
     getFeesCustomGroupDropDown,
@@ -74,6 +75,23 @@ export const useFeeTermDefaulterreport = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_TERM_DEFAULTER]
+            });
+        }
+    };
+};
+
+export const useFeeTermDropDownDataForReports = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_TERM_DROPDOWNDATA_REPORTS],
+            queryFn: async () => FeesTermDropDownForReports(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_TERM_DROPDOWNDATA_REPORTS]
             });
         }
     };

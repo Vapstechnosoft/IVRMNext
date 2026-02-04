@@ -2,11 +2,13 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
+import type { PeriodDistributionColumn } from '@/types/timetable/masters/masters';
 
 export async function getPeriodDistributionDetails(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'staffName');
     const url = `/ClassMasterFacade/getPeriodDistributionData?${urlParams}`;
-    return await api.get<any>('timetable', url);
+    console.info('PeriodDistributionFacade', url);
+    return await api.get<PeriodDistributionColumn[]>('timetable', url);
 }
 
 export async function savePeriodDistribution(data: any) {

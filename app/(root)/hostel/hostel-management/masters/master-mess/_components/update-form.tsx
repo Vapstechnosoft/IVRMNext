@@ -6,7 +6,7 @@ import { useFormContext } from '@/components/ui/form/form-provider';
 import { FormInput } from '@/components/ui/form/form-input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { MasterMessSchema, MasterMessSchemaType } from '@/schemas/hostel/master-mess.schema';
-import { IMess, saveMess } from '@/server/hostel/master-mess/server-action';
+import { IMess, saveMess } from '@/server/hostel/hostel-management/masters/mess';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';

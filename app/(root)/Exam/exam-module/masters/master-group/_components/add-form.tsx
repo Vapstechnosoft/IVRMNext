@@ -216,7 +216,7 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
                         control={control}
                         render={({ field }) => (
                             <InputNumber
-                                label='Total Subjects'
+                                label='Max Subjects'
                                 required
                                 minValue={1}
                                 value={field.value}

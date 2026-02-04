@@ -3,8 +3,9 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
+import { usePromotionalGroupMappedExams } from '@/hooks/exam/exammodule/exam-mapping';
 import { togglePromotionSubjectGroupExams } from '@/server/exam/exam-module/exam-mapping/promotional-setting';
-import type { IPromotionalGroupMappedExamDetails } from '@/types/exam/exam-module/exam-mapping';
+import type { IPromotionalGroupDetails, IPromotionalGroupMappedExamDetails } from '@/types/exam/exam-module/exam-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -23,7 +24,8 @@ interface Props {
 }
 
 export default function TogglePromotionalGroupMappedExamForm({ rowData, onClose }: Props) {
-    const isActive = rowData.isActiveFlag;
+    const isActive = rowData.empsgE_ActiveFlg;
+    const { refetchAll } = usePromotionalGroupMappedExams(rowData.empsG_Id);
 
     const {
         register,
@@ -33,7 +35,7 @@ export default function TogglePromotionalGroupMappedExamForm({ rowData, onClose 
     } = useForm<ToggleFormFields>({
         resolver: zodResolver(PromotionalGroupMappedExamToggleSchema),
         defaultValues: {
-            slNo: rowData.slNo
+            slNo: rowData.empsgE_Id
         }
     });
 
@@ -44,10 +46,11 @@ export default function TogglePromotionalGroupMappedExamForm({ rowData, onClose 
 
     const onSubmit = async (values: ToggleFormFields) => {
         try {
-            const response = await togglePromotionSubjectGroupExams(values.slNo);
+            const response = await togglePromotionSubjectGroupExams(rowData.empsgE_Id);
 
             if (response.success) {
                 toast.success(response.message || 'Exam status updated successfully');
+                refetchAll();
                 closeDialog();
             } else {
                 toast.error(response.message || 'Failed to update exam status');
@@ -64,7 +67,7 @@ export default function TogglePromotionalGroupMappedExamForm({ rowData, onClose 
                     <input type='hidden' {...register('slNo')} />
 
                     <p>
-                        Are you sure you want to <strong>{isActive ? 'Deactivate' : 'Activate'}</strong> <strong>{rowData.examName}</strong>
+                        Are you sure you want to <strong>{isActive ? 'Deactivate' : 'Activate'}</strong> <strong>{rowData.emE_ExamName}</strong>
                         ?
                     </p>
 

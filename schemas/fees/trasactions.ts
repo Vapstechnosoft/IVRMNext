@@ -454,8 +454,8 @@ export const feesRefundableSchema = {
         refundableflag: z.string().optional(),
         academicYearId: z.number().int({ message: 'Academic Year is required' }),
         sectionId: z.number().int({ message: 'Section is required' }),
-        fR_BankName: createOptionalStringSchema('Bank Name', 1, 100),
-        fR_CheqNo: createNumberOnlyStringSchema('Cheque No.', 13, 100),
+        fR_BankName: createOptionalStringSchema('Bank Name', 1, 100).optional(),
+        fR_CheqNo: createNumberOnlyStringSchema('Cheque No.', 13, 100).optional(),
 
         fR_Date: z.string().min(1, 'Refund date is required').optional(),
 
@@ -578,5 +578,17 @@ export const feesStaffOtherTransactionSchema = {
         amst_Id: z.number().optional(),
         modeofPayment: z.string().optional(),
         narrationId: z.number().optional()
+    })
+};
+
+export const amountEntrySchemastThomas = {
+    addOrUpdate: z.object({
+        //asmaY_Id: z.number().int({ message: 'Academic Year is required' }),
+        asmaY_Id: z.number({ message: 'Academic Year is required' }),
+        feeGroupId: z.number({ message: 'Fee Group is required' }),
+        categoryId: z.number({ message: 'Category is required' })
+    }),
+    delete: z.object({
+        fmA_Id: deleteIdSchema('fmA_Id')
     })
 };

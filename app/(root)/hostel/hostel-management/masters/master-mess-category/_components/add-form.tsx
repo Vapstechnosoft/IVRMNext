@@ -6,12 +6,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMasterMessCategory } from '@/hooks/hostel/useMasterMessCategory';
 import { masterMessCategoryMappingSchema } from '@/schemas/hostel/mess-category-mapping.schema';
-import { IMess, IMessCategory, saveMessCategoryMapping } from '@/server/hostel/master-mess-category/server-action';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, Controller, FormProvider } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { useEffect, useState } from 'react';
+import { IMess, IMessCategory } from '@/types/hostel/hostel-management/masters';
+import { saveMessCategoryMapping } from '@/server/hostel/hostel-management/masters/mess-category';
 
 interface AddMasterMessCategoryFormProps {
     onSuccess: () => void;
