@@ -15,7 +15,8 @@ import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { FormInput } from '@/components/ui/form/form-input';
 import { FormTextarea } from '@/components/ui/form/form-textarea';
-import { fetchFloors, saveRoom } from '@/server/hostel/hostel-management/masters/room';
+import { saveRoom } from '@/server/hostel/hostel-management/masters/room';
+import { fetchFloors } from '@/server/hostel/hostel-management/masters/bed';
 
 interface UpdateMasterRoomFormProps {
     rowData: IRoomDisplay;
@@ -45,7 +46,7 @@ export default function UpdateMasterRoomForm({ rowData, onSuccess, hostels, faci
             hrmrM_RoomForStudentFlg: rowData.hrmrM_RoomForStudentFlg,
             hrmrM_RoomForStaffFlg: rowData.hrmrM_RoomForStaffFlg,
             hrmrM_RoomForGuestFlg: rowData.hrmrM_RoomForGuestFlg,
-            facilities: rowData.facilities || [],
+            //facilities: rowData.facilities,
         },
     });
 

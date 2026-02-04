@@ -19,6 +19,9 @@ export const invTItemConsumptionSchema = z.object({
     invmiC_ICDate: z.date({ required_error: 'Date is required' }),
     invmiC_Remarks: z.string().optional(),
     invmiC_StuOtherFlg: z.enum(['Staff', 'Department', 'Student']),
+    stu_Flag: z.enum(['I', 'C', 'CS']).optional(),
+    asmcL_Id: z.number().optional(),
+    asmS_Id: z.number().optional(),
 
     // Conditional validations handled in superRefine or UI logic, but broadly:
     hrmD_Id: z.number().optional(),
@@ -44,12 +47,28 @@ export const invTItemConsumptionSchema = z.object({
             path: ["hrmD_Id"]
         });
     }
-    if (data.invmiC_StuOtherFlg === 'Student' && !data.amsT_Id) {
-        ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Student is required",
-            path: ["amsT_Id"]
-        });
+    if (data.invmiC_StuOtherFlg === 'Student') {
+        if (!data.asmcL_Id) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Class is required",
+                path: ["asmcL_Id"]
+            });
+        }
+        if (!data.asmS_Id) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Section is required",
+                path: ["asmS_Id"]
+            });
+        }
+        if (!data.amsT_Id) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Student is required",
+                path: ["amsT_Id"]
+            });
+        }
     }
 });
 

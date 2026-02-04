@@ -3,7 +3,7 @@
 import { useForm } from 'react-hook-form';
 import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
 import { IRoomTariff } from '@/types/hostel/hostel-management/masters';
-import { deleteRoomTariff } from '@/server/hostel/hostel-management/masters/room-tariff';
+import { deactivateTariff } from '@/server/hostel/hostel-management/masters/room-tariff';
 import { toast } from 'sonner';
 import { useFormContext } from '@/components/ui/form/form-provider';
 
@@ -20,12 +20,12 @@ export default function ToggleRoomTariff({ data, onSuccess, onCancel }: ToggleRo
     const { formState: { isSubmitting } } = form;
 
     const onSubmit = async () => {
-        const result = await deleteRoomTariff(data);
-        if (result?.returnval) {
-            toast.success(data.hlmrtF_ActiveFlag ? 'Room Tariff deactivated successfully' : 'Room Tariff activated successfully');
+        const result = await deactivateTariff(data.hlmrtF_Id);
+        if (result?.success) {
+            toast.success(result.message || (data.hlmrtF_ActiveFlag ? 'Room Tariff deactivated successfully' : 'Room Tariff activated successfully'));
             onSuccess();
         } else {
-            toast.error('Failed to toggle Room Tariff status');
+            toast.error(result?.message || 'Failed to toggle Room Tariff status');
         }
     };
 
