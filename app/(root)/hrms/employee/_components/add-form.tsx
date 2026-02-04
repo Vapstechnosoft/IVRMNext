@@ -707,11 +707,14 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
 
             if (paymentModeName && String(paymentModeName).toLowerCase() !== 'bank') {
                 if (p.employee) {
-                    p.employee.hrmE_BankAccountNo = null;
+                    p.employee.hrmE_BankAccountNo = "";
                 }
-                if (p.bankRequest) {
-                    delete p.bankRequest;
-                }
+                // Ensure bankRequest is passed with empty array as requested by user
+                p.bankRequest = {
+                    mI_Id: p.employee?.mI_Id || 30,
+                    hrmE_Id: p.employee?.hrmE_Id || 0,
+                    bankDetails: []
+                };
             }
             return p;
         };

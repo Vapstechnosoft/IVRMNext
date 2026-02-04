@@ -1733,11 +1733,14 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
 
             if (paymentModeName && String(paymentModeName).toLowerCase() !== 'bank') {
                 if (p.employee) {
-                    p.employee.hrmE_BankAccountNo = null;
+                    p.employee.hrmE_BankAccountNo = "";
                 }
-                if (p.bankRequest) {
-                    delete p.bankRequest;
-                }
+                // Ensure bankRequest is passed with empty array as requested by user
+                p.bankRequest = {
+                    mI_Id: p.employee?.mI_Id || 30,
+                    hrmE_Id: p.employee?.hrmE_Id || savedEmployeeId || 0,
+                    bankDetails: []
+                };
             }
             return p;
         };
@@ -1769,10 +1772,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     }
                 };
 
-                // Remove bankRequest from payload if no bank details (optional, but cleaner)
-                if ((!data.bankDetails || data.bankDetails.length === 0) && payload.bankRequest) {
-                    delete payload.bankRequest;
-                }
+
 
                 console.log('🔍 [API DEBUG] Tab 1 (Employee + Bank) - Submitting Combined Payload:', payload);
 
