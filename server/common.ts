@@ -822,6 +822,14 @@ export async function getUserAccessibleModules() {
                                     name: 'Transactions',
                                     icon: 'BadgeIndianRupee',
                                     pages: [
+                                        //   {
+                                        //     id: 55555,
+                                        //     name: 'Fee Amount Entry',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/transactions/feeamountentrystthomas',
+                                        //     title: 'Fee Amount Entry',
+                                        //     description: 'Manage Fee Amount Entry Details'
+                                        // },
                                         {
                                             id: 40,
                                             name: 'Fee Amount Entry',
@@ -1259,11 +1267,11 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 56,
-                                            name: 'Yearly Category Date Mapping',
-                                            icon: 'CalendarDays',
-                                            url: '/Exam/exam-module/exam-mapping/yearly-category-dates-mapping',
-                                            title: 'Yearly Category Date Mapping',
-                                            description: 'Manage Yearly Category Date Mapping Details'
+                                            name: 'Student Subject Mapping',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/exam-mapping/student-subject-mapping',
+                                            title: 'Student Subject Mapping',
+                                            description: 'Manage Student Subject Mapping Details'
                                         },
                                         {
                                             id: 57,
@@ -1315,11 +1323,11 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 63,
-                                            name: 'Student Subject Mapping',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/exam-mapping/student-subject-mapping',
-                                            title: 'Student Subject Mapping',
-                                            description: 'Manage Student Subject Mapping Details'
+                                            name: 'Yearly Category Date Mapping',
+                                            icon: 'CalendarDays',
+                                            url: '/Exam/exam-module/exam-mapping/yearly-category-dates-mapping',
+                                            title: 'Yearly Category Date Mapping',
+                                            description: 'Manage Yearly Category Date Mapping Details'
                                         },
                                         {
                                             id: 64,
@@ -3099,6 +3107,93 @@ export async function getUserAccessibleModules() {
                                             url: '/timetable/constraints/fixing',
                                             title: 'Fixing Constraints',
                                             description: 'Manage Fixing Constraints Details'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Lab Constraints',
+                                            icon: 'Clock',
+                                            url: '/timetable/constraints/labconstraints',
+                                            title: 'Lab Constraints',
+                                            description: 'Manage Lab Constraints Details'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Subject Restrictions',
+                                            icon: 'Clock',
+                                            url: '/timetable/constraints/subjectrestriction',
+                                            title: 'Subject Restrictions',
+                                            description: 'Manage Subject Restrictions Details'
+                                        }
+                                    ]
+                                },
+                                 {
+                                    id: 4,
+                                    name: 'Transactions',
+                                    icon: 'Clock',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Class Section Time Table Report',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/class-section-report/class-section-report',
+                                            title: 'Class Section Time Table Report',
+                                            description: 'View and generate class-wise timetable grids'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Deputation',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/deputation',
+                                            title: 'Deputation',
+                                            description: 'ABSENT STAFF ALLOTMENT DETAILS'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Manual Period Insertion',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/manual-Period-insersion',
+                                            title: 'Manual Period Insertion',
+                                            description: 'ABSENT STAFF ALLOTMENT DETAILS'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Staff Period Transfer',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/staff-Periods-Transfer',
+                                            title: 'Staff Period Transfer',
+                                            description: 'Transfer Staff Periods Between Classes and Sections'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Staff Replacement Existing To New',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/staff-replacement-existing-to-new',
+                                            title: 'Staff Replacement Existing To New',
+                                            description: 'Replacing staff Existing To New'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Staff Replacement In Their TimeTable',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/staff-replacement-In-their-timeTable',
+                                            title: 'Staff Replacement In Their TimeTable',
+                                            description: 'Staff Replacement In Their TimeTable'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Staff Replacement In Unallocated Period',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/staff-replacement-in-unallocated-period',
+                                            title: 'Staff Replacement In Unallocated Period',
+                                            description: 'Staff Replacement In Unallocated Period'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Time Table Generation',
+                                            icon: 'Clock',
+                                            url: '/timetable/transactions/time-table-generation',
+                                            title: 'Time Table Generation',
+                                            description: 'Time Table Generation'
                                         }
                                     ]
                                 },
@@ -4783,7 +4878,39 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Master School Type'
                                         }
                                     ]
-                                }
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Configuration Setting',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Institution Module Page',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/configuration-setting/institution-module-page',
+                                            title: 'Institution Module Page',
+                                            description: 'Master Institution Role and Module Mapping'
+                                        },
+
+                                        {
+                                            id: 2,
+                                            name: 'Master Main Menu INS',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/configuration-setting/master-main-menu-ins',
+                                            title: 'Master Main Menu INS',
+                                            description: 'Master Main Menu Institution Mapping'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Master Sub Menu INS',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/configuration-setting/master-sub-menu-ins',
+                                            title: 'Master Sub Menu INS',
+                                            description: 'Master Sub Menu Institution Mapping'
+                                        }
+                                    ]
+                                },
                             ]
                         }
                     ]

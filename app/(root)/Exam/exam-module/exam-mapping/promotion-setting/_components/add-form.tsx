@@ -20,6 +20,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { ViewExamsModal } from './group-mapped-exam-model';
 import { ViewGroupsModal } from './group-mapping-model';
+import { set } from 'date-fns';
+import { usePromotionalSetting } from '@/hooks/exam/exammodule/exam-mapping';
 
 /**
  * Types
@@ -115,6 +117,7 @@ export default function AddPromotionalSettingForm({
     const [passToOverall, setPassToOverall] = useState<boolean>(false);
     const [bestApplicable, setBestApplicable] = useState<boolean>(false);
     const [bestOff, setBestOff] = useState<number | null>(null);
+    const [isDataSaving, setIsDataSaving] = useState<boolean>(false);
 
     // Mode state
     const [promotionType, setPromotionType] = useState<'M' | 'P' | 'T' | 'F'>('P');
@@ -124,6 +127,7 @@ export default function AddPromotionalSettingForm({
 
     // Grades hook
     const { data: gradeDataList, error: gradeError } = useMasterGradeDropdownList();
+    const { refetchAll } = usePromotionalSetting();
     const grades = gradeDataList?.data || [];
 
     const [subjects, setSubjects] = useState<SubjectRow[]>([]);
@@ -184,33 +188,33 @@ export default function AddPromotionalSettingForm({
 
             const subjectsData = Array.isArray(payload.subjectlist)
                 ? payload.subjectlist.map(
-                      (subject: any): SubjectRow => ({
-                          ismS_Id: subject.ismS_Id,
-                          ismS_SubjectName: subject.ismS_SubjectName,
-                          ismS_SubjectCode: subject.ismS_SubjectCode || null,
-                          EMPS_MaxMarks: subject.empS_MaxMarks || subject.ismS_Max_Marks || null,
-                          EMPS_MinMarks: subject.empS_MinMarks || subject.ismS_Min_Marks || null,
-                          EMPS_ConvertForMarks: subject.empS_ConvertForMarks || null,
-                          EMPS_AppToResultFlg: subject.empS_AppToResultFlg ?? true,
-                          EMGR_Id: subject.emgR_Id || null,
-                          EMPS_Id: subject.empS_Id,
-                          checkedvalue: false
-                      })
-                  )
+                    (subject: any): SubjectRow => ({
+                        ismS_Id: subject.ismS_Id,
+                        ismS_SubjectName: subject.ismS_SubjectName,
+                        ismS_SubjectCode: subject.ismS_SubjectCode || null,
+                        EMPS_MaxMarks: subject.empS_MaxMarks || subject.ismS_Max_Marks || null,
+                        EMPS_MinMarks: subject.empS_MinMarks || subject.ismS_Min_Marks || null,
+                        EMPS_ConvertForMarks: subject.empS_ConvertForMarks || null,
+                        EMPS_AppToResultFlg: subject.empS_AppToResultFlg ?? true,
+                        EMGR_Id: subject.emgR_Id || null,
+                        EMPS_Id: subject.empS_Id,
+                        checkedvalue: false
+                    })
+                )
                 : [];
 
             const examsData = Array.isArray(payload.examlist)
                 ? payload.examlist.map(
-                      (exam: any): ExamItem => ({
-                          emE_Id: exam.emE_Id,
-                          emE_ExamName: exam.emE_ExamName,
-                          emE_ExamCode: exam.emE_ExamCode,
-                          checked: false,
-                          ForMaxMarkrs: 0,
-                          ForMaxMarkrs_Temp: 0,
-                          ConvertionReqOrNot: false
-                      })
-                  )
+                    (exam: any): ExamItem => ({
+                        emE_Id: exam.emE_Id,
+                        emE_ExamName: exam.emE_ExamName,
+                        emE_ExamCode: exam.emE_ExamCode,
+                        checked: false,
+                        ForMaxMarkrs: 0,
+                        ForMaxMarkrs_Temp: 0,
+                        ConvertionReqOrNot: false
+                    })
+                )
                 : [];
 
             setSubjects(subjectsData);
@@ -571,12 +575,14 @@ export default function AddPromotionalSettingForm({
                 return;
             }
         }
-
+        setIsDataSaving(true);
         const payload = buildPayload();
         console.info('Save payload:', JSON.stringify(payload, null, 2));
         const response = await addOrUpdatePromotionSettings(payload);
+        setIsDataSaving(false);
         if (response.success) {
-            toast.success(response.message || 'Promotion Setting saved successfully');
+            toast.success('Promotion Setting saved successfully');
+            refetchAll();
             if (onSuccess) onSuccess();
             else handleReset();
         } else {
@@ -1107,7 +1113,7 @@ export default function AddPromotionalSettingForm({
 
                 {/* ACTION BUTTONS */}
                 <div className='flex justify-center space-x-4'>
-                    <Button onClick={handleSave}>Save</Button>
+                    <Button className={isDataSaving ? 'cursor-not-allowed' : ''} onClick={handleSave}>{isDataSaving ? 'Saving...' : 'Save'}</Button>
                     <Button onClick={handleReset} variant='outline'>
                         Cancel
                     </Button>
@@ -1143,3 +1149,5 @@ export default function AddPromotionalSettingForm({
         </div>
     );
 }
+
+

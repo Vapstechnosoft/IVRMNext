@@ -558,36 +558,42 @@ export interface IPromotionalSubjectDetails {
 }
 
 export interface IPromotionalGroupDetails {
-    emP_Id: number;
-    eyC_Id: number;
+    empsG_Id: number;
+    emps_Id: number;
 
-    asmaY_Id: number;
-    asmaY_Year: string;
-    asmaY_Order: number;
+    isms_Id: number;
+    isms_SubjectName: string;
+    isms_SubjectCode: string;
 
-    emcA_Id: number;
-    emcA_CategoryName: string;
+    empsG_GroupName: string;
+    empsG_DisplayName: string;
 
-    emgR_Id: number;
-    emgR_GradeName: string;
+    empsG_PercentValue: number;
+    empsG_MarksValue: number;
+    empsG_MaxOff: number;
+    empsG_BestOff: number | null;
 
-    emP_MarksPerFlg: 'M' | 'P';
-    emP_PassToIndSubjectFlg: boolean;
-    emP_PassToOverallFlag: boolean;
+    empsG_ActiveFlag: boolean;
+    empsG_RoundOffFlag: boolean;
 
-    emP_BestOf: number | null;
-    emP_BestOfApplicableFlg: boolean | null;
-
-    emP_ActiveFlag: boolean;
+    empsG_Order: number;
 }
 
+
 export interface IPromotionalGroupMappedExamDetails {
-    slNo: number;
-    examName: string;
-    examCode: string;
-    marksOrPercentage: number;
-    conversionRequired: boolean;
-    isActiveFlag: boolean;
+    empsgE_Id: number;
+
+    emE_Id: number;
+    emE_ExamName: string;
+    emE_ExamCode: string;
+
+    empsG_Id: number;
+    empsG_GroupName: string;
+    empsG_DisplayName: string;
+
+    empsgE_ForMaxMarkrs: number;
+    empsgE_ConvertionReqOrNot: boolean;
+    empsgE_ActiveFlg: boolean;
 }
 
 export interface ISearchMarksEntryParams {
