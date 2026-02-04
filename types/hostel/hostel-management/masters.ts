@@ -1,4 +1,4 @@
-import { IFloorDisplay } from "@/server/hostel/hostel-management/masters/floor";
+import { IMasterFloor } from '@/app/(root)/hostel/hostel-management/masters/master-floor/_components/columns';
 
 // --- BED ---
 export interface IBed {
@@ -44,7 +44,7 @@ export interface IHostel {
     messes?: number[];
     // Documents
     documents?: IHostelDocument[];
-    
+
     // Display properties (optional)
     mappedFacilities?: IFacility[];
     mappedWardens?: IEmployee[];
@@ -69,7 +69,7 @@ export interface IFloor {
 }
 
 export interface IMasterFloorData {
-    floorList: IFloorDisplay[];
+    floorList: IMasterFloor[];
     hostelList: IHostel[];
     facilityList: IFacility[];
 }
@@ -104,7 +104,7 @@ export interface IRoomCategory {
     hlmrcA_Id: number;
     hlmrcA_RoomCategory: string;
     hlmH_Id: number;
-    hlmF_Id?: number; 
+    hlmF_Id?: number;
     fmG_Id?: number;
     hlmrcA_SORate?: number;
     hlmrcA_RoomRate?: number;
@@ -113,8 +113,8 @@ export interface IRoomCategory {
     hlmrcA_ACFlg?: boolean;
     hlmrcA_SharingFlg?: boolean;
     hlmrcA_ActiveFlag?: boolean;
-    hlmH_Name?: string; 
-    fmG_GroupName?: string; 
+    hlmH_Name?: string;
+    fmG_GroupName?: string;
 }
 
 // --- FACILITY ---

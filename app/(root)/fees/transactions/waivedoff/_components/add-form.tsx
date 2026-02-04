@@ -172,6 +172,8 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
             const res = await getHeadList(Number(asmay_Id), Number(amst_Id), refundableType, fineWaiveOff === true ? 1 : 0, {
                 groupIds: selectedGroups
             });
+
+            console.log('res', res);
             setHeadList(res.data ?? []);
             setTableProps(useDataTableProps(res ?? []));
         } catch (error) {
