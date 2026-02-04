@@ -5,5 +5,8 @@
     "typescript.tsdk": "node_modules\\typescript\\lib",
     "javascript.suggest.completeJSDoc": false,
     "typescript.suggest.completeJSDoc": false,
-    "cSpell.words": ["Challen"]
+    "cSpell.words": [
+        "Challen",
+        "Swal"
+    ]
 }

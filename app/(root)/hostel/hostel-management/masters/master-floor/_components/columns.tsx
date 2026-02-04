@@ -1,19 +1,30 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { IFloorDisplay } from '@/server/hostel/hostel-management/masters/floor';
-import { ColumnDef } from '@tanstack/react-table';
+import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
-import { useCallback, useState } from 'react';
-import ViewFacilityModal from './view-facility-modal';
+import { ViewFacilitiesModal } from './view-modals';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 
-export const masterFloorColumns: ColumnDef<IFloorDisplay>[] = [
+export interface IMasterFloor {
+    hlmF_Id: number;
+    hrmF_FloorName: string;
+    hrmF_FloorDesc: string;
+    hlmH_Name: string;
+    hrmF_ActiveFlag: boolean;
+    hrmF_TotalRooms: number;
+    hlmH_Id: number;
+}
+
+const columnHelper = createColumnHelper<IMasterFloor>();
+
+export const masterFloorColumns: ColumnDef<IMasterFloor, any>[] = [
     {
-        accessorKey: 'slNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+        accessorKey: 'sn',
+        header: ({ column }) => <ColumnHeader column={column} title='Sl.No' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -24,59 +35,48 @@ export const masterFloorColumns: ColumnDef<IFloorDisplay>[] = [
     },
     {
         accessorKey: 'hlmH_Name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Hostel Name' />,
-        cell: ({ row }) => <div>{row.getValue('hlmH_Name')}</div>,
-        enableSorting: true,
+        header: ({ column }) => <ColumnHeader column={column} title='Hostel Name' />
     },
     {
         accessorKey: 'hrmF_FloorName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Floor Name' />,
-        cell: ({ row }) => <div>{row.getValue('hrmF_FloorName')}</div>,
-        enableSorting: true,
+        header: ({ column }) => <ColumnHeader column={column} title='Floor Name' />
     },
     {
         accessorKey: 'hrmF_TotalRooms',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='No Of Room' />,
-        cell: ({ row }) => <div>{row.getValue('hrmF_TotalRooms')}</div>,
-        enableSorting: true,
+        header: ({ column }) => <ColumnHeader column={column} title='No Of Room' />
     },
     {
         accessorKey: 'hrmF_FloorDesc',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Description' />,
-        cell: ({ row }) => <div>{row.getValue('hrmF_FloorDesc')}</div>,
-        enableSorting: true,
+        header: ({ column }) => <ColumnHeader column={column} title='Description' />
     },
     {
-        id: 'facilities',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Facility List' />,
-        cell: ({ row }) => <ViewFacilityCell rowData={row.original} />,
-        enableSorting: false,
+        id: 'facilityList',
+        header: ({ column }) => <ColumnHeader column={column} title='Facility List' />,
+        cell: (info) => <ViewFacilitiesCell rowData={info.row.original} />,
+        enableSorting: false
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Action' className='text-center' />,
-        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
-        enableSorting: false,
+        header: ({ column }) => <ColumnHeader column={column} title='Actions' className='text-center' />,
+        cell: (info) => <ActionButtonsCell rowData={info.row.original} />
     }
 ];
 
-function ViewFacilityCell({ rowData }: { rowData: IFloorDisplay }) {
-    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-
+function ViewFacilitiesCell({ rowData }: { rowData: IMasterFloor }) {
+    const [isOpen, setIsOpen] = useState(false);
     return (
         <>
-            <Button
-                variant="ghost"
-                size="sm"
-                className="text-primary hover:text-primary/80 p-0 h-auto font-normal"
-                onClick={() => setIsViewModalOpen(true)}
+            <button
+                type="button"
+                className="flex items-center gap-1 text-primary hover:underline hover:text-blue-600"
+                onClick={() => setIsOpen(true)}
             >
-                <Eye className="h-4 w-4 mr-1" /> View Facility
-            </Button>
-            {isViewModalOpen && (
-                <ViewFacilityModal
-                    isOpen={isViewModalOpen}
-                    onClose={() => setIsViewModalOpen(false)}
+                <Eye className="h-4 w-4" /> View Facility
+            </button>
+            {isOpen && (
+                <ViewFacilitiesModal
+                    isOpen={isOpen}
+                    onClose={() => setIsOpen(false)}
                     floor={rowData}
                 />
             )}
@@ -84,29 +84,15 @@ function ViewFacilityCell({ rowData }: { rowData: IFloorDisplay }) {
     );
 }
 
-function ActionButtonsCell({ rowData }: { rowData: IFloorDisplay }) {
-    const { openToggleForm, openEditForm } = useFormContext<IFloorDisplay>();
-
-    const handleToggle = useCallback(
-        (data: IFloorDisplay) => {
-            openToggleForm(data);
-        },
-        [openToggleForm]
-    );
-
-    const handleEdit = useCallback(
-        (data: IFloorDisplay) => {
-            openEditForm(data);
-        },
-        [openEditForm]
-    );
-
+function ActionButtonsCell({ rowData }: { rowData: IMasterFloor }) {
+    // ...
+    const { openEditForm, openToggleForm } = useFormContext<IMasterFloor>();
     return (
         <ActionButtons
             rowData={rowData}
             buttons={{ edit: true, toggle: true, delete: false }}
-            onEdit={handleEdit}
-            onToggle={handleToggle}
+            onEdit={openEditForm}
+            onToggle={openToggleForm}
             toggleConditionKey='hrmF_ActiveFlag'
         />
     );

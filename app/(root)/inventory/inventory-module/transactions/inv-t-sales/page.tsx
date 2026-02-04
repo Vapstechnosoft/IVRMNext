@@ -1,6 +1,6 @@
 'use client';
 
-import { use } from 'react';
+import { use, useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -9,11 +9,13 @@ import { Plus, X } from 'lucide-react';
 import { useInvTSales } from '@/hooks/inventory/transactions/use-inv-t-sales';
 import type { IInvTSales } from '@/types/inventory/transactions/inv-t-sales';
 import AddSalesForm from './_components/add-form';
-import { invTSalesColumns } from './_components/columns';
-// import UpdateSalesForm from './_components/update-form';
+import { getInvTSalesColumns } from './_components/columns';
+import UpdateSalesForm from './_components/update-form';
 // import ViewSalesDetailsModal from './_components/view-details-modal';
 import { ToggleSalesModal } from './_components/toggle-modal';
+import { ViewReceiptModal } from './_components/view-receipt-modal';
 import { Heading } from '@/components/layout/heading';
+import { ViewReceiptItemModal } from './_components/view-receipt-item-modal';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -53,12 +55,27 @@ function InvTSalesPageContent({
         closeToggleForm
     } = useFormContext<IInvTSales>();
 
+    const [isItemViewOpen, setIsItemViewOpen] = useState(false);
+    const [itemRowData, setItemRowData] = useState<IInvTSales | null>(null);
+
+    const handleViewItem = (row: IInvTSales) => {
+        setItemRowData(row);
+        setIsItemViewOpen(true);
+    };
+
+    const closeViewItem = () => {
+        setIsItemViewOpen(false);
+        setItemRowData(null);
+    };
+
     // const { deleteMutation, toggleActiveMutation } = useInvTSales(); // Moved to columns component
 
     const tableProps = useDataTableProps(response?.data, {
         dataKey: 'get_Sale',
         totalKey: 'total'
     });
+
+    const columns = useMemo(() => getInvTSalesColumns(handleViewItem), []);
 
     return (
         <div className='min-h-screen'>
@@ -88,7 +105,7 @@ function InvTSalesPageContent({
                     <GenericDataTable<IInvTSales>
                         {...tableProps}
                         data={response?.data?.get_Sale || []}
-                        columns={invTSalesColumns}
+                        columns={columns}
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
@@ -103,13 +120,19 @@ function InvTSalesPageContent({
                     <ToggleSalesModal rowData={selectedRow} onClose={closeToggleForm} />
                 )}
 
-                {/* {isDetailsViewOpen && selectedRow && (
-                    <ViewSalesDetailsModal
+                {isDetailsViewOpen && selectedRow && (
+                    <ViewReceiptModal
                         rowData={selectedRow}
-                        isOpen={isDetailsViewOpen}
                         onClose={closeDetailsView}
                     />
-                )} */}
+                )}
+
+                {isItemViewOpen && itemRowData && (
+                    <ViewReceiptItemModal
+                        rowData={itemRowData}
+                        onClose={closeViewItem}
+                    />
+                )}
             </div>
         </div>
     );
@@ -169,8 +192,8 @@ function FormSections() {
                                 className='absolute top-[-3.5rem] right-0 hover:bg-destructive/10 text-destructive'>
                                 <X className='h-4 w-4 mr-1' /> Close
                             </Button>
-                            {/* <UpdateSalesForm selectedRow={selectedRow} onSuccess={closeEditForm} /> */}
-                            <div>Update Form Placeholder</div>
+                            <UpdateSalesForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            {/* <div>Update Form Placeholder</div> */}
                         </div>
                     </CollapsibleSection>
                 </div>

@@ -29,6 +29,10 @@ export async function fetchMessData(searchParams?: ApiSearchparams) {
     return await api.get<any>('hostel', url);
 }
 
+export async function getMessList() {
+    return await api.get<any>('hostel', '/MasterMess/mess-dropdown');
+}
+
 export async function saveMess(data: any) {
     const url = '/MasterMess/save_mess';
     return await api.post<any>('hostel', url, data);

@@ -7,7 +7,16 @@ import {
     getItemConsumptionDetails,
     getItemStockDetails,
     getItemsOnStoreChange,
-    saveInvTItemConsumption
+    saveInvTItemConsumption,
+    getInvTItemConsumptionStores,
+    getInvTItemConsumptionDepartments,
+    getInvTItemConsumptionProducts,
+    getInvTItemConsumptionEmployees,
+    getStudentClsSec,
+    getStudentList,
+    getSectionList,
+    getICUserDetails,
+    getICItemDetails
 } from '@/server/inventory/transactions/inv-t-item-consumption';
 
 export const useInvTItemConsumption = (searchParams?: any) => {
@@ -51,16 +60,53 @@ export const useInvTItemConsumption = (searchParams?: any) => {
     });
 
     const itemsOnStoreChangeMutation = useMutation({
-        mutationFn: getItemsOnStoreChange,
+        mutationFn: (data: { INVMST_Id: number, INVC_LIFOFIFOFlg?: string, AMST_Id?: number }) => getItemsOnStoreChange(data),
     });
 
     const itemStockDetailMutation = useMutation({
-        mutationFn: getItemStockDetails,
+        mutationFn: (data: any) => getItemStockDetails(data),
     });
 
     const getDetailsMutation = useMutation({
-        mutationFn: getItemConsumptionDetails,
+        mutationFn: (data: any) => getItemConsumptionDetails(data),
     });
+
+    const getStoresMutation = useMutation({
+        mutationFn: () => getInvTItemConsumptionStores()
+    });
+
+    const getDepartmentsMutation = useMutation({
+        mutationFn: () => getInvTItemConsumptionDepartments()
+    });
+
+    const getProductsMutation = useMutation({
+        mutationFn: () => getInvTItemConsumptionProducts()
+    });
+
+    const getEmployeesMutation = useMutation({
+        mutationFn: () => getInvTItemConsumptionEmployees()
+    });
+
+    const studentClsSecMutation = useMutation({
+        mutationFn: (type: string) => getStudentClsSec(type)
+    });
+
+    const studentListMutation = useMutation({
+        mutationFn: (data: any) => getStudentList(data)
+    });
+
+    const sectionListMutation = useMutation({
+        mutationFn: (data: any) => getSectionList(data)
+    });
+
+    const getICUserDetailsMutation = useMutation({
+        mutationFn: (data: { INVMIC_Id: number, userflag: string }) => getICUserDetails(data.INVMIC_Id, data.userflag)
+    });
+
+    const getICItemDetailsMutation = useMutation({
+        mutationFn: (INVMIC_Id: number) => getICItemDetails(INVMIC_Id)
+    });
+
 
     return {
         data: query.data,
@@ -71,6 +117,15 @@ export const useInvTItemConsumption = (searchParams?: any) => {
         deleteMutation,
         itemsOnStoreChangeMutation,
         itemStockDetailMutation,
-        getDetailsMutation
+        getDetailsMutation,
+        getStoresMutation,
+        getDepartmentsMutation,
+        getProductsMutation,
+        getEmployeesMutation,
+        studentClsSecMutation,
+        studentListMutation,
+        sectionListMutation,
+        getICUserDetailsMutation,
+        getICItemDetailsMutation
     };
 };

@@ -41,6 +41,7 @@ export const validatePincode = (pincode: string) => {
 // Qualification details schema
 export const qualificationDetailSchema = z
     .object({
+        hrmeQ_Id: z.number().optional(), // ID for updates
         qualification: z.string().min(1, 'Qualification is required').max(50, 'Qualification must not exceed 50 characters'),
         course: z.string().min(1, 'Course is required'),
         college: z.string().min(1, 'College is required').max(100, 'College must not exceed 100 characters'),
@@ -98,6 +99,7 @@ export const qualificationDetailSchema = z
 // Experience details schema
 export const experienceDetailSchema = z
     .object({
+        hrmeE_Id: z.number().optional(), // ID for updates
         organisationName: z.string().min(1, 'Organisation Name is required').max(255, 'Organisation Name must not exceed 255 characters'),
         organisationAddress: z
             .string()
@@ -161,6 +163,15 @@ export const documentSchema = z.object({
         }, 'File must be JPEG, DOC, DOCX, or PDF and not exceed 2MB')
 });
 
+// Payroll Item Schema (for earnings, deductions, arrears)
+export const payrollItemSchema = z.object({
+    hreeD_Id: z.number().default(0),
+    hrmeD_Id: z.string().min(1, 'Head is required'),
+    hreeD_Amount: z.preprocess((val) => Number(val) || 0, z.number().min(0, 'Amount must be positive')),
+    hreeD_Percentage: z.string().optional().default('0'),
+    hreeD_ActiveFlag: z.boolean().default(true)
+});
+
 // Main employee register form schema
 export const employeeRegisterFormSchema = z
     .object({
@@ -171,7 +182,7 @@ export const employeeRegisterFormSchema = z
         employeeCode: z.string().min(1, 'Employee Code is required').max(20, 'Employee Code must not exceed 20 characters'),
         typeOfEmployment: z.string().min(1, 'Type of Employment is required'),
         employeeGroup: z.string().min(1, 'Employee Group is required'),
-        school: z.string().min(1, 'Department is required'),
+        department: z.string().min(1, 'Department is required'),
         designation: z.string().min(1, 'Designation is required'),
         grade: z.string().min(1, 'Grade is required'),
         fatherName: createStringOnlySchema("Father's Name", 1, 50),
@@ -192,7 +203,7 @@ export const employeeRegisterFormSchema = z
         epf: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
         ppf: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
         phdResearchGuide: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
-        recognitionYear: z.string().max(4, 'Recognition Year must not exceed 4 characters').regex(/^\d{4}$/, 'Recognition Year must contain only numbers').optional(),
+        recognitionYear: z.string().max(4, 'Recognition Year must not exceed 4 characters').regex(/^\d*$/, 'Recognition Year must contain only numbers').optional(),
         teachingNonTeaching: z.string().min(1, 'Teaching/Non-Teaching is required'),
         pfApplicable: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
         ptMaxAmount: z
@@ -259,11 +270,9 @@ export const employeeRegisterFormSchema = z
         bankDetails: z
             .array(
                 z.object({
-                    employerBankName: z.string().min(1, 'Bank Name is required'),
-                    bankAccountNo: z
-                        .string()
-                        .min(1, 'Bank Account No. is required')
-                        .max(20, 'Bank Account No. must not exceed 20 characters'),
+                    hrmeB_Id: z.number().optional(), // ID for updates
+                    employerBankName: z.string().optional(),
+                    bankAccountNo: z.string().optional(),
                     accountType: z.string().optional()
                 })
             )
@@ -350,7 +359,11 @@ export const employeeRegisterFormSchema = z
         msTeamsPassword: z.string().max(255, 'MS Teams Password must not exceed 255 characters').optional(),
         employeeLeft: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
         lastWorkingDay: z.string().optional(),
-        reasonForLeaving: z.string().max(50, 'Reason for leaving must not exceed 50 characters').optional()
+        reasonForLeaving: z.string().max(50, 'Reason for leaving must not exceed 50 characters').optional(),
+        // Payroll tab fields
+        earningList: z.array(payrollItemSchema).optional(),
+        deductionList: z.array(payrollItemSchema).optional(),
+        arrearList: z.array(payrollItemSchema).optional()
     })
     .refine(
         (data) => {

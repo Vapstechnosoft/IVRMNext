@@ -74,6 +74,12 @@ export default function AddMasterHostelForm({
 
     const selectedCountryId = watch('ivrmmC_Id');
     const hostelPhotos = watch('hostelPhotos') || [];
+    useEffect(() => {
+        console.log(initialData);
+        setValue('selectedFacilityIds', initialData?.selectedFacilityIds || []);
+        setValue('selectedWardenIds', initialData?.selectedWardenIds || []);
+        setValue('selectedMessIds', initialData?.selectedMessIds || []);
+    }, [initialData]);
 
     // Fetch states when country changes
     useEffect(() => {

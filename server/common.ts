@@ -8,7 +8,6 @@ export async function getCommonDropdown(name: string) {
     return await api.get<IDropdown[]>('default', url);
 }
 
-
 export async function getUserNotificationList(_priority?: string) {
     // const url = `/v1/user_notification?priority=${priority ?? 'normal'}`;
 
@@ -1717,22 +1716,22 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 },
-                                // ,
-                                // {
-                                //     id: 2,
-                                //     name: 'Employee',
-                                //     icon: 'User',
-                                //     pages: [
-                                //         {
-                                //             id: 1,
-                                //             name: 'Employee Register',
-                                //             icon: 'UserPlus',
-                                //             url: '/hrms/employee',
-                                //             title: 'Employee Register',
-                                //             description: 'Manage Employee Registration'
-                                //         }
-                                //     ]
-                                // }
+
+                                {
+                                    id: 2,
+                                    name: 'Employee',
+                                    icon: 'User',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Employee Register',
+                                            icon: 'UserPlus',
+                                            url: '/hrms/employee',
+                                            title: 'Employee Register',
+                                            description: 'Manage Employee Registration'
+                                        }
+                                    ]
+                                },
                                 {
                                     id: 3,
                                     name: 'Transactions',
@@ -3528,6 +3527,169 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
+                {
+                    id: 111,
+                    name: 'Transport',
+                    icon: 'BookOpen',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'Transport',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 3000,
+                                    name: 'Masters',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 30001,
+                                            name: 'Master Area',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-area',
+                                            title: 'Master Area / Zone',
+                                            description: 'Master Area / Zone Details'
+                                        },
+                                        {
+                                            id: 30002,
+                                            name: 'Master Driver',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-driver',
+                                            title: 'Master Driver',
+                                            description: 'Master Driver Details'
+                                        },
+                                        {
+                                            id: 30003,
+                                            name: 'Master Fuel Type',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-fuel-type',
+                                            title: 'Master Fuel Type',
+                                            description: 'Master Fuel Type Details'
+                                        },
+                                        {
+                                            id: 30004,
+                                            name: 'Master Location',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-location',
+                                            title: 'Master Location',
+                                            description: 'Master Location Details'
+                                        },
+                                        {
+                                            id: 30005,
+                                            name: 'Master Route',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-route',
+                                            title: 'Master Route',
+                                            description: 'Master Route Details'
+                                        },
+                                        {
+                                            id: 30006,
+                                            name: 'Route Area Mapping',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/route-area-mapping',
+                                            title: 'Route Area Mapping',
+                                            description: 'Route Area Mapping Details'
+                                        },
+                                        {
+                                            id: 30007,
+                                            name: 'Master Service Station',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-service-station',
+                                            title: 'Master Service Station',
+                                            description: 'Master Service Station Details'
+                                        },
+                                        {
+                                            id: 30008,
+                                            name: 'Master Session',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-session',
+                                            title: 'Master Session',
+                                            description: 'Master Session Details'
+                                        },
+                                        {
+                                            id: 30009,
+                                            name: 'Master Vehicle Type',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-vehicle-type',
+                                            title: 'Master Vehicle Type',
+                                            description: 'Master Vehicle Type Details'
+                                        },
+                                        {
+                                            id: 30010,
+                                            name: 'Master Route Schedule',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-route-schedule',
+                                            title: 'Master Route Schedule',
+                                            description: 'Master Route Schedule Details'
+                                        },
+                                        {
+                                            id: 30011,
+                                            name: 'Master Vehicle',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/master-vehicle',
+                                            title: 'Master Vehicle',
+                                            description: 'Master Vehicle Details'
+                                        },
+                                        {
+                                            id: 30012,
+                                            name: 'Expiry Settings',
+                                            icon: 'BookOpen',
+                                            url: '/Transport/transport-module/masters/expiry-settings',
+                                            title: 'Expiry Settings',
+                                            description: 'Transport Expiry Settings'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3001,
+                                    name: 'Transactions',
+                                    icon: 'BookOpen',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Route Location Mapping',
+                                            icon: 'Settings',
+                                            url: '/Transport/transport-module/transaction/route-location-mapping',
+                                            title: 'Route Location Mapping',
+                                            description: 'Manage Route Location Mapping'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Vehicle Driver Mapping',
+                                            icon: 'Settings',
+                                            url: '/Transport/transport-module/transaction/vehicle-driver-mapping',
+                                            title: 'Vehicle Driver Mapping',
+                                            description: 'Manage Vehicle Driver Mapping'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Vehicle Route Mapping',
+                                            icon: 'Settings',
+                                            url: '/Transport/transport-module/transaction/vehicle-route-mapping',
+                                            title: 'Vehicle Route Mapping',
+                                            description: 'Manage Vehicle Route Mapping'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3002,
+                                    name: 'Reports',
+                                    icon: 'BookOpen',
+                                    pages: [
+                                        {
+                                            id: 30201,
+                                            name: 'Month End Report',
+                                            icon: 'FileText',
+                                            url: '/Transport/transport-module/reports/month-end-report',
+                                            title: 'Month End Report',
+                                            description: 'Transport Month End Report'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
                 // {
                 //     id: 9,
                 //     name: 'Student Portal',
@@ -4125,6 +4287,14 @@ export async function getUserAccessibleModules() {
                                             url: '/inventory/inventory-module/masters/inv-master-supplier',
                                             title: 'Inventory Master Supplier',
                                             description: 'Manage Inventory Master Supplier'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Customer',
+                                            icon: 'Users',
+                                            url: '/inventory/inventory-module/masters/inv-master-customer',
+                                            title: 'Inventory Master Customer',
+                                            description: 'Manage Inventory Master Customer'
                                         },
                                         {
                                             id: 4,
@@ -4942,12 +5112,11 @@ export async function getUserAccessibleModules() {
                                             description: 'Master Sub Menu Institution Mapping'
                                         }
                                     ]
-                                },
+                                }
                             ]
                         }
                     ]
-                }
-                ,
+                },
                 {
                     id: 30,
                     name: 'Staff Portal',
@@ -5018,8 +5187,7 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 }
-                            ],
-
+                            ]
                         },
 
                         {
@@ -5055,8 +5223,6 @@ export async function getUserAccessibleModules() {
                                     name: 'CCE',
                                     icon: 'ClipboardEdit',
                                     pages: [
-
-
                                         {
                                             id: 703,
                                             name: 'Student Transaction',
@@ -5065,7 +5231,6 @@ export async function getUserAccessibleModules() {
                                             title: 'Student Transaction CCE',
                                             description: 'CCE Transaction Entry'
                                         }
-
                                     ]
                                 },
 
@@ -5074,8 +5239,6 @@ export async function getUserAccessibleModules() {
                                     name: 'Transaction ',
                                     icon: 'ClipboardEdit',
                                     pages: [
-
-
                                         {
                                             id: 704,
                                             name: 'Exam Student Wise Remarks Entry',
@@ -5084,15 +5247,13 @@ export async function getUserAccessibleModules() {
                                             title: 'Exam Student Wise Remarks Entry',
                                             description: 'Exam Student Wise Remarks Entry'
                                         }
-
                                     ]
-                                }, {
+                                },
+                                {
                                     id: 705,
                                     name: 'Report ',
                                     icon: 'ClipboardEdit',
                                     pages: [
-
-
                                         {
                                             id: 705,
                                             name: 'Cumulative Report',
@@ -5101,13 +5262,10 @@ export async function getUserAccessibleModules() {
                                             title: 'Cumulative Report',
                                             description: 'Cumulative Report BB'
                                         }
-
                                     ]
                                 }
-
                             ]
-                        }
-                        ,
+                        },
                         {
                             id: 706,
                             name: 'Upload',
@@ -5149,7 +5307,6 @@ export async function getUserAccessibleModules() {
                                             url: '/StaffPortal/interactions',
                                             title: 'Interactions',
                                             description: 'Interact with Students/Staff'
-
                                         },
                                         {
                                             id: 710,
@@ -5177,8 +5334,6 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 }
-
-
                             ]
                         },
                         {
@@ -5204,29 +5359,37 @@ export async function getUserAccessibleModules() {
                             ]
                         },
 
-                        // {
-                        //     id: 714,
-                        //     name: 'Biometric Report  ',
-                        //     icon: 'Wallet',
-                        //     sub_menu: [
-                        //         {
-                        //             id: 714,
-                        //             name: 'Report ',
-                        //             icon: 'Currency',
-                        //             pages: [
+                        {
+                            id: 714,
+                            name: 'Biometric Report  ',
+                            icon: 'Wallet',
+                            sub_menu: [
+                                {
+                                    id: 714,
+                                    name: 'Report ',
+                                    icon: 'Currency',
+                                    pages: [
+                                        // {
+                                        //     id: 1,
+                                        //     name: 'Employee Punch Report ',
+                                        //     icon: 'FileText',
+                                        //     url: '/StaffPortal/BiometricReport/employeePunchAttendence',
+                                        //     title: 'Staff Salary Slip',
+                                        //     description: 'View and Download Pay Slips'
+                                        // },
 
-                        //                 {
-                        //                     id: 1,
-                        //                     name: 'Employee Punch Report ',
-                        //                     icon: 'FileText',
-                        //                     url: '/StaffPortal/salary/staff-salary-slip',
-                        //                     title: 'Staff Salary Slip',
-                        //                     description: 'View and Download Pay Slips'
-                        //                 }
-                        //             ]
-                        //         }
-                        //     ]
-                        // },
+                                        {
+                                            id: 1,
+                                            name: 'Employee Punch Report ',
+                                            icon: 'FileText',
+                                            url: '/StaffPortal/BiometricReport/employeePunchAttendence',
+                                            title: 'Employee Punch Report ',
+                                            description: 'Employee Punch Report '
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
                         {
                             id: 715,
                             name: 'Fees',
@@ -5273,11 +5436,6 @@ export async function getUserAccessibleModules() {
                         //             }
                         //         ]
                         //     },
-
-
-
-
-
                     ]
                 }
 
