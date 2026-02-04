@@ -4021,6 +4021,22 @@ export async function getUserAccessibleModules() {
                                             url: '/Sports/Masters/CompetitionLevel',
                                             title: 'Master Competition Level',
                                             description: 'Manage Master Competition Level'
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Master UOM',
+                                            icon: 'Trophy',
+                                            url: '/Sports/Masters/UOM',
+                                            title: 'Master UOM',
+                                            description: 'Manage Master UOM'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Master House',
+                                            icon: 'Trophy',
+                                            url: '/Sports/Masters/House',
+                                            title: 'Master House',
+                                            description: 'Manage Master House'
                                         }
                                     ]
                                 },
