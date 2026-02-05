@@ -22,23 +22,47 @@ import { useInvTSales } from '@/hooks/inventory/transactions/use-inv-t-sales';
 import { Plus, Minus, Save, RotateCcw, Calculator, Package, ReceiptIndianRupee, Info } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Card } from '@/components/ui/card';
-// import { MultiSelect } from '@/components/ui/extension/multi-select'; // Assuming this exists or I'll use standard select for now for Class/Sec
+// import { MultiSelect } from '@/components/ui/extension/multi-select';
 
 interface AddSalesFormProps {
     onSuccess: () => void;
 }
 
 export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
-    const { data: loadData, saveMutation, studentClsSecMutation, studentListMutation, sectionListMutation, itemOnStoreChangeMutation, itemDetailMutation } = useInvTSales();
+    const {
+        data: loadData,
+        saveMutation,
+        studentClsSecMutation,
+        studentListMutation,
+        sectionListMutation,
+        itemOnStoreChangeMutation,
+        itemDetailMutation,
+        getEmployeesMutation,
+        getCustomersMutation,
+        getStoresMutation
+    } = useInvTSales();
     const [discountType, setDiscountType] = useState<'A' | 'P'>('A');
+
+    // Tax Modal State
+    const [isTaxModalOpen, setIsTaxModalOpen] = useState(false);
+    const [selectedTaxRowIndex, setSelectedTaxRowIndex] = useState<number | null>(null);
 
     // Local state for dynamic lists
     const [studentClsSec, setStudentClsSec] = useState<any[]>([]);
     const [studentList, setStudentList] = useState<any[]>([]);
     const [sectionList, setSectionList] = useState<any[]>([]);
     const [itemsList, setItemsList] = useState<any[]>([]);
+    const [employeeList, setEmployeeList] = useState<any[]>([]);
+    const [customerList, setCustomerList] = useState<any[]>([]);
+    const [storeList, setStoreList] = useState<any[]>([]);
 
     const form = useForm<InvTSalesSchema>({
         resolver: zodResolver(invTSalesSchema),
@@ -51,7 +75,7 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
             invmsL_TotDiscount: 0,
             invmsL_TotTaxAmt: 0,
             invmsL_SalesValue: 0,
-            SalesItem: [
+            SaleItem: [
                 {
                     invmI_Id: 0,
                     invtsL_SalesQty: 0,
@@ -67,10 +91,10 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
     const { control, handleSubmit, register, setValue, watch, reset, formState: { errors } } = form;
     const { fields, append, remove } = useFieldArray({
         control,
-        name: 'SalesItem'
+        name: 'SaleItem'
     });
 
-    const watchedItems = watch('SalesItem');
+    const watchedItems = watch('SaleItem');
     const watchedType = watch('invmsL_StuOtherFlg');
     const watchedStuFlag = watch('stu_Flag');
     const watchedClassId = watch('asmcL_Id');
@@ -78,29 +102,94 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
     const watchedStoreId = watch('invmsT_Id');
 
 
+
+    // Fetch Stores on Mount
+    useEffect(() => {
+        getStoresMutation.mutate(undefined, {
+            onSuccess: (res) => {
+                if (res?.data) {
+                    setStoreList(res.data);
+                }
+            }
+        });
+    }, []);
+
+    const watchedStudentId = watch('amsT_Id');
+
     // Fetch Items when Store changes
     useEffect(() => {
         if (watchedStoreId) {
-            itemOnStoreChangeMutation.mutate(watchedStoreId, {
+            const payload = {
+                INVMST_Id: watchedStoreId,
+                AMST_Id: watchedStudentId || 0,
+                INVC_LIFOFIFOFlg: 'LIFO'
+            };
+
+            itemOnStoreChangeMutation.mutate(payload, {
                 onSuccess: (res) => {
-                    if (res?.data?.get_item) {
-                        setItemsList(res.data.get_item);
+                    const rawItems = Array.isArray(res.data) ? res.data : (res?.data?.get_item || []);
+                    // Normalize keys
+                    const normalizedItems = rawItems.map((item: any) => ({
+                        invmI_Id: item.invmi_Id ?? item.invmI_Id,
+                        invmI_ItemName: item.invmi_ItemName ?? item.invmI_ItemName,
+                        invstO_SalesRate: item.invsto_SalesRate ?? item.invstO_SalesRate,
+                        invstO_BatchNo: item.invsto_BatchNo ?? item.invstO_BatchNo,
+                        invstO_AvaiableStock: item.invsto_AvaiableStock ?? item.invstO_AvaiableStock ?? 0
+                    }));
+                    setItemsList(normalizedItems);
+                }
+            });
+        }
+    }, [watchedStoreId, watchedStudentId]);
+
+    // Fetch Employees when Type is Staff
+    useEffect(() => {
+        if (watchedType === 'Staff') {
+            getEmployeesMutation.mutate(undefined, {
+                onSuccess: (res) => {
+                    // Response stricture: { success: true, message: ..., data: [...] }
+                    if (res?.data) {
+                        setEmployeeList(res.data);
                     }
                 }
             });
         }
-    }, [watchedStoreId]);
+    }, [watchedType]);
 
-    // Fetch Student/Class/Sec when type or flag changes
+    // Fetch Customers when Type is Customer
     useEffect(() => {
-        if (watchedType === 'Student' && watchedStuFlag) {
-            studentClsSecMutation.mutate(watchedStuFlag, {
+        if (watchedType === 'Customer') {
+            getCustomersMutation.mutate(undefined, {
                 onSuccess: (res) => {
-                    setStudentClsSec(res?.data?.get_Student_Cls_Sec || []);
+                    if (res?.data) {
+                        setCustomerList(res.data);
+                    }
                 }
             });
         }
-    }, [watchedType, watchedStuFlag]);
+    }, [watchedType]);
+
+    // Fetch Student/Class/Sec when type or flag changes
+    useEffect(() => {
+        // Only trigger if Type is Student and we have a valid flag (I, C, CS)
+        // Check if we already have data or if the flag actually changed
+        // To avoid infinite loops or unnecessary calls, simpler condition is usually safer.
+        if (watchedType === 'Student' && watchedStuFlag && (watchedStuFlag === 'I' || watchedStuFlag === 'C' || watchedStuFlag === 'CS')) {
+            studentClsSecMutation.mutate(watchedStuFlag, {
+                onSuccess: (res) => {
+                    // Check for flat data array or nested property
+                    const data = Array.isArray(res?.data) ? res.data : (res?.data?.get_Student_Cls_Sec || []);
+                    setStudentClsSec(data);
+                }
+            });
+        }
+    }, [watchedStuFlag]); // Only run when Flag changes. watchedType is stable usually or captured by flag change context. Removing watchedType dependency if it causes jitter, but safely keeping it if stable.
+    // Actually, `watchedType` changing to Student sets default `stu_Flag`.
+    // The issue might be that `watchedStuFlag` changes frequently or re-triggers?
+    // Let's keep dependencies minimal. `watchedType` is required condition.
+    // Better: split effects or ensure stability. Here, just minimizing deps.
+    // REPLACEMENT:
+
 
     // Fetch Student List on Class Change (for I or C)
     useEffect(() => {
@@ -111,15 +200,30 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
             };
             // If C or CS logic differs, adjust here.
             // Angular: if C -> just ASMCL_Id. if CS -> ASMCL_Id and ASMS_Id
-            if (watchedStuFlag === 'C') {
-                studentListMutation.mutate(data, {
-                    onSuccess: (res) => setStudentList(res?.data?.get_Studentlist || [])
-                });
+            if (watchedStuFlag === 'C' || watchedStuFlag === 'CS') {
+                // If it's just 'C', maybe we fetch students directly? The original code did so.
+                // But for 'CS', we definitely need sections first.
+                // Re-using the logic: if we have Class, we can fetch sections (if needed) and students (if 'C').
 
-                // Also get sections if needed?
-                sectionListMutation.mutate(data, {
-                    onSuccess: (res) => setSectionList(res?.data?.get_sectionlist || [])
-                });
+                if (watchedStuFlag === 'C') {
+                    studentListMutation.mutate(data, {
+                        onSuccess: (res) => {
+                            const list = Array.isArray(res?.data) ? res.data : (res?.data?.get_Studentlist || res?.data?.studentList || []);
+                            setStudentList(list);
+                        }
+                    });
+                }
+
+                // Fetch sections for both C (if implied?) or definitely for CS
+                if (watchedStuFlag === 'CS') {
+                    sectionListMutation.mutate(data, {
+                        onSuccess: (res) => {
+                            // Check for flat data array or nested property
+                            const data = Array.isArray(res?.data) ? res.data : (res?.data?.get_sectionlist || []);
+                            setSectionList(data);
+                        }
+                    });
+                }
             }
         }
     }, [watchedType, watchedStuFlag, watchedClassId]);
@@ -133,7 +237,10 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                 type: watchedStuFlag
             };
             studentListMutation.mutate(data, {
-                onSuccess: (res) => setStudentList(res?.data?.get_Studentlist || [])
+                onSuccess: (res) => {
+                    const list = Array.isArray(res?.data) ? res.data : (res?.data?.get_Studentlist || res?.data?.studentList || []);
+                    setStudentList(list);
+                }
             });
         }
     }, [watchedType, watchedStuFlag, watchedClassId, watchedSectionId]);
@@ -141,59 +248,145 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
 
     // Calculate totals whenever items change
     useEffect(() => {
+        calculateTotals();
+    }, [watchedItems]);
+
+    const calculateTotals = () => {
         let totalBasic = 0;
         let totalDiscount = 0;
         let totalTax = 0;
 
-        watchedItems.forEach((item) => {
+        const items = form.getValues('SaleItem') || [];
+        items.forEach((item) => {
             totalBasic += Number(item.invtsL_Amount) || 0;
             totalDiscount += Number(item.invtsL_DiscountAmt) || 0;
             totalTax += Number(item.invtsL_TaxAmt) || 0;
         });
 
-        // Angular logic: Total Amount is sum of Item Amounts.
-        // Sales Value = Total Amount - Discount + Tax
-        // Wait, Angular: 
-        // objstk.invtsL_Amount = salerate * qty;
-        // invmsL_TotalAmount = sum(invtsL_Amount + invtsL_DiscountAmt) ... wait, this looks weird in Angular.
-        // Angular: ds += parseFloat(obj.invtsL_Amount) + parseFloat(obj.invtsL_DiscountAmt);
-
-        // Let's stick to standard logic:
-        // Item Amount = (Qty * Price)
-        // Total Basic = Sum(Item Amounts)
-        // Final Value = Total Basic - Total Discount + Total Tax
-
         setValue('invmsL_TotalAmount', totalBasic);
         setValue('invmsL_TotDiscount', totalDiscount);
         setValue('invmsL_TotTaxAmt', totalTax);
         setValue('invmsL_SalesValue', totalBasic - totalDiscount + totalTax);
-    }, [watchedItems, setValue]);
+    };
 
     const handleItemChange = async (index: number, itemId: number) => {
         const item = itemsList.find((i: any) => i.invmI_Id === itemId);
         if (item) {
-            // Set Sales Price & Batch No if available
-            setValue(`SalesItem.${index}.invtsL_SalesPrice`, item.invstO_SalesRate || 0);
-            setValue(`SalesItem.${index}.invtsL_BatchNo`, item.invstO_BatchNo || '');
-            // Get Item Details (Tax etc)
-            // itemDetailMutation.mutate(...)
+            const storeId = watch('invmsT_Id');
+            const payload = {
+                INVMI_Id: item.invmI_Id,
+                INVSTO_SalesRate: item.invstO_SalesRate,
+                INVMST_Id: storeId,
+                INVSTO_BatchNo: item.invstO_BatchNo
+            };
+
+            itemDetailMutation.mutate(payload, {
+                onSuccess: (res) => {
+                    if (res?.data) {
+                        // Access nested DTO arrays
+                        const detailList = res.data.get_itemDetail || res.data.get_ItemDetail || [];
+                        const taxList = res.data.get_itemTax || res.data.get_ItemTax || res.data.get_item_tax || [];
+                        const stockList = res.data.availablestock || res.data.availableStock || res.data.get_availablestock || [];
+
+                        const detail = detailList[0];
+                        const stockObj = stockList[0];
+                        const availableStockVal = stockObj?.AvaiableStock ?? stockObj?.avaiableStock ?? stockObj?.AvailableStock ?? stockObj?.availableStock ?? stockObj?.INVSTO_AvaiableStock ?? stockObj?.invsto_AvaiableStock ?? 0;
+
+                        if (detail) {
+                            // Bind Item Details
+                            setValue(`SaleItem.${index}.invmuoM_Id`, detail.INVMUOM_Id ?? detail.invmuoM_Id ?? detail.invmuom_Id);
+                            setValue(`SaleItem.${index}.invtsL_BatchNo`, detail.INVSTO_BatchNo ?? detail.invstO_BatchNo ?? detail.invsto_BatchNo);
+                            setValue(`SaleItem.${index}.invtsL_SalesPrice`, detail.INVSTO_SalesRate ?? detail.invstO_SalesRate ?? detail.invsto_SalesRate ?? 0);
+                        }
+
+                        // Bind Taxes
+                        if (taxList.length > 0) {
+                            const mappedTaxes = taxList.map((t: any) => ({
+                                invmT_Id: t.INVMT_Id ?? t.invmT_Id ?? t.invmt_Id,
+                                invmT_TaxName: t.INVMT_TaxName ?? t.invmT_TaxName ?? t.invmt_TaxName ?? '',
+                                invtslT_TaxPer: t.INVMIT_TaxValue ?? t.invmiT_TaxValue ?? t.invmit_TaxValue ?? 0,
+                                invtslT_TaxAmt: 0 // Will be calculated
+                            }));
+                            setValue(`SaleItem.${index}.SalesItemTax`, mappedTaxes);
+                        } else {
+                            setValue(`SaleItem.${index}.SalesItemTax`, []);
+                        }
+
+                        // Set Stock & Recalculate
+                        setValue(`SaleItem.${index}.availableStock`, availableStockVal);
+
+                        // Optional: clear qty or set default? Leaving as is or setting 0 implies user must enter.
+                        // Existing code might have had qty. If changing item, standard to reset qty or valid? 
+                        // Keeping existing qty might be confusing if new item has diff stock.
+                        // But let's trigger calc logic.
+                        calculateItemAmount(index);
+                    }
+                }
+            });
         }
     };
 
     const calculateItemAmount = (index: number) => {
-        const qty = watch(`SalesItem.${index}.invtsL_SalesQty`) || 0;
-        const rate = watch(`SalesItem.${index}.invtsL_SalesPrice`) || 0;
+        const qty = form.getValues(`SaleItem.${index}.invtsL_SalesQty`) || 0;
+        const rate = form.getValues(`SaleItem.${index}.invtsL_SalesPrice`) || 0;
+        const availableStock = form.getValues(`SaleItem.${index}.availableStock` as any) || 0;
+
+        if (qty > availableStock) {
+            // We might want to show error. For now, we can clamp or just warn. 
+            // Since we can't easily toast from here repeatedly, let's just create a side effect or console warn, or reset.
+            // Angular shows alert.
+            // We can set an error on the field.
+            form.setError(`SaleItem.${index}.invtsL_SalesQty`, { message: `Max stock: ${availableStock}` });
+        } else {
+            form.clearErrors(`SaleItem.${index}.invtsL_SalesQty`);
+        }
+
         const basicAmt = qty * rate;
-        setValue(`SalesItem.${index}.invtsL_Amount`, basicAmt);
+        setValue(`SaleItem.${index}.invtsL_Amount`, basicAmt);
         calculateDiscount(index);
     };
 
     const calculateDiscount = (index: number) => {
-        const basicAmt = watch(`SalesItem.${index}.invtsL_Amount`) || 0;
-        let discountAmt = watch(`SalesItem.${index}.invtsL_DiscountAmt`) || 0;
-        // Logic for percentage if needed
-        setValue(`SalesItem.${index}.invtsL_DiscountAmt`, discountAmt);
-        // calculateTax(index);
+        const basicAmt = form.getValues(`SaleItem.${index}.invtsL_Amount`) || 0;
+        let discountAmt = form.getValues(`SaleItem.${index}.invtsL_DiscountAmt`) || 0;
+
+        if (discountType === 'P') {
+            // If input is percentage
+            const perc = discountAmt;
+            // Logic: if user typed 10 (as 10%), we calc amount. 
+            // But the field is `invtsL_DiscountAmt`. 
+            // Angular has a toggle. Here we only have 1 input.
+            // If we want to support percentage input, we need a separate state or field for Rate vs Amount.
+            // For now, assuming Amount input as per schema.
+        }
+
+        if (discountAmt > basicAmt) {
+            setValue(`SaleItem.${index}.invtsL_DiscountAmt`, 0);
+            discountAmt = 0;
+        }
+
+        calculateTax(index);
+    };
+
+    const calculateTax = (index: number) => {
+        const basicAmt = form.getValues(`SaleItem.${index}.invtsL_Amount`) || 0;
+        const discountAmt = form.getValues(`SaleItem.${index}.invtsL_DiscountAmt`) || 0;
+        const taxableAmt = basicAmt - discountAmt;
+
+        const itemTaxes = form.getValues(`SaleItem.${index}.SalesItemTax`) || [];
+        let totalItemTax = 0;
+
+        if (itemTaxes.length > 0) {
+            const updatedTaxes = itemTaxes.map((tax: any) => {
+                const taxVal = (taxableAmt * (tax.invtslT_TaxPer || 0)) / 100;
+                totalItemTax += taxVal;
+                return { ...tax, invtslT_TaxAmt: taxVal };
+            });
+            setValue(`SaleItem.${index}.SalesItemTax`, updatedTaxes);
+        }
+
+        setValue(`SaleItem.${index}.invtsL_TaxAmt`, totalItemTax);
+        calculateTotals();
     };
 
     const onSubmit = (data: InvTSalesSchema) => {
@@ -212,7 +405,7 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
             {/* Header Details */}
             <CollapsibleSection
                 title="Sales Header Information"
-               
+
                 defaultOpen={true}
                 className="shadow-sm border-primary/10"
             >
@@ -271,8 +464,8 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                                     <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                         <SelectTrigger><SelectValue placeholder='Select Store' /></SelectTrigger>
                                         <SelectContent>
-                                            {loadData?.data?.get_Store?.map((s: any) => (
-                                                <SelectItem key={s.invmsT_Id} value={s.invmsT_Id.toString()}>{s.invmS_StoreName}</SelectItem>
+                                            {storeList.map((s: any, index: number) => (
+                                                <SelectItem key={`store-${s.invmsT_Id}-${index}`} value={s.invmsT_Id.toString()}>{s.invmS_StoreName}</SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
@@ -306,11 +499,18 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                                     name='amsT_Id'
                                     control={control}
                                     render={({ field }) => (
-                                        <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                        <Select onValueChange={(val) => {
+                                            field.onChange(Number(val));
+                                            const selectedStudent = studentClsSec.find((s: any) => (s.amsT_Id || s.AMST_Id) == val);
+                                            if (selectedStudent) {
+                                                setValue('asmcL_Id', selectedStudent.asmcL_Id || selectedStudent.ASMCL_Id);
+                                                setValue('asmS_Id', selectedStudent.asmS_Id || selectedStudent.ASMS_Id);
+                                            }
+                                        }} value={field.value?.toString()}>
                                             <SelectTrigger><SelectValue placeholder='Select Student' /></SelectTrigger>
                                             <SelectContent>
-                                                {studentClsSec.map((s: any) => (
-                                                    <SelectItem key={s.amsT_Id} value={s.amsT_Id.toString()}>{s.studentname}</SelectItem>
+                                                {studentClsSec.map((s: any, index: number) => (
+                                                    <SelectItem key={`stu-ind-${s.amsT_Id}-${index}`} value={s.amsT_Id.toString()}>{s.studentname}</SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
@@ -321,37 +521,95 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
 
                         {/* Class / Section Selection */}
                         {(watchedStuFlag === 'C' || watchedStuFlag === 'CS') && (
-                            <div className='grid grid-cols-2 gap-4'>
-                                <div className='space-y-2'>
-                                    <Label >Class</Label>
-                                    <Controller
-                                        name='asmcL_Id'
-                                        control={control}
-                                        render={({ field }) => (
-                                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                                <SelectTrigger><SelectValue placeholder='Select Class' /></SelectTrigger>
-                                                <SelectContent>
-                                                    {studentClsSec.map((s: any) => (
-                                                        <SelectItem key={s.ASMCL_Id} value={s.ASMCL_Id.toString()}>{s.ASMCL_ClassName}</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        )}
-                                    />
-                                </div>
-                                {watchedStuFlag === 'CS' && (
+                            <div className='space-y-4'>
+                                <div className='grid grid-cols-2 gap-4'>
                                     <div className='space-y-2'>
-                                        <Label >Section</Label>
+                                        <Label >Class</Label>
+                                        <Controller
+                                            name='asmcL_Id'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                                    <SelectTrigger><SelectValue placeholder='Select Class' /></SelectTrigger>
+                                                    <SelectContent>
+                                                        {studentClsSec.map((s: any, index: number) => {
+                                                            const id = s.asmcL_Id || s.ASMCL_Id;
+                                                            const name = s.asmcL_ClassName || s.ASMCL_ClassName;
+                                                            if (!id) return null;
+                                                            return (
+                                                                <SelectItem key={`cls-${id}-${index}`} value={id.toString()}>{name}</SelectItem>
+                                                            );
+                                                        })}
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
+                                        />
+                                    </div>
+                                    {watchedStuFlag === 'CS' && (
+                                        <div className='space-y-2'>
+                                            <Label >Section</Label>
+                                            <Controller
+                                                name='asmS_Id'
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                                        <SelectTrigger><SelectValue placeholder='Select Section' /></SelectTrigger>
+                                                        <SelectContent>
+                                                            {sectionList.map((s: any, index: number) => (
+                                                                <SelectItem key={`sec-${s.asmS_Id}-${index}`} value={s.asmS_Id.toString()}>{s.asmC_SectionName}</SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                )}
+                                            />
+                                        </div>
+                                    )}
+                                    {/* Ensure asmS_Id is registered/submitted for 'C' flag even if hidden */}
+                                    {watchedStuFlag === 'C' && (
                                         <Controller
                                             name='asmS_Id'
                                             control={control}
                                             render={({ field }) => (
-                                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                                    <SelectTrigger><SelectValue placeholder='Select Section' /></SelectTrigger>
+                                                <input type="hidden" {...field} value={field.value || ''} />
+                                            )}
+                                        />
+                                    )}
+                                </div>
+
+                                {/* Student Dropdown for Class/Section selection */}
+                                {((watchedStuFlag === 'C' && watchedClassId) || (watchedStuFlag === 'CS' && watchedSectionId)) && (
+                                    <div className='space-y-2 animate-in fade-in slide-in-from-top-2 duration-300'>
+                                        <Label>Student Name</Label>
+                                        <Controller
+                                            name='amsT_Id'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Select onValueChange={(val) => {
+                                                    field.onChange(Number(val));
+                                                    const selectedStudent = studentList.find((s: any) => (s.amst_id || s.amsT_Id || s.AMST_Id) == val);
+                                                    if (selectedStudent) {
+                                                        // For C/CS, class is already set. Section might not be if 'C'. 
+                                                        // If 'CS', both are set. 
+                                                        // But let's ensure we have valid values.
+                                                        // Assuming student object has class/sec info if needed.
+                                                        if (watchedStuFlag === 'C') {
+                                                            // If flag is C, we might not have section selected yet unless student brings it.
+                                                            const secId = selectedStudent.asmS_Id ?? selectedStudent.ASMS_Id ?? selectedStudent.asms_Id ?? selectedStudent.ASMCL_Id_Section ?? 0;
+                                                            setValue('asmS_Id', secId);
+                                                            // Also trigger section change logic if useful, but setting value is key.
+                                                        }
+                                                    }
+                                                }} value={field.value?.toString()}>
+                                                    <SelectTrigger><SelectValue placeholder='Select Student' /></SelectTrigger>
                                                     <SelectContent>
-                                                        {sectionList.map((s: any) => (
-                                                            <SelectItem key={s.asmS_Id} value={s.asmS_Id.toString()}>{s.asmC_SectionName}</SelectItem>
-                                                        ))}
+                                                        {studentList.map((s: any, index: number) => {
+                                                            const id = s.amst_id || s.amsT_Id || s.AMST_Id;
+                                                            const name = s.studentname || s.studentName || s.ameS_StudentName;
+                                                            if (!id) return null;
+                                                            return (
+                                                                <SelectItem key={`stuname-${id}-${index}`} value={id.toString()}>{name}</SelectItem>
+                                                            );
+                                                        })}
                                                     </SelectContent>
                                                 </Select>
                                             )}
@@ -373,8 +631,8 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                                 <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                     <SelectTrigger><SelectValue placeholder='Select Staff' /></SelectTrigger>
                                     <SelectContent>
-                                        {loadData?.data?.get_employee?.map((s: any) => (
-                                            <SelectItem key={s.hrmE_Id} value={s.hrmE_Id.toString()}>{s.employeename}</SelectItem>
+                                        {employeeList.map((s: any, index: number) => (
+                                            <SelectItem key={`${s.hrmE_Id}-${index}`} value={s.hrmE_Id.toString()}>{s.employeename}</SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -393,8 +651,8 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                                 <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                     <SelectTrigger><SelectValue placeholder='Select Customer' /></SelectTrigger>
                                     <SelectContent>
-                                        {loadData?.data?.get_customer?.map((s: any) => (
-                                            <SelectItem key={s.invmC_Id} value={s.invmC_Id.toString()}>{s.invmC_CustomerName}</SelectItem>
+                                        {customerList.map((s: any, index: number) => (
+                                            <SelectItem key={`${s.invmC_Id}-${index}`} value={s.invmC_CustomerName || ''}>{s.invmC_CustomerName}</SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -404,10 +662,67 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                 )}
             </CollapsibleSection>
 
+            {/* Tax Details Modal */}
+            <Dialog open={isTaxModalOpen} onOpenChange={setIsTaxModalOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2 text-primary">
+                            <ReceiptIndianRupee className="h-5 w-5" />
+                            Tax Breakdown
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="py-4">
+                        {selectedTaxRowIndex !== null && (() => {
+                            const currentTaxList = watch(`SaleItem.${selectedTaxRowIndex}.SalesItemTax`) || [];
+                            const totalRowTax = watch(`SaleItem.${selectedTaxRowIndex}.invtsL_TaxAmt`) || 0;
+                            return (
+                                <div className="space-y-4">
+                                    <div className="flex justify-between text-sm font-medium border-b pb-2">
+                                        <span>Tax Name</span>
+                                        <div className="flex gap-8">
+                                            <span>Rate (%)</span>
+                                            <span className="w-20 text-right">Amount</span>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        {currentTaxList.length > 0 ? (
+                                            currentTaxList.map((tax: any, i: number) => {
+                                                // We need to fetch tax name from loadData if possible, but tax list in loadData might not be available or comprehensive.
+                                                // Actually get_itemDetail returns tax list with names usually. 
+                                                // But here we stored only IDs. 
+                                                // Ideally we should have stored tax Name too in `SalesItemTax`.
+                                                // For now, we just display percentages.
+                                                return (
+                                                    <div key={i} className="flex justify-between text-sm">
+                                                        <span className="text-muted-foreground">{tax.invmT_TaxName || tax.invmT_Id}</span>
+                                                        <div className="flex gap-8">
+                                                            <span className="font-mono text-xs">{tax.invtslT_TaxPer}%</span>
+                                                            <span className="w-20 text-right font-mono font-medium">₹{tax.invtslT_TaxAmt?.toFixed(2)}</span>
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })
+                                        ) : (
+                                            <div className="text-center text-muted-foreground text-sm py-2">No taxes active for this item</div>
+                                        )}
+                                    </div>
+                                    <div className="flex justify-between text-sm font-bold border-t pt-3 mt-2">
+                                        <span>Total Tax</span>
+                                        <span className="font-mono text-green-600">
+                                            ₹{totalRowTax.toFixed(2)}
+                                        </span>
+                                    </div>
+                                </div>
+                            )
+                        })()}
+                    </div>
+                </DialogContent>
+            </Dialog>
+
             {/* Items Collection */}
             <CollapsibleSection
                 title="Sales Items"
-                
+
                 defaultOpen={true}
                 className="shadow-sm border-primary/10"
             >
@@ -422,7 +737,7 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                                 <th className='border p-3 w-[100px] text-right'>Rate</th>
                                 <th className='border p-3 w-[100px] text-right'>Discount</th>
                                 <th className='border p-3 w-[120px] text-right'>Amount</th>
-                                <th className='border p-3 w-[50px] text-center'></th>
+                                <th className='border p-3 w-[50px] text-center'>Tax</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y">
@@ -431,7 +746,7 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                                     <td className='border p-2 text-center'>{index + 1}</td>
                                     <td className='border p-2'>
                                         <Controller
-                                            name={`SalesItem.${index}.invmI_Id`}
+                                            name={`SaleItem.${index}.invmI_Id`}
                                             control={control}
                                             render={({ field }) => (
                                                 <Select onValueChange={(val) => {
@@ -441,8 +756,8 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                                                 }} value={field.value?.toString()}>
                                                     <SelectTrigger><SelectValue placeholder='Select Item' /></SelectTrigger>
                                                     <SelectContent>
-                                                        {itemsList.map((i: any) => (
-                                                            <SelectItem key={i.invmI_Id} value={i.invmI_Id.toString()}>
+                                                        {itemsList.map((i: any, index: number) => (
+                                                            <SelectItem key={`item-${i.invmI_Id}-${index}`} value={i.invmI_Id.toString()}>
                                                                 {i.invmI_ItemName}
                                                             </SelectItem>
                                                         ))}
@@ -452,19 +767,32 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                                         />
                                     </td>
                                     <td className='border p-2'>
-                                        <InputText {...register(`SalesItem.${index}.invtsL_BatchNo`)} className='h-8 text-xs' disabled />
+                                        <InputText {...register(`SaleItem.${index}.invtsL_BatchNo`)} className='h-8 text-xs' disabled />
                                     </td>
                                     <td className='border p-2'>
-                                        <InputText {...register(`SalesItem.${index}.invtsL_SalesQty`, { valueAsNumber: true })} className='h-8 text-xs text-right' onBlur={() => calculateItemAmount(index)} />
+                                        <InputText {...register(`SaleItem.${index}.invtsL_SalesQty`, { valueAsNumber: true })} className='h-8 text-xs text-right' onBlur={() => calculateItemAmount(index)} />
                                     </td>
                                     <td className='border p-2'>
-                                        <InputText {...register(`SalesItem.${index}.invtsL_SalesPrice`, { valueAsNumber: true })} className='h-8 text-xs text-right' disabled />
+                                        <InputText {...register(`SaleItem.${index}.invtsL_SalesPrice`, { valueAsNumber: true })} className='h-8 text-xs text-right' disabled />
                                     </td>
                                     <td className='border p-2'>
-                                        <InputText {...register(`SalesItem.${index}.invtsL_DiscountAmt`, { valueAsNumber: true })} className='h-8 text-xs text-right' onBlur={() => calculateDiscount(index)} />
+                                        <InputText {...register(`SaleItem.${index}.invtsL_DiscountAmt`, { valueAsNumber: true })} className='h-8 text-xs text-right' onBlur={() => calculateDiscount(index)} />
                                     </td>
                                     <td className='border p-2'>
-                                        <InputText {...register(`SalesItem.${index}.invtsL_Amount`, { valueAsNumber: true })} className='h-8 text-xs text-right' disabled />
+                                        <InputText {...register(`SaleItem.${index}.invtsL_Amount`, { valueAsNumber: true })} className='h-8 text-xs text-right' onBlur={() => calculateDiscount(index)} />
+                                    </td>
+                                    <td className='border p-2 text-center'>
+                                        <div
+                                            className='flex items-center gap-1 justify-end font-mono text-green-700 text-xs font-semibold cursor-pointer hover:bg-green-100/50 p-1 rounded transition-colors'
+                                            onClick={() => {
+                                                setSelectedTaxRowIndex(index);
+                                                setIsTaxModalOpen(true);
+                                            }}
+                                            title="Click to view Tax Details"
+                                        >
+                                            <span>{watch(`SaleItem.${index}.invtsL_TaxAmt`)?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}</span>
+                                            <Calculator className='h-3 w-3 text-green-600' />
+                                        </div>
                                     </td>
                                     <td className='border p-2 text-center'>
                                         <Button

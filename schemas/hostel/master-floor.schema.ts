@@ -1,24 +1,18 @@
 import { z } from 'zod';
 
 export const masterFloorSchema = z.object({
-  hlmF_Id: z.number().optional(),
-  hlmH_Id: z.string().min(1, { message: 'Select Hostel' }), // Using string for Select value
-  hrmF_FloorName: z
-    .string()
-    .min(1, { message: 'Enter the field Floor Name' })
-    .max(50, { message: 'Floor Name must not exceed 50 characters' }),
-  hrmF_TotalRooms: z
-    .string()
-    .min(1, { message: 'Enter Total No Of Room' })
-    .regex(/^[0-9]+$/, { message: 'The field contains only numbers' })
-    .max(50, { message: 'Total Room must not exceed 50 characters' }), // HTML has maxlength=50 for this input
-  hrmF_FloorDesc: z
-    .string()
-    .max(250, { message: 'Description must not exceed 250 characters' })
-    .optional(),
-  facilities: z
-    .array(z.number())
-    .min(1, { message: 'Select Facilities' }),
+    hlmF_Id: z.number().optional(),
+    hrmF_FloorName: z.string().min(1, 'Floor Name is required'),
+    hrmF_FloorDesc: z.string().optional(),
+    hlmH_Id: z.string().min(1, 'Hostel is required'),
+    // Facility selection: array of objects with facility ID and active flag
+    selected_facilities: z.array(z.object({
+        hlmftY_Id: z.number(),
+        hlmfF_ActiveFlg: z.boolean().default(true)
+    })).optional(),
+    
+    // For UI handling of multi-select (array of string IDs)
+    selectedFacilityIds: z.array(z.string()).optional()
 });
 
 export type IMasterFloorForm = z.infer<typeof masterFloorSchema>;

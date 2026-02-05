@@ -43,7 +43,7 @@ export default function TaxLedgerSheet({ isOpen, onClose, tax }: TaxLedgerSheetP
         resolver: zodResolver(invMasterTaxLedgerSchema),
         defaultValues: {
             invmtleD_TaxName: '',
-            invmT_Id: tax?.invmT_Id,
+            INVMT_Id: tax?.invmT_Id,
             famcomP_Id: undefined,
             famleD_Id: undefined,
             ledgerunderids: []
@@ -56,7 +56,7 @@ export default function TaxLedgerSheet({ isOpen, onClose, tax }: TaxLedgerSheetP
 
     const onSubmit = async (data: InvMasterTaxLedgerSchema) => {
         try {
-            const payload = { ...data, invmT_Id: tax?.invmT_Id || 0 };
+            const payload = { ...data, INVMT_Id: tax?.invmT_Id || 0 };
             const result = await saveInvMasterTaxLedger(payload);
             if (result.returnval) {
                 toast.success('Ledger mapping saved successfully');
@@ -66,7 +66,7 @@ export default function TaxLedgerSheet({ isOpen, onClose, tax }: TaxLedgerSheetP
                     famcomP_Id: undefined,
                     famleD_Id: undefined,
                     ledgerunderids: [],
-                    invmT_Id: tax?.invmT_Id
+                    INVMT_Id: tax?.invmT_Id
                 });
             } else {
                 toast.error('Failed to save ledger mapping');
@@ -105,7 +105,7 @@ export default function TaxLedgerSheet({ isOpen, onClose, tax }: TaxLedgerSheetP
 
     // ✅ Safely default to empty array for table and filter by tax ID
     const taxLedgers: IInvMasterTaxLedger[] = Array.isArray(allData?.getloaddata)
-        ? (allData.getloaddata as IInvMasterTaxLedger[]).filter((item) => item.invmT_Id === tax?.invmT_Id)
+        ? (allData.getloaddata as IInvMasterTaxLedger[]).filter((item: any) => item.invmT_Id === tax?.invmT_Id)
         : [];
 
     return (

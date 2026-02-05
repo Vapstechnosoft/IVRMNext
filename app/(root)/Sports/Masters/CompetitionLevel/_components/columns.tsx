@@ -16,8 +16,7 @@ import { toast } from 'sonner';
    ============================================ */
 function ActionsCell({ row }: { row: Row<IMasterCompetitionLevel> }) {
     const data = row.original;
-    const { refetchAll } = useMasterCompetitionLevels();
-    const { openEditForm } = useFormContext<IMasterCompetitionLevel>();
+    const { openEditForm, openToggleForm } = useFormContext<IMasterCompetitionLevel>();
 
     return (
         <ActionButtons
@@ -28,19 +27,7 @@ function ActionsCell({ row }: { row: Row<IMasterCompetitionLevel> }) {
                 delete: false
             }}
             onEdit={() => openEditForm(data)}
-            onToggle={async () => {
-                try {
-                    const response = await deactivateMasterCompetitionLevel(data);
-                    if (response.success) {
-                        toast.success(response.message || `Level ${data.spccmcL_ActiveFlag ? 'deactivated' : 'activated'} successfully`);
-                        await refetchAll();
-                    } else {
-                        toast.error(response.message || 'Failed to update level status');
-                    }
-                } catch (error) {
-                    toast.error('An error occurred while updating level status');
-                }
-            }}
+            onToggle={() => openToggleForm(data)}
             toggleConditionKey='spccmcL_ActiveFlag'
         />
     );

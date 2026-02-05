@@ -5,15 +5,16 @@ import DaySubjectTab from './_components/day-subject-tab';
 import PeriodStaffTab from './_components/period-staff-tab';
 import PeriodSubjectTab from './_components/period-subject-tab';
 
+import { getFixingLoadData } from '@/server/timetable/constraints/fixing';
+
 export default async function FixingConstraintsPage() {
-    //const loadData = await getFixingLoadData();
-    const loadData = '';
+    const loadData = await getFixingLoadData();
     return (
         <div className='container mx-auto space-y-6 p-4'>
-            <div className='flex flex-col gap-2'>
+            {/* <div className='flex flex-col gap-2'>
                 <h1 className='font-bold text-2xl tracking-tight'>Fixing Constraints</h1>
                 <p className='text-muted-foreground'>Manage fixing constraints for periods, staff, and subjects.</p>
-            </div>
+            </div> */}
 
             <Tabs defaultValue='day_period' className='space-y-4'>
                 <TabsList className='grid h-auto w-full grid-cols-5 rounded-lg bg-muted p-1'>

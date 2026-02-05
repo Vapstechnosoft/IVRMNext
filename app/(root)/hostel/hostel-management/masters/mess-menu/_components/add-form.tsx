@@ -5,7 +5,7 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MessMenuSchema, MessMenuSchemaType } from '@/schemas/hostel/mess-menu.schema';
-import { saveMessMenu } from '@/server/hostel/mess-menu/server-action';
+import { saveMessMenu } from '@/server/hostel/hostel-management/masters/menu';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RefreshCw, Save } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';

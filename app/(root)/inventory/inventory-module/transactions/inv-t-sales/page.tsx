@@ -1,6 +1,6 @@
 'use client';
 
-import { use } from 'react';
+import { use, useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -9,10 +9,13 @@ import { Plus, X } from 'lucide-react';
 import { useInvTSales } from '@/hooks/inventory/transactions/use-inv-t-sales';
 import type { IInvTSales } from '@/types/inventory/transactions/inv-t-sales';
 import AddSalesForm from './_components/add-form';
-import { getColumns } from './_components/columns';
-// import UpdateSalesForm from './_components/update-form';
+import { getInvTSalesColumns } from './_components/columns';
+import UpdateSalesForm from './_components/update-form';
 // import ViewSalesDetailsModal from './_components/view-details-modal';
+import { ToggleSalesModal } from './_components/toggle-modal';
+import { ViewReceiptModal } from './_components/view-receipt-modal';
 import { Heading } from '@/components/layout/heading';
+import { ViewReceiptItemModal } from './_components/view-receipt-item-modal';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -43,35 +46,36 @@ function InvTSalesPageContent({
     const {
         openAddForm,
         openEditForm,
-        openDeleteForm,
         openToggleForm,
         openDetailsView,
         selectedRow,
         isDetailsViewOpen,
-        closeDetailsView
+        closeDetailsView,
+        isToggleFormOpen,
+        closeToggleForm
     } = useFormContext<IInvTSales>();
 
-    const { deleteMutation, toggleActiveMutation } = useInvTSales();
+    const [isItemViewOpen, setIsItemViewOpen] = useState(false);
+    const [itemRowData, setItemRowData] = useState<IInvTSales | null>(null);
 
-    const columns = getColumns({
-        onEdit: openEditForm,
-        onDelete: (item) => {
-            if (confirm('Are you sure you want to delete this Sales record?')) {
-                deleteMutation.mutate(item);
-            }
-        },
-        onToggleActive: (item) => {
-            if (confirm(`Are you sure you want to ${item.invmsL_ActiveFlg ? 'deactivate' : 'activate'} this Sales record?`)) {
-                toggleActiveMutation.mutate(item);
-            }
-        },
-        onView: openDetailsView
-    });
+    const handleViewItem = (row: IInvTSales) => {
+        setItemRowData(row);
+        setIsItemViewOpen(true);
+    };
+
+    const closeViewItem = () => {
+        setIsItemViewOpen(false);
+        setItemRowData(null);
+    };
+
+    // const { deleteMutation, toggleActiveMutation } = useInvTSales(); // Moved to columns component
 
     const tableProps = useDataTableProps(response?.data, {
         dataKey: 'get_Sale',
         totalKey: 'total'
     });
+
+    const columns = useMemo(() => getInvTSalesColumns(handleViewItem), []);
 
     return (
         <div className='min-h-screen'>
@@ -112,13 +116,23 @@ function InvTSalesPageContent({
                     />
                 </CollapsibleSection>
 
-                {/* {isDetailsViewOpen && selectedRow && (
-                    <ViewSalesDetailsModal
+                {isToggleFormOpen && selectedRow && (
+                    <ToggleSalesModal rowData={selectedRow} onClose={closeToggleForm} />
+                )}
+
+                {isDetailsViewOpen && selectedRow && (
+                    <ViewReceiptModal
                         rowData={selectedRow}
-                        isOpen={isDetailsViewOpen}
                         onClose={closeDetailsView}
                     />
-                )} */}
+                )}
+
+                {isItemViewOpen && itemRowData && (
+                    <ViewReceiptItemModal
+                        rowData={itemRowData}
+                        onClose={closeViewItem}
+                    />
+                )}
             </div>
         </div>
     );
@@ -178,8 +192,8 @@ function FormSections() {
                                 className='absolute top-[-3.5rem] right-0 hover:bg-destructive/10 text-destructive'>
                                 <X className='h-4 w-4 mr-1' /> Close
                             </Button>
-                            {/* <UpdateSalesForm selectedRow={selectedRow} onSuccess={closeEditForm} /> */}
-                            <div>Update Form Placeholder</div>
+                            <UpdateSalesForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            {/* <div>Update Form Placeholder</div> */}
                         </div>
                     </CollapsibleSection>
                 </div>

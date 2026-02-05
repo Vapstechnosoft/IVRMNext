@@ -2,24 +2,24 @@
 
 import { useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { GenericDataTable } from '@/components/ui/view-data-table/view-generic-data-table';
-import { getReportData, viewAttachmentData } from '@/server/upload/reports/classwork-upload-report';
+import { Label } from '@/components/ui/label';
+import { getReportData } from '@/server/upload/reports/classwork-upload-report';
 import type { ApiSearchparams } from '@/types';
 import type { IClassWorkReport, IClassWorkUploadReport, IUploadClassDropdownList } from '@/types/upload/reports/classwork-upload-report';
-import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import ClassWorkReportForm from './_components/add-form';
-import { getColumns } from './_components/columns';
-import { ViewAttachmentModal } from './_components/view-attachment-modal';
-import { z } from 'zod';
-import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Label } from '@/components/ui/label';
-import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
-import { FormError } from '@/components/ui/extension/field';
+import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+// import ClassWorkReportForm from './_components/add-form';
+// import { getColumns } from './_components/columns';
+// import { ViewAttachmentModal } from './_components/view-attachment-modal';
+import { z } from 'zod';
+
 import { Button } from '@/components/ui/button';
-import { useClassDropdownDropdown } from '@/hooks/fees/useReports';
+import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { DateField } from '@/components/ui/dateField';
+import { FormError } from '@/components/ui/extension/field';
+import { useClassDropdownDropdown } from '@/hooks/fees/useReports';
 const formSchema = z.object({
     fromdate: z.string().nonempty('From date is required'),
     todate: z.string().nonempty('To date is required'),
@@ -51,58 +51,58 @@ export default function ClassWorkUploadReportPage() {
             classarray: []
         }
     });
-    const handleReportSuccess = async (payload: any, sParams: ApiSearchparams) => {
-        if (!payload) {
-            setReportData([]);
-            setCurrentPayload(null);
-            return;
-        }
+    // const handleReportSuccess = async (payload: any, sParams: ApiSearchparams) => {
+    //     if (!payload) {
+    //         setReportData([]);
+    //         setCurrentPayload(null);
+    //         return;
+    //     }
 
-        setCurrentPayload(payload);
-        setIsLoading(true);
-        try {
-            const res = await getReportData({ ...payload, ...sParams });
-            // if (res.data && res.data.classreportlist) {
-            //     setReportData(res.data.classreportlist);
-            // } else {
-            //     setReportData([]);
-            //     toast.info('No records found');
-            // }
-        } catch (error) {
-            console.error('Error fetching report:', error);
-            toast.error('Failed to fetch report');
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    //     setCurrentPayload(payload);
+    //     setIsLoading(true);
+    //     try {
+    //         const res = await getReportData({ ...payload, ...sParams });
+    //         // if (res.data && res.data.classreportlist) {
+    //         //     setReportData(res.data.classreportlist);
+    //         // } else {
+    //         //     setReportData([]);
+    //         //     toast.info('No records found');
+    //         // }
+    //     } catch (error) {
+    //         console.error('Error fetching report:', error);
+    //         toast.error('Failed to fetch report');
+    //     } finally {
+    //         setIsLoading(false);
+    //     }
+    // };
 
-    useEffect(() => {
-        if (currentPayload) {
-            handleReportSuccess(currentPayload, searchParams);
-        }
-    }, [searchParams]);
+    // useEffect(() => {
+    //     if (currentPayload) {
+    //         handleReportSuccess(currentPayload, searchParams);
+    //     }
+    // }, [searchParams]);
 
     const { data: classData, isLoading: loadingClasses, error } = useClassDropdownDropdown();
-    const handleViewAttachment = async (item: IClassWorkReport) => {
-        try {
-            const payload = {
-                ICW_Id: item.icW_Id,
-                ASMAY_Id: 0,
-                Temp: 0
-            };
+    // const handleViewAttachment = async (item: IClassWorkReport) => {
+    //     try {
+    //         const payload = {
+    //             ICW_Id: item.icW_Id,
+    //             ASMAY_Id: 0,
+    //             Temp: 0
+    //         };
 
-            const res = await viewAttachmentData(payload);
-            // if (res.data && res.data.attachementlist && res.data.attachementlist.length > 0) {
-            //     setModalAttachments(res.data.attachementlist);
-            //     setIsModalOpen(true);
-            // } else {
-            //     toast.info('No attachments details found.');
-            // }
-        } catch (error) {
-            console.error('Error fetching attachments:', error);
-            toast.error('Failed to fetch attachments');
-        }
-    };
+    //         const res = await viewAttachmentData(payload);
+    //         // if (res.data && res.data.attachementlist && res.data.attachementlist.length > 0) {
+    //         //     setModalAttachments(res.data.attachementlist);
+    //         //     setIsModalOpen(true);
+    //         // } else {
+    //         //     toast.info('No attachments details found.');
+    //         // }
+    //     } catch (error) {
+    //         console.error('Error fetching attachments:', error);
+    //         toast.error('Failed to fetch attachments');
+    //     }
+    // };
     const [classList, setClassList] = useState<{ label: string; value: string }[]>([]);
 
     /* -------------------- Map API → Dropdown -------------------- */
@@ -123,7 +123,7 @@ export default function ClassWorkUploadReportPage() {
         }
     }, [classData, error]);
 
-    const columns = getColumns({ onViewAttachment: handleViewAttachment });
+    // const columns = getColumns({ onViewAttachment: handleViewAttachment });
 
     const handleApiSearchParms = (sParams: ApiSearchparams) => {
         setSearchParams(sParams);
@@ -147,6 +147,7 @@ export default function ClassWorkUploadReportPage() {
 
     const handleCancel = () => {
         reset();
+        window.location.reload();
         // onSuccess(null, apiSearchParams || { page: 1, page_size: 10 });
     };
     // const handlePrint = () => {
@@ -199,7 +200,6 @@ export default function ClassWorkUploadReportPage() {
                                         placeholder={loadingClasses ? 'Loading classes...' : 'Select Classes'}
                                         height='200px'
                                         isSearchRequired
-                                        disabled={loadingClasses}
                                     />
 
                                     {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -225,7 +225,7 @@ export default function ClassWorkUploadReportPage() {
                                 {/* Header */}
                                 <div className='flex items-center justify-between border-b bg-primary/5 px-8 py-6'>
                                     <div className='mb-6 text-center'>
-                                        <h2 className='font-bold text-2xl text-primary'>Class Uploaded Report </h2>
+                                        <h2 className='font-bold text-2xl text-primary'>ClassWork Upload Report</h2>
                                     </div>
                                     {/* <div className='flex gap-3'>
                                                         <div className='mb-4 flex justify-end gap-2'>
@@ -269,8 +269,10 @@ export default function ClassWorkUploadReportPage() {
                                                     <td className='border px-2 py-2 text-center'>{row.className}</td>
                                                     <td className='border px-2 py-2 text-center'>{row.sectionName}</td>
                                                     <td className='border px-2 py-2 text-center'>{row.subjectName}</td>
-                                                    <td className='border px-2 py-2 text-center'>{''}</td>
-                                                    <td className='border px-2 py-2 text-center'>{row.uploadDate}</td>
+                                                    <td className='border px-2 py-2 text-center'>{'NA'}</td>
+                                                    <td className='border px-2 py-2 text-center'>
+                                                        {new Date(row.uploadDate).toISOString().slice(0, 10)}
+                                                    </td>
                                                     <td className='border px-2 py-2 text-center'>{row.employeeName}</td>
                                                 </tr>
                                             ))}

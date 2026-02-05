@@ -7,7 +7,10 @@ export const INVENTORY_QUERY_KEYS = {
     INV_MASTER_STORE: 'INV_MASTER_STORE',
     INV_MASTER_SUPPLIER: 'INV_MASTER_SUPPLIER',
     INV_MASTER_TAX: 'INV_MASTER_TAX',
-    INV_MASTER_GROUP: 'INV_MASTER_GROUP'
+
+    INV_MASTER_GROUP: 'INV_MASTER_GROUP',
+    INV_MASTER_ITEM: 'INV_MASTER_ITEM',
+    INV_MASTER_UOM: 'INV_MASTER_UOM'
 };
 
 export const SUPER_ADMIN_QUERY_KEYS = {
@@ -483,6 +486,17 @@ export const HRMS_QUERY_KEYS = {
     MASTER_PAYMENT_MODE_LIST: 'hrms_master_payment_mode_list'
 };
 
+export const HOSTEL_QUERY_KEYS = {
+    HOSTEL_MASTER_FACILITY_GRID: 'hostel_master_facility_grid',
+    MASTER_HOSTEL_GRID: 'hostel_master_hostel_grid',
+    MASTER_MESS_DROPDOWN_LIST: 'hostel_master_mess_dropdown_list',
+    MASTER_EMPLOYEE_DROPDOWN_LIST: 'hostel_master_employee_dropdown_list',
+    HOSTEL_PHOTO_LIST: 'hostel_master_photo_list',
+    MASTER_COUNTRY_DROPDOWN_LIST: 'hostel_master_country_dropdown_list',
+    MASTER_STATE_DROPDOWN_LIST: 'hostel_master_state_dropdown_list',
+    MASTER_FACILITY_DROPDOWN_LIST: 'hostel_master_facility_dropdown_list',
+    MASTER_PHOTO_LIST: 'hostel_master_photo_list'
+};
 export const LIBRARY_QUERY_KEYS = {
     MASTER_LIBRARY_LIST_DATA: 'master_library_list_data',
     MASTER_VENDOR_LIST_DATA: 'master_vendor_list_data',
@@ -521,4 +535,43 @@ export const PORTAL_QUERY_KEYS = {
     CUMULATIVE_FEE_ANALYSIS: 'Cumulative_Fee_Analysis',
     FEE_ONLINE_PAYMENT_STUDENT_INFO: 'fee_online_student_info',
     FEE_ONLINE_PAYMENT_GROUP_LIST: 'fee_online_payment_group_list'
+};
+
+export const STAFF_PORTAL_QUERY_KEYS = {
+    STAFF_DASHBOARD: 'staff_dashboard',
+    STAFF_NOTICE_BOARD: 'staff_notice_board',
+    STAFF_EVENTS: 'staff_events',
+    STAFF_ASSETS: 'staff_assets',
+    STAFF_MEDICAL_RECORDS: 'staff_medical_records',
+    STAFF_NOTICE_ATTACHMENTS: 'staff_notice_attachments',
+    STAFF_ATTENDANCE_ENTRY: 'staff_attendance_entry',
+    STAFF_ATTENDANCE_ENTRY_INITIAL: 'staff_attendance_entry_initial',
+    FEE_ONLINE_PAYMENT_STUDENT_INFO: 'fee_online_student_info',
+    FEE_ONLINE_PAYMENT_GROUP_LIST: 'fee_online_payment_group_list'
+};
+
+export const COE_QUERY_KEYS = {
+    MASTER_EVENT_COE: 'master_event_coe'
+};
+
+export const TRANSPORT_QUERY_KEYS = {
+    MASTER_AREA: 'master_area',
+    MASTER_DRIVER: 'master_driver',
+    MASTER_FUEL_TYPE: 'master_fuel_type',
+    MASTER_LOCATION: 'master_location',
+    MASTER_ROUTE: 'master_route',
+    MASTER_ROUTE_DROPDOWN: 'master_route_dropdown',
+    MASTER_AREA_DROPDOWN_LIST: 'master_area_dropdown_list',
+    MASTER_ROUTE_AREA: 'master_route_area',
+    MASTER_SERVICE_STATION: 'master_service_station',
+    MASTER_SESSION: 'master_session',
+    MASTER_VEHICLE_TYPE: 'master_vehicle_type',
+    EXPIRY_SETTINGS: 'expiry_settings',
+    ROUTE_LOCATION_MAPPING: 'route_location_mapping',
+    VEHICLE_DRIVER_MAPPING: 'vehicle_driver_mapping',
+    VEHICLE_ROUTE_MAPPING: 'vehicle_route_mapping',
+    VEHICLE_DROPDOWN: 'vehicle_dropdown',
+    DRIVER_DROPDOWN: 'driver_dropdown',
+    ROUTE_DROPDOWN: 'route_dropdown',
+    SESSION_DROPDOWN: 'session_dropdown'
 };

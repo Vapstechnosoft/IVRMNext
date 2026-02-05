@@ -4,31 +4,25 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
 import { useMasterFloor } from '@/hooks/hostel/useMasterFloor';
-import { deleteFloor, IFloorDisplay, IFacility, IHostel } from '@/server/hostel/master-floor/server-action';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
-import { toast } from 'sonner';
 import AddMasterFloorForm from './_components/add-form';
-import { masterFloorColumns } from './_components/columns';
-import UpdateMasterFloorForm from './_components/update-form';
+import { masterFloorColumns, IMasterFloor } from './_components/columns';
+import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
+import { toast } from 'sonner';
+import { deactivateFloor } from '@/server/hostel/hostel-management/masters/floor';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-// -------------------------
-// MAIN PAGE
-// -------------------------
 export default function MasterFloorPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { floorList, hostelList, facilityList, isLoading, refetch } = useMasterFloor();
+    const { data: floorList, isLoading, refetch } = useMasterFloor(searchParams);
 
     return (
-        <FormProvider<IFloorDisplay>>
+        <FormProvider<IMasterFloor>>
             <PageContent
                 floorList={floorList}
-                hostelList={hostelList}
-                facilityList={facilityList}
                 isLoading={isLoading}
                 refetch={refetch}
             />
@@ -36,24 +30,17 @@ export default function MasterFloorPage(props: { searchParams: SearchParams }) {
     );
 }
 
-// -------------------------
-// PAGE CONTENT
-// -------------------------
 function PageContent({
     floorList,
-    hostelList,
-    facilityList,
     isLoading,
     refetch
 }: {
-    floorList: IFloorDisplay[];
-    hostelList: IHostel[];
-    facilityList: IFacility[];
+    floorList: any;
     isLoading: boolean;
     refetch: () => void;
 }) {
-    const { openAddForm } = useFormContext<IFloorDisplay>();
-    const tableProps = useDataTableProps({ data: floorList, total: floorList.length });
+    const { openAddForm } = useFormContext<IMasterFloor>();
+    const tableProps = useDataTableProps(floorList);
 
     return (
         <div className='min-h-screen'>
@@ -65,7 +52,7 @@ function PageContent({
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
-                        Add Master Floor
+                        Add Floor
                     </Button>
                 </div>
 
@@ -75,7 +62,7 @@ function PageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IFloorDisplay>
+                    <GenericDataTable<IMasterFloor>
                         {...tableProps}
                         columns={masterFloorColumns}
                         isLoading={isLoading}
@@ -86,29 +73,14 @@ function PageContent({
                     />
                 </CollapsibleSection>
 
-                {/* Forms & Modals */}
-                <FormSections
-                    onSuccess={refetch}
-                    hostelList={hostelList}
-                    facilityList={facilityList}
-                />
+                {/* Forms */}
+                <FormSections onSuccess={refetch} />
             </div>
         </div>
     );
 }
 
-// -------------------------
-// FORM SECTIONS
-// -------------------------
-function FormSections({
-    onSuccess,
-    hostelList,
-    facilityList
-}: {
-    onSuccess: () => void;
-    hostelList: IHostel[];
-    facilityList: IFacility[];
-}) {
+function FormSections({ onSuccess }: { onSuccess: () => void }) {
     const {
         isAddFormOpen,
         isEditFormOpen,
@@ -119,24 +91,7 @@ function FormSections({
         closeToggleForm,
         addFormRef,
         editFormRef
-    } = useFormContext<IFloorDisplay>();
-
-    const onConfirmToggle = async () => {
-        if (!selectedRow) return;
-        try {
-            const result = await deleteFloor(selectedRow.hlmF_Id);
-            if (result.success) {
-                toast.success(result.message);
-                onSuccess();
-            } else {
-                toast.error(result.message);
-            }
-        } catch (error) {
-            toast.error('Failed to update status');
-        } finally {
-            closeToggleForm();
-        }
-    };
+    } = useFormContext<IMasterFloor>();
 
     return (
         <>
@@ -159,11 +114,7 @@ function FormSections({
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddMasterFloorForm
-                                onSuccess={() => { closeAddForm(); onSuccess(); }}
-                                hostels={hostelList}
-                                facilities={facilityList}
-                            />
+                            <AddMasterFloorForm onSuccess={() => { closeAddForm(); onSuccess(); }} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -188,11 +139,9 @@ function FormSections({
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateMasterFloorForm
-                                rowData={selectedRow}
+                            <AddMasterFloorForm
+                                initialData={selectedRow}
                                 onSuccess={() => { closeEditForm(); onSuccess(); }}
-                                hostels={hostelList}
-                                facilities={facilityList}
                             />
                         </div>
                     </CollapsibleSection>
@@ -201,14 +150,40 @@ function FormSections({
 
             {/* Toggle Form */}
             {isToggleFormOpen && selectedRow && (
-                <ToggleFormWrapper
-                    isOpen={true}
+                <ToggleMasterFloorForm
+                    rowData={selectedRow}
                     onClose={closeToggleForm}
-                    onConfirm={onConfirmToggle}
-                    title={selectedRow.hrmF_ActiveFlag ? 'Deactivate Floor' : 'Activate Floor'}
-                    description={`Are you sure you want to ${selectedRow.hrmF_ActiveFlag ? 'deactivate' : 'activate'} ${selectedRow.hrmF_FloorName}?`}
+                    onSuccess={onSuccess}
                 />
             )}
         </>
+    );
+}
+
+function ToggleMasterFloorForm({ rowData, onClose, onSuccess }: { rowData: IMasterFloor, onClose: () => void, onSuccess: () => void }) {
+    const onConfirm = async () => {
+        try {
+            const result = await deactivateFloor(rowData.hlmF_Id);
+            if (result.success) {
+                toast.success(result.message);
+                onSuccess();
+            } else {
+                toast.error(result.message);
+            }
+        } catch (error) {
+            toast.error('Failed to update status');
+        } finally {
+            onClose();
+        }
+    };
+
+    return (
+        <ToggleFormWrapper
+            isOpen={true}
+            onClose={onClose}
+            onConfirm={onConfirm}
+            title={rowData.hrmF_ActiveFlag ? 'Deactivate Floor' : 'Activate Floor'}
+            description={`Are you sure you want to ${rowData.hrmF_ActiveFlag ? 'deactivate' : 'activate'} ${rowData.hrmF_FloorName}?`}
+        />
     );
 }

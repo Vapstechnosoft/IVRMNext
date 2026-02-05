@@ -11,6 +11,7 @@ import { use } from 'react';
 import AddMasterCompetitionLevelForm from './_components/add-form';
 import { MasterCompetitionLevelColumns } from './_components/columns';
 import UpdateMasterCompetitionLevelForm from './_components/update-form';
+import ToggleMasterCompetitionLevelForm from './_components/toggle-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -39,10 +40,12 @@ function MasterCompetitionLevelPageContent({
     const {
         isAddFormOpen,
         isEditFormOpen,
+        isToggleFormOpen,
         selectedRow,
         openAddForm,
         closeAddForm,
         closeEditForm,
+        closeToggleForm,
         addFormRef,
         editFormRef
     } = useFormContext<IMasterCompetitionLevel>();
@@ -133,6 +136,15 @@ function MasterCompetitionLevelPageContent({
                         </div>
                     )}
                 </>
+
+                {/* Toggle Form */}
+                {isToggleFormOpen && selectedRow && (
+                    <ToggleMasterCompetitionLevelForm
+                        rowData={selectedRow}
+                        onClose={closeToggleForm}
+                        onSuccess={refetchAll}
+                    />
+                )}
             </div>
         </div>
     );

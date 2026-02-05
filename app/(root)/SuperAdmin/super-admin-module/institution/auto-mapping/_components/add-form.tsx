@@ -12,12 +12,10 @@ import { type SubmitHandler, useForm, Controller } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-// Temporary Mock Data for Institutions
-const institutionOptions = [
-    { label: 'Vaps Institution', value: '1' },
-    { label: 'St. Thomas School', value: '2' },
-    { label: 'Greenwood High', value: '3' }
-];
+import { getInstitutionDropdown, type InstitutionDropdown } from '@/server/super-admin/super-admin-module/masters/institution-facade';
+import { useEffect, useState } from 'react';
+
+// Temporary Mock Data Removed
 
 type FormFields = z.infer<typeof autoMappingSchema.addOrUpdate>;
 
@@ -36,6 +34,24 @@ export default function AddAutoMappingForm({ onSuccess }: AddAutoMappingFormProp
         resolver: zodResolver(autoMappingSchema.addOrUpdate),
         mode: 'onChange'
     });
+
+    const [institutionOptions, setInstitutionOptions] = useState<InstitutionDropdown[]>([]);
+
+    useEffect(() => {
+        const fetchDropdowns = async () => {
+            try {
+                const response = await getInstitutionDropdown();
+                if (response.success && response.data) {
+                    setInstitutionOptions(response.data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch institution dropdown', error);
+                toast.error('Failed to load institutions');
+            }
+        };
+
+        fetchDropdowns();
+    }, []);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
@@ -71,8 +87,8 @@ export default function AddAutoMappingForm({ onSuccess }: AddAutoMappingFormProp
                                 </SelectTrigger>
                                 <SelectContent>
                                     {institutionOptions.map((option) => (
-                                        <SelectItem key={option.value} value={option.value}>
-                                            {option.label}
+                                        <SelectItem key={option.mI_Id} value={option.mI_Id.toString()}>
+                                            {option.mI_Name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -94,9 +110,8 @@ export default function AddAutoMappingForm({ onSuccess }: AddAutoMappingFormProp
                                 </SelectTrigger>
                                 <SelectContent>
                                     {institutionOptions.map((option) => (
-                                        // Filter out selected Reference Institute to avoid mapping to self? (Optional dependent logic)
-                                        <SelectItem key={option.value} value={option.value}>
-                                            {option.label}
+                                        <SelectItem key={option.mI_Id} value={option.mI_Id.toString()}>
+                                            {option.mI_Name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>

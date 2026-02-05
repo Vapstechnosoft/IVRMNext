@@ -26,6 +26,7 @@ export interface IInvTGRN {
     invmgrN_ActiveFlg: boolean;
     invmS_StoreName?: string;
     invmS_SupplierName?: string;
+    invtgrN_ActiveFlg?: boolean;
 }
 
 export interface IInvTGRNItem {

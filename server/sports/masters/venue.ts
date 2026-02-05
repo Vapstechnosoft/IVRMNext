@@ -6,57 +6,31 @@ import type { IMasterEventVenue } from '@/types/sports/masters/venue';
 
 export async function getMasterVenues(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/MasterEventVenue/loadgrid/1?${urlParams}`;
+    // The user specified /api/MasterEventVenue/getDetails but the common pattern in this project seems to be /api/MasterEventVenue/getDetails
+    // However, the previous code had /MasterEventVenue/loadgrid/1. 
+    // The user request says: /api/MasterEventVenue/getDetails
+    const url = `/MasterEventVenue/getDetails?${urlParams}`;
+    return await api.post<IMasterEventVenue[]>('sports', url, {});
+}
 
-    const dummyDataCount = 15;
-    const dummyData: IMasterEventVenue[] = Array.from({ length: dummyDataCount }, (_, i) => ({
-        spccmeV_Id: 2000 + i,
-        mI_Id: 1,
-        spccmeV_EventVenue: `Venue Name ${i + 1}`,
-        spccmeV_EventVenueDesc: `Description for Venue ${i + 1}`,
-        spccmeV_ActiveFlag: ![0, 4, 8, 13].includes(i),
-        createdDate: new Date().toISOString(),
-        updatedDate: new Date().toISOString()
-    }));
-
-    const page = searchParams?.page || 1;
-    const pageSize = searchParams?.page_size || 10;
-    const start = (page - 1) * pageSize;
-    const end = start + pageSize;
-
-    try {
-        const response = await api.get<IMasterEventVenue[]>('sports', url);
-
-        let allData = dummyData;
-        let totalCount = dummyDataCount;
-
-        if (response && response.success && Array.isArray(response.data)) {
-            allData = [...response.data, ...dummyData];
-            totalCount = (response.total || response.data.length) + dummyDataCount;
-        }
-
-        return {
-            success: true,
-            message: response?.message || 'Data loaded successfully',
-            data: allData.slice(start, end),
-            total: totalCount
-        };
-    } catch (error) {
-        return {
-            success: true,
-            message: 'Static data loaded (Backup)',
-            data: dummyData.slice(start, end),
-            total: dummyDataCount
-        };
-    }
+export async function getMasterVenueDetails(id: number) {
+    const url = `/MasterEventVenue/EditDetails/${id}`;
+    return await api.get<IMasterEventVenue>('sports', url);
 }
 
 export async function saveMasterVenue(data: any) {
-    const url = '/MasterEventVenue/saveRecord';
-    return await api.post<any>('sports', url, data);
+    const SPCCMEV_Id = data.spccmeV_Id || 0;
+    const SPCCMEV_EventVenue = encodeURIComponent(data.spccmeV_EventVenue || '');
+    const SPCCMEV_EventVenueDesc = encodeURIComponent(data.spccmeV_EventVenueDesc || '');
+
+    const url = `/MasterEventVenue/save?SPCCMEV_Id=${SPCCMEV_Id}&SPCCMEV_EventVenue=${SPCCMEV_EventVenue}&SPCCMEV_EventVenueDesc=${SPCCMEV_EventVenueDesc}`;
+    return await api.post<any>('sports', url, {});
 }
 
 export async function deactivateMasterVenue(data: any) {
-    const url = '/MasterEventVenue/deactivate/';
-    return await api.post<any>('sports', url, data);
+    const SPCCMEV_Id = data.spccmeV_Id;
+    const SPCCMEV_ActiveFlag = data.spccmeV_ActiveFlag;
+
+    const url = `/MasterEventVenue/deactivate?SPCCMEV_Id=${SPCCMEV_Id}&SPCCMEV_ActiveFlag=${SPCCMEV_ActiveFlag}`;
+    return await api.post<any>('sports', url, {});
 }
