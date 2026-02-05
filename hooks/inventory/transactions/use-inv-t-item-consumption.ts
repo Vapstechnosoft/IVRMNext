@@ -31,15 +31,15 @@ export const useInvTItemConsumption = (searchParams?: any) => {
     const saveMutation = useMutation({
         mutationFn: saveInvTItemConsumption,
         onSuccess: (data) => {
-            if (data.returnval) {
-                toast.success('Record saved successfully');
+            if (data.success || data.returnval) {
+                toast.success(data.message || 'Record saved successfully');
                 queryClient.invalidateQueries({ queryKey: ['inv-t-item-consumption'] });
             } else {
                 toast.error(data.message || 'Failed to save record');
             }
         },
-        onError: (error) => {
-            toast.error('An error occurred while saving');
+        onError: (error: any) => {
+            toast.error(error?.message || 'An error occurred while saving');
             console.error(error);
         }
     });
@@ -47,15 +47,15 @@ export const useInvTItemConsumption = (searchParams?: any) => {
     const deleteMutation = useMutation({
         mutationFn: deactiveInvTItemConsumption,
         onSuccess: (data) => {
-            if (data.returnval) {
-                toast.success('Record status updated successfully');
+            if (data.success) {
+                toast.success(data.message || 'Record status updated successfully');
                 queryClient.invalidateQueries({ queryKey: ['inv-t-item-consumption'] });
             } else {
-                toast.error('Failed to update status');
+                toast.error(data.message || 'Failed to update status');
             }
         },
-        onError: (error) => {
-            toast.error('An error occurred');
+        onError: (error: any) => {
+            toast.error(error?.message || 'An error occurred');
         }
     });
 

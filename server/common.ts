@@ -3126,7 +3126,7 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 },
-                                 {
+                                {
                                     id: 4,
                                     name: 'Transactions',
                                     icon: 'Clock',
@@ -4100,63 +4100,87 @@ export async function getUserAccessibleModules() {
                                 {
                                     id: 1,
                                     name: 'Masters',
-                                    icon: 'Users',
+                                    icon: 'LayoutGrid',
                                     pages: [
                                         {
-                                            id: 1,
+                                            id: 101,
                                             name: 'Tax',
-                                            icon: 'Users',
+                                            icon: 'Settings',
                                             url: '/inventory/inventory-module/masters/inv-master-tax',
                                             title: 'Inventory Master Tax',
                                             description: 'Manage Inventory Master Tax'
                                         },
                                         {
-                                            id: 2,
+                                            id: 102,
                                             name: 'Store',
-                                            icon: 'Users',
+                                            icon: 'Settings',
                                             url: '/inventory/inventory-module/masters/inv-master-store',
                                             title: 'Inventory Master Store',
                                             description: 'Manage Inventory Master Store'
                                         },
                                         {
-                                            id: 3,
+                                            id: 103,
                                             name: 'Supplier',
-                                            icon: 'Users',
+                                            icon: 'Settings',
                                             url: '/inventory/inventory-module/masters/inv-master-supplier',
                                             title: 'Inventory Master Supplier',
                                             description: 'Manage Inventory Master Supplier'
                                         },
                                         {
-                                            id: 5,
+                                            id: 104,
                                             name: 'Customer',
-                                            icon: 'Users',
+                                            icon: 'Settings',
                                             url: '/inventory/inventory-module/masters/inv-master-customer',
                                             title: 'Inventory Master Customer',
                                             description: 'Manage Inventory Master Customer'
                                         },
                                         {
-                                            id: 4,
-                                            name: 'Group',
-                                            icon: 'Users',
-                                            url: '/inventory/inventory-module/masters/inv-master-group',
-                                            title: 'Inventory Master Group',
-                                            description: 'Manage Inventory Group, User Group & Item Group'
+                                            id: 105,
+                                            name: 'Main Group',
+                                            icon: 'Settings',
+                                            url: '/inventory/inventory-module/masters/inv-master-main-group',
+                                            title: 'Main Group',
+                                            description: 'Manage Inventory Main Group Details'
                                         },
                                         {
-                                            id: 1105,
-                                            name: 'Master UOM',
-                                            icon: 'Users',
+                                            id: 106,
+                                            name: 'User Group',
+                                            icon: 'Settings',
+                                            url: '/inventory/inventory-module/masters/inv-master-user-group',
+                                            title: 'User Group',
+                                            description: 'Manage Inventory User Group Details'
+                                        },
+                                        {
+                                            id: 107,
+                                            name: 'Item Group',
+                                            icon: 'Settings',
+                                            url: '/inventory/inventory-module/masters/inv-master-item-group',
+                                            title: 'Item Group',
+                                            description: 'Manage Inventory Item Group Details'
+                                        },
+                                        {
+                                            id: 108,
+                                            name: 'UOM',
+                                            icon: 'Settings',
                                             url: '/inventory/inventory-module/masters/inv-master-uom',
                                             title: 'Inventory Master UOM',
                                             description: 'Manage Unit of Measurement Details'
                                         },
                                         {
-                                            id: 5,
-                                            name: 'Item Store Mapping',
-                                            icon: 'Users',
-                                            url: '/inventory/inventory-module/masters/inv-item-store-mapping',
-                                            title: 'Item Store Mapping',
-                                            description: 'Manage Item Store Mapping Details'
+                                            id: 109,
+                                            name: 'Master Item',
+                                            icon: 'Settings',
+                                            url: '/inventory/inventory-module/masters/inv-master-item',
+                                            title: 'Master Item',
+                                            description: 'Manage Inventory Master Item Details'
+                                        },
+                                        {
+                                            id: 110,
+                                            name: 'Master Product',
+                                            icon: 'Settings',
+                                            url: '/inventory/inventory-module/masters/inv-master-product',
+                                            title: 'Master Product',
+                                            description: 'Manage Inventory Master Product Details'
                                         }
                                     ]
                                 },
@@ -4166,7 +4190,7 @@ export async function getUserAccessibleModules() {
                                     icon: 'FileText',
                                     pages: [
                                         {
-                                            id: 1,
+                                            id: 201,
                                             name: 'GRN',
                                             icon: 'FileText',
                                             url: '/inventory/inventory-module/transactions/inv-t-grn',
@@ -4174,7 +4198,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Inventory Goods Receipt Note'
                                         },
                                         {
-                                            id: 2,
+                                            id: 202,
                                             name: 'Sales',
                                             icon: 'FileText',
                                             url: '/inventory/inventory-module/transactions/inv-t-sales',
@@ -4182,7 +4206,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Inventory Sales'
                                         },
                                         {
-                                            id: 3,
+                                            id: 203,
                                             name: 'Item Consumption',
                                             icon: 'FileText',
                                             url: '/inventory/inventory-module/transactions/inv-t-item-consumption',
@@ -4190,12 +4214,28 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Item Consumption'
                                         },
                                         {
-                                            id: 4,
+                                            id: 204,
                                             name: 'Opening Balance',
                                             icon: 'FileText',
                                             url: '/inventory/inventory-module/transactions/inv-opening-balance',
                                             title: 'Opening Balance',
                                             description: 'Manage Inventory Opening Balance'
+                                        },
+                                        {
+                                            id: 205,
+                                            name: 'Stock Updation',
+                                            icon: 'FileText',
+                                            url: '/inventory/inventory-module/transactions/inv-stock',
+                                            title: 'Stock Updation',
+                                            description: 'Manage Inventory Stock Updation'
+                                        },
+                                        {
+                                            id: 206,
+                                            name: 'Vendor Payment',
+                                            icon: 'FileText',
+                                            url: '/inventory/inventory-module/transactions/inv-vendor-payment',
+                                            title: 'Vendor Payment',
+                                            description: 'Manage Vendor Payments'
                                         }
                                     ]
                                 },
@@ -4401,153 +4441,7 @@ export async function getUserAccessibleModules() {
                 //         }
                 //     ]
                 // },
-                // {
-                //     id: 10,
-                //     name: 'Inventory Management',
-                //     icon: 'Users',
-                //     menu: [
-                //         {
-                //             id: 1,
-                //             name: 'Inventory Module',
-                //             icon: 'Users',
-                //             sub_menu: [
-                //                 {
-                //                     id: 1,
-                //                     name: 'Masters',
-                //                     icon: 'Users',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Tax',
-                //                             icon: 'Users',
-                //                             url: '/inventory/inventory-module/masters/inv-master-tax',
-                //                             title: 'Inventory Master Tax',
-                //                             description: 'Manage Inventory Master Tax'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Store',
-                //                             icon: 'Users',
-                //                             url: '/inventory/inventory-module/masters/inv-master-store',
-                //                             title: 'Inventory Master Store',
-                //                             description: 'Manage Inventory Master Store'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Supplier',
-                //                             icon: 'Users',
-                //                             url: '/inventory/inventory-module/masters/inv-master-supplier',
-                //                             title: 'Inventory Master Supplier',
-                //                             description: 'Manage Inventory Master Supplier'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Group',
-                //                             icon: 'Users',
-                //                             url: '/inventory/inventory-module/masters/inv-master-group',
-                //                             title: 'Inventory Master Group',
-                //                             description: 'Manage Inventory Group, User Group & Item Group'
-                //                         },
-                //                         {
-                //                             id: 1105,
-                //                             name: 'Master UOM',
-                //                             icon: 'Users',
-                //                             url: '/inventory/inventory-module/masters/inv-master-uom',
-                //                             title: 'Inventory Master UOM',
-                //                             description: 'Manage Unit of Measurement Details'
-                //                         },
-                //                         {
-                //                             id: 5,
-                //                             name: 'Item Store Mapping',
-                //                             icon: 'Users',
-                //                             url: '/inventory/inventory-module/masters/inv-item-store-mapping',
-                //                             title: 'Item Store Mapping',
-                //                             description: 'Manage Item Store Mapping Details'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 2,
-                //                     name: 'Transactions',
-                //                     icon: 'FileText',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'GRN',
-                //                             icon: 'FileText',
-                //                             url: '/inventory/inventory-module/transactions/inv-t-grn',
-                //                             title: 'Inventory GRN',
-                //                             description: 'Manage Inventory Goods Receipt Note'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Sales',
-                //                             icon: 'FileText',
-                //                             url: '/inventory/inventory-module/transactions/inv-t-sales',
-                //                             title: 'Inventory Sales',
-                //                             description: 'Manage Inventory Sales'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Item Consumption',
-                //                             icon: 'FileText',
-                //                             url: '/inventory/inventory-module/transactions/inv-t-item-consumption',
-                //                             title: 'Item Consumption',
-                //                             description: 'Manage Item Consumption'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Opening Balance',
-                //                             icon: 'FileText',
-                //                             url: '/inventory/inventory-module/transactions/inv-opening-balance',
-                //                             title: 'Opening Balance',
-                //                             description: 'Manage Inventory Opening Balance'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 3,
-                //                     name: 'Reports',
-                //                     icon: 'FileText',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'GRN Report',
-                //                             icon: 'FileText',
-                //                             url: '/inventory/inventory-module/reports/inv-r-grn',
-                //                             title: 'GRN Report',
-                //                             description: 'Generate Goods Receipt Note Reports'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Sales Report',
-                //                             icon: 'FileText',
-                //                             url: '/inventory/inventory-module/reports/inv-r-sales',
-                //                             title: 'Sales Report',
-                //                             description: 'Generate Sales Reports'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Stock Report',
-                //                             icon: 'FileText',
-                //                             url: '/inventory/inventory-module/reports/inv-r-stock',
-                //                             title: 'Stock Report',
-                //                             description: 'Generate Inventory Stock Reports'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Item Consumption Report',
-                //                             icon: 'FileText',
-                //                             url: '/inventory/inventory-module/reports/inv-r-item-consumption',
-                //                             title: 'Item Consumption Report',
-                //                             description: 'Generate Item Consumption Reports'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // }
+
                 {
                     id: 11,
                     name: 'Sports Management',
@@ -5216,7 +5110,7 @@ export async function getUserAccessibleModules() {
                                         //     description: 'View and Download Pay Slips'
                                         // },
 
-                                         {
+                                        {
                                             id: 1,
                                             name: 'Employee Punch Report ',
                                             icon: 'FileText',
