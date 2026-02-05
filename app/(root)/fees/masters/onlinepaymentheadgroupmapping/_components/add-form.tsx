@@ -234,7 +234,7 @@ export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, classNa
         };
 
         fetchHeadwiseInstallments();
-    }, [academicYear, classId, groupId, selectedHeads]);
+    }, [academicYear]);
 
     useEffect(() => {
         if (masterTerms?.data && Array.isArray(masterTerms.data)) {
