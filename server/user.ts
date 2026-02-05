@@ -23,23 +23,10 @@ interface LoginSceham {
 export async function login({ values, callbackUrl }: LoginSceham) {
     try {
         const { email, password } = values;
-
-        // Sanitize callbackUrl to ensure it's a relative path
-        // This prevents redirection to production URLs when on localhost
-        let redirectTo = callbackUrl || '/';
-        if (redirectTo.startsWith('http')) {
-            try {
-                const url = new URL(redirectTo);
-                redirectTo = url.pathname + url.search + url.hash;
-            } catch (e) {
-                redirectTo = '/';
-            }
-        }
-
         await signIn('credentials', {
             email,
             password,
-            redirectTo,
+            redirectTo: callbackUrl || '/',
             redirect: true
         });
         revalidatePath('/');

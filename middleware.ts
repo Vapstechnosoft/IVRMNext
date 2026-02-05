@@ -10,17 +10,12 @@ const routeMatcher = createRouterMatcher([
     { matcher: AUTH_ROUTES.TERMS, auth: false },
     { matcher: '/admission/preadmission/transactions/application-form/payment/success', auth: false },
     { matcher: '/admission/preadmission/transactions/application-form/payment/failure', auth: false },
+    { matcher: ROUTES.DASHBOARD, auth: true },
     {
-        matcher: '/admission/preadmission/attendance-entry',
-        auth: true,
-        role: [ROLES.GENERAL_STAFF, ROLES.STAFF]
-    },
-    {
-        matcher: '/StaffPortal',
+        matcher: ROUTES.ADMISSION.ADMISSION_SUB_MENUS.PREADMISSION,
         auth: true,
         role: [ROLES.GENERAL_STAFF]
-    },
-    { matcher: ROUTES.DASHBOARD, auth: true }
+    }
 ]);
 
 export async function middleware(request: NextRequest) {

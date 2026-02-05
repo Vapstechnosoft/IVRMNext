@@ -32,9 +32,6 @@ export function UserNav({ session }: { session: Session | null }) {
                             <p className='text-muted-foreground text-xs leading-none'>Designation: {session?.designation}</p>
                         )}
                         <p className='text-muted-foreground text-xs leading-none'>Email: {session?.email}</p>
-                        {session?.role === 'Staff' && (
-                            <p className='text-xs font-semibold text-blue-600 leading-none'>Staff</p>
-                        )}
                     </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
