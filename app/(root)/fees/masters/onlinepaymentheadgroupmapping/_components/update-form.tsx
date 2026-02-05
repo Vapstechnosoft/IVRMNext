@@ -208,7 +208,7 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
         };
 
         fetchInstallments();
-    }, [academicYear, classId, groupId, selectedHeads, getValues]);
+    }, [academicYear]);
 
     // Map options
     useEffect(() => {
