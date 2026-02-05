@@ -153,6 +153,9 @@ export const periodDistributionSchema = {
         asmS_Id: z.number().min(1, 'Section is required').optional().or(z.literal(0)),
         ismS_Id: z.number().min(1, 'Subject is required').optional().or(z.literal(0)),
         nop2: z.coerce.number().optional().or(z.literal(0))
+    }),
+    delete: z.object({
+        ttfpD_Id: deleteIdSchema('ttfpD_Id')
     })
 };
 
