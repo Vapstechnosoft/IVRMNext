@@ -1,17 +1,18 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useRoomTariff } from '@/hooks/hostel/useRoomTariff';
 import { Plus, X } from 'lucide-react';
-import { use } from 'react';
+import { use, useEffect } from 'react';
 import AddRoomTariffForm from './_components/add-form';
 import { roomTariffColumns } from './_components/columns';
 import ToggleRoomTariff from './_components/toggle-form';
 import { IRoomTariff } from '@/types/hostel/hostel-management/masters';
 import UpdateRoomTariffForm from './_components/update-form';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -21,6 +22,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function RoomTariffPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, refetchAll } = useRoomTariff(searchParams);
+
 
     return (
         <FormProvider<IRoomTariff>>
@@ -46,16 +48,12 @@ function PageContent({
     refetchAll: () => void;
 }) {
     const { openAddForm } = useFormContext<IRoomTariff>();
-
-    const gridData = response?.gridlistdata || [];
-    const yearList = response?.yeralist || [];
-    const roomList = response?.room_list || [];
-
-    const tableProps = {
-        data: gridData,
-        totalItems: gridData.length,
-        isLoading
-    };
+    const { data: yearData } = useAcademicYearDropdown();
+    const { data: roomData } = { data: [] }
+    useEffect(() => {
+        console.log(response);
+    }, [response]);
+    const tableProps = useDataTableProps(response);
 
     return (
         <div className='min-h-screen'>
@@ -91,8 +89,8 @@ function PageContent({
                 {/* Forms */}
                 <FormSections
                     onSuccess={refetchAll}
-                    yearList={yearList}
-                    roomList={roomList}
+                    yearList={yearData?.data ?? []}
+                    roomList={roomData ?? []}
                 />
             </div>
         </div>

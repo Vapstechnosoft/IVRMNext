@@ -4,60 +4,44 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
 import { useMasterRoom } from '@/hooks/hostel/useMasterRoom';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
-import { toast } from 'sonner';
 import AddMasterRoomForm from './_components/add-form';
 import { masterRoomColumns } from './_components/columns';
-import UpdateMasterRoomForm from './_components/update-form';
-import type { IRoomDisplay } from '@/types/hostel/hostel-management/masters';
-import { deleteRoom } from '@/server/hostel/hostel-management/masters/room';
-import type { IHostel } from '@/types/hostel/hostel-management/masters';
-import type { IFacility } from '@/types/hostel/hostel-management/masters';
-import { ViewFacilitiesModal } from './_components/view-modals';
+import { ToggleFormWrapper } from '@/components/ui/form/toggle-form-wrapper';
+import { toast } from 'sonner';
+import { deactivateRoom } from '@/server/hostel/hostel-management/masters/room';
+import { IRoomDisplay } from '@/types/hostel/hostel-management/masters';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-// -------------------------
-// MAIN PAGE
-// -------------------------
 export default function MasterRoomPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { roomList, hostels, facilities, isLoading, refetch } = useMasterRoom();
+    const { data: roomList, isLoading, refetchAll } = useMasterRoom(searchParams);
 
     return (
         <FormProvider<IRoomDisplay>>
             <PageContent
                 roomList={roomList}
-                hostels={hostels}
-                facilities={facilities}
                 isLoading={isLoading}
-                refetch={refetch}
+                refetch={refetchAll}
             />
         </FormProvider>
     );
 }
 
-// -------------------------
-// PAGE CONTENT
-// -------------------------
 function PageContent({
     roomList,
-    hostels,
-    facilities,
     isLoading,
     refetch
 }: {
-    roomList: IRoomDisplay[];
-    hostels: IHostel[];
-    facilities: IFacility[];
+    roomList: any;
     isLoading: boolean;
     refetch: () => void;
 }) {
     const { openAddForm } = useFormContext<IRoomDisplay>();
-    const tableProps = useDataTableProps({ data: roomList, total: roomList.length });
+    const tableProps = useDataTableProps(roomList);
 
     return (
         <div className='min-h-screen'>
@@ -91,38 +75,21 @@ function PageContent({
                 </CollapsibleSection>
 
                 {/* Forms */}
-                <FormSections
-                    onSuccess={refetch}
-                    hostels={hostels}
-                    facilities={facilities}
-                />
+                <FormSections onSuccess={refetch} />
             </div>
         </div>
     );
 }
 
-// -------------------------
-// FORM SECTIONS
-// -------------------------
-function FormSections({
-    onSuccess,
-    hostels,
-    facilities
-}: {
-    onSuccess: () => void;
-    hostels: IHostel[];
-    facilities: IFacility[];
-}) {
+function FormSections({ onSuccess }: { onSuccess: () => void }) {
     const {
         isAddFormOpen,
         isEditFormOpen,
         isToggleFormOpen,
-        isFacilityViewOpen,
         selectedRow,
         closeAddForm,
         closeEditForm,
         closeToggleForm,
-        closeFacilityView,
         addFormRef,
         editFormRef
     } = useFormContext<IRoomDisplay>();
@@ -134,7 +101,7 @@ function FormSections({
                 <div ref={addFormRef}>
                     <CollapsibleSection
                         title='Add Master Room'
-                        description='Create a new room'
+                        description='Create a new room record'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -148,11 +115,7 @@ function FormSections({
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddMasterRoomForm
-                                onSuccess={() => { closeAddForm(); onSuccess(); }}
-                                hostels={hostels}
-                                facilities={facilities}
-                            />
+                            <AddMasterRoomForm onSuccess={() => { closeAddForm(); onSuccess(); }} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -177,11 +140,9 @@ function FormSections({
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateMasterRoomForm
-                                rowData={selectedRow}
+                            <AddMasterRoomForm
+                                initialData={selectedRow}
                                 onSuccess={() => { closeEditForm(); onSuccess(); }}
-                                hostels={hostels}
-                                facilities={facilities}
                             />
                         </div>
                     </CollapsibleSection>
@@ -203,7 +164,7 @@ function FormSections({
 function ToggleMasterRoomForm({ rowData, onClose, onSuccess }: { rowData: IRoomDisplay, onClose: () => void, onSuccess: () => void }) {
     const onConfirm = async () => {
         try {
-            const result = await deleteRoom(rowData.hrmrM_Id);
+            const result = await deactivateRoom(rowData.hrmrM_Id);
             if (result.success) {
                 toast.success(result.message);
                 onSuccess();
