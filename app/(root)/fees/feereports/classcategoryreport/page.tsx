@@ -447,7 +447,7 @@ export default function ClassCategoryReport() {
 
                                                         <tbody>
                                                             {reportData.map((row, index) => (
-                                                                <tr key={row.fmG_Id} className='odd:bg-gray-50 hover:bg-gray-100'>
+                                                                <tr key={index} className='odd:bg-gray-50 hover:bg-gray-100'>
                                                                     <td className='border px-4 py-2 text-center'>{index + 1}</td>
                                                                     <td className='border px-4 py-2 text-center font-medium'>
                                                                         {row.fmG_GroupName}
