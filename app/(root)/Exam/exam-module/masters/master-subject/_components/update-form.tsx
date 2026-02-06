@@ -36,7 +36,7 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterSubjectSchema.addOrUpdate),
-        mode: 'onChange'
+        mode: 'onTouched'
     });
 
     // Initialize form with selected row safely

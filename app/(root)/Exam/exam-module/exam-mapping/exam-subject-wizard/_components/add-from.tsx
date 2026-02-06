@@ -35,10 +35,10 @@ import { useEffect, useRef, useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-import SubExamModal from './subexam-model';
 import SubjectTable from './subject-table';
 import SubSubjectModal from './subsubject-modal';
 import SubSubjectSubExamModal from './subsubject-subexam-model';
+import SubExamModal from './subexam-model';
 
 type FormFields = z.infer<typeof ExamSubjectWizardSchema.addOrUpdate>;
 
@@ -695,6 +695,10 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                     EYCESSE_ExemptedFlg: !!(se.EYCESSE_ExemptedFlg ?? se.eycessS_ExemptedFlg),
                     EYCESSE_ExemptedPer: Number(se.EYCESSE_ExemptedPer ?? se.eycessS_ExemptedPer ?? 0) || 0,
                     EYCESSE_ActiveFlg: se.EYCESSE_ActiveFlg ?? true,
+                    EYCESSE_MarksFlg: se.EYCESSS_MarksFlg ?? true,
+                    EYCESSE_GradeFlg: se.EYCESSS_GradeFlg ?? true,
+                    EYCESSS_AplResultFlg: se.EYCESSS_AplResultFlg ?? true,
+                    EYCESSS_MarksEntryMax: Number(se.EYCESSS_MarksEntryMax ?? se.eycessS_MarksEntryMax ?? 0) || 0,
                     // Standardized payload format
                     EMSE_Id: se.EMSE_Id ?? se.emsE_Id ?? se.EMSE_Id,
                     EMSE_SubExamOrder: se.emsE_SubExamOrder ?? idx + 1,
@@ -1006,7 +1010,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                             fieldState={fieldState}
                                             label='Attendance From'
                                             placeholder='Select Attendance From Date'
-                                            fromDate={today}
+                                            //fromDate={today}
                                             toDate={watch('EYCE_AttendanceToDate') ? new Date(watch('EYCE_AttendanceToDate')) : undefined}
                                             restricted_tofieldName='Attendence To-Date'
                                             restricted_fromfieldName='Attendence From-Date'
