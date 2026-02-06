@@ -81,28 +81,34 @@ export async function getInvOpeningBalanceLoadData(searchParams?: ApiSearchparam
 }
 
 export async function saveInvOpeningBalance(data: any) {
-    const url = `/api/INV_OpeningBalance/savedetails`;
+    const url = `/INV_OpeningBalanceFacade/savedetails`;
     const payload = {
-        ...data,
-        INVMST_Id: data.invmsT_Id,
         INVOB_Id: data.invoB_Id || 0,
-        transrows: data.transrows?.map((row: any) => ({
+        INVMST_Id: data.invmsT_Id,
+        IMFY_Id: data.imfY_Id || 0,
+        OBItem: data.transrows?.map((row: any) => ({
             INVMI_Id: row.invmI_Id,
             INVMUOM_Id: row.invmuoM_Id,
             INVOB_BatchNo: row.invoB_BatchNo,
             INVOB_PurchaseDate: row.invoB_PurchaseDate,
             INVOB_Qty: row.invoB_Qty,
-            INVSTO_PurchaseRate: row.invstO_PurchaseRate,
-            INVSTO_SalesRate: row.invstO_SalesRate,
+            INVOB_PurchaseRate: row.invstO_PurchaseRate,
+            INVOB_SaleRate: row.invstO_SalesRate,
             INVOB_Naration: row.invoB_Naration || '',
+            INVOB_MfgDate: row.invoB_MfgDate,
+            INVOB_ExpDate: row.invoB_ExpDate
         }))
     };
     return await api.post<any>('inventory', url, payload);
 }
 
 export async function deactiveInvOpeningBalance(data: any) {
-    const url = `/api/INV_OpeningBalance/deactive`;
-    return await api.post<any>('inventory', url, data);
+    const url = `/INV_OpeningBalanceFacade/deactive`;
+    const payload = {
+        INVOB_Id: data.invoB_Id,
+        INVMST_Id: data.invmsT_Id
+    };
+    return await api.post<any>('inventory', url, payload);
 }
 
 export async function getInvOpeningBalanceStores() {
@@ -152,7 +158,7 @@ export async function getSelectionItemDetails(data: { INVMI_Id: number }) {
 }
 
 export async function getOpeningBalanceDetails(data: { INVOB_Id: number }) {
-    const url = `/api/INV_OpeningBalance/getdetails?INVOB_Id=${data.INVOB_Id}`;
+    const url = `/INV_OpeningBalanceFacade/getobdetails?INVOB_Id=${data.INVOB_Id}`;
     const response = await api.get<any>('inventory', url);
     return {
         get_obdetails: extractData(response, 'get_obdetails')
