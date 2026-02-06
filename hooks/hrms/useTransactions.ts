@@ -14,7 +14,13 @@ import {
 } from '@/server/hrms/hrmsConfig/transaction/employee-loan';
 import { getSalaryAdvanceById, getSalaryAdvanceDetailsByEmployee, getSalaryAdvanceList, saveSalaryAdvance, searchSalaryAdvanceFilter, toggleSalaryAdvanceStatus } from '@/server/hrms/hrmsConfig/transaction/salary-advance';
 import { approveSalaries, getSalaryApprovalOnload, searchSalaryApprovalEmployees } from '@/server/hrms/hrmsConfig/transaction/salary-approval';
-import { generateSalaryForSelectedEmployees, getSalaryCalculationOnload, searchSalaryCalculationBySelection } from '@/server/hrms/hrmsConfig/transaction/salary-calculation';
+import {
+    calculateEmployeeSalary,
+    generateSalaryForSelectedEmployees,
+    getSalaryCalculationOnload,
+    searchEmployeesBySelection,
+    searchSalaryCalculationBySelection
+} from '@/server/hrms/hrmsConfig/transaction/salary-calculation';
 import { deleteSalaryIncrement, getSalaryIncrementOnload, saveSalaryIncrement } from '@/server/hrms/hrmsConfig/transaction/salary-increment';
 import { deleteSalaryUpdation, filterSalaryUpdationEmployees, getSalaryUpdationDepartments, getSalaryUpdationDesignations, getSalaryUpdationEmployeeDetailsBySelection, getSalaryUpdationList, getSalaryUpdationOnload, saveSalaryUpdation, updateEmployeesEarningsAndDeductions } from '@/server/hrms/hrmsConfig/transaction/salary-updation';
 import { getEmployeeDetailsBySelection, getMassUpdationDepartments, getMassUpdationDesignations, getMassUpdationOnload, saveMassUpdation, searchMassUpdationEmployees } from '@/server/hrms/hrmsConfig/transaction/mass-updation';
@@ -48,7 +54,11 @@ import type {
     SalaryCalculationGenerateResponse,
     SalaryCalculationOnloadRequest,
     SalaryCalculationOnloadResponse,
-    SalaryCalculationSearchRequest
+    SalaryCalculationSearchRequest,
+    NewSalaryCalculationSearchRequest,
+    NewSalaryCalculationGenerateRequest,
+    SelectionEmployee,
+    ApiResponse
 } from '@/types/hrms/salary-calculation';
 import type {
     SalaryIncrementDeleteRequest,
@@ -470,6 +480,44 @@ export function useGenerateSalary() {
         }
     });
 }
+
+export function useSearchEmployeesBySelection() {
+    return useMutation<ApiResponse<SelectionEmployee[]>, Error, NewSalaryCalculationSearchRequest>({
+        mutationFn: (data: NewSalaryCalculationSearchRequest) =>
+            searchEmployeesBySelection(data).then((res) => {
+                if (!res.success) {
+                    throw new Error(res.message);
+                }
+                return res as ApiResponse<SelectionEmployee[]>;
+            }),
+        onError: (error) => {
+            toast.error(error.message || 'Failed to search employees for salary calculation.');
+        }
+    });
+}
+
+export function useCalculateEmployeeSalary() {
+    const queryClient = useQueryClient();
+    return useMutation<ApiResponse<any>, Error, NewSalaryCalculationGenerateRequest>({
+        mutationFn: (data: NewSalaryCalculationGenerateRequest) =>
+            calculateEmployeeSalary(data).then((res) => {
+                if (!res.success) {
+                    throw new Error(res.message);
+                }
+                return res as ApiResponse<any>;
+            }),
+        onSuccess: (data) => {
+            toast.success(data.message || 'Salary calculated successfully!');
+            queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_CALCULATION_ONLOAD]
+            });
+        },
+        onError: (error) => {
+            toast.error(error.message || 'Failed to calculate salary.');
+        }
+    });
+}
+
 // ============================================================================
 // SALARY INCREMENT
 // ============================================================================

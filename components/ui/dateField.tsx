@@ -20,6 +20,7 @@ interface DateFieldProps {
     restricted_tofieldName?: string;
     restricted_fromfieldName?: string;
     disabled?: boolean;
+    required?: boolean;
     outputFormat?: 'date' | 'string';
 }
 
@@ -33,6 +34,7 @@ export const DateField: React.FC<DateFieldProps> = ({
     restricted_tofieldName,
     restricted_fromfieldName,
     disabled,
+    required,
     outputFormat = 'string'
 }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -84,7 +86,7 @@ export const DateField: React.FC<DateFieldProps> = ({
         <div className='mt-5 flex flex-col gap-1.5'>
             <Label htmlFor={field.name}>
                 {label}
-                <span className='ml-1 text-red-500'>*</span>
+                {required && <span className='ml-1 text-red-500'>*</span>}
             </Label>
 
             <Popover open={isOpen} onOpenChange={setIsOpen}>

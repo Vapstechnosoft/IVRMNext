@@ -1746,14 +1746,14 @@ export async function getUserAccessibleModules() {
                                         //     title: 'Salary Approval',
                                         //     description: 'Approve Calculated Salaries'
                                         // },
-                                        // {
-                                        //     id: 2,
-                                        //     name: 'Salary Calculation',
-                                        //     icon: 'Calculator',
-                                        //     url: '/hrms/transactions/salary-calculation',
-                                        //     title: 'Salary Calculation',
-                                        //     description: 'Calculate Employee Salary'
-                                        // },
+                                        {
+                                            id: 2,
+                                            name: 'Salary Calculation',
+                                            icon: 'Calculator',
+                                            url: '/hrms/transactions/salary-calculation',
+                                            title: 'Salary Calculation',
+                                            description: 'Calculate Employee Salary'
+                                        },
                                         // {
                                         //     id: 3,
                                         //     name: 'Salary Increment Process',
@@ -1778,15 +1778,6 @@ export async function getUserAccessibleModules() {
                                             title: 'Mass Updation',
                                             description: 'Bulk Update Employee Data'
                                         },
-                                        // ,
-                                        // {
-                                        //     id: 5,
-                                        //     name: 'Mass Updation',
-                                        //     icon: 'RefreshCw',
-                                        //     url: '/hrms/transactions/mass-updation',
-                                        //     title: 'Mass Updation',
-                                        //     description: 'Bulk Update Employee Data'
-                                        // },
                                         // {
                                         //     id: 6,
                                         //     name: 'Salary Advance',
