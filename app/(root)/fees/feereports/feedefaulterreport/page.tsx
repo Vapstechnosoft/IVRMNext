@@ -853,14 +853,13 @@ export default function FeeDefaulterReport() {
                     TRMR_Ids: routeIds || [],
                     Balance_1: blc_new,
                     From_Date: filters.dueDate,
-                    duedate: filters.dueDate || '',
+                    duedate: filters.dueDateType,
                     ASMCL_Id: asmcL_Id,
                     AMSC_Id: asmC_Id,
                     term_group: term_group,
                     Select_Button: filters.userType,
                     yearid: 0,
                     studenttype: 'active',
-                    p_due:filters.dueDateType
                 };
             }
 
