@@ -172,7 +172,6 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
 
         const payload = {
             emG_Id: initialData?.emG_Id ?? 0,
-            mI_Id: 30,
             emG_GroupName: d.emG_GroupName,
             emG_TotSubjects: d.emG_TotSubjects,
             emG_MaxAplSubjects: d.emG_MaxAplSubjects,

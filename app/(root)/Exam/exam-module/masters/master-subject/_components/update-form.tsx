@@ -44,7 +44,6 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
         if (row) {
             reset({
                 ismS_Id: row.ismS_Id,
-                mI_Id: row.mI_Id ?? 30,
                 ismS_SubjectName: row.ismS_SubjectName ?? '',
                 ismS_IVRSSubjectName: row.ismS_IVRSSubjectName ?? '',
                 ismS_SubjectCode: row.ismS_SubjectCode ?? '',
@@ -92,7 +91,6 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
         if (row) {
             reset({
                 ismS_Id: row.ismS_Id,
-                mI_Id: row.mI_Id ?? 30,
                 ismS_SubjectName: row.ismS_SubjectName ?? '',
                 ismS_IVRSSubjectName: row.ismS_IVRSSubjectName ?? '',
                 ismS_SubjectCode: row.ismS_SubjectCode ?? '',

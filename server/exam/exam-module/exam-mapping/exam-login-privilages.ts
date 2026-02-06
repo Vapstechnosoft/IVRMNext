@@ -8,7 +8,7 @@ import type { IExamLoginPrivileges, ILoginPrivilegeDetails } from '@/types/exam/
 
 export async function getExamLoginPrivileges(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `exam_login_privileges/30?${urlParams}`;
+    const url = `exam_login_privileges/?${urlParams}`;
     return await api.get<IExamLoginPrivileges>('exam', url);
 }
 
@@ -39,13 +39,13 @@ export async function toggleExamLoginPrivilege(data: any) {
 /* ===================== DROPDOWNS ===================== */
 
 export async function getClassTeacherDropdwonList() {
-    return await api.get<any>('exam', '/exam_login_privileges/exm_login_privilege_classteacher_list/30');
+    return await api.get<any>('exam', '/exam_login_privileges/exm_login_privilege_classteacher_list');
 }
 
 export async function getUserDropdwonList() {
-    return await api.get<any>('exam', '/exam_login_privileges/exm_login_privilege_user_name/30');
+    return await api.get<any>('exam', '/exam_login_privileges/exm_login_privilege_user_name');
 }
 
 export async function getEmployeeDropdwonList() {
-    return await api.get<any>('exam', '/exam_login_privileges/exm_login_privilege_employee_list/30');
+    return await api.get<any>('exam', '/exam_login_privileges/exm_login_privilege_employee_list');
 }

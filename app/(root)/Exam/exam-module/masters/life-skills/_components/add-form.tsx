@@ -31,7 +31,6 @@ export default function AddLifeSkillForm({ onSuccess, className = '' }: AddLifeS
         mode: 'onChange',
         defaultValues: {
             ecS_Id: 0,
-            mI_Id: 30,
             ecS_SkillName: '',
             ecS_SkillCode: ''
         }
@@ -41,8 +40,7 @@ export default function AddLifeSkillForm({ onSuccess, className = '' }: AddLifeS
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload = {
-                ...data,
-                mI_Id: 30
+                ...data
             };
 
             const response = await addOrUpdateMasterLifeSkill(payload);

@@ -34,7 +34,6 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
         resolver: zodResolver(masterSubjectSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            mI_Id: 30,
             ismS_PreadmFlag: 0,
             ismS_AttendanceFlag: true, // boolean
             ismS_BatchAppl: 0,
