@@ -12,15 +12,17 @@ import type {
  * Load initial data for attendance entry
  */
 export async function getInitialData(ASMAY_Id: number) {
-    const url = `/StudentAttendanceEntry/get-staff-initial-data/${ASMAY_Id}`;
-    return await api.get<IAttendanceEntryInitialData>('portal', url);
+    const payload = { ASMAY_Id };
+    const url =  '/StaffAttendanceEntry/get-staff-initial-data';
+    //return await api.post<IAttendanceEntryInitialData>('portal', url);
+     return await api.post('portal', url, payload);
 }
 
 /**
  * Get student data based on class and year
  */
 export async function getStudentData(data: any) {
-    const url = '/StudentAttendanceEntry/get-staff-data/';
+    const url = '/StaffAttendanceEntry/get-staff-data/';
     return await api.post<IStudentDataResponse>('portal', url, data);
 }
 
@@ -28,7 +30,7 @@ export async function getStudentData(data: any) {
  * Get month class held details
  */
 export async function getMonthClassHeld(data: any) {
-    const url = '/StudentAttendanceEntry/month-classheld/';
+    const url = '/StaffAttendanceEntry/month-classheld/';
     return await api.post<IStudentDataResponse>('portal', url, data);
 }
 
@@ -36,7 +38,7 @@ export async function getMonthClassHeld(data: any) {
  * Get date wise attendance
  */
 export async function getDateWiseAttendance(data: any) {
-    const url = '/StudentAttendanceEntry/datewise-data/';
+    const url = '/StaffAttendanceEntry/datewise-data/';
     return await api.post<IStudentDataResponse>('portal', url, data);
 }
 
@@ -44,7 +46,7 @@ export async function getDateWiseAttendance(data: any) {
  * Get batch list for subject
  */
 export async function getBatchList(data: any) {
-    const url = '/StudentAttendanceEntry/batch-list/';
+    const url = '/StaffAttendanceEntry/batch-list/';
     return await api.post<IStudentDataResponse>('portal', url, data);
 }
 
@@ -52,7 +54,7 @@ export async function getBatchList(data: any) {
  * Get student list for specific period
  */
 export async function getStdListPeriod(data: any) {
-    const url = '/StudentAttendanceEntry/staff-period-list/';
+    const url = '/StaffAttendanceEntry/staff-period-list/';
     return await api.post<IStudentDataResponse>('portal', url, data);
 }
 
@@ -60,7 +62,7 @@ export async function getStdListPeriod(data: any) {
  * Save or update student attendance
  */
 export async function saveStudentAttendance(data: ISaveAttendanceRequest) {
-    const url = '/StudentAttendanceEntry/save-staff-attendance/';
+    const url = '/StaffAttendanceEntry/save-staff-attendance/';
     return await api.post<{ message: string; returnval: boolean }>('portal', url, data);
 }
 
@@ -68,16 +70,16 @@ export async function saveStudentAttendance(data: ISaveAttendanceRequest) {
  * Delete attendance for current selection
  */
 export async function deleteAttendance(data: any) {
-    const url = '/StudentAttendanceEntry/delete-attendance';
+    const url = '/StaffAttendanceEntry/delete-attendance';
     return await api.post<{ returnval: boolean }>('portal', url, data);
 }
 
 export async function viewAttendanceHistory(data: any) {
-    const url = '/StudentAttendanceEntry/staffWise-attendance-details';
+    const url = '/StaffAttendanceEntry/staffWise-attendance-details';
     return await api.post<IViewHistoryResponse>('portal', url, data);
 }
 
 export async function deleteRecordWise(data: any) {
-    const url = '/StudentAttendanceEntry/rowwise-delete-attendance';
+    const url = '/StaffAttendanceEntry/rowwise-delete-attendance';
     return await api.post<IViewHistoryResponse & { returnval: boolean }>('portal', url, data);
 }
