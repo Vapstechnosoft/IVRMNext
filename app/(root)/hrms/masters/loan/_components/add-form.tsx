@@ -32,7 +32,7 @@ export default function AddLoanForm({ onSuccess, className = '' }: AddLoanFormPr
         resolver: zodResolver(hrmsMasterSchemas.loan.add),
         mode: 'onChange',
         defaultValues: {
-            hrmL_Max: 0
+            hrmL_Max: undefined as any
         }
     });
 
@@ -41,7 +41,7 @@ export default function AddLoanForm({ onSuccess, className = '' }: AddLoanFormPr
             const payload = {
                 hrmlN_Id: 0,
                 hrmL_LoanType: data.hrmL_LoanType?.trim() || '',
-                hrmL_Max: data.hrmL_Max || 0,
+                hrmL_Max: Number(data.hrmL_Max) || 0,
                 hrmlN_ActiveFlag: true
             };
             const response = await addOrUpdateMasterLoan(payload);
@@ -87,10 +87,11 @@ export default function AddLoanForm({ onSuccess, className = '' }: AddLoanFormPr
                                     label='Maximum Amount'
                                     required
                                     id='hrmL_Max'
-                                    value={field.value}
+                                    placeholder='Enter maximum amount'
+                                    value={field.value ?? undefined}
                                     maxDigits={10}
                                     onChange={(value) => {
-                                        const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                        const numValue = value !== null && value !== undefined && !Number.isNaN(value) ? Number(value) : undefined;
                                         field.onChange(numValue);
                                     }}
                                     onBlur={field.onBlur}

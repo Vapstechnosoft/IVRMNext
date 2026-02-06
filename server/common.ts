@@ -1099,6 +1099,7 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
+
                 {
                     id: 3,
                     name: 'Exam',
@@ -1760,14 +1761,14 @@ export async function getUserAccessibleModules() {
                                         //     title: 'Salary Approval',
                                         //     description: 'Approve Calculated Salaries'
                                         // },
-                                        // {
-                                        //     id: 2,
-                                        //     name: 'Salary Calculation',
-                                        //     icon: 'Calculator',
-                                        //     url: '/hrms/transactions/salary-calculation',
-                                        //     title: 'Salary Calculation',
-                                        //     description: 'Calculate Employee Salary'
-                                        // },
+                                        {
+                                            id: 2,
+                                            name: 'Salary Calculation',
+                                            icon: 'Calculator',
+                                            url: '/hrms/transactions/salary-calculation',
+                                            title: 'Salary Calculation',
+                                            description: 'Calculate Employee Salary'
+                                        },
                                         // {
                                         //     id: 3,
                                         //     name: 'Salary Increment Process',
@@ -1792,15 +1793,6 @@ export async function getUserAccessibleModules() {
                                             title: 'Mass Updation',
                                             description: 'Bulk Update Employee Data'
                                         },
-                                        // ,
-                                        // {
-                                        //     id: 5,
-                                        //     name: 'Mass Updation',
-                                        //     icon: 'RefreshCw',
-                                        //     url: '/hrms/transactions/mass-updation',
-                                        //     title: 'Mass Updation',
-                                        //     description: 'Bulk Update Employee Data'
-                                        // },
                                         // {
                                         //     id: 6,
                                         //     name: 'Salary Advance',
@@ -4277,63 +4269,87 @@ export async function getUserAccessibleModules() {
                                 {
                                     id: 1,
                                     name: 'Masters',
-                                    icon: 'Users',
+                                    icon: 'LayoutGrid',
                                     pages: [
                                         {
-                                            id: 1,
+                                            id: 101,
                                             name: 'Tax',
-                                            icon: 'Users',
+                                            icon: 'Settings',
                                             url: '/inventory/inventory-module/masters/inv-master-tax',
                                             title: 'Inventory Master Tax',
                                             description: 'Manage Inventory Master Tax'
                                         },
                                         {
-                                            id: 2,
+                                            id: 102,
                                             name: 'Store',
-                                            icon: 'Users',
+                                            icon: 'Settings',
                                             url: '/inventory/inventory-module/masters/inv-master-store',
                                             title: 'Inventory Master Store',
                                             description: 'Manage Inventory Master Store'
                                         },
                                         {
-                                            id: 3,
+                                            id: 103,
                                             name: 'Supplier',
-                                            icon: 'Users',
+                                            icon: 'Settings',
                                             url: '/inventory/inventory-module/masters/inv-master-supplier',
                                             title: 'Inventory Master Supplier',
                                             description: 'Manage Inventory Master Supplier'
                                         },
                                         {
-                                            id: 5,
+                                            id: 104,
                                             name: 'Customer',
-                                            icon: 'Users',
+                                            icon: 'Settings',
                                             url: '/inventory/inventory-module/masters/inv-master-customer',
                                             title: 'Inventory Master Customer',
                                             description: 'Manage Inventory Master Customer'
                                         },
                                         {
-                                            id: 4,
-                                            name: 'Group',
-                                            icon: 'Users',
-                                            url: '/inventory/inventory-module/masters/inv-master-group',
-                                            title: 'Inventory Master Group',
-                                            description: 'Manage Inventory Group, User Group & Item Group'
+                                            id: 105,
+                                            name: 'Main Group',
+                                            icon: 'Settings',
+                                            url: '/inventory/inventory-module/masters/inv-master-main-group',
+                                            title: 'Main Group',
+                                            description: 'Manage Inventory Main Group Details'
                                         },
                                         {
-                                            id: 1105,
-                                            name: 'Master UOM',
-                                            icon: 'Users',
+                                            id: 106,
+                                            name: 'User Group',
+                                            icon: 'Settings',
+                                            url: '/inventory/inventory-module/masters/inv-master-user-group',
+                                            title: 'User Group',
+                                            description: 'Manage Inventory User Group Details'
+                                        },
+                                        {
+                                            id: 107,
+                                            name: 'Item Group',
+                                            icon: 'Settings',
+                                            url: '/inventory/inventory-module/masters/inv-master-item-group',
+                                            title: 'Item Group',
+                                            description: 'Manage Inventory Item Group Details'
+                                        },
+                                        {
+                                            id: 108,
+                                            name: 'UOM',
+                                            icon: 'Settings',
                                             url: '/inventory/inventory-module/masters/inv-master-uom',
                                             title: 'Inventory Master UOM',
                                             description: 'Manage Unit of Measurement Details'
                                         },
                                         {
-                                            id: 5,
-                                            name: 'Item Store Mapping',
-                                            icon: 'Users',
-                                            url: '/inventory/inventory-module/masters/inv-item-store-mapping',
-                                            title: 'Item Store Mapping',
-                                            description: 'Manage Item Store Mapping Details'
+                                            id: 109,
+                                            name: 'Master Item',
+                                            icon: 'Settings',
+                                            url: '/inventory/inventory-module/masters/inv-master-item',
+                                            title: 'Master Item',
+                                            description: 'Manage Inventory Master Item Details'
+                                        },
+                                        {
+                                            id: 110,
+                                            name: 'Master Product',
+                                            icon: 'Settings',
+                                            url: '/inventory/inventory-module/masters/inv-master-product',
+                                            title: 'Master Product',
+                                            description: 'Manage Inventory Master Product Details'
                                         }
                                     ]
                                 },
@@ -4343,7 +4359,7 @@ export async function getUserAccessibleModules() {
                                     icon: 'FileText',
                                     pages: [
                                         {
-                                            id: 1,
+                                            id: 201,
                                             name: 'GRN',
                                             icon: 'FileText',
                                             url: '/inventory/inventory-module/transactions/inv-t-grn',
@@ -4351,7 +4367,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Inventory Goods Receipt Note'
                                         },
                                         {
-                                            id: 2,
+                                            id: 202,
                                             name: 'Sales',
                                             icon: 'FileText',
                                             url: '/inventory/inventory-module/transactions/inv-t-sales',
@@ -4359,7 +4375,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Inventory Sales'
                                         },
                                         {
-                                            id: 3,
+                                            id: 203,
                                             name: 'Item Consumption',
                                             icon: 'FileText',
                                             url: '/inventory/inventory-module/transactions/inv-t-item-consumption',
@@ -4367,12 +4383,28 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Item Consumption'
                                         },
                                         {
-                                            id: 4,
+                                            id: 204,
                                             name: 'Opening Balance',
                                             icon: 'FileText',
                                             url: '/inventory/inventory-module/transactions/inv-opening-balance',
                                             title: 'Opening Balance',
                                             description: 'Manage Inventory Opening Balance'
+                                        },
+                                        {
+                                            id: 205,
+                                            name: 'Stock Updation',
+                                            icon: 'FileText',
+                                            url: '/inventory/inventory-module/transactions/inv-stock',
+                                            title: 'Stock Updation',
+                                            description: 'Manage Inventory Stock Updation'
+                                        },
+                                        {
+                                            id: 206,
+                                            name: 'Vendor Payment',
+                                            icon: 'FileText',
+                                            url: '/inventory/inventory-module/transactions/inv-vendor-payment',
+                                            title: 'Vendor Payment',
+                                            description: 'Manage Vendor Payments'
                                         }
                                     ]
                                 },
@@ -4578,153 +4610,7 @@ export async function getUserAccessibleModules() {
                 //         }
                 //     ]
                 // },
-                // {
-                //     id: 10,
-                //     name: 'Inventory Management',
-                //     icon: 'Users',
-                //     menu: [
-                //         {
-                //             id: 1,
-                //             name: 'Inventory Module',
-                //             icon: 'Users',
-                //             sub_menu: [
-                //                 {
-                //                     id: 1,
-                //                     name: 'Masters',
-                //                     icon: 'Users',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'Tax',
-                //                             icon: 'Users',
-                //                             url: '/inventory/inventory-module/masters/inv-master-tax',
-                //                             title: 'Inventory Master Tax',
-                //                             description: 'Manage Inventory Master Tax'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Store',
-                //                             icon: 'Users',
-                //                             url: '/inventory/inventory-module/masters/inv-master-store',
-                //                             title: 'Inventory Master Store',
-                //                             description: 'Manage Inventory Master Store'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Supplier',
-                //                             icon: 'Users',
-                //                             url: '/inventory/inventory-module/masters/inv-master-supplier',
-                //                             title: 'Inventory Master Supplier',
-                //                             description: 'Manage Inventory Master Supplier'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Group',
-                //                             icon: 'Users',
-                //                             url: '/inventory/inventory-module/masters/inv-master-group',
-                //                             title: 'Inventory Master Group',
-                //                             description: 'Manage Inventory Group, User Group & Item Group'
-                //                         },
-                //                         {
-                //                             id: 1105,
-                //                             name: 'Master UOM',
-                //                             icon: 'Users',
-                //                             url: '/inventory/inventory-module/masters/inv-master-uom',
-                //                             title: 'Inventory Master UOM',
-                //                             description: 'Manage Unit of Measurement Details'
-                //                         },
-                //                         {
-                //                             id: 5,
-                //                             name: 'Item Store Mapping',
-                //                             icon: 'Users',
-                //                             url: '/inventory/inventory-module/masters/inv-item-store-mapping',
-                //                             title: 'Item Store Mapping',
-                //                             description: 'Manage Item Store Mapping Details'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 2,
-                //                     name: 'Transactions',
-                //                     icon: 'FileText',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'GRN',
-                //                             icon: 'FileText',
-                //                             url: '/inventory/inventory-module/transactions/inv-t-grn',
-                //                             title: 'Inventory GRN',
-                //                             description: 'Manage Inventory Goods Receipt Note'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Sales',
-                //                             icon: 'FileText',
-                //                             url: '/inventory/inventory-module/transactions/inv-t-sales',
-                //                             title: 'Inventory Sales',
-                //                             description: 'Manage Inventory Sales'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Item Consumption',
-                //                             icon: 'FileText',
-                //                             url: '/inventory/inventory-module/transactions/inv-t-item-consumption',
-                //                             title: 'Item Consumption',
-                //                             description: 'Manage Item Consumption'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Opening Balance',
-                //                             icon: 'FileText',
-                //                             url: '/inventory/inventory-module/transactions/inv-opening-balance',
-                //                             title: 'Opening Balance',
-                //                             description: 'Manage Inventory Opening Balance'
-                //                         }
-                //                     ]
-                //                 },
-                //                 {
-                //                     id: 3,
-                //                     name: 'Reports',
-                //                     icon: 'FileText',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'GRN Report',
-                //                             icon: 'FileText',
-                //                             url: '/inventory/inventory-module/reports/inv-r-grn',
-                //                             title: 'GRN Report',
-                //                             description: 'Generate Goods Receipt Note Reports'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Sales Report',
-                //                             icon: 'FileText',
-                //                             url: '/inventory/inventory-module/reports/inv-r-sales',
-                //                             title: 'Sales Report',
-                //                             description: 'Generate Sales Reports'
-                //                         },
-                //                         {
-                //                             id: 3,
-                //                             name: 'Stock Report',
-                //                             icon: 'FileText',
-                //                             url: '/inventory/inventory-module/reports/inv-r-stock',
-                //                             title: 'Stock Report',
-                //                             description: 'Generate Inventory Stock Reports'
-                //                         },
-                //                         {
-                //                             id: 4,
-                //                             name: 'Item Consumption Report',
-                //                             icon: 'FileText',
-                //                             url: '/inventory/inventory-module/reports/inv-r-item-consumption',
-                //                             title: 'Item Consumption Report',
-                //                             description: 'Generate Item Consumption Reports'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // }
+
                 {
                     id: 11,
                     name: 'Sports Management',
@@ -4803,6 +4689,54 @@ export async function getUserAccessibleModules() {
                                             url: '/Sports/Masters/House',
                                             title: 'Master House',
                                             description: 'Manage Master House'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'Master House Designation',
+                                            icon: 'Trophy',
+                                            url: '/Sports/Masters/HouseDesignation',
+                                            title: 'Master House Designation',
+                                            description: 'Manage Master House Designation'
+                                        },
+                                        {
+                                            id: 10,
+                                            name: 'Master Sports CC Group',
+                                            icon: 'Trophy',
+                                            url: '/Sports/Masters/MasterSportsCCGroup',
+                                            title: 'Master Sports CC Group',
+                                            description: 'Manage Master Sports CC Group'
+                                        },
+                                        {
+                                            id: 11,
+                                            name: 'Master Competition Category',
+                                            icon: 'Trophy',
+                                            url: '/Sports/Masters/CompetitionCategory',
+                                            title: 'Master Competition Category',
+                                            description: 'Manage Master Competition Category'
+                                        },
+                                        {
+                                            id: 12,
+                                            name: 'Master Sports CC Name UOM',
+                                            icon: 'Trophy',
+                                            url: '/Sports/Masters/SportsCCNameUOM',
+                                            title: 'Master Sports CC Name UOM',
+                                            description: 'Manage Master Sports CC Name UOM'
+                                        },
+                                        {
+                                            id: 13,
+                                            name: 'Student House Mapping',
+                                            icon: 'Trophy',
+                                            url: '/Sports/Masters/StudentHouseMapping',
+                                            title: 'Student House Mapping',
+                                            description: 'Map Students to Houses'
+                                        },
+                                        {
+                                            id: 14,
+                                            name: 'Master SportsCC Name',
+                                            icon: 'Settings',
+                                            url: '/Sports/Masters/SportsCCName',
+                                            title: 'Master SportsCC Name',
+                                            description: 'Manage Master SportsCC Name'
                                         }
                                     ]
                                 },
@@ -4842,6 +4776,22 @@ export async function getUserAccessibleModules() {
                                             url: '/Sports/Transactions/SportVenuewiseParticipationReport',
                                             title: 'Sport Venuewise Participation Report',
                                             description: 'Manage Sport Venuewise Participation Report'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Events Mapping',
+                                            icon: 'Activity',
+                                            url: '/Sports/Transactions/EventsMapping',
+                                            title: 'Events Mapping',
+                                            description: 'Manage Events Mapping'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Events Student Mapping',
+                                            icon: 'Activity',
+                                            url: '/Sports/Transactions/EventsStudentMapping',
+                                            title: 'Events Student Mapping',
+                                            description: 'Manage Events Student Mapping'
                                         }
                                     ]
                                 },
@@ -4856,8 +4806,9 @@ export async function getUserAccessibleModules() {
                                             icon: 'FileText',
                                             url: '/Sports/Reports/StudentEligbleReport',
                                             title: 'Student Eligible Report',
-                                            description: 'Student Eligible Report'
+                                            description: 'Generate Student Eligible Report'
                                         },
+
                                         {
                                             id: 2,
                                             name: 'Student Age Calculation Report',
@@ -4898,14 +4849,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Sport House Report',
                                             description: 'Sport House Report'
                                         },
-                                        {
-                                            id: 7,
-                                            name: 'Sport Student Participation Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/SportStudentParticipationReport',
-                                            title: 'Sport Student Participation Report',
-                                            description: 'Sport Student Participation Report'
-                                        },
+                                        // {
+                                        //     id: 7,
+                                        //     name: 'Sport Student Participation Report',
+                                        //     icon: 'FileText',
+                                        //     url: '/Sports/Reports/SportStudentParticipationReport',
+                                        //     title: 'Sport Student Participation Report',
+                                        //     description: 'Sport Student Participation Report'
+                                        // },
                                         {
                                             id: 8,
                                             name: 'Sport Topper List Report',
@@ -4921,6 +4872,54 @@ export async function getUserAccessibleModules() {
                                             url: '/Sports/Reports/SportsYearEndReport',
                                             title: 'Sports Year End Report',
                                             description: 'Sports Year End Report'
+                                        },
+                                        {
+                                            id: 10,
+                                            name: 'SRKVS Sports Report Record',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/SRKVSSportsReportRecord',
+                                            title: 'SRKVS Sports Report Record',
+                                            description: 'View SRKVS Sports Report Record'
+                                        },
+                                        {
+                                            id: 11,
+                                            name: 'Venue Wise Participation',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/VenueWiseParticipationReport',
+                                            title: 'Venue Wise Participation',
+                                            description: 'View Venue Wise Participation Report'
+                                        },
+                                        {
+                                            id: 12,
+                                            name: 'Month End Report',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/MonthEndReport',
+                                            title: 'Month End Report',
+                                            description: 'View Month End Report'
+                                        },
+                                        {
+                                            id: 13,
+                                            name: 'Points Record Report',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/PointsRecordReport',
+                                            title: 'Points Record Report',
+                                            description: 'View Points Record Report'
+                                        },
+                                        {
+                                            id: 14,
+                                            name: 'Sport Points And Record Report',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/SportPointsAndRecordReport',
+                                            title: 'Sport Points And Record Report',
+                                            description: 'View Sport Points And Record Report'
+                                        },
+                                        {
+                                            id: 15,
+                                            name: 'Eligibility Certificate Report',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/EligibilityCertificateReport',
+                                            title: 'Eligibility Certificate Report',
+                                            description: 'Generate Eligibility Certificate Report'
                                         }
                                     ]
                                 }
