@@ -250,3 +250,42 @@ export interface SalaryCalculationGenerateResponse {
     failedEmployees: number[];
     retrunMsg: string;
 }
+
+// New Search Request based on user provided JSON
+export interface NewSalaryCalculationSearchRequest {
+    hreS_Year: string;
+    hreS_Month: string;
+    hrmdeS_IdList: number[];
+    hrmD_IdList: number[];
+    groupTypeIdList: number[];
+}
+
+// New Selection Employee interface
+export interface SelectionEmployee {
+    hrmE_Id: number;
+    hrmE_FirstName: string;
+    hrmE_MiddleName: string | null;
+    hrmE_LastName: string | null;
+    hrmE_DOJ: string;
+    hrmE_DOL: string | null;
+    hrmE_LeftFlag: boolean;
+    hrmgT_Id: number;
+    hrmD_Id: number;
+    hrmdeS_Id: number;
+    hrmE_EmployeeCode: string;
+    hrmE_MobileNo: string | null;
+    hrmE_EmailID: string | null;
+    hrmE_EmployeeOrder: number | null;
+}
+
+// New Calculate/Generate Request
+export interface NewSalaryCalculationGenerateRequest {
+    hreS_Year: string;
+    hreS_Month: string;
+    comm: string;
+    masterEmployeeList: {
+        hrmE_Id: number;
+        type: string;
+        imC_Id: number;
+    }[];
+}

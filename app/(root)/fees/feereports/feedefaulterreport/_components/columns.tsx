@@ -218,6 +218,39 @@ export function exportToExcelforFeeGroupWise(rows: any[], fileName: string) {
 
     XLSX.writeFile(workbook, `${fileName}.xlsx`);
 }
+
+export function exportToExcelforFeeHeadWise(rows: any[], fileName: string) {
+    if (!rows || rows.length === 0) return;
+    const dataForExcel = rows.map((row, index) => ({
+        'Sl No': index + 1,
+        'Head Name': row.fmH_FeeName,
+        'Balance Amount': `${row.totalBalance?.toLocaleString('en-IN') || '0'}`
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataForExcel);
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
+
+    XLSX.writeFile(workbook, `${fileName}.xlsx`);
+}
+
+export function exportToExcelforFeeClassWise(rows: any[], fileName: string) {
+    if (!rows || rows.length === 0) return;
+    const dataForExcel = rows.map((row, index) => ({
+        'Sl No': index + 1,
+        'Class Name': row.asmcL_ClassName,
+        'Balance Amount': `${row.totalBalance?.toLocaleString('en-IN') || '0'}`
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataForExcel);
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
+
+    XLSX.writeFile(workbook, `${fileName}.xlsx`);
+}
+
 export function exportToExcelforFeeInstallmentWise(rows: any[], fileName: string) {
     if (!rows || rows.length === 0) return;
     const dataForExcel = rows.map((row, index) => ({
