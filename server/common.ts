@@ -926,6 +926,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Fee Receipt Import',
                                             description: 'Manage Fee Receipt Import'
                                         },
+                                        // {
+                                        //     id: 520,
+                                        //     name: 'Fee Receipt Import Common',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/transactions/feereceiptimportCommon',
+                                        //     title: 'Fee Receipt Import Common',
+                                        //     description: 'Manage Fee Receipt Import Common'
+                                        // },
                                         {
                                             id: 517,
                                             name: 'Bank Payment Import',
