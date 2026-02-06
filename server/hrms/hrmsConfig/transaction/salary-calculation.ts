@@ -5,7 +5,10 @@ import type {
     SalaryCalculationGenerateResponse,
     SalaryCalculationOnloadRequest,
     SalaryCalculationOnloadResponse,
-    SalaryCalculationSearchRequest
+    SalaryCalculationSearchRequest,
+    NewSalaryCalculationSearchRequest,
+    NewSalaryCalculationGenerateRequest,
+    SelectionEmployee
 } from '@/types/hrms/salary-calculation';
 /**
  * Get onload details for salary calculation (dropdowns, config, etc.)
@@ -21,7 +24,7 @@ export async function getSalaryCalculationOnload(payload: SalaryCalculationOnloa
     };
     console.log('📤 [SALARY CALCULATION - BACKEND] Request body:', JSON.stringify(requestBody, null, 2));
     try {
-        const response = await api.post<SalaryCalculationOnloadResponse>('hrms', url, requestBody        );
+        const response = await api.post<SalaryCalculationOnloadResponse>('hrms', url, requestBody);
         // The backend returns raw data, not wrapped in ApiResponse format
         // Wrap it to match the expected ApiResponse structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
@@ -102,7 +105,7 @@ export async function searchSalaryCalculationBySelection(payload: SalaryCalculat
     };
     console.log('📤 [SALARY CALCULATION - BACKEND] Request body prepared:', JSON.stringify(requestBody, null, 2));
     try {
-        const response = await api.post<SalaryCalculationOnloadResponse>('hrms', url, requestBody        );
+        const response = await api.post<SalaryCalculationOnloadResponse>('hrms', url, requestBody);
         // The backend returns raw data, not wrapped in ApiResponse format
         // Wrap it to match the expected ApiResponse structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
@@ -158,4 +161,49 @@ export async function generateSalaryForSelectedEmployees(data: SalaryCalculation
         message: 'Salary calculation completed',
         data: response as unknown as SalaryCalculationGenerateResponse
     };
+}
+
+/**
+ * Search employees by selection criteria (New API)
+ * POST /api/TransEmployeeSalaryCalculation/employee_details_by_selection
+ */
+export async function searchEmployeesBySelection(payload: NewSalaryCalculationSearchRequest) {
+    const url = '/api/TransEmployeeSalaryCalculation/employee_details_by_selection';
+    try {
+        const response = await api.post<SelectionEmployee[]>('hrms', url, payload);
+        // Ensure success: true is returned in the response
+        if (response && typeof response === 'object' && 'success' in response) {
+            return response;
+        }
+        return {
+            success: true,
+            data: response as unknown as SelectionEmployee[],
+            message: 'Employee details fetched successfully'
+        };
+    } catch (error) {
+        console.error('Error searching employees:', error);
+        throw error;
+    }
+}
+
+/**
+ * Calculate selected employee salary (New API)
+ * POST /api/TransEmployeeSalaryCalculation/calculate_selected_employee_salary
+ */
+export async function calculateEmployeeSalary(payload: NewSalaryCalculationGenerateRequest) {
+    const url = '/api/TransEmployeeSalaryCalculation/calculate_selected_employee_salary';
+    try {
+        const response = await api.post<any>('hrms', url, payload);
+        if (response && typeof response === 'object' && 'success' in response) {
+            return response;
+        }
+        return {
+            success: true,
+            data: response,
+            message: 'Salary calculated successfully'
+        };
+    } catch (error) {
+        console.error('Error calculating salary:', error);
+        throw error;
+    }
 }

@@ -38,10 +38,19 @@ export async function getMasterCourseDetails(id: number) {
 }
 export async function getCourseSetOrder() {
     const url = '/api/MasterCourse/set_order_list';
-    return await api.get<IMasterCourseSetOrderList[]>('hrms', url);
+    return await api.getArray<IMasterCourseSetOrderList>('hrms', url);
 }
 
 export async function updateCourseSetorder(data: any) {
+    console.log('🔙 [SERVER ACTION] updateCourseSetorder called with data:', JSON.stringify(data, null, 2));
     const url = '/api/MasterCourse/update_course_order_number';
-    return await api.put<any>('hrms', url, data);
+    try {
+        const response = await api.post<any>('hrms', url, data);
+        console.log('🔙 [SERVER ACTION] updateCourseSetorder response:', JSON.stringify(response, null, 2));
+        return response;
+    } catch (error: any) {
+        console.error('🔙 [SERVER ACTION] updateCourseSetorder error:', error);
+        // Throw an actual Error object instead of a string to avoid serialization issues in Next.js Server Actions
+        throw new Error(typeof error === 'string' ? error : (error?.message || 'An unknown error occurred during order update'));
+    }
 }

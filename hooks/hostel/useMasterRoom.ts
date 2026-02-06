@@ -1,38 +1,41 @@
-import { fetchRoomData } from '@/server/hostel/hostel-management/masters/room';
-import { IFacility, IHostel, IRoomDisplay } from '@/types/hostel/hostel-management/masters';
-import { useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { getRoomList, getFloorsByHostel, getRoomCategoryByHostel, getRoomDetails } from '@/server/hostel/hostel-management/masters/room';
+import { ApiSearchparams } from '@/types';
 
-export function useMasterRoom() {
-    const [roomList, setRoomList] = useState<IRoomDisplay[]>([]);
-    const [hostels, setHostels] = useState<IHostel[]>([]);
-    const [facilities, setFacilities] = useState<IFacility[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-
-    const fetchData = async () => {
-        setIsLoading(true);
-        try {
-            const result = await fetchRoomData();
-            if (result.success && result.data) {
-                setRoomList(result.data.roomList);
-               // setHostels(result.data.hostels);
-                setFacilities(result.data.facilities);
-            }
-        } catch (error) {
-            console.error('Failed to fetch room data:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchData();
-    }, []);
-
+export const useMasterRoom = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
     return {
-        roomList,
-        hostels,
-        facilities,
-        isLoading,
-        refetch: fetchData
+        ...useQuery({
+            queryKey: ['master-room-list', searchParams],
+            queryFn: () => getRoomList(searchParams),
+            refetchOnWindowFocus: false,
+        }),
+        refetchAll: () => {
+             return queryClient.invalidateQueries({
+                 queryKey: ['master-room-list']
+             });
+         }
     };
-}
+};
+
+export const useFloorsByHostel = (hostelId: string) => {
+    return useQuery({
+        queryKey: ['floors-by-hostel', hostelId],
+        queryFn: () => getFloorsByHostel(Number(hostelId)),
+        enabled: !!hostelId && hostelId !== '0',
+        select: (data) => data?.data?.floor_list || [],
+        staleTime: 0 // Always fetch fresh to act as dropdown dependency
+    });
+};
+
+export const useRoomCategoryByHostel = (hostelId: string) => {
+    return useQuery({
+        queryKey: ['room-categories-by-hostel', hostelId],
+        queryFn: () => getRoomCategoryByHostel(Number(hostelId)),
+        enabled: !!hostelId && hostelId !== '0',
+        select: (data) => data?.data?.room_catlist || [],
+        staleTime: 0
+    });
+};
+
+// Note: If distinct fetching by floor is required for room category, add useRoomCategoryByFloor
