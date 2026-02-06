@@ -114,7 +114,9 @@ export default function AddOBForm({ onSuccess, storeList: initialStoreList, item
                             invmuoM_UOMName: obj.invmuoM_UOMName,
                             invoB_BatchNo: obj.invoB_BatchNo,
                             invoB_PurchaseDate: new Date(obj.invoB_PurchaseDate),
-                            invoB_Qty: obj.qty || obj.invoB_Qty,
+                            invoB_Qty: obj.invoB_Qty,
+                            invoB_MfgDate: obj.invoB_MfgDate ? new Date(obj.invoB_MfgDate) : null,
+                            invoB_ExpDate: obj.invoB_ExpDate ? new Date(obj.invoB_ExpDate) : null,
                             invstO_PurchaseRate: obj.invoB_PurchaseRate,
                             invstO_SalesRate: obj.invoB_SaleRate,
                             invoB_Naration: obj.invoB_Naration,
@@ -256,6 +258,8 @@ export default function AddOBForm({ onSuccess, storeList: initialStoreList, item
                                 <TableHead className="min-w-[80px] border">UOM</TableHead>
                                 <TableHead className="min-w-[100px] border">Batch No</TableHead>
                                 <TableHead className="min-w-[140px] border">Purchase Date</TableHead>
+                                <TableHead className="min-w-[140px] border">Mfg Date</TableHead>
+                                <TableHead className="min-w-[140px] border">Exp Date</TableHead>
                                 <TableHead className="min-w-[80px] text-right border">Qty</TableHead>
                                 <TableHead className="min-w-[100px] text-right border">Purchase Rate</TableHead>
                                 <TableHead className="min-w-[110px] text-right border">Total Amount</TableHead>
@@ -321,6 +325,34 @@ export default function AddOBForm({ onSuccess, storeList: initialStoreList, item
                                                     className='flex h-9 w-full rounded-md border border-primary/10 bg-background px-3 py-2 text-xs transition-all focus:border-primary/40 focus:ring-1 focus:ring-primary/20 hover:border-primary/30'
                                                     value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''}
                                                     onChange={(e) => field.onChange(new Date(e.target.value))}
+                                                />
+                                            )}
+                                        />
+                                    </TableCell>
+                                    <TableCell className="border">
+                                        <Controller
+                                            name={`transrows.${index}.invoB_MfgDate`}
+                                            control={control}
+                                            render={({ field }) => (
+                                                <input
+                                                    type='date'
+                                                    className='flex h-9 w-full rounded-md border border-primary/10 bg-background px-3 py-2 text-xs transition-all focus:border-primary/40 focus:ring-1 focus:ring-primary/20 hover:border-primary/30'
+                                                    value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''}
+                                                    onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : null)}
+                                                />
+                                            )}
+                                        />
+                                    </TableCell>
+                                    <TableCell className="border">
+                                        <Controller
+                                            name={`transrows.${index}.invoB_ExpDate`}
+                                            control={control}
+                                            render={({ field }) => (
+                                                <input
+                                                    type='date'
+                                                    className='flex h-9 w-full rounded-md border border-primary/10 bg-background px-3 py-2 text-xs transition-all focus:border-primary/40 focus:ring-1 focus:ring-primary/20 hover:border-primary/30'
+                                                    value={field.value ? format(new Date(field.value), 'yyyy-MM-dd') : ''}
+                                                    onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : null)}
                                                 />
                                             )}
                                         />
