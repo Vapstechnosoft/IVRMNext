@@ -28,21 +28,20 @@ export default function AlumniNoticeBoardPage(props: { searchParams: SearchParam
             const res = await getAlumniNoticeBoardData(searchParams as any);
             console.info('Notice Board RAW Response:', res);
             if (res.success && res.data) {
-                // Shape the data for the GenericDataTable: it expects response.data to be the array
-                // The backend returns the array directly in res.data based on user input
-                const dataList = Array.isArray(res.data) ? res.data : res.data.alumninoticeboardlist || [];
+                // Shape the data for the GenericDataTable
+                const dataList = (Array.isArray(res.data) ? res.data : res.alumninoticeboardlist || []) as IAlumniNoticeBoard[];
 
                 const shapedResponse = {
                     ...res,
                     data: dataList,
-                    total: dataList.length
+                    total: res.total || dataList.length
                 };
 
                 console.info('Notice Board Data Array:', shapedResponse.data);
                 setData(shapedResponse);
-                // Handle metadata if it exists, otherwise default
-                setMI_Id(res.data.mI_Id || 0);
-                setAsmaY_Id(res.data.asmaY_Id || 0);
+                // Handle metadata if it exists
+                setMI_Id(Number(res.mI_Id || 0));
+                setAsmaY_Id(Number(res.asmaY_Id || 0));
             } else {
                 console.warn('Notice Board fetch failed:', res.message);
                 setData(null);

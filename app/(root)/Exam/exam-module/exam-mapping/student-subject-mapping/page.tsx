@@ -14,10 +14,10 @@ import {
     getStudentsForSubjectMapping,
     getSubjectlistByCatGroupClass
 } from '@/server/exam/exam-module/exam-mapping/student-subject-mapping';
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import StudentSubjectMappingTable, { StudentMappingTableHandle } from './_components/student-mapping-table';
+import StudentSubjectMappingTable, { type StudentMappingTableHandle } from './_components/student-mapping-table';
 
 type FormValues = {
     asmaY_Id?: number;
@@ -545,7 +545,9 @@ function StudentSubjectMappingContent() {
                                     name='subject_group_id'
                                     render={({ field, fieldState }) => (
                                         <div>
-                                            <Label className='mb-1 block font-medium text-slate-700 text-sm'>Subject Group <span className='text-red-500'>*</span></Label>
+                                            <Label className='mb-1 block font-medium text-slate-700 text-sm'>
+                                                Subject Group <span className='text-red-500'>*</span>
+                                            </Label>
                                             <Select
                                                 key={field.value}
                                                 value={field.value ? String(field.value) : undefined}

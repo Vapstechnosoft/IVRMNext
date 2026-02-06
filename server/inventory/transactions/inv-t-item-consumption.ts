@@ -5,73 +5,66 @@ import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type { InvTItemConsumption } from '@/types/inventory/transactions/inv-t-item-consumption';
 
-const MOCK_DATA: InvTItemConsumption[] = Array.from({ length: 30 }, (_, i) => ({
-    invmiC_Id: i + 1,
-    invmsT_Id: 1,
-    invmS_StoreName: 'General Store',
-    invmiC_ICNo: `IC-${2024000 + i}`,
-    invmiC_ICDate: new Date().toISOString(),
-    invmiC_Remarks: `Consumption Record ${i + 1}`,
-    invmiC_StuOtherFlg: i % 2 === 0 ? 'Staff' : 'Department',
-    invmiC_ActiveFlg: true,
-}));
+const MOCK_DATA: InvTItemConsumption[] = [];
+
+const extractData = (res: any, key?: string) => {
+    if (!res) return [];
+    const data = res.data ?? res;
+    if (key && data[key]) {
+        if (Array.isArray(data[key])) return data[key];
+        if (data[key].$values) return data[key].$values;
+    }
+    if (Array.isArray(data)) return data;
+    if (data.$values) return data.$values;
+    return [];
+};
 
 export async function getInvTItemConsumptionLoadData(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/INV_ItemConsumption/getloaddata?${urlParams}`;
+    const url = `/INV_ItemConsumptionFacade/GetItemConsumption?${urlParams}`;
 
     try {
         const response = await api.get<any>('inventory', url);
-        if (response.success && response.data && response.data.get_itemconsumption && response.data.get_itemconsumption.length > 0) {
-            return response; // Use real data if available and not empty
-        }
+
+        return {
+            success: response.success,
+            message: response.message,
+            data: {
+                get_itemconsumption: extractData(response, 'data'), // The main list is often in 'data' or direct
+                total: response.total || extractData(response, 'data').length,
+                get_Store: [],
+                get_employee: [],
+                get_Department: [],
+                get_Student: [],
+                get_Product: []
+            }
+        };
+
     } catch (error) {
-        console.warn("API fetch failed, falling back to mock data:", error);
+        console.error("Error fetching Item Consumption load data:", error);
+        return {
+            success: false,
+            data: {
+                get_itemconsumption: [],
+                total: 0,
+                get_Store: [],
+                get_employee: [],
+                get_Department: [],
+                get_Student: [],
+                get_Product: []
+            }
+        };
     }
-
-    // Fallback Mock with Pagination logic
-    const page = Number(searchParams?.page) || 1;
-    const pageSize = Number(searchParams?.page_size) || 10;
-    const start = (page - 1) * pageSize;
-    const end = start + pageSize;
-    const paginatedData = MOCK_DATA.slice(start, end);
-
-    return {
-        success: true,
-        data: {
-            get_itemconsumption: paginatedData,
-            total: MOCK_DATA.length,
-            get_Store: [
-                { invmsT_Id: 1, invmS_StoreName: 'General Store' },
-                { invmsT_Id: 2, invmS_StoreName: 'Lab Store' }
-            ],
-            get_employee: [
-                { hrmE_Id: 101, employeename: 'Admin User', hrmE_EmployeeCode: 'EMP001' },
-                { hrmE_Id: 102, employeename: 'Teacher One', hrmE_EmployeeCode: 'EMP002' },
-                { hrmE_Id: 103, employeename: 'Staff Two', hrmE_EmployeeCode: 'EMP003' }
-            ],
-            get_Department: [
-                { hrmD_Id: 10, hrmD_DepartmentName: 'IT Department' },
-                { hrmD_Id: 11, hrmD_DepartmentName: 'Science Department' }
-            ],
-            get_Student: [
-                { amsT_Id: 1001, studentname: 'Student A', amsT_AdmNo: 'ADM001' }
-            ],
-            get_Product: [
-                { invmP_Id: 1, invmP_ProductName: 'Stationery' }
-            ]
-        }
-    };
 }
 
 export async function saveInvTItemConsumption(data: any) {
-    const url = `/INV_ItemConsumption/savedetails`;
+    const url = `/INV_ItemConsumptionFacade/SaveItemConsumptionDetails`;
     return await api.post<any>('inventory', url, data);
 }
 
 export async function deactiveInvTItemConsumption(data: any) {
-    const url = `/INV_ItemConsumption/deactive`;
-    return await api.post<any>('inventory', url, data);
+    const url = `/INV_ItemConsumptionFacade/deactive?INVMIC_Id=${data.invmiC_Id}&INVMIC_StuOtherFlg=${data.invmiC_StuOtherFlg}`;
+    return await api.post<any>('inventory', url, {});
 }
 
 export async function getItemConsumptionDetails(data: any) {
@@ -79,13 +72,98 @@ export async function getItemConsumptionDetails(data: any) {
     return await api.post<any>('inventory', url, data);
 }
 
-export async function getItemsOnStoreChange(invmsT_Id: number) {
-    const data = { INVMST_Id: invmsT_Id };
-    const url = `/INV_ItemConsumption/ItemConsumption`;
-    return await api.post<any>('inventory', url, data);
+export async function getItemsOnStoreChange(data: { INVMST_Id: number, INVC_LIFOFIFOFlg?: string }) {
+    const params = new URLSearchParams();
+    params.append('INVMST_Id', data.INVMST_Id.toString());
+    if (data.INVC_LIFOFIFOFlg) {
+        params.append('INVC_LIFOFIFOFlg', data.INVC_LIFOFIFOFlg);
+    }
+
+    const url = `/INV_T_SalesFacade/getitem?${params.toString()}`;
+    return await api.get<any>('inventory', url);
 }
 
 export async function getItemStockDetails(data: any) {
-    const url = `/INV_T_Sales/getitemDetail`; // Reusing as per legacy code
-    return await api.post<any>('inventory', url, data);
+    const params = new URLSearchParams();
+    Object.keys(data).forEach(key => {
+        if (data[key] !== null && data[key] !== undefined) {
+            params.append(key, data[key].toString());
+        }
+    });
+
+    const url = `/INV_T_SalesFacade/getitemDetail?${params.toString()}`;
+    return await api.get<any>('inventory', url);
+}
+
+
+export async function getInvTItemConsumptionStores() {
+    const url = `/INV_T_GRNFacade/loadstores`;
+    try {
+        const response = await api.get<any>('inventory', url);
+        return {
+            success: true,
+            data: extractData(response)
+        };
+    } catch (error) {
+        console.error("Error fetching stores for item consumption:", error);
+        return { success: false, data: [] };
+    }
+}
+
+export async function getInvTItemConsumptionDepartments() {
+    const url = '/INV_ItemConsumptionFacade/GetDepartment';
+    const response = await api.get<any>('inventory', url);
+    return {
+        success: true,
+        data: extractData(response)
+    };
+}
+
+export async function getInvTItemConsumptionProducts() {
+    const url = '/INV_ItemConsumptionFacade/GetProducts';
+    const response = await api.get<any>('inventory', url);
+    return {
+        success: true,
+        data: extractData(response)
+    };
+}
+
+export async function getInvTItemConsumptionEmployees() {
+    const url = `/INV_T_SalesFacade/loadEmployees`;
+    const response = await api.get<any>('inventory', url);
+    return {
+        success: true,
+        data: extractData(response)
+    };
+}
+
+
+export async function getStudentClsSec(type: string) {
+    const url = `/INV_T_SalesFacade/getStudentClsSec?type=${type}`;
+    return await api.get<any>('inventory', url);
+}
+
+export async function getStudentList(data: any) {
+    const params = new URLSearchParams();
+    if (data.ASMCL_Id) params.append('ASMCL_Id', data.ASMCL_Id.toString());
+    if (data.ASMS_Id) params.append('ASMS_Id', data.ASMS_Id.toString());
+    if (data.type) params.append('type', data.type);
+
+    const url = `/INV_T_SalesFacade/getStudentlist?${params.toString()}`;
+    return await api.get<any>('inventory', url);
+}
+
+export async function getSectionList(data: any) {
+    const url = `/INV_T_SalesFacade/getsectionlist?ASMCL_Id=${data.ASMCL_Id}`;
+    return await api.get<any>('inventory', url);
+}
+
+export async function getICUserDetails(INVMIC_Id: number, userflag: string) {
+    const url = `/INV_ItemConsumptionFacade/getICUserDetails?INVMIC_Id=${INVMIC_Id}&userflag=${userflag}`;
+    return await api.get<any>('inventory', url);
+}
+
+export async function getICItemDetails(INVMIC_Id: number) {
+    const url = `/INV_ItemConsumptionFacade/getICItemDetails?INVMIC_Id=${INVMIC_Id}`;
+    return await api.get<any>('inventory', url);
 }

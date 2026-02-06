@@ -19,6 +19,9 @@ interface DateFieldProps {
     toDate?: Date;
     restricted_tofieldName?: string;
     restricted_fromfieldName?: string;
+    disabled?: boolean;
+    required?: boolean;
+    outputFormat?: 'date' | 'string';
 }
 
 export const DateField: React.FC<DateFieldProps> = ({
@@ -29,7 +32,10 @@ export const DateField: React.FC<DateFieldProps> = ({
     fromDate,
     toDate,
     restricted_tofieldName,
-    restricted_fromfieldName
+    restricted_fromfieldName,
+    disabled,
+    required,
+    outputFormat = 'string'
 }) => {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -72,7 +78,7 @@ export const DateField: React.FC<DateFieldProps> = ({
             return;
         }
         setSelectedDate(date);
-        field.onChange(date.toISOString());
+        field.onChange(outputFormat === 'date' ? date : date.toISOString());
         setIsOpen(false);
     };
 
@@ -80,13 +86,14 @@ export const DateField: React.FC<DateFieldProps> = ({
         <div className='mt-5 flex flex-col gap-1.5'>
             <Label htmlFor={field.name}>
                 {label}
-                <span className='ml-1 text-red-500'>*</span>
+                {required && <span className='ml-1 text-red-500'>*</span>}
             </Label>
 
             <Popover open={isOpen} onOpenChange={setIsOpen}>
                 <PopoverTrigger asChild>
                     <Button
                         variant='outline'
+                        disabled={disabled}
                         className={cn('w-full justify-between font-normal', !selectedDate && 'text-muted-foreground')}>
                         {selectedDate ? format(selectedDate, 'dd-MM-yyyy') : <span>{placeholder}</span>}
                         <Calendar className='ml-auto h-4 w-4 opacity-50' />

@@ -207,13 +207,13 @@ export function PageNavigation() {
                                 ref={pageScrollRef}
                                 className='scrollbar-hide flex flex-1 gap-3 overflow-x-auto px-1 py-2'
                                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                                {activeNavigation.pages.map((page: any) => {
+                                {activeNavigation.pages.map((page: any, index: number) => {
                                     const isCurrentPage = pathname === page.url;
                                     const IconComponent = getPageIconWithFallback(page.icon, page.name);
 
                                     return (
                                         <Link
-                                            key={page.id}
+                                            key={`${page.id}-${index}`}
                                             href={page.url}
                                             onClick={() => {
                                                 setPageName(page.name);

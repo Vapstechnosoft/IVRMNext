@@ -1,4 +1,3 @@
-// app/(root)/fees/feereports/feedefaulterreport/page.tsx
 'use client';
 
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
@@ -8,7 +7,7 @@ import {
     useFeeCustomGroupDefaulterreport,
     useFeeGroupDefaulterreport,
     useFeeSectionListDefaulterreport,
-    useFeeTermDefaulterreport,
+    useFeeTermDropDownDataForReports,
     useFeeTransInstallmentYearlyfeecollectionreport
 } from '@/hooks/fees/useReports';
 
@@ -16,11 +15,12 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Card } from '@/components/ui/card';
 import { Checkbox as BaseCheckbox } from '@/components/ui/checkbox';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { yearlyFeeCollectionSchema } from '@/schemas/fees/reports';
+import { getFeeYearlyCollectionReport } from '@/server/fees/reports/fee_yearlyCollectionReport';
 import type {
     IFeeBusRouteDropdownList,
     IFeeClassDropdownList,
@@ -29,38 +29,31 @@ import type {
     IFeeSectionDropdownList,
     IFeeTermDropdownList,
     IFeeTrasactionInstallmentDropdownList,
-    IFeeYearlyCollectionReportRow
+    IFeeYearlyCollectionReport
 } from '@/types/fees/reports/reports';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { toast } from 'sonner';
-
-import { exportToExcel } from '@/lib/utils';
-import { yearlyFeeCollectionSchema } from '@/schemas/fees/reports';
-import { getFeeYearlyCollectionReport } from '@/server/fees/reports/fee_yearlyCollectionReport';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import type { z } from 'zod';
 import {
-    type BreakdownType,
-    type FeeYearlyTableRow,
-    createTotalRow,
-    exportToExcelDynamic,
-    getDynamicColumns,
-    mapYearlyCollectionReport,
-    printTableDynamic
+    exportToExcelforCategoryWise,
+    exportToExcelforClassInstallmentWiseConslidated,
+    exportToExcelforClassSectionInstallmentWiseConslidated,
+    exportToExcelforClassSectionWiseTotalPaidCount,
+    exportToExcelforFeeClassWise,
+    exportToExcelforFeeGroupWise,
+    exportToExcelforFeeHeadWise,
+    exportToExcelforInstallmentWise,
+    exportToExcelforStudentWise,
+    exportToExcelforStudentWiseTotalPaidCount,
+    printTable
 } from './_components/columns';
 
-// Checkbox with full indeterminate support
 const Checkbox = ({ checked, indeterminate, onCheckedChange, ...props }: any) => {
     const ref = useRef<HTMLButtonElement>(null);
-
-    //   useEffect(() => {
-    //     if (ref.current) {
-    //       ref.current.indeterminate = !!indeterminate;
-    //     }
-    //   }, [indeterminate]);
 
     return <BaseCheckbox ref={ref} checked={checked} onCheckedChange={onCheckedChange} {...props} />;
 };
@@ -76,18 +69,12 @@ interface IAcademicYear {
 export default function FeeYearlyCollectionReport() {
     // ---------------------------- FORM ----------------------------
     const {
-        control,
         handleSubmit,
         reset,
-        register,
-        setValue,
-
-        formState: { errors, isSubmitting }
+        formState: { isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(yearlyFeeCollectionSchema),
         mode: 'all'
-        // ,
-
         // defaultValues: {
         //     report: 'students',
         //     rpttyp: 'Individual',
@@ -105,8 +92,6 @@ export default function FeeYearlyCollectionReport() {
         //     Fmc_allorcorddorop: 'All'
         // }
     });
-
-    const [loading, setLoading] = useState(false);
 
     const [filters, setFilters] = useState({
         userType: 'Students' as 'Students' | 'Staff' | 'Others',
@@ -145,9 +130,9 @@ export default function FeeYearlyCollectionReport() {
     const [customGroups, setCustomGroups] = useState<IFeeCustomGroupDropdownList[]>([]);
 
     // const [reportData, setReportData] = useState<IFeeYearlyCollectionReportRow[]>([]);
-    const [reportData, setReportData] = useState<FeeYearlyTableRow[]>([]);
+    const [reportData, setReportData] = useState<IFeeYearlyCollectionReport[]>([]);
 
-    const [reportLoading, setReportLoading] = useState(false); // ← ADD THIS LINE
+    const [reportLoading, setReportLoading] = useState(false);
     const [showReport, setShowReport] = useState(false);
     //const [feeInstallments, setfeeInstallments] = useState<IFeeInstallmentDropdownList[]>([]);
     const [feeInstallments, setfeeInstallments] = useState<IFeeTrasactionInstallmentDropdownList[]>([]);
@@ -164,7 +149,10 @@ export default function FeeYearlyCollectionReport() {
         refetch: refetchSections
     } = useFeeSectionListDefaulterreport();
     const { data: feegroupData, isLoading: loadingfeegroup, error: feegroupError } = useFeeGroupDefaulterreport();
-    const { data: feetermData, isLoading: loadingfeeterm, error: feetermError } = useFeeTermDefaulterreport();
+    //const { data: feetermData, isLoading: loadingfeeterm, error: feetermError } = useFeeTermDefaulterreport();
+
+    const { data: feetermData, isLoading: loadingfeeterm, error: feetermError } = useFeeTermDropDownDataForReports();
+
     const { data: busRouteResponse, isLoading: loadingBusRoutes, error: busRouteError } = useFeeBusRouteDefaulterreport();
     const { data: customGroupResponse, isLoading: loadingCustomGroup, error: customGroupError } = useFeeCustomGroupDefaulterreport();
 
@@ -180,9 +168,22 @@ export default function FeeYearlyCollectionReport() {
         error: feeInstallmentError
     } = useFeeTransInstallmentYearlyfeecollectionreport();
 
-    console.log('feeInstallmentData', feeInstallmentData);
-
     // Load data effects (unchanged)
+
+    useEffect(() => {
+        setReportData([]);
+        setShowReport(false);
+    }, [
+        filters.breakdown,
+        filters.classId,
+        filters.sectionId,
+        filters.academicYearId,
+        filters.customGroupIds,
+        filters.termIds,
+        filters.installmentIds,
+        filters.feeGroupIds
+    ]);
+
     useEffect(() => {
         if (academicError) {
             toast.error(academicError?.message || 'Failed to load academic years');
@@ -308,19 +309,31 @@ export default function FeeYearlyCollectionReport() {
     };
 
     const selectAllFeeGroups = (checked: boolean) => {
-        setFilters((prev) => ({ ...prev, feeGroupIds: checked ? feeGroups.map((g) => g.fmG_Id) : [] }));
+        setFilters((prev) => ({
+            ...prev,
+            feeGroupIds: checked ? feeGroups.map((g) => g.fmG_Id) : []
+        }));
     };
 
     const selectAllTerms = (checked: boolean) => {
-        setFilters((prev) => ({ ...prev, termIds: checked ? feeTerms.map((t) => t.fmT_Id) : [] }));
+        setFilters((prev) => ({
+            ...prev,
+            termIds: checked ? feeTerms.map((t) => t.fmT_Id) : []
+        }));
     };
 
     const selectAllInstallments = (checked: boolean) => {
-        setFilters((prev) => ({ ...prev, installmentIds: checked ? feeInstallments.map((t) => t.ftI_Id) : [] }));
+        setFilters((prev) => ({
+            ...prev,
+            installmentIds: checked ? feeInstallments.map((t) => t.ftI_Id) : []
+        }));
     };
 
     const selectAllBusRoutes = (checked: boolean) => {
-        setFilters((prev) => ({ ...prev, busRouteIds: checked ? feeBusRoutes.map((r) => r.trmR_Id) : [] }));
+        setFilters((prev) => ({
+            ...prev,
+            busRouteIds: checked ? feeBusRoutes.map((r) => r.trmR_Id) : []
+        }));
     };
 
     const toggleStatus = (status: 'active' | 'deactive' | 'left' | 'balance') => {
@@ -335,16 +348,47 @@ export default function FeeYearlyCollectionReport() {
         window.location.reload();
     };
 
-    const totalRow = createTotalRow(reportData.filter((r): r is IFeeYearlyCollectionReportRow => !('__isTotal' in r)));
+    //   const totalRow = createTotalRow(
+    //     reportData.filter(
+    //       (r): r is IFeeYearlyCollectionReportRow => !("__isTotal" in r),
+    //     ),
+    //   );
 
-    const tableData: FeeYearlyTableRow[] = [...reportData.filter((r) => !('__isTotal' in r)), totalRow];
+    //   const tableData: FeeYearlyTableRow[] = [
+    //     ...reportData.filter((r) => !("__isTotal" in r)),
+    //     totalRow,
+    //   ];
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
-        // Optional: Keep validation
+        setReportData([]);
+        setSelectedIds([]);
         if (!filters.academicYearId) return toast.error('Please select an Academic Year');
         if (filters.feeGroupIds.length === 0) return toast.error('Please select at least one Fee Group');
+        if (filters.breakdown !== 'INMW') {
+            if (filters.termIds.length === 0) return toast.error('Please select at least one Term');
+        }
+        if (filters.breakdown === 'INMW') {
+            if (filters.installmentIds.length === 0) return toast.error('Please select at least one Installment');
+        }
 
-        if (filters.termIds.length === 0) return toast.error('Please select at least one Term');
+        if (
+            filters.breakdown === 'FSW' ||
+            filters.breakdown === 'SWTPC' ||
+            filters.breakdown === 'STRMW' ||
+            filters.breakdown === 'CWTPC'
+        ) {
+            if (filters.classId === 0) return toast.error('Please select Class');
+
+            if (filters.sectionId === 0) return toast.error('Please select Section');
+        }
+
+        if (filters.viewMode === 'date') {
+            if (data.fromDate === null || data.fromDate === '') {
+                toast.error('Please Enter FromDate');
+            } else if (data.toDate === null || data.toDate === '') {
+                toast.error('Please Enter ToDate');
+            }
+        }
 
         setReportLoading(true);
         setShowReport(false);
@@ -357,12 +401,22 @@ export default function FeeYearlyCollectionReport() {
 
         try {
             const payload = {
-                // // Fee Group Ids
                 FMG_Ids: filters.feeGroupIds,
-
-                // Term OR Installment Ids
                 FTI_ids: filters.breakdown === 'INMW' ? filters.installmentIds : filters.termIds,
-
+                FMT_Ids:
+                    filters.breakdown === 'FGW' ||
+                    filters.breakdown === 'FHW' ||
+                    filters.breakdown === 'FSW' ||
+                    filters.breakdown === 'TRMW' ||
+                    filters.breakdown === 'STRMW' ||
+                    filters.breakdown === 'CW' ||
+                    filters.breakdown === 'CTW' ||
+                    filters.breakdown === 'CTC' ||
+                    filters.breakdown === 'SWTPC' ||
+                    filters.breakdown === 'CWTPC' ||
+                    filters.breakdown === 'FPW'
+                        ? filters.termIds
+                        : [],
                 // FMG_Ids: [385, 385, 377, 378],
                 //FTI_ids: [83],
 
@@ -406,23 +460,91 @@ export default function FeeYearlyCollectionReport() {
                 ASMCL_Id: filters.classId ?? 0,
                 AMSC_Id: filters.sectionId ?? 0
             };
-
-            const js = JSON.stringify(payload);
-
-            console.log('Fee Defaulter Payload 👉', js);
-
-            // 🔹 API CALL HERE
-            // const response = await fetchFeeDefaulterReport(payload);
+            //   console.log("payload", payload);
             const response = await getFeeYearlyCollectionReport(payload);
+            const apiList = response?.data ?? [];
+            //   const tableData = mapYearlyCollectionReport(
+            //     apiList,
+            //     filters.breakdown as BreakdownType,
+            //   );
+            const mapApiToReportRows = (apiData: any[]): IFeeYearlyCollectionReport[] => {
+                return apiData.map((item, index) => ({
+                    id: index + 1,
+                    fmg_groupname: item.fmg_groupname,
+                    fmh_feename: item.fmh_feename,
+                    adjusted: item.adjusted,
+                    balance: item.balance,
+                    concession: item.concession,
+                    excess: item.excess,
+                    fine: item.fine,
+                    fss_paidamount: item.fss_paidamount,
+                    rebate: item.rebate,
+                    runningexcess: item.runningexcess,
+                    totalpayable: item.totalpayable,
+                    waived: item.waived,
+                    amst_admno: item.amst_admno,
+                    asmcl_classname: item.asmcl_classname,
+                    openingbalance: item.openingbalance,
+                    studentname: item.studentname,
+                    mobileNo: item.mobileNo,
+                    asmcl_id: item.asmcl_id,
+                    asms_id: item.asms_id,
+                    fmh_id: item.fmh_id,
+                    fmt_id: item.fmt_id,
+                    fmt_name: item.fmt_name,
+                    arrear: item.arrear,
+                    paid: item.paid,
+                    payable: item.payable,
+                    charges: item.charges,
+                    amsT_AdmNo: item.amsT_AdmNo,
+                    amsT_Id: item.amsT_Id,
+                    asmcL_ClassName: item.asmcL_ClassName,
+                    charge: item.charge,
+                    ftI_Name: item.ftI_Name,
+                    ftI_Id: item.ftI_Id,
+                    studentName: item.studentName,
+                    fmt_Id: item.fmt_Id,
+                    fmt_Name: item.fmt_Name,
+                    fma_Id: item.fma_Id,
+                    amst_FatherName: item.amst_FatherName,
+                    amst_FatherMobileNo: item.amst_FatherMobileNo,
+                    cdNetAmount: item.cdNetAmount,
+                    cdPaidAmount: item.cdPaidAmount,
+                    cdBalanceAmount: item.cdBalanceAmount,
+                    amst_AdmNo: item.amst_AdmNo,
+                    amst_Id: item.amst_Id,
+                    asmcl_ClassName: item.asmcl_ClassName,
+                    refund: item.refund,
+                    fmcc_classcategoryname: item.fmcc_classcategoryname,
+                    bybank: item.bybank,
+                    bycash: item.bycash,
+                    byonline: item.byonline,
+                    bycard: item.bycard,
+                    byecs: item.byecs,
+                    byrtgs: item.byrtgs,
+                    asmc_sectionname: item.asmc_sectionname,
+                    totalcharges: item.totalcharges,
+                    totalbalance: item.totalbalance,
+                    totalpaid: item.totalpaid,
+                    totalconcession: item.totalconcession,
+                    totalwaivedoff: item.totalwaivedoff,
+                    totalrefund: item.totalrefund,
+                    adjustment: item.adjustment,
+                    amst_mobileno: item.amst_mobileno
+                }));
+            };
+            const data = mapApiToReportRows(apiList);
+            //   console.log("data", data);
+            setReportData(data);
 
-            const apiList = response?.data?.list ?? [];
-
-            const tableData = mapYearlyCollectionReport(apiList, filters.breakdown as BreakdownType);
-
-            setReportData(tableData);
+            if (apiList.length === 0) {
+                setShowReport(false);
+                toast.info('No records found for selected criteria');
+                return;
+            }
             setShowReport(true);
 
-            toast.success(`Report generated (${tableData.length} records)`);
+            //   toast.success(`Report generated (${tableData.length} records)`);
 
             toast.success('Report generated successfully');
         } catch (error: any) {
@@ -431,109 +553,728 @@ export default function FeeYearlyCollectionReport() {
         } finally {
             setReportLoading(false);
         }
-
-        // await new Promise((resolve) => setTimeout(resolve, 1200));
-
-        // // STATIC MOCK DATA - Looks 100% real!
-        // const mockData: IFeeDefaulterReportRow[] = [
-        //     {
-        //         feeGroup: 'Tuition Fee',
-        //         totalDue: 12500,
-        //         fsS_TotalToBePaid: 3000,
-        //         fsS_CurrentYrCharges: 10000,
-        //         fsS_AdjustedAmount: 1200,
-        //         fsS_ConcessionAmount: 1000,
-        //         fsS_FineAmount: 1000,
-        //         fsS_RefundAmount: 10000,
-        //         fsS_RunningExcessAmount: 1000,
-        //         fsS_PaidAmount: 2000,
-        //         fsS_WaivedAmount: 6000,
-        //         fsS_ToBePaid: 10000
-        //     },
-        //     {
-        //         feeGroup: 'Transport + Tuition',
-        //         totalDue: 28500,
-        //         fsS_TotalToBePaid: 100,
-        //         fsS_CurrentYrCharges: 10000,
-        //         fsS_AdjustedAmount: 4000,
-        //         fsS_ConcessionAmount: 1000,
-        //         fsS_FineAmount: 1000,
-        //         fsS_RefundAmount: 9800,
-        //         fsS_RunningExcessAmount: 1000,
-        //         fsS_PaidAmount: 2000,
-        //         fsS_WaivedAmount: 20000,
-        //         fsS_ToBePaid: 10000
-        //     },
-        //     {
-        //         feeGroup: 'Annual Charges',
-        //         totalDue: 200,
-        //         fsS_TotalToBePaid: 100,
-        //         fsS_CurrentYrCharges: 10000,
-        //         fsS_AdjustedAmount: 3000,
-        //         fsS_ConcessionAmount: 1000,
-        //         fsS_FineAmount: 1000,
-        //         fsS_RefundAmount: 10000,
-        //         fsS_RunningExcessAmount: 1000,
-        //         fsS_PaidAmount: 2000,
-        //         fsS_WaivedAmount: 4500,
-        //         fsS_ToBePaid: 4500
-        //     },
-        //     {
-        //         feeGroup: 'Tuition Fee',
-        //         totalDue: 15000,
-        //         fsS_TotalToBePaid: 100,
-        //         fsS_CurrentYrCharges: 10000,
-        //         fsS_AdjustedAmount: 1200,
-        //         fsS_ConcessionAmount: 4000,
-        //         fsS_FineAmount: 1000,
-        //         fsS_RefundAmount: 10000,
-        //         fsS_RunningExcessAmount: 1000,
-        //         fsS_PaidAmount: 2000,
-        //         fsS_WaivedAmount: 20000,
-        //         fsS_ToBePaid: 10000
-        //     },
-        //     {
-        //         feeGroup: 'Lab + Tuition',
-        //         totalDue: 42000,
-        //         fsS_TotalToBePaid: 100,
-        //         fsS_CurrentYrCharges: 10000,
-        //         fsS_AdjustedAmount: 1200,
-        //         fsS_ConcessionAmount: 1000,
-        //         fsS_FineAmount: 1000,
-        //         fsS_RefundAmount: 6000,
-        //         fsS_RunningExcessAmount: 1000,
-        //         fsS_PaidAmount: 2000,
-        //         fsS_WaivedAmount: 7000,
-        //         fsS_ToBePaid: 10000
-        //     }
-        // ];
-
-        // setReportData(mockData);
-        // setShowReport(true);
-        // setReportLoading(false);
-        // setLoading(false);
-
-        // toast.success(`Report generated successfully! Found ${mockData.length} defaulters`);
-
-        // // Auto scroll to report
-        // setTimeout(() => {
-        //     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        // }, 100);
-    };
-    const handlePrint = () => {
-        const rows = tableData.filter((r): r is IFeeYearlyCollectionReportRow => !('__isTotal' in r));
-
-        const totalRow = tableData.find((r): r is FeeYearlyTableRow => '__isTotal' in r);
-
-        printTableDynamic(filters.breakdown as BreakdownType, rows, totalRow);
     };
 
-    const handleExportExcel = () => {
-        exportToExcelDynamic(filters.breakdown as BreakdownType, reportData, 'Yearly_Fee_Collection_Report');
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
+
+    const toggleAllstudents = () => {
+        if (selectedIds.length === reportData.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(reportData.map((r) => r.id));
+        }
+    };
+    const toggleRow = (id: number) => {
+        setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+    };
+    //   const handlePrint = () => {
+    //     const rows = reportData.filter(
+    //       (r): r is IFeeYearlyCollectionReportRow => !("__isTotal" in r),
+    //     );
+
+    //     const totalRow = reportData.find(
+    //       (r): r is IFeeYearlyCollectionReportRow => "__isTotal" in r,
+    //     );
+
+    //     printTableDynamic(filters.breakdown as BreakdownType, rows, totalRow);
+    //   };
+
+    //   const handleExportExcel = () => {
+    //     exportToExcelDynamic(
+    //       filters.breakdown as BreakdownType,
+    //       reportData,
+    //       "Yearly_Fee_Collection_Report",
+    //     );
+    //   };
+
+    const handleExportExcelforFeeGroupWise = () => {
+        const rowsToExport = reportData.filter((r) => selectedIds.includes(r.id));
+
+        if (!rowsToExport || rowsToExport.length === 0) {
+            toast.error('No data selected to export');
+            return;
+        }
+
+        exportToExcelforFeeGroupWise(rowsToExport, 'yearly_Fee_Collection_Report');
+    };
+    const handleExportExcelforFeeHeadWise = () => {
+        const rowsToExport = reportData.filter((r) => selectedIds.includes(r.id));
+
+        if (!rowsToExport || rowsToExport.length === 0) {
+            toast.error('No data selected to export');
+            return;
+        }
+
+        exportToExcelforFeeHeadWise(rowsToExport, 'yearly_Fee_Collection_Report');
     };
 
-    const isAcademicYearSelected = !!filters.academicYearId;
-    const isClassSectionEnabled = filters.includeClassSection;
+    const handleExportExcelforFeeClassWise = () => {
+        const rowsToExport = reportData.filter((r) => selectedIds.includes(r.id));
+
+        if (!rowsToExport || rowsToExport.length === 0) {
+            toast.error('No data selected to export');
+            return;
+        }
+
+        exportToExcelforFeeClassWise(rowsToExport, 'yearly_Fee_Collection_Report');
+    };
+
+    const handleExportExcelforStudentWise = () => {
+        const rowsToExport = reportData.filter((r) => selectedIds.includes(r.id));
+
+        if (!rowsToExport || rowsToExport.length === 0) {
+            toast.error('No data selected to export');
+            return;
+        }
+
+        exportToExcelforStudentWise(rowsToExport, 'yearly_Fee_Collection_Report');
+    };
+
+    const handleExportExcelforInstallmentWise = () => {
+        const rowsToExport = reportData.filter((r) => selectedIds.includes(r.id));
+
+        if (!rowsToExport || rowsToExport.length === 0) {
+            toast.error('No data selected to export');
+            return;
+        }
+
+        exportToExcelforInstallmentWise(rowsToExport, 'yearly_Fee_Collection_Report');
+    };
+
+    const handleExportExcelforCategoryWise = () => {
+        const rowsToExport = reportData.filter((r) => selectedIds.includes(r.id));
+
+        if (!rowsToExport || rowsToExport.length === 0) {
+            toast.error('No data selected to export');
+            return;
+        }
+
+        exportToExcelforCategoryWise(rowsToExport, 'yearly_Fee_Collection_Report');
+    };
+
+    const handleExportExcelforClassSectionInstallmentWiseConslidated = () => {
+        const rowsToExport = reportData.filter((r) => selectedIds.includes(r.id));
+
+        if (!rowsToExport || rowsToExport.length === 0) {
+            toast.error('No data selected to export');
+            return;
+        }
+
+        exportToExcelforClassSectionInstallmentWiseConslidated(rowsToExport, 'yearly_Fee_Collection_Report');
+    };
+    const handleExportExcelforClassInstallmentWiseConslidated = () => {
+        const rowsToExport = reportData.filter((r) => selectedIds.includes(r.id));
+
+        if (!rowsToExport || rowsToExport.length === 0) {
+            toast.error('No data selected to export');
+            return;
+        }
+
+        exportToExcelforClassInstallmentWiseConslidated(rowsToExport, 'yearly_Fee_Collection_Report');
+    };
+    const handleExportExcelforStudentWiseTotalPaidCount = () => {
+        const rowsToExport = reportData.filter((r) => selectedIds.includes(r.id));
+
+        if (!rowsToExport || rowsToExport.length === 0) {
+            toast.error('No data selected to export');
+            return;
+        }
+
+        exportToExcelforStudentWiseTotalPaidCount(rowsToExport, 'yearly_Fee_Collection_Report');
+    };
+
+    const handleExportExcelforClassSectionWiseTotalPaidCount = () => {
+        const rowsToExport = reportData.filter((r) => selectedIds.includes(r.id));
+
+        if (!rowsToExport || rowsToExport.length === 0) {
+            toast.error('No data selected to export');
+            return;
+        }
+
+        exportToExcelforClassSectionWiseTotalPaidCount(rowsToExport, 'yearly_Fee_Collection_Report');
+    };
+
+    const handlePrintforFeeGroupWise = () => {
+        const rowsToPrint = reportData.filter((row) => selectedIds.includes(row.id));
+
+        if (!rowsToPrint || rowsToPrint.length === 0) {
+            toast.error('No data selected to print');
+            return;
+        }
+
+        const columnHeaders = [
+            'Sl.No',
+            'Fee Group',
+            'Paid Amount',
+            'Balance',
+            'Concession',
+            'Waived',
+            'Rebate',
+            'Fine',
+            'Total Payable',
+            'Adjusted',
+            'Excess',
+            'Running Excess'
+        ];
+
+        const printableRows = rowsToPrint.map((row, index) => ({
+            'Sl.No': index + 1,
+            'Fee Group': row.fmg_groupname,
+            'Paid Amount': `₹${(row.fss_paidamount || 0).toLocaleString('en-IN')}`,
+            Balance: `₹${(row.balance || 0).toLocaleString('en-IN')}`,
+            Concession: `₹${(row.concession || 0).toLocaleString('en-IN')}`,
+            Waived: `₹${(row.waived || 0).toLocaleString('en-IN')}`,
+            Rebate: `₹${(row.rebate || 0).toLocaleString('en-IN')}`,
+            Fine: `₹${(row.fine || 0).toLocaleString('en-IN')}`,
+            'Total Payable': `₹${(row.totalpayable || 0).toLocaleString('en-IN')}`,
+            Adjusted: `₹${(row.adjusted || 0).toLocaleString('en-IN')}`,
+            Excess: `₹${(row.excess || 0).toLocaleString('en-IN')}`,
+            'Running Excess': `₹${(row.runningexcess || 0).toLocaleString('en-IN')}`
+        }));
+
+        // Calculate totals for each column
+        const sumRow = {
+            'Sl.No': '',
+            'Fee Group': 'TOTAL',
+            'Paid Amount': `₹${rowsToPrint.reduce((sum, r) => sum + (r.fss_paidamount || 0), 0).toLocaleString('en-IN')}`,
+            Balance: `₹${rowsToPrint.reduce((sum, r) => sum + (r.balance || 0), 0).toLocaleString('en-IN')}`,
+            Concession: `₹${rowsToPrint.reduce((sum, r) => sum + (r.concession || 0), 0).toLocaleString('en-IN')}`,
+            Waived: `₹${rowsToPrint.reduce((sum, r) => sum + (r.waived || 0), 0).toLocaleString('en-IN')}`,
+            Rebate: `₹${rowsToPrint.reduce((sum, r) => sum + (r.rebate || 0), 0).toLocaleString('en-IN')}`,
+            Fine: `₹${rowsToPrint.reduce((sum, r) => sum + (r.fine || 0), 0).toLocaleString('en-IN')}`,
+            'Total Payable': `₹${rowsToPrint.reduce((sum, r) => sum + (r.totalpayable || 0), 0).toLocaleString('en-IN')}`,
+            Adjusted: `₹${rowsToPrint.reduce((sum, r) => sum + (r.adjusted || 0), 0).toLocaleString('en-IN')}`,
+            Excess: `₹${rowsToPrint.reduce((sum, r) => sum + (r.excess || 0), 0).toLocaleString('en-IN')}`,
+            'Running Excess': `₹${rowsToPrint.reduce((sum, r) => sum + (r.runningexcess || 0), 0).toLocaleString('en-IN')}`
+        };
+
+        printTable(columnHeaders, printableRows, sumRow);
+    };
+
+    const handlePrintforFeeHeadWise = () => {
+        const rowsToPrint = reportData.filter((row) => selectedIds.includes(row.id));
+
+        if (!rowsToPrint || rowsToPrint.length === 0) {
+            toast.error('No data selected to print');
+            return;
+        }
+
+        const columnHeaders = [
+            'Sl.No',
+            'Fee Head',
+            'Paid Amount',
+            'Balance',
+            'Concession',
+            'Waived',
+            'Rebate',
+            'Fine',
+            'Total Payable',
+            'Adjusted',
+            'Excess',
+            'Running Excess'
+        ];
+
+        const printableRows = rowsToPrint.map((row, index) => ({
+            'Sl.No': index + 1,
+            'Fee Head': row.fmh_feename,
+            'Paid Amount': `₹${(row.fss_paidamount || 0).toLocaleString('en-IN')}`,
+            Balance: `₹${(row.balance || 0).toLocaleString('en-IN')}`,
+            Concession: `₹${(row.concession || 0).toLocaleString('en-IN')}`,
+            Waived: `₹${(row.waived || 0).toLocaleString('en-IN')}`,
+            Rebate: `₹${(row.rebate || 0).toLocaleString('en-IN')}`,
+            Fine: `₹${(row.fine || 0).toLocaleString('en-IN')}`,
+            'Total Payable': `₹${(row.totalpayable || 0).toLocaleString('en-IN')}`,
+            Adjusted: `₹${(row.adjusted || 0).toLocaleString('en-IN')}`,
+            Excess: `₹${(row.excess || 0).toLocaleString('en-IN')}`,
+            'Running Excess': `₹${(row.runningexcess || 0).toLocaleString('en-IN')}`
+        }));
+
+        // Calculate totals for each column
+        const sumRow = {
+            'Sl.No': '',
+            'Fee Head': 'TOTAL',
+            'Paid Amount': `₹${rowsToPrint.reduce((sum, r) => sum + (r.fss_paidamount || 0), 0).toLocaleString('en-IN')}`,
+            Balance: `₹${rowsToPrint.reduce((sum, r) => sum + (r.balance || 0), 0).toLocaleString('en-IN')}`,
+            Concession: `₹${rowsToPrint.reduce((sum, r) => sum + (r.concession || 0), 0).toLocaleString('en-IN')}`,
+            Waived: `₹${rowsToPrint.reduce((sum, r) => sum + (r.waived || 0), 0).toLocaleString('en-IN')}`,
+            Rebate: `₹${rowsToPrint.reduce((sum, r) => sum + (r.rebate || 0), 0).toLocaleString('en-IN')}`,
+            Fine: `₹${rowsToPrint.reduce((sum, r) => sum + (r.fine || 0), 0).toLocaleString('en-IN')}`,
+            'Total Payable': `₹${rowsToPrint.reduce((sum, r) => sum + (r.totalpayable || 0), 0).toLocaleString('en-IN')}`,
+            Adjusted: `₹${rowsToPrint.reduce((sum, r) => sum + (r.adjusted || 0), 0).toLocaleString('en-IN')}`,
+            Excess: `₹${rowsToPrint.reduce((sum, r) => sum + (r.excess || 0), 0).toLocaleString('en-IN')}`,
+            'Running Excess': `₹${rowsToPrint.reduce((sum, r) => sum + (r.runningexcess || 0), 0).toLocaleString('en-IN')}`
+        };
+
+        printTable(columnHeaders, printableRows, sumRow);
+    };
+
+    const handlePrintforFeeClassWise = () => {
+        const rowsToPrint = reportData.filter((row) => selectedIds.includes(row.id));
+
+        if (!rowsToPrint || rowsToPrint.length === 0) {
+            toast.error('No data selected to print');
+            return;
+        }
+
+        const columnHeaders = [
+            'Sl No',
+            'Class Name',
+            'Total Charges',
+            'Paid Amount',
+            'Balance',
+            'Concession',
+            'Fine',
+            'Rebate',
+            'Waived',
+            'Excess',
+            'Opening Balance'
+        ];
+
+        const printableRows = rowsToPrint.map((row, index) => ({
+            'Sl No': index + 1,
+            'Class Name': row.asmcl_classname || '',
+            'Total Charges': `₹${(row.charges || 0).toLocaleString('en-IN')}`,
+            'Paid Amount': `₹${(row.fss_paidamount || 0).toLocaleString('en-IN')}`,
+            Balance: `₹${(row.balance || 0).toLocaleString('en-IN')}`,
+            Concession: `₹${(row.concession || 0).toLocaleString('en-IN')}`,
+            Fine: `₹${(row.fine || 0).toLocaleString('en-IN')}`,
+            Rebate: `₹${(row.rebate || 0).toLocaleString('en-IN')}`,
+            Waived: `₹${(row.waived || 0).toLocaleString('en-IN')}`,
+            Excess: `₹${(row.excess || 0).toLocaleString('en-IN')}`,
+            'Opening Balance': `₹${(row.openingbalance || 0).toLocaleString('en-IN')}`
+        }));
+
+        // Calculate totals for each column
+        const sumRow = {
+            'Sl No': '',
+            'Class Name': 'TOTAL',
+            'Total Charges': '',
+            'Paid Amount': `₹${rowsToPrint.reduce((sum, r) => sum + (r.fss_paidamount || 0), 0).toLocaleString('en-IN')}`,
+            Balance: `₹${rowsToPrint.reduce((sum, r) => sum + (r.balance || 0), 0).toLocaleString('en-IN')}`,
+            Concession: `₹${rowsToPrint.reduce((sum, r) => sum + (r.concession || 0), 0).toLocaleString('en-IN')}`,
+            Fine: `₹${rowsToPrint.reduce((sum, r) => sum + (r.fine || 0), 0).toLocaleString('en-IN')}`,
+            Rebate: `₹${rowsToPrint.reduce((sum, r) => sum + (r.rebate || 0), 0).toLocaleString('en-IN')}`,
+            Waived: `₹${rowsToPrint.reduce((sum, r) => sum + (r.waived || 0), 0).toLocaleString('en-IN')}`,
+            Excess: `₹${rowsToPrint.reduce((sum, r) => sum + (r.excess || 0), 0).toLocaleString('en-IN')}`
+        };
+
+        printTable(columnHeaders, printableRows, sumRow);
+    };
+
+    const handlePrintforStudentWise = () => {
+        const rowsToPrint = reportData.filter((row) => selectedIds.includes(row.id));
+
+        if (!rowsToPrint || rowsToPrint.length === 0) {
+            toast.error('No data selected to print');
+            return;
+        }
+
+        const columnHeaders = [
+            'Sl No',
+            'Student Name',
+            'Admission No',
+            'Class Name',
+            'Mobile No',
+            'Total Payable',
+            'Paid Amount',
+            'Balance',
+            'Concession',
+            'Fine',
+            'Rebate',
+            'Waived',
+            'Adjusted',
+            'Opening Balance',
+            'Excess'
+        ];
+
+        const printableRows = rowsToPrint.map((row, index) => ({
+            'Sl No': index + 1,
+            'Student Name': row.studentname || '',
+            'Admission No': row.amst_admno || '',
+            'Class Name': row.asmcl_classname || '',
+            'Mobile No': row.mobileNo || '',
+            'Total Payable': `₹${(row.totalpayable || 0).toLocaleString('en-IN')}`,
+            'Paid Amount': `₹${(row.fss_paidamount || 0).toLocaleString('en-IN')}`,
+            Balance: `₹${(row.balance || 0).toLocaleString('en-IN')}`,
+            Concession: `₹${(row.concession || 0).toLocaleString('en-IN')}`,
+            Fine: `₹${(row.fine || 0).toLocaleString('en-IN')}`,
+            Rebate: `₹${(row.rebate || 0).toLocaleString('en-IN')}`,
+            Waived: `₹${(row.waived || 0).toLocaleString('en-IN')}`,
+            Adjusted: `₹${(row.adjusted || 0).toLocaleString('en-IN')}`,
+            'Opening Balance': `₹${(row.openingbalance || 0).toLocaleString('en-IN')}`,
+            Excess: `₹${(row.excess || 0).toLocaleString('en-IN')}`
+        }));
+
+        // Calculate totals for each column
+        const sumRow = {
+            'Sl No': '',
+            'Student Name': 'TOTAL',
+            'Admission No': '',
+            'Class Name': '',
+            'Mobile No': '',
+            'Total Payable': `₹${rowsToPrint.reduce((sum, r) => sum + (r.totalpayable || 0), 0).toLocaleString('en-IN')}`,
+            'Paid Amount': `₹${rowsToPrint.reduce((sum, r) => sum + (r.fss_paidamount || 0), 0).toLocaleString('en-IN')}`,
+            Balance: `₹${rowsToPrint.reduce((sum, r) => sum + (r.balance || 0), 0).toLocaleString('en-IN')}`,
+            Concession: `₹${rowsToPrint.reduce((sum, r) => sum + (r.concession || 0), 0).toLocaleString('en-IN')}`,
+            Fine: `₹${rowsToPrint.reduce((sum, r) => sum + (r.fine || 0), 0).toLocaleString('en-IN')}`,
+            Rebate: `₹${rowsToPrint.reduce((sum, r) => sum + (r.rebate || 0), 0).toLocaleString('en-IN')}`,
+            Waived: `₹${rowsToPrint.reduce((sum, r) => sum + (r.waived || 0), 0).toLocaleString('en-IN')}`,
+            Adjusted: `₹${rowsToPrint.reduce((sum, r) => sum + (r.adjusted || 0), 0).toLocaleString('en-IN')}`,
+            'Opening Balance': `₹${rowsToPrint.reduce((sum, r) => sum + (r.openingbalance || 0), 0).toLocaleString('en-IN')}`,
+            Excess: `₹${rowsToPrint.reduce((sum, r) => sum + (r.excess || 0), 0).toLocaleString('en-IN')}`
+        };
+
+        printTable(columnHeaders, printableRows, sumRow);
+    };
+
+    const handlePrintforInstallmentWise = () => {
+        const rowsToPrint = reportData.filter((row) => selectedIds.includes(row.id));
+
+        if (!rowsToPrint || rowsToPrint.length === 0) {
+            toast.error('No data selected to print');
+            return;
+        }
+
+        const columnHeaders = [
+            'Sl No',
+            'Student Name',
+            'Class/Section',
+            'Admission No',
+            'Installment name',
+            'Total Payable',
+            'Paid Amount',
+            'Balance',
+            'Concession',
+            'Arrear',
+            'Excess',
+            'Charge',
+            'Adjustment'
+        ];
+
+        const printableRows = rowsToPrint.map((row, index) => ({
+            'Sl No': index + 1,
+            'Student Name': row.studentName || '',
+            'Class/Section': row.asmcL_ClassName || '',
+            'Admission No': row.amsT_AdmNo || '',
+            'Installment name': row.ftI_Name || '',
+            'Total Payable': `₹${(row.totalpayable || 0).toLocaleString('en-IN')}`,
+            'Paid Amount': `₹${(row.fss_paidamount || 0).toLocaleString('en-IN')}`,
+            Balance: `₹${(row.balance || 0).toLocaleString('en-IN')}`,
+            Concession: `₹${(row.concession || 0).toLocaleString('en-IN')}`,
+            Arrear: `₹${(row.arrear || 0).toLocaleString('en-IN')}`,
+            Excess: `₹${(row.excess || 0).toLocaleString('en-IN')}`,
+            Charge: `₹${(row.charge || 0).toLocaleString('en-IN')}`,
+            Adjustment: `₹${(row.adjusted || 0).toLocaleString('en-IN')}`
+        }));
+
+        // Calculate totals for each column
+        const sumRow = {
+            'Sl No': '',
+            'Student Name': 'TOTAL',
+            'Class/Section': '',
+            'Admission No': '',
+            'Installment name': '',
+            'Total Payable': `₹${rowsToPrint.reduce((sum, r) => sum + (r.totalpayable || 0), 0).toLocaleString('en-IN')}`,
+            'Paid Amount': `₹${rowsToPrint.reduce((sum, r) => sum + (r.fss_paidamount || 0), 0).toLocaleString('en-IN')}`,
+            Balance: `₹${rowsToPrint.reduce((sum, r) => sum + (r.balance || 0), 0).toLocaleString('en-IN')}`,
+            Concession: `₹${rowsToPrint.reduce((sum, r) => sum + (r.concession || 0), 0).toLocaleString('en-IN')}`,
+            Arrear: `₹${rowsToPrint.reduce((sum, r) => sum + (r.arrear || 0), 0).toLocaleString('en-IN')}`,
+            Excess: `₹${rowsToPrint.reduce((sum, r) => sum + (r.excess || 0), 0).toLocaleString('en-IN')}`,
+            Charge: `₹${rowsToPrint.reduce((sum, r) => sum + (r.charge || 0), 0).toLocaleString('en-IN')}`,
+            Adjustment: `₹${rowsToPrint.reduce((sum, r) => sum + (r.adjusted || 0), 0).toLocaleString('en-IN')}`
+        };
+
+        printTable(columnHeaders, printableRows, sumRow);
+    };
+
+    const handlePrintforCategoryWise = () => {
+        const rowsToPrint = reportData.filter((row) => selectedIds.includes(row.id));
+
+        if (!rowsToPrint || rowsToPrint.length === 0) {
+            toast.error('No data selected to print');
+            return;
+        }
+
+        const columnHeaders = [
+            'Sl No',
+            'Fee Class Category',
+            'Fee Head',
+            'By Bank',
+            'By Cash',
+            'By Online',
+            'By Card',
+            'By ECS',
+            'By RTGS'
+        ];
+
+        const printableRows = rowsToPrint.map((row, index) => ({
+            'Sl No': index + 1,
+            'Fee Class Category': row.studentName || '',
+            'Fee Head': row.fmh_feename || '',
+            'By Bank': `₹${(row.bybank || 0).toLocaleString('en-IN')}`,
+            'By Cash': `₹${(row.bycash || 0).toLocaleString('en-IN')}`,
+            'By Online': `₹${(row.byonline || 0).toLocaleString('en-IN')}`,
+            'By Card': `₹${(row.bycard || 0).toLocaleString('en-IN')}`,
+            'By ECS': `₹${(row.byecs || 0).toLocaleString('en-IN')}`,
+            'By RTGS': `₹${(row.byrtgs || 0).toLocaleString('en-IN')}`
+        }));
+
+        // Calculate totals for each column
+        const sumRow = {
+            'Sl No': '',
+            'Fee Class Category': 'TOTAL',
+            'Fee Head': '',
+            'By Bank': `₹${rowsToPrint.reduce((sum, r) => sum + (r.bybank || 0), 0).toLocaleString('en-IN')}`,
+            'By Cash': `₹${rowsToPrint.reduce((sum, r) => sum + (r.bycash || 0), 0).toLocaleString('en-IN')}`,
+            'By Online': `₹${rowsToPrint.reduce((sum, r) => sum + (r.byonline || 0), 0).toLocaleString('en-IN')}`,
+            'By Card': `₹${rowsToPrint.reduce((sum, r) => sum + (r.bycard || 0), 0).toLocaleString('en-IN')}`,
+            'By ECS': `₹${rowsToPrint.reduce((sum, r) => sum + (r.byecs || 0), 0).toLocaleString('en-IN')}`,
+            'By RTGS': `₹${rowsToPrint.reduce((sum, r) => sum + (r.byrtgs || 0), 0).toLocaleString('en-IN')}`
+        };
+
+        printTable(columnHeaders, printableRows, sumRow);
+    };
+
+    const handlePrintforClassSectionInstallmentWiseConslidated = () => {
+        const rowsToPrint = reportData.filter((row) => selectedIds.includes(row.id));
+
+        if (!rowsToPrint || rowsToPrint.length === 0) {
+            toast.error('No data selected to print');
+            return;
+        }
+
+        const columnHeaders = [
+            'Sl No',
+            'Class Name',
+            'Section',
+            'Term',
+            'Total Charges',
+            'Balance Amount',
+            'Paid Amount',
+            'Concession',
+            'Waived Off',
+            'Adjusted',
+            'Excess Paid',
+            'Refund Amount',
+            'Running Excess'
+        ];
+
+        // Map your data according to the new headers
+        // You'll need to adjust the row properties to match your actual data structure
+        const printableRows = rowsToPrint.map((row, index) => ({
+            'Sl No': index + 1,
+            'Class Name': row.asmcl_classname || '',
+            Section: row.asmc_sectionname || '',
+            Term: row.fmt_name || '',
+            'Total Charges': `₹${(row.totalcharges || 0).toLocaleString('en-IN')}`,
+            'Balance Amount': `₹${(row.totalbalance || 0).toLocaleString('en-IN')}`,
+            'Paid Amount': `₹${(row.totalpaid || 0).toLocaleString('en-IN')}`,
+            Concession: `₹${(row.totalconcession || 0).toLocaleString('en-IN')}`,
+            'Waived Off': `₹${(row.totalwaivedoff || 0).toLocaleString('en-IN')}`,
+            Adjusted: `₹${(row.adjustment || 0).toLocaleString('en-IN')}`,
+            'Excess Paid': `₹${(row.excess || 0).toLocaleString('en-IN')}`,
+            'Refund Amount': `₹${(row.totalrefund || 0).toLocaleString('en-IN')}`,
+            'Running Excess': `₹${(row.runningexcess || 0).toLocaleString('en-IN')}`
+        }));
+
+        // Calculate totals for each column
+        const sumRow = {
+            'Sl No': '',
+            'Class Name': 'TOTAL',
+            Section: '',
+            Term: '',
+            'Total Charges': `₹${rowsToPrint.reduce((sum, r) => sum + (r.totalcharges || 0), 0).toLocaleString('en-IN')}`,
+            'Balance Amount': `₹${rowsToPrint.reduce((sum, r) => sum + (r.totalbalance || 0), 0).toLocaleString('en-IN')}`,
+            'Paid Amount': `₹${rowsToPrint.reduce((sum, r) => sum + (r.totalpaid || 0), 0).toLocaleString('en-IN')}`,
+            Concession: `₹${rowsToPrint.reduce((sum, r) => sum + (r.totalconcession || 0), 0).toLocaleString('en-IN')}`,
+            'Waived Off': `₹${rowsToPrint.reduce((sum, r) => sum + (r.totalwaivedoff || 0), 0).toLocaleString('en-IN')}`,
+            Adjusted: `₹${rowsToPrint.reduce((sum, r) => sum + (r.adjustment || 0), 0).toLocaleString('en-IN')}`,
+            'Excess Paid': `₹${rowsToPrint.reduce((sum, r) => sum + (r.excess || 0), 0).toLocaleString('en-IN')}`,
+            'Refund Amount': `₹${rowsToPrint.reduce((sum, r) => sum + (r.totalrefund || 0), 0).toLocaleString('en-IN')}`,
+            'Running Excess': `₹${rowsToPrint.reduce((sum, r) => sum + (r.runningexcess || 0), 0).toLocaleString('en-IN')}`
+        };
+
+        printTable(columnHeaders, printableRows, sumRow);
+    };
+
+    const handlePrintforClassInstallmentWiseConslidated = () => {
+        const rowsToPrint = reportData.filter((row) => selectedIds.includes(row.id));
+
+        if (!rowsToPrint || rowsToPrint.length === 0) {
+            toast.error('No data selected to print');
+            return;
+        }
+
+        const columnHeaders = [
+            'Sl No',
+            'Class Name',
+            'Term',
+            'Total Charges',
+            'Balance Amount',
+            'Paid Amount',
+            'Concession',
+            'Waived Off',
+            'Adjusted',
+            'Excess Paid',
+            'Refund Amount',
+            'Running Excess'
+        ];
+
+        // Map your data according to the new headers
+        // You'll need to adjust the row properties to match your actual data structure
+        const printableRows = rowsToPrint.map((row, index) => ({
+            'Sl No': index + 1,
+            'Class Name': row.asmcl_classname || '',
+            Term: row.fmt_name || '',
+            'Total Charges': `₹${(row.totalcharges || 0).toLocaleString('en-IN')}`,
+            'Balance Amount': `₹${(row.totalbalance || 0).toLocaleString('en-IN')}`,
+            'Paid Amount': `₹${(row.totalpaid || 0).toLocaleString('en-IN')}`,
+            Concession: `₹${(row.totalconcession || 0).toLocaleString('en-IN')}`,
+            'Waived Off': `₹${(row.totalwaivedoff || 0).toLocaleString('en-IN')}`,
+            Adjusted: `₹${(row.adjustment || 0).toLocaleString('en-IN')}`,
+            'Excess Paid': `₹${(row.excess || 0).toLocaleString('en-IN')}`,
+            'Refund Amount': `₹${(row.totalrefund || 0).toLocaleString('en-IN')}`,
+            'Running Excess': `₹${(row.runningexcess || 0).toLocaleString('en-IN')}`
+        }));
+
+        // Calculate totals for each column
+        const sumRow = {
+            'Sl No': '',
+            'Class Name': 'TOTAL',
+            Term: '',
+            'Total Charges': `₹${rowsToPrint.reduce((sum, r) => sum + (r.totalcharges || 0), 0).toLocaleString('en-IN')}`,
+            'Balance Amount': `₹${rowsToPrint.reduce((sum, r) => sum + (r.totalbalance || 0), 0).toLocaleString('en-IN')}`,
+            'Paid Amount': `₹${rowsToPrint.reduce((sum, r) => sum + (r.totalpaid || 0), 0).toLocaleString('en-IN')}`,
+            Concession: `₹${rowsToPrint.reduce((sum, r) => sum + (r.totalconcession || 0), 0).toLocaleString('en-IN')}`,
+            'Waived Off': `₹${rowsToPrint.reduce((sum, r) => sum + (r.totalwaivedoff || 0), 0).toLocaleString('en-IN')}`,
+            Adjusted: `₹${rowsToPrint.reduce((sum, r) => sum + (r.adjustment || 0), 0).toLocaleString('en-IN')}`,
+            'Excess Paid': `₹${rowsToPrint.reduce((sum, r) => sum + (r.excess || 0), 0).toLocaleString('en-IN')}`,
+            'Refund Amount': `₹${rowsToPrint.reduce((sum, r) => sum + (r.totalrefund || 0), 0).toLocaleString('en-IN')}`,
+            'Running Excess': `₹${rowsToPrint.reduce((sum, r) => sum + (r.runningexcess || 0), 0).toLocaleString('en-IN')}`
+        };
+
+        printTable(columnHeaders, printableRows, sumRow);
+    };
+
+    const handlePrintforStudentWiseTotalPaidCount = () => {
+        const rowsToPrint = reportData.filter((row) => selectedIds.includes(row.id));
+
+        if (!rowsToPrint || rowsToPrint.length === 0) {
+            toast.error('No data selected to print');
+            return;
+        }
+
+        const columnHeaders = [
+            'Sl No',
+            'Student Name',
+            'Admission No',
+            'Total Payable',
+            'Paid Amount',
+            'Balance',
+            'Concession',
+            'Fine',
+            'Rebate',
+            'WaivedOff',
+            'Adjustment',
+            'Opening Balance'
+        ];
+
+        const printableRows = rowsToPrint.map((row, index) => ({
+            'Sl No': index + 1,
+            'Student Name': row.studentname || '',
+            'Admission No': row.amst_admno || '',
+            'Total Payable': `₹${(row.totalpayable || 0).toLocaleString('en-IN')}`,
+            'Paid Amount': `₹${(row.fss_paidamount || 0).toLocaleString('en-IN')}`,
+            Balance: `₹${(row.balance || 0).toLocaleString('en-IN')}`,
+            Concession: `₹${(row.concession || 0).toLocaleString('en-IN')}`,
+            Fine: `₹${(row.fine || 0).toLocaleString('en-IN')}`,
+            Rebate: `₹${(row.rebate || 0).toLocaleString('en-IN')}`,
+            WaivedOff: `₹${(row.waived || 0).toLocaleString('en-IN')}`,
+            Adjustment: `₹${(row.adjusted || 0).toLocaleString('en-IN')}`,
+            'Opening Balance': `₹${(row.openingbalance || 0).toLocaleString('en-IN')}`
+        }));
+
+        // Calculate totals for each column
+        const sumRow = {
+            'Sl No': '',
+            'Student Name': 'TOTAL',
+            'Admission No': '',
+            'Total Payable': `₹${rowsToPrint.reduce((sum, r) => sum + (r.totalpayable || 0), 0).toLocaleString('en-IN')}`,
+            'Paid Amount': `₹${rowsToPrint.reduce((sum, r) => sum + (r.fss_paidamount || 0), 0).toLocaleString('en-IN')}`,
+            Balance: `₹${rowsToPrint.reduce((sum, r) => sum + (r.balance || 0), 0).toLocaleString('en-IN')}`,
+            Concession: `₹${rowsToPrint.reduce((sum, r) => sum + (r.concession || 0), 0).toLocaleString('en-IN')}`,
+            Fine: `₹${rowsToPrint.reduce((sum, r) => sum + (r.fine || 0), 0).toLocaleString('en-IN')}`,
+            Rebate: `₹${rowsToPrint.reduce((sum, r) => sum + (r.rebate || 0), 0).toLocaleString('en-IN')}`,
+            WaivedOff: `₹${rowsToPrint.reduce((sum, r) => sum + (r.waived || 0), 0).toLocaleString('en-IN')}`,
+            Adjustment: `₹${rowsToPrint.reduce((sum, r) => sum + (r.adjusted || 0), 0).toLocaleString('en-IN')}`,
+            'Opening Balance': `₹${rowsToPrint.reduce((sum, r) => sum + (r.openingbalance || 0), 0).toLocaleString('en-IN')}`
+        };
+
+        printTable(columnHeaders, printableRows, sumRow);
+    };
+
+    const handlePrintforClassSectionWiseTotalPaidCount = () => {
+        const rowsToPrint = reportData.filter((row) => selectedIds.includes(row.id));
+
+        if (!rowsToPrint || rowsToPrint.length === 0) {
+            toast.error('No data selected to print');
+            return;
+        }
+
+        const columnHeaders = [
+            'Sl No',
+            'Student Name',
+            'Class/Section',
+            'Admission No',
+            'Total Payable',
+            'Paid Amount',
+            'Balance',
+            'Concession',
+            'Fine',
+            'Rebate',
+            'WaivedOff',
+            'Adjustment',
+            'Opening Balance'
+        ];
+
+        const printableRows = rowsToPrint.map((row, index) => ({
+            'Sl No': index + 1,
+            'Student Name': row.studentname || '',
+            'Class/Section': row.asmcl_classname || '',
+            'Admission No': row.amst_admno || '',
+            'Total Payable': `₹${(row.totalpayable || 0).toLocaleString('en-IN')}`,
+            'Paid Amount': `₹${(row.fss_paidamount || 0).toLocaleString('en-IN')}`,
+            Balance: `₹${(row.balance || 0).toLocaleString('en-IN')}`,
+            Concession: `₹${(row.concession || 0).toLocaleString('en-IN')}`,
+            Fine: `₹${(row.fine || 0).toLocaleString('en-IN')}`,
+            Rebate: `₹${(row.rebate || 0).toLocaleString('en-IN')}`,
+            WaivedOff: `₹${(row.waived || 0).toLocaleString('en-IN')}`,
+            Adjustment: `₹${(row.adjusted || 0).toLocaleString('en-IN')}`,
+            'Opening Balance': `₹${(row.openingbalance || 0).toLocaleString('en-IN')}`
+        }));
+
+        // Calculate totals for each column
+        const sumRow = {
+            'Sl No': '',
+            'Student Name': 'TOTAL',
+            asmcl_classname: '',
+            'Admission No': '',
+            'Total Payable': `₹${rowsToPrint.reduce((sum, r) => sum + (r.totalpayable || 0), 0).toLocaleString('en-IN')}`,
+            'Paid Amount': `₹${rowsToPrint.reduce((sum, r) => sum + (r.fss_paidamount || 0), 0).toLocaleString('en-IN')}`,
+            Balance: `₹${rowsToPrint.reduce((sum, r) => sum + (r.balance || 0), 0).toLocaleString('en-IN')}`,
+            Concession: `₹${rowsToPrint.reduce((sum, r) => sum + (r.concession || 0), 0).toLocaleString('en-IN')}`,
+            Fine: `₹${rowsToPrint.reduce((sum, r) => sum + (r.fine || 0), 0).toLocaleString('en-IN')}`,
+            Rebate: `₹${rowsToPrint.reduce((sum, r) => sum + (r.rebate || 0), 0).toLocaleString('en-IN')}`,
+            WaivedOff: `₹${rowsToPrint.reduce((sum, r) => sum + (r.waived || 0), 0).toLocaleString('en-IN')}`,
+            Adjustment: `₹${rowsToPrint.reduce((sum, r) => sum + (r.adjusted || 0), 0).toLocaleString('en-IN')}`,
+            'Opening Balance': `₹${rowsToPrint.reduce((sum, r) => sum + (r.openingbalance || 0), 0).toLocaleString('en-IN')}`
+        };
+
+        printTable(columnHeaders, printableRows, sumRow);
+    };
+
+    //   const isAcademicYearSelected = !!filters.academicYearId;
+    //   const isClassSectionEnabled = filters.includeClassSection;
     const showDateSection = filters.viewMode === 'date';
     const showBalancecheckbox = filters.userType === 'Students' && filters.breakdown === 'Student/Staff Wise';
 
@@ -543,8 +1284,6 @@ export default function FeeYearlyCollectionReport() {
                 <div className='mx-auto max-w-7xl'>
                     <Card className='border-0 shadow-xl'>
                         <div className='p-8'>
-                            {/* <h1 className='mb-8 font-bold text-3xl text-gray-900'>Yearly Fee Collection Report</h1> */}
-
                             <div className='space-y-8'>
                                 <Card className='border bg-gray-50 p-5 shadow-sm'>
                                     <div className='flex flex-wrap items-center justify-center gap-10'>
@@ -559,7 +1298,12 @@ export default function FeeYearlyCollectionReport() {
                                                     type='radio'
                                                     name='viewMode'
                                                     checked={filters.viewMode === mode.value}
-                                                    onChange={() => setFilters((prev) => ({ ...prev, viewMode: mode.value }))}
+                                                    onChange={() =>
+                                                        setFilters((prev) => ({
+                                                            ...prev,
+                                                            viewMode: mode.value
+                                                        }))
+                                                    }
                                                     className='h-5 w-5 text-primary'
                                                 />
                                                 <span className='font-medium text-base'>{mode.label}</span>
@@ -568,10 +1312,7 @@ export default function FeeYearlyCollectionReport() {
                                     </div>
                                 </Card>
 
-                                {/* View Mode + Academic Year */}
-                                {/* View Mode + Academic Year + Full Breakdown Radio Group */}
                                 <div className='flex flex-wrap gap-8'>
-                                    {/* Full Breakdown Radio Group */}
                                     <Card className='min-w-[400px] flex-1 border bg-gray-50 p-5 shadow-sm'>
                                         <div className='flex flex-wrap gap-4'>
                                             {[
@@ -583,10 +1324,22 @@ export default function FeeYearlyCollectionReport() {
                                                 { label: 'Installment Wise', value: 'INMW' },
                                                 { label: 'Student Term Wise', value: 'STRMW' },
                                                 { label: 'Category Wise', value: 'CW' },
-                                                { label: 'Class-Section-Installmentwise Consolidated', value: 'CTW' },
-                                                { label: 'Class-Installmentwise Consolidated', value: 'CTC' },
-                                                { label: 'Student Wise Total Paid Count', value: 'SWTPC' },
-                                                { label: 'Class-Section Wise Total Paid Count', value: 'CWTPC' },
+                                                {
+                                                    label: 'Class-Section-Installmentwise Consolidated',
+                                                    value: 'CTW'
+                                                },
+                                                {
+                                                    label: 'Class-Installmentwise Consolidated',
+                                                    value: 'CTC'
+                                                },
+                                                {
+                                                    label: 'Student Wise Total Paid Count',
+                                                    value: 'SWTPC'
+                                                },
+                                                {
+                                                    label: 'Class-Section Wise Total Paid Count',
+                                                    value: 'CWTPC'
+                                                },
                                                 { label: 'Parent Wise', value: 'FPW' }
                                             ].map((option) => (
                                                 <label
@@ -596,7 +1349,12 @@ export default function FeeYearlyCollectionReport() {
                                                         type='radio'
                                                         name='breakdown'
                                                         checked={filters.breakdown === option.value}
-                                                        onChange={() => setFilters((prev) => ({ ...prev, breakdown: option.value }))}
+                                                        onChange={() =>
+                                                            setFilters((prev) => ({
+                                                                ...prev,
+                                                                breakdown: option.value
+                                                            }))
+                                                        }
                                                         className='h-5 w-5 text-primary'
                                                     />
                                                     <span className='font-medium text-sm'>{option.label}</span>
@@ -856,13 +1614,17 @@ export default function FeeYearlyCollectionReport() {
                                                 {/* Class */}
                                                 <div className='flex min-w-[220px] flex-grow items-center gap-3'>
                                                     <Label htmlFor='includeClass' className='whitespace-nowrap font-medium'>
-                                                        Class:
+                                                        Class <span className='text-red-500'>*</span>:
                                                     </Label>
                                                     <Select
                                                         value={filters.classId === 0 ? '' : String(filters.classId)}
                                                         onValueChange={(val) => {
                                                             const id = Number(val);
-                                                            setFilters((prev) => ({ ...prev, classId: id, sectionId: 0 }));
+                                                            setFilters((prev) => ({
+                                                                ...prev,
+                                                                classId: id
+                                                                // sectionId: 0,
+                                                            }));
                                                         }}>
                                                         <SelectTrigger className='w-full'>
                                                             <SelectValue placeholder={loadingClasses ? 'Loading...' : 'Select Class'} />
@@ -885,7 +1647,10 @@ export default function FeeYearlyCollectionReport() {
                                                     <Select
                                                         value={filters.sectionId === 0 ? '' : String(filters.sectionId)}
                                                         onValueChange={(val) =>
-                                                            setFilters((prev) => ({ ...prev, sectionId: Number(val) }))
+                                                            setFilters((prev) => ({
+                                                                ...prev,
+                                                                sectionId: Number(val)
+                                                            }))
                                                         }>
                                                         <SelectTrigger className='w-full'>
                                                             <SelectValue
@@ -942,7 +1707,12 @@ export default function FeeYearlyCollectionReport() {
                                                             type='radio'
                                                             name='dueDateType'
                                                             checked={filters.dueDateType === 'Due Date'}
-                                                            onChange={() => setFilters((prev) => ({ ...prev, dueDateType: 'Due Date' }))}
+                                                            onChange={() =>
+                                                                setFilters((prev) => ({
+                                                                    ...prev,
+                                                                    dueDateType: 'Due Date'
+                                                                }))
+                                                            }
                                                             className='h-4 w-4 text-primary'
                                                         />
                                                         <span className='font-medium'>Due Date</span>
@@ -953,7 +1723,10 @@ export default function FeeYearlyCollectionReport() {
                                                             name='dueDateType'
                                                             checked={filters.dueDateType === 'Till Due Date'}
                                                             onChange={() =>
-                                                                setFilters((prev) => ({ ...prev, dueDateType: 'Till Due Date' }))
+                                                                setFilters((prev) => ({
+                                                                    ...prev,
+                                                                    dueDateType: 'Till Due Date'
+                                                                }))
                                                             }
                                                             className='h-4 w-4 text-primary'
                                                         />
@@ -1055,33 +1828,6 @@ export default function FeeYearlyCollectionReport() {
                                 )}
 
                                 <div>
-                                    {/* ==================== ACTION BUTTONS ==================== */}
-                                    {/* <div className='flex justify-end gap-4 border-t pt-8'>
-                                    <Button size='lg' variant='outline' className='px-8' onClick={() => window.location.reload()}>
-                                        Cancel
-                                    </Button>
-
-                                    <Button
-                                        size='lg'
-                                        className='px-12'
-                                        onClick={handleSubmit}
-                                        disabled={
-                                            reportLoading ||
-                                            !filters.academicYearId ||
-                                            filters.feeGroupIds.length === 0 ||
-                                            filters.termIds.length === 0
-                                        }>
-                                        {reportLoading ? (
-                                            <>
-                                                <div className='mr-3 h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent' />
-                                                Generating Report...
-                                            </>
-                                        ) : (
-                                            'Generate Report'
-                                        )}
-                                    </Button>
-                                </div> */}
-
                                     <div className='flex justify-center gap-4 border-t pt-6'>
                                         <Button type='submit' disabled={isSubmitting} className='min-w-32'>
                                             {isSubmitting ? 'Generating...' : 'Report'}
@@ -1092,8 +1838,6 @@ export default function FeeYearlyCollectionReport() {
                                         </Button>
                                     </div>
 
-                                    {/* ==================== REPORT SECTION ==================== */}
-                                    {/* ==================== REPORT SECTION ==================== */}
                                     {showReport && (
                                         <div className='-mx-8 mt-12 overflow-hidden rounded-lg bg-white shadow-xl'>
                                             {/* Loading State */}
@@ -1103,7 +1847,6 @@ export default function FeeYearlyCollectionReport() {
                                                     <p className='mt-6 text-lg text-muted-foreground'>Generating report, please wait...</p>
                                                 </div>
                                             ) : (
-                                                /* Table Inside CollapsibleSection */
                                                 <CollapsibleSection
                                                     defaultOpen={true}
                                                     variant='default'
@@ -1111,47 +1854,1893 @@ export default function FeeYearlyCollectionReport() {
                                                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                                                     <div className='flex items-center justify-between border-b bg-primary/5 px-8 py-6'>
                                                         <h2 className='font-bold text-2xl text-primary'>Yearly Fee Collection Report</h2>
-
-                                                        <div className='flex gap-3'>
-                                                            <div className='mb-4 flex justify-end gap-2'>
-                                                                <Button
-                                                                    size='sm'
-                                                                    className='h-8 w-auto px-3 text-xs'
-                                                                    onClick={exportToExcel}>
-                                                                    Export Excel
-                                                                </Button>
-
-                                                                <Button
-                                                                    size='sm'
-                                                                    variant='outline'
-                                                                    className='h-8 w-auto px-3 text-xs'
-                                                                    onClick={handlePrint}>
-                                                                    Print
-                                                                </Button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* <div className='flex items-center justify-between border-b bg-muted/40 px-8 py-4'>
-
-
+                                                        {filters.breakdown === 'FGW' && (
                                                             <div className='flex gap-3'>
-                                                                <Button variant='outline' onClick={handlePrint}>
-                                                                    🖨 Print
-                                                                </Button>
+                                                                <div className='mb-4 flex justify-end gap-2'>
+                                                                    <Button
+                                                                        size='sm'
+                                                                        className='h-8 w-auto px-3 text-xs'
+                                                                        onClick={handleExportExcelforFeeGroupWise}>
+                                                                        Export Excel
+                                                                    </Button>
 
-                                                                <Button variant='outline' onClick={handleExportExcel}>
-                                                                    📊 Export Excel
-                                                                </Button>
+                                                                    <Button
+                                                                        size='sm'
+                                                                        variant='outline'
+                                                                        className='h-8 w-auto px-3 text-xs'
+                                                                        onClick={handlePrintforFeeGroupWise}>
+                                                                        Print
+                                                                    </Button>
+                                                                </div>
                                                             </div>
-                                                        </div> */}
-                                                    <GenericDataTable
+                                                        )}
+                                                        {filters.breakdown === 'FHW' && (
+                                                            <div className='flex gap-3'>
+                                                                <div className='mb-4 flex justify-end gap-2'>
+                                                                    <Button
+                                                                        size='sm'
+                                                                        className='h-8 w-auto px-3 text-xs'
+                                                                        onClick={handleExportExcelforFeeHeadWise}>
+                                                                        Export Excel
+                                                                    </Button>
+
+                                                                    <Button
+                                                                        size='sm'
+                                                                        variant='outline'
+                                                                        className='h-8 w-auto px-3 text-xs'
+                                                                        onClick={handlePrintforFeeHeadWise}>
+                                                                        Print
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                        {filters.breakdown === 'CW' && (
+                                                            <div className='flex gap-3'>
+                                                                <div className='mb-4 flex justify-end gap-2'>
+                                                                    <Button
+                                                                        size='sm'
+                                                                        className='h-8 w-auto px-3 text-xs'
+                                                                        onClick={handleExportExcelforCategoryWise}>
+                                                                        Export Excel
+                                                                    </Button>
+
+                                                                    <Button
+                                                                        size='sm'
+                                                                        variant='outline'
+                                                                        className='h-8 w-auto px-3 text-xs'
+                                                                        onClick={handlePrintforCategoryWise}>
+                                                                        Print
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                        {filters.breakdown === 'FCW' && (
+                                                            <div className='flex gap-3'>
+                                                                <div className='mb-4 flex justify-end gap-2'>
+                                                                    <Button
+                                                                        size='sm'
+                                                                        className='h-8 w-auto px-3 text-xs'
+                                                                        onClick={handleExportExcelforFeeClassWise}>
+                                                                        Export Excel
+                                                                    </Button>
+
+                                                                    <Button
+                                                                        size='sm'
+                                                                        variant='outline'
+                                                                        className='h-8 w-auto px-3 text-xs'
+                                                                        onClick={handlePrintforFeeClassWise}>
+                                                                        Print
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                        {filters.breakdown === 'FSW' && (
+                                                            <div className='flex gap-3'>
+                                                                <div className='mb-4 flex justify-end gap-2'>
+                                                                    <Button
+                                                                        size='sm'
+                                                                        className='h-8 w-auto px-3 text-xs'
+                                                                        onClick={handleExportExcelforStudentWise}>
+                                                                        Export Excel
+                                                                    </Button>
+
+                                                                    <Button
+                                                                        size='sm'
+                                                                        variant='outline'
+                                                                        className='h-8 w-auto px-3 text-xs'
+                                                                        onClick={handlePrintforStudentWise}>
+                                                                        Print
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                        {filters.breakdown === 'INMW' && (
+                                                            <div className='flex gap-3'>
+                                                                <div className='mb-4 flex justify-end gap-2'>
+                                                                    <Button
+                                                                        size='sm'
+                                                                        className='h-8 w-auto px-3 text-xs'
+                                                                        onClick={handleExportExcelforInstallmentWise}>
+                                                                        Export Excel
+                                                                    </Button>
+
+                                                                    <Button
+                                                                        size='sm'
+                                                                        variant='outline'
+                                                                        className='h-8 w-auto px-3 text-xs'
+                                                                        onClick={handlePrintforInstallmentWise}>
+                                                                        Print
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                        {filters.breakdown === 'CTW' && (
+                                                            <div className='flex gap-3'>
+                                                                <div className='mb-4 flex justify-end gap-2'>
+                                                                    <Button
+                                                                        size='sm'
+                                                                        className='h-8 w-auto px-3 text-xs'
+                                                                        onClick={
+                                                                            handleExportExcelforClassSectionInstallmentWiseConslidated
+                                                                        }>
+                                                                        Export Excel
+                                                                    </Button>
+
+                                                                    <Button
+                                                                        size='sm'
+                                                                        variant='outline'
+                                                                        className='h-8 w-auto px-3 text-xs'
+                                                                        onClick={handlePrintforClassSectionInstallmentWiseConslidated}>
+                                                                        Print
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                        {filters.breakdown === 'CTC' && (
+                                                            <div className='flex gap-3'>
+                                                                <div className='mb-4 flex justify-end gap-2'>
+                                                                    <Button
+                                                                        size='sm'
+                                                                        className='h-8 w-auto px-3 text-xs'
+                                                                        onClick={handleExportExcelforClassInstallmentWiseConslidated}>
+                                                                        Export Excel
+                                                                    </Button>
+
+                                                                    <Button
+                                                                        size='sm'
+                                                                        variant='outline'
+                                                                        className='h-8 w-auto px-3 text-xs'
+                                                                        onClick={handlePrintforClassInstallmentWiseConslidated}>
+                                                                        Print
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                        {filters.breakdown === 'SWTPC' && (
+                                                            <div className='flex gap-3'>
+                                                                <div className='mb-4 flex justify-end gap-2'>
+                                                                    <Button
+                                                                        size='sm'
+                                                                        className='h-8 w-auto px-3 text-xs'
+                                                                        onClick={handleExportExcelforStudentWiseTotalPaidCount}>
+                                                                        Export Excel
+                                                                    </Button>
+
+                                                                    <Button
+                                                                        size='sm'
+                                                                        variant='outline'
+                                                                        className='h-8 w-auto px-3 text-xs'
+                                                                        onClick={handlePrintforStudentWiseTotalPaidCount}>
+                                                                        Print
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {filters.breakdown === 'CWTPC' && (
+                                                            <div className='flex gap-3'>
+                                                                <div className='mb-4 flex justify-end gap-2'>
+                                                                    <Button
+                                                                        size='sm'
+                                                                        className='h-8 w-auto px-3 text-xs'
+                                                                        onClick={handleExportExcelforClassSectionWiseTotalPaidCount}>
+                                                                        Export Excel
+                                                                    </Button>
+
+                                                                    <Button
+                                                                        size='sm'
+                                                                        variant='outline'
+                                                                        className='h-8 w-auto px-3 text-xs'
+                                                                        onClick={handlePrintforClassSectionWiseTotalPaidCount}>
+                                                                        Print
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    {/* <GenericDataTable
                                                         data={tableData}
                                                         columns={getDynamicColumns(filters.breakdown as 'FGW' | 'INMW')}
                                                         isLoading={reportLoading}
                                                         isPaginationRequired={false}
                                                         isSearchRequired={false}
-                                                    />
+                                                    /> */}
+
+                                                    {reportData.length > 0 && (
+                                                        <>
+                                                            {(filters.breakdown === 'FGW' || filters.breakdown === 'FHW') && (
+                                                                <div className='overflow-x-auto border'>
+                                                                    <div className='overflow-x-auto border'>
+                                                                        <table className='w-full table-auto border-collapse'>
+                                                                            <thead className='bg-primary text-white'>
+                                                                                <tr>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Checkbox
+                                                                                            checked={
+                                                                                                selectedIds.length === reportData.length &&
+                                                                                                reportData.length > 0
+                                                                                            }
+                                                                                            indeterminate={
+                                                                                                selectedIds.length > 0 &&
+                                                                                                selectedIds.length < reportData.length
+                                                                                            }
+                                                                                            onCheckedChange={toggleAllstudents}
+                                                                                        />
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>Sl No</th>
+                                                                                    {filters.breakdown === 'FGW' && (
+                                                                                        <th className='p-2 text-center'>Fee Group</th>
+                                                                                    )}
+                                                                                    {filters.breakdown === 'FHW' && (
+                                                                                        <th className='p-2 text-center'>Fee Head</th>
+                                                                                    )}
+
+                                                                                    <th className='p-2 text-center'>Paid Amount</th>
+                                                                                    <th className='p-2 text-center'>Balance</th>
+                                                                                    <th className='p-2 text-center'>Concession</th>
+                                                                                    <th className='p-2 text-center'>Waived Off</th>
+                                                                                    <th className='p-2 text-center'>Rebate</th>
+                                                                                    <th className='p-2 text-center'>Fine</th>
+                                                                                    <th className='p-2 text-center'>Total Payable</th>
+                                                                                    <th className='p-2 text-center'>Adjusted</th>
+                                                                                    <th className='p-2 text-center'>Excess Paid</th>
+                                                                                    <th className='p-2 text-center'>Running Excess</th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                {reportData.map((row, index) => (
+                                                                                    <tr key={row.id} className='border-b hover:bg-gray-50'>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            <Checkbox
+                                                                                                checked={selectedIds.includes(row.id)}
+                                                                                                onCheckedChange={() => toggleRow(row.id)}
+                                                                                            />
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-medium'>
+                                                                                            {index + 1}
+                                                                                        </td>
+                                                                                        {filters.breakdown === 'FGW' && (
+                                                                                            <td className='p-2 text-center'>
+                                                                                                {row.fmg_groupname}
+                                                                                            </td>
+                                                                                        )}
+                                                                                        {filters.breakdown === 'FHW' && (
+                                                                                            <td className='p-2 text-center'>
+                                                                                                {row.fmh_feename}
+                                                                                            </td>
+                                                                                        )}
+                                                                                        {/* <td className="p-2 text-center">
+                                              {row.fmg_groupname}
+                                            </td> */}
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹
+                                                                                            {(row.fss_paidamount || 0).toLocaleString(
+                                                                                                'en-IN'
+                                                                                            )}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.balance || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.concession || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.waived || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.rebate || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.fine || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹
+                                                                                            {(row.totalpayable || 0).toLocaleString(
+                                                                                                'en-IN'
+                                                                                            )}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.adjusted || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.excess || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹
+                                                                                            {(row.runningexcess || 0).toLocaleString(
+                                                                                                'en-IN'
+                                                                                            )}
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                ))}
+
+                                                                                {/* Totals Row */}
+                                                                                <tr className='bg-gray-100 font-bold'>
+                                                                                    <td colSpan={3} className='p-2 text-right'>
+                                                                                        Total:
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) =>
+                                                                                                    sum + (row.fss_paidamount || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.balance || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.concession || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.waived || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.rebate || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce((sum, row) => sum + (row.fine || 0), 0)
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.totalpayable || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.adjusted || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.excess || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) =>
+                                                                                                    sum + (row.runningexcess || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                </tr>
+                                                                            </tbody>
+                                                                        </table>
+                                                                        <div className='p-2 font-medium text-sm'>
+                                                                            Total Records: {reportData.length}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                            {filters.breakdown === 'FCW' && (
+                                                                <div className='overflow-x-auto border'>
+                                                                    <div className='overflow-x-auto border'>
+                                                                        <table className='w-full table-auto border-collapse'>
+                                                                            <thead className='bg-primary text-white'>
+                                                                                <tr>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Checkbox
+                                                                                            checked={
+                                                                                                selectedIds.length === reportData.length &&
+                                                                                                reportData.length > 0
+                                                                                            }
+                                                                                            indeterminate={
+                                                                                                selectedIds.length > 0 &&
+                                                                                                selectedIds.length < reportData.length
+                                                                                            }
+                                                                                            onCheckedChange={toggleAllstudents}
+                                                                                        />
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>Sl No</th>
+                                                                                    <th className='p-2 text-center'>Class Name</th>
+                                                                                    <th className='p-2 text-center'>Total Charges</th>
+                                                                                    <th className='p-2 text-center'>Paid Amount</th>
+                                                                                    <th className='p-2 text-center'>Balance</th>
+                                                                                    <th className='p-2 text-center'>Concession</th>
+                                                                                    <th className='p-2 text-center'>Fine</th>
+                                                                                    <th className='p-2 text-center'>Rebate</th>
+                                                                                    <th className='p-2 text-center'>Waived Off</th>
+                                                                                    <th className='p-2 text-center'>Excess</th>
+                                                                                    <th className='p-2 text-center'>Opening Balance</th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                {reportData.map((row, index) => (
+                                                                                    <tr key={row.id} className='border-b hover:bg-gray-50'>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            <Checkbox
+                                                                                                checked={selectedIds.includes(row.id)}
+                                                                                                onCheckedChange={() => toggleRow(row.id)}
+                                                                                            />
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-medium'>
+                                                                                            {index + 1}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {row.asmcl_classname}
+                                                                                        </td>
+
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            {(row.fss_paidamount || 0).toLocaleString(
+                                                                                                'en-IN'
+                                                                                            )}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹
+                                                                                            {(row.fss_paidamount || 0).toLocaleString(
+                                                                                                'en-IN'
+                                                                                            )}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.balance || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.concession || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.fine || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.rebate || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.waived || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.excess || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹
+                                                                                            {(row.openingbalance || 0).toLocaleString(
+                                                                                                'en-IN'
+                                                                                            )}
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                ))}
+
+                                                                                {/* Totals Row */}
+                                                                                <tr className='bg-gray-100 font-bold'>
+                                                                                    <td colSpan={6} className='p-2 text-right'>
+                                                                                        Total:
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.totalpayable || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) =>
+                                                                                                    sum + (row.fss_paidamount || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.balance || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.concession || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce((sum, row) => sum + (row.fine || 0), 0)
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.rebate || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.waived || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.adjusted || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) =>
+                                                                                                    sum + (row.openingbalance || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.excess || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                </tr>
+                                                                            </tbody>
+                                                                        </table>
+                                                                        <div className='p-2 font-medium text-sm'>
+                                                                            Total Records: {reportData.length}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                            {filters.breakdown === 'FSW' && (
+                                                                <div className='overflow-x-auto border'>
+                                                                    <div className='overflow-x-auto border'>
+                                                                        <table className='w-full table-auto border-collapse'>
+                                                                            <thead className='bg-primary text-white'>
+                                                                                <tr>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Checkbox
+                                                                                            checked={
+                                                                                                selectedIds.length === reportData.length &&
+                                                                                                reportData.length > 0
+                                                                                            }
+                                                                                            indeterminate={
+                                                                                                selectedIds.length > 0 &&
+                                                                                                selectedIds.length < reportData.length
+                                                                                            }
+                                                                                            onCheckedChange={toggleAllstudents}
+                                                                                        />
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>Sl No</th>
+                                                                                    <th className='p-2 text-center'>Student Name</th>
+                                                                                    <th className='p-2 text-center'>Admission No</th>
+                                                                                    <th className='p-2 text-center'>Class Name</th>
+                                                                                    <th className='p-2 text-center'>Mobile No</th>
+                                                                                    <th className='p-2 text-center'>Total Payable</th>
+                                                                                    <th className='p-2 text-center'>Paid Amount</th>
+                                                                                    <th className='p-2 text-center'>Balance</th>
+                                                                                    <th className='p-2 text-center'>Concession</th>
+                                                                                    <th className='p-2 text-center'>Fine</th>
+                                                                                    <th className='p-2 text-center'>Rebate</th>
+                                                                                    <th className='p-2 text-center'>Waived Off</th>
+
+                                                                                    <th className='p-2 text-center'>Adjusted</th>
+                                                                                    <th className='p-2 text-center'>Opening Balance</th>
+
+                                                                                    <th className='p-2 text-center'>Excess Paid</th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                {reportData.map((row, index) => (
+                                                                                    <tr key={row.id} className='border-b hover:bg-gray-50'>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            <Checkbox
+                                                                                                checked={selectedIds.includes(row.id)}
+                                                                                                onCheckedChange={() => toggleRow(row.id)}
+                                                                                            />
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-medium'>
+                                                                                            {index + 1}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {row.studentname}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {row.amst_admno}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {row.asmcl_classname}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>{row.mobileNo}</td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {(row.totalpayable || 0).toLocaleString(
+                                                                                                'en-IN'
+                                                                                            )}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹
+                                                                                            {(row.fss_paidamount || 0).toLocaleString(
+                                                                                                'en-IN'
+                                                                                            )}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.balance || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.concession || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.fine || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.rebate || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.waived || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.adjusted || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹
+                                                                                            {(row.openingbalance || 0).toLocaleString(
+                                                                                                'en-IN'
+                                                                                            )}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.excess || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                ))}
+
+                                                                                {/* Totals Row */}
+                                                                                <tr className='bg-gray-100 font-bold'>
+                                                                                    <td colSpan={6} className='p-2 text-right'>
+                                                                                        Total:
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.totalpayable || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) =>
+                                                                                                    sum + (row.fss_paidamount || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.balance || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.concession || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce((sum, row) => sum + (row.fine || 0), 0)
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.rebate || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.waived || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.adjusted || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) =>
+                                                                                                    sum + (row.openingbalance || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.excess || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                </tr>
+                                                                            </tbody>
+                                                                        </table>
+                                                                        <div className='p-2 font-medium text-sm'>
+                                                                            Total Records: {reportData.length}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            {filters.breakdown === 'TRMW' && (
+                                                                <div className='overflow-x-auto border'>
+                                                                    <div className='overflow-x-auto border'>
+                                                                        <table className='w-full table-auto border-collapse'>
+                                                                            <thead className='bg-primary text-white'>
+                                                                                <tr>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Checkbox
+                                                                                            checked={
+                                                                                                selectedIds.length === reportData.length &&
+                                                                                                reportData.length > 0
+                                                                                            }
+                                                                                            indeterminate={
+                                                                                                selectedIds.length > 0 &&
+                                                                                                selectedIds.length < reportData.length
+                                                                                            }
+                                                                                            onCheckedChange={toggleAllstudents}
+                                                                                        />
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>Sl No</th>
+                                                                                    <th className='p-2 text-center'>Fee Head</th>
+                                                                                    <th className='p-2 text-center'>Total Paid</th>
+                                                                                    <th className='p-2 text-center'>Total Balance</th>
+                                                                                    <th className='p-2 text-center'>Total Concession</th>
+                                                                                    <th className='p-2 text-center'>Total Arrear</th>
+                                                                                    <th className='p-2 text-center'>Total Excess</th>
+                                                                                    <th className='p-2 text-center'>Total Charges</th>
+                                                                                    <th className='p-2 text-center'>Total Payable</th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                {reportData.map((row, index) => (
+                                                                                    <tr key={row.id} className='border-b hover:bg-gray-50'>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            <Checkbox
+                                                                                                checked={selectedIds.includes(row.id)}
+                                                                                                onCheckedChange={() => toggleRow(row.id)}
+                                                                                            />
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-medium'>
+                                                                                            {index + 1}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {row.fmh_feename}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            {row.paid.toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            {row.balance.toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            {row.concession.toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {(row.arrear || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.excess || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.charges || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.payable || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                ))}
+
+                                                                                {/* Totals Row */}
+                                                                                <tr className='bg-gray-100 font-bold'>
+                                                                                    <td colSpan={3} className='p-2 text-right'>
+                                                                                        Total:
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce((sum, row) => sum + (row.paid || 0), 0)
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.balance || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.concession || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.arrear || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.excess || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.charges || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.payable || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                </tr>
+                                                                            </tbody>
+                                                                        </table>
+                                                                        <div className='p-2 font-medium text-sm'>
+                                                                            Total Records: {reportData.length}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                            {filters.breakdown === 'INMW' && (
+                                                                <div className='overflow-x-auto border'>
+                                                                    <div className='overflow-x-auto border'>
+                                                                        <table className='w-full table-auto border-collapse'>
+                                                                            <thead className='bg-primary text-white'>
+                                                                                <tr>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Checkbox
+                                                                                            checked={
+                                                                                                selectedIds.length === reportData.length &&
+                                                                                                reportData.length > 0
+                                                                                            }
+                                                                                            indeterminate={
+                                                                                                selectedIds.length > 0 &&
+                                                                                                selectedIds.length < reportData.length
+                                                                                            }
+                                                                                            onCheckedChange={toggleAllstudents}
+                                                                                        />
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>Sl No</th>
+                                                                                    <th className='p-2 text-center'>Student Name</th>
+
+                                                                                    <th className='p-2 text-center'>Class/Section</th>
+                                                                                    <th className='p-2 text-center'>Admission No</th>
+                                                                                    <th className='p-2 text-center'>Installment name</th>
+                                                                                    <th className='p-2 text-center'>Total Payable</th>
+                                                                                    <th className='p-2 text-center'>Paid Amount</th>
+                                                                                    <th className='p-2 text-center'>Balance</th>
+                                                                                    <th className='p-2 text-center'>Concession</th>
+                                                                                    <th className='p-2 text-center'>Arrear</th>
+                                                                                    <th className='p-2 text-center'>Excess</th>
+                                                                                    <th className='p-2 text-center'>Charge</th>
+
+                                                                                    <th className='p-2 text-center'>Adjustment</th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                {reportData.map((row, index) => (
+                                                                                    <tr key={row.id} className='border-b hover:bg-gray-50'>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            <Checkbox
+                                                                                                checked={selectedIds.includes(row.id)}
+                                                                                                onCheckedChange={() => toggleRow(row.id)}
+                                                                                            />
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-medium'>
+                                                                                            {index + 1}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {row.studentName}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {row.asmcL_ClassName}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {row.amsT_AdmNo}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>{row.ftI_Name}</td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {(row.totalpayable || 0).toLocaleString(
+                                                                                                'en-IN'
+                                                                                            )}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹
+                                                                                            {(row.fss_paidamount || 0).toLocaleString(
+                                                                                                'en-IN'
+                                                                                            )}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.balance || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.concession || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.arrear || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.excess || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.charge || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.adjusted || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                ))}
+
+                                                                                {/* Totals Row */}
+                                                                                <tr className='bg-gray-100 font-bold'>
+                                                                                    <td colSpan={6} className='p-2 text-right'>
+                                                                                        Total:
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.totalpayable || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) =>
+                                                                                                    sum + (row.fss_paidamount || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.balance || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.concession || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.arrear || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.excess || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.charge || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.adjusted || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                </tr>
+                                                                            </tbody>
+                                                                        </table>
+                                                                        <div className='p-2 font-medium text-sm'>
+                                                                            Total Records: {reportData.length}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                            {filters.breakdown === 'STRMW' && (
+                                                                <div className='overflow-x-auto border'>
+                                                                    <div className='overflow-x-auto border'>
+                                                                        <table className='w-full table-auto border-collapse'>
+                                                                            <thead className='bg-primary text-white'>
+                                                                                <tr>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Checkbox
+                                                                                            checked={
+                                                                                                selectedIds.length === reportData.length &&
+                                                                                                reportData.length > 0
+                                                                                            }
+                                                                                            indeterminate={
+                                                                                                selectedIds.length > 0 &&
+                                                                                                selectedIds.length < reportData.length
+                                                                                            }
+                                                                                            onCheckedChange={toggleAllstudents}
+                                                                                        />
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>Sl No</th>
+                                                                                    <th className='p-2 text-center'>Student Name</th>
+                                                                                    <th className='p-2 text-center'>Class:Section</th>
+                                                                                    <th className='p-2 text-center'>CD Net Amount</th>
+                                                                                    <th className='p-2 text-center'>CD Paid Amount</th>
+                                                                                    <th className='p-2 text-center'>CD Balance Amount</th>
+                                                                                    <th className='p-2 text-center'>Total Charges</th>
+                                                                                    <th className='p-2 text-center'>Total Arrear</th>
+                                                                                    <th className='p-2 text-center'>Total Concession</th>
+                                                                                    <th className='p-2 text-center'>Total WaivedOff</th>
+
+                                                                                    <th className='p-2 text-center'>
+                                                                                        Total AdjustedAmount
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>Total Payable</th>
+                                                                                    <th className='p-2 text-center'>Total paid</th>
+                                                                                    <th className='p-2 text-center'>Total Balance</th>
+                                                                                    <th className='p-2 text-center'>Total Excess</th>
+                                                                                    <th className='p-2 text-center'>Total Refund</th>
+                                                                                    <th className='p-2 text-center'>Total Adjustment</th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                {reportData.map((row, index) => (
+                                                                                    <tr key={row.id} className='border-b hover:bg-gray-50'>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            <Checkbox
+                                                                                                checked={selectedIds.includes(row.id)}
+                                                                                                onCheckedChange={() => toggleRow(row.id)}
+                                                                                            />
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-medium'>
+                                                                                            {index + 1}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {row.studentName}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {row.asmcl_ClassName}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {row.cdNetAmount}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {row.cdPaidAmount}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {row.cdBalanceAmount}
+                                                                                        </td>
+
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            {(row.charges || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            {(row.arrear || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            {(row.concession || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {(row.waived || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.payable || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.paid || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.balance || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.excess || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.refund || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.adjusted || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                ))}
+
+                                                                                {/* Totals Row */}
+                                                                                <tr className='bg-gray-100 font-bold'>
+                                                                                    <td colSpan={7} className='p-2 text-right'>
+                                                                                        Total:
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.charges || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.arrear || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.concession || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.waived || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce((sum) => sum + 0, 0)
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.payable || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce((sum, row) => sum + (row.paid || 0), 0)
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.balance || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.excess || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.refund || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.adjusted || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                </tr>
+                                                                            </tbody>
+                                                                        </table>
+                                                                        <div className='p-2 font-medium text-sm'>
+                                                                            Total Records: {reportData.length}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                            {filters.breakdown === 'CW' && (
+                                                                <div className='overflow-x-auto border'>
+                                                                    <div className='overflow-x-auto border'>
+                                                                        <table className='w-full table-auto border-collapse'>
+                                                                            <thead className='bg-primary text-white'>
+                                                                                <tr>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Checkbox
+                                                                                            checked={
+                                                                                                selectedIds.length === reportData.length &&
+                                                                                                reportData.length > 0
+                                                                                            }
+                                                                                            indeterminate={
+                                                                                                selectedIds.length > 0 &&
+                                                                                                selectedIds.length < reportData.length
+                                                                                            }
+                                                                                            onCheckedChange={toggleAllstudents}
+                                                                                        />
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>Sl No</th>
+                                                                                    <th className='p-2 text-center'>Fee Class Category</th>
+                                                                                    <th className='p-2 text-center'>Fee Head</th>
+                                                                                    <th className='p-2 text-center'>By Bank</th>
+                                                                                    <th className='p-2 text-center'>By Cash</th>
+                                                                                    <th className='p-2 text-center'>By Online</th>
+                                                                                    <th className='p-2 text-center'>By Card</th>
+                                                                                    <th className='p-2 text-center'>By ECS</th>
+                                                                                    <th className='p-2 text-center'>By RTGS</th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                {reportData.map((row, index) => (
+                                                                                    <tr key={row.id} className='border-b hover:bg-gray-50'>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            <Checkbox
+                                                                                                checked={selectedIds.includes(row.id)}
+                                                                                                onCheckedChange={() => toggleRow(row.id)}
+                                                                                            />
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-medium'>
+                                                                                            {index + 1}
+                                                                                        </td>
+
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {row.fmcc_classcategoryname}
+                                                                                        </td>
+
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {row.fmh_feename}
+                                                                                        </td>
+
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.bybank || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.bycash || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.byonline || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.bycard || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.byecs || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.byrtgs || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                ))}
+
+                                                                                {/* Totals Row */}
+                                                                                <tr className='bg-gray-100 font-bold'>
+                                                                                    <td colSpan={3} className='p-2 text-right'>
+                                                                                        Total:
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.bybank || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.bycash || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.byonline || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.bycard || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce((sum, row) => sum + (row.byecs || 0), 0)
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.byrtgs || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                </tr>
+                                                                            </tbody>
+                                                                        </table>
+                                                                        <div className='p-2 font-medium text-sm'>
+                                                                            Total Records: {reportData.length}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                            {(filters.breakdown === 'CTW' || filters.breakdown === 'CTC') && (
+                                                                <div className='overflow-x-auto border'>
+                                                                    <div className='overflow-x-auto border'>
+                                                                        <table className='w-full table-auto border-collapse'>
+                                                                            <thead className='bg-primary text-white'>
+                                                                                <tr>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Checkbox
+                                                                                            checked={
+                                                                                                selectedIds.length === reportData.length &&
+                                                                                                reportData.length > 0
+                                                                                            }
+                                                                                            indeterminate={
+                                                                                                selectedIds.length > 0 &&
+                                                                                                selectedIds.length < reportData.length
+                                                                                            }
+                                                                                            onCheckedChange={toggleAllstudents}
+                                                                                        />
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>Sl No</th>
+                                                                                    <th className='p-2 text-center'>Class Name</th>
+                                                                                    {filters.breakdown === 'CTW' && (
+                                                                                        <th className='p-2 text-center'>Section</th>
+                                                                                    )}
+
+                                                                                    <th className='p-2 text-center'>Term</th>
+                                                                                    <th className='p-2 text-center'>Total Charges</th>
+                                                                                    <th className='p-2 text-center'>Balance Amount</th>
+                                                                                    <th className='p-2 text-center'>Paid Amount</th>
+                                                                                    <th className='p-2 text-center'>Concession</th>
+                                                                                    <th className='p-2 text-center'>Waived Off</th>
+                                                                                    <th className='p-2 text-center'>Adjusted</th>
+                                                                                    <th className='p-2 text-center'>Excess Paid</th>
+                                                                                    <th className='p-2 text-center'>Refund Amount</th>
+
+                                                                                    <th className='p-2 text-center'>Running Excess</th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                {reportData.map((row, index) => (
+                                                                                    <tr key={row.id} className='border-b hover:bg-gray-50'>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            <Checkbox
+                                                                                                checked={selectedIds.includes(row.id)}
+                                                                                                onCheckedChange={() => toggleRow(row.id)}
+                                                                                            />
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-medium'>
+                                                                                            {index + 1}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {row.asmcl_classname}
+                                                                                        </td>
+                                                                                        {filters.breakdown === 'CTW' && (
+                                                                                            <td className='p-2 text-center'>
+                                                                                                {row.asmc_sectionname}
+                                                                                            </td>
+                                                                                        )}
+
+                                                                                        <td className='p-2 text-center'>{row.fmt_name}</td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            {(row.totalcharges || 0).toLocaleString(
+                                                                                                'en-IN'
+                                                                                            )}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            {(row.totalbalance || 0).toLocaleString(
+                                                                                                'en-IN'
+                                                                                            )}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            {(row.totalpaid || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹
+                                                                                            {(row.totalconcession || 0).toLocaleString(
+                                                                                                'en-IN'
+                                                                                            )}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹
+                                                                                            {(row.totalwaivedoff || 0).toLocaleString(
+                                                                                                'en-IN'
+                                                                                            )}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.adjustment || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.excess || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹
+                                                                                            {(row.totalrefund || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹
+                                                                                            {(row.runningexcess || 0).toLocaleString(
+                                                                                                'en-IN'
+                                                                                            )}
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                ))}
+
+                                                                                {/* Totals Row */}
+                                                                                <tr className='bg-gray-100 font-bold'>
+                                                                                    <td
+                                                                                        colSpan={filters.breakdown === 'CTW' ? 5 : 4}
+                                                                                        className='p-2 text-right'>
+                                                                                        Total:
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.totalcharges || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.totalbalance || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.totalpaid || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) =>
+                                                                                                    sum + (row.totalconcession || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) =>
+                                                                                                    sum + (row.totalwaivedoff || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.adjustment || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.excess || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.totalrefund || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) =>
+                                                                                                    sum + (row.runningexcess || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                </tr>
+                                                                            </tbody>
+                                                                        </table>
+                                                                        <div className='p-2 font-medium text-sm'>
+                                                                            Total Records: {reportData.length}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            {(filters.breakdown === 'SWTPC' || filters.breakdown === 'CWTPC') && (
+                                                                <div className='overflow-x-auto border'>
+                                                                    <div className='overflow-x-auto border'>
+                                                                        <table className='w-full table-auto border-collapse'>
+                                                                            <thead className='bg-primary text-white'>
+                                                                                <tr>
+                                                                                    <th className='p-2 text-center'>
+                                                                                        <Checkbox
+                                                                                            checked={
+                                                                                                selectedIds.length === reportData.length &&
+                                                                                                reportData.length > 0
+                                                                                            }
+                                                                                            indeterminate={
+                                                                                                selectedIds.length > 0 &&
+                                                                                                selectedIds.length < reportData.length
+                                                                                            }
+                                                                                            onCheckedChange={toggleAllstudents}
+                                                                                        />
+                                                                                    </th>
+                                                                                    <th className='p-2 text-center'>Sl No</th>
+                                                                                    <th className='p-2 text-center'>Student Name</th>
+                                                                                    {filters.breakdown === 'CWTPC' && (
+                                                                                        <th className='p-2 text-center'>Class/Section</th>
+                                                                                    )}
+                                                                                    <th className='p-2 text-center'>Admission No</th>
+                                                                                    <th className='p-2 text-center'>Total Payable</th>
+                                                                                    <th className='p-2 text-center'>Paid Amount</th>
+                                                                                    <th className='p-2 text-center'>Balance</th>
+                                                                                    <th className='p-2 text-center'>Concession</th>
+                                                                                    <th className='p-2 text-center'>Fine</th>
+                                                                                    <th className='p-2 text-center'>Rebate</th>
+                                                                                    <th className='p-2 text-center'>Waived Off</th>
+
+                                                                                    <th className='p-2 text-center'>Adjusted</th>
+                                                                                    <th className='p-2 text-center'>Opening Balance</th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                {reportData.map((row, index) => (
+                                                                                    <tr key={row.id} className='border-b hover:bg-gray-50'>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            <Checkbox
+                                                                                                checked={selectedIds.includes(row.id)}
+                                                                                                onCheckedChange={() => toggleRow(row.id)}
+                                                                                            />
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-medium'>
+                                                                                            {index + 1}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {row.studentname}
+                                                                                        </td>
+                                                                                        {filters.breakdown === 'CWTPC' && (
+                                                                                            <td className='p-2 text-center'>
+                                                                                                {row.asmcl_classname}
+                                                                                            </td>
+                                                                                        )}
+                                                                                        <td className='p-2 text-center'>
+                                                                                            {row.amst_admno}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            {(row.totalpayable || 0).toLocaleString(
+                                                                                                'en-IN'
+                                                                                            )}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹
+                                                                                            {(row.fss_paidamount || 0).toLocaleString(
+                                                                                                'en-IN'
+                                                                                            )}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.balance || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.concession || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.fine || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.rebate || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.waived || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹{(row.adjusted || 0).toLocaleString('en-IN')}
+                                                                                        </td>
+                                                                                        <td className='p-2 text-center font-bold'>
+                                                                                            ₹
+                                                                                            {(row.openingbalance || 0).toLocaleString(
+                                                                                                'en-IN'
+                                                                                            )}
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                ))}
+
+                                                                                {/* Totals Row */}
+                                                                                <tr className='bg-gray-100 font-bold'>
+                                                                                    <td
+                                                                                        colSpan={filters.breakdown === 'CWTPC' ? 5 : 4}
+                                                                                        className='p-2 text-right'>
+                                                                                        Total:
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.totalpayable || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) =>
+                                                                                                    sum + (row.fss_paidamount || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.balance || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.concession || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce((sum, row) => sum + (row.fine || 0), 0)
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.rebate || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.waived || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) => sum + (row.adjusted || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                    <td className='p-2 text-center font-bold text-blue-700'>
+                                                                                        ₹
+                                                                                        {reportData
+                                                                                            .reduce(
+                                                                                                (sum, row) =>
+                                                                                                    sum + (row.openingbalance || 0),
+                                                                                                0
+                                                                                            )
+                                                                                            .toLocaleString('en-IN')}
+                                                                                    </td>
+                                                                                </tr>
+                                                                            </tbody>
+                                                                        </table>
+                                                                        <div className='p-2 font-medium text-sm'>
+                                                                            Total Records: {reportData.length}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </>
+                                                    )}
                                                 </CollapsibleSection>
                                             )}
                                         </div>

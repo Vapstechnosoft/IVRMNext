@@ -1,143 +1,91 @@
+
 'use client';
 
+import { Suspense, use, useState } from 'react';
+import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useInvItemStoreMapping } from '@/hooks/inventory/masters/use-inv-item-store-mapping';
+import { Plus, X, ListChecks } from 'lucide-react';
+import AddInvItemStoreMappingForm from './_components/add-form';
+import { invItemStoreMappingColumns } from './_components/columns';
 import type { IInvItemStoreMapping } from '@/types/inventory/masters/inv-item-store-mapping';
-import { Plus, X } from 'lucide-react';
-import { use } from 'react';
-import { Heading } from '@/components/layout/heading';
-import AddItemStoreMappingForm from './_components/add-form';
-import { InvItemStoreMappingColumns } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function InvItemStoreMappingPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useInvItemStoreMapping(searchParams);
+    const [isAddFormOpen, setIsAddFormOpen] = useState(false);
+
+    const tableProps = useDataTableProps(response?.data?.get_mapped_items || [], {
+        dataKey: 'get_mapped_items'
+    });
 
     return (
-        <FormProvider<IInvItemStoreMapping>>
-            <InvItemStoreMappingPageContent response={response} isLoading={isLoading} error={error} />
-        </FormProvider>
-    );
-}
-
-function InvItemStoreMappingPageContent({
-    response,
-    isLoading,
-    error
-}: {
-    response: any;
-    isLoading: boolean;
-    error: any;
-}) {
-    const { openAddForm } = useFormContext<IInvItemStoreMapping>();
-    const tableProps = useDataTableProps(response);
-
-    return (
-        <div className='min-h-screen'>
-            <div className='container space-y-4 p-4'>
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+        <div className='min-h-screen bg-slate-50/50 dark:bg-slate-950/50'>
+            <div className='container space-y-6 p-6 mx-auto max-w-[1600px]'>
+                <div className='flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border'>
                     <Heading
                         title='Item Store Mapping'
-                        description='Assign items to specific stores and manage their availability'
+                        description='Manage associations between items and stores'
                     />
                     <Button
                         type='button'
-                        onClick={openAddForm}
-                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg bg-primary'>
+                        onClick={() => setIsAddFormOpen(true)}
+                        className='w-fit shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 bg-primary hover:bg-primary/90'
+                        disabled={isAddFormOpen}
+                    >
                         <Plus className='h-4 w-4 mr-2' />
-                        Add Mapping
+                        New Mapping
                     </Button>
                 </div>
 
+                {isAddFormOpen && (
+                    <div className='animate-in fade-in slide-in-from-top-4 duration-500'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={() => setIsAddFormOpen(false)}
+                                variant='ghost'
+                                size='sm'
+                                className='absolute top-3 right-3 z-10 hover:bg-destructive/10 text-destructive rounded-full h-8 w-8 p-0'>
+                                <X className='h-4 w-4' />
+                            </Button>
+                            <AddInvItemStoreMappingForm
+                                response={response}
+                                onSuccess={() => setIsAddFormOpen(false)}
+                            />
+                        </div>
+                    </div>
+                )}
+
                 <CollapsibleSection
+                    title={
+                        <div className="flex items-center gap-2">
+                            <ListChecks className="h-5 w-5 text-primary" />
+                            <span>Mapped Items</span>
+                        </div>
+                    }
                     defaultOpen={true}
                     variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IInvItemStoreMapping>
-                        {...tableProps}
-                        columns={InvItemStoreMappingColumns}
-                        isLoading={isLoading}
-                        error={error}
-                        columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading item store mappings...'
-                        noDataTitle='No Mappings Found'
-                        noDataDescription='Assign items to stores to get started'
-                        errorTitle='Error Loading Mappings'
-                    />
+                    className='shadow-lg border-none bg-white dark:bg-slate-900'>
+                    <div className="p-1">
+                        <GenericDataTable<IInvItemStoreMapping>
+                            {...tableProps}
+                            data={response?.data?.get_mapped_items || []}
+                            columns={invItemStoreMappingColumns}
+                            isLoading={isLoading}
+                            error={error}
+                            loadingMessage='Retrieving mapped items...'
+                            noDataTitle='No Mappings Found'
+                            noDataDescription='Create a new mapping to associate items with stores.'
+                        />
+                    </div>
                 </CollapsibleSection>
-
-                <FormSections />
             </div>
         </div>
     );
 }
 
-function FormSections() {
-    const {
-        isAddFormOpen,
-        isEditFormOpen,
-        closeAddForm,
-        closeEditForm,
-        addFormRef,
-        editFormRef,
-        selectedRow
-    } = useFormContext<IInvItemStoreMapping>();
-
-    return (
-        <>
-            {isAddFormOpen && (
-                <div ref={addFormRef}>
-                    <CollapsibleSection
-                        title='Add Item Store Mapping'
-                        description='Select a store and map items to it'
-                        defaultOpen={true}
-                        variant='outline'
-                        size='md'
-                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                        <div className='relative'>
-                            <Button
-                                type='button'
-                                onClick={closeAddForm}
-                                variant='ghost'
-                                size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' /> Close
-                            </Button>
-                            <AddItemStoreMappingForm onSuccess={closeAddForm} />
-                        </div>
-                    </CollapsibleSection>
-                </div>
-            )}
-
-            {isEditFormOpen && selectedRow && (
-                <div ref={editFormRef}>
-                    <CollapsibleSection
-                        title='Edit Item Store Mapping'
-                        defaultOpen={true}
-                        variant='outline'
-                        size='md'
-                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
-                        <div className='relative'>
-                            <Button
-                                type='button'
-                                onClick={closeEditForm}
-                                variant='ghost'
-                                size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' /> Close
-                            </Button>
-                            {/* In update we usually just toggle or update status, or use the same form but with initial data */}
-                            <AddItemStoreMappingForm onSuccess={closeEditForm} initialData={selectedRow} />
-                        </div>
-                    </CollapsibleSection>
-                </div>
-            )}
-        </>
-    );
-}

@@ -9,9 +9,10 @@ import { Plus, X } from 'lucide-react';
 import { useInvTGRN } from '@/hooks/inventory/transactions/use-inv-t-grn';
 import type { IInvTGRN } from '@/types/inventory/transactions/inv-t-grn';
 import AddGRNForm from './_components/add-form';
-import { getColumns } from './_components/columns';
+import { invTGRNColumns } from './_components/columns';
 import UpdateGRNForm from './_components/update-form';
 import ViewGRNDetailsModal from './_components/view-details-modal';
+import { ToggleGRNModal } from './_components/toggle-modal';
 import { Heading } from '@/components/layout/heading';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -40,6 +41,7 @@ function InvTGRNPageContent({
     isLoading: boolean;
     error: any;
 }) {
+    console.log('InvTGRNPageContent: Response Data:', response?.data);
     const {
         openAddForm,
         openEditForm,
@@ -48,25 +50,10 @@ function InvTGRNPageContent({
         openDetailsView,
         selectedRow,
         isDetailsViewOpen,
-        closeDetailsView
+        closeDetailsView,
+        isToggleFormOpen,
+        closeToggleForm
     } = useFormContext<IInvTGRN>();
-
-    const { deleteMutation, toggleActiveMutation } = useInvTGRN();
-
-    const columns = getColumns({
-        onEdit: openEditForm,
-        onDelete: (item) => {
-            if (confirm('Are you sure you want to delete this GRN?')) {
-                deleteMutation.mutate(item);
-            }
-        },
-        onToggleActive: (item) => {
-            if (confirm(`Are you sure you want to ${item.invmgrN_ActiveFlg ? 'deactivate' : 'activate'} this GRN?`)) {
-                toggleActiveMutation.mutate(item);
-            }
-        },
-        onView: openDetailsView
-    });
 
     const tableProps = useDataTableProps(response?.data, {
         dataKey: 'get_GRN',
@@ -101,7 +88,7 @@ function InvTGRNPageContent({
                     <GenericDataTable<IInvTGRN>
                         {...tableProps}
                         data={response?.data?.get_GRN || []}
-                        columns={columns}
+                        columns={invTGRNColumns}
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
@@ -111,6 +98,10 @@ function InvTGRNPageContent({
                         errorTitle='Error Loading GRN Data'
                     />
                 </CollapsibleSection>
+
+                {isToggleFormOpen && selectedRow && (
+                    <ToggleGRNModal rowData={selectedRow} onClose={closeToggleForm} />
+                )}
 
                 {isDetailsViewOpen && selectedRow && (
                     <ViewGRNDetailsModal

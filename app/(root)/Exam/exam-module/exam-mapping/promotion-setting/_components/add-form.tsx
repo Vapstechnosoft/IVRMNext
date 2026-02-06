@@ -6,22 +6,22 @@ import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMasterGradeDropdownList } from '@/hooks/exam/exammodule/usemasters';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import {
     addOrUpdatePromotionSettings,
     getExamSubjectsByCategoryId,
     getIndividualPromotionDetailsById,
-    getPromotionCategoryByAcademicYear,
-    viewIndividualSubjectGroups,
-    viewSubjectsGroupExams
+    getPromotionCategoryByAcademicYear
 } from '@/server/exam/exam-module/exam-mapping/promotional-setting';
-import { useMasterGradeDropdownList } from '@/hooks/exam/exammodule/usemasters';
+import type { IPromotionCategory, IPromotionSetting } from '@/types/exam/exam-module/exam-mapping';
 import { Eye } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { ViewExamsModal } from './group-mapped-exam-model';
 import { ViewGroupsModal } from './group-mapping-model';
-import type { IPromotionSetting, IPromotionCategory } from '@/types/exam/exam-module/exam-mapping';
+import { set } from 'date-fns';
+import { usePromotionalSetting } from '@/hooks/exam/exammodule/exam-mapping';
 
 /**
  * Types
@@ -117,6 +117,7 @@ export default function AddPromotionalSettingForm({
     const [passToOverall, setPassToOverall] = useState<boolean>(false);
     const [bestApplicable, setBestApplicable] = useState<boolean>(false);
     const [bestOff, setBestOff] = useState<number | null>(null);
+    const [isDataSaving, setIsDataSaving] = useState<boolean>(false);
 
     // Mode state
     const [promotionType, setPromotionType] = useState<'M' | 'P' | 'T' | 'F'>('P');
@@ -126,6 +127,7 @@ export default function AddPromotionalSettingForm({
 
     // Grades hook
     const { data: gradeDataList, error: gradeError } = useMasterGradeDropdownList();
+    const { refetchAll } = usePromotionalSetting();
     const grades = gradeDataList?.data || [];
 
     const [subjects, setSubjects] = useState<SubjectRow[]>([]);
@@ -250,7 +252,6 @@ export default function AddPromotionalSettingForm({
                     // Fetch categories for this year
                     await fetchCategories(rowData.asmaY_Id, rowData.emcA_CategoryName, rowData.eyC_Id);
 
-
                     setSelectedCategory(rowData.eyC_Id);
                     setSelectedGrade(String(rowData.emgR_Id));
 
@@ -353,7 +354,6 @@ export default function AddPromotionalSettingForm({
                         bestOff: rowData.emP_BestOf,
                         subjects: finalSubjects
                     });
-
                 } catch (error) {
                     console.error('Error initializing edit:', error);
                     toast.error('Failed to load details for editing');
@@ -575,12 +575,14 @@ export default function AddPromotionalSettingForm({
                 return;
             }
         }
-
+        setIsDataSaving(true);
         const payload = buildPayload();
         console.info('Save payload:', JSON.stringify(payload, null, 2));
         const response = await addOrUpdatePromotionSettings(payload);
+        setIsDataSaving(false);
         if (response.success) {
-            toast.success(response.message || 'Promotion Setting saved successfully');
+            toast.success('Promotion Setting saved successfully');
+            refetchAll();
             if (onSuccess) onSuccess();
             else handleReset();
         } else {
@@ -1111,7 +1113,7 @@ export default function AddPromotionalSettingForm({
 
                 {/* ACTION BUTTONS */}
                 <div className='flex justify-center space-x-4'>
-                    <Button onClick={handleSave}>Save</Button>
+                    <Button className={isDataSaving ? 'cursor-not-allowed' : ''} onClick={handleSave}>{isDataSaving ? 'Saving...' : 'Save'}</Button>
                     <Button onClick={handleReset} variant='outline'>
                         Cancel
                     </Button>
@@ -1147,3 +1149,5 @@ export default function AddPromotionalSettingForm({
         </div>
     );
 }
+
+

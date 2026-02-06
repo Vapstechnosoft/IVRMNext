@@ -3,78 +3,90 @@
 import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { IHostel } from '@/server/hostel/master-hostel/server-action';
 import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
 
-export interface IHostelDisplay extends IHostel {
-    ivrmmC_CountryName?: string;
-    ivrmmS_Name?: string;
-}
 
-const columnHelper = createColumnHelper<IHostelDisplay>();
+const columnHelper = createColumnHelper<IHostel>();
 
-export const masterHostelColumns: ColumnDef<IHostelDisplay, any>[] = [
-    columnHelper.display({
-        id: 'sn',
-        header: 'SL NO',
-        cell: (info) => info.row.index + 1,
-        enableSorting: false
-    }),
-    columnHelper.accessor('hlmH_Name', {
+export const masterHostelColumns: ColumnDef<IHostel, any>[] = [
+    {
+        accessorKey: 'sn',
+        header: ({ column }) => <ColumnHeader column={column} title='Sl.No' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            return <div>{pageIndex * pageSize + row.index + 1}</div>;
+        },
+        enableSorting: false,
+        enableHiding: false
+    },
+    {
+        accessorKey: 'hlmH_Name',
         header: ({ column }) => <ColumnHeader column={column} title='Hostel Name' />
-    }),
-    columnHelper.accessor('hlmH_TotalFloor', {
+    },
+    {
+        accessorKey: 'hlmH_TotalFloor',
         header: ({ column }) => <ColumnHeader column={column} title='Total Floor' />
-    }),
-    columnHelper.accessor('hlmH_TotalRoom', {
+    },
+    {
+        accessorKey: 'hlmH_TotalRoom',
         header: ({ column }) => <ColumnHeader column={column} title='Total Room' />
-    }),
-    columnHelper.accessor('ivrmmC_CountryName', {
+    },
+    {
+        accessorKey: 'ivrmmC_CountryName',
         header: ({ column }) => <ColumnHeader column={column} title='Country' />
-    }),
-    columnHelper.accessor('ivrmmS_Name', {
+    },
+    {
+        accessorKey: 'ivrmmS_Name',
         header: ({ column }) => <ColumnHeader column={column} title='State' />
-    }),
-    columnHelper.accessor('hlmH_City', {
+    },
+    {
+        accessorKey: 'hlmH_City',
         header: ({ column }) => <ColumnHeader column={column} title='City' />
-    }),
-    columnHelper.accessor('hlmH_ContactNo', {
+    },
+    {
+        accessorKey: 'hlmH_ContactNo',
         header: ({ column }) => <ColumnHeader column={column} title='Contact' />
-    }),
-    columnHelper.accessor('hlmH_Address', {
+    },
+    {
+        accessorKey: 'hlmH_Address',
         header: ({ column }) => <ColumnHeader column={column} title='Address' />
-    }),
-    columnHelper.display({
+    },
+    {
         id: 'facilityList',
-        header: 'Facility List',
-        cell: (info) => <ViewFacilitiesCell rowData={info.row.original} />
-    }),
-    columnHelper.display({
+        header: ({ column }) => <ColumnHeader column={column} title='Facility List' />,
+        cell: (info) => <ViewFacilitiesCell rowData={info.row.original} />,
+        enableSorting: false
+    },
+    {
         id: 'wardenList',
-        header: 'Warden List',
-        cell: (info) => <ViewWardensCell rowData={info.row.original} />
-    }),
-    columnHelper.display({
+        header: ({ column }) => <ColumnHeader column={column} title='Warden List' />,
+        cell: (info) => <ViewWardensCell rowData={info.row.original} />,
+        enableSorting: false
+    },
+    {
         id: 'view',
-        header: 'View',
-        cell: (info) => <ViewDocumentsCell rowData={info.row.original} />
-    }),
-    columnHelper.display({
+        header: ({ column }) => <ColumnHeader column={column} title='View' />,
+        cell: (info) => <ViewDocumentsCell rowData={info.row.original} />,
+        enableSorting: false
+    },
+    {
         id: 'actions',
-        header: 'Actions',
+        header: ({ column }) => <ColumnHeader column={column} title='Actions' className='text-center' />,
         cell: (info) => <ActionButtonsCell rowData={info.row.original} />
-    })
+    }
 ];
 
 import { ViewFacilitiesModal, ViewWardensModal, ViewDocumentsModal } from './view-modals';
 import { useState } from 'react';
+import { IHostel } from '@/types/hostel/hostel-management/masters';
 
 // ... (existing imports and interface)
 
 // ... (existing columns definitions up to ViewFacilitiesCell)
 
-function ViewFacilitiesCell({ rowData }: { rowData: IHostelDisplay }) {
+function ViewFacilitiesCell({ rowData }: { rowData: IHostel }) {
     const [isOpen, setIsOpen] = useState(false);
     return (
         <>
@@ -96,7 +108,7 @@ function ViewFacilitiesCell({ rowData }: { rowData: IHostelDisplay }) {
     );
 }
 
-function ViewWardensCell({ rowData }: { rowData: IHostelDisplay }) {
+function ViewWardensCell({ rowData }: { rowData: IHostel }) {
     const [isOpen, setIsOpen] = useState(false);
     return (
         <>
@@ -111,14 +123,14 @@ function ViewWardensCell({ rowData }: { rowData: IHostelDisplay }) {
                 <ViewWardensModal
                     isOpen={isOpen}
                     onClose={() => setIsOpen(false)}
-                    hostel={rowData}
+                    hostel={rowData ?? null}
                 />
             )}
         </>
     );
 }
 
-function ViewDocumentsCell({ rowData }: { rowData: IHostelDisplay }) {
+function ViewDocumentsCell({ rowData }: { rowData: IHostel }) {
     const [isOpen, setIsOpen] = useState(false);
     return (
         <>
@@ -140,8 +152,8 @@ function ViewDocumentsCell({ rowData }: { rowData: IHostelDisplay }) {
     );
 }
 
-function ActionButtonsCell({ rowData }: { rowData: IHostelDisplay }) {
-    const { openEditForm, openToggleForm } = useFormContext<IHostelDisplay>();
+function ActionButtonsCell({ rowData }: { rowData: IHostel }) {
+    const { openEditForm, openToggleForm } = useFormContext<IHostel>();
     return (
         <ActionButtons
             rowData={rowData}

@@ -56,7 +56,6 @@ export async function setMasterLifeSkillAreaOrderList(data: any) {
     return await api.post<any>('exam', url, data);
 }
 
-
 // fetch edit details of a life skill area
 export async function getMasterLifeSkillAreaEditDetails(ecsa_id: number) {
     const url = `/MasterLifeSkillFacade/get_master_life_skill_area_edit_details/${ecsa_id}`;
@@ -68,8 +67,6 @@ export async function toggleMasterLifeSkillArea(id: number) {
     const url = `/MasterLifeSkillFacade/activate_deactivate_master_life_skill_area/${id}`;
     return await api.put('exam', url);
 }
-
-
 
 // add or update life skill area mapping
 export async function addOrUpdateMasterLifeSkillMapping(data: any) {

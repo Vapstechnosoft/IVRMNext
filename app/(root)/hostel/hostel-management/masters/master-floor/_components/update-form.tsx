@@ -1,10 +1,11 @@
 'use client';
 
-import { IFloorDisplay, IFacility, IHostel } from "@/server/hostel/master-floor/server-action";
 import AddMasterFloorForm from "./add-form";
+import { IFacility, IHostel } from "@/types/hostel/hostel-management/masters";
+import { IMasterFloor } from "./columns";
 
 interface UpdateMasterFloorFormProps {
-    rowData: IFloorDisplay | any;
+    rowData: IMasterFloor | any;
     onSuccess: () => void;
     hostels: IHostel[];
     facilities: IFacility[];
@@ -25,8 +26,6 @@ export default function UpdateMasterFloorForm({ rowData, onSuccess, hostels, fac
     return (
         <AddMasterFloorForm
             onSuccess={onSuccess}
-            hostels={hostels}
-            facilities={facilities}
             initialData={initialData}
         />
     );

@@ -6,15 +6,14 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type JuniorsProgressCardReportSchema, juniorsProgressCardReportSchema } from '@/schemas/exam/exam-module/reports';
 import {
     getClasses,
-    getDetails,
     getExamsAndStudents,
     getReportDetails,
     getSections
 } from '@/server/exam/exam-module/reports/juniors-progress-card-report';
-import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';

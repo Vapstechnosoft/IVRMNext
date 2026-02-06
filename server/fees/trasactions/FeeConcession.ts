@@ -105,6 +105,11 @@ export async function getConcessionHeadDetailsList(
     return await api.get<IFeeConcessionHeadList[]>('fees', url);
 }
 
+export async function getconcessionheadgriddatadetails(data: any) {
+    const url = '/FeeConcessionFacade/head-details';
+    return await api.post<IFeeConcessionHeadList[]>('fees', url, data);
+}
+
 export async function getFeesCommonSettingConfigSet(asmaY_Id: number) {
     const url = `FeesCommon/master-setting-by-yearid?asmayId${asmaY_Id || 0}`;
     return await api.get<IFeeCommonSettingConfigSet[]>('fees', url);

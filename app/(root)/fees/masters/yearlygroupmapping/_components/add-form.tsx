@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { DataTable } from '@/components/ui/data-table/data-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
@@ -516,7 +516,12 @@ export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingF
                         <CardTitle className='text-blue-700'>HEAD INSTALLMENT LIST</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <DataTable columns={headInstallmentColumns} data={headInstallments} totalItems={headInstallments.length} />
+                        <GenericDataTable
+                            columns={headInstallmentColumns}
+                            data={headInstallments}
+                            totalItems={headInstallments.length}
+                            isLoading={false}
+                        />
                         {errors.headInstallments && <p className='mt-2 text-red-500 text-sm'>{errors.headInstallments.message}</p>}
 
                         <div className='mt-4 flex items-center justify-end gap-2'>
