@@ -61,7 +61,7 @@ export default function FeeConcessionReport() {
         sectionId: 0,
         includeClassSection: false,
         status: {
-            active: false,
+            active: true,
             deactive: false,
             left: false,
             balance: false
@@ -75,7 +75,9 @@ export default function FeeConcessionReport() {
         dueDate: new Date(),
         dueDateType: 'Due Date' as 'Due Date' | 'Till Due Date',
         bulkDownload: false,
-        dateFilter: '1' as '1' | '2' | '3' | '4'
+        dateFilter: '1' as '1' | '2' | '3' | '4',
+        fromDate: null as Date | null,
+        toDate: null as Date | null
     });
 
     const [academicYears, setAcademicYears] = useState<IAcademicYear[]>([]);
@@ -311,6 +313,17 @@ export default function FeeConcessionReport() {
     ];
 
     const handleSubmit = () => {
+        if (filters.status.active === false && filters.status.deactive === false && filters.status.left === false) {
+            setShowReport(false);
+            return toast.error('Please select at least one Status Active or Deactive or Left');
+        }
+        if (filters.viewMode === 'date') {
+            if (!filters.fromDate || !filters.toDate) {
+                setShowReport(false);
+                return toast.error('Please select From Date and To Date');
+            }
+        }
+
         setReportLoading(true);
 
         setTimeout(() => {
@@ -614,9 +627,9 @@ export default function FeeConcessionReport() {
                                 <div className='mt-4 flex items-center justify-center rounded border bg-gray-50 p-4 shadow-sm'>
                                     <div className='flex items-center gap-6'>
                                         <div className='flex flex-col'>
-                                            <label htmlFor='fromDate' className='font-medium'>
+                                            <Label htmlFor='fromDate' className='font-medium'>
                                                 From Date:
-                                            </label>
+                                            </Label>
                                             <input
                                                 id='fromDate'
                                                 type='date'
@@ -631,9 +644,9 @@ export default function FeeConcessionReport() {
                                         </div>
 
                                         <div className='flex flex-col'>
-                                            <label htmlFor='toDate' className='font-medium'>
+                                            <Label htmlFor='toDate' className='font-medium'>
                                                 To Date:
-                                            </label>
+                                            </Label>
                                             <input
                                                 id='toDate'
                                                 type='date'

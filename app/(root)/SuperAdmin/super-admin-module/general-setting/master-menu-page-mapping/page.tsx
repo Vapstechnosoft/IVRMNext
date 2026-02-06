@@ -4,13 +4,15 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { getOnLoadData, deleteMasterMenuPageMapping } from '@/server/super-admin/super-admin-module/general-setting/master-menu-page-mapping';
+import { getOnLoadData, deleteMasterMenuPageMapping, getModuleDropdown } from '@/server/super-admin/super-admin-module/general-setting/master-menu-page-mapping';
 import type { IMasterMenuPageMappingDTO } from '@/types/super-admin/super-admin-module/general-setting/master-menu-page-mapping';
 import { Plus, X } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import AddMasterMenuPageMappingForm from './_components/add-form';
 import { columns } from './_components/columns';
+import { useQueryState, parseAsInteger, parseAsString } from 'nuqs';
+import { tableSearchVariables } from '@/lib/data-table.config';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -34,26 +36,50 @@ export default function MasterMenuPageMappingPage() {
 function MasterMenuPageMappingPageContent() {
     const { openAddForm } = useFormContext<IMasterMenuPageMappingDTO>();
     const [data, setData] = useState<IMasterMenuPageMappingDTO[]>([]);
-    const [modules, setModules] = useState<any[]>([]); // Using any for dropdown items initially, can be typed
+    const [modules, setModules] = useState<any[]>([]);
     const [pages, setPages] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [totalItems, setTotalItems] = useState(0);
 
-    const fetchData = () => {
+    // NUQS Hooks for URL State Management
+    const [page, setPage] = useQueryState(tableSearchVariables.page.toString(), parseAsInteger.withDefault(1));
+    const [pageSize, setPageSize] = useQueryState(tableSearchVariables.page_size.toString(), parseAsInteger.withDefault(10));
+    const [searchQuery, setSearchQuery] = useQueryState(tableSearchVariables.search.toString(), parseAsString.withDefault(''));
+    const [sortBy, setSortBy] = useQueryState(tableSearchVariables.sort_column.toString(), parseAsString.withDefault(''));
+    const [sortDirection, setSortDirection] = useQueryState(tableSearchVariables.sort_direction.toString(), parseAsString.withDefault('asc'));
+
+    const fetchData = useCallback(() => {
         setIsLoading(true);
-        getOnLoadData().then(res => {
-            if (res.success) {
-                setData(res.data.GridDetails || []); // Assuming GridDetails based on previous analysis
-                // Also need modules and pages for the form
-                setModules(res.data.modulename || []);
-                setPages(res.data.pages || []);
+        const gridPromise = getOnLoadData({
+            page,
+            page_size: pageSize,
+            sort_column: sortBy,
+            sort_direction: sortDirection,
+            search_query: searchQuery
+        });
+
+        const modulePromise = getModuleDropdown();
+
+        Promise.all([gridPromise, modulePromise]).then(([gridRes, moduleRes]) => {
+            if (gridRes.success) {
+                setData(gridRes.data.GridDetails || []);
+                // If API returns pages in onload, keep it, else it might be another call. 
+                // User only gave Module Dropdown API.
+                setPages(gridRes.data.pages || []);
+                setTotalItems(gridRes.total || 0);
             }
+
+            if (moduleRes.success) {
+                setModules(moduleRes.data || []);
+            }
+
             setIsLoading(false);
         });
-    };
+    }, [page, pageSize, sortBy, sortDirection, searchQuery]);
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [fetchData]);
 
     const refreshData = () => {
         fetchData();
@@ -84,7 +110,7 @@ function MasterMenuPageMappingPageContent() {
                         data={data}
                         columns={columns}
                         isLoading={isLoading}
-                        totalItems={data.length}
+                        totalItems={totalItems}
                     />
                 </div>
             </CollapsibleSection>
@@ -115,7 +141,7 @@ function FormSections({ onRefresh, modules, allPages }: { onRefresh: () => void,
         if (!selectedRow) return;
         setIsDeleting(true);
         try {
-            const res = await deleteMasterMenuPageMapping(selectedRow.ivrmmmpM_Id); // Use correct ID field
+            const res = await deleteMasterMenuPageMapping(selectedRow.ivrmmmpM_Id);
             if (res.success) {
                 toast.success('Record deleted successfully');
                 closeDeleteForm();

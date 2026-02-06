@@ -5,15 +5,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useEmployeeDropdownList } from '@/hooks/exam/exammodule/exam-mapping';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type ExamLoginPrivilegesSchema, examLoginPrivilegesReportSchema } from '@/schemas/exam/exam-module/reports';
-import {
-    getCategories,
-    getClasses,
-    getDetails,
-    getEmployees,
-    getReportDetails,
-    getSections
-} from '@/server/exam/exam-module/reports/exam-login-privileges-report';
+import { getCategoryDropDownByAcademicYearlist } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
+import { getExamLoginPrivilagesReport } from '@/server/exam/exam-module/reports/exam-login-privileges-report';
+import { getSectionsDropDownByAcademicYearandClasslist } from '@/server/exam/exam-module/reports/tbs-report-school';
+import { getClassDropDownByYearCategoryList } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -26,16 +24,12 @@ interface ReportFormProps {
 }
 
 export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
-    const [years, setYears] = useState<any[]>([]);
     const [categories, setCategories] = useState<any[]>([]);
     const [classes, setClasses] = useState<any[]>([]);
     const [sections, setSections] = useState<any[]>([]);
-    const [employees, setEmployees] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
     const [loadingCategories, setLoadingCategories] = useState(false);
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
-    const [loadingEmployees, setLoadingEmployees] = useState(false);
 
     const methods = useForm<ExamLoginPrivilegesSchema>({
         resolver: zodResolver(examLoginPrivilegesReportSchema),
@@ -47,132 +41,141 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     });
 
     const { control, handleSubmit, setValue, reset, formState } = methods;
+    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
+    const { data: employeeData, isLoading: employeeDataLoading, error: employeeDataError } = useEmployeeDropdownList();
     const { isSubmitting } = formState;
 
     const watchYear = useWatch({ control, name: 'ASMAY_Id' });
     const watchCategory = useWatch({ control, name: 'EMCA_Id' });
     const watchType = useWatch({ control, name: 'type' });
     const watchClass = useWatch({ control, name: 'ASMCL_Id' });
-    const watchSection = useWatch({ control, name: 'ASMS_Id' });
     const watchEmployeeChecked = useWatch({ control, name: 'employeeChecked' });
 
-    // Initial Data
+    // Clear employee selection when checkbox is unchecked
     useEffect(() => {
-        getDetails()
-            .then((res) => {
-                setYears(res.acdlist || []);
-                if (!res.acdlist || res.acdlist.length === 0) {
-                    toast.info('No Academic Years found');
-                }
-                setLoading(false);
-            })
-            .catch((err) => {
-                console.error(err);
-                toast.error('Failed to load initial data');
-                setLoading(false);
-            });
-    }, []);
+        if (!watchEmployeeChecked) {
+            setValue('HRME_Id', undefined);
+        }
+    }, [watchEmployeeChecked, setValue]);
 
     // Load Categories on Year Change
     useEffect(() => {
-        if (watchYear) {
-            setLoadingCategories(true);
-            getCategories(watchYear)
-                .then((res) => {
-                    setCategories(res.catlist || []);
-                    if (!res.catlist || res.catlist.length === 0) {
-                        toast.info('No Categories found');
-                    }
-                    setLoadingCategories(false);
-                })
-                .catch((err) => {
-                    console.error(err);
-                    toast.error('Failed to load categories');
-                    setLoadingCategories(false);
-                });
-            setValue('EMCA_Id', '');
-            setValue('ASMCL_Id', undefined);
-            setValue('ASMS_Id', undefined);
-        } else {
+        if (!watchYear) {
             setCategories([]);
+            setValue('EMCA_Id', '0');
+            return;
         }
+
+        const fetchCategories = async () => {
+            setLoadingCategories(true);
+            try {
+                const { data: cats } = await getCategoryDropDownByAcademicYearlist(30, Number(watchYear));
+                const categoryList = Array.isArray(cats) ? cats : [];
+                setCategories(categoryList);
+
+                if (categoryList.length === 0) {
+                    toast.info('No categories found for selected academic year');
+                }
+                setValue('EMCA_Id', '0');
+            } catch (err: any) {
+                toast.error(err?.message ?? 'Failed to load categories');
+                setCategories([]);
+            } finally {
+                setLoadingCategories(false);
+            }
+        };
+
+        fetchCategories();
     }, [watchYear, setValue]);
 
     // Load Classes on Category Change
     useEffect(() => {
-        if (watchCategory) {
-            setLoadingClasses(true);
-            getClasses(watchCategory)
-                .then((res) => {
-                    setClasses(res.ctlist || []);
-                    if (!res.ctlist || res.ctlist.length === 0) {
+        if (watchYear && watchCategory) {
+            const fetchClasses = async () => {
+                setLoadingClasses(true);
+                try {
+                    const res = await getClassDropDownByYearCategoryList(Number(watchYear), Number(watchCategory));
+                    const safeClasses = Array.isArray(res) ? res : [];
+
+                    if (safeClasses.length === 0) {
                         toast.info('No Classes found');
                     }
-                    setLoadingClasses(false);
-                })
-                .catch((err) => {
+
+                    setClasses(safeClasses);
+                    setValue('ASMCL_Id', undefined);
+                } catch (err) {
                     console.error(err);
                     toast.error('Failed to load classes');
+                    setClasses([]);
+                } finally {
                     setLoadingClasses(false);
-                });
-            setValue('ASMCL_Id', undefined);
+                }
+            };
+
+            fetchClasses();
         } else {
             setClasses([]);
+            setValue('ASMCL_Id', undefined);
         }
-    }, [watchCategory, setValue]);
+    }, [watchYear, watchCategory, setValue]);
 
     // Load Sections on Class Change
     useEffect(() => {
-        if (watchClass) {
-            setLoadingSections(true);
-            getSections(watchClass)
-                .then((res) => {
-                    setSections(res.seclist || []);
-                    if (!res.seclist || res.seclist.length === 0) {
-                        toast.info('No Sections found');
-                    }
-                    setLoadingSections(false);
-                })
-                .catch((err) => {
-                    console.error(err);
-                    toast.error('Failed to load sections');
-                    setLoadingSections(false);
-                });
-            setValue('ASMS_Id', undefined);
-        } else {
+        if (!watchYear || !watchClass) {
             setSections([]);
+            setValue('ASMS_Id', undefined);
+            return;
         }
-    }, [watchClass, setValue]);
 
-    // Load Employees on Section Change
-    useEffect(() => {
-        if (watchSection) {
-            setLoadingEmployees(true);
-            getEmployees(watchSection)
-                .then((res) => {
-                    setEmployees(res.emplist || []);
-                    if (!res.emplist || res.emplist.length === 0) {
-                        toast.info('No Employees found');
-                    }
-                    setLoadingEmployees(false);
-                })
-                .catch((err) => {
-                    console.error(err);
-                    toast.error('Failed to load employees');
-                    setLoadingEmployees(false);
-                });
-            setValue('HRME_Id', undefined);
-        } else {
-            setEmployees([]);
-        }
-    }, [watchSection, setValue]);
+        const fetchSections = async () => {
+            try {
+                setLoadingSections(true);
+                const { data } = await getSectionsDropDownByAcademicYearandClasslist(
+                    Number(watchYear),
+                    Number(watchClass)
+                );
 
-    const onSubmit = async (data: ExamLoginPrivilegesSchema) => {
+                const sectionList = Array.isArray(data) ? data : [];
+                setSections(sectionList);
+
+                if (sectionList.length === 0) {
+                    toast.info('No Sections found');
+                }
+
+                setValue('ASMS_Id', undefined);
+            } catch (error) {
+                console.error(error);
+                toast.error('Failed to load sections');
+            } finally {
+                setLoadingSections(false);
+            }
+        };
+
+        fetchSections();
+    }, [watchYear, watchClass, setValue]);
+
+    const onSubmit = async (formData: ExamLoginPrivilegesSchema) => {
         try {
-            const result = await getReportDetails(data);
-            onReportGenerated(result.datareport);
+            const payload = {
+                ASMAY_Id: Number(formData.ASMAY_Id),
+                EMCA_Id: Number(formData.EMCA_Id),
+                ASMCL_Id: formData.ASMCL_Id ? Number(formData.ASMCL_Id) : null,
+                ASMS_Id: formData.ASMS_Id ? Number(formData.ASMS_Id) : null,
+                HRME_Id: formData.employeeChecked && formData.HRME_Id ? Number(formData.HRME_Id) : null,
+                report_type: formData.type,
+                check_type: formData.employeeChecked ? 'individual' : 'all'
+            };
+
+            const response = await getExamLoginPrivilagesReport(payload);
+
+            if (response.success) {
+                onReportGenerated(response.data);
+            } else {
+                toast.error(response.message ?? 'Failed to generate report');
+            }
         } catch (error) {
-            console.error('Error generating report:', error);
+            console.error(error);
+            toast.error('Error generating report');
         }
     };
 
@@ -182,15 +185,11 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
             employeeChecked: false,
             selectAllEmployees: false
         });
+        setCategories([]);
+        setClasses([]);
+        setSections([]);
         onReset();
     };
-
-    if (loading)
-        return (
-            <div className='flex justify-center p-4'>
-                <Loader2 className='animate-spin' />
-            </div>
-        );
 
     return (
         <div className='mx-auto w-full rounded-lg border border-gray-200 bg-white p-4 shadow-md'>
@@ -232,19 +231,23 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                     name='ASMAY_Id'
                                     render={({ field, fieldState }) => (
                                         <>
-                                            <Select key={field.value} onValueChange={field.onChange} value={field.value}>
+                                            <Select onValueChange={field.onChange} value={field.value}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Academic Year' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {years.length === 0 ? (
-                                                        <SelectItem value='0' disabled>
-                                                            No Academic Years found
+                                                    {academicYearLoading ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading Academic Year...
+                                                        </SelectItem>
+                                                    ) : academicYearError ? (
+                                                        <SelectItem value='error' disabled>
+                                                            Error loading Academic Year
                                                         </SelectItem>
                                                     ) : (
-                                                        years.map((year) => (
-                                                            <SelectItem key={year.asmaY_Id} value={String(year.asmaY_Id)}>
-                                                                {year.asmaY_Year}
+                                                        academicYear?.data?.map((item) => (
+                                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                                {item.asmaY_Year}
                                                             </SelectItem>
                                                         ))
                                                     )}
@@ -266,7 +269,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                     name='EMCA_Id'
                                     render={({ field, fieldState }) => (
                                         <>
-                                            <Select key={field.value} onValueChange={field.onChange} value={field.value}>
+                                            <Select onValueChange={field.onChange} value={field.value}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select Category' />
                                                 </SelectTrigger>
@@ -305,7 +308,6 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                     render={({ field, fieldState }) => (
                                         <>
                                             <Select
-                                                key={field.value}
                                                 onValueChange={field.onChange}
                                                 value={field.value}
                                                 disabled={watchType !== 'individual'}>
@@ -347,7 +349,6 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                     render={({ field, fieldState }) => (
                                         <>
                                             <Select
-                                                key={field.value}
                                                 onValueChange={field.onChange}
                                                 value={field.value}
                                                 disabled={watchType !== 'individual'}>
@@ -379,19 +380,6 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                             </div>
                         </div>
 
-                        <div className='mt-4 grid grid-cols-1 gap-6 text-sm md:grid-cols-2'>
-                            <Controller
-                                control={control}
-                                name='selectAllEmployees'
-                                render={({ field }) => (
-                                    <div className='flex items-center space-x-2 rounded border p-3'>
-                                        <Checkbox id='selectAll' checked={field.value} onCheckedChange={field.onChange} />
-                                        <Label htmlFor='selectAll'>Select All Employees</Label>
-                                    </div>
-                                )}
-                            />
-                        </div>
-
                         <div className='mt-4 grid grid-cols-1 gap-6 md:grid-cols-2'>
                             <div className='flex items-center space-x-2 rounded border p-3'>
                                 <Controller
@@ -412,26 +400,26 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
                                     render={({ field, fieldState }) => (
                                         <>
                                             <Select
-                                                key={field.value}
                                                 onValueChange={field.onChange}
                                                 value={field.value}
-                                                disabled={!watchEmployeeChecked}>
+                                                disabled={!watchEmployeeChecked}
+                                            >
                                                 <SelectTrigger className={!watchEmployeeChecked ? 'bg-gray-100' : ''}>
                                                     <SelectValue placeholder='Select Employee' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {loadingEmployees ? (
-                                                        <SelectItem value='0' disabled>
-                                                            Employees are loading...
+                                                    {employeeDataLoading ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading Employees...
                                                         </SelectItem>
-                                                    ) : employees.length === 0 ? (
-                                                        <SelectItem value='0' disabled>
-                                                            No Employees found
+                                                    ) : employeeDataError ? (
+                                                        <SelectItem value='error' disabled>
+                                                            Error loading Employees
                                                         </SelectItem>
                                                     ) : (
-                                                        employees.map((emp) => (
-                                                            <SelectItem key={emp.hrmE_Id} value={String(emp.hrmE_Id)}>
-                                                                {emp.hrmE_EmployeeFirstName}
+                                                        employeeData?.data?.map((item: any) => (
+                                                            <SelectItem key={item.hrmE_Id} value={item.hrmE_Id.toString()}>
+                                                                {item.hrmE_EmployeeName}
                                                             </SelectItem>
                                                         ))
                                                     )}
@@ -446,10 +434,11 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
 
                         <div className='mt-8 flex justify-center gap-4'>
                             <Button type='submit' disabled={isSubmitting}>
-                                {isSubmitting ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null} Report
+                                {isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+                                Generate Report
                             </Button>
                             <Button type='button' variant='outline' onClick={handleClear} disabled={isSubmitting}>
-                                Cancel
+                                Clear
                             </Button>
                         </div>
                     </div>
