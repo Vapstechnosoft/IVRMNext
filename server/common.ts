@@ -2862,6 +2862,14 @@ export async function getUserAccessibleModules() {
                                             url: '/SuperAdmin/super-admin-module/configuration-setting/master-sub-menu-ins',
                                             title: 'Master Sub Menu INS',
                                             description: 'Master Sub Menu Institution Mapping'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'MasterMenu Page Mapping Institutionwise',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/configuration-setting/master-menu-page-mapping-institutionwise',
+                                            title: 'MasterMenu Page Mapping Institutionwise',
+                                            description: 'MasterMenu Page Mapping Institutionwise'
                                         }
                                     ]
                                 },
@@ -2959,6 +2967,29 @@ export async function getUserAccessibleModules() {
                                             url: '/SuperAdmin/super-admin-module/general-setting/master-school-type',
                                             title: 'Master School Type',
                                             description: 'Manage Master School Type'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 5,
+                                    name: 'Mobile Configuration',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Mobile Master Page',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/configuration-setting/mobilemasterpage',
+                                            title: 'Mobile App Master Pages',
+                                            description: 'Manage Mobile App Master Pages'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Mobile Role Privileges',
+                                            icon: 'Settings',
+                                            url: '/SuperAdmin/super-admin-module/configuration-setting/mobileroleprivileges',
+                                            title: 'Mobile Role Privileges',
+                                            description: 'Manage Mobile Role Privileges'
                                         }
                                     ]
                                 }
