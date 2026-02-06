@@ -1099,6 +1099,7 @@ export async function getUserAccessibleModules() {
                         }
                     ]
                 },
+
                 {
                     id: 3,
                     name: 'Exam',
@@ -4673,6 +4674,54 @@ export async function getUserAccessibleModules() {
                                             url: '/Sports/Masters/House',
                                             title: 'Master House',
                                             description: 'Manage Master House'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'Master House Designation',
+                                            icon: 'Trophy',
+                                            url: '/Sports/Masters/HouseDesignation',
+                                            title: 'Master House Designation',
+                                            description: 'Manage Master House Designation'
+                                        },
+                                        {
+                                            id: 10,
+                                            name: 'Master Sports CC Group',
+                                            icon: 'Trophy',
+                                            url: '/Sports/Masters/MasterSportsCCGroup',
+                                            title: 'Master Sports CC Group',
+                                            description: 'Manage Master Sports CC Group'
+                                        },
+                                        {
+                                            id: 11,
+                                            name: 'Master Competition Category',
+                                            icon: 'Trophy',
+                                            url: '/Sports/Masters/CompetitionCategory',
+                                            title: 'Master Competition Category',
+                                            description: 'Manage Master Competition Category'
+                                        },
+                                        {
+                                            id: 12,
+                                            name: 'Master Sports CC Name UOM',
+                                            icon: 'Trophy',
+                                            url: '/Sports/Masters/SportsCCNameUOM',
+                                            title: 'Master Sports CC Name UOM',
+                                            description: 'Manage Master Sports CC Name UOM'
+                                        },
+                                        {
+                                            id: 13,
+                                            name: 'Student House Mapping',
+                                            icon: 'Trophy',
+                                            url: '/Sports/Masters/StudentHouseMapping',
+                                            title: 'Student House Mapping',
+                                            description: 'Map Students to Houses'
+                                        },
+                                        {
+                                            id: 14,
+                                            name: 'Master SportsCC Name',
+                                            icon: 'Settings',
+                                            url: '/Sports/Masters/SportsCCName',
+                                            title: 'Master SportsCC Name',
+                                            description: 'Manage Master SportsCC Name'
                                         }
                                     ]
                                 },
@@ -4712,6 +4761,22 @@ export async function getUserAccessibleModules() {
                                             url: '/Sports/Transactions/SportVenuewiseParticipationReport',
                                             title: 'Sport Venuewise Participation Report',
                                             description: 'Manage Sport Venuewise Participation Report'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Events Mapping',
+                                            icon: 'Activity',
+                                            url: '/Sports/Transactions/EventsMapping',
+                                            title: 'Events Mapping',
+                                            description: 'Manage Events Mapping'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Events Student Mapping',
+                                            icon: 'Activity',
+                                            url: '/Sports/Transactions/EventsStudentMapping',
+                                            title: 'Events Student Mapping',
+                                            description: 'Manage Events Student Mapping'
                                         }
                                     ]
                                 },
@@ -4726,8 +4791,9 @@ export async function getUserAccessibleModules() {
                                             icon: 'FileText',
                                             url: '/Sports/Reports/StudentEligbleReport',
                                             title: 'Student Eligible Report',
-                                            description: 'Student Eligible Report'
+                                            description: 'Generate Student Eligible Report'
                                         },
+
                                         {
                                             id: 2,
                                             name: 'Student Age Calculation Report',
@@ -4768,14 +4834,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Sport House Report',
                                             description: 'Sport House Report'
                                         },
-                                        {
-                                            id: 7,
-                                            name: 'Sport Student Participation Report',
-                                            icon: 'FileText',
-                                            url: '/Sports/Reports/SportStudentParticipationReport',
-                                            title: 'Sport Student Participation Report',
-                                            description: 'Sport Student Participation Report'
-                                        },
+                                        // {
+                                        //     id: 7,
+                                        //     name: 'Sport Student Participation Report',
+                                        //     icon: 'FileText',
+                                        //     url: '/Sports/Reports/SportStudentParticipationReport',
+                                        //     title: 'Sport Student Participation Report',
+                                        //     description: 'Sport Student Participation Report'
+                                        // },
                                         {
                                             id: 8,
                                             name: 'Sport Topper List Report',
@@ -4791,6 +4857,54 @@ export async function getUserAccessibleModules() {
                                             url: '/Sports/Reports/SportsYearEndReport',
                                             title: 'Sports Year End Report',
                                             description: 'Sports Year End Report'
+                                        },
+                                        {
+                                            id: 10,
+                                            name: 'SRKVS Sports Report Record',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/SRKVSSportsReportRecord',
+                                            title: 'SRKVS Sports Report Record',
+                                            description: 'View SRKVS Sports Report Record'
+                                        },
+                                        {
+                                            id: 11,
+                                            name: 'Venue Wise Participation',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/VenueWiseParticipationReport',
+                                            title: 'Venue Wise Participation',
+                                            description: 'View Venue Wise Participation Report'
+                                        },
+                                        {
+                                            id: 12,
+                                            name: 'Month End Report',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/MonthEndReport',
+                                            title: 'Month End Report',
+                                            description: 'View Month End Report'
+                                        },
+                                        {
+                                            id: 13,
+                                            name: 'Points Record Report',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/PointsRecordReport',
+                                            title: 'Points Record Report',
+                                            description: 'View Points Record Report'
+                                        },
+                                        {
+                                            id: 14,
+                                            name: 'Sport Points And Record Report',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/SportPointsAndRecordReport',
+                                            title: 'Sport Points And Record Report',
+                                            description: 'View Sport Points And Record Report'
+                                        },
+                                        {
+                                            id: 15,
+                                            name: 'Eligibility Certificate Report',
+                                            icon: 'FileText',
+                                            url: '/Sports/Reports/EligibilityCertificateReport',
+                                            title: 'Eligibility Certificate Report',
+                                            description: 'Generate Eligibility Certificate Report'
                                         }
                                     ]
                                 }
