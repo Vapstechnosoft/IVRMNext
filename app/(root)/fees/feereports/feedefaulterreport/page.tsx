@@ -152,7 +152,7 @@ export default function FeeDefaulterReport() {
         busRouteIds: [] as number[],
         formatI: false,
         dueDate: new Date(),
-        dueDateType: 'Due Date' as 'Due Date' | 'Till Due Date',
+        dueDateType: 'duedate' as 'duedate' | 'tillduedate',
         bulkDownload: false
     });
 
@@ -859,7 +859,8 @@ export default function FeeDefaulterReport() {
                     term_group: term_group,
                     Select_Button: filters.userType,
                     yearid: 0,
-                    studenttype: 'active'
+                    studenttype: 'active',
+                    p_due:filters.dueDateType
                 };
             }
 
@@ -1828,11 +1829,11 @@ export default function FeeDefaulterReport() {
                                                         <input
                                                             type='radio'
                                                             name='dueDateType'
-                                                            checked={filters.dueDateType === 'Due Date'}
+                                                            checked={filters.dueDateType === 'duedate'}
                                                             onChange={() =>
                                                                 setFilters((prev) => ({
                                                                     ...prev,
-                                                                    dueDateType: 'Due Date'
+                                                                    dueDateType: 'duedate'
                                                                 }))
                                                             }
                                                             className='h-4 w-4 text-primary'
@@ -1843,11 +1844,11 @@ export default function FeeDefaulterReport() {
                                                         <input
                                                             type='radio'
                                                             name='dueDateType'
-                                                            checked={filters.dueDateType === 'Till Due Date'}
+                                                            checked={filters.dueDateType === 'tillduedate'}
                                                             onChange={() =>
                                                                 setFilters((prev) => ({
                                                                     ...prev,
-                                                                    dueDateType: 'Till Due Date'
+                                                                    dueDateType: 'tillduedate'
                                                                 }))
                                                             }
                                                             className='h-4 w-4 text-primary'
