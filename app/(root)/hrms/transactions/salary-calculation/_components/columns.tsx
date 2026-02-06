@@ -4,7 +4,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { EmployeeDropdown } from '@/types/hrms/reports/employee-profile-report';
 import type { ColumnDef } from '@tanstack/react-table';
-export interface Employee extends EmployeeDropdown {
+export interface Employee extends Omit<Partial<EmployeeDropdown>, 'HRME_EmployeeLastName'> {
+    HRME_Id: number;
+    HRME_EmployeeFirstName: string;
+    HRME_EmployeeLastName: string | null;
+    HRMGT_Id: number;
+    HRMD_Id: number;
+    HRMDES_Id: number;
     calculationStatus: 'Not Calculated' | 'Calculated' | 'Recalculated';
     calculatedDate?: string;
     basicSalary?: number;
@@ -45,16 +51,6 @@ export function getSalaryCalculationColumns({
             enableHiding: false
         },
         {
-            accessorKey: 'slNo',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='SL. No' />,
-            cell: ({ row, table }) => {
-                const index = table.getSortedRowModel().rows.findIndex((r) => r.id === row.id);
-                return <div>{index + 1}</div>;
-            },
-            enableSorting: false,
-            enableHiding: false
-        },
-        {
             accessorKey: 'HRME_EmployeeCode',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
             cell: ({ row }) => <div>{row.getValue('HRME_EmployeeCode')}</div>,
@@ -69,56 +65,6 @@ export function getSalaryCalculationColumns({
                 const fullName =
                     `${employee.HRME_EmployeeFirstName} ${employee.HRME_EmployeeMiddleName || ''} ${employee.HRME_EmployeeLastName || ''}`.trim();
                 return <div>{fullName}</div>;
-            },
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'basicSalary',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Basic Salary' />,
-            cell: ({ row }) => <div>₹{Number(row.getValue('basicSalary') || 0).toFixed(2)}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'allowances',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Allowances' />,
-            cell: ({ row }) => <div>₹{Number(row.getValue('allowances') || 0).toFixed(2)}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'deductions',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Deductions' />,
-            cell: ({ row }) => <div>₹{Number(row.getValue('deductions') || 0).toFixed(2)}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'netSalary',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Net Salary' />,
-            cell: ({ row }) => <div>₹{Number(row.getValue('netSalary') || 0).toFixed(2)}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'calculationStatus',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-            cell: ({ row }) => {
-                const status = row.getValue('calculationStatus') as string;
-                const getStatusVariant = (status: string) => {
-                    switch (status) {
-                        case 'Not Calculated':
-                            return 'secondary';
-                        case 'Calculated':
-                            return 'success';
-                        case 'Recalculated':
-                            return 'default';
-                        default:
-                            return 'secondary';
-                    }
-                };
-                return <Badge variant={getStatusVariant(status) as any}>{status}</Badge>;
             },
             enableSorting: true,
             enableHiding: true

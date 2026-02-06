@@ -114,9 +114,6 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
         defaultValue: 'Amount'
     });
     useEffect(() => {
-        trigger('HRMED_AmountPercent');
-    }, [calculationType, trigger]);
-    useEffect(() => {
         if (row) {
             reset({
                 HRMED_Id: row.hrmeD_Id,
