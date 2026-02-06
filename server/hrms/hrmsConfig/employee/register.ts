@@ -88,7 +88,7 @@ export async function getGroupTypeDropdown() {
  * GET /api/MasterDepartment
  */
 export async function getDepartmentDropdown() {
-    const url = '/api/MasterDepartment';
+    const url = '/api/MasterDropDown/GetDepartments';
     console.log('🔍 [API DEBUG] Fetching Departments from:', url);
     try {
         const response = await api.get<IDepartmentDropdown[]>('hrms', url);
