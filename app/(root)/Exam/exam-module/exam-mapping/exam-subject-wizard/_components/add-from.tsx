@@ -369,7 +369,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                             // ---------------------------
                             // Sub-Subject Mapping
                             if (updated.EYCES_SubSubjectFlg && !updated.EYCES_SubExamFlg) {
-                                console.info(30, updated.EYCES_Id);
+                                console.info(updated.EYCES_Id);
                                 const { data: mappedList } = await getSubSubjectsMappedList(updated.EYCES_Id);
                                 if (mappedList?.length) {
                                     console.log('mapped subsubjectData', mappedList);
