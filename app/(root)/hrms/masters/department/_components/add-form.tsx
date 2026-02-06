@@ -32,7 +32,7 @@ export default function AddDepartmentForm({ onSuccess, className = '' }: AddDepa
         resolver: zodResolver(hrmsMasterSchemas.department.add),
         mode: 'onChange',
         defaultValues: {
-            hrmD_Order: 0
+            hrmD_Order: undefined as any
         }
     });
 
@@ -41,7 +41,7 @@ export default function AddDepartmentForm({ onSuccess, className = '' }: AddDepa
             const payload = {
                 hrmD_Id: 0,
                 hrmD_DepartmentName: data.hrmD_DepartmentName?.trim() || '',
-                hrmD_Order: data.hrmD_Order || 0,
+                hrmD_Order: Number(data.hrmD_Order) || 0,
                 hrmD_InternalTrainingMinimumHrs: data.hrmD_InternalTrainingMinimumHrs || 0,
                 hrmD_ActiveFlag: true
             };
@@ -87,9 +87,10 @@ export default function AddDepartmentForm({ onSuccess, className = '' }: AddDepa
                                 <InputNumber
                                     label='Order'
                                     id='hrmD_Order'
-                                    value={field.value}
+                                    placeholder='Enter order'
+                                    value={field.value ?? undefined}
                                     onChange={(value) => {
-                                        const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                        const numValue = value !== null && value !== undefined && !Number.isNaN(value) ? Number(value) : undefined;
                                         field.onChange(numValue);
                                     }}
                                     onBlur={field.onBlur}

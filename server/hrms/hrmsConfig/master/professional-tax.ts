@@ -5,7 +5,9 @@ import type { ApiSearchparams } from '@/types';
 import type { IMasterProfessionalTaxList } from '@/types/hrms/hrms-config/master';
 
 export async function getMasterProfessionalTax(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const searchableColumns = 'hrmpT_SalaryFrom,hrmpT_SalaryTo,hrmpT_PTax';
+    const columnsToSearch = (searchParams as any)?.search_column || (searchParams as any)?.search_columns || searchableColumns;
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, columnsToSearch);
     const url = `/api/MasterProfessionalTax?${urlParams}`;
     return await api.get<IMasterProfessionalTaxList[]>('hrms', url);
 }

@@ -1745,14 +1745,14 @@ export async function getUserAccessibleModules() {
                                         //     title: 'Salary Approval',
                                         //     description: 'Approve Calculated Salaries'
                                         // },
-                                        // {
-                                        //     id: 2,
-                                        //     name: 'Salary Calculation',
-                                        //     icon: 'Calculator',
-                                        //     url: '/hrms/transactions/salary-calculation',
-                                        //     title: 'Salary Calculation',
-                                        //     description: 'Calculate Employee Salary'
-                                        // },
+                                        {
+                                            id: 2,
+                                            name: 'Salary Calculation',
+                                            icon: 'Calculator',
+                                            url: '/hrms/transactions/salary-calculation',
+                                            title: 'Salary Calculation',
+                                            description: 'Calculate Employee Salary'
+                                        },
                                         // {
                                         //     id: 3,
                                         //     name: 'Salary Increment Process',
